@@ -2842,8 +2842,11 @@ let _Entities = {
 			}
 		});
 	},
-	isContentElement: function (entity) {
+	isContentElement: (entity) => {
 		return (entity.type === 'Template' || entity.type === 'Content');
+	},
+	isLinkableEntity: (entity) => {
+		return (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object');
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		const oldVal = entity[key];

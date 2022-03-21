@@ -344,19 +344,23 @@ let _Elements = {
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
 
-		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
-
-			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-action-icon', 'icon-grey']));
-			iconsContainer.prepend(linkIconElement);
+		if (_Entities.isLinkableEntity(entity)) {
 
 			if (entity.linkableId) {
 
-				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', (linkedEntity) => {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate,path', (linkedEntity) => {
 
 					let linkableText = $(`<span class="linkable${(linkedEntity.isImage ? ' default-cursor' : '')}">${linkedEntity.name}</span>`);
 					iconsContainer.before(linkableText);
 
-					if (linkedEntity.isFile || linkedEntity.isImage) {
+					if (linkedEntity.isImage) {
+
+						linkableText.on('click', (e) => {
+							e.stopPropagation();
+							_Files.editImage(linkedEntity);
+						});
+
+					} else if (linkedEntity.isFile) {
 
 						linkableText.on('click', (e) => {
 							e.stopPropagation();
@@ -365,103 +369,6 @@ let _Elements = {
 					}
 				});
 			}
-
-			linkIconElement.on('click', function(e) {
-				e.stopPropagation();
-
-				Structr.dialog('Link to Resource (Page, File or Image)', () => { return true; }, () => { return true; });
-
-				dialog.empty();
-				dialogMsg.empty();
-
-				if (entity.tag !== 'img') {
-
-					dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this &lt;' + entity.tag + '&gt; element.</p>');
-					dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
-
-					let pagesToLink = $('#pagesToLink');
-
-					_Pager.initPager('pages-to-link', 'Page', 1, 25);
-					let pagesPager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, function(pages) {
-
-						for (let page of pages) {
-
-							if (page.type !== 'ShadowDocument') {
-
-								pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + escapeForHtmlAttributes(page.name) + '" class="name_ abbr-ellipsis abbr-120">' + page.name + '</b></div>');
-
-								let div = $('.' + page.id + '_', pagesToLink);
-
-								_Elements.handleLinkableElement(div, entity, page);
-							}
-						}
-					});
-
-					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
-					pagesPager.pager.append(pagesPagerFilters);
-					pagesPager.activateFilterElements();
-
-					dialog.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
-
-					let filesToLink   = $('#filesToLink');
-					let foldersToLink = $('#foldersToLink');
-
-					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
-					_Pager.forceAddFilters('folders-to-link', 'Folder', { hasParent: false });
-					let linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', function(folders) {
-
-						for (let folder of folders) {
-							_Elements.appendFolder(entity, foldersToLink, folder);
-						}
-					}, null, 'id,name,hasParent');
-
-					let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
-					linkFolderPager.pager.append(folderPagerFilters);
-					linkFolderPager.activateFilterElements();
-
-					_Pager.initPager('files-to-link', 'File', 1, 25);
-					let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
-
-						for (let file of files) {
-
-							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-									+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
-
-							let div = $('.' + file.id + '_', filesToLink);
-
-							_Elements.handleLinkableElement(div, entity, file);
-						}
-					}, null, 'id,name,contentType,linkingElementsIds,path');
-
-					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
-					linkFilesPager.pager.append(filesPagerFilters);
-					linkFilesPager.activateFilterElements();
-				}
-
-				if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
-
-					dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
-
-					let imagesToLink = $('#imagesToLink');
-
-					_Pager.initPager('images-to-link', 'Image', 1, 25);
-					let imagesPager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
-
-						for (let image of images) {
-
-							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + escapeForHtmlAttributes(image.path) + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
-
-							let div = $('.' + image.id + '_', imagesToLink);
-
-							_Elements.handleLinkableElement(div, entity, image);
-						}
-					}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
-
-					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
-					imagesPager.pager.append(imagesPagerFilters);
-					imagesPager.activateFilterElements();
-				}
-			});
 		}
 
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
@@ -490,101 +397,6 @@ let _Elements = {
 		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
 
 		return `<span class="class-id-attrs">${htmlIdString}${htmlClassString}</span>`;
-	},
-	appendFolder: function(entityToLinkTo, folderEl, subFolder) {
-
-		folderEl.append((subFolder.hasParent ? '<div class="clear"></div>' : '') + '<div class="node folder ' + (subFolder.hasParent ? 'sub ' : '') + subFolder.id + '_"><i class="fa fa-folder"></i> '
-				+ '<b title="' + escapeForHtmlAttributes(subFolder.name) + '" class="name_ abbr-ellipsis abbr-200">' + subFolder.name + '</b></div>');
-
-		let subFolderEl = $('.' + subFolder.id + '_', folderEl);
-
-		subFolderEl.on('click', function(e) {
-			e.stopPropagation();
-			e.preventDefault();
-
-			if (!subFolderEl.children('.fa-folder-open').length) {
-
-				_Elements.expandFolder(entityToLinkTo, subFolder);
-
-			} else {
-				subFolderEl.children('.node').remove();
-				subFolderEl.children('.clear').remove();
-				subFolderEl.children('.fa-folder-open').removeClass('fa-folder-open').addClass('fa-folder');
-			}
-
-			return false;
-
-		}).hover(function() {
-			$(this).addClass('nodeHover');
-		}, function() {
-			$(this).removeClass('nodeHover');
-		});
-
-	},
-	expandFolder: function(entityToLinkTo, folder) {
-
-		Command.get(folder.id, 'id,name,hasParent,files,folders', function(node) {
-
-			let folderEl = $('.' + node.id + '_');
-			folderEl.children('.fa-folder').removeClass('fa-folder').addClass('fa-folder-open');
-
-			for (let subFolder of node.folders) {
-				_Elements.appendFolder(entityToLinkTo, folderEl, subFolder);
-			}
-
-			for (let f of node.files) {
-
-				Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', function(file) {
-
-					$('.' + node.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-							+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
-
-					let div = $('.' + file.id + '_');
-
-					_Elements.handleLinkableElement(div, entityToLinkTo, file);
-				});
-			}
-		});
-	},
-	handleLinkableElement: function(div, entityToLinkTo, linkableObject) {
-
-		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
-			div.addClass('nodeActive');
-		}
-
-		div.on('click', function(event) {
-
-			event.stopPropagation();
-
-			if (div.hasClass('nodeActive')) {
-
-				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
-
-			} else {
-
-				let attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
-
-				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
-					if (!val || val === '') {
-						Command.setProperty(entityToLinkTo.id, attrName, '${link.path}', null);
-					}
-				});
-
-				Command.link(entityToLinkTo.id, linkableObject.id);
-			}
-
-			_Entities.reloadChildren(entityToLinkTo.parent.id);
-
-			$('#dialogBox .dialogText').empty();
-
-			$.unblockUI({
-				fadeOut: 25
-			});
-		}).hover(function() {
-			$(this).addClass('nodeHover');
-		}, function() {
-			$(this).removeClass('nodeHover');
-		});
 	},
 	enableContextMenuOnElement: function(div, entity) {
 

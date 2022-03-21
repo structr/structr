@@ -910,6 +910,10 @@ let _Pages = {
 					}
 			}
 
+			if (!_Entities.isLinkableEntity(entity)) {
+				document.querySelector('a[href="#pages:link"]').closest('li').classList.add('hidden');
+			}
+
 			// Create shadow page if not existing
 			Structr.ensureShadowPageExists().then(() => {
 				let isEntityInSharedComponents = (entity.pageId === _Pages.shadowPage.id);
@@ -1152,10 +1156,15 @@ let _Pages = {
 				});
 				break;
 
+			case '#pages:link':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.linkable());
+				_Pages.linkableDialog.show(obj, _Pages.centerPane.querySelector('.linkable-container'));
+				break;
+
 			default:
 				console.log('do something else, urlHash:', urlHash);
 		}
-
 	},
 	appendPageElement: function(entity) {
 
@@ -1251,15 +1260,14 @@ let _Pages = {
 			});
 		}
 	},
-
-	saveInlineElement: function(el, callback) {
+	saveInlineElement: (el, callback) => {
 		let self = $(el);
 		_Pages.contentSourceId = self.attr('data-structr-id');
 		let text = unescapeTags(cleanText(self.html()));
 		self.attr('contenteditable', false);
 		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
 
-		Command.setProperty(_Pages.contentSourceId, 'content', text, false, function(obj) {
+		Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
 			if (_Pages.contentSourceId === obj.id) {
 				if (callback) {
 					callback();
@@ -1268,7 +1276,7 @@ let _Pages = {
 			}
 		});
 	},
-	appendElementElement: function(entity, refNode, refNodeIsParent) {
+	appendElementElement: (entity, refNode, refNodeIsParent) => {
 
 		entity  = StructrModel.ensureObject(entity);
 		let div = _Elements.appendElementElement(entity, refNode, refNodeIsParent);
@@ -1282,55 +1290,14 @@ let _Pages = {
 
 		return div;
 	},
-	// showTypeData: function(id) {
-	// 	if (!id) {
-	// 		return;
-	// 	}
-	// 	Command.get(id, 'id,name', function(sourceSchemaNode) {
-	//
-	// 		var typeKey = sourceSchemaNode.name.toLowerCase();
-	// 		LSWrapper.setItem(_Pages.selectedTypeKey, id);
-	//
-	// 		$('#data-wizard-attributes')
-	// 				.append('<div class="clear">&nbsp;</div><p>You can drag and drop the type box onto a block in a page. The type will be bound to the block which will loop over the result set.</p>')
-	// 				.append('<div class="data-binding-type draggable">:' + sourceSchemaNode.name + '</div>')
-	// 				.append('<h3>Properties</h3><div class="properties"></div>')
-	// 				.append('<p>Drag and drop these elements onto the page for data binding.</p>');
-	//
-	// 		var draggableSettings = {
-	// 			iframeFix: true,
-	// 			revert: 'invalid',
-	// 			containment: 'body',
-	// 			helper: 'clone',
-	// 			appendTo: '#main',
-	// 			stack: '.node',
-	// 			zIndex: 99
-	// 		};
-	//
-	// 		$('.data-binding-type').draggable(draggableSettings);
-	//
-	// 		Command.getSchemaInfo(sourceSchemaNode.name, function(properties) {
-	//
-	// 			var el = $('#data-wizard-attributes .properties');
-	//
-	// 			properties.reverse().forEach(function(property) {
-	//
-	// 				var subkey = property.relatedType ? 'name' : '';
-	//
-	// 				el.append('<div class="draggable data-binding-attribute ' + property.jsonName + '" collection="' + property.isCollection + '" subkey="' + subkey + '">' + typeKey + '.' + property.jsonName  + '</div>');
-	// 				el.children('.' + property.jsonName).draggable(draggableSettings);
-	// 			});
-	// 		});
-	// 	});
-	// },
-	expandTreeNode: function(id, stack, lastId) {
+	expandTreeNode: (id, stack, lastId) => {
 		if (!id) {
 			return;
 		}
 		lastId = lastId || id;
 		stack = stack || [];
 		stack.push(id);
-		Command.get(id, 'id,parent', function(obj) {
+		Command.get(id, 'id,parent', (obj) => {
 			if (obj.parent) {
 				_Pages.expandTreeNode(obj.parent.id, stack, lastId);
 			} else {
@@ -1338,7 +1305,7 @@ let _Pages = {
 			}
 		});
 	},
-	highlight: function(id) {
+	highlight: (id) => {
 		let node = Structr.node(id);
 		if (node) {
 			node.parent().removeClass('nodeHover');
@@ -1351,7 +1318,7 @@ let _Pages = {
 			activeNode.addClass('nodeHover');
 		}
 	},
-	unhighlight: function(id) {
+	unhighlight: (id) => {
 		let node = Structr.node(id);
 		if (node) {
 			node.removeClass('nodeHover');
@@ -1367,7 +1334,7 @@ let _Pages = {
 	getActiveTabRight: () => {
 		return LSWrapper.getItem(_Pages.activeTabRightKey);
 	},
-	leftSlideoutTrigger: function (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) {
+	leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
 
 		let leftResizer = document.querySelector('.column-resizer-left');
 
@@ -1386,7 +1353,7 @@ let _Pages = {
 			}
 		}
 	},
-	rightSlideoutClickTrigger: function (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) {
+	rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
 		if (!$(triggerEl).hasClass('noclick')) {
 			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
 				Structr.closeSlideOuts(otherSlideouts, closeCallback);
@@ -1398,20 +1365,21 @@ let _Pages = {
 			}
 		}
 	},
-	leftSlideoutClosedCallback: function(wasOpen) {
+	leftSlideoutClosedCallback: (wasOpen) => {
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabLeftKey);
 
 			_Pages.resize();
 		}
 	},
-	rightSlideoutClosedCallback: function(wasOpen) {
+	rightSlideoutClosedCallback: (wasOpen) => {
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabRightKey);
 
 			_Pages.resize();
 		}
 	},
+
 	localizations: {
 		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
 		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
@@ -1677,6 +1645,7 @@ let _Pages = {
 			return div.querySelector('tbody');
 		}
 	},
+
 	previews: {
 		loadPreviewTimer : undefined,
 		previewElement: undefined,
@@ -2103,8 +2072,8 @@ let _Pages = {
 					});
 				});
 		},
-
 	},
+
 	palette: {
 		reload: () => {
 
@@ -2250,6 +2219,231 @@ let _Pages = {
 		blinkUI: () => {
 			blinkGreen('#elementsTab');
 		}
+	},
+
+	linkableDialog: {
+		nodeClasses: 'inline-flex flex-col items-start gap-x-2',
+		show: (entity, targetNode) => {
+
+			targetNode = $(targetNode);
+			targetNode.empty();
+
+			if (entity.tag !== 'img') {
+
+				targetNode.append(`
+					<p>Click on a Page, File or Image to establish a hyperlink to this &lt;${entity.tag}&gt; element.</p>
+					<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>
+				`);
+
+				let pagesToLink = $('#pagesToLink');
+
+				_Pager.initPager('pages-to-link', 'Page', 1, 25);
+				let pagesPager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, (pages) => {
+
+					for (let page of pages) {
+
+						if (page.type !== 'ShadowDocument') {
+
+							pagesToLink.append(`
+								<div class="node page ${page.id}_ ${_Pages.linkableDialog.nodeClasses}">
+									<div class="node-container flex items-center gap-x-2 p-2">
+										<i class="${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i><b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+									</div>
+								</div>
+							`);
+
+							let div = $(`.${page.id}_`, pagesToLink);
+
+							_Pages.linkableDialog.handleLinkableElement(div, entity, page);
+						}
+					}
+				});
+
+				let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
+				pagesPager.pager.append(pagesPagerFilters);
+				pagesPager.activateFilterElements();
+
+				targetNode.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
+
+				let filesToLink   = $('#filesToLink');
+				let foldersToLink = $('#foldersToLink');
+
+				_Pager.initPager('folders-to-link', 'Folder', 1, 25);
+				_Pager.forceAddFilters('folders-to-link', 'Folder', { hasParent: false });
+				let linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', function(folders) {
+
+					for (let folder of folders) {
+						_Pages.linkableDialog.appendFolder(entity, foldersToLink, folder);
+					}
+				}, null, 'id,name,hasParent');
+
+				let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
+				linkFolderPager.pager.append(folderPagerFilters);
+				linkFolderPager.activateFilterElements();
+
+				_Pager.initPager('files-to-link', 'File', 1, 25);
+				let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
+
+					for (let file of files) {
+
+						filesToLink.append(`
+							<div class="node file ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
+								<div class="node-container flex items-center gap-x-2 p-2">
+									<i class="fa ${_Icons.getFileIconClass(file)}"></i><b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
+								</div>
+							</div>
+						`);
+
+						let div = $(`.${file.id}_`, filesToLink);
+
+						_Pages.linkableDialog.handleLinkableElement(div, entity, file);
+					}
+				}, null, 'id,name,contentType,linkingElementsIds,path');
+
+				let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
+				linkFilesPager.pager.append(filesPagerFilters);
+				linkFilesPager.activateFilterElements();
+			}
+
+			if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
+
+				targetNode.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
+
+				let imagesToLink = $('#imagesToLink');
+
+				_Pager.initPager('images-to-link', 'Image', 1, 25);
+				let imagesPager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
+
+					for (let image of images) {
+
+						imagesToLink.append(`
+							<div class="node file ${image.id}_ ${_Pages.linkableDialog.nodeClasses}" title="${escapeForHtmlAttributes(image.path)}">
+								<div class="node-container flex items-center gap-x-2 p-2">
+									${_Icons.getImageOrIcon(image)}<b class="name_ abbr-ellipsis abbr-120">${image.name}</b>
+								</div>
+							</div>
+						`);
+
+						let div = $(`.${image.id}_`, imagesToLink);
+
+						_Pages.linkableDialog.handleLinkableElement(div, entity, image);
+					}
+				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
+
+				let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
+				imagesPager.pager.append(imagesPagerFilters);
+				imagesPager.activateFilterElements();
+			}
+		},
+		appendFolder: (entityToLinkTo, folderEl, subFolder) => {
+
+			folderEl.append(`
+				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${subFolder.id}_ ${_Pages.linkableDialog.nodeClasses}">
+					<div class="node-container flex items-center gap-x-2 p-2">
+						<i class="fa fa-folder"></i><b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+					</div>
+				</div>
+			`);
+
+			let subFolderEl   = $('.' + subFolder.id + '_', folderEl);
+			let nodeContainer = subFolderEl.children('.node-container');
+
+			subFolderEl.on('click', function(e) {
+				e.stopPropagation();
+				e.preventDefault();
+
+				if (!nodeContainer.children('.fa-folder-open').length) {
+
+					_Pages.linkableDialog.expandFolder(entityToLinkTo, subFolder);
+
+				} else {
+
+					subFolderEl.children('.node').remove();
+					subFolderEl.children('.clear').remove();
+					nodeContainer.children('.fa-folder-open').removeClass('fa-folder-open').addClass('fa-folder');
+				}
+
+				return false;
+			});
+
+			nodeContainer.hover(function(e) {
+				$(this).addClass('nodeHover');
+			}, function(e) {
+				$(this).removeClass('nodeHover');
+			});
+
+		},
+		expandFolder: (entityToLinkTo, folder) => {
+
+			Command.get(folder.id, 'id,name,hasParent,files,folders', (node) => {
+
+				let folderEl = $('.' + node.id + '_');
+				folderEl.children('.node-container').children('.fa-folder').removeClass('fa-folder').addClass('fa-folder-open');
+
+				for (let subFolder of node.folders) {
+					_Pages.linkableDialog.appendFolder(entityToLinkTo, folderEl, subFolder);
+				}
+
+				for (let f of node.files) {
+
+					Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', (file) => {
+
+						folderEl.append(`
+							<div class="node file sub ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
+								<div class="node-container flex items-center gap-x-2 p-2">
+									<i class="fa ${_Icons.getFileIconClass(file)}"></i><b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
+								</div>
+							</div>
+						`);
+
+						let div = $('.' + file.id + '_');
+
+						_Pages.linkableDialog.handleLinkableElement(div, entityToLinkTo, file);
+					});
+				}
+			});
+		},
+		handleLinkableElement: (div, entityToLinkTo, linkableObject) => {
+
+			if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
+				div.addClass('nodeActive');
+			}
+
+			div.on('click', function(event) {
+
+				event.stopPropagation();
+
+				let isActive = div.hasClass('nodeActive');
+
+				div.closest('.linkBox').find('.node').removeClass('nodeActive');
+
+				if (isActive) {
+
+					Command.setProperty(entityToLinkTo.id, 'linkableId', null);
+
+				} else {
+
+					let attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
+
+					Command.getProperty(entityToLinkTo.id, attrName, (val) => {
+						if (!val || val === '') {
+							Command.setProperty(entityToLinkTo.id, attrName, '${link.path}', null);
+						}
+					});
+
+					Command.link(entityToLinkTo.id, linkableObject.id);
+
+					div.addClass('nodeActive');
+				}
+
+				_Entities.reloadChildren(entityToLinkTo.parent.id);
+
+			}).hover(function() {
+				$(this).addClass('nodeHover');
+			}, function() {
+				$(this).removeClass('nodeHover');
+			});
+		},
 	},
 
 	templates: {
@@ -2400,6 +2594,9 @@ let _Pages = {
 					<li id="tabs-menu-events">
 						<a href="#pages:events">Events</a>
 					</li>
+					<li id="tabs-menu-link">
+						<a href="#pages:link">Link</a>
+					</li>
 					<li id="tabs-menu-security">
 						<a href="#pages:security">Security</a>
 					</li>
@@ -2515,14 +2712,18 @@ let _Pages = {
 		`,
 		security: config => `
 			<div class="content-container security-container">
-				<div class="inline-info"><div class="inline-info-icon">
-					${_Icons.getSvgIcon('info-icon', 24, 24)}
-				</div>
+				<div class="inline-info">
+					<div class="inline-info-icon">
+						${_Icons.getSvgIcon('info-icon', 24, 24)}
+					</div>
 					<div class="inline-info-text">
 						The Access Control and Visibility dialog provides access to the security settings of a node. In this dialog, you can set, edit or remove the owner of the node, set visibility flags and configure security relationships.
 					</div>
 				</div>
 			</div>
+		`,
+		linkable: config => `
+			<div class="content-container linkable-container"></div>
 		`,
 	}
 };
