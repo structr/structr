@@ -2459,12 +2459,13 @@ let _Entities = {
 		if (!el)
 			return;
 
-		let button = $(el.children('.expand_icon_svg').first());
+		if (el.hasClass('node')) {
+			el = el.children('.node-container');
+		}
 
-		// unregister click handlers
-		$(button).off('click');
+		let expandIcon = $(el.children('.expand_icon_svg').first());
+		expandIcon.remove();
 
-		button.remove();
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {

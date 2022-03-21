@@ -566,15 +566,16 @@ let _Pages = {
 						_Entities.deleteNode(undefined, entity);
 
 					} else {
+
 						_Entities.deleteNode(undefined, entity, true, () => {
+
 							if (entity.syncedNodesIds && entity.syncedNodesIds.length) {
+
 								for (let id of entity.syncedNodesIds) {
-									let el = Structr.node(id);
-									if (el && el.children && el.children.length) {
-										var newSpriteClass = _Icons.getSpriteClassOnly(_Icons.brick_icon);
-										el.children('i.typeIcon').each(function (i, el) {
-											_Icons.updateSpriteClassTo(el, newSpriteClass);
-										});
+
+									let el = Structr.nodeContainer(id);
+									if (el) {
+										_Icons.updateSpriteClassTo(el.children('i.typeIcon')[0], _Icons.getSpriteClassOnly(_Icons.brick_icon));
 									}
 								}
 							}
@@ -2145,7 +2146,14 @@ let _Pages = {
 
 				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
-				_Pages.componentsSlideout.append('<div id="newComponentDropzone"><div class="new-component-info h-16 flex items-center justify-center"><i class="m-2 active ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i><i class="m-2 inactive ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> Drop element here to create a new shared component</div></div>');
+				_Pages.componentsSlideout.append(`
+					<div id="newComponentDropzone">
+						<div class="new-component-info h-16 flex items-center justify-center">
+							<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
+							<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop element here to create a new shared component
+						</div>
+					</div>
+				`);
 				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
 				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
