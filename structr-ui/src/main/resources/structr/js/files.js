@@ -1223,12 +1223,13 @@ let _Files = {
 		});
 	},
 	editImage: (image) => {
-		let parent = Structr.node(image.id);
+
 		Structr.dialog('' + image.name, function() {
 			dialogMeta.show();
 		}, function() {
 			dialogMeta.show();
 		});
+
 		_Files.viewImage(image, $('#dialogBox .dialogText'));
 	},
 	viewImage: function(image, el) {

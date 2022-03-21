@@ -1074,7 +1074,8 @@ let Structr = {
 
 		return childNodes.length;
 	},
-	findParent: function(parentId, componentId, pageId, defaultElement) {
+	findParent: (parentId, componentId, pageId, defaultElement) => {
+
 		let parent = Structr.node(parentId, null, componentId, pageId);
 
 		if (!parent) {
@@ -1083,7 +1084,7 @@ let Structr = {
 
 		return parent;
 	},
-	parent: function(id) {
+	parent: (id) => {
 		return Structr.node(id) && Structr.node(id).parent().closest('.node');
 	},
 	node: (id, prefix) => {
@@ -1091,6 +1092,14 @@ let Structr = {
 		let node = $($(p + id)[0]);
 
 		return (node.length ? node : undefined);
+	},
+	nodeContainer: (id, prefix) => {
+		let node = Structr.node(id, prefix);
+		if (node) {
+			return node.children('.node-container');
+		}
+
+		return undefined;
 	},
 	entity: function(id, parentId) {
 		let entityElement = Structr.node(id, parentId);

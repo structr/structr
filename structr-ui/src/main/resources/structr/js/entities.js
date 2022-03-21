@@ -997,6 +997,8 @@ let _Entities = {
 
 		let editor = _Editors.getMonacoEditor(entity, 'source', $('.editor', dialog), emptyDivMonacoConfig);
 
+		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
+
 		Structr.resize();
 
 		saveAndClose.addEventListener('click', (e) => {
@@ -2457,12 +2459,13 @@ let _Entities = {
 		if (!el)
 			return;
 
-		let button = $(el.children('.expand_icon_svg').first());
+		if (el.hasClass('node')) {
+			el = el.children('.node-container');
+		}
 
-		// unregister click handlers
-		$(button).off('click');
+		let expandIcon = $(el.children('.expand_icon_svg').first());
+		expandIcon.remove();
 
-		button.remove();
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
 	makeSelectable: function(el) {
@@ -2839,8 +2842,11 @@ let _Entities = {
 			}
 		});
 	},
-	isContentElement: function (entity) {
+	isContentElement: (entity) => {
 		return (entity.type === 'Template' || entity.type === 'Content');
+	},
+	isLinkableEntity: (entity) => {
+		return (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object');
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		const oldVal = entity[key];

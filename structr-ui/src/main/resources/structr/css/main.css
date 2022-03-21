@@ -1264,7 +1264,7 @@ span.id {
 }
 
 .typeIcon-nochildren {
-	margin-left: 16px ! important;
+	margin-left: 20px ! important;
 }
 
 .expand_icon_svg {
@@ -1625,32 +1625,6 @@ button.action.disabled:hover {
 	width: 100%;
 	margin-top: 0;
 	box-sizing: border-box;
-}
-
-.dialogText .node {
-	display: inline-block;
-	margin: 4px;
-	min-width: 100px;
-}
-
-.dialogText #foldersToLink .node {
-	vertical-align: top;
-	cursor: pointer;
-}
-
-.dialogText .nodeHover b {
-	cursor: pointer ! important;
-}
-
-.dialogText .linkBox {
-	border: 1px solid var(--gray-ccc);
-	background-color: var(--solid-white);
-}
-
-.dialogText .linkBox .pager {
-	border-bottom: 1px solid var(--gray-ccc);
-	background-color: var(--gray-bg);
-	padding: 3px 0px 3px 6px;
 }
 
 .dialogText label {
@@ -4656,6 +4630,9 @@ table.props td.__value {
 }
 .p-1 {
 	padding: .25rem;
+}
+.p-2 {
+	padding: .5rem;
 }
 .p-4 {
 	padding: 1rem;

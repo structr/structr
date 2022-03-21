@@ -155,17 +155,14 @@ let _Icons = {
 		return [...customClasses].concat(['icon-inactive', 'hover:icon-active']).concat('cursor-pointer');
 	},
 
-	getFullSpriteClass: function (key) {
+	getFullSpriteClass: (key) => {
 
 		return 'sprite ' + _Icons.getSpriteClassOnly(key);
 	},
 
-	updateSpriteClassTo: function (el, newSpriteClass) {
-		el.classList.forEach(function(cls) {
-			if (cls.indexOf('sprite-') === 0) {
-				el.classList.remove(cls);
-			}
-		});
+	updateSpriteClassTo: (el, newSpriteClass) => {
+
+		el.classList.remove(...[...el.classList].filter((c) => c.startsWith('sprite-')));
 		el.classList.add(newSpriteClass);
 	},
 	getSpriteClassOnly: function (key) {

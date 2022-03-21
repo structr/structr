@@ -89,8 +89,8 @@ let _Security = {
 				let parentGroupId = Structr.getGroupId(parentGroupEl);
 				elements.push({
 					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
-					clickHandler: function () {
-						Command.removeFromCollection(parentGroupId, 'members', entity.id, function () {
+					clickHandler: () => {
+						Command.removeFromCollection(parentGroupId, 'members', entity.id, () => {
 							_UsersAndGroups.refreshGroups();
 						});
 						return false;
@@ -425,12 +425,12 @@ let _UsersAndGroups = {
 			}
 		}
 	},
-	appendMemberToGroup: function (member, group, groupEl) {
+	appendMemberToGroup: (member, group, groupEl) => {
 
 		let groupId    = group.id;
 		let isExpanded = Structr.isExpanded(groupId);
 
-		_Entities.appendExpandIcon(groupEl, group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
+		_Entities.appendExpandIcon(groupEl.children('.node-container'), group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
 
 		if (!isExpanded) {
 			return;
@@ -562,14 +562,18 @@ let _UsersAndGroups = {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
+			for (let groupEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
 
-				let icon = userEl.querySelector('.typeIcon');
+				let icon = groupEl.querySelector('.typeIcon');
 				if (icon) {
-					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group));
+					let newClassString = 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group);
+					if (group.members.length == 0) {
+						newClassString += ' typeIcon-nochildren';
+					}
+					icon.setAttribute('class', newClassString);
 				}
 
-				let groupName = userEl.querySelector('.name_');
+				let groupName = groupEl.querySelector('.name_');
 				if (groupName) {
 					let displayName = ((group.name) ? group.name : '[unnamed]');
 

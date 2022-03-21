@@ -224,10 +224,7 @@ ul#previewTabs {
 	display: none;
 }
 
-/**
- * Repeater config and security
- */
-.repeater-container, .security-container, .events-container {
+.repeater-container, .security-container, .events-container, .linkable-container {
 	padding: 0 1rem;
 }
 
@@ -236,15 +233,8 @@ ul#previewTabs {
 }
 
 .query-type-buttons button.active {
-	/*border: 1px solid var(--black-opacity-125);*/
-	/*background: var(--solid-white);*/
 	margin-bottom: 1rem;
 }
-
-/*.query-type-heading {*/
-/*    margin-top: 6px;*/
-/*    margin-bottom: 5px;*/
-/*}*/
 
 
 /**
@@ -257,7 +247,6 @@ ul#previewTabs {
 }
 
 #activeElements h3 {
-	/*font-size: 11pt;*/
 	margin-bottom: 0px;
 }
 
@@ -429,4 +418,32 @@ input.dataKey_ {
 #newComponentDropzone.allow-drop .new-component-info .active {
 	visibility: visible;
 	display: inline-block;
+}
+
+/**
+	Linkable Tab
+*/
+.linkable-container .linkBox {
+	border: 1px solid var(--gray-ccc);
+	background-color: var(--solid-white);
+}
+
+.linkable-container .linkBox .pager {
+	border-bottom: 1px solid var(--gray-ccc);
+	background-color: var(--gray-bg);
+	padding: 3px 0px 3px 6px;
+}
+
+.linkable-container #foldersToLink .node {
+	vertical-align: top;
+}
+
+.linkable-container .node {
+	cursor: pointer;
+	margin: 4px;
+	min-width: 100px;
+}
+
+.linkable-container .nodeHover b {
+	cursor: pointer ! important;
 }
