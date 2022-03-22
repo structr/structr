@@ -47,7 +47,6 @@ let _Dialogs = {
 
 		return dialogConfig;
 	},
-
 	findAndAppendCustomTypeDialog: (entity, mainTabs, contentEl) => {
 
 		let dialogConfig = _Dialogs.getDialogConfigForEntity(entity);
@@ -91,66 +90,44 @@ let _Dialogs = {
 			});
 		});
 	},
-	showShowHideConditionOptions: (el, entity) => {
+	showShowHideConditionOptions: (el) => {
 
-		let showConditionsContainer = $('.show-hide-conditions-container', el);
+		let showConditionsInput  = $('input#show-conditions', el);
+		let showConditionsSelect = $('select#show-conditions-templates', el);
+		let hideConditionsInput  = $('input#hide-conditions', el);
+		let hideConditionsSelect = $('select#hide-conditions-templates', el);
 
-		if (showConditionsContainer.length) {
-
-			showConditionsContainer.html(_Dialogs.templates.visibilityPartial({ entity: entity }));
-
-			_Dialogs.populateInputFields(showConditionsContainer, entity);
-			_Dialogs.registerSimpleInputChangeHandlers(showConditionsContainer, entity);
-
-			let showConditionsInput  = $('input#show-conditions', showConditionsContainer);
-			let showConditionsSelect = $('select#show-conditions-templates', showConditionsContainer);
-			let hideConditionsInput  = $('input#hide-conditions', showConditionsContainer);
-			let hideConditionsSelect = $('select#hide-conditions-templates', showConditionsContainer);
-
-			showConditionsSelect.on('change', () => {
-				showConditionsInput.val(showConditionsSelect.val());
-				showConditionsInput[0].dispatchEvent(new Event('change'));
-			});
-			hideConditionsSelect.on('change', () => {
-				hideConditionsInput.val(hideConditionsSelect.val());
-				hideConditionsInput[0].dispatchEvent(new Event('change'));
-			});
-		}
+		showConditionsSelect.on('change', () => {
+			showConditionsInput.val(showConditionsSelect.val());
+			showConditionsInput[0].dispatchEvent(new Event('change'));
+		});
+		hideConditionsSelect.on('change', () => {
+			hideConditionsInput.val(hideConditionsSelect.val());
+			hideConditionsInput[0].dispatchEvent(new Event('change'));
+		});
 	},
 	showChildContentEditor:(el, entity) => {
 
+		let textContentContainer = el.find('#child-content-editor')[0];
+
 		if (entity && entity.children && entity.children.length === 1 && entity.children[0].type === 'Content') {
 
-			let textContentContainer = $('.show-text-content-container', el);
-			if (textContentContainer.length) {
+			if (textContentContainer) {
 
-				textContentContainer.html(_Dialogs.templates.contentPartial());
+				textContentContainer.classList.remove('hidden');
+
+				let textArea = textContentContainer.querySelector('#content-input');
 
 				let child = entity.children[0];
 
-				let populateDialog = (contentEl) => {
-					_Dialogs.populateInputFields(textContentContainer, contentEl);
-					_Dialogs.registerSimpleInputChangeHandlers(textContentContainer, contentEl, true);
-				};
-
 				if (!child.content) {
-					Command.get(child.id, 'id,type,content', (loadedChild) => { populateDialog(loadedChild); });
+					Command.get(child.id, 'id,type,content', (loadedChild) => {
+						textArea.value = loadedChild.content;
+					});
 				} else {
-					populateDialog(child);
+					textArea.value = child.content;
 				}
 			}
-		}
-	},
-	showRepeaterOptions: (el, entity) => {
-
-		let repeaterConfigContainer = $('.repeater-config-container', el);
-
-		if (repeaterConfigContainer.length) {
-
-			repeaterConfigContainer.html(_Dialogs.templates.repeaterPartial({ entity: entity }));
-
-			_Dialogs.populateInputFields(repeaterConfigContainer, entity);
-			_Dialogs.registerSimpleInputChangeHandlers(repeaterConfigContainer, entity);
 		}
 	},
 	showRenderingOptions: (el, entity) => {
@@ -160,16 +137,13 @@ let _Dialogs = {
 			return;
 		}
 
-		let renderingOptionsContainer = $('.rendering-options-container', el);
+		let renderingOptionsContainer = $('#rendering-options-container', el);
 
 		if (renderingOptionsContainer.length) {
 
-			renderingOptionsContainer.html(_Dialogs.templates.renderingOptions({ entity: entity }));
+			renderingOptionsContainer.removeClass('hidden');
 
-			_Dialogs.populateInputFields(renderingOptionsContainer, entity);
-			_Dialogs.registerSimpleInputChangeHandlers(renderingOptionsContainer, entity);
-
-			let renderingModeSelect           = $('select#rendering-mode-select', el);
+			let renderingModeSelect           = $('select#rendering-mode-select', renderingOptionsContainer);
 			renderingModeSelect.select2();
 
 			Command.getProperty(entity.id, 'data-structr-rendering-mode', (result) => {
@@ -251,6 +225,15 @@ let _Dialogs = {
 			Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
 		});
 	},
+	addHtmlPropertiesToEntity: (entity, callback) => {
+
+		Command.get(entity.id, null, (htmlProperties) => {
+
+			StructrModel.update(Object.assign(htmlProperties, entity));
+
+			callback(entity);
+		}, '_html_');
+	},
 
 	// ----- custom dialogs -----
 	ldapGroupDialog: (el, entity) => {
@@ -287,7 +270,7 @@ let _Dialogs = {
 	},
 	fileDialog: (el, entity) => {
 
-		el.html(_Dialogs.templates.fileOptions({ file: entity, title: _Dialogs.title }));
+		el.html(_Dialogs.templates.fileOptions({ file: entity }));
 
 		if (Structr.isModulePresent('text-search')) {
 
@@ -315,7 +298,7 @@ let _Dialogs = {
 	},
 	folderDialog: (el, entity) => {
 
-		el.html(_Dialogs.templates.folderOptions({ file: entity, title: _Dialogs.title }));
+		el.html(_Dialogs.templates.folderOptions({ file: entity }));
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
@@ -323,54 +306,52 @@ let _Dialogs = {
 	},
 	aDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (aHtmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.aOptions({ entity: entity, a: aHtmlProperties, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.aOptions({ entity: enrichedEntity }));
 
-			_Dialogs.populateInputFields(el, aHtmlProperties);
-			_Dialogs.registerSimpleInputChangeHandlers(el, aHtmlProperties);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
 			_Dialogs.showCustomProperties(el, entity);
-			_Dialogs.showRepeaterOptions(el, entity);
+
 			_Dialogs.showShowHideConditionOptions(el, entity);
+
 			_Dialogs.showRenderingOptions(el, entity);
 
-			// child content
 			_Dialogs.showChildContentEditor(el, entity);
 
-		}, '_html_');
+		});
 	},
 	buttonDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (buttonHtmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.buttonOptions({ entity: entity, button: buttonHtmlProperties, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.buttonOptions({ entity: enrichedEntity }));
 
-			_Dialogs.populateInputFields(el, buttonHtmlProperties);
-			_Dialogs.registerSimpleInputChangeHandlers(el, buttonHtmlProperties);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
 			_Dialogs.showCustomProperties(el, entity);
-			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
 			_Dialogs.showRenderingOptions(el, entity);
 
-			// child content
 			_Dialogs.showChildContentEditor(el, entity);
 
-		}, '_html_');
+		});
 	},
 	inputDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (inputHtmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.inputOptions({ entity: entity, input: inputHtmlProperties, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.inputOptions({ entity: enrichedEntity }));
 
-			_Dialogs.populateInputFields(el, inputHtmlProperties);
-			_Dialogs.registerSimpleInputChangeHandlers(el, inputHtmlProperties);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
@@ -378,29 +359,28 @@ let _Dialogs = {
 			_Dialogs.showShowHideConditionOptions(el, entity);
 			_Dialogs.showRenderingOptions(el, entity);
 
-		}, '_html_');
+		});
 	},
 	divDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (divHtmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.divOptions({ entity: entity, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.divOptions({ entity: enrichedEntity }));
 
-			_Dialogs.populateInputFields(el, divHtmlProperties);
-			_Dialogs.registerSimpleInputChangeHandlers(el, divHtmlProperties);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
 			_Dialogs.showCustomProperties(el, entity);
-			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
 			_Dialogs.showRenderingOptions(el, entity);
 
-		}, '_html_');
+		});
 	},
 	userDialog: (el, entity) => {
 
-		el.html(_Dialogs.templates.userOptions({ entity: entity, user: entity, title: _Dialogs.title }));
+		el.html(_Dialogs.templates.userOptions({ entity: entity, user: entity }));
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
@@ -416,10 +396,12 @@ let _Dialogs = {
 	},
 	pageDialog: async (el, entity) => {
 
-		el.html(_Dialogs.templates.pageOptions({ entity: entity, page: entity, title: _Dialogs.title }));
+		el.html(_Dialogs.templates.pageOptions({ entity: entity, page: entity }));
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
+
+		_Pages.previews.configurePreview(entity, el[0]);
 
 		_Dialogs.focusInput(el);
 
@@ -429,28 +411,25 @@ let _Dialogs = {
 	},
 	defaultDomDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (htmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.defaultDOMOptions({ entity: entity, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.defaultDOMOptions({ entity: enrichedEntity }));
 
-			_Dialogs.populateInputFields(el, htmlProperties);
-			_Dialogs.registerSimpleInputChangeHandlers(el, htmlProperties);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
 			_Dialogs.showCustomProperties(el, entity);
-			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
 			_Dialogs.showRenderingOptions(el, entity);
 
-			// child content (optional)
 			_Dialogs.showChildContentEditor(el, entity);
-
-		}, '_html_');
+		});
 	},
 	contentDialog: (el, entity) => {
 
-		el.html(_Dialogs.templates.contentOptions({ entity: entity, title: _Dialogs.title }));
+		el.html(_Dialogs.templates.contentOptions({ entity: entity }));
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
@@ -458,251 +437,243 @@ let _Dialogs = {
 		_Dialogs.focusInput(el);
 
 		_Dialogs.showCustomProperties(el, entity);
-		_Dialogs.showRepeaterOptions(el, entity);
 		_Dialogs.showShowHideConditionOptions(el, entity);
 
 	},
 	optionDialog: (el, entity) => {
 
-		Command.get(entity.id, null, (divHtmlProperties) => {
+		_Dialogs.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
 
-			el.html(_Dialogs.templates.optionOptions({ entity: entity, title: _Dialogs.title }));
+			el.html(_Dialogs.templates.optionOptions({ entity: enrichedEntity }));
 
-			let data = Object.assign({}, divHtmlProperties, entity);
-
-			_Dialogs.populateInputFields(el, data);
-			_Dialogs.registerSimpleInputChangeHandlers(el, data);
+			_Dialogs.populateInputFields(el, enrichedEntity);
+			_Dialogs.registerSimpleInputChangeHandlers(el, enrichedEntity);
 
 			_Dialogs.focusInput(el);
 
 			_Dialogs.showCustomProperties(el, entity);
-			_Dialogs.showRepeaterOptions(el, entity);
 			_Dialogs.showShowHideConditionOptions(el, entity);
 			_Dialogs.showRenderingOptions(el, entity);
 
 			_Dialogs.showChildContentEditor(el, entity);
-
-		}, '_html_');
+		});
 	},
 
 	templates: {
+		nameTile: config => `
+			<div class="option-tile ${(config.doubleWide === true ? 'col-span-2' : '')}">
+				<label class="block mb-2" for="name-input">Name</label>
+				<input type="text" id="name-input" autocomplete="off" name="name">
+			</div>
+		`,
+		htmlClassTile: config => `
+			<div class="option-tile">
+				<label class="block mb-2" for="class-input">CSS Class</label>
+				<input type="text" id="class-input" name="_html_class">
+			</div>
+		`,
+		htmlIdTile: config => `
+			<div class="option-tile">
+				<label class="block mb-2" for="id-input">HTML ID</label>
+				<input type="text" id="id-input" name="_html_id">
+			</div>
+		`,
+		htmlStyleTile: config => `
+			<div class="option-tile col-span-2">
+				<label class="block mb-2" for="style-input">Style</label>
+				<input type="text" id="style-input" name="_html_style">
+			</div>
+		`,
+		htmlTitleTile: config => `
+			<div class="option-tile">
+				<label class="block mb-2" for="title-input">Title</label>
+				<input type="text" id="title-input" name="_html_title">
+			</div>
+		`,
+		htmlTypeTile: config => `
+			<div class="option-tile">
+				<label class="block mb-2" for="type-input">Type</label>
+				<input type="text" id="type-input" name="_html_type">
+			</div>
+		`,
 		aOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile">
-						<label>CSS Class</label>
-						<input type="text" id="class-input" name="_html_class" />
+				
+				<div class="grid grid-cols-2 gap-8">
+					
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					<div class="option-tile col-span-2">
+						<label class="block mb-2" for="href-input">HREF attribute</label>
+						<input type="text" id="href-input" name="_html_href">
 					</div>
-					<div class="option-tile">
-						<label>HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label>HREF attribute</label>
-						<input type="text" id="href-input" name="_html_href" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label>Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
 			
-				<div class="row repeater-config-container"></div>
-			
-				<div class="row show-hide-conditions-container"></div>
-			
-				<div class="row show-text-content-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
+					${_Dialogs.templates.htmlStyleTile(config)}
+
+					${_Dialogs.templates.repeaterPartial(config)}
+				
+					${_Dialogs.templates.visibilityPartial(config)}
+				
+					${_Dialogs.templates.contentPartial(config)}
+				
 				</div>
-				<div class="row rendering-options-container"></div>
+
+				${_Dialogs.templates.renderingOptions(config)}
+				
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		buttonOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile">
-						<label for="class-input">CSS Class</label>
-						<input type="text" id="class-input" name="_html_class" />
-					</div>
-					<div class="option-tile">
-						<label for="id-input">HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
+
+				<div class="grid grid-cols-2 gap-8">
+					
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					${_Dialogs.templates.htmlTitleTile(config)}
+					
+					${_Dialogs.templates.htmlTypeTile(config)}
+
+					${_Dialogs.templates.htmlStyleTile(config)}
+			
+					${_Dialogs.templates.repeaterPartial(config)}
+				
+					${_Dialogs.templates.visibilityPartial(config)}
+				
+					${_Dialogs.templates.contentPartial()}
 				</div>
 			
-				<div class="row">
-					<div class="option-tile">
-						<label for="title-input">Title</label>
-						<input type="text" id="title-input" name="_html_title" />
-					</div>
-					<div class="option-tile">
-						<label for="type-input">Type</label>
-						<input type="text" id="type-input" name="_html_type" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label for="style-input">Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
-			
-				<div class="row repeater-config-container"></div>
-			
-				<div class="row show-hide-conditions-container"></div>
-			
-				<div class="row show-text-content-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		contentOptions: config => `
 			<div id="default-dom-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile double">
-						<label for="name-input">Name</label>
-						<input type="text" id="name-input" autocomplete="off" name="name" />
-					</div>
+				
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+					${_Dialogs.templates.repeaterPartial(config)}
+				
+					${_Dialogs.templates.visibilityPartial(config)}
+				
 				</div>
-			
-				<div class="row repeater-config-container"></div>
-			
-				<div class="row show-hide-conditions-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
+				
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		contentPartial: config => `
-			<div class="option-tile double">
-				<label for="content-input">Text Content</label>
-				<textarea id="content-input" name="content" rows="5"></textarea>
+			<div id="child-content-editor" class="option-tile col-span-2 hidden">
+				<label class="block mb-2" for="content-input">Text Content</label>
+				<textarea id="content-input" name="content"></textarea>
+			</div>
+		`,
+		customPropertiesPartial: config => `
+			<div id="custom-properties-parent" class="hidden">
+				<h3>Custom Attributes</h3>
+				<div id="custom-properties-container"></div>
 			</div>
 		`,
 		defaultDOMOptions: config => `
 			<div id="default-dom-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile">
-						<label for="class-input">CSS Class</label>
-						<input type="text" id="class-input" name="_html_class"/>
-					</div>
-					<div class="option-tile">
-						<label for="id-input">HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
+
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					${_Dialogs.templates.htmlStyleTile(config)}
+				
+					${_Dialogs.templates.repeaterPartial(config)}
+					
+					${_Dialogs.templates.visibilityPartial(config)}
+	
+					${_Dialogs.templates.contentPartial()}
+	
 				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label for="style-input">Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
-			
-				<div class="row repeater-config-container"></div>
-				<div class="row show-hide-conditions-container"></div>
-				<div class="row show-text-content-container"></div>
-				<div class="row rendering-options-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
+
+				${_Dialogs.templates.renderingOptions(config)}
+
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		divOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile">
-						<label for="class-input">CSS Class</label>
-						<input type="text" id="class-input" name="_html_class"/>
-					</div>
-					<div class="option-tile">
-						<label for="id-input">HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
+				
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					${_Dialogs.templates.htmlStyleTile(config)}
+				
+					${_Dialogs.templates.repeaterPartial(config)}
+				
+					${_Dialogs.templates.visibilityPartial(config)}
+
 				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label for="style-input">Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
-			
-				<div class="row repeater-config-container"></div>
-			
-				<div class="row show-hide-conditions-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
-				<div class="row rendering-options-container"></div>
+
+				${_Dialogs.templates.renderingOptions(config)}
+
+				${_Dialogs.templates.customPropertiesPartial(config)}
+				
+			</div>
+		`,
+		includeInFrontendExport: config => `
+			<div class="mb-2 flex items-center">
+				<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport">
+				<label for="includeInFrontendExport" data-comment-config="{insertAfter:true}" data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
 			</div>
 		`,
 		fileOptions: config => `
 			<div id="file-options" class="quick-access-options">
-				<div class="row">
+				
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(config)}
+					
 					<div class="option-tile">
-						<label for="name-input">Name</label>
-						<input type="text" id="name-input" autocomplete="off" name="name" />
+						<label class="block mb-2" for="content-type-input">Content Type</label>
+						<input type="text" id="content-type-input" autocomplete="off" name="contentType">
 					</div>
+
 					<div class="option-tile">
-						<label for="content-type-input">Content Type</label>
-						<input type="text" id="content-type-input" autocomplete="off" name="contentType" />
+						<label class="block mb-2" for="cache-for-seconds-input" class="block">Cache for n seconds</label>
+						<input type="text" id="cache-for-seconds-input" value="" name="cacheForSeconds">
 					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile">
-						<label for="cache-for-seconds-input" class="block">Cache for n seconds</label>
-						<input type="text" id="cache-for-seconds-input" value="" name="cacheForSeconds" />
-					</div>
+
 					<div class="option-tile">
 			
-						<label class="block">Options</label>
+						<label class="block mb-2">Options</label>
 			
 						<div class="mb-2 flex items-center">
-							<input type="checkbox" name="isTemplate" id="isTemplate" />
+							<input type="checkbox" name="isTemplate" id="isTemplate">
 							<label for="isTemplate">Is template (dynamic file)</label>
 						</div>
+
 						<div class="mb-2 flex items-center">
-							<input type="checkbox" name="dontCache" id="dontCache" />
+							<input type="checkbox" name="dontCache" id="dontCache">
 							<label for="dontCache">Caching disabled</label>
 						</div>
+
+						${_Dialogs.templates.includeInFrontendExport(config)}
+
 						<div class="mb-2 flex items-center">
-							<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport" />
-							<label for="includeInFrontendExport" data-comment-config="{insertAfter:true}" data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
-						</div>
-						<div class="mb-2 flex items-center">
-							<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary" />
+							<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary">
 							<label for="useAsJavascriptLibrary" data-comment-config="{insertAfter:true}" data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
 						</div>
 					</div>
 				</div>
-				<div id="content-extraction" class="row hidden">
+
+				<div id="content-extraction" class="hidden">
 					<h3>Content Extraction</h3>
-					<div class="row">
+					<div>
 						<p>Extract text content from this document or image and store it in a StructuredDocument node with StructuredTextNode children.</p>
 						<button type="button" class="action" id="extract-structure-button">Extract document content</button>
 					</div>
@@ -711,250 +682,247 @@ let _Dialogs = {
 		`,
 		folderOptions: config => `
 			<div id="file-options" class="quick-access-options">
-				<div class="row">
+				
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(config)}
+
 					<div class="option-tile">
-						<label for="name-input">Name</label>
-						<input type="text" id="name-input" autocomplete="off" name="name" />
-					</div>
-					<div class="option-tile">
-						<label class="block">Options</label>
-						<div class="mb-2 flex items-center">
-							<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport" />
-							<label for="includeInFrontendExport" data-comment-config="{insertAfter:true}" data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
-						</div>
+
+						<label class="block mb-2">Options</label>
+						
+						${_Dialogs.templates.includeInFrontendExport(config)}
+
 					</div>
 				</div>
 			</div>
 		`,
 		inputOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
+				
+				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					${_Dialogs.templates.htmlTypeTile(config)}
+
 					<div class="option-tile">
-						<label for="class-input">CSS Class</label>
-						<input type="text" id="class-input" name="_html_class" />
+						<label class="block mb-2" for="placeholder-input">Placeholder</label>
+						<input type="text" id="placeholder-input" name="_html_placeholder">
 					</div>
-					<div class="option-tile">
-						<label for="id-input">HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
+
+					${_Dialogs.templates.htmlStyleTile(config)}
+
+					${_Dialogs.templates.htmlTitleTile(config)}
+				
+					${_Dialogs.templates.visibilityPartial(config)}
+
 				</div>
-				<div class="row">
-					<div class="option-tile">
-						<label for="type-input">Type</label>
-						<input type="text" id="type-input" name="_html_type" />
-					</div>
-					<div class="option-tile">
-						<label for="placeholder-input">Placeholder</label>
-						<input type="text" id="placeholder-input" name="_html_placeholder" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label for="style-input">Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile">
-						<label for="title-input">Title</label>
-						<input type="text" id="title-input" name="_html_title" />
-					</div>
-				</div>
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
-			
-				<div class="row show-hide-conditions-container"></div>
+				
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		ldapGroup: config => `
 			<div id="ldap-group-config">
 				<h3>Synchronize this group using distinguished name (prioritized if set)</h3>
-				<div class="row">
-					<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName" />
+
+				<div class="mb-3">
+					<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
 					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-dn"></i>
 				</div>
+
 				<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
-				<div class="row">
-					<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path" />
+
+				<div class="mb-3">
+					<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path">
 					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-path"></i>
 				</div>
-				<div class="row">
-					<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter" />
+
+				<div class="mb-3">
+					<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter">
 					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-filter"></i>
 				</div>
-				<div class="row">
-					<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope" />
+
+				<div class="mb-3">
+					<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope">
 					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-scope"></i>
 				</div>
-				<div class="row">
+
+				<div class="mb-3">
 					<button type="button" class="action" id="ldap-sync-button">Synchronize now</button>
 				</div>
-				<div class="row">
+
+				<div>
 					<a href="/structr/config" target="_blank">Open Structr configuration</a>
 				</div>
 			</div>
 		`,
 		optionOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
-					<div class="option-tile">
-						<label for="class-input">CSS Class</label>
-						<input type="text" id="class-input" name="_html_class"/>
-					</div>
-					<div class="option-tile">
-						<label for="id-input">HTML ID</label>
-						<input type="text" id="id-input" name="_html_id" />
-					</div>
-				</div>
-				<div class="row">
-					<div class="option-tile double">
-						<label for="style-input">Style</label>
-						<input type="text" id="style-input" name="_html_style" />
-					</div>
-				</div>
+				
+				<div class="grid grid-cols-2 gap-8">
+
+					${_Dialogs.templates.htmlClassTile(config)}
+					
+					${_Dialogs.templates.htmlIdTile(config)}
+
+					${_Dialogs.templates.htmlStyleTile(config)}
 			
-				<div class="row repeater-config-container"></div>
-			
-				<div class="row">
+					${_Dialogs.templates.repeaterPartial(config)}
 			
 					<div class="option-tile">
-						<label for="selected-input">Selected</label>
-						<input type="text" id="selected-input" name="_html_selected" />
+						<label class="block mb-2" for="selected-input">Selected</label>
+						<input type="text" id="selected-input" name="_html_selected">
 					</div>
+					
 					<div class="option-tile">
-						<label for="selected-values-input">Selected Values Expression</label>
-						<input type="text" id="selected-values-input" name="selectedValues" />
+						<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
+						<input type="text" id="selected-values-input" name="selectedValues">
 					</div>
-				</div>
-			
-				<div class="row">
+
 					<div class="option-tile">
-						<label for="value-input">Value</label>
-						<input type="text" id="value-input" name="_html_value" />
+						<label class="block mb-2" for="value-input">Value</label>
+						<input type="text" id="value-input" name="_html_value">
 					</div>
+			
+					${_Dialogs.templates.visibilityPartial(config)}
+				
+					${_Dialogs.templates.contentPartial()}
 				</div>
 			
-				<div class="row show-hide-conditions-container"></div>
+				${_Dialogs.templates.renderingOptions(config)}
+
+				${_Dialogs.templates.customPropertiesPartial(config)}
 			
-				<div class="row show-text-content-container"></div>
-			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
-			
-				<div class="row rendering-options-container"></div>
 			</div>
 		`,
 		pageOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
+			
+				<div class="grid grid-cols-2 gap-8">
+
+					${_Dialogs.templates.nameTile(config)}
+					
 					<div class="option-tile">
-						<label for="name-input">Name</label>
-						<input type="text" id="name-input" name="name">
-					</div>
-					<div class="option-tile">
-						<label for="content-type-input">Content Type</label>
+						<label class="block mb-2" for="content-type-input">Content Type</label>
 						<input type="text" id="content-type-input" name="contentType">
 					</div>
-				</div>
 			
-				<div class="row">
 					<div class="option-tile">
-						<label for="category-input">Category</label>
+						<label  class="mb-2"for="category-input">Category</label>
 						<input type="text" id="category-input" name="category">
 					</div>
+
 					<div class="option-tile">
-						<label for="show-on-error-codes-input">Show on Error Codes</label>
+						<label class="block mb-2" for="show-on-error-codes-input">Show on Error Codes</label>
 						<input type="text" id="show-on-error-codes-input" name="showOnErrorCodes">
 					</div>
-				</div>
-			
-				<div class="row">
+					
 					<div class="option-tile">
-						<label for="position-input">Position </label>
-						<input type="text" id="position-input" name="position" />
+						<label class="block mb-2" for="position-input">Position</label>
+						<input type="text" id="position-input" name="position">
 					</div>
+
 					<div class="option-tile">
-						<label class="block">Options</label>
+
+						<label class="block mb-2">Options</label>
+
 						<div class="mb-2 flex items-center">
 							<label for="dont-cache-checkbox" data-comment="Especially important for dynamic pages which are visible to public users.">
 								<input type="checkbox" name="dontCache" id="dont-cache-checkbox"> Caching disabled
 							</label>
 						</div>
+
 						<div class="mb-2 flex items-center">
 							<label for="page-creates-raw-data-checkbox">
 								<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox"> Use binary encoding for output
 							</label>
 						</div>
+
+						<div class="mb-2 flex items-center">
+							<label for="_auto-refresh" data-comment="Auto-refresh page preview on changes (if page preview is active)">
+								<input id="_auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}> Auto-refresh
+							</label>
+						</div>
+
+					</div>
+					
+					<div class="option-tile">
+						<label class="block mb-2" for="_details-object-id" data-comment="UUID of detail object to append to preview URL">Preview Detail Object</label>
+						<input id="_details-object-id" type="text" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
+					</div>
+					
+					<div class="option-tile">
+						<label class="block mb-2" for="_request-parameters" data-comment="Request parameters to append to preview URL">Preview Request Parameters</label>
+						<div class="flex items-baseline">
+							<code>?</code>
+							<input id="_request-parameters" type="text" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
+						</div>
 					</div>
 				</div>
-			
-				<div id="custom-properties-parent" class="row hidden">
-					<h3>Custom Attributes</h3>
-					 <div id="custom-properties-container"></div>
-				</div>
+
+				${_Dialogs.templates.customPropertiesPartial(config)}
+
 			</div>
 		`,
 		renderingOptions: config => `
-			<div class="row options-rendering"><h3>Rendering Options</h3></div>
-			<div class="row">
-				<div class="option-tile">
-					<label for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
-					<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
-						<option value="">Eager (default)</option>
-						<option value="load">When page has finished loading</option>
-						<option value="delayed">With a delay after page has finished loading</option>
-						<option value="visible">When element becomes visible</option>
-						<option value="periodic">With periodic updates</option>
-					</select>
-				</div>
-				<div class="option-tile">
-					<label for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
-					<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
+			<div id="rendering-options-container" class="hidden">
+				<h3>Rendering Options</h3>
+				
+				<div class="grid grid-cols-2 gap-8">
+	
+					<div class="option-tile">
+						<label class="block mb-2" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
+						<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
+							<option value="">Eager (default)</option>
+							<option value="load">When page has finished loading</option>
+							<option value="delayed">With a delay after page has finished loading</option>
+							<option value="visible">When element becomes visible</option>
+							<option value="periodic">With periodic updates</option>
+						</select>
+					</div>
+	
+					<div class="option-tile">
+						<label class="block mb-2" for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
+						<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
+					</div>
 				</div>
 			</div>
 		`,
 		repeaterPartial: config => `
 			<div class="option-tile">
-				<label for="function-query-input">Function Query</label>
-				<input type="text" id="function-query-input" name="functionQuery" />
+				<label class="block mb-2" for="function-query-input">Function Query</label>
+				<input type="text" id="function-query-input" name="functionQuery">
 			</div>
+
 			<div class="option-tile">
-				<label for="data-key-input">Data Key</label>
-				<input type="text" id="data-key-input" name="dataKey" />
+				<label class="block mb-2" for="data-key-input">Data Key</label>
+				<input type="text" id="data-key-input" name="dataKey">
 			</div>
 		`,
 		userOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				<div class="row">
+
+				<div class="grid grid-cols-2 gap-8">
+
+					${_Dialogs.templates.nameTile(config)}
+					
 					<div class="option-tile">
-						<label for="name-input">Name</label>
-						<input type="text" id="name-input" autocomplete="off" name="name">
-					</div>
-					<div class="option-tile">
-						<label for="e-mail-input">eMail</label>
+						<label class="block mb-2" for="e-mail-input">eMail</label>
 						<input type="text" id="e-mail-input" autocomplete="off" name="eMail">
 					</div>
-				</div>
-			
-				<div class="row">
 			
 					<div class="option-tile">
-						<label for="password-input">Password</label>
+						<label class="block mb-2" for="password-input">Password</label>
 						<input type="password" id="password-input" autocomplete="new-password" value="****** HIDDEN ******">
 						<button class="action" type="button" id="set-password-button">Set Password</button>
 					</div>
 			
 					<div class="option-tile">
 			
-						<label class="block">Options</label>
+						<label class="block mb-2">Options</label>
 			
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="isAdmin" id="isAdmin">
@@ -973,40 +941,38 @@ let _Dialogs = {
 					</div>
 				</div>
 			
-				<div id="custom-properties-parent" class="hidden">
-					<h3>Custom Attributes</h3>
-					<div class="row">
-						 <div id="custom-properties-container"></div>
-					</div>
-				</div>
+				${_Dialogs.templates.customPropertiesPartial(config)}
+
 			</div>
+		`,
+		showHideConditionTemplates: config => `
+			<option value="" disabled selected>Select...</option>
+			<option value="">(none)</option>
+			<option>true</option>
+			<option>false</option>
+			<option>me.isAdmin</option>
+			<option>empty(current)</option>
+			<option>not(empty(current))</option>
 		`,
 		visibilityPartial: config => `
 			<div class="option-tile">
-				<label for="show-conditions">Show Conditions</label>
-				<input id="show-conditions" type="text" name="showConditions" />
-				<select id="show-conditions-templates">
-					<option value="" disabled selected>Select...</option>
-					<option value="">(none)</option>
-					<option>true</option>
-					<option>false</option>
-					<option>me.isAdmin</option>
-					<option>empty(current)</option>
-					<option>not(empty(current))</option>
-				</select>
+				<label class="block mb-2" for="show-conditions">Show Conditions</label>
+				<div class="flex">
+					<input id="show-conditions" type="text" name="showConditions">
+					<select id="show-conditions-templates">
+						${_Dialogs.templates.showHideConditionTemplates()}
+					</select>
+				</div>
 			</div>
+			
 			<div class="option-tile">
-				<label for="hide-conditions">Hide Conditions</label>
-				<input id="hide-conditions" type="text" name="hideConditions" />
-				<select id="hide-conditions-templates">
-					<option value="" disabled selected>Select...</option>
-					<option value="">(none)</option>
-					<option>true</option>
-					<option>false</option>
-					<option>me.isAdmin</option>
-					<option>empty(current)</option>
-					<option>not(empty(current))</option>
-				</select>
+				<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
+				<div class="flex">
+					<input id="hide-conditions" type="text" name="hideConditions">
+					<select id="hide-conditions-templates">
+						${_Dialogs.templates.showHideConditionTemplates()}
+					</select>
+				</div>
 			</div>
 		`
 	}

@@ -686,7 +686,7 @@ let _Localization = {
 				<td class="property allow-break" data-property="key">${config.localization.name}</td>
 				<td class="property" data-property="domain">${config.localization.domain || ''}</td>
 				<td class="actions">
-					<div class="icons-container flex items-center"></div>
+					<div class="icons-container flex items-center justify-end"></div>
 				</td>
 			</tr>
 		`,

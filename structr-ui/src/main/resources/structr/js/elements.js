@@ -317,7 +317,6 @@ let _Elements = {
 					<div class="node-selector"></div>
 					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
 					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
-					<!--span class="id">${entity.id}</span-->
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -801,7 +800,6 @@ let _Elements = {
 					<div class="node-selector"></div>
 					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
-					<!--span class="id">${entity.id}</span-->
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>`;

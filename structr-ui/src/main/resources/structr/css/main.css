@@ -1553,10 +1553,6 @@ button.action.disabled:hover {
 	color: var(--icon-stroke-hover);
 }
 
-.CodeMirror-gutter {
-	background-color: var(--solid-white);
-}
-
 #confirmation, #infoBox, #tempInfoBox, #errorBox {
 	min-height: 24px;
 	padding: 12px 0 12px 12px;
@@ -2199,12 +2195,6 @@ button.disabled, i.disabled {
 	z-index: 2;
 }
 
-input.auto-refresh {
-	vertical-align: middle;
-	float: left;
-	margin-right: 0;
-}
-
 button.add_property {
 	/*font-size: 2em;*/
 }
@@ -2734,19 +2724,6 @@ td#cascading-options, td#propagation-options {
 
 #relationship-options span.button {
 	cursor: pointer;
-}
-
-.CodeMirror-hints {
-	z-index: 10000 !important;
-	/*font-size: 100%;*/
-}
-
-.CodeMirror-hint {
-	max-width: 800px;
-}
-
-.CodeMirror-lint-tooltip {
-	z-index: 2000;
 }
 
 .graphtable {
@@ -4156,83 +4133,40 @@ table#principals .typeIcon {
 	/*font-size: 8pt;*/
 }
 
-div.row {
-	clear: both;
-}
-
-div.option-tile {
-	float: left;
-	width: calc(50% - 1rem);
-	padding-bottom: 2rem;
-	position: relative;
-}
-
-div.option-tile:nth-child(2), div.option-tile:nth-child(3), div.option-tile:nth-child(4), div.option-tile:nth-child(5) {
-	margin-left: 2rem;
-}
-
-div.option-tile.double {
-	width: calc(100%);
-}
-
-div.option-tile.flat {
-	padding-bottom: 1rem;
-}
-
-div.option-tile.narrow {
-	width: calc(25% - 1.5rem);
+/**
+	Basic Tab
+*/
+.quick-access-options, .events-container {
+	padding-top: 1rem;
 }
 
 #hide-conditions, #show-conditions {
-	width: 76%;
-	padding-right: 1rem;
+	flex-basis: 75%;
+	margin-right: -1px;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
 }
 
 #show-conditions-templates, #hide-conditions-templates {
-	position: absolute;
-	width: 25%;
-	right: 0;
+	flex-basis: 25%;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
 }
 
-.quick-access-options {
-	padding-top: 1rem;
-}
-
-/*div.quick-access-options h3 {*/
-/*	margin-bottom: 0;*/
-/*}*/
-
-/*div.quick-access-options p {*/
-/*	margin: 0;*/
-/*}*/
-
-div.option-tile select, div.option-tile input[type="text"],
-div.option-tile select, div.option-tile input[type="password"],
-div.option-tile select, div.option-tile input[type="number"],
-div.option-tile textarea {
+.quick-access-options select,
+.quick-access-options input[type="text"],
+.quick-access-options input[type="password"],
+.quick-access-options input[type="number"],
+.quick-access-options textarea,
+.events-container select,
+.events-container input[type="text"],
+.events-container input[type="password"],
+.events-container input[type="number"],
+.events-container textarea {
 	width: 100%;
 	box-sizing: border-box;
 	margin-top: .25rem;
-}
-div.option-tile select, div.option-tile input[type="text"],
-div.option-tile select, div.option-tile input[type="password"],
-div.option-tile select, div.option-tile input[type="number"] {
 	height: 2.5rem;
-}
-
-div.option-tile h4 {
-	margin: 0;
-}
-
-div.option-tile label {
-	display: block;
-	margin-bottom: .5rem;
-}
-
-div.option-tile .flex label {
-	margin-bottom: 0;
 }
 
 .add-property-input-button {
@@ -4240,20 +4174,7 @@ div.option-tile .flex label {
 }
 
 textarea#content-input {
-	display: block;
-}
-
-button.icon-button {
-	background-color: transparent;
-	padding: 1px 4px 2px 4px;
-}
-
-button.icon-button i {
-	margin: 0;
-}
-
-.repeater-container .CodeMirror {
-	height: 120px !important;
+	height: 10rem;
 }
 
 div#custom-properties-parent {
@@ -4263,6 +4184,15 @@ div#custom-properties-parent {
 div#custom-properties-container table td:nth-child(3) {
 	text-align: right;
 	width: 30px;
+}
+
+button.icon-button {
+	background-color: transparent;
+	padding: 1px 4px 2px 4px;
+}
+
+button.icon-button i {
+	margin: 0;
 }
 
 /* mount dialog */
@@ -4466,6 +4396,9 @@ table.props td.__value {
 /**
  * Tailwind classes
  */
+.box-border {
+	box-sizing: border-box;
+}
 .block {
 	display: block;
 }
@@ -4489,6 +4422,12 @@ table.props td.__value {
 }
 .right-1 {
 	right: .25rem;
+}
+.top-0 {
+	top: 0;
+}
+.top-1 {
+	top: .25rem;
 }
 .flex-none {
 	flex: none;
@@ -4534,6 +4473,9 @@ table.props td.__value {
 }
 .h-1\/2 {
 	height: 50%;
+}
+.m-0 {
+	margin: 0;
 }
 .m-2 {
 	margin: .5rem;
@@ -4591,6 +4533,9 @@ table.props td.__value {
 }
 .mb-2 {
 	margin-bottom: .5rem;
+}
+.mb-3 {
+	margin-bottom: .75rem;
 }
 .mb-4 {
 	margin-bottom: 1rem;
@@ -4701,11 +4646,23 @@ table.props td.__value {
 .gap-x-8 {
 	column-gap: 2rem;
 }
+.gap-4 {
+	gap: 1rem;
+}
+.gap-8 {
+	gap: 2rem;
+}
 .grid-cols-2 {
 	grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+.col-span-2 {
+	grid-column: span 2 / span 2;
+}
 .grid-cols-3 {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.grid-cols-4 {
+	grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 .grid-cols-5 {
 	grid-template-columns: repeat(5, minmax(0, 1fr));

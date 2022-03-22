@@ -550,7 +550,7 @@ let _VirtualTypes = {
 				<td><input class="property" data-property="visibleToAuthenticatedUsers" type="checkbox" checked></td>
 				<td class="actions">
 					${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
-					${_Icons.getSvgIcon('trashcan', 20, 20,       _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+					${_Icons.getSvgIcon('trashcan',       20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
 				</td>
 			</tr>
 		`,
@@ -560,7 +560,7 @@ let _VirtualTypes = {
 				<td class="name allow-break"></td>
 				<td class="sourceType"></td>
 				<td class="actions">
-					<div class="icons-container flex items-center"></div>
+					<div class="icons-container flex items-center justify-end"></div>
 				</td>
 			</tr>
 		`,

@@ -416,7 +416,6 @@ let _Widgets = {
 					<div class="node-container flex items-center">
 						<i class="typeIcon typeIcon-nochildren ${_Icons.getFullSpriteClass(icon)}"></i>
 						<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow">${widget.name}</b>
-						 <!--span class="id">${widget.id}</span-->
 						<div class="icons-container flex items-center"></div>
 					</div>
 				</div>
