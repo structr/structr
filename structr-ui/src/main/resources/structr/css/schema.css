@@ -242,6 +242,12 @@
 
 }
 
+#schema-graph .icons-container {
+	position: absolute;
+	right: .25rem;
+	top: .5rem;
+}
+
 #schema-graph .node h2 {
 	margin: 6px 0;
 }
