@@ -370,7 +370,8 @@ body.console-open #header-blocker {
 	white-space: nowrap;
 }
 
-#function-bar .dropdown-menu-container {
+#function-bar .dropdown-menu-container,
+#function-bar .context-help-text {
 	white-space: initial;
 }
 

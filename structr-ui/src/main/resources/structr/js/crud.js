@@ -181,7 +181,7 @@ let _Crud = {
 	page: {},
 	exact: {},
 	pageSize: {},
-	moveResizer: function(left) {
+	moveResizer: (left) => {
 
 		requestAnimationFrame(() => {
 			left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
@@ -242,9 +242,9 @@ let _Crud = {
 		_Crud.schemaLoaded  = false;
 		_Crud.keys = {};
 
-		_Crud.loadSchema(function() {
+		_Crud.loadSchema().then(() => {
 
-			Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, function(abstractSchemaNodes) {
+			Command.query('AbstractSchemaNode', 2000, 1, 'name', 'asc', {}, (abstractSchemaNodes) => {
 
 				for (let asn of abstractSchemaNodes) {
 					_Crud.abstractSchemaNodes[asn.name] = asn;
@@ -255,9 +255,9 @@ let _Crud = {
 					_Crud.typeSelected(_Crud.type);
 					_Crud.updateRecentTypeList(_Crud.type);
 				}
+
 				_Crud.resize();
 				Structr.unblockMenu();
-
 			});
 		});
 
@@ -334,24 +334,28 @@ let _Crud = {
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: function (message, delay) {
 
-		_Crud.showMessageAfterDelay(_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2') + ' ' + message + ' - please stand by', delay);
+		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')} ${message} - please stand by`, delay);
 
 	},
-	showMessageAfterDelay: function (message, delay) {
+	showMessageAfterDelay: (message, delay) => {
 
 		clearTimeout(_Crud.messageTimeout);
 
-		_Crud.messageTimeout = setTimeout(function() {
+		_Crud.messageTimeout = setTimeout(() => {
 
 			_Crud.removeMessage();
 
 			let crudRight = $('#crud-type-detail');
-			crudRight.append('<div class="crud-message"><div class="crud-centered flex items-center justify-center">' + message + '</div></div>');
+			crudRight.append(`
+				<div class="crud-message">
+					<div class="crud-centered flex items-center justify-center">${message}</div>
+				</div>
+			`);
 
 		}, delay);
 
 	},
-	removeMessage: function() {
+	removeMessage: () => {
 		$('#crud-type-detail .crud-message').remove();
 	},
 	typeSelected: function (type) {
@@ -598,37 +602,33 @@ let _Crud = {
 	 * Read the schema from the _schema REST resource and call 'callback'
 	 * after the schema is loaded.
 	 */
-	loadSchema: function(callback) {
+	loadSchema: async () => {
 
-		var processRelInfo = function (relInfo) {
+		_Crud.showLoadingMessageAfterDelay('Loading data', 100);
+
+		let processRelInfo = (relInfo) => {
 			if (relInfo) {
-				relInfo.forEach(function(r) {
+				for (let r of relInfo) {
 					_Crud.relInfo[r.type] = {
 						source: r.possibleSourceTypes,
 						target: r.possibleTargetTypes
 					};
-				});
+				}
 			}
 		};
 
-		$.ajax({
-			url: Structr.rootUrl + '_schema',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				200: function(data) {
-					data.result.forEach(function(typeObj) {
-						_Crud.types[typeObj.type] = typeObj;
-						processRelInfo(typeObj.relatedTo);
-						processRelInfo(typeObj.relatedFrom);
-					});
+		let response = await fetch(Structr.rootUrl + '_schema');
 
-					if (callback) {
-						callback();
-					}
-				}
+		if (response.ok) {
+
+			let data = await response.json();
+
+			for (let typeObj of data.result) {
+				_Crud.types[typeObj.type] = typeObj;
+				processRelInfo(typeObj.relatedTo);
+				processRelInfo(typeObj.relatedFrom);
 			}
-		});
+		}
 	},
 	determinePagerData: function(type) {
 
@@ -703,19 +703,18 @@ let _Crud = {
 			return storedInfo;
 		}
 
-		console.log(`Unkown relatedType for ${type}.${key}`);
+		console.log(`Unknown relatedType for ${type}.${key}`);
 	},
 	/**
 	 * Return the format information stored about the given property key
 	 */
-	getFormat: function(key, type) {
-		var typeDef = _Crud.keys[type][key];
-		return typeDef.format;
+	getFormat: (key, type) => {
+		return _Crud.keys[type][key].format;
 	},
 	/**
 	 * Append a pager for the given type to the given DOM element.
 	 */
-	addPager: function(type, el) {
+	addPager: (type, el) => {
 
 		if (!_Crud.page[type]) {
 			_Crud.page[type] = urlParam('page') ? urlParam('page') : (defaultPage ? defaultPage : 1);
@@ -753,21 +752,21 @@ let _Crud = {
 
 		return $('.pager', el);
 	},
-	storeType: function() {
+	storeType: () => {
 		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
 	},
-	restoreType: function() {
+	restoreType: () => {
 		let val = LSWrapper.getItem(_Crud.crudTypeKey);
 		if (val) {
 			_Crud.type = val;
 		}
 	},
-	storePagerData: function() {
+	storePagerData: () => {
 		let type      = _Crud.type;
 		let pagerData = _Crud.view[type] + ',' + _Crud.sort[type] + ',' + _Crud.order[type] + ',' + _Crud.page[type] + ',' + _Crud.pageSize[type];
 		LSWrapper.setItem(_Crud.crudPagerDataKey + type, pagerData);
 	},
-	restorePagerData: function() {
+	restorePagerData: () => {
 		let type = _Crud.type;
 		let val  = LSWrapper.getItem(_Crud.crudPagerDataKey + type);
 
@@ -780,16 +779,16 @@ let _Crud = {
 			_Crud.pageSize[type] = pagerData[4];
 		}
 	},
-	setCollectionPageSize: function(type, key, value) {
+	setCollectionPageSize: (type, key, value) => {
 		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.' + _Crud.cssClassForKey(key), value);
 	},
-	getCollectionPageSize: function(type, key) {
+	getCollectionPageSize: (type, key) => {
 		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPageSize_' + type + '.' + _Crud.cssClassForKey(key));
 	},
-	setCollectionPage: function(type, key, value) {
+	setCollectionPage: (type, key, value) => {
 		LSWrapper.setItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.' + _Crud.cssClassForKey(key), value);
 	},
-	getCollectionPage: function(type, key) {
+	getCollectionPage: (type, key) => {
 		return LSWrapper.getItem(_Crud.crudPagerDataKey + '_collectionPage_' + type + '.' + _Crud.cssClassForKey(key));
 	},
 	replaceSortHeader: function(type) {
@@ -1073,16 +1072,16 @@ let _Crud = {
 
 		return '?' + paramsArray.join('&');
 	},
-	refreshList: function(type) {
+	refreshList: (type) => {
 		_Crud.clearList(type);
 		_Crud.activateList(type);
 	},
-	activateList: function(type) {
+	activateList: (type) => {
 		let url = Structr.rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
-	clearList: function(type) {
-		var div = $('#crud-type-detail table tbody');
+	clearList: () => {
+		let div = $('#crud-type-detail table tbody');
 		fastRemoveAllChildren(div[0]);
 	},
 	list: function(type, url, isRetry) {
@@ -2655,9 +2654,9 @@ let _Crud = {
 			LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
 		}
 	},
-	resize: function() {
+	resize: () => {
 
-		var dimensions = Structr.getDialogDimensions(0, 24);
+		let dimensions = Structr.getDialogDimensions(0, 24);
 
 		if (dialogBox && dialogBox.is(':visible')) {
 
