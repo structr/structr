@@ -386,7 +386,7 @@ let _Elements = {
 			let isElementBeingEditedCurrently = (_Pages.centerPane.dataset['elementId'] === selectedObjectId);
 
 			if (!isElementBeingEditedCurrently) {
-				div.click();
+				div.children('.node-container').click();
 			} else {
 				_Entities.selectElement(div[0], entity);
 			}
