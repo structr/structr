@@ -2617,7 +2617,9 @@ let _Schema = {
 			}
 
 			// activate
-			rowToActivate[0].querySelector('.edit-action').dispatchEvent(new Event('click'));
+			if (rowToActivate) {
+				rowToActivate[0].querySelector('.edit-action').dispatchEvent(new Event('click'));
+			}
 
 			$('.discard-all', methodsFakeTable).on('click', () => {
 				for (let discardIcon of methodsFakeTable[0].querySelectorAll('.discard-changes')) {
