@@ -4114,6 +4114,7 @@ let _Schema = {
 		};
 
 		let printClassTree = ($elem, classTree) => {
+
 			let classes = Object.keys(classTree).sort();
 
 			if (classes.length > 0) {
@@ -4121,13 +4122,16 @@ let _Schema = {
 				let $newUl = $('<ul></ul>').appendTo($elem);
 
 				for (let classname of classes) {
+
 					let idForClassname = classnameToId[classname];
 					let isCustomType   = !schemaNodesById?.[idForClassname]?.isBuiltinType;
 
-					let icons   = `<div class="flex items-center icons-container">
-						${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon']))}
-						${(isCustomType ? _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
-					</div>`;
+					let icons = `
+						<div class="flex items-center icons-container absolute right-0 top-1">
+							${(idForClassname ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon'])) : '')}
+							${(idForClassname && isCustomType ? _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
+						</div>
+					`;
 
 					let $newLi = $(`<li data-jstree='{"opened":true}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
 

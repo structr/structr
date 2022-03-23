@@ -1004,7 +1004,6 @@ let _Files = {
 						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl('')}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
-						<!--span class="id">${d.id}</span-->
 						<div class="icons-container flex items-center"></div>
 					</div>
 				`);

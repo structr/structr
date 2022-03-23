@@ -165,14 +165,6 @@ ul#previewTabs {
 	bottom: 2rem;
 }
 
-.content-container.half-height {
-	height: calc(50vh - 5rem);
-}
-
-.content-editor-container.half-height .CodeMirror {
-	height: calc(50vh - 7rem);
-}
-
 .properties-container h2,
 .properties-container h3,
 .properties-container h4 {

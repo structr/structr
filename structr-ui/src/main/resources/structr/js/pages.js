@@ -514,27 +514,6 @@ let _Pages = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		if (isPage) {
-			elements.push({
-				icon: _Icons.getSvgIcon('ui_configuration_settings'),
-				name: 'Page Preview Settings',
-				clickHandler: function () {
-					_Pages.previews.configurePreview(entity);
-					return false;
-				}
-			});
-
-			elements.push({
-				icon: _Icons.getSvgIcon('link_external'),
-				name: 'Open Page in new tab',
-				clickHandler: function () {
-					_Pages.openPagePreviewInNewWindow(entity);
-
-					return false;
-				}
-			});
-		}
-
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
 		if (!isPage && entity.parent !== null) {
@@ -1188,7 +1167,6 @@ let _Pages = {
 						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						${(entity.position ? ` <span class="position_">${entity.position}</span>` : '')}
 					</span>
-					<!--span class="id">${entity.id}</span-->
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -1796,7 +1774,6 @@ let _Pages = {
 				sibling = sibling.nextSibling;
 			}
 		},
-
 		activateComments: function(doc, callback) {
 
 			doc.find('*').each(function(i, element) {
@@ -1863,7 +1840,6 @@ let _Pages = {
 				});
 			});
 		},
-
 		isPreviewActive: () => {
 
 			// only reload if the iframe is already present!
@@ -1875,7 +1851,6 @@ let _Pages = {
 
 			return false;
 		},
-
 		getBaseUrlForPage: (entity) => {
 			let pagePath = entity.path ? entity.path.replace(/^\//, '') : entity.name;
 			let detailsObject     = (LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) ? '/' + LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) : '');
@@ -1883,17 +1858,14 @@ let _Pages = {
 
 			return previewUrl;
 		},
-
 		getUrlForPage: (entity) => {
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + requestParameters;
 		},
-
 		getUrlForPreview: (entity) => {
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-
 		showPreviewInIframe: (pageId, highlightElementId) => {
 
 			if (pageId) {
@@ -1948,7 +1920,7 @@ let _Pages = {
 				_Pages.previews.showPreviewInIframe(pageId, highlightElementId);
 			}
 		},
-		reloadPreviewInIframe: function() {
+		reloadPreviewInIframe: () => {
 
 			if (_Pages.previews.isPreviewActive()) {
 				_Pages.previews.showPreviewInIframe(_Pages.previews.activePreviewPageId, _Pages.previews.activePreviewHighlightElementId);
@@ -1964,113 +1936,59 @@ let _Pages = {
 				_Pages.previews.reloadPreviewInIframe();
 			}
 		},
-//		clearIframeDroppables: function() {
-//
-//			let droppables = $.ui.ddmanager.droppables['default'];
-//
-//			if (!droppables) {
-//				return;
-//			}
-//
-//			$.ui.ddmanager.droppables['default'] = droppables.filter((d) => {
-//				return (!d.options.iframe);
-//			});
-//		},
+		configurePreview: (entity, container) => {
 
-		configurePreview: (entity) => {
+			let detailsObjectIdInput = container.querySelector('#_details-object-id');
 
-			Structr.dialog('Edit Preview Settings of ' + entity.name, function() { return true; }, function() { return true; });
+			detailsObjectIdInput.addEventListener('change', () => {
 
-			dialog.empty();
-			dialogMsg.empty();
-			dialog.append(_Pages.templates.previewConfig({ entity: entity }));
-
-			var detailsObjectIdInput   = $('#_details-object-id');
-			var requestParametersInput = $('#_request-parameters');
-
-			window.setTimeout(function() {
-				detailsObjectIdInput.select().focus();
-			}, 200);
-
-			$('#clear-details-object-id').on('click', function() {
-				detailsObjectIdInput.val('');
-				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-				if (oldVal) {
-					blinkGreen(detailsObjectIdInput);
-					LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
-					detailsObjectIdInput.focus();
-
-					_Pages.previews.modelForPageUpdated(entity.id);
-				}
-			});
-
-			detailsObjectIdInput.on('blur', function() {
-				var inp = $(this);
-				var oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
-				var newVal = inp.val() || null;
+				let oldVal = LSWrapper.getItem(_Pages.detailsObjectIdKey + entity.id) || null;
+				let newVal = detailsObjectIdInput.value;
 				if (newVal !== oldVal) {
-					LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
+
 					blinkGreen(detailsObjectIdInput);
 
-					_Pages.previews.modelForPageUpdated(entity.id);
-				}
-			});
-
-			$('#clear-request-parameters').on('click', function() {
-				requestParametersInput.val('');
-				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-				if (oldVal) {
-					blinkGreen(requestParametersInput);
-					LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
-					requestParametersInput.focus();
+					if (newVal === '') {
+						LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
+					} else {
+						LSWrapper.setItem(_Pages.detailsObjectIdKey + entity.id, newVal);
+					}
 
 					_Pages.previews.modelForPageUpdated(entity.id);
 				}
 			});
 
-			requestParametersInput.on('blur', function() {
-				var inp = $(this);
-				var oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
-				var newVal = inp.val() || null;
+			let requestParametersInput = container.querySelector('#_request-parameters');
+
+			requestParametersInput.addEventListener('change', () => {
+				let oldVal = LSWrapper.getItem(_Pages.requestParametersKey + entity.id) || null;
+				let newVal = requestParametersInput.value;
 				if (newVal !== oldVal) {
-					LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+
 					blinkGreen(requestParametersInput);
+
+					if (newVal === '') {
+						LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
+					} else {
+						LSWrapper.setItem(_Pages.requestParametersKey + entity.id, newVal);
+					}
 
 					_Pages.previews.modelForPageUpdated(entity.id);
 				}
 			});
 
-			$('.auto-refresh', dialog).on('click', function(e) {
-				e.stopPropagation();
-				var key = _Pages.autoRefreshDisabledKey + entity.id;
-				var autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
+			let autoRefreshCheckbox = container.querySelector('#_auto-refresh');
+			autoRefreshCheckbox.addEventListener('change', () => {
+				let key = _Pages.autoRefreshDisabledKey + entity.id;
+				let autoRefreshDisabled = (LSWrapper.getItem(key) === '1');
+
 				if (autoRefreshDisabled) {
 					LSWrapper.removeItem(key);
 				} else {
 					LSWrapper.setItem(key, '1');
 				}
-				blinkGreen($('.auto-refresh', dialog).parent());
+				blinkGreen(autoRefreshCheckbox.parentNode);
 			});
-
-			var pageCategoryInput = $('#_page-category');
-			pageCategoryInput.on('blur', function() {
-				var oldVal = entity.category;
-				var newVal = pageCategoryInput.val() || null;
-				if (newVal !== oldVal) {
-					Command.setProperty(entity.id, "category", newVal, false, function () {
-						blinkGreen(pageCategoryInput);
-						entity.category = newVal;
-					});
-				}
-			});
-
-			$('#clear-page-category').on('click', function () {
-					Command.setProperty(entity.id, "category", null, false, function () {
-						blinkGreen(pageCategoryInput);
-						entity.category = null;
-						pageCategoryInput.val("");
-					});
-				});
 		},
 	},
 
@@ -2635,50 +2553,6 @@ let _Pages = {
 					<iframe></iframe>
 				</div>
 			</div>
-		`,
-		previewConfig: config => `
-			<p>With these settings you can influence the behaviour of the page previews only. They are not persisted on the Page object but only stored in the UI settings.</p>
-			
-			<table class="props">
-				<tr>
-					<td><label for="_details-object-id">UUID of details object to append to preview URL</label></td>
-					<td>
-						<div class="flex items-baseline">
-							<input class="flex-grow" id="_details-object-id" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
-						</div>
-					</td>
-					<td><i id="clear-details-object-id" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
-				</tr>
-			
-				<tr>
-					<td><label for="_request-parameters">Request parameters to append to preview URL</label></td>
-					<td>
-						<div class="flex items-baseline">
-							<code>?</code>
-							<input class="flex-grow" id="_request-parameters" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
-						</div>
-					</td>
-					<td><i id="clear-request-parameters" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
-				</tr>
-			
-				<tr>
-					<td><label for="_auto-refresh">Automatic refresh</label></td>
-					<td>
-						<input id="_auto-refresh" title="Auto-refresh page on changes" alt="Auto-refresh page on changes" class="auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}>
-					</td>
-					<td></td>
-				</tr>
-			
-				<tr>
-					<td><label for="_page-category">Category</label></td>
-					<td>
-						<div class="flex items-baseline">
-							<input class="flex-grow"  id="_page-category" type="text" value="${(config.entity.category || '')}">
-						</div>
-					</td>
-					<td><i id="clear-page-category" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i></td>
-				</tr>
-			</table>
 		`,
 		properties: config => `
 			<div class="content-container properties-container"></div>
