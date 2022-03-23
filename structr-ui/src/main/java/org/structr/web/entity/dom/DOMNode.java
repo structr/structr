@@ -537,6 +537,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		final Iterable<GraphObject> listSource = renderContext.getListSource();
 		if (listSource != null) {
 
+			final GraphObject previousDataObject = renderContext.getDataNode(dataKey);
+
 			try {
 				for (final Object dataObject : listSource) {
 
@@ -560,7 +562,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				}
 			}
 
-			renderContext.clearDataObject(dataKey);
+			// restore previous data object
+			renderContext.putDataObject(dataKey, previousDataObject);
 		}
 	}
 
