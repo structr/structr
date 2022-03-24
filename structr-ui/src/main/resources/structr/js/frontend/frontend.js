@@ -407,25 +407,37 @@ export class Frontend {
 
 	handleGenericEvent(event) {
 
-		event.preventDefault();
-		event.stopPropagation();
+		// event handling defaults
+		let preventDefault  = true;
+		let stopPropagation = true;
 
-		let target = event.currentTarget;
-		let data   = target.dataset;
-		let id     = data.structrId;
-		let delay  = 0;
+		let target     = event.currentTarget;
+		let data       = target.dataset;
+		let id         = data.structrId;
+		let delay      = 0;
 
 		// adjust debounce delay if set
 		if (data && data.structrOptions) {
 			try {
+
 				let options = JSON.parse(data.structrOptions);
-				if (options && options.delay) {
-					delay = options.delay;
+				if (options) {
+
+					if (options.delay) {
+						delay = options.delay;
+					}
+
+					if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
+					if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 				}
 			} catch (e) {
 			    console.error(e);
 			}
 		}
+
+		// allow element to override preventDefault and stopPropagation
+		if (preventDefault) { event.preventDefault(); }
+		if (stopPropagation) { event.stopPropagation(); }
 
 		if (this.timeout) {
 			window.clearTimeout(this.timeout);
