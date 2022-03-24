@@ -893,7 +893,7 @@ var _Crawler = {
 		$('.extract', row).on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			Structr.updateButtonWithSpinnerAndText(btn, text);
 			e.preventDefault();
 
 			var url = Structr.rootUrl + 'SourcePattern/' + d.id + '/extract');

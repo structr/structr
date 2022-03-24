@@ -23,7 +23,12 @@
 	height: calc(100vh - 8rem);
 }
 
-#schema-graph.hide-inheritance-arrwows .dashed-inheritance-relationship {
+#schema-graph.hide-inheritance-arrows .dashed-inheritance-relationship {
+	display: none;
+}
+
+#schema-graph.hide-relationship-labels .rel-type,
+#schema-graph.hide-relationship-labels .multiplicity {
 	display: none;
 }
 
@@ -232,14 +237,11 @@
 	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 }
 
-#schema-graph .label .icon {
-	margin: -3px 2px;
+#schema-graph .label svg {
 	display: none;
-	cursor: pointer;
 }
-
-#schema-graph .node {
-
+#schema-graph .label:hover svg {
+	display: inline-block;
 }
 
 #schema-graph .icons-container {

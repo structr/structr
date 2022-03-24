@@ -27,7 +27,7 @@ var _Layout = {
 		_Layout.timeout = window.setInterval(function() {
 
 			_Layout.doForceLayout(nodes, rels, 0.01);
-			instance.repaintEverything();
+			_Schema.ui.jsPlumbInstance.repaintEverything();
 
 		}, 10);
 	},

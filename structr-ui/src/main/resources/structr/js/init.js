@@ -898,7 +898,7 @@ let Structr = {
 		}
 		return icon;
 	},
-	updateButtonWithAjaxLoaderAndText: (btn, html) => {
+	updateButtonWithSpinnerAndText: (btn, html) => {
 		btn.attr('disabled', 'disabled').addClass('disabled').html(html + _Icons.getSvgIcon('waiting-spinner', 20, 20, 'ml-2'));
 	},
 	updateButtonWithSuccessIcon: (btn, html) => {
