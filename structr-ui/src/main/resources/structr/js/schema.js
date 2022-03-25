@@ -558,14 +558,19 @@ let _Schema = {
 							let dragElement;
 							let dragElementId;
 							let dragElementIsSelected = false;
+							let nodeDragStartpoint    = {};
+							let dragStopped           = false;
 
 							_Schema.ui.jsPlumbInstance.draggable(id, {
 								containment: true,
 								start: (ui) => {
 
+									_Schema.ui.updateSelectedNodes();
+
 									dragElement         = $(ui.el);
 									dragElementId       = dragElement.attr('id');
 									currentCanvasOffset = _Schema.ui.canvas.offset();
+									dragStopped         = false;
 									let nodeOffset      = dragElement.offset();
 
 									dragElementIsSelected = dragElement.hasClass('selected');
@@ -573,41 +578,46 @@ let _Schema = {
 										_Schema.ui.clearSelection();
 									}
 
-									_Schema.ui.nodeDragStartpoint = {
+									nodeDragStartpoint = {
 										top: (nodeOffset.top - currentCanvasOffset.top),
 										left: (nodeOffset.left - currentCanvasOffset.left)
 									};
 								},
-								drag: (ui) => {
+								drag: () => {
 
 									if (dragElementIsSelected) {
+										requestAnimationFrame(() => {
+											if (!dragStopped) {
+												let nodeOffset = dragElement.offset();
 
-										let nodeOffset = dragElement.offset();
+												let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
+												let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
 
-										let posDelta = {
-											top: (_Schema.ui.nodeDragStartpoint.top - nodeOffset.top),
-											left: (_Schema.ui.nodeDragStartpoint.left - nodeOffset.left)
-										};
+												for (let selectedNode of _Schema.ui.selectedNodes) {
 
-										for (let selectedNode of _Schema.ui.selectedNodes) {
-											if (selectedNode.nodeId !== dragElementId) {
-												let newTop  = selectedNode.pos.top - posDelta.top;
-												if (newTop < currentCanvasOffset.top) {
-													newTop = currentCanvasOffset.top;
+													if (selectedNode.nodeId !== dragElementId) {
+														let newTop  = selectedNode.pos.top - deltaTop;
+														if (newTop < currentCanvasOffset.top) {
+															newTop = currentCanvasOffset.top;
+														}
+														let newLeft = selectedNode.pos.left - deltaLeft;
+														if (newLeft < currentCanvasOffset.left) {
+															newLeft = currentCanvasOffset.left;
+														}
+
+														$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
+													}
 												}
-												let newLeft = selectedNode.pos.left - posDelta.left;
-												if (newLeft < currentCanvasOffset.left) {
-													newLeft = currentCanvasOffset.left;
-												}
 
-												$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
+												_Schema.ui.jsPlumbInstance.repaintEverything();
 											}
-										}
+										});
 									}
 
-									_Schema.ui.jsPlumbInstance.repaintEverything();
 								},
 								stop: () => {
+									dragStopped = true;
+
 									_Schema.storePositions();
 									_Schema.ui.updateSelectedNodes();
 									_Schema.resize();
@@ -4222,7 +4232,6 @@ let _Schema = {
 		selectionInProgress: false,
 		mouseDownCoords: { x: 0, y: 0 },
 		mouseUpCoords: { x: 0, y: 0 },
-		nodeDragStartpoint: undefined,
 		selectBox: undefined,
 		selectedNodes: [],
 		selectRel: function(rel) {
