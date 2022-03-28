@@ -152,6 +152,8 @@ public class MessageEngineModule implements StructrModule {
 
 				entry.put("mainBrokerURL", client.getMainBrokerURL());
 				entry.put("fallbackBrokerURLs", client.getFallbackBrokerURLs());
+				entry.put("username", client.getUsername());
+				entry.put("password", client.getPassword());
 				entry.put("qos", client.getQos());
 				entry.put("isEnabled", client.getIsEnabled());
 
@@ -175,6 +177,7 @@ public class MessageEngineModule implements StructrModule {
 
 				entry.put("servers", client.getServers());
 				entry.put("groupId", client.getGroupId());
+				entry.put("enabled", client.getEnabled());
 
 				List<String> subIds = new ArrayList<>();
 				for (MessageSubscriber sub : client.getSubscribers()) {
