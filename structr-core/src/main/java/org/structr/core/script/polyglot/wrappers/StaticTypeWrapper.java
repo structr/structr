@@ -99,6 +99,9 @@ public class StaticTypeWrapper implements ProxyObject {
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
 					}
 
+				} catch (IllegalArgumentException ex) {
+
+					throw new RuntimeException(new FrameworkException(422, "Tried to call method \"" + method.getName() + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
 				} catch (IllegalAccessException ex) {
 
 					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
