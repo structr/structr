@@ -870,7 +870,14 @@ public class FileHelper {
 			existingParentFolder = file.getParent();
 		}
 
-		final BufferedInputStream bufferedIs = new BufferedInputStream(file.getInputStream());
+		BufferedInputStream bufferedIs = null;
+
+		try (final Tx tx = app.tx()) {
+
+			bufferedIs = new BufferedInputStream(file.getInputStream());
+
+			tx.success();
+		}
 
 		switch (ArchiveStreamFactory.detect(bufferedIs)) {
 
@@ -881,6 +888,7 @@ public class FileHelper {
 				logger.info("7-Zip archive format detected");
 
 				try (final Tx outertx = app.tx()) {
+
 					SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
 
 					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
@@ -951,7 +959,6 @@ public class FileHelper {
 				}
 			}
 		}
-
 	}
 
 	private static void handleArchiveInputStream(final ArchiveInputStream in, final App app, final SecurityContext securityContext, final Folder existingParentFolder) throws FrameworkException, IOException {
