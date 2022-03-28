@@ -1307,7 +1307,7 @@ let _Pages = {
 		}
 	},
 	getActiveTabLeft: () => {
-		return LSWrapper.getItem(_Pages.activeTabLeftKey);
+		return LSWrapper.getItem(_Pages.activeTabLeftKey, 'pagesTab');
 	},
 	getActiveTabRight: () => {
 		return LSWrapper.getItem(_Pages.activeTabRightKey);
