@@ -501,6 +501,8 @@ let _Dialogs = {
 			<div id="div-options" class="quick-access-options">
 				
 				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 					
 					${_Dialogs.templates.htmlClassTile(config)}
 					
@@ -530,6 +532,8 @@ let _Dialogs = {
 			<div id="div-options" class="quick-access-options">
 
 				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 					
 					${_Dialogs.templates.htmlClassTile(config)}
 					
@@ -584,6 +588,8 @@ let _Dialogs = {
 
 				<div class="grid grid-cols-2 gap-8">
 				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+				
 					${_Dialogs.templates.htmlClassTile(config)}
 					
 					${_Dialogs.templates.htmlIdTile(config)}
@@ -607,6 +613,8 @@ let _Dialogs = {
 			<div id="div-options" class="quick-access-options">
 				
 				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 				
 					${_Dialogs.templates.htmlClassTile(config)}
 					
@@ -703,6 +711,8 @@ let _Dialogs = {
 				
 				<div class="grid grid-cols-2 gap-8">
 				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+				
 					${_Dialogs.templates.htmlClassTile(config)}
 					
 					${_Dialogs.templates.htmlIdTile(config)}
@@ -764,6 +774,8 @@ let _Dialogs = {
 			<div id="div-options" class="quick-access-options">
 				
 				<div class="grid grid-cols-2 gap-8">
+				
+					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
 					${_Dialogs.templates.htmlClassTile(config)}
 					
@@ -787,6 +799,8 @@ let _Dialogs = {
 						<label class="block mb-2" for="value-input">Value</label>
 						<input type="text" id="value-input" name="_html_value">
 					</div>
+					
+					<div><!-- occupy space in grid UI --></div>
 			
 					${_Dialogs.templates.visibilityPartial(config)}
 				
