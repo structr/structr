@@ -18,19 +18,19 @@
  */
 function createNewEntry(e) {
 
-	var currentTab = $('div.tab-content:visible');
+	let currentTab = $('div.tab-content:visible');
 	if (currentTab) {
 
-		var name = window.prompt("Please enter a key for the new configuration entry.");
+		let name = window.prompt("Please enter a key for the new configuration entry.");
 		if (name && name.length) {
 
-			currentTab.append(
-				'<div class="form-group">' +
-				'<label>' + name + '</label>' +
-				'<input type="text" name="' + name + '"/>' +
-				'<input type="hidden" name="' + name + '._settings_group" value="' + $(currentTab).attr('id') + '" />' +
-				'</div>'
-				);
+			currentTab.append(`
+				<div class="form-group">
+					<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+					<input type="text" name="${name}">
+					<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
+				</div>'
+			`);
 		}
 	}
 }
@@ -289,7 +289,7 @@ const Structr = {
            entry = pathEntries.shift();
         }
 
-        return `/${ prefix.join('/') }${rootUrl}`;
+		return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
     }
 }
 
