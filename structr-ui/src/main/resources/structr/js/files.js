@@ -348,7 +348,7 @@ let _Files = {
 			if (fileCount === 1) {
 				elements.push({
 					name: 'Copy Download URL',
-					clickHandler: function () {
+					clickHandler: () => {
 						// do not make the click handler async because it would return a promise instead of the boolean
 
 						(async () => {
@@ -358,6 +358,22 @@ let _Files = {
 							a.href = `${Structr.getPrefixedRootUrl('')}${possiblyUpdatedEntity.path}`;
 							await navigator.clipboard.writeText(a.href);
 						})();
+
+						return false;
+					}
+				});
+
+				elements.push({
+					name: 'Download File',
+					icon: _Icons.getSvgIcon('download-icon'),
+					clickHandler: () => {
+						// do not make the click handler async because it would return a promise instead of the boolean
+
+						let a = document.createElement('a');
+						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
+						a.href = `${Structr.getPrefixedRootUrl('')}${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
+						a.click();
+
 						return false;
 					}
 				});
