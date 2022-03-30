@@ -698,7 +698,7 @@ let _Pages = {
 		}
 
 		let pagesPager = $('#pagesPager');
-		let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true);
+		let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true, true);
 
 		pPager.cleanupFunction = function () {
 			fastRemoveAllChildren(_Pages.pagesTree[0]);
@@ -706,6 +706,8 @@ let _Pages = {
 
 		let filerEl = $('#pagesPagerFilters');
 		pPager.activateFilterElements(filerEl);
+		pPager.setIsPaused(false);
+		pPager.refresh();
 
 		fetch(Structr.rootUrl + 'Page/category').then((response) => {
 			if (response.ok) {
@@ -1199,18 +1201,21 @@ let _Pages = {
 	},
 	appendPagePreviewIcon: (parent, page) => {
 
-		let pagePreviewIcon = $('.svg_page_preview_icon', parent);
-		if (!(pagePreviewIcon && pagePreviewIcon.length)) {
+		let pagePreviewIconClass = 'svg_page_preview_icon';
+		let icon = $('.' + pagePreviewIconClass, parent);
 
-			pagePreviewIcon = $(_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['svg_page_preview_icon', 'node-action-icon', 'mr-1'])));
-			parent.append(pagePreviewIcon);
+		if (!(icon && icon.length)) {
 
-			pagePreviewIcon.on('click', () => {
+			icon = $(_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon([pagePreviewIconClass, 'node-action-icon', 'mr-1'])));
+			parent.append(icon);
+
+			icon.on('click', () => {
+				e.stopPropagation();
 				_Pages.openPagePreviewInNewWindow(page);
 			});
 		}
 
-		return pagePreviewIcon;
+		return icon;
 	},
 	openPagePreviewInNewWindow: (entity) => {
 
@@ -1394,7 +1399,7 @@ let _Pages = {
 
 			let pageSelect       = document.getElementById('localization-preview-page');
 			let localeInput      = document.querySelector('#localizations input.locale');
-			pageSelect.innerHTML = '';
+			fastRemoveAllChildren(pageSelect);
 
 			let lastSelectedPage = LSWrapper.getItem(_Pages.localizations.lastSelectedPageKey);
 			let lastUsedLocale   = LSWrapper.getItem(_Pages.localizations.lastUsedLocaleKey);
@@ -1445,7 +1450,7 @@ let _Pages = {
 			let localizationIdKey = 'localizationId';
 			let previousValueKey  = 'previousValue';
 
-			localizationsContainer.innerHTML = '';
+			fastRemoveAllChildren(localizationsContainer);
 
 			if (localizations.length == 0) {
 
@@ -2156,7 +2161,7 @@ let _Pages = {
 				let pagesToLink = $('#pagesToLink');
 
 				_Pager.initPager('pages-to-link', 'Page', 1, 25);
-				let pagesPager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, (pages) => {
+				let linkPagePager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, (pages) => {
 
 					for (let page of pages) {
 
@@ -2175,11 +2180,13 @@ let _Pages = {
 							_Pages.linkableDialog.handleLinkableElement(div, entity, page);
 						}
 					}
-				});
+				}, undefined, undefined, undefined, true);
 
 				let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
-				pagesPager.pager.append(pagesPagerFilters);
-				pagesPager.activateFilterElements();
+				linkPagePager.pager.append(pagesPagerFilters);
+				linkPagePager.activateFilterElements();
+				linkPagePager.setIsPaused(false);
+				linkPagePager.refresh();
 
 				targetNode.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
 
@@ -2188,19 +2195,21 @@ let _Pages = {
 
 				_Pager.initPager('folders-to-link', 'Folder', 1, 25);
 				_Pager.forceAddFilters('folders-to-link', 'Folder', { hasParent: false });
-				let linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', function(folders) {
+				let linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', (folders) => {
 
 					for (let folder of folders) {
 						_Pages.linkableDialog.appendFolder(entity, foldersToLink, folder);
 					}
-				}, null, 'id,name,hasParent');
+				}, null, 'id,name,hasParent', undefined, true);
 
 				let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
 				linkFolderPager.pager.append(folderPagerFilters);
 				linkFolderPager.activateFilterElements();
+				linkFolderPager.setIsPaused(false);
+				linkFolderPager.refresh();
 
 				_Pager.initPager('files-to-link', 'File', 1, 25);
-				let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
+				let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', (files) => {
 
 					for (let file of files) {
 
@@ -2216,11 +2225,13 @@ let _Pages = {
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, file);
 					}
-				}, null, 'id,name,contentType,linkingElementsIds,path');
+				}, null, 'id,name,contentType,linkingElementsIds,path', undefined, true);
 
 				let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
 				linkFilesPager.pager.append(filesPagerFilters);
 				linkFilesPager.activateFilterElements();
+				linkFilesPager.setIsPaused(false);
+				linkFilesPager.refresh();
 			}
 
 			if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
@@ -2230,7 +2241,7 @@ let _Pages = {
 				let imagesToLink = $('#imagesToLink');
 
 				_Pager.initPager('images-to-link', 'Image', 1, 25);
-				let imagesPager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
+				let linkImagePager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', (images) => {
 
 					for (let image of images) {
 
@@ -2246,11 +2257,13 @@ let _Pages = {
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, image);
 					}
-				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
+				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall', undefined, true);
 
 				let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
-				imagesPager.pager.append(imagesPagerFilters);
-				imagesPager.activateFilterElements();
+				linkImagePager.pager.append(imagesPagerFilters);
+				linkImagePager.activateFilterElements();
+				linkImagePager.setIsPaused(false);
+				linkImagePager.refresh();
 			}
 		},
 		appendFolder: (entityToLinkTo, folderEl, subFolder) => {

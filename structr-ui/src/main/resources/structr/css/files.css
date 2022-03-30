@@ -575,11 +575,6 @@ button#run-method {
 	margin-left: 24px;
 }
 
-/*button#start-import,*/
-/*button#prev-element {*/
-/*	margin-left: 36px;*/
-/*}*/
-
 div#xml-config p.hint {
 	padding: 48px;
 }
@@ -592,7 +587,6 @@ div#csv-configurations,
 div#xml-configurations {
 	padding: 0;
 	margin: 0;
-	/*position: absolute;*/
 	left: 12px;
 	bottom: 12px;
 	text-align: left;
@@ -600,43 +594,10 @@ div#xml-configurations {
 
 div#csv-configurations input,
 div#xml-configurations input {
-	/*padding: 3px 2px 2px 4px;*/
-	/*width: 100px;*/
-	/*vertical-align: bottom;*/
 	margin-left: 2rem;
 }
-
-/*div#csv-configurations select,*/
-/*div#xml-configurations select {*/
-/*	width: 100px;*/
-/*	vertical-align: bottom;*/
-/*	line-height: 1.3em;*/
-/*	height: 24px;*/
-/*	background-color: var(--gray-bg);*/
-/*	border: 1px solid var(--gray-ddd);*/
-/*}*/
-
 div#csv-configurations button,
 div#xml-configurations button {
 	padding-left: 8px;
 	margin: 0 0 0 12px;
 }
-
-/* resets so we can use tailwind classes */
-/*#files-table .node-action-icon {*/
-/*	justify-self: end;*/
-/*	position: initial;*/
-/*	min-width: 16px;*/
-/*}*/
-
-/*#files-table .nodeHover > .icons-container .node-action-icon {*/
-/*	display: inline-block;*/
-/*	!*color: var(--icon-stroke-hover);*!*/
-/*}*/
-
-/*#files-table .key_icon {*/
-/*	justify-self: end;*/
-/*	position: initial;*/
-/*	min-width: 16px;*/
-/*	margin-left: 0 !important;*/
-/*}*/

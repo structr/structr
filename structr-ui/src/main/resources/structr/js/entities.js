@@ -718,13 +718,6 @@ let _Entities = {
 
 		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
 	},
-	// appendRowWithBooleanSwitch: function (entity, el, key, label, text, typeInfo) {
-	// 	el.append('<tr><td class="key">' + label + '</td><td class="value"></td><td></td></tr>');
-	//
-	// 	_Entities.appendBooleanSwitch($('tr:last .value', el), entity, key, '', text);
-	//
-	// 	_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
-	// },
 	appendSchemaHint: function (el, key, typeInfo) {
 
 		if (typeInfo[key] && typeInfo[key].hint) {
@@ -735,9 +728,6 @@ let _Entities = {
 			});
 		}
 	},
-	// queryDialog: function(entity, el) {
-	// 	return _Entities.repeaterConfig(entity, el);
-	// },
 	repeaterConfig: function(entity, el) {
 
 		let queryTypes = [
@@ -1857,9 +1847,11 @@ let _Entities = {
 		if (!entity[key] || entity[key] === 'null') {
 			entity[key] = '';
 		}
-		el.append('<input class="dateField" name="' + key + '" type="text" value="' + entity[key] + '">');
-		var dateField = $(el.find('.dateField'));
+		el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
+		let dateField = $(el.find('.dateField'));
 		_Entities.activateDatePicker(dateField, format);
+
+		return dateField;
 	},
 	activateDatePicker: function(input, format) {
 		if (!format) {
@@ -2395,26 +2387,27 @@ let _Entities = {
 	},
 	appendContextMenuIcon: (parent, entity, visible) => {
 
-		let contextMenuIcon = $('.node-action-icon', parent);
+		let contextMenuIconClass = 'context_menu_icon';
+		let icon = $('.' + contextMenuIconClass, parent);
 
-		if (!(contextMenuIcon && contextMenuIcon.length)) {
-			contextMenuIcon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon'])));
-			parent.append(contextMenuIcon);
+		if (!(icon && icon.length)) {
+			icon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			parent.append(icon);
 		}
 
-		contextMenuIcon.on('click', function(e) {
+		icon.on('click', function(e) {
 			e.stopPropagation();
 			_Elements.activateContextMenu(e, parent, entity);
 		});
 
 		if (visible) {
-			contextMenuIcon.css({
+			icon.css({
 				visibility: 'visible',
 				display: 'inline-block'
 			});
 		}
 
-		return contextMenuIcon;
+		return icon;
 	},
 	appendExpandIcon: (nodeContainer, entity, hasChildren, expanded, callback) => {
 

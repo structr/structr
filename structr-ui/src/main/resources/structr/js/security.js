@@ -320,14 +320,16 @@ let _UsersAndGroups = {
 				let userModelObj = StructrModel.create(user);
 				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
 			}
-		}, null, 'id,isUser,name,type,isAdmin');
+		}, null, 'id,isUser,name,type,isAdmin', undefined, true);
 
 		userPager.cleanupFunction = function () {
-			_Security.userList.innerHTML = '';
+			fastRemoveAllChildren(_Security.userList);
 		};
 
 		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		userPager.activateFilterElements();
+		userPager.setIsPaused(false);
+		userPager.refresh();
 	},
 	createUserElement: (user) => {
 
@@ -500,12 +502,15 @@ let _UsersAndGroups = {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			}
-		});
-		groupPager.cleanupFunction = function () {
-			_Security.groupList.innerHTML = '';
+		}, undefined, undefined, undefined, true);
+
+		groupPager.cleanupFunction = () => {
+			fastRemoveAllChildren(_Security.groupList);
 		};
 		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		groupPager.activateFilterElements();
+		groupPager.setIsPaused(false);
+		groupPager.refresh();
 	},
 	createGroupElement: function (group) {
 
@@ -674,13 +679,15 @@ let _ResourceAccessGrants = {
 
 		Structr.activateCommentsInElement(_Security.resourceAccesses);
 
-		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', undefined, true);
 
 		raPager.cleanupFunction = function () {
 			$('#resourceAccessesTable tbody tr').remove();
 		};
 
 		raPager.activateFilterElements(_Security.resourceAccesses);
+		raPager.setIsPaused(false);
+		raPager.refresh();
 
 		$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
 			_ResourceAccessGrants.addResourceGrant(e);

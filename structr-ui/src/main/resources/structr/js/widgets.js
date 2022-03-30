@@ -112,7 +112,7 @@ let _Widgets = {
 
 				if (sourceWidget && sourceWidget.isWidget) {
 					if (sourceWidget.treePath) {
-						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
+						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
@@ -122,7 +122,7 @@ let _Widgets = {
 						contentType: 'text/html',
 						statusCode: {
 							200: function(data) {
-								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
+								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, (entity) => {
 									_Elements.dropBlocked = false;
 								});
 							}
@@ -139,10 +139,12 @@ let _Widgets = {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
 			}
-		});
+		}, undefined, undefined, undefined, true);
 
 		_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
 		_wPager.activateFilterElements();
+		_wPager.setIsPaused(false);
+		_wPager.refresh();
 
 		_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);
 

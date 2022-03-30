@@ -183,7 +183,7 @@ let _VirtualTypes = {
 
 		_Pager.initPager('virtual-types', 'VirtualType', 1, 25, 'name', 'asc');
 
-		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData);
+		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData, undefined, undefined, undefined, true);
 
 		_VirtualTypes.virtualTypesPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
@@ -193,6 +193,8 @@ let _VirtualTypes = {
 			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
 		`);
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
+		_VirtualTypes.virtualTypesPager.setIsPaused(false);
+		_VirtualTypes.virtualTypesPager.refresh();
 
 	},
 	processPagerData: (pagerData) => {

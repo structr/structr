@@ -22,7 +22,6 @@ var selectedElements = [];
 var folderPageSize = 10000, folderPage = 1;
 var filesViewModeKey = 'structrFilesViewMode_' + location.port;
 var timeout, attempts = 0, maxRetry = 10;
-var displayingFavorites = false;
 var filesLastOpenFolderKey = 'structrFilesLastOpenFolder_' + location.port;
 var filesResizerLeftKey = 'structrFilesResizerLeftKey_' + location.port;
 var activeFileTabPrefix = 'activeFileTabPrefix' + location.port;
@@ -48,6 +47,7 @@ let _Files = {
 	currentEditor: undefined,
 	fileContents: {},
 	fileHasUnsavedChanges: {},
+	displayingFavorites: false,
 	getViewMode: function () {
 		return _Files._viewMode || 'list';
 	},
@@ -108,6 +108,7 @@ let _Files = {
 			Structr.functionBar.innerHTML = _Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes });
 
 			UISettings.showSettingsForCurrentModule();
+			_Files.updateFunctionBarStatus();
 
 			let fileTypeSelect   = document.querySelector('select#file-type');
 			let addFileButton    = document.getElementById('add-file-button');
@@ -307,7 +308,7 @@ let _Files = {
 
 		if (isFile) {
 
-			if (displayingFavorites) {
+			if (_Files.displayingFavorites) {
 				elements.push({
 					icon: _Icons.getSvgIcon('favorite-star-remove'),
 					name: 'Remove from Favorites',
@@ -539,7 +540,7 @@ let _Files = {
 				event.stopPropagation();
 				event.preventDefault();
 
-				if (displayingFavorites === true) {
+				if (_Files.displayingFavorites === true) {
 					(new MessageBuilder()).warning("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
 					return;
 				}
@@ -703,21 +704,21 @@ let _Files = {
 
 		});
 	},
-	updateFunctionBarStatus: (displayingFavorites) => {
+	updateFunctionBarStatus: () => {
 
 		let addFolderButton   = document.getElementById('add-folder-button');
 		let addFileButton     = document.getElementById('add-file-button');
 		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
 
-		if (displayingFavorites) {
+		if (_Files.displayingFavorites === true) {
 
 			addFolderButton?.classList.add('disabled');
 			addFileButton?.classList.add('disabled');
 			mountDialogButton?.classList.add('disabled');
 
-			addFolderButton?.setAttribute('disabled', true);
-			addFileButton?.setAttribute('disabled', true);
-			mountDialogButton?.setAttribute('disabled', true);
+			addFolderButton?.setAttribute('disabled', 'disabled');
+			addFileButton?.setAttribute('disabled', 'disabled');
+			mountDialogButton?.setAttribute('disabled', 'disabled');
 
 		} else {
 
@@ -736,11 +737,11 @@ let _Files = {
 
 		LSWrapper.setItem(filesLastOpenFolderKey, id);
 
-		displayingFavorites = (id === 'favorites');
-		let isRootFolder    = (id === 'root');
-		let parentIsRoot    = (parentId === '#');
+		_Files.displayingFavorites = (id === 'favorites');
+		let isRootFolder           = (id === 'root');
+		let parentIsRoot           = (parentId === '#');
 
-		_Files.updateFunctionBarStatus(displayingFavorites);
+		_Files.updateFunctionBarStatus();
 		_Files.insertLayoutSwitches(id, parentId, nodePath, parents);
 
 		// store current folder id so we can filter slow requests
@@ -763,7 +764,7 @@ let _Files = {
 			}
 		};
 
-		if (displayingFavorites === true) {
+		if (_Files.displayingFavorites === true) {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
@@ -788,13 +789,10 @@ let _Files = {
 
 			$('#folder-contents-container > button').removeClass('disabled').attr('disabled', null);
 
-			if (isRootFolder) {
-				Command.list('Folder', true, 1000, 1, 'name', 'asc', _Files.defaultFolderAttributes, handleChildren);
-			} else {
-				Command.query('Folder', 1000, 1, 'name', 'asc', {parentId: id}, handleChildren, true, null, _Files.defaultFolderAttributes);
-			}
+			Command.query('Folder', 1000, 1, 'name', 'asc', { parentId: (isRootFolder ? null : id) }, handleChildren, true, null, _Files.defaultFolderAttributes);
 
-			_Pager.initPager('filesystem-files', 'File', 1, 25, 'name', 'asc');
+			let pagerId = 'filesystem-files';
+			_Pager.initPager(pagerId, 'File', 1, 25, 'name', 'asc');
 			_Pager.page['File'] = 1;
 
 			let filterOptions = {
@@ -802,10 +800,9 @@ let _Files = {
 				hasParent: (!parentIsRoot)
 			};
 
-			let pagerId = 'filesystem-files';
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers');
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', undefined, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
@@ -823,6 +820,8 @@ let _Files = {
 				<input type="checkbox" class="filter" data-attribute="hasParent" ${(parentIsRoot ? '' : 'checked')} hidden>
 			`);
 			filesPager.activateFilterElements();
+			filesPager.setIsPaused(false);
+			filesPager.refresh();
 
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
@@ -1359,7 +1358,7 @@ let _Files = {
 
 						// clear all other tabs before editing this one to ensure correct height
 						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-							editor.innerHTML = '';
+							fastRemoveAllChildren(editor);
 						}
 
 						_Files.editFileWithMonaco(entity, $(editorContainer));

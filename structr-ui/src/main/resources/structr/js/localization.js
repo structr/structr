@@ -186,15 +186,17 @@ let _Localization = {
 
 		_Pager.initPager('localizations', 'Localization', 1, 25, 'name', 'asc');
 
-		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
+		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, undefined, true);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
 		_Localization.keyAndDomainPager.pager.append(`
 			Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
-			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">`
-		);
+			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
+		`);
 		_Localization.keyAndDomainPager.activateFilterElements();
+		_Localization.keyAndDomainPager.setIsPaused(false);
+		_Localization.keyAndDomainPager.refresh();
 
 		let lastSelectedLocalizationElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 		if (!lastSelectedLocalizationElement) {

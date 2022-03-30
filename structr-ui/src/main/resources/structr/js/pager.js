@@ -113,11 +113,12 @@ let _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, prepend) {
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, prepend, startPaused) {
 
-		let pager = new Pager(id, el, rootOnly, type, view, callback, prepend);
+		let pager = new Pager(id, el, rootOnly, type, view, callback, prepend, startPaused);
 
-		pager.transportFunction = function() {
+		pager.transportFunction = () => {
+
 			let filterAttrs = pager.getNonEmptyFilterAttributes();
 
 			let isExactPager = false;
@@ -130,16 +131,21 @@ let _Pager = {
 				isExactPager = (inExactKeys.length === 0);
 			}
 
-			if (typeof optionalTransportFunction === "function") {
-				optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
-			} else {
+			if (!pager.isPaused()) {
 
-				// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
-				if (pager.type === 'Page') {
-					filterAttrs['!name'] = '__ShadowDocument__';
+				if (typeof optionalTransportFunction === "function") {
+
+					optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
+
+				} else {
+
+					// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
+					if (pager.type === 'Page') {
+						filterAttrs['!name'] = '__ShadowDocument__';
+					}
+
+					Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 				}
-
-				Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
 
@@ -149,17 +155,19 @@ let _Pager = {
 	}
 };
 
-let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
+let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaused = false) {
 
-	var pagerObj = this;
+	let pagerObj = this;
 
 	// Parameters
-	this.el = el;
+	this.el       = el;
 	this.filterEl = undefined; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
-	this.id = id;
-	this.type = type;
-	this.view = view;
+	this.id       = id;
+	this.type     = type;
+	this.view     = view;
+	this.paused   = startPaused;
+
 	if (!callback) {
 		this.callback = function(entities) {
 			for (let entity of entities) {
@@ -172,6 +180,14 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 
 	if (typeof _Pager.pagerFilters[this.id] !== 'object') {
 		_Pager.pagerFilters[this.id] = {};
+	}
+
+	this.isPaused = () => {
+		return this.paused;
+	};
+
+	this.setIsPaused = (paused) => {
+		this.paused = paused;
 	}
 
 	this.internalCallback = function (result, count) {

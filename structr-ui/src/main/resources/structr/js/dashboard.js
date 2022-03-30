@@ -797,7 +797,7 @@ let _Dashboard = {
 			let url    = Structr.rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
 			let type   = filter.value;
 
-			row.innerHTML = '';
+			fastRemoveAllChildren(row);
 
 			if ( type &&type.length) {
 				url += '&type=' + type;

@@ -222,14 +222,19 @@ let _MailTemplates = {
 
 		_Pager.initPager('mail-templates', 'MailTemplate', 1, 25, 'name', 'asc');
 
-		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData);
+		_MailTemplates.mailTemplatesPager = _Pager.addPager('mail-templates', pagerEl, false, 'MailTemplate', 'ui', _MailTemplates.processPagerData, undefined, undefined, undefined, true);
 
 		_MailTemplates.mailTemplatesPager.cleanupFunction = () => {
-			_MailTemplates.mailTemplatesList.innerHTML = '';
+			fastRemoveAllChildren(_MailTemplates.mailTemplatesList);
 		};
-		_MailTemplates.mailTemplatesPager.pager.append('Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">');
-		_MailTemplates.mailTemplatesPager.pager.append('<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">');
+		_MailTemplates.mailTemplatesPager.pager.append(`
+			Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">
+			<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">
+		`);
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
+		_MailTemplates.mailTemplatesPager.setIsPaused(false);
+		_MailTemplates.mailTemplatesPager.refresh();
+
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
