@@ -1209,7 +1209,7 @@ let _Pages = {
 			icon = $(_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon([pagePreviewIconClass, 'node-action-icon', 'mr-1'])));
 			parent.append(icon);
 
-			icon.on('click', () => {
+			icon.on('click', (e) => {
 				e.stopPropagation();
 				_Pages.openPagePreviewInNewWindow(page);
 			});
