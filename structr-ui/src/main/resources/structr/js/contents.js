@@ -341,25 +341,30 @@ let _Contents = {
 
 		fastRemoveAllChildren(_Contents.contentsContents[0]);
 
-		let handleChildren = function(children) {
+		let isRootFolder    = (id === 'root');
+		let parentIsRoot    = (parentId === '#');
+
+		let handleChildren = (children) => {
 			if (children && children.length) {
 				children.forEach(_Contents.appendItemOrContainerRow);
 			}
 		};
 
-		if (id === 'root') {
-			Command.list('ContentContainer', true, 1000, 1, 'position', 'asc', null, handleChildren);
-		} else {
-			Command.query('ContentContainer', 1000, 1, 'position', 'asc', {parent: id}, handleChildren, true, 'ui');
-		}
+		Command.query('ContentContainer', 1000, 1, 'position', 'asc', { parent: (isRootFolder ? null : id ) }, handleChildren, true, 'ui');
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
 		_Pager.page['ContentItem'] = 1;
-		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
+		let filterOptions = {
+			containers: [],
+		};
+		if (!isRootFolder) {
+			filterOptions.containers = [id];
+		}
+		_Pager.initFilters('contents-items', 'ContentItem', filterOptions);
 
-		let itemsPager = _Pager.addPager('contents-items', _Contents.contentsContents, false, 'ContentItem', 'ui', handleChildren);
+		let itemsPager = _Pager.addPager('contents-items', _Contents.contentsContents, false, 'ContentItem', 'ui', handleChildren, undefined, undefined, undefined, true);
 
-		itemsPager.cleanupFunction = function () {
+		itemsPager.cleanupFunction = () => {
 			let toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
@@ -369,18 +374,22 @@ let _Contents = {
 		itemsPager.pager.append(`
 			<span class="mr-1">Filter:</span>
 			<input type="text" class="filter" data-attribute="name">
-			<input type="text" class="filter" data-attribute="parentId" value="${((parentId === '#') ? '' : id)}" hidden>
-			<input type="checkbox" class="filter" data-attribute="hasParent" ${((parentId === '#') ? '' : 'checked')} hidden>
+			<input type="text" class="filter" data-attribute="containers" value="${(parentIsRoot ? '' : id)}" hidden>
 		`);
 		itemsPager.activateFilterElements();
+		itemsPager.setIsPaused(false);
+		itemsPager.refresh();
 
 		_Contents.insertBreadCrumbNavigation(parents, nodePath, id);
 
-		_Contents.contentsContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>'
-				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
-				+ '</tbody></table>'
-		);
+		_Contents.contentsContents.append(`
+			<table id="files-table" class="stripe">
+				<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>
+				<tbody id="files-table-body">
+					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>` : '')}
+				</tbody>
+			</table>
+		`);
 
 		$('#parent-file-link').on('click', function(e) {
 
@@ -495,21 +504,6 @@ let _Contents = {
 
 		if (d.isContentContainer) {
 
-			// ********** Containers **********
-
-			// var newDelIcon = '<i title="Delete container \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			// if (delIcon && delIcon.length) {
-			// 	delIcon.replaceWith(newDelIcon);
-			// } else {
-			// 	div.append(newDelIcon);
-			// }
-			// div.children('.delete_icon').on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	_Entities.deleteNode(this, d, true, function() {
-			// 		_Contents.refreshTree();
-			// 	});
-			// });
-
 			div.droppable({
 				accept: '.container, .item',
 				greedy: true,
@@ -570,18 +564,21 @@ let _Contents = {
 				});
 			},
 			helper: function(event) {
-				var helperEl = $(this);
+				let helperEl = $(this);
 				selectedElements = $('.node.selected');
 				if (selectedElements.length > 1) {
 					selectedElements.removeClass('selected');
-					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '">');
+					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
 				}
-				var hlp = helperEl.clone();
+				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
 				return hlp;
 			}
 		});
 
+		if (!d.isContentContainer) {
+			_Contents.appendEditContentItemIcon(iconsContainer, d);
+		}
 		_Entities.appendContextMenuIcon(iconsContainer, d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.setMouseOver(div);
@@ -661,8 +658,8 @@ let _Contents = {
 						} else if (prop.type === 'Date' && !isReadOnly) {
 
 							div.append('<div class="value-container"></div>');
-							_Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
-							let valueInput = $('.value-container input', div);
+							let valueInput = _Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+
 							valueInput.on('change', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, key, function(newEntity) {
@@ -673,7 +670,7 @@ let _Contents = {
 
 						} else if (isRelated) {
 
-							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
+							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> </div>');
 							div.append(relatedNodesList);
 							$(relatedNodesList).children('.add').on('click', function() {
 								Structr.dialog('Add ' + prop.type, function() {
@@ -1006,7 +1003,24 @@ let _Contents = {
 	getIcon: function(file) {
 		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
 	},
+	appendEditContentItemIcon: (parent, d) => {
 
+		let iconClass = 'svg_edit_item_icon';
+
+		let icon = $('.' + iconClass, parent);
+		if (!(icon && icon.length)) {
+
+			icon = $(_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon([iconClass, 'node-action-icon'])));
+			parent.append(icon);
+
+			icon.on('click', (e) => {
+				e.stopPropagation();
+				_Contents.editItem(d);
+			});
+		}
+
+		return icon;
+	},
 
 	templates: {
 		contents: config => `
