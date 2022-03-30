@@ -384,6 +384,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
+		Structr.activateCommentsInElement(el);
 
 		$('button#set-password-button').on('click', (e) => {
 			let input = $('input#password-input');
@@ -938,6 +939,11 @@ let _Dialogs = {
 							<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
 							<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
 						</div>
+					</div>
+
+					<div class="option-tile">
+						<label class="block mb-2" for="password-attempts-input" data-comment="The number of failed login attempts for this user. Depending on the configuration a user is blocked after a certain number of failed login attempts. The user must then reset their password (if allowed via the configuration) or this counter must be reset by an admin.<br><br>Before that threshold is reached, the counter is reset on each successful login.">Failed Login Attempts</label>
+						<input type="text" id="password-attempts-input" name="passwordAttempts">
 					</div>
 				</div>
 			
