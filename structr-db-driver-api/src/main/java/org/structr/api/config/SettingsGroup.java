@@ -18,6 +18,7 @@
  */
 package org.structr.api.config;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,10 +133,7 @@ public class SettingsGroup {
 				groupContainer.block("h1").text("Custom");
 			}
 
-			for (final Setting setting : otherSettings) {
-
-				setting.render(groupContainer);
-			}
+			otherSettings.stream().sorted(Comparator.comparing(Setting::getKey)).forEach((Setting setting) -> setting.render(groupContainer));
 		}
 	}
 }
