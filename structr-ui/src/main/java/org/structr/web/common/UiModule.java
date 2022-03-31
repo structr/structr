@@ -132,6 +132,8 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new BroadcastEventFunction());
 
 		Functions.put(licenseManager, new GraphQLFunction());
+
+		Functions.put(licenseManager, new SystemInfoFunction());
 	}
 
 	@Override

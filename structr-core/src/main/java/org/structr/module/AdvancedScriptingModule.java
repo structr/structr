@@ -65,7 +65,6 @@ import org.structr.core.function.RevokeFunction;
 import org.structr.core.function.ServerLogFunction;
 import org.structr.core.function.SetEncryptionKeyFunction;
 import org.structr.core.function.SetPrivilegedFunction;
-import org.structr.core.function.SystemInfoFunction;
 import org.structr.core.function.TemplateFunction;
 import org.structr.core.function.TypeInfoFunction;
 import org.structr.core.function.UnlockReadonlyPropertiesFunction;
@@ -169,8 +168,6 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindNotFunction());
 		Functions.put(licenseManager, new FindSortFunction());
 		Functions.put(licenseManager, new FindPageFunction());
-
-		Functions.put(licenseManager, new SystemInfoFunction());
 	}
 
 	@Override
