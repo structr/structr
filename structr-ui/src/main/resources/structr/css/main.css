@@ -1359,9 +1359,18 @@ i.link_icon {
 	margin-right: .5rem;
 }
 
-.tile:not(.img-tile) .icons-container {
+.tile .icons-container {
+	position: absolute;
+	right: 0;
 	bottom: 1rem;
 	top: initial;
+}
+
+.tile.img-tile .icons-container {
+	position: absolute;
+	top: .375rem;
+	right: 0;
+	bottom: initial;
 }
 
 .icons-container svg {

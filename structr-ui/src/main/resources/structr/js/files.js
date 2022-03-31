@@ -219,12 +219,16 @@ let _Files = {
 	},
 	getContextMenuElements: function (div, entity) {
 
-		const isFile             = entity.isFile;
-		const isFolder           = entity.isFolder;
-		let selectedElements     = document.querySelectorAll('.node.selected');
+		const isFile         = entity.isFile;
+		let selectedElements = document.querySelectorAll('.node.selected');
 
 		// there is a difference when right-clicking versus clicking the kebab icon
-		let fileNode = (div.hasClass('node') ? div : $('.node', div));
+		let fileNode = div;
+		if (fileNode.hasClass('icons-container')) {
+			fileNode = div.closest('.node');
+		} else if (!fileNode.hasClass('node')) {
+			fileNode = div.find('.node');
+		}
 
 		if (!fileNode.hasClass('selected')) {
 			for (let selNode of document.querySelectorAll('.node.selected')) {
