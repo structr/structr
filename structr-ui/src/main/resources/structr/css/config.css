@@ -363,11 +363,3 @@ div.warning-message {
 	padding: 5px 5px 5px 30px;
 	margin: 8px 0 0 0;
 }
-
-svg.reset-key {
-	width: 16px;
-	height: 16px;
-	color: var(--config-servlet-red);
-	cursor: pointer;
-	margin-left: 1rem;
-}
