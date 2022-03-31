@@ -285,12 +285,12 @@ div.connection.collapsed {
 	text-align: center;
 }
 
-div.connection.collapsed::after {
-	content: url('data:image/svg+xml; utf8, <svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:svgjs="http://svgjs.com/svgjs" viewBox="0 0 24 24" width="24" height="24"><g transform="matrix(1,0,0,1,0,0)"><path d="M12 7.5L12 16.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M7.5 12L16.5 12" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g></svg>');
+div.new-connection svg {
+	display: none;
 }
 
-div.connection.collapsed:hover {
-	cursor: pointer;
+div.new-connection.collapsed svg {
+	display: initial;
 }
 
 div.connection.collapsed p {

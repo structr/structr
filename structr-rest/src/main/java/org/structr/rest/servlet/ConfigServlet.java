@@ -553,9 +553,6 @@ public class ConfigServlet extends AbstractServletBase {
 				}
 			}
 
-			// stop floating
-			container.block("div").attr(new Style("clear: both;"));
-
 			// maintenance tab
 			final boolean maintenanceModeActive = Settings.MaintenanceModeEnabled.getValue(false);
 			menu.block("li").block("a").id("maintenanceMenu").attr(new Attr("href", "#maintenance")).block("span").text("Maintenance");
@@ -582,9 +579,6 @@ public class ConfigServlet extends AbstractServletBase {
 				button.attr(new Attr("onclick", "window.location.href='?setMaintenance=true' + location.hash;"));
 				button.text("Enable");
 			}
-
-			// stop floating
-			mContainer.block("div").attr(new Style("clear: both;"));
 
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
@@ -638,9 +632,7 @@ public class ConfigServlet extends AbstractServletBase {
 		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/main.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/sprites.css"));
 		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/config.css"));
 		head.empty("link").attr(new Rel("icon"), new Href(applicationRootPath + "/favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/lib/jquery-3.3.1.min.js"));
@@ -681,6 +673,12 @@ public class ConfigServlet extends AbstractServletBase {
 				"<g transform=\"rotate(270 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
 				"<g transform=\"rotate(300 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
 				"<g transform=\"rotate(330 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"0s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
+				"</symbol>" +
+				"<symbol id=\"info-icon\" viewBox=\"0 0 24 24\" fill=\"transparent\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\">" +
+				"<path d=\"M14.25,16.5H13.5A1.5,1.5,0,0,1,12,15V11.25a.75.75,0,0,0-.75-.75H10.5\"></path><path d=\"M11.625,6.75A.375.375,0,1,0,12,7.125a.375.375,0,0,0-.375-.375h0\"></path><path d=\"M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z\"></path>" +
+				"</symbol>" +
+				"<symbol id=\"circle_plus\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\">" +
+				"<path d=\"M12 7.5L12 16.5\"></path><path d=\"M7.5 12L16.5 12\"></path><path d=\"M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z\"></path>" +
 				"</symbol>" +
 				"</svg>");
 
@@ -807,9 +805,6 @@ public class ConfigServlet extends AbstractServletBase {
 			connection.render(body, prefixLocation(AdminBackendLocation));
 		}
 
-		// new connection form should appear below existing connections
-		//body.block("div").attr(new Attr("style", "clear: both;"));
-
 		//body.block("h2").text("Add connection");
 
 		final Tag div = body.block("div").css("connection app-tile new-connection collapsed");
@@ -854,6 +849,8 @@ public class ConfigServlet extends AbstractServletBase {
 		buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
+
+		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("xlink:href", "#circle_plus"));
 	}
 
 	private Tag header(final Tag container, final String title) {
@@ -862,9 +859,6 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag main      = div.block("div").css("config-group");
 
 		main.block("h1").text(title);
-
-		// stop floating
-		container.block("div").attr(new Style("clear: both;"));
 
 		return main;
 	}

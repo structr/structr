@@ -241,6 +241,10 @@ button.yesButton, button.noButton {
 	color: var(--light-red);
 }
 
+.icon-blue {
+	color: var(--medium-blue);
+}
+
 button img, button i {
 	padding: 0;
 	margin: 0;

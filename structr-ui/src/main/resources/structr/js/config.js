@@ -37,13 +37,13 @@ function createNewEntry(e) {
 
 function appendInfoTextToElement (text, el, css) {
 
-	var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
+	let toggleElement = $(`<span>${_Icons.getSvgIcon('info-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
 	if (css) {
 		toggleElement.css(css);
 	}
-	var helpElement = $('<span class="context-help-text">' + text + '</span>');
+	let helpElement = $('<span class="context-help-text">' + text + '</span>');
 
-	toggleElement.on("mousemove", function(e) {
+	toggleElement.on("mousemove", (e) => {
 		helpElement.show();
 		helpElement.css({
 			left: e.clientX + 20,
@@ -51,7 +51,7 @@ function appendInfoTextToElement (text, el, css) {
 		});
 	});
 
-	toggleElement.on("mouseout", function(e) {
+	toggleElement.on("mouseout", (e) => {
 		helpElement.hide();
 	});
 
@@ -333,9 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	resizeFunction();
 
 	$('label.has-comment').each(function(idx, label) {
-		appendInfoTextToElement($(label).data("comment"), $(label), {
-			margin: '0 4px'
-		});
+		appendInfoTextToElement($(label).data("comment"), $(label));
 	});
 
 	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
