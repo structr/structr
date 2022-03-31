@@ -29,7 +29,7 @@ function createNewEntry(e) {
 					<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
 					<input type="text" name="${name}">
 					<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
-				</div>'
+				</div>
 			`);
 		}
 	}
