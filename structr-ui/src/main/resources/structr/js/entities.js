@@ -2367,6 +2367,9 @@ let _Entities = {
 		if (!svgKeyIcon) {
 			svgKeyIcon = element[0].querySelector(':scope > .actions > .svg_key_icon');
 		}
+		if (!svgKeyIcon) {
+			svgKeyIcon = element[0].querySelector(':scope > .node-container > .icons-container > .svg_key_icon');
+		}
 		if (svgKeyIcon) {
 
 			let newIconId = _Entities.getNewAccessControlIconId(entity);
