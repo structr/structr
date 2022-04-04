@@ -22,6 +22,7 @@ import java.net.URI;
 import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
 import org.structr.web.entity.dom.DOMElement;
 
 public interface Details extends DOMElement {
@@ -34,5 +35,7 @@ public interface Details extends DOMElement {
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Details"));
 		type.setExtends(URI.create("#/definitions/DOMElement"));
 		type.setCategory("html");
+
+		type.addStringProperty("_html_open", PropertyView.Html);
 	}}
 }

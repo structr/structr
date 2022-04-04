@@ -164,6 +164,11 @@ let _Elements = {
 			elements: ['slot'],
 			attrs: ['name'],
 			focus: 'name'
+		},
+		{
+			elements: ['details'],
+			attrs: ['open'],
+			focus: 'class'
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
