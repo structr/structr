@@ -1024,7 +1024,7 @@ var _Graph = {
 					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
 				</div>
 				<a class="icon" id="exec-rest">
-					${_Icons.getSvgIcon('run_button', 24, 24, '')}
+					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
 			
@@ -1034,12 +1034,14 @@ var _Graph = {
 					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
 				</div>
 				<a class="icon" id="exec-cypher">
-					${_Icons.getSvgIcon('run_button', 24, 24, '')}
+					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
 			
 			<div class="dropdown-menu dropdown-menu-large">
-				<button class="btn dropdown-select">${_Icons.getSvgIcon('display-settings-sliders')} Display Settings</button>
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('display-settings-sliders')} Display Settings
+				</button>
 			
 				<div class="dropdown-menu-container">
 					<div class="heading-row">
@@ -1091,7 +1093,7 @@ var _Graph = {
 				</div>
 			</div>
 			
-			<button id="clear-graph">Clear Graph</button>
+			<button id="clear-graph" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear Graph</button>
 		`,
 		filters: config => `
 			<div id="filters" class="">

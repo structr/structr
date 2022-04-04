@@ -3062,7 +3062,9 @@ let _Crud = {
 			
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 			
-								<button class="btn dropdown-select" id="crudTypesFilterToggle">${_Icons.getSvgIcon('wrench')}</button>
+								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
+									${_Icons.getSvgIcon('wrench')}
+								</button>
 								<div class="dropdown-menu-container">
 									<div class="heading-row">
 										<h3>Type Filters</h3>
@@ -3122,11 +3124,19 @@ let _Crud = {
 		`,
 		typeButtons: config => `
 			<div id="crud-buttons">
-			  <button class="action" id="create${config.type}"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new ${config.type}</button>
-			  <button id="export${config.type}"><i class="${_Icons.getFullSpriteClass(_Icons.database_table_icon)}"></i> Export as CSV</button>
-			  <button id="import${config.type}"><i class="${_Icons.getFullSpriteClass(_Icons.database_add_icon)}"></i> Import CSV</button>
-			  <button id="delete${config.type}"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete <b>all</b> objects of this type</button>
-			  <label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
+				<button class="action" id="create${config.type}">
+					<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new ${config.type}
+				</button>
+				<button id="export${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<i class="${_Icons.getFullSpriteClass(_Icons.database_table_icon)}"></i> Export as CSV
+				</button>
+				<button id="import${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<i class="${_Icons.getFullSpriteClass(_Icons.database_add_icon)}"></i> Import CSV
+				</button>
+				<button id="delete${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete <b>all</b> objects of this type
+				</button>
+				<label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
 			</div>
 		`
 	}

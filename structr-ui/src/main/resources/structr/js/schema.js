@@ -1637,7 +1637,6 @@ let _Schema = {
 			let initialText = entity[key] || '';
 
 			element.append('<div class="editor h-full"></div>');
-			let contentBox = $('.editor', element);
 
 			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
@@ -1683,7 +1682,7 @@ let _Schema = {
 				isAutoscriptEnv: true
 			};
 
-			let editor = _Editors.getMonacoEditor(entity, key, contentBox, functionPropertyMonacoConfig);
+			let editor = _Editors.getMonacoEditor(entity, key, element[0].querySelector('.editor'), functionPropertyMonacoConfig);
 
 			_Editors.resizeVisibleEditors();
 			Structr.resize();
@@ -1746,7 +1745,6 @@ let _Schema = {
 			let initialText = entity[key] || '';
 
 			element.append('<div class="editor h-full"></div>');
-			let contentBox = $('.editor', element);
 
 			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
@@ -1796,7 +1794,7 @@ let _Schema = {
 				isAutoscriptEnv: false
 			};
 
-			let editor = _Editors.getMonacoEditor(entity, key, contentBox, cypherPropertyMonacoConfig);
+			let editor = _Editors.getMonacoEditor(entity, key, element[0].querySelector('.editor'), cypherPropertyMonacoConfig);
 
 			_Editors.resizeVisibleEditors();
 			Structr.resize();
@@ -2917,7 +2915,7 @@ let _Schema = {
 				}
 			};
 
-			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', $('.editor', $('#methods-content')), sourceMonacoConfig);
+			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
 			sourceEditor.focus();
 
 			sourceMonacoConfig.changeFn(sourceEditor);
@@ -3330,9 +3328,9 @@ let _Schema = {
 									<a href="#">${snapshot}</a>
 								</td>
 								<td style="text-align:right;">
-									<button id="restore-${i}">Restore</button>
-									<button id="add-${i}">Add</button>
-									<button id="delete-${i}">Delete</button>
+									<button id="restore-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
+									<button id="add-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
+									<button id="delete-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
 								</td>
 							</tr>
 						`);
@@ -4454,11 +4452,15 @@ let _Schema = {
 					</button>
 			
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select" id="global-schema-methods">${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods</button>
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
+							${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods
+						</button>
 					</div>
 			
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select">${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display</button>
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display
+						</button>
 			
 						<div class="dropdown-menu-container">
 							<div class="row">
@@ -4505,14 +4507,15 @@ let _Schema = {
 							</div>
 			
 							<div class="row">
-								<select id="saved-layout-selector"></select>
-								<button id="restore-layout">Apply</button>
-								<button id="update-layout">Update</button>
-								<button id="delete-layout">Delete</button>
+								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
+								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
+								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
+								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
 							</div>
 			
 							<div class="row">
-								<input id="layout-name" placeholder="Enter name for layout"> <button id="create-new-layout">Save</button>
+								<input id="layout-name" placeholder="Enter name for layout">
+								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
 							</div>
 			
 							<div class="separator"></div>
@@ -4526,7 +4529,7 @@ let _Schema = {
 					</div>
 			
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
 
 						<div class="dropdown-menu-container">
 							<div class="heading-row">
@@ -4535,14 +4538,17 @@ let _Schema = {
 							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
 							
 							<div class="row">
-								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20"> <button id="create-snapshot">Create snapshot</button>
+								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
+								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
 							</div>
 							
 							<div class="heading-row">
 								<h3>Available Snapshots</h3>
 							</div>
 							
-							<table class="props" id="snapshots"></table>
+							<table class="props" id="snapshots">
+							
+							</table>
 							
 							<div class="separator"></div>
 							
@@ -4553,41 +4559,45 @@ let _Schema = {
 					</div>
 			
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select">${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin</button>
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin
+						</button>
 						
 						<div class="dropdown-menu-container">
 							<div class="heading-row">
 								<h3>Indexing</h3>
 							</div>
 							<div class="row">
-								<select id="node-type-selector">
+								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option selected value="">-- Select Node Type --</option>
 									<option disabled>──────────</option>
 									<option value="allNodes">All Node Types</option>
 									<option disabled>──────────</option>
 								</select>
-								<button id="reindex-nodes" class="inline-flex items-center">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center">Create Labels</button>
+								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
+								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
 							</div>
 							<div class="row">
-								<select id="rel-type-selector">
+								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option selected value="">-- Select Relationship Type --</option>
 									<option disabled>──────────</option>
 									<option value="allRels">All Relationship Types</option>
 									<option disabled>──────────</option>
 								</select>
-								<button id="reindex-rels" class="inline-flex items-center">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center">Add UUIDs</button>
+								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
 							</div>
 							<div class="row flex items-center">
-								<button id="rebuild-index" class="inline-flex items-center">
+								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Rebuild all indexes
 								</button>
 								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
 							</div>
 							<div class="separator"></div>
-							<div class="heading-row"><h3>Maintenance</h3></div>
+							<div class="heading-row">
+								<h3>Maintenance</h3>
+							</div>
 							<!--<div class="inline-info"><div class="inline-info-icon">${_Icons.getSvgIcon('info-icon', 24, 24)}</div>-->
 							<!--	<div class="inline-info-text">-->
 							<!--		A repeater is a node in the tree that is repeatedly displayed for each element of the result set.<br><br>-->
@@ -4596,14 +4606,14 @@ let _Schema = {
 							<!--	</div>-->
 							<!--</div>-->
 							<div class="row flex items-center">
-								<button id="flush-caches" class="inline-flex items-center">
+								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Flush Caches
 								</button>
 								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
 							</div>
 							
 							<div class="row flex items-center">
-								<button id="clear-schema" class="inline-flex items-center">
+								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									${_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2 icon-red')} Clear Schema
 								</button>
 								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
@@ -4634,7 +4644,7 @@ let _Schema = {
 							<div class="flex items-center justify-around">
 								<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
 			
-								<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity">
+								<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option value="1">1</option>
 									<option value="*" selected>*</option>
 								</select>
@@ -4647,7 +4657,7 @@ let _Schema = {
 							<div class="flex items-center justify-around">
 								<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
 			
-								<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity">
+								<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option value="1">1</option>
 									<option value="*" selected>*</option>
 								</select>
@@ -4672,7 +4682,7 @@ let _Schema = {
 								<h3>Cascading Delete</h3>
 								<p>Direction of automatic removal of related nodes when a node is deleted</p>
 			
-								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag">
+								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option value="0">NONE</option>
 									<option value="1">SOURCE_TO_TARGET</option>
 									<option value="2">TARGET_TO_SOURCE</option>
@@ -4683,7 +4693,7 @@ let _Schema = {
 								<h3>Automatic Creation of Related Nodes</h3>
 								<p>Direction of automatic creation of related nodes when a node is created</p>
 			
-								<select id="autocreate-selector" data-attr-name="autocreationFlag">
+								<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option value="0">NONE</option>
 									<option value="1">SOURCE_TO_TARGET</option>
 									<option value="2">TARGET_TO_SOURCE</option>
@@ -4695,7 +4705,7 @@ let _Schema = {
 			
 								<div>
 									<h3>Permission Resolution</h3>
-									<select id="propagation-selector" data-attr-name="permissionPropagation">
+									<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 										<option value="None">NONE</option>
 										<option value="Out">SOURCE_TO_TARGET</option>
 										<option value="In">TARGET_TO_SOURCE</option>
@@ -4707,7 +4717,7 @@ let _Schema = {
 									<div id="propagation-table" class="flex">
 										<div class="selector">
 											<p>Read</p>
-											<select id="read-selector" data-attr-name="readPropagation">
+											<select id="read-selector" data-attr-name="readPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 												<option value="Add">Add</option>
 												<option value="Keep">Keep</option>
 												<option value="Remove" selected>Remove</option>
@@ -4716,7 +4726,7 @@ let _Schema = {
 			
 										<div class="selector">
 											<p>Write</p>
-											<select id="write-selector" data-attr-name="writePropagation">
+											<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 												<option value="Add">Add</option>
 												<option value="Keep">Keep</option>
 												<option value="Remove" selected>Remove</option>
@@ -4725,7 +4735,7 @@ let _Schema = {
 			
 										<div class="selector">
 											<p>Delete</p>
-											<select id="delete-selector" data-attr-name="deletePropagation">
+											<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 												<option value="Add">Add</option>
 												<option value="Keep">Keep</option>
 												<option value="Remove" selected>Remove</option>
@@ -4734,7 +4744,7 @@ let _Schema = {
 			
 										<div class="selector">
 											<p>AccessControl</p>
-											<select id="access-control-selector" data-attr-name="accessControlPropagation">
+											<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 												<option value="Add">Add</option>
 												<option value="Keep">Keep</option>
 												<option value="Remove" selected>Remove</option>
@@ -4751,9 +4761,15 @@ let _Schema = {
 				</div>
 			
 				<div id="rel-edit-buttons">
-					<button id="edit-rel-options-button" class="inline-flex items-center">${_Icons.getSvgIcon('pencil_edit', 16, 16, ['icon-grey', 'mr-2'])} Edit relationship options</button>
-					<button id="save-rel-options-button" class="inline-flex items-center">${_Icons.getSvgIcon('checkmark_bold', 16, 16, ['icon-green', 'mr-2'])} Save</button>
-					<button id="cancel-rel-options-button" class="inline-flex items-center">${_Icons.getSvgIcon('close-dialog-x', 16, 16, ['icon-red', 'mr-2'])} Discard</button>
+					<button id="edit-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('pencil_edit', 16, 16, ['icon-grey', 'mr-2'])} Edit relationship options
+					</button>
+					<button id="save-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('checkmark_bold', 16, 16, ['icon-green', 'mr-2'])} Save
+					</button>
+					<button id="cancel-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('close-dialog-x', 16, 16, ['icon-red', 'mr-2'])} Discard
+					</button>
 				</div>
 			
 				<div id="tabs">
@@ -4811,9 +4827,14 @@ let _Schema = {
 						(() => {
 							switch (config.property.propertyType) {
 								case 'Function':
-									return `<button class="edit-read-function">Read</button><button class="edit-write-function">Write</button><input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}><label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}`;
+									return `
+										<button class="edit-read-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
+										<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
+										<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+										<label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}
+									`;
 								case 'Cypher':
-									return `<button class="edit-cypher-query">Query</button>`;
+									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								default:
 									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? escapeForHtmlAttributes(config.property.format) : '')}">`;
 							};
@@ -4862,39 +4883,57 @@ let _Schema = {
 		`,
 		fakeTable: config => `
 			<div class="fake-table ${config.class}">
-				<div class="fake-thead"><div class="fake-tr">${config.cols.reduce((acc, col) => { return acc + '<div class="fake-th ' + col.class + '">' + col.title + '</div>'; }, '')}</div></div>
+				<div class="fake-thead"><div class="fake-tr">${config.cols.reduce((acc, col) => { return acc + `<div class="fake-th ${col.class}">${col.title}</div>`; }, '')}</div></div>
 				<div class="fake-tbody"></div>
 				<div class="fake-tfoot">
 					<div class="fake-tr">
 						<div class="fake-td actions-col flex justify-end">
-							<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} Discard all</button>
-							<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} Save all</button>
+							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+								${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} Discard all
+							</button>
+							<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+								${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} Save all
+							</button>
 						</div>
 					</div>
 				</div>
 				<div class="fake-tfoot-buttons">
-					<button class="add-icon inline-flex items-center add-action-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method</button>
-					<button class="add-icon inline-flex items-center add-onCreate-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate</button>
-					<button class="add-icon inline-flex items-center add-afterCreate-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate</button>
-					<button class="add-icon inline-flex items-center add-onSave-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave</button>
+					<button class="add-action-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
+					</button>
+					<button class="add-onCreate-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
+					</button>
+					<button class="add-afterCreate-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
+					</button>
+					<button class="add-onSave-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
+					</button>
 				</div>
 			</div>
 		`,
 		schemaTable: config => `
 			<table class="${config.class}">
-				<thead><tr>${config.cols.reduce((acc, col) => { return acc + '<th class="' + col.class + '">' + col.title + '</th>'; }, '')}</tr></thead>
+				<thead>
+					<tr>${config.cols.reduce((acc, col) => { return acc + `<th class="${col.class}">${col.title}</th>`; }, '')}</tr>
+				</thead>
 				<tbody></tbody>
 				<tfoot>
 					<th colspan=${config.cols.length} class="actions-col">
-						${(config.addButtonText ? '<button class="add-button inline-flex items-center">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
-						<button class="discard-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}</button>
-						<button class="save-all inline-flex items-center disabled" disabled>${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}</button>
+						${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+						<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+							${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}
+						</button>
+						<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+							${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}
+						</button>
 					</th>
 				</tfoot>
 			</table>
 		`,
 		typeHintOptions: config => `
-			<select class="type-hint">
+			<select class="type-hint hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<optgroup label="Type Hint">
 					<option value="null">-</option>
 					<option value="boolean">Boolean</option>
@@ -4907,7 +4946,7 @@ let _Schema = {
 			</select>
 		`,
 		typeOptions: config => `
-			<select class="property-type">
+			<select class="property-type hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<option value="">--Select--</option>
 				<option value="String">String</option>
 				<option value="Encrypted">Encrypted</option>

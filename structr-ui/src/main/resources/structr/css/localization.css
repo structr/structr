@@ -58,12 +58,6 @@
 	display: inline-block;
 }
 
-#add-new-translation {
-	display: block;
-	clear: both;
-	margin-top: 2rem;
-}
-
 #localization-main {
 	display: none;
 	height: calc(100% - 3rem);

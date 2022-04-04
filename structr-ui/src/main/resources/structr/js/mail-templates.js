@@ -351,7 +351,7 @@ let _MailTemplates = {
 			wordWrap: (_Editors.getSavedEditorOptions().lineWrapping ? 'on' : 'off')
 		};
 
-		let editor = _Editors.getMonacoEditor(mt, 'text', $('#mail-template-text'), mailTemplateMonacoConfig);
+		let editor = _Editors.getMonacoEditor(mt, 'text', document.getElementById('mail-template-text'), mailTemplateMonacoConfig);
 		_Editors.resizeVisibleEditors();
 
 		return editor;
@@ -463,7 +463,7 @@ let _MailTemplates = {
 			
 					</form>
 					<div class="actions">
-						<button class="inline-flex items-center save show-in-modes" data-modes="create">
+						<button class="inline-flex items-center save hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
 						</button>
 					</div>
@@ -482,7 +482,9 @@ let _MailTemplates = {
 			</form>
 			
 			<div class="dropdown-menu dropdown-menu-large">
-				<button class="btn dropdown-select">${_Icons.getSvgIcon('magic_wand', 16, 16, '')}</button>
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('magic_wand', 16, 16, '')}
+				</button>
 				<div class="dropdown-menu-container">
 			
 					<div class="heading-row">

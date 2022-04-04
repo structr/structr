@@ -524,7 +524,7 @@ let _VirtualTypes = {
 							</tbody>
 						</table>
 			
-						<button class="create">
+						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Property
 						</button>
 					</div>

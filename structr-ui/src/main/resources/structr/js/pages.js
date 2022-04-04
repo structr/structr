@@ -1114,7 +1114,7 @@ let _Pages = {
 
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.repeater());
 				let repeaterContainer = document.querySelector('#center-pane .repeater-container');
-				_Entities.repeaterConfig(obj, $(repeaterContainer));
+				_Entities.repeaterConfig(obj, repeaterContainer);
 				break;
 
 			case '#pages:events':
@@ -2105,7 +2105,7 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, ['ml-2'])}</button>`);
+				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, ['ml-2'])}</button>`);
 
 				let btn = $('#delete-all-unattached-nodes');
 				btn.on('click', function() {
@@ -2121,15 +2121,17 @@ let _Pages = {
 
 				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
 
-				Command.listUnattachedNodes(1000, 1, 'name', 'asc', function(result) {
+				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
 					let count = result.length;
 					if (count > 0) {
 						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2']) + ' Delete all (' + count + ')');
 						btn.removeClass('disabled');
+						btn.addClass('hover:bg-gray-100');
 						btn.prop('disabled', false);
 					} else {
 						btn.text('No unused elements');
+						btn.removeClass('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
@@ -2405,7 +2407,7 @@ let _Pages = {
 					</div>
 			
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-						<button class="btn dropdown-select opacity-100 hover:opacity-60">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('circle_plus')}
 						</button>
 						<div class="dropdown-menu-container">
@@ -2592,7 +2594,21 @@ let _Pages = {
 					<select class="hidden" id="flow-selector"></select>
 					<div class="hidden flex-grow query-text"></div>
 					<div>
-						<button class="btn save">Save</button>
+						<button class="save-repeater-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+					</div>
+					
+					<div class="my-8">
+						<h3>Repeater Keyword</h3>
+						<p>
+							The repeater keyword or data key is either a word to reference result objects, or it can be the
+							name of a collection property of the result object.<br><br>
+							You can access result objects or the objects of the collection using template expressions,
+							e.g. <i>\${project.name}</i>.
+						</p>
+						<div>
+							<input class="repeater-datakey" type="text" value="">
+							<button class="save-repeater-datakey hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+						</div>
 					</div>
 				</div>
 			</div>

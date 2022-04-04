@@ -49,7 +49,7 @@ let _Contents = {
 
 		_Contents.contentTree.css({width: left - 14 + 'px'});
 	},
-	onload: async () => {
+	onload: () => {
 
 		let mainHtml = _Contents.templates.contents();
 		main[0].innerHTML = mainHtml;
@@ -65,79 +65,86 @@ let _Contents = {
 		_Contents.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-		let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
-		let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
+		let initFunctionBar = async () => {
 
-		let functionBarHtml = _Contents.templates.functions({ containerTypes: contentContainerTypes, itemTypes: contentItemTypes });
-		Structr.functionBar.innerHTML = functionBarHtml;
+			let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
+			let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
 
-		UISettings.showSettingsForCurrentModule();
+			let functionBarHtml = _Contents.templates.functions({ containerTypes: contentContainerTypes, itemTypes: contentItemTypes });
+			Structr.functionBar.innerHTML = functionBarHtml;
 
-		let itemTypeSelect      = document.querySelector('select#content-item-type');
-		let addItemButton       = document.getElementById('add-item-button');
-		let containerTypeSelect = document.querySelector('select#content-container-type');
-		let addContainerButton  = document.getElementById('add-container-button');
+			UISettings.showSettingsForCurrentModule();
 
-		addItemButton.addEventListener('click', () => {
-			let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
-			Command.create({ type: itemTypeSelect.value, size: 0, containers: containers }, function(f) {
-				_Contents.appendItemOrContainerRow(f);
-				_Contents.refreshTree();
+			let itemTypeSelect      = document.querySelector('select#content-item-type');
+			let addItemButton       = document.getElementById('add-item-button');
+			let containerTypeSelect = document.querySelector('select#content-container-type');
+			let addContainerButton  = document.getElementById('add-container-button');
+
+			addItemButton.addEventListener('click', () => {
+				let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
+				Command.create({ type: itemTypeSelect.value, containers: containers }, (f) => {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
+				});
 			});
-		});
 
-		addContainerButton.addEventListener('click', () => {
-			let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
-			Command.create({ type: containerTypeSelect.value, parent: parent }, function(f) {
-				_Contents.appendItemOrContainerRow(f);
-				_Contents.refreshTree();
+			addContainerButton.addEventListener('click', () => {
+				let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
+				Command.create({ type: containerTypeSelect.value, parent: parent }, (f) => {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
+				});
 			});
-		});
 
-		itemTypeSelect.addEventListener('change', () => {
-			addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
-		});
-
-		containerTypeSelect.addEventListener('change', () => {
-			addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
-		});
-
-		if (contentItemTypes.length === 0) {
-			Structr.appendInfoTextToElement({
-				text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
-				element: $(itemTypeSelect).parent(),
-				after: true,
-				css: { marginLeft: '-1rem', marginRight: '1rem' }
+			itemTypeSelect.addEventListener('change', () => {
+				addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
 			});
-		}
 
-		// if (contentContainerTypes.length === 0) {
-		// 	Structr.appendInfoTextToElement({
-		// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-		// 		element: $(containerTypeSelect).parent(),
-		// 		after: true,
-		// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
-		// 	});
-		// }
+			containerTypeSelect.addEventListener('change', () => {
+				addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
+			});
 
-		// _Contents.searchField = $('.search', $(functionBar));
-		// _Contents.searchField.focus();
-		//
-		// _Contents.searchField.keyup(function(e) {
-		//
-		// 	var searchString = $(this).val();
-		// 	if (searchString && searchString.length && e.keyCode === 13) {
-		//
-		// 		$('.clearSearchIcon').show().on('click', function() {
-		// 			_Contents.clearSearch();
-		// 		});
-		//
-		// 		_Contents.fulltextSearch(searchString);
-		//
-		// 	} else if (e.keyCode === 27 || searchString === '') {
-		// 		_Contents.clearSearch();
-		// 	}
-		// });
+			if (contentItemTypes.length === 0) {
+				Structr.appendInfoTextToElement({
+					text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
+					element: $(itemTypeSelect).parent(),
+					after: true,
+					css: {
+						marginLeft: '-1rem',
+						marginRight: '1rem'
+					}
+				});
+			}
+
+			// if (contentContainerTypes.length === 0) {
+			// 	Structr.appendInfoTextToElement({
+			// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
+			// 		element: $(containerTypeSelect).parent(),
+			// 		after: true,
+			// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
+			// 	});
+			// }
+
+			// _Contents.searchField = $('.search', $(functionBar));
+			// _Contents.searchField.focus();
+			//
+			// _Contents.searchField.keyup(function(e) {
+			//
+			// 	var searchString = $(this).val();
+			// 	if (searchString && searchString.length && e.keyCode === 13) {
+			//
+			// 		$('.clearSearchIcon').show().on('click', function() {
+			// 			_Contents.clearSearch();
+			// 		});
+			//
+			// 		_Contents.fulltextSearch(searchString);
+			//
+			// 	} else if (e.keyCode === 27 || searchString === '') {
+			// 		_Contents.clearSearch();
+			// 	}
+			// });
+		};
+		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -305,11 +312,11 @@ let _Contents = {
 			filter = {parent: id};
 		}
 
-		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, function(folders) {
+		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, (folders) => {
 
 			let list = [];
 
-			folders.forEach(function(d) {
+			for (let d of folders) {
 				let childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
 				list.push({
 					id: d.id,
@@ -318,7 +325,7 @@ let _Contents = {
 					icon: 'fa fa-folder-o',
 					path: d.path
 				});
-			});
+			}
 
 			callback(list);
 
@@ -327,7 +334,7 @@ let _Contents = {
 		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
 	},
-	setWorkingDirectory: function(id) {
+	setWorkingDirectory: (id) => {
 
 		if (id === 'root') {
 			_Contents.currentContentContainer = null;
@@ -337,7 +344,7 @@ let _Contents = {
 
 		LSWrapper.setItem(_Contents.currentContentContainerKey, _Contents.currentContentContainer);
 	},
-	displayContainerContents: function(id, parentId, nodePath, parents) {
+	displayContainerContents: (id, parentId, nodePath, parents) => {
 
 		fastRemoveAllChildren(_Contents.contentsContents[0]);
 
@@ -399,7 +406,7 @@ let _Contents = {
 		});
 
 	},
-	insertBreadCrumbNavigation: function(parents, nodePath, id) {
+	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
 		if (parents) {
 
@@ -414,9 +421,12 @@ let _Contents = {
 			parents = [].concat(parents).reverse().slice(1);
 
 			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
-			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
 
-			_Contents.contentsContents.append('<div class="folder-path truncate">' + path + '</div>');
+			_Contents.contentsContents.append(`
+				<div class="folder-path truncate">
+					${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}${pathNames.pop()}
+				</div>
+			`);
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -611,7 +621,7 @@ let _Contents = {
 
 			dialogBtn.append('<button id="saveItem" disabled="disabled" class="action disabled"> Save </button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="action disabled"> Save and close</button>');
-			dialogBtn.append('<button id="refresh"> Refresh</button>');
+			dialogBtn.append('<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>');
 
 			dialogSaveButton = $('#saveItem', dialogBtn);
 			saveAndClose     = $('#saveAndClose', dialogBtn);
@@ -1047,7 +1057,7 @@ let _Contents = {
 			
 				<div class="inline-flex">
 			
-					<select class="select-create-type mr-2" id="content-container-type">
+					<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="content-container-type">
 						<option value="ContentContainer">Content Container</option>
 						${config.containerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
 					</select>
@@ -1057,7 +1067,7 @@ let _Contents = {
 						<span>Add Content Container</span>
 					</button>
 			
-					<select class="select-create-type mr-2" id="content-item-type">
+					<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="content-item-type">
 						<option value="ContentItem">Content Item</option>
 						${config.itemTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
 					</select>

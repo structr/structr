@@ -307,21 +307,6 @@
 /*	width: 60rem;*/
 /*}*/
 
-
-/*
- * Display type switches
- */
-#switches {
-	display: flex;
-	position: absolute;
-	top: 1rem;
-	right: .5rem;
-}
-
-#switches .switch {
-	min-width: initial;
-}
-
 /*
  * Search (similar to crud search box but different)
  */

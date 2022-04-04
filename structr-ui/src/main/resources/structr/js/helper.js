@@ -233,6 +233,19 @@ function blink(element, color, bgColor) {
 	var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
 	var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
 
+	let hadNoForegroundStyle = (element[0].style.color === '');
+	let hadNoBackgroundStyle = (element[0].style.backgroundColor === '');
+
+	// otherwise hover states can mess with the restoration of the "previous" colors
+	let handleElementsWithoutDirectStyle = () => {
+		if (hadNoForegroundStyle) {
+			element[0].style.color = '';
+		}
+		if (hadNoBackgroundStyle) {
+			element[0].style.backgroundColor = '';
+		}
+	};
+
 	if (!fg) {
 		element.prop('data-fg-color', oldFg);
 	}
@@ -248,18 +261,18 @@ function blink(element, color, bgColor) {
 		}, 50, function() {
 			$(this).animate({
 				color: oldFg
-			}, 1000);
+			}, 1000, handleElementsWithoutDirectStyle);
 		});
 	} else {
 
 		element.animate({
 			color: color,
 			backgroundColor: bgColor
-		}, 50, function() {
-			$(this).animate({
+		}, 50, () => {
+			element.animate({
 				color: oldFg,
 				backgroundColor: oldBg
-			}, 1000);
+			}, 1000, handleElementsWithoutDirectStyle);
 		});
 	}
 }
@@ -780,7 +793,7 @@ let _Favorites = new (function () {
 						}
 					};
 
-					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', $('#editor-' + id), favoriteEditorMonacoConfig);
+					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', document.getElementById('editor-' + id), favoriteEditorMonacoConfig);
 
 					dialogSaveButton.addEventListener('click', (e) => {
 						e.preventDefault();

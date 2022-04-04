@@ -1824,7 +1824,7 @@ let _Code = {
 				}
 			};
 
-			let sourceEditor = _Editors.getMonacoEditor(result, 'source', $('#tabView-source .editor', codeContents), sourceMonacoConfig);
+			let sourceEditor = _Editors.getMonacoEditor(result, 'source', codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
 			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
 
 			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
@@ -1916,7 +1916,7 @@ let _Code = {
 					}
 				};
 
-				_Editors.getMonacoEditor(result, 'openAPIReturnType', $('.editor', apiTab), openAPIReturnTypeMonacoConfig);
+				_Editors.getMonacoEditor(result, 'openAPIReturnType', apiTab[0].querySelector('.editor'), openAPIReturnTypeMonacoConfig);
 
 				Structr.activateCommentsInElement(apiTab);
 			}
@@ -2164,8 +2164,6 @@ let _Code = {
 
 					let result = await response.json();
 
-					let container = $(sourceContainer);
-
 					let typeSourceConfig = {
 						value: result.result,
 						language: 'java',
@@ -2174,7 +2172,7 @@ let _Code = {
 						readOnly: true
 					};
 
-					_Editors.getMonacoEditor({}, 'source-code', container, typeSourceConfig);
+					_Editors.getMonacoEditor({}, 'source-code', sourceContainer, typeSourceConfig);
 
 					_Editors.resizeVisibleEditors();
 				}
@@ -2473,8 +2471,8 @@ let _Code = {
 			isAutoscriptEnv: true
 		};
 
-		_Editors.getMonacoEditor(property, 'readFunction', $('#read-code-container .editor', codeContents), functionPropertyMonacoConfig);
-		_Editors.getMonacoEditor(property, 'writeFunction', $('#write-code-container .editor', codeContents), functionPropertyMonacoConfig);
+		_Editors.getMonacoEditor(property, 'readFunction', codeContents[0].querySelector('#read-code-container .editor'), functionPropertyMonacoConfig);
+		_Editors.getMonacoEditor(property, 'writeFunction', codeContents[0].querySelector('#write-code-container .editor'), functionPropertyMonacoConfig);
 
 		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
 
@@ -2487,7 +2485,7 @@ let _Code = {
 			}
 		};
 
-		_Editors.getMonacoEditor(property, 'openAPIReturnType', $('#tabView-api .editor', codeContents), openAPIReturnTypeMonacoConfig);
+		_Editors.getMonacoEditor(property, 'openAPIReturnType', codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 	},
@@ -2505,7 +2503,7 @@ let _Code = {
 			isAutoscriptEnv: false
 		};
 
-		_Editors.getMonacoEditor(property, 'format', $('#cypher-code-container .editor', codeContents), cypherMonacoConfig);
+		_Editors.getMonacoEditor(property, 'format', codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
 		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
 
 		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
@@ -2990,8 +2988,8 @@ let _Code = {
 			$('#clear-log').remove();
 		}, ['run-global-schema-method-dialog']);
 
-		dialogBtn.prepend(`<button id="run-method" class="flex items-center">${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}<span>Run</span></button>`);
-		dialogBtn.append('<button id="clear-log">Clear output</button>');
+		dialogBtn.prepend(`<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}<span>Run</span></button>`);
+		dialogBtn.append('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
 		let paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
 		let paramsBox = $('<div></div>');
@@ -3150,13 +3148,17 @@ let _Code = {
 		functions: config => `
 			<div class="tree-search-container" id="tree-search-container">
 				<i id="cancel-search-button" class="cancel-search-button hidden fa fa-remove"></i>
-				<button type="button" class="tree-back-button" id="tree-back-button" title="Back" disabled><i class="fa fa-caret-left"></i></button>
-				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search.." />
-				<button type="button" class="tree-forward-button" id="tree-forward-button" title="Forward" disabled><i class="fa fa-caret-right"></i></button>
+				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-back-button" title="Back" disabled>
+					<i class="fa fa-caret-left"></i>
+				</button>
+				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search..">
+				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-forward-button" title="Forward" disabled>
+					<i class="fa fa-caret-right"></i>
+				</button>
 			</div>
 		`,
 		actionButton: config => `
-			<button id="action-button-${config.suffix}" class="action-button">
+			<button id="action-button-${config.suffix}" class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<div class="action-button-icon">
 					${config.iconClass ? '<i class="' + config.iconClass +'"></i>' : ''}
 					${config.iconSvg ? config.iconSvg : ''}

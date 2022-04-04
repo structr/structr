@@ -1679,12 +1679,16 @@ let Importer = {
 		functions: config => `
 			<div class="flex flex-grow">
 			
-				<button class="refresh flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
+				<button class="refresh flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+				</button>
 			
 				<div class="button-and-input">
 					<label for="cancel-all-queued-after-job-id">Cancel ALL <b>queued</b> jobs after this ID:</label>
 					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
-					<button id="cancel-all-queued-after" class="btn"><i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Cancel</button>
+					<button id="cancel-all-queued-after" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Cancel
+					</button>
 				</div>
 			
 			</div>

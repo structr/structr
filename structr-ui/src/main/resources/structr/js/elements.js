@@ -859,15 +859,13 @@ let _Elements = {
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
-	openEditContentDialog: function(entity) {
+	openEditContentDialog: (entity) => {
 
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {}, ['popup-dialog-with-editor']);
 
 		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 		dialog.append('<div class="editor h-full"></div>');
-
-		let contentBox = $('.editor', dialog);
 
 		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
 		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
@@ -917,14 +915,14 @@ let _Elements = {
 						saveAndClose.disabled = true;
 						saveAndClose.classList.add('disabled');
 
-						Command.getProperty(entity.id, 'content', function (newText) {
+						Command.getProperty(entity.id, 'content', (newText) => {
 							initialText = newText;
 						});
 					});
 				}
 			};
 
-			let editor = _Editors.getMonacoEditor(entity, 'source', $(contentBox), openEditDialogMonacoConfig);
+			let editor = _Editors.getMonacoEditor(entity, 'source', dialog[0].querySelector('.editor'), openEditDialogMonacoConfig);
 
 			Structr.resize();
 
@@ -1027,7 +1025,7 @@ let _Elements = {
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, 'content', $(contentBox), centralEditorMonacoConfig);
+		let editor = _Editors.getMonacoEditor(entity, 'content', contentBox, centralEditorMonacoConfig);
 
 		let editorInfo = infoArea.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);

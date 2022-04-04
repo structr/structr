@@ -396,7 +396,7 @@ let _Editors = {
 			disposable.dispose();
 		}
 
-		let monacoInstance = monaco.editor.create(domElement.get(0), monacoConfig);
+		let monacoInstance = monaco.editor.create(domElement, monacoConfig);
 
 		storageContainer.instance            = monacoInstance;
 		storageContainer.instanceDisposables = [];
@@ -713,67 +713,107 @@ let _Editors = {
 	appendEditorOptionsElement: (element) => {
 
 		let dropdown = Structr.createSingleDOMElementFromHTML(`<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select">${_Icons.getSvgIcon('text-settings')}</button>
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('text-settings')}
+				</button>
+				
 				<div class="dropdown-menu-container" style="display: none;">
 					<div class="font-bold pt-4 pb-2">Global Editor Settings</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Word Wrap</label>
-						<select name="wordWrap" class="min-w-48">
+						<select name="wordWrap" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<option>off</option>
 							<option>on</option>
 						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Wrapping Indent</label>
-						<select name="wrappingIndent" class="min-w-48"><option>none</option><option>same</option><option>indent</option><option>deepIndent</option></select>
+						<select name="wrappingIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>none</option>
+							<option>same</option>
+							<option>indent</option>
+							<option>deepIndent</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Indentation</label>
-						<select name="indentation" class="min-w-48"><option>tabs</option><option>spaces</option></select>
+						<select name="indentation" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>tabs</option>
+							<option>spaces</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Tab Size</label>
 						<input name="tabSize" type="number" min="1" value="8" style="width: 3rem;">
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Auto-Indent</label>
-						<select name="autoIndent" class="min-w-48"><option>advanced</option><option>none</option><option>full</option><option>brackets</option><option>keep</option></select>
+						<select name="autoIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>advanced</option>
+							<option>none</option>
+							<option>full</option>
+							<option>brackets</option>
+							<option>keep</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Theme</label>
-						<select name="theme" class="min-w-48">
+						<select name="theme" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<option value="vs">Visual Studio</option>
 							<option value="vs-dark">Visual Studio Dark</option>
 							<option value="hc-black">High Contrast Dark</option>
 						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Line Highlight Rendering</label>
-						<select name="renderLineHighlight" class="min-w-48"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
+						<select name="renderLineHighlight" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>all</option>
+							<option>gutter</option>
+							<option>line</option>
+							<option>none</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="folding" type="checkbox"> Enable Code Folding</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
-						<select name="showFoldingControls" class="min-w-48"><option>always</option><option>mouseover</option></select>
+						<select name="showFoldingControls" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>mouseover</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="renderWhitespace" type="checkbox"> Render Whitespace</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="roundedSelection" type="checkbox"> Rounded selection</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="mouseWheelZoom" type="checkbox"> Mouse Wheel Zoom</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="scrollBeyondLastLine" type="checkbox"> Scroll beyond last line</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="minimapEnabled" type="checkbox"> Show Mini Map</label>
 					</div>
+					
 					<div class="font-bold pt-4 pb-2">Global Editor Behaviour Settings</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. The are only lost after a page reload or navigation event."><input name="restoreModels" type="checkbox"> Restore text models</label>
 					</div>
