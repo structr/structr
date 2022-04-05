@@ -206,7 +206,7 @@ let _Security = {
 		newGroupButton: config => `
 			<div class="flex items-center mb-8">
 			
-				<select class="select-create-type mr-2" id="group-type">
+				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="group-type">
 					<option value="Group">Group</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
@@ -220,7 +220,7 @@ let _Security = {
 		newUserButton: config => `
 			<div class="flex items-center mb-8">
 			
-				<select class="select-create-type mr-2" id="user-type">
+				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="user-type">
 					<option value="User">User</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>

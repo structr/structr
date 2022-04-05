@@ -112,7 +112,7 @@ public class Settings {
 	public static final Setting<String> KeystorePassword      = new StringSetting(serverGroup,  "Interfaces", "application.keystore.password", "", "The password for the JKS keystore");
 	public static final Setting<String> RestPath              = new StringSetting(serverGroup,  "hidden",     "application.rest.path",         "/structr/rest", "Defines the URL path of the Structr REST server. Should not be changed because it is hard-coded in many parts of the application.");
 	public static final Setting<String> BaseUrlOverride       = new StringSetting(serverGroup,  "Interfaces", "application.baseurl.override",  "", "Overrides the baseUrl that can be used to prefix links to local web resources. By default, the value is assembled from the protocol, hostname and port of the server instance Structr is running on");
-	public static final Setting<String> applicationRootPath   = new StringSetting(serverGroup, "Interfaces", "application.root.path", "", "Root path of the application, e.g. in case Structr is being run behind a reverse proxy with additional path prefix in URI. If set, the value must start with a \"/\" and have no trailing \"/\". A valid value would be <code>/xyz</code> ");
+	public static final Setting<String> applicationRootPath   = new StringSetting(serverGroup, "Interfaces", "application.root.path", "", "Root path of the application, e.g. in case Structr is being run behind a reverse proxy with additional path prefix in URI. If set, the value must start with a '/' and have no trailing '/'. A valid value would be <code>/xyz</code> ");
 
 	public static final Setting<Integer> MaintenanceHttpPort          = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpPort.getKey(),         8182, "HTTP port the Structr server will listen on in maintenance mode");
 	public static final Setting<Integer> MaintenanceHttpsPort         = new IntegerSetting(serverGroup, "Maintenance", MAINTENANCE_PREFIX + "." + HttpsPort.getKey(),        8183, "HTTPS port the Structr server will listen on (if SSL is enabled) in maintenance mode");
@@ -493,7 +493,7 @@ public class Settings {
 
 
 	// oauth settings
-	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to \"github twitter linkedin google facebook auth0\"");
+	public static final Setting<String> OAuthServers = new StringSetting(oauthGroup, "General", "oauth.servers", "github twitter linkedin google facebook auth0", "Space-seperated List of available oauth services. Defaults to 'github twitter linkedin google facebook auth0'");
 	public static final Setting<Boolean> OAuthVerboseLogging  = new BooleanSetting(oauthGroup, "General", "oauth.logging.verbose", false, "Enables verbose logging for oauth login");
 
 	public static final Setting<String> OAuthGithubAuthLocation   = new StringSetting(oauthGroup, "GitHub", "oauth.github.authorization_location", "https://github.com/login/oauth/authorize", "URL of the authorization endpoint.");
@@ -504,7 +504,7 @@ public class Settings {
 	public static final Setting<String> OAuthGithubUserDetailsUri = new StringSetting(oauthGroup, "GitHub", "oauth.github.user_details_resource_uri", "https://api.github.com/user/emails", "Points to the user details endpoint of the service provider.");
 	public static final Setting<String> OAuthGithubErrorUri       = new StringSetting(oauthGroup, "GitHub", "oauth.github.error_uri", "/login", "Structr redirects to this URI on unsuccessful authentication.");
 	public static final Setting<String> OAuthGithubReturnUri      = new StringSetting(oauthGroup, "GitHub", "oauth.github.return_uri", "/", "Structr redirects to this URI on successful authentification.");
-	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to \"user:email\".");
+	public static final Setting<String> OAuthGithubScope          = new StringSetting(oauthGroup, "GitHub", "oauth.github.scope", "user:email", "Specifies the scope of the authentifcation. Defaults to 'user:email'.");
 	public static final ChoiceSetting OAuthGithubAccessTokenLocation = new ChoiceSetting(oauthGroup, "GitHub", "oauth.github.accesstoken.location", "query", Set.of("body", "header", "query"), "Where to encode  the access token when accessing the userinfo endpoint. Set this to header if you use an OICD-compliant service. ");
 
 	public static final Setting<String> OAuthTwitterAuthLocation  = new StringSetting(oauthGroup, "Twitter", "oauth.twitter.authorization_location", "https://api.twitter.com/oauth/authorize", "URL of the authorization endpoint.");
@@ -572,7 +572,7 @@ public class Settings {
 	public static final Setting<String> LDAPBindDN          = new StringSetting(ldapGroup,  "General", "ldap.binddn", "", "DN that is used to authenticate synchronization");
 	public static final Setting<String> LDAPSecret          = new StringSetting(ldapGroup,  "General", "ldap.secret", "", "Used in conjunction with bind DN to handle authentication.");
 	public static final Setting<Boolean> LDAPUseSSL         = new BooleanSetting(ldapGroup, "General", "ldap.usessl", false, "Enables SSL for the LDAP connection.");
-	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE", "Specifies the LDAP scope. Defaults to \"SUBTREE\"");
+	public static final Setting<String> LDAPScope           = new StringSetting(ldapGroup,  "General", "ldap.scope", "SUBTREE", "Specifies the LDAP scope. Defaults to 'SUBTREE'");
 	public static final Setting<String> LDAPPrimaryKey      = new StringSetting(ldapGroup,  "General", "ldap.primarykey", "dn", "Name of primary identification property of LDAP objects, must uniquely identify users and groups");
 	public static final Setting<String> LDAPPropertyMapping = new StringSetting(ldapGroup,  "General", "ldap.propertymapping", "{ sn: name, email: eMail }", "Mapping from LDAP properties to Structr properties");
 	public static final Setting<String> LDAPGroupNames      = new StringSetting(ldapGroup,  "General", "ldap.groupnames", "{ group: member, groupOfNames: member, groupOfUniqueNames: uniqueMember }", "LDAP objectclass tuples for group and member identification.");

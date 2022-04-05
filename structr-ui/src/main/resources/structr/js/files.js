@@ -896,11 +896,13 @@ let _Files = {
 
 		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
-		_Files.folderContents.prepend('<div id="switches">'
-			+ '<button class="switch ' + (_Files.isViewModeActive('list') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-list" data-view-mode="list">' + (_Files.isViewModeActive('list') ? checkmark : '') + ' List</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('tiles') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-tiles" data-view-mode="tiles">' + (_Files.isViewModeActive('tiles') ? checkmark : '') + ' Tiles</button>'
-			+ '<button class="switch ' + (_Files.isViewModeActive('img') ? 'active' : 'inactive') + ' inline-flex items-center" id="switch-img" data-view-mode="img">' + (_Files.isViewModeActive('img') ? checkmark : '') + ' Images</button>'
-			+ '</div>');
+		_Files.folderContents.prepend(`
+			<div id="switches" class="absolute flex top-4 right-2">
+				<button class="switch ${(_Files.isViewModeActive('list') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-list" data-view-mode="list">${(_Files.isViewModeActive('list') ? checkmark : '')} List</button>
+				<button class="switch ${(_Files.isViewModeActive('tiles') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-tiles" data-view-mode="tiles">${(_Files.isViewModeActive('tiles') ? checkmark : '')} Tiles</button>
+				<button class="switch ${(_Files.isViewModeActive('img') ? 'active' : 'inactive')} inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="switch-img" data-view-mode="img">${(_Files.isViewModeActive('img') ? checkmark : '')} Images</button>
+			</div>
+		`);
 
 		let listSw  = $('#switch-list');
 		let tilesSw = $('#switch-tiles');
@@ -1447,7 +1449,7 @@ let _Files = {
 
 		dialogMeta.html('<span class="editor-info"></span>');
 
-		let monacoEditor = _Editors.getMonacoEditor(file, 'content', $('.editor', element), fileMonacoConfig);
+		let monacoEditor = _Editors.getMonacoEditor(file, 'content', element[0].querySelector('.editor'), fileMonacoConfig);
 
 		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
 
@@ -1781,7 +1783,7 @@ let _Files = {
 
 			dialogText.append(elem);
 
-			let mountButton = $('<button id="mount-folder">Mount</button>').on('click', function() {
+			let mountButton = $('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>').on('click', function() {
 
 				var mountConfig = {};
 				$('.mount-option[type="text"]').each(function(i, el) {
@@ -1850,7 +1852,7 @@ let _Files = {
 					</select>
 			
 					<button class="action add_folder_icon button inline-flex items-center" id="add-folder-button">
-						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-1'])}
+						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
 			
@@ -1860,12 +1862,12 @@ let _Files = {
 					</select>
 			
 					<button class="action add_file_icon button inline-flex items-center" id="add-file-button">
-						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-1'])}
+						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
 			
-					<button class="mount_folder button inline-flex items-center" id="mount-folder-dialog-button">
-						${_Icons.getSvgIcon('folder_link', 16, 16, ['mr-1'])}
+					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
+						${_Icons.getSvgIcon('folder_link', 16, 16, ['mr-2'])}
 						Mount Folder
 					</button>
 				</div>

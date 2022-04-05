@@ -979,7 +979,7 @@ let _Dialogs = {
 				<label class="block mb-2" for="show-conditions">Show Conditions</label>
 				<div class="flex">
 					<input id="show-conditions" type="text" name="showConditions">
-					<select id="show-conditions-templates">
+					<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						${_Dialogs.templates.showHideConditionTemplates()}
 					</select>
 				</div>
@@ -989,7 +989,7 @@ let _Dialogs = {
 				<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
 				<div class="flex">
 					<input id="hide-conditions" type="text" name="hideConditions">
-					<select id="hide-conditions-templates">
+					<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 						${_Dialogs.templates.showHideConditionTemplates()}
 					</select>
 				</div>

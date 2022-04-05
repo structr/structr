@@ -646,7 +646,7 @@ let Structr = {
 				}
 			}
 
-			dialogBtn.html('<button class="closeButton">Close</button>');
+			dialogBtn.html('<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
 			dialogCancelButton = $('.closeButton', dialogBox);
 
 			$('.speechToText', dialogBox).remove();
@@ -2812,7 +2812,7 @@ let UISettings = {
 		if (moduleSettings) {
 
 			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon('ui_configuration_settings')}
 				</button>
 				<div class="dropdown-menu-container" style=display: none;"></div>

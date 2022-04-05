@@ -201,27 +201,13 @@ select {
 }
 
 button {
-	/*color: var(--solid-black);*/
-	/*font-size: .875rem;*/
-	/*padding: .5rem .75rem;*/
-	/*margin: 0 3px 3px 0;*/
 	margin: 0 1rem 0 0;
-	/*vertical-align: middle;*/
-	/*border-radius: .25rem;*/
 	background-color: transparent;
-	/*line-height: 1.25rem;*/
-	/*box-shadow: 0px 0px 36px var(--gray-opacity-10);*/
 	white-space: nowrap;
 }
 
 button:hover:not(.disabled), button:focus:not(.disabled) {
-	/*color: var(--body-text);*/
-	/*padding: 1px 8px 2px 4px;*/
-	/*vertical-align: middle;*/
-	/*border: 1px solid var(--black-opacity-25);*/
-	/*background-color: var(--main-background);*/
 	cursor: pointer ! important;
-	/*box-shadow: 0px 0px 36px var(--gray-opacity-10);*/
 }
 
 button.yesButton, button.noButton {
@@ -1316,7 +1302,6 @@ i.edit_ui_properties_icon, i.edit_icon, i.add_icon, i.delete_icon, i.close_icon,
 	top: .25rem;
 }
 
-.add-icon:hover,
 .remove-icon:hover,
 .reset-icon:hover,
 .discard-icon:hover,
@@ -1642,11 +1627,6 @@ button.action.disabled:hover {
 	min-width: 200px;
 }
 
-.security-container button.switch {
-	min-width: 14rem;
-	margin: .5rem 1rem 0 0;
-}
-
 .schema-props tbody tr:nth-child(odd),
 .schema-props .fake-tbody .fake-tr:nth-child(odd) {
 	background-color: var(--light-gray-bg-f7);
@@ -1773,10 +1753,6 @@ button.action.disabled:hover {
 #login #two-factor-qr-code #two-factor-qr-info {
 	margin-top: 8px;
 	margin-bottom: 10px;
-}
-
-.dialog button:focus {
-	border: 1px solid var(--gray-666);
 }
 
 #files-main h1, #images h1, #code-main h1, #flows-main h1 {
@@ -1949,20 +1925,6 @@ button.action.disabled:hover {
 
 .nodeSelectBox .id {
 	display: none;
-}
-
-button.switch {
-	min-width: 4rem;
-	margin-right: 2rem;
-	/*color: var(--gray-444);*/
-	font-weight: normal;
-	/*border: 1px solid var(--gray-eee);*/
-	/*background-color: var(--solid-white);*/
-}
-
-button.switch i {
-	/*margin-top: -2px;*/
-	/*vertical-align: top;*/
 }
 
 button.enabled, button.active {
@@ -4437,11 +4399,17 @@ table.props td.__value {
 .right-1 {
 	right: .25rem;
 }
+.right-2 {
+	right: .5rem;
+}
 .top-0 {
 	top: 0;
 }
 .top-1 {
 	top: .25rem;
+}
+.top-4 {
+	top: 1rem;
 }
 .flex-none {
 	flex: none;
@@ -4542,6 +4510,9 @@ table.props td.__value {
 .mt-6 {
 	margin-top: 1.5rem;
 }
+.mt-8 {
+	margin-top: 2rem;
+}
 .mb-1 {
 	margin-bottom: .25rem;
 }
@@ -4555,6 +4526,10 @@ table.props td.__value {
 	margin-bottom: 1rem;
 }
 .mb-8 {
+	margin-bottom: 2rem;
+}
+.my-8 {
+	margin-top: 2rem;
 	margin-bottom: 2rem;
 }
 .w-40 {
@@ -4693,6 +4668,9 @@ table.props td.__value {
 .min-w-48 {
 	min-width: 12rem;
 }
+.min-w-56 {
+	min-width: 14rem;
+}
 .min-w-64 {
 	min-width: 16rem;
 }
@@ -4716,4 +4694,14 @@ table.props td.__value {
 }
 .hover\:icon-active:hover {
 	color: var(--active-link);
+}
+
+.hover\:bg-gray-100:hover:not([disabled]) {
+	background-color: var(--light-gray-bg-f3);
+}
+.focus\:border-gray-666:focus {
+	border: 1px solid var(--gray-666);
+}
+.active\:border-green:active:focus {
+	border-color: var(--icon-color-dark-green);
 }

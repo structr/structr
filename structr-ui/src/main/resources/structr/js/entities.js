@@ -728,7 +728,7 @@ let _Entities = {
 			});
 		}
 	},
-	repeaterConfig: function(entity, el) {
+	repeaterConfig: (entity, el) => {
 
 		let queryTypes = [
 			{ title: 'REST Query',     propertyName: 'restQuery' },
@@ -741,17 +741,17 @@ let _Entities = {
 			queryTypes.unshift({ title: 'Flow', propertyName: 'flow' });
 		}
 
-		let queryTypeButtonsContainer = $('.query-type-buttons', el);
+		let queryTypeButtonsContainer = el.querySelector('.query-type-buttons');
 
-		let queryTextElement = $('.query-text', el);
-		let flowSelector     = $('#flow-selector');
+		let queryTextElement = el.querySelector('.query-text');
+		let flowSelector     = el.querySelector('#flow-selector');
 
 		let repeaterConfigEditor;
-		let saveBtn;
+		let saveQueryButton;
 
 		let saveFunction = () => {
 
-			if ($('button.active', queryTypeButtonsContainer).length > 1) {
+			if (queryTypeButtonsContainer.querySelectorAll('button.active').length > 1) {
 				return new MessageBuilder().error('Please select only one query type.').show();
 			}
 
@@ -761,31 +761,32 @@ let _Entities = {
 
 				let val = null;
 
-				if ($('.' + queryType.propertyName, queryTypeButtonsContainer).hasClass('active')) {
+				if (queryTypeButtonsContainer.querySelector('.' + queryType.propertyName).classList.contains('active')) {
 
 					if (queryType.propertyName === 'flow') {
 
-						val = flowSelector.val();
+						val = flowSelector.value;
 
 					} else {
 
 						val = repeaterConfigEditor.getValue();
 						data.flow = null;
-						flowSelector.val('--- Select Flow ---');
+						flowSelector.value = '--- Select Flow ---';
 					}
 				}
 
 				data[queryType.propertyName] = val;
 			};
 
-			Command.setProperties(entity.id, data, function(obj) {
+			Command.setProperties(entity.id, data, (obj) => {
 
 				Object.assign(entity, data);
 
-				if (flowSelector.is(':visible')) {
+				// vanilla replacement for $.is(':visible')
+				if (flowSelector.offsetParent !== null) {
 					blinkGreen(flowSelector);
 				} else {
-					blinkGreen(saveBtn);
+					blinkGreen(saveQueryButton);
 				}
 			});
 		};
@@ -833,71 +834,85 @@ let _Entities = {
 			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language);
 		};
 
-		let initRepeaterInputs = function() {
+		let initRepeaterInputs = () => {
 
-			saveBtn = $('button.save', el);
+			saveQueryButton = el.querySelector('button.save-repeater-query');
 
 			for (let queryType of queryTypes) {
-				$('<button data-query-type="' + queryType.propertyName + '" class="' + queryType.propertyName + '">' + queryType.title + '</button>').appendTo(queryTypeButtonsContainer);
+				queryTypeButtonsContainer.insertAdjacentHTML('beforeend', `<button data-query-type="${queryType.propertyName}" class="${queryType.propertyName} hover:bg-gray-100 focus:border-gray-666 active:border-green">${queryType.title}</button>`);
 			}
 
-			let allButtons = $('.query-type-buttons button', el);
+			let allQueryTypeButtons = el.querySelectorAll('.query-type-buttons button');
 
-			allButtons.on('click', function() {
+			let queryTypeButtonClickAction = (e) => {
 
-				allButtons.removeClass('active');
+				for (let queryTypeButton of allQueryTypeButtons) {
+					queryTypeButton.classList.remove('active');
+				}
+				e.target.classList.add('active');
 
-				let btn = $(this);
-				btn.addClass('active');
-
-				let queryType = btn.data('query-type');
+				let queryType = e.target.dataset['queryType'];
 
 				if (queryType === 'flow') {
 
-					saveBtn.hide();
-					queryTextElement.hide();
-					flowSelector.show();
+					saveQueryButton.classList.add('hidden');
+					queryTextElement.classList.add('hidden');
+					flowSelector.classList.remove('hidden');
 
 				} else {
 
-					saveBtn.show();
-					queryTextElement.show();
-					flowSelector.hide();
+					saveQueryButton.classList.remove('hidden');
+					queryTextElement.classList.remove('hidden');
+					flowSelector.classList.add('hidden');
 					activateEditor(queryType);
 				}
-			});
+			};
+
+			for (let queryTypeButton of allQueryTypeButtons) {
+				queryTypeButton.addEventListener('click', queryTypeButtonClickAction);
+			}
 
 			for (let queryType of queryTypes) {
 
 				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
-					$('button.' + queryType.propertyName).click();
-					flowSelector.val(entity[queryType.propertyName]);
+
+					el.querySelector('button.' + queryType.propertyName).click();
+					flowSelector.value = entity[queryType.propertyName];
+
 				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
-					$('button.' + queryType.propertyName).click();
+
+					el.querySelector('button.' + queryType.propertyName).click();
 				}
 			}
 
-			if ($('button.active', queryTypeButtonsContainer).length === 0) {
-				$('.query-type-buttons button:first', el).click();
+			if (queryTypeButtonsContainer.querySelectorAll('button.active').length === 0) {
+				el.querySelector('.query-type-buttons button').click();
 			}
 
-			flowSelector.on('change', saveFunction);
-			saveBtn.on('click', saveFunction);
+			flowSelector.addEventListener('change', saveFunction);
+			saveQueryButton.addEventListener('click', saveFunction);
 
-			_Entities.appendInput(el, entity, 'dataKey', 'Repeater Keyword',
-				'The repeater keyword or data key is either a word to reference result objects, or it can be the name of a collection property of the result object.<br><br>' +
-				'You can access result objects or the objects of the collection using template expressions, e.g. <i>${project.name}</i>.');
+			let datakeyInput      = el.querySelector('input.repeater-datakey');
+			let saveDatakeyButton = el.querySelector('button.save-repeater-datakey');
+
+			datakeyInput.value = entity.dataKey;
+
+			saveDatakeyButton.addEventListener('click', () => {
+
+				Command.setProperty(entity.id, 'dataKey', datakeyInput.value, false, () => {
+					blinkGreen(datakeyInput);
+					entity.dataKey = datakeyInput.value;
+				});
+			});
 		};
 
 		if (Structr.isModulePresent('flows')) {
 
-			flowSelector.append('<option>--- Select Flow ---</option>');
+			flowSelector.insertAdjacentHTML('beforeend', '<option>--- Select Flow ---</option>');
 
-			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, function(flows) {
+			Command.getByType('FlowContainer', 1000, 1, 'effectiveName', 'asc', null, false, (flows) => {
 
-				for (let flow of flows) {
-					flowSelector.append('<option value="' + flow.id + '">' + flow.effectiveName + '</option>');
-				}
+				flowSelector.insertAdjacentHTML('beforeend', flows.map(flow => '<option value="' + flow.id + '">' + flow.effectiveName + '</option>').join());
 
 				initRepeaterInputs();
 
@@ -906,9 +921,7 @@ let _Entities = {
 
 		} else {
 
-			if (flowSelector && flowSelector.length) {
-				flowSelector.remove();
-			}
+			flowSelector?.remove();
 
 			initRepeaterInputs();
 			_Editors.resizeVisibleEditors();
@@ -985,7 +998,7 @@ let _Entities = {
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, 'source', $('.editor', dialog), emptyDivMonacoConfig);
+		let editor = _Editors.getMonacoEditor(entity, 'source', dialog[0].querySelector('.editor'), emptyDivMonacoConfig);
 
 		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
 
@@ -1618,7 +1631,7 @@ let _Entities = {
 		if (view === '_html_') {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
-			container.append('<button class="show-all">Show all attributes</button>');
+			container.append('<button class="show-all hover:bg-gray-100 focus:border-gray-666 active:border-green">Show all attributes</button>');
 			$('.show-all', container).on('click', function() {
 
 				propsTable.addClass('show-all');
@@ -1628,7 +1641,7 @@ let _Entities = {
 				$(this).attr('disabled', 'disabled').addClass('disabled');
 			});
 
-			let addCustomAttributeButton = $('<button class="add-custom-attribute">Add custom property</button>');
+			let addCustomAttributeButton = $('<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green">Add custom property</button>');
 			container.append(addCustomAttributeButton);
 
 			Structr.appendInfoTextToElement({
@@ -2279,28 +2292,11 @@ let _Entities = {
 			});
 		}
 	},
-	appendInput: function(el, entity, key, label, desc) {
-		if (!el || !entity) {
-			return false;
-		}
-		el.append('<div class="input-section"><h3>' + label + '</h3><p>' + desc + '</p><div><input type="text" class="' + key + '_" value="' + (entity[key] ? entity[key] : '') + '"><button class="save_' + key + '">Save</button></div></div>');
-
-		let btn = $('.save_' + key, el);
-		let inp = $('.' + key + '_', el);
-
-		btn.on('click', function() {
-			let value = $('.' + key + '_', el).val();
-			Command.setProperty(entity.id, key, value, false, function(obj) {
-				blinkGreen(inp);
-				entity[key] = value;
-			});
-		});
-	},
 	appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
 		if (!el || !entity) {
 			return false;
 		}
-		el.append('<div class="' + entity.id + '_"><button class="switch inactive ' + key + '_ inline-flex items-center"></button>' + desc + '</div>');
+		el.append(`<div class="${entity.id}_ flex items-center mt-2"><button class="switch inactive ${key}_ inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green min-w-56"></button>${desc}</div>`);
 
 		let sw = $('.' + key + '_', el);
 		_Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
@@ -2975,8 +2971,8 @@ let _Entities = {
 						<div class="hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
 			
 						<div class="hidden event-options options-properties options-update-change options-update-click">
-							<button class="add-icon inline-flex items-center add-property-input-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create input</button>
-							<button class="add-icon inline-flex items-center add-property-select-button">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create select</button>
+							<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create input</button>
+							<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create select</button>
 						</div>
 					</div>
 				</div>

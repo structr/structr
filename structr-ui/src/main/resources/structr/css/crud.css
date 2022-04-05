@@ -52,15 +52,6 @@
 	margin: 0 1rem .75rem .5rem;
 }
 
-#crudTypesFilterToggle:hover,
-#crudTypesFilterToggle.active,
-#crud-recent-types li .remove-recent-type:hover {
-	filter: alpha(opacity=60);
-	-khtml-opacity: 0.6;
-	-moz-opacity: 0.6;
-	opacity: 0.6;
-}
-
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
 	margin: 0;

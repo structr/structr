@@ -539,9 +539,9 @@ let _Widgets = {
 			changeFn: editorChangeHandler
 		};
 
-		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        $('#tabView-source .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
-		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', $('#tabView-config .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
-		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   $('#tabView-description .editor', contentDiv), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
+		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        contentDiv[0].querySelector('#tabView-source .editor'),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
+		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', contentDiv[0].querySelector('#tabView-config .editor'),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
+		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   contentDiv[0].querySelector('#tabView-description .editor'), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
 
 		// allow editing of selectors property
 		_Schema.getTypeInfo(entity.type, (typeInfo) => {

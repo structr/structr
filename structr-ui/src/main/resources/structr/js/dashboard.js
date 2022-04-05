@@ -1196,7 +1196,9 @@ let _Dashboard = {
 							<label class="mr-1">Number of events to show:</label>
 							<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
 			
-							<button id="refresh-event-log" class="inline-flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
+							<button id="refresh-event-log" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+							</button>
 						</div>
 			
 						<table class="props">

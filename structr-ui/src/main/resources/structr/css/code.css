@@ -51,10 +51,8 @@
 
 #code-contents .action-button {
 	position: relative;
-	background-color: var(--solid-white);
 	color: var(--gray-444);
 	margin: 0 12px 12px 0;
-	border: 1px solid var(--gray-ddd);
 	height: inherit;
 	box-sizing: content-box;
 }

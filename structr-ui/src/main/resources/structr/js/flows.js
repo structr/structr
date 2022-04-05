@@ -118,11 +118,15 @@ let _Flows = {
 
 		function deleteFlow(id) {
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
-				if (confirm('Really delete flow ' + id + '?')) {
+				Structr.confirmation('Really delete flow ' + id + '?', () => {
 					persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
 						_Flows.refreshTree();
+
+						$.unblockUI({
+							fadeOut: 25
+						});
 					});
-				}
+				});
 			}
 		}
 
@@ -615,7 +619,6 @@ let _Flows = {
 			<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
 		`);
 
-		let contentBox       = $('.editor', dialogText);
 		let dialogSaveButton = dialogBtn[0].querySelector('#editorSave');
 		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
 
@@ -656,7 +659,7 @@ let _Flows = {
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, propertyName, contentBox, editorConfig);
+		let editor = _Editors.getMonacoEditor(entity, propertyName, dialogText[0].querySelector('.editor'), editorConfig);
 
         Structr.resize();
 
@@ -759,8 +762,11 @@ let _Flows = {
 
 						// activate buttons
 						document.querySelector('.run_flow_icon').classList.remove('disabled');
+						document.querySelector('.run_flow_icon').disabled = false;
 						document.querySelector('.delete_flow_icon').classList.remove('disabled');
+						document.querySelector('.delete_flow_icon').disabled = false;
 						document.querySelector('.layout_icon').classList.remove('disabled');
+						document.querySelector('.layout_icon').disabled = false;
 					});
 				});
             });
@@ -793,13 +799,13 @@ let _Flows = {
 			
 			</div>
 			
-			<button class="delete_flow_icon button disabled">
+			<button class="delete_flow_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				<i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow
 			</button>
 			
 			<label class="mr-4">
 				Highlight:
-				<select id="flow-focus-select">
+				<select id="flow-focus-select" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					<option value="none">-</option>
 					<option value="action">Execution Flow</option>
 					<option value="data">Data Flow</option>
@@ -808,15 +814,15 @@ let _Flows = {
 				</select>
 			</label>
 			
-			<button class="run_flow_icon button disabled">
+			<button class="run_flow_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				<i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run
 			</button>
 			
-			<button class="reset_view_icon button">
+			<button class="reset_view_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view
 			</button>
 			
-			<button class="layout_icon button disabled">
+			<button class="layout_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				<i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout
 			</button>
 		`,

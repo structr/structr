@@ -649,11 +649,17 @@ let _Localization = {
 							</div>
 						</div>
 					</form>
-					<button id="localization-fields-save" title="Save" class="btn save inline-flex items-center">
-						${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
-					</button>
+					<div>
+						<button id="localization-fields-save" title="Save" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+						</button>
+					</div>
 			
-					<button id="add-new-translation" class="create"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add translation</button>
+					<div class="mt-8">
+						<button id="add-new-translation" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add translation
+						</button>
+					</div>
 					<table id="localization-detail-table" class="props">
 						<thead><tr>
 							<th>Locale</th>
@@ -674,14 +680,18 @@ let _Localization = {
 			<link rel="stylesheet" type="text/css" media="screen" href="css/localization.css">
 			
 			<form id="create-localization-form" autocomplete="off">
-				<input title="Enter a key to create translations for" id="localization-key-preselect" type="text" size="30" placeholder="Key" name="key" required data-lpignore="true">
-				<input title="Enter a domain to create translations for" id="localization-domain-preselect" type="text" size="10" placeholder="Domain" name="domain">
-				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
-			
-				<button type="submit" form="create-localization-form" class="action btn"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new localization key</button>
+				<div class="inline-flex gap-x-2">
+					<input title="Enter a key to create translations for" id="localization-key-preselect" type="text" size="30" placeholder="Key" name="key" required data-lpignore="true">
+					<input title="Enter a domain to create translations for" id="localization-domain-preselect" type="text" size="10" placeholder="Domain" name="domain">
+					<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
+				
+					<button type="submit" form="create-localization-form" class="action inline-flex items-center">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-white mr-2')} Create new localization key
+					</button>
+				</div>
 			</form>
-			
-			<div id="localization-pager"></div>
+				
+				<div id="localization-pager"></div>
 		`,
 		typeRow: config => `
 			<tr class="localization-row key-domain-pair" id="${config.localization.htmlId}">
