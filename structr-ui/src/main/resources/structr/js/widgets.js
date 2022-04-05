@@ -1012,7 +1012,7 @@ let _Widgets = {
 				<h3>Configured Servers</h3>
 				<div id="widget-servers-container"></div>
 			
-				<h3 data-comment="Only use trusted sources for remote widgets! Loading the widgets in the dialog is not dangerous, but adding a widget to your instance runs the code in the widget so <strong>using <em>untrusted sources</em> poses a very real security threat</strong>!" data-comment-config='{"customToggleIcon":"${_Icons.error_icon}", "helpElementCss": { "font-size": "14px"}}'>Add Server</h3>
+				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{"customToggleIcon": "warning-sign-icon","customToggleIconClasses": ["icon-grey"], "helpElementCss": { "font-size": "14px"}}'>Add Server</h3>
 			
 				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
 			
@@ -1028,7 +1028,7 @@ let _Widgets = {
 			
 					<div></div>
 					<div>
-						<button id="save-widget-server" class="flex items-center">
+						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('checkmark_bold', 14, 14, ['icon-green', 'mr-2'])} Save
 						</button>
 					</div>

@@ -729,7 +729,7 @@ let _Crud = {
 				<button class="pageLeft">&lt; Prev</button>
 				Page <input class="page" type="text" size="3" value="${_Crud.page[type]}"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="${nvl(_Crud.pageCount, 0)}">
 				Page Size: <input class="pageSize" type="text" size="3" value="${_Crud.pageSize[type]}">
-				View: <select class="view"></select>
+				View: <select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
 			</div>
 		`);
 
@@ -745,7 +745,8 @@ let _Crud = {
 		Structr.appendInfoTextToElement({
 			element: select,
 			text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
-			insertAfter: true
+			insertAfter: true,
+			customToggleIconClasses: ['icon-blue', 'ml-1']
 		});
 
 		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + Structr.rootUrl + type + '">/' + type + '</a></div>');
@@ -1188,7 +1189,7 @@ let _Crud = {
 		var exportArea = $('<textarea class="exportArea"></textarea>');
 		dialogText.append(exportArea);
 
-		dialogBtn.append('<button id="copyToClipboard">Copy to Clipboard</button>');
+		dialogBtn.append('<button id="copyToClipboard" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy to Clipboard</button>');
 
 		document.getElementById('copyToClipboard').addEventListener('click', async () => {
 			let text = $('.exportArea', dialogText)[0].textContent;
@@ -1229,12 +1230,12 @@ let _Crud = {
 		var importArea = $('<textarea class="importArea"></textarea>');
 		dialogText.append(importArea);
 
-		var separatorSelect = $('<select><option selected>;</option><option>,</option></select>');
+		var separatorSelect = $('<select class="hover:bg-gray-100 focus:border-gray-666 active:border-green"><option selected>;</option><option>,</option></select>');
 		var separatorContainer = $('<span><label>Field Separator: </label></span>');
 		separatorContainer.append(separatorSelect);
 		dialogMeta.append(separatorContainer);
 
-		var quoteCharacterSelect = $('<select><option selected>"</option><option>\'</option></select>');
+		var quoteCharacterSelect = $('<select class="hover:bg-gray-100 focus:border-gray-666 active:border-green"><option selected>"</option><option>\'</option></select>');
 		var quoteCharacterContainer = $('<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<label>Quote Character: </label></span>');
 		quoteCharacterContainer.append(quoteCharacterSelect);
 		dialogMeta.append(quoteCharacterContainer);
@@ -3123,18 +3124,18 @@ let _Crud = {
 			</div>
 		`,
 		typeButtons: config => `
-			<div id="crud-buttons">
-				<button class="action" id="create${config.type}">
-					<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Create new ${config.type}
+			<div id="crud-buttons" class="flex items-center">
+				<button class="action inline-flex items-center" id="create${config.type}">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Create new ${config.type}
 				</button>
-				<button id="export${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<i class="${_Icons.getFullSpriteClass(_Icons.database_table_icon)}"></i> Export as CSV
+				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('database-download-icon', 16, 16, ['mr-2', 'icon-gray'])} Export as CSV
 				</button>
-				<button id="import${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<i class="${_Icons.getFullSpriteClass(_Icons.database_add_icon)}"></i> Import CSV
+				<button id="import${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('database-upload-icon', 16, 16, ['mr-2', 'icon-gray'])} Import CSV
 				</button>
-				<button id="delete${config.type}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete <b>all</b> objects of this type
+				<button id="delete${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2', 'icon-red'])} <span>Delete <b>all</b> objects of this type</span>
 				</button>
 				<label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
 			</div>

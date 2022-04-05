@@ -254,16 +254,11 @@ $(function() {
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
-
-		// Ctrl-Alt-i
-		if (k === 73 && altKey && ctrlKey) {
-			e.preventDefault();
-
-			Structr.showAvailableIcons();
-		}
 	});
 
-	$(window).on('resize', Structr.resize);
+	$(window).on('resize', () => {
+		Structr.resize();
+	});
 
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
@@ -1267,7 +1262,7 @@ let Structr = {
 				throw Error("Unable to read env resource data");
 			}
 
-		}).then(function(data) {
+		}).then((data) => {
 
 			let envInfo = data.result;
 			if (Array.isArray(envInfo)) {
@@ -1310,41 +1305,32 @@ let Structr = {
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 
-				let version     = ui.version;
 				let build       = ui.build;
 				let date        = ui.date;
-				let versionLink = 'https://structr.com/download';
-				let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
-				if (build && date) {
-					versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
-				}
+				let versionInfo = `
+					<div>
+						<a target="_blank" href="https://structr.com/download">
+							${ui.version}
+						</a>
+						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+						${(envInfo.edition) ? `<i title="Structr ${envInfo.edition} Edition\n${(envInfo.licensee) ? `Licensed to: ${envInfo.licensee}` : 'Unlicensed'}" class="edition-icon ${_Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition))}"></i>` : ''}
+					</div>
+				`;
+
+				$('.structr-version').html(versionInfo);
 
 				if (envInfo.edition) {
 
 					Structr.edition = envInfo.edition;
 
-					var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-					if (envInfo.licensee) {
-						tooltipText += '\nLicensed to: ' + envInfo.licensee;
-					} else {
-						tooltipText += '\nUnlicensed';
-					}
-
-					versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
-
-					$('.structr-version').html(versionInfo);
-
 					_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
 						offsetX: -300,
 						helpElementCss: {
 							color: "black",
-							fontSize: "8pt",
+							fontSize: "1rem",
 							lineHeight: "1.7em"
 						}
 					});
-
-				} else {
-					$('.structr-version').html(versionInfo);
 				}
 			}
 
@@ -1382,7 +1368,7 @@ let Structr = {
 			}
 		});
 	},
-	updateMainMenu: function (menuConfig) {
+	updateMainMenu: (menuConfig) => {
 
 		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
 
@@ -1393,21 +1379,22 @@ let Structr = {
 		// first move all elements from main menu to submenu
 		$('li[data-name]', menu).appendTo(submenu);
 
-		menuConfig.main.forEach(function(entry) {
+		for (let entry of menuConfig.main) {
 			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
-		});
+		}
 
-		menuConfig.sub.forEach(function(entry) {
+		for (let entry of menuConfig.sub) {
 			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
-		});
+		}
 	},
-	inMemoryWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
-	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
+	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
+	appendInMemoryInfoToElement: (el, optionalToggleElement) => {
 
 		let config = {
 			element: el,
 			text: Structr.inMemoryWarningText,
-			customToggleIcon: _Icons.database_error_icon,
+			customToggleIcon: 'database-warning-sign-icon',
+			customToggleIconClasses: ['icon-red', 'ml-2'],
 			helpElementCss: {
 				'border': '2px solid red',
 				'border-radius': '4px',
@@ -1615,7 +1602,7 @@ let Structr = {
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
 	},
-	appendInfoTextToElement: function(config) {
+	appendInfoTextToElement: (config) => {
 
 		let element            = config.element;
 		let appendToElement    = config.appendToElement || element;
@@ -1624,7 +1611,8 @@ let Structr = {
 		let toggleElementClass = config.class || undefined;
 		let elementCss         = config.elementCss || {};
 		let helpElementCss     = config.helpElementCss || {};
-		let customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
+		let customToggleIcon   = config.customToggleIcon || 'info-icon';
+		let customToggleIconClasses = config.customToggleIconClasses || ['icon-blue'];
 		let insertAfter        = config.insertAfter || false;
 		let offsetX            = config.offsetX || 0;
 		let offsetY            = config.offsetY || 0;
@@ -1635,7 +1623,8 @@ let Structr = {
 		let toggleElement = config.toggleElement;
 		if (!toggleElement) {
 			customToggleElement = false;
-			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
+			toggleElement = $(`<span>${_Icons.getSvgIcon(customToggleIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}</span>`);
+
 			createdElements.push(toggleElement);
 		}
 
@@ -1656,8 +1645,8 @@ let Structr = {
 					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
 			}).on("mouseout", function(e) {
-			helpElement.hide();
-		});
+				helpElement.hide();
+			});
 
 		if (insertAfter) {
 			if (!customToggleElement) {

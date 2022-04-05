@@ -261,18 +261,6 @@ input.readonly {
 	color: var(--gray-333);
 }
 
-#crud-buttons {
-	/*margin-bottom: 5px;*/
-	display: inline-block;
-}
-
-#crud-buttons .exact-type-checkbox {
-	/*vertical-align: initial;*/
-}
-#crud-buttons .exact-type-checkbox-label {
-	/*font-size: 8pt;*/
-}
-
 #query-info {
 	position: absolute;
 	bottom: .75rem;

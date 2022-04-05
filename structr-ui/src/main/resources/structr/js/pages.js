@@ -140,9 +140,9 @@ let _Pages = {
 			element: $('#localizations button.refresh'),
 			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 			insertAfter: true,
-			css: { right: "2px", top: "2px" },
-			helpElementCss: { width: "200px" },
-			offsetX: -50
+			helpElementCss: { width: "300px" },
+			offsetX: -20,
+			offsetY: 10
 		});
 
 		$('#widgetsTab').on('click', function () {
@@ -2439,7 +2439,7 @@ let _Pages = {
 			<div id="localizations" class="slideOut slideOutLeft">
 				<div class="page inner">
 					<div class="localizations-inputs flex">
-						<select id="localization-preview-page"></select>
+						<select id="localization-preview-page" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
 						<input class="locale" placeholder="Locale">
 						<button class="refresh action button flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
 					</div>

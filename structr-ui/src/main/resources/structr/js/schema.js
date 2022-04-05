@@ -774,7 +774,8 @@ let _Schema = {
 					Structr.appendInfoTextToElement({
 						text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
 						element: $('span', relTypeOverlay),
-						customToggleIcon: _Icons.error_icon,
+						customToggleIcon: 'warning-sign-icon',
+						customToggleIconClasses: ['icon-grey', 'ml-2'],
 						appendToElement: $('#schema-container')
 					});
 				}
@@ -1100,7 +1101,8 @@ let _Schema = {
 				text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
 				element: el,
 				insertAfter: true,
-				customToggleIcon: _Icons.error_icon,
+				customToggleIcon: 'warning-sign-icon',
+				customToggleIconClasses: ['icon-grey', 'ml-2'],
 				helpElementCss: {
 					fontSize: '9pt'
 				}
@@ -2728,7 +2730,8 @@ let _Schema = {
 				Structr.appendInfoTextToElement({
 					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
 					element: $(addAfterCreateButton),
-					insertAfter: true
+					insertAfter: true,
+					customToggleIconClasses: ['icon-blue', 'ml-1', 'mb-2']
 				});
 
 				el[0].querySelector('.add-onSave-button').addEventListener('click', () => {
@@ -3196,32 +3199,32 @@ let _Schema = {
 
 		_Schema.showSchemaRecompileMessage();
 
-		let getResponse = fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
+		let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
 
 		if (getResponse.ok) {
 			let existingData = await getResponse.json();
 
-			let changed = Object.keys(newData).some((key) => {
+			let hasChanges = Object.keys(newData).some((key) => {
 				return (existingData.result[key] !== newData[key]);
 			});
 
-			if (changed) {
+			if (hasChanges) {
 
-				let putResponse = fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id, {
+				let putResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id, {
 					method: 'PUT',
 					body: JSON.stringify(newData)
 				});
 
 				_Schema.hideSchemaRecompileMessage();
-				let newData = await putResponse.json();
+				let updatedData = await putResponse.json();
 
 				if (putResponse.ok) {
 
-					onSuccess?.(newData);
+					onSuccess?.(updatedData);
 
 				} else {
 
-					onError?.(newData);
+					onError?.(updatedData);
 				}
 
 			} else {
@@ -4670,9 +4673,13 @@ let _Schema = {
 							</div>
 			
 							<div></div>
-							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
+							<div class="flex items-center">
+								<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
+							</div>
 							<div></div>
-							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
+							<div class="flex items-center">
+								<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
+							</div>
 							<div></div>
 						</div>
 			

@@ -233,12 +233,10 @@ let _Security = {
 		`,
 		resourceAccess: config => `
 			<div class="flex items-center">
-				<div id="add-resource-access-grant">
-					<input type="text" size="20" id="resource-signature" placeholder="Signature">
-					<button class="action add_grant_icon button">
-						${_Icons.getSvgIcon('key-add', 16, 16, ['mr-2', 'hidden'])}
-			
-						<i title="Add Resource Grant" class="${_Icons.getFullSpriteClass(_Icons.key_add_icon)}" ></i> Add Grant
+				<div id="add-resource-access-grant" class="flex items-center">
+					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="mr-2">
+					<button class="action add_grant_icon button inline-flex items-center">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add Grant
 					</button>
 				</div>
 			
@@ -879,7 +877,8 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
 				element: $('.title-cell b', tr),
-				customToggleIcon: _Icons.error_icon,
+				customToggleIcon: 'warning-sign-icon',
+				customToggleIconClasses: ['icon-grey'],
 				css: {
 					float:'right',
 					marginRight: '5px'
@@ -891,8 +890,9 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: flagWarningTexts[key].join('<br><br>'),
 				element: $('input[data-key=' + key + ']', tr),
-				customToggleIcon: _Icons.error_icon,
-				css: {position:'absolute'},
+				customToggleIcon: 'warning-sign-icon',
+				customToggleIconClasses: ['icon-grey'],
+				css: { position: 'absolute' },
 				insertAfter: true
 			});
 		}
@@ -902,8 +902,9 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: _Icons.exclamation_icon,
-					css: {position:'absolute'},
+					customToggleIcon: 'error-sign-icon',
+					customToggleIconClasses: ['icon-red'],
+					css: { position: 'absolute' },
 					insertAfter: true
 				});
 			}

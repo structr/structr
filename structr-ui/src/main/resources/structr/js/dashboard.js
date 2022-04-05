@@ -269,27 +269,28 @@ let _Dashboard = {
 			});
 		}
 	},
-	checkLicenseEnd: function(envInfo, element, cfg) {
+	checkLicenseEnd: (envInfo, element, cfg) => {
 
 		if (envInfo && envInfo.endDate && element) {
 
 			let showMessage = true;
 			let daysLeft    = Math.ceil((new Date(envInfo.endDate.slice(0, 10)) - new Date()) / 86400000) + 1;
 
-			let config = {
+			let config = Object.assign({
 				element: element,
 				appendToElement: element
-			};
-			config = $.extend(config, cfg);
+			}, cfg);
 
 			if (daysLeft <= 0) {
 
-				config.customToggleIcon = _Icons.exclamation_icon;
+				config.customToggleIcon        = 'error-sign-icon';
+				config.customToggleIconClasses = ['icon-red', 'ml-2'];
 				config.text = "Your Structr <b>license has expired</b>. Upon restart the Community edition will be loaded.";
 
 			} else if (daysLeft <= 7) {
 
-				config.customToggleIcon = _Icons.error_icon;
+				config.customToggleIcon = 'warning-sign-icon';
+				config.customToggleIconClasses = ['icon-grey', 'ml-2'];
 				config.text = "Your Structr <b>license will expire in less than a week</b>. After that the Community edition will be loaded.";
 
 			} else {
@@ -301,7 +302,6 @@ let _Dashboard = {
 				config.text += " Please get in touch via <b>licensing@structr.com</b> to renew your license.";
 				Structr.appendInfoTextToElement(config);
 			}
-
 		}
 	},
 	appendGlobalSchemaMethods: function(container) {
@@ -1173,13 +1173,13 @@ let _Dashboard = {
 							</div>
 						</div>
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-event-log">
-			
+
 						<div id="event-log-options" class="flex items-center mb-4">
-			
+
 							<label class="mr-1">Filter:</label>
-							<select id="event-type-filter" class="mr-8">
+							<select id="event-type-filter" class="mr-8 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								<option value="">All events</option>
 								<option value="Authentication">Authentication events</option>
 								<option value="Cron">Cron events</option>

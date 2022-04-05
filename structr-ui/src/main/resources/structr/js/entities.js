@@ -1631,7 +1631,12 @@ let _Entities = {
 		if (view === '_html_') {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
-			container.append('<button class="show-all hover:bg-gray-100 focus:border-gray-666 active:border-green">Show all attributes</button>');
+			container.append(`
+				<div class="mt-4 mb-4">
+					<button class="show-all hover:bg-gray-100 focus:border-gray-666 active:border-green ml-4 mr-4">Show all attributes</button>
+					<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green">Add custom property</button>
+				</div>
+			`);
 			$('.show-all', container).on('click', function() {
 
 				propsTable.addClass('show-all');
@@ -1641,18 +1646,13 @@ let _Entities = {
 				$(this).attr('disabled', 'disabled').addClass('disabled');
 			});
 
-			let addCustomAttributeButton = $('<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green">Add custom property</button>');
-			container.append(addCustomAttributeButton);
+			let addCustomAttributeButton = $('.add-custom-attribute', container);
 
 			Structr.appendInfoTextToElement({
 				element: addCustomAttributeButton,
 				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
-				css: {
-					marginLeft: ".25rem",
-					top: "-.5rem",
-					position: "relative"
-				}
+				customToggleIconClasses: ['icon-blue', 'mb-2']
 			});
 
 			let saveCustomHTMLAttribute = function(row, exitedInput) {
@@ -1706,12 +1706,13 @@ let _Entities = {
 				}
 			};
 
-			addCustomAttributeButton.on('click', function(e) {
+			addCustomAttributeButton.on('click', () => {
 				let newAttributeRow = $('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 				propsTable.append(newAttributeRow);
 
-				$('input', newAttributeRow).on('focusout', function(e) {
-					saveCustomHTMLAttribute(newAttributeRow, $(this));
+				let newInput = $('input', newAttributeRow);
+				newInput.on('focusout', () => {
+					saveCustomHTMLAttribute(newAttributeRow, newInput);
 				});
 			});
 		}
@@ -1721,7 +1722,7 @@ let _Entities = {
 	},
 	displaySearch: function(id, key, type, el, isCollection) {
 
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>');
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -2272,7 +2273,7 @@ let _Entities = {
 
 		if (allowRecursive) {
 
-			row.append('<td><button class="apply-to-child-nodes">Apply to child nodes</button></td>');
+			row.append('<td><button class="apply-to-child-nodes hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply to child nodes</button></td>');
 
 			let button = row[0].querySelector('button.apply-to-child-nodes');
 

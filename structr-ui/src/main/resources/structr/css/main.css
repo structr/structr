@@ -218,17 +218,33 @@ button.yesButton, button.noButton {
 .icon-green {
 	color: var(--icon-color-dark-green);
 }
-
 .icon-grey {
 	color: var(--icon-stroke);
 }
-
 .icon-red {
 	color: var(--light-red);
 }
-
 .icon-blue {
 	color: var(--medium-blue);
+}
+.icon-yellow {
+	color: var(--light-yellow);
+}
+
+.fill-green {
+	color: var(--icon-color-dark-green);
+}
+.fill-grey {
+	fill: var(--icon-stroke);
+}
+.fill-red {
+	fill: var(--light-red);
+}
+.fill-blue {
+	fill: var(--medium-blue);
+}
+.fill-yellow {
+	fill: var(--light-yellow);
 }
 
 button img, button i {
@@ -317,8 +333,7 @@ body.console-open #header-blocker {
 #header .structr-version {
 	font-size: .75rem;
 	text-align: right;
-	line-height: .5rem;
-	margin-top: .25rem;
+	line-height: 1.25rem;
 }
 
 #header .structr-version:empty:before {
@@ -334,10 +349,6 @@ body.console-open #header-blocker {
 
 #header .structr-version a, #header .structr-version span {
 	vertical-align: top;
-}
-
-#header .structr-version .sprite {
-	margin-top: -5px;
 }
 
 #header .structr-version .edition-icon {
@@ -599,6 +610,11 @@ img.disabled {
 	cursor: pointer;
 }
 
+.slideout-activator:not(.active):hover {
+	background-color: var(--light-gray-bg-f3);
+	color: var(--icon-stroke-hover);
+}
+
 .slideout-activator.active {
 	color: var(--icon-stroke-hover);
 	background-color: var(--solid-white);
@@ -608,13 +624,14 @@ img.disabled {
 .slideout-activator.active.left {
 	border-right: .25rem solid var(--structr-green);
 }
+.slideout-activator.left:not(.active):hover {
+	border-right: .25rem solid var(--structr-light-green);
+}
 .slideout-activator.active.right {
 	border-left: .25rem solid var(--structr-green);
 }
-
-.slideout-activator:hover {
-	color: var(--icon-stroke-hover);
-	/*background-color: var(--solid-white);*/
+.slideout-activator.right:not(.active):hover {
+	border-left: .25rem solid var(--structr-light-green);
 }
 
 /*
@@ -3873,14 +3890,6 @@ span.context-help-text {
 	z-index: 1012;
 }
 
-button.show-all {
-	margin: 1rem 0 1rem 1rem;
-}
-
-.add-custom-attribute {
-	margin: 0 1rem;
-}
-
 .show-all tr.hidden {
 	display: table-row;
 }
@@ -4674,17 +4683,20 @@ table.props td.__value {
 .min-w-64 {
 	min-width: 16rem;
 }
-.hover\:opacity-60:hover {
-	opacity: .6;
-}
 .opacity-60 {
 	opacity: .6;
+}
+.opacity-80 {
+	opacity: .8;
 }
 .opacity-100 {
 	opacity: 1;
 }
 .hover\:opacity-60:hover {
 	opacity: .6;
+}
+.hover\:opacity-80:hover {
+	opacity: .8;
 }
 .hover\:opacity-100:hover {
 	opacity: 1;

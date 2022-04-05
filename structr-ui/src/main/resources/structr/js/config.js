@@ -600,20 +600,26 @@ function handleErrorResponse(name, response, button) {
 _Config = {
 	nonBlockUIBlockerId: 'non-block-ui-blocker',
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	showNonBlockUILoadingMessage: function(title, text) {
+	showNonBlockUILoadingMessage: (title, text) => {
 
 		let messageTitle = title || 'Executing Task';
 		let messageText  = text || 'Please wait until the operation has finished...';
 
 		let pageBlockerDiv = $(`<div id="${_Config.nonBlockUIBlockerId}"></div>`);
 		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
-		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
+		messageDiv.html(`
+			<div class="flex items-center justify-center">
+				${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b>
+			</div>
+			<br>
+			${messageText}
+		`);
 
 
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);
 	},
-	hideNonBlockUILoadingMessage: function() {
+	hideNonBlockUILoadingMessage: () => {
 		$('#' + _Config.nonBlockUIBlockerId).remove();
 		$('#' + _Config.nonBlockUIBlockerContentId).remove();
 	}

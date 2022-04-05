@@ -148,7 +148,7 @@ let _Icons = {
 	},
 
 	getSvgIconClassesForColoredIcon: (customClasses = []) => {
-		return [...customClasses].concat(['opacity-60', 'hover:opacity-100']).concat('cursor-pointer');
+		return [...customClasses].concat(['opacity-80', 'hover:opacity-100']).concat('cursor-pointer');
 	},
 
 	getSvgIconClassesNonColorIcon: (customClasses = []) => {
