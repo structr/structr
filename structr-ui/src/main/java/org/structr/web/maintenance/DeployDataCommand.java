@@ -682,14 +682,15 @@ public class DeployDataCommand extends DeployCommand {
 						}
 					}
 
-					entry.put("sourceId", rel.getSourceNodeId());
-					entry.put("targetId", rel.getTargetNodeId());
-
 					final PropertyContainer pc = rel.getPropertyContainer();
 
 					for (final String key : pc.getPropertyKeys()) {
 						putData(entry, key, pc.getProperty(key));
 					}
+
+					entry.put("sourceId", rel.getSourceNodeId());
+					entry.put("targetId", rel.getTargetNodeId());
+					entry.put("relType",  rel.getRelType());
 
 					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
 
