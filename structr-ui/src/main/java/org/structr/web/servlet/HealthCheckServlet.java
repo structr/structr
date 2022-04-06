@@ -38,7 +38,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.auth.Authenticator;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -63,166 +66,175 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-		request.setCharacterEncoding("UTF-8");
-		response.setCharacterEncoding("UTF-8");
-		response.setContentType("application/health+json; charset=utf-8");
+		try {
+			final Authenticator auth = getConfig().getAuthenticator();
+			// Ensure CORS settings apply by letting the authenticator examine the request.
+			auth.initializeAndExamineRequest(request, response);
 
-		final String remoteAddress = request.getRemoteAddr();
-		if (remoteAddress != null) {
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/health+json; charset=utf-8");
 
-			if (request.getPathInfo() != null && request.getPathInfo().equals("/ready")) {
+			final String remoteAddress = request.getRemoteAddr();
+			if (remoteAddress != null) {
 
-				if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
+				if (request.getPathInfo() != null && request.getPathInfo().equals("/ready")) {
 
-					response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-				} else {
+					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
 
-					response.setStatus(HttpServletResponse.SC_OK);
-				}
-
-				return;
-			}
-
-			final Set<String> wl = getWhitelistAddresses();
-			if (!wl.contains(remoteAddress)) {
-
-				response.setStatus(HttpServletResponse.SC_OK);
-				return;
-			}
-		}
-
-		try (final Writer writer = response.getWriter()) {
-
-			if (System.currentTimeMillis() > lastUpdate + updateInterval) {
-
-				lastUpdate = System.currentTimeMillis();
-
-				synchronized (data) {
-
-					data.clear();
-
-					data.put("version", "1.1");
-					data.put("description", "Structr system health status");
-
-					// service layer available?
-					if (Services.getInstance().isInitialized()) {
-
-						// status is "pass" or "warn", only pass for now..
-						data.put("status", "pass");
-
-						final Map<String, Object> details = new LinkedHashMap<>();
-						final ThreadMXBean threadMXBean   = ManagementFactory.getThreadMXBean();
-						final Runtime runtime             = Runtime.getRuntime();
-
-						data.put("checks", details);
-
-						embedGroup(details, "memory:utilization",
-							embedValue("free memory",  "system", runtime.freeMemory(),  "bytes", "pass"),
-							embedValue("max memory",   "system", runtime.maxMemory(),   "bytes", "pass"),
-							embedValue("total memory", "system", runtime.totalMemory(), "bytes", "pass")
-						);
-
-						embedGroup(details, "cpu:utilization",
-							embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
-						);
-
-						embedGroup(details, "uptime",
-							embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
-						);
-
-						embedGroup(details, "threads",
-							embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
-							embedValue("peak thread count",    "system", threadMXBean.getPeakThreadCount(),   null, "pass"),
-							embedValue("daemon thread count",  "system", threadMXBean.getDaemonThreadCount(), null, "pass")
-						);
-
-						final Map<String, Map<String, Integer>> info = Services.getInstance().getDatabaseService().getCachesInfo();
-						final Map<String, Integer> nodeCacheInfo     = info.get("nodes");
-						final Map<String, Integer> relCacheInfo      = info.get("relationships");
-
-						if (nodeCacheInfo != null) {
-
-							embedGroup(details, "cache:node",
-								embedValue("size",  "system", nodeCacheInfo.get("max"),  null, "pass"),
-								embedValue("count", "system", nodeCacheInfo.get("size"), null, "pass")
-							);
-						}
-
-						if (relCacheInfo != null) {
-
-							embedGroup(details, "cache:relationship",
-								embedValue("size",  "system", relCacheInfo.get("max"),  null, "pass"),
-								embedValue("count", "system", relCacheInfo.get("size"), null, "pass")
-							);
-						}
-
-						final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
-						if (httpService != null) {
-
-							{
-								// html
-								final List<Map<String, Object>> measurements = new LinkedList<>();
-
-								details.put("html:responseTime", measurements);
-
-								final Map<String, Stats> stats = httpService.getRequestStats("html");
-								if (stats != null) {
-
-									for (final String key : stats.keySet()) {
-
-										final Stats statsData = stats.get(key);
-
-										measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
-										measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
-										measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
-										measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
-									}
-								}
-							}
-
-							{
-								// json
-								final List<Map<String, Object>> measurements = new LinkedList<>();
-
-								details.put("json:responseTime", measurements);
-
-								final Map<String, Stats> stats = httpService.getRequestStats("json");
-								if (stats != null) {
-
-									for (final String key : stats.keySet()) {
-
-										final Stats statsData = stats.get(key);
-
-										measurements.add(embedValue(key, "endpoint", statsData.getMinValue(),     "ms", "pass",   "min"));
-										measurements.add(embedValue(key, "endpoint", statsData.getMaxValue(),     "ms", "pass",   "max"));
-										measurements.add(embedValue(key, "endpoint", statsData.getAverageValue(), "ms", "pass",   "avg"));
-										measurements.add(embedValue(key, "endpoint", statsData.getCount(),        null, "pass", "count"));
-									}
-								}
-							}
-						}
-
-						statusCode = HttpServletResponse.SC_OK;
-
+						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 					} else {
 
-						statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
-
-						data.put("status", "fail");
+						response.setStatus(HttpServletResponse.SC_OK);
 					}
 
+					return;
+				}
+
+				final Set<String> wl = getWhitelistAddresses();
+				if (!wl.contains(remoteAddress)) {
+
+					response.setStatus(HttpServletResponse.SC_OK);
+					return;
 				}
 			}
 
-			synchronized (data) {
-				gson.toJson(data, writer);
+			try (final Writer writer = response.getWriter()) {
+
+				if (System.currentTimeMillis() > lastUpdate + updateInterval) {
+
+					lastUpdate = System.currentTimeMillis();
+
+					synchronized (data) {
+
+						data.clear();
+
+						data.put("version", "1.1");
+						data.put("description", "Structr system health status");
+
+						// service layer available?
+						if (Services.getInstance().isInitialized()) {
+
+							// status is "pass" or "warn", only pass for now..
+							data.put("status", "pass");
+
+							final Map<String, Object> details = new LinkedHashMap<>();
+							final ThreadMXBean threadMXBean   = ManagementFactory.getThreadMXBean();
+							final Runtime runtime             = Runtime.getRuntime();
+
+							data.put("checks", details);
+
+							embedGroup(details, "memory:utilization",
+									embedValue("free memory",  "system", runtime.freeMemory(),  "bytes", "pass"),
+									embedValue("max memory",   "system", runtime.maxMemory(),   "bytes", "pass"),
+									embedValue("total memory", "system", runtime.totalMemory(), "bytes", "pass")
+							);
+
+							embedGroup(details, "cpu:utilization",
+									embedValue("load average 1 min", "system", ManagementFactory.getOperatingSystemMXBean().getSystemLoadAverage(), null, "pass")
+							);
+
+							embedGroup(details, "uptime",
+									embedValue("uptime",  "system", ManagementFactory.getRuntimeMXBean().getUptime(), "ms", "pass")
+							);
+
+							embedGroup(details, "threads",
+									embedValue("current thread count", "system", threadMXBean.getThreadCount(),       null, "pass"),
+									embedValue("peak thread count",    "system", threadMXBean.getPeakThreadCount(),   null, "pass"),
+									embedValue("daemon thread count",  "system", threadMXBean.getDaemonThreadCount(), null, "pass")
+							);
+
+							final Map<String, Map<String, Integer>> info = Services.getInstance().getDatabaseService().getCachesInfo();
+							final Map<String, Integer> nodeCacheInfo     = info.get("nodes");
+							final Map<String, Integer> relCacheInfo      = info.get("relationships");
+
+							if (nodeCacheInfo != null) {
+
+								embedGroup(details, "cache:node",
+										embedValue("size",  "system", nodeCacheInfo.get("max"),  null, "pass"),
+										embedValue("count", "system", nodeCacheInfo.get("size"), null, "pass")
+								);
+							}
+
+							if (relCacheInfo != null) {
+
+								embedGroup(details, "cache:relationship",
+										embedValue("size",  "system", relCacheInfo.get("max"),  null, "pass"),
+										embedValue("count", "system", relCacheInfo.get("size"), null, "pass")
+								);
+							}
+
+							final HttpService httpService = Services.getInstance().getService(HttpService.class, "default");
+							if (httpService != null) {
+
+								{
+									// html
+									final List<Map<String, Object>> measurements = new LinkedList<>();
+
+									details.put("html:responseTime", measurements);
+
+									final Map<String, Stats> stats = httpService.getRequestStats("html");
+									if (stats != null) {
+
+										for (final String key : stats.keySet()) {
+
+											final Stats statsData = stats.get(key);
+
+											measurements.add(embedValue(key, "page", statsData.getMinValue(),     "ms", "pass",   "min"));
+											measurements.add(embedValue(key, "page", statsData.getMaxValue(),     "ms", "pass",   "max"));
+											measurements.add(embedValue(key, "page", statsData.getAverageValue(), "ms", "pass",   "avg"));
+											measurements.add(embedValue(key, "page", statsData.getCount(),        null, "pass", "count"));
+										}
+									}
+								}
+
+								{
+									// json
+									final List<Map<String, Object>> measurements = new LinkedList<>();
+
+									details.put("json:responseTime", measurements);
+
+									final Map<String, Stats> stats = httpService.getRequestStats("json");
+									if (stats != null) {
+
+										for (final String key : stats.keySet()) {
+
+											final Stats statsData = stats.get(key);
+
+											measurements.add(embedValue(key, "endpoint", statsData.getMinValue(),     "ms", "pass",   "min"));
+											measurements.add(embedValue(key, "endpoint", statsData.getMaxValue(),     "ms", "pass",   "max"));
+											measurements.add(embedValue(key, "endpoint", statsData.getAverageValue(), "ms", "pass",   "avg"));
+											measurements.add(embedValue(key, "endpoint", statsData.getCount(),        null, "pass", "count"));
+										}
+									}
+								}
+							}
+
+							statusCode = HttpServletResponse.SC_OK;
+
+						} else {
+
+							statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+
+							data.put("status", "fail");
+						}
+
+					}
+				}
+
+				synchronized (data) {
+					gson.toJson(data, writer);
+				}
+
+				response.setStatus(statusCode);
+				response.setHeader("Cache-Control", "max-age=60");
+
+				writer.append("\n");
+				writer.flush();
 			}
 
-			response.setStatus(statusCode);
-			response.setHeader("Cache-Control", "max-age=60");
+		} catch (FrameworkException ex) {
 
-			writer.append("\n");
-			writer.flush();
 		}
 	}
 

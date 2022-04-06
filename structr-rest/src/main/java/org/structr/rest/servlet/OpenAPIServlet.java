@@ -27,10 +27,13 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.schema.action.ActionContext;
@@ -75,26 +78,13 @@ import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
  */
 public class OpenAPIServlet extends AbstractDataServlet {
 
+	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		String tag = getTagFromURLPath(request);
-
-
-		final String requestOrigin = request.getHeader("origin");
-
-		if (requestOrigin != null) {
-
-			String allowOrigin = Settings.OpenAPIAllowOrigin.getValue();
-
-			if (StringUtils.equals(allowOrigin, "")) {
-				allowOrigin = requestOrigin;
-			}
-
-			response.addHeader("Access-Control-Allow-Origin", allowOrigin);
-		}
 
 		// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
 		if ("schema".equals(tag)) {
@@ -106,6 +96,10 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		response.setContentType("application/json");
 
 		try (final Writer writer = response.getWriter()) {
+
+			final Authenticator auth = getConfig().getAuthenticator();
+			// Ensure CORS settings apply by letting the authenticator examine the request.
+			auth.initializeAndExamineRequest(request, response);
 
 			gson.toJson(createOpenAPIRoot(request, tag), writer);
 

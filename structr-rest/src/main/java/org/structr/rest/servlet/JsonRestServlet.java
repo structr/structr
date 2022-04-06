@@ -238,26 +238,9 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
 
-				// check origin
-				// ...
-
-				// allow origin
-				response.addHeader("Access-Control-Allow-Origin", origin);
-
-				// check headers
-				// ...
-
-				// allow headers
-				response.addHeader("Access-Control-Allow-Headers", corsHeaders);
-
-				// check method
-				// ...
-
-				// allow method
-				response.addHeader("Access-Control-Allow-Methods", corsMethod);
-
-				// we send 200 OK
-				statusCode = HttpServletResponse.SC_OK;
+				final Authenticator auth = getConfig().getAuthenticator();
+				// Ensure CORS settings apply by letting the authenticator examine the request.
+				auth.initializeAndExamineRequest(request, response);
 
 			} else {
 

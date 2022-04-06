@@ -54,6 +54,7 @@ import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -547,23 +548,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
 
-				// check origin
-				// ...
-
-				// allow origin
-				response.addHeader("Access-Control-Allow-Origin", origin);
-
-				// check headers
-				// ...
-
-				// allow headers
-				response.addHeader("Access-Control-Allow-Headers", corsHeaders);
-
-				// check method
-				// ...
-
-				// allow method
-				response.addHeader("Access-Control-Allow-Methods", corsMethod);
+				final Authenticator auth = getConfig().getAuthenticator();
+				// Ensure CORS settings apply by letting the authenticator examine the request.
+				auth.initializeAndExamineRequest(request, response);
 
 			} else {
 
