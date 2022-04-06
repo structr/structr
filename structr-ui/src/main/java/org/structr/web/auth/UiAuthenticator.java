@@ -21,9 +21,11 @@ package org.structr.web.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -168,32 +170,38 @@ public class UiAuthenticator implements Authenticator {
 		final String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
-			response.setHeader("Access-Control-Allow-Origin", origin);
+			final List<String> acceptedOrigins = Arrays.stream(Settings.AccessControlAcceptedOrigins.getValue().split(",")).map(String::trim).collect(Collectors.toList());
 
-			 // allow cross site resource sharing (read only)
-			final String maxAge = Settings.AccessControlMaxAge.getValue();
-			if (StringUtils.isNotBlank(maxAge)) {
-				response.setHeader("Access-Control-MaxAge", maxAge);
-			}
+			if (acceptedOrigins.contains(origin)) {
 
-			final String allowMethods = Settings.AccessControlAllowMethods.getValue();
-			if (StringUtils.isNotBlank(allowMethods)) {
-				response.setHeader("Access-Control-Allow-Methods", allowMethods);
-			}
+				response.setHeader("Access-Control-Allow-Origin", origin);
 
-			final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
-			if (StringUtils.isNotBlank(allowHeaders)) {
-				response.setHeader("Access-Control-Allow-Headers", allowHeaders);
-			}
+				 // allow cross site resource sharing (read only)
+				final String maxAge = Settings.AccessControlMaxAge.getValue();
+				if (StringUtils.isNotBlank(maxAge)) {
+					response.setHeader("Access-Control-MaxAge", maxAge);
+				}
 
-			final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
-			if (StringUtils.isNotBlank(allowCredentials)) {
-				response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
-			}
+				final String allowMethods = Settings.AccessControlAllowMethods.getValue();
+				if (StringUtils.isNotBlank(allowMethods)) {
+					response.setHeader("Access-Control-Allow-Methods", allowMethods);
+				}
 
-			final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
-			if (StringUtils.isNotBlank(exposeHeaders)) {
-				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
+				final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
+				if (StringUtils.isNotBlank(allowHeaders)) {
+					response.setHeader("Access-Control-Allow-Headers", allowHeaders);
+				}
+
+				final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
+				if (StringUtils.isNotBlank(allowCredentials)) {
+					response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
+				}
+
+				final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
+				if (StringUtils.isNotBlank(exposeHeaders)) {
+					response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
+				}
+
 			}
 		 }
 
