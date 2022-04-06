@@ -1655,16 +1655,16 @@ let _Entities = {
 				customToggleIconClasses: ['icon-blue', 'mb-2']
 			});
 
-			let saveCustomHTMLAttribute = function(row, exitedInput) {
+			let saveCustomHTMLAttribute = (row, exitedInput) => {
 
-				let keyInput = $('td.key input', row);
-				let valInput = $('td.value input', row);
+				let keyInput = row.querySelector('td.key input');
+				let valInput = row.querySelector('td.value input');
 
-				let key = keyInput.val().trim();
-				let val = valInput.val().trim();
+				let key = keyInput.value.trim();
+				let val = valInput.value.trim();
 
 				// only run save action if we have a key and we just left the value input
-				if (key !== '' && exitedInput[0] === valInput[0]) {
+				if (key !== '' && exitedInput === valInput) {
 
 					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
@@ -1687,13 +1687,15 @@ let _Entities = {
 							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
-							valInput.attr('name', newKey);
+							valInput.name = newKey;
 
-							let nullIcon = $(_Entities.getNullIconForKey(newKey));
-							$('td:last', row).append(nullIcon);
-							nullIcon.on('click', function() {
-								var key = $(this).prop('id').substring(_Entities.null_prefix.length);
-								_Entities.setProperty(id, key, null, false, function(newVal) {
+							let nullIcon = Structr.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
+							row.querySelector('td:last-of-type').appendChild(nullIcon);
+							nullIcon.addEventListener('click', () => {
+
+								let key = nullIcon.getAttribute('id').substring(_Entities.null_prefix.length);
+
+								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
 									Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
 								});
@@ -1707,13 +1709,14 @@ let _Entities = {
 			};
 
 			addCustomAttributeButton.on('click', () => {
-				let newAttributeRow = $('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
-				propsTable.append(newAttributeRow);
+				let newAttributeRow = Structr.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>')
+				propsTable[0].appendChild(newAttributeRow);
 
-				let newInput = $('input', newAttributeRow);
-				newInput.on('focusout', () => {
-					saveCustomHTMLAttribute(newAttributeRow, newInput);
-				});
+				for (let input of newAttributeRow.querySelectorAll('input')) {
+					input.addEventListener('focusout', () => {
+						saveCustomHTMLAttribute(newAttributeRow, input);
+					});
+				}
 			});
 		}
 
