@@ -45,6 +45,10 @@ let _Dialogs = {
 			dialogConfig = registeredDialogs['DEFAULT_DOM_NODE'];
 		}
 
+		if (!dialogConfig && entity.isUser) {
+			dialogConfig = registeredDialogs['User'];
+		}
+
 		return dialogConfig;
 	},
 	findAndAppendCustomTypeDialog: (entity, mainTabs, contentEl) => {
