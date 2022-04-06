@@ -104,7 +104,7 @@ public interface Image extends File {
 		image.overrideMethod("onModification",       true,  Image.class.getName() + ".onModification(this, arg0, arg1, arg2);");
 		image.overrideMethod("setProperties",        true,  Image.class.getName() + ".setProperties(this, arg0, arg1);");
 		image.overrideMethod("isGranted",            false, "if (this.isThumbnail()) { final org.structr.web.entity.Image originalImage = getOriginalImage(); if (originalImage != null) { return originalImage.isGranted(arg0, arg1); } } return super.isGranted(arg0, arg1);");
-		image.overrideMethod("getThumbnailParentFolder", false, "final StringBuilder pathBuffer = new StringBuilder(" + Image.class.getName() + ".STRUCTR_THUMBNAIL_FOLDER); if (arg0 != null) { pathBuffer.append(arg0.getPath()); } return " + FileHelper.class.getName() + ".createFolderPath(SecurityContext.getSuperUserInstance(), pathBuffer.toString());");
+		image.overrideMethod("getThumbnailParentFolder", false, "final StringBuilder pathBuffer = new StringBuilder(" + Image.class.getName() + ".STRUCTR_THUMBNAIL_FOLDER); if (arg0 != null) { pathBuffer.append(arg0.getPath()); } final " + Folder.class.getName() + " folder =  " + FileHelper.class.getName() + ".createFolderPath(SecurityContext.getSuperUserInstance(), pathBuffer.toString()); if (!folder.isVisibleToAuthenticatedUsers() || !folder.isVisibleToPublicUsers()) { folder.setProperty(AbstractNode.visibleToAuthenticatedUsers, true); folder.setProperty(AbstractNode.visibleToPublicUsers, true);  } return folder;");
 
 		final JsonMethod getScaledImage1 = image.addMethod("getScaledImage");
 		getScaledImage1.setReturnType(Image.class.getName());
