@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main;
 var ignoreKeyUp;
 var dialog, dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
 var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
@@ -33,10 +32,10 @@ $(function() {
 		_Console.removeHeaderBlocker();
 	};
 
-	main                = $('#main');
-	Structr.header      = document.getElementById('header');
-	Structr.functionBar = document.getElementById('function-bar');
-	loginBox            = $('#login');
+	Structr.header        = document.getElementById('header');
+	Structr.mainContainer = document.getElementById('main');
+	Structr.functionBar   = document.getElementById('function-bar');
+	loginBox              = $('#login');
 
 	dialogBox           = $('#dialogBox');
 	dialog              = $('.dialogText', dialogBox);
@@ -440,7 +439,7 @@ let Structr = {
 			_Favorites.logoutAction();
 			_Console.logoutAction();
 
-			fastRemoveAllChildren(main[0]);
+			fastRemoveAllChildren(Structr.mainContainer);
 			fastRemoveAllChildren(Structr.functionBar);
 			_Elements.removeContextMenu();
 
@@ -575,7 +574,7 @@ let Structr = {
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 
-		fastRemoveAllChildren(main[0]);
+		fastRemoveAllChildren(Structr.mainContainer);
 		fastRemoveAllChildren(Structr.functionBar);
 		_Elements.removeContextMenu();
 	},
@@ -626,56 +625,54 @@ let Structr = {
 	},
 	dialog: function(text, callbackOk, callbackCancel, customClasses) {
 
-		if (browser) {
+		dialogHead.empty();
+		dialogText.empty();
+		dialogMsg.empty();
+		dialogMeta.empty();
+		dialogBtn.empty();
 
-			dialogHead.empty();
+		dialogBox[0].classList = ["dialog"];
+		if (customClasses) {
+			for (let customClass of customClasses) {
+				dialogBox.addClass(customClass);
+			}
+		}
+
+		dialogBtn.html('<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
+		dialogCancelButton = $('.closeButton', dialogBox);
+
+		$('.speechToText', dialogBox).remove();
+
+		if (text) {
+			dialogTitle.html(text);
+		}
+
+		dialogCancelButton.off('click').on('click', function(e) {
+			e.stopPropagation();
 			dialogText.empty();
-			dialogMsg.empty();
-			dialogMeta.empty();
-			dialogBtn.empty();
-
-			dialogBox[0].classList = ["dialog"];
-			if (customClasses) {
-				for (let customClass of customClasses) {
-					dialogBox.addClass(customClass);
-				}
-			}
-
-			dialogBtn.html('<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
-			dialogCancelButton = $('.closeButton', dialogBox);
-
-			$('.speechToText', dialogBox).remove();
-
-			if (text) {
-				dialogTitle.html(text);
-			}
-
-			dialogCancelButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-				dialogText.empty();
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				dialogBtn.children(':not(.closeButton)').remove();
-
-				Structr.focusSearchField();
-
-				LSWrapper.removeItem(Structr.dialogDataKey);
-
-				if (callbackCancel) {
-					window.setTimeout(callbackCancel, 100);
-				}
+			$.unblockUI({
+				fadeOut: 25
 			});
 
-			let dimensions = Structr.getDialogDimensions(24, 24);
-			Structr.blockUI(dimensions);
+			dialogBtn.children(':not(.closeButton)').remove();
 
-			Structr.resize();
+			Structr.focusSearchField();
 
-			dimensions.text = text;
-			LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
-		}
+			LSWrapper.removeItem(Structr.dialogDataKey);
+
+			if (callbackCancel) {
+				window.setTimeout(callbackCancel, 100);
+			}
+		});
+
+		let dimensions = Structr.getDialogDimensions(24, 24);
+		Structr.blockUI(dimensions);
+
+		Structr.resize();
+
+		dimensions.text = text;
+		LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
+
 	},
 	focusSearchField: function() {
 		let activeModule = Structr.getActiveModule();
@@ -988,7 +985,7 @@ let Structr = {
 		}
 
 		event.stopPropagation();
-		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
+		if (Structr.getActiveModuleName() !== name || Structr.mainContainer.children.length === 0) {
 			return Structr.doActivateModule(name);
 		}
 
@@ -1623,7 +1620,11 @@ let Structr = {
 		let toggleElement = config.toggleElement;
 		if (!toggleElement) {
 			customToggleElement = false;
-			toggleElement = $(`<span>${_Icons.getSvgIcon(customToggleIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}</span>`);
+			toggleElement = $(`
+				${(config.noSpan) ? '' : '<span>'}
+					${_Icons.getSvgIcon(customToggleIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
+				${(config.noSpan) ? '' : '</span>'}
+			`);
 
 			createdElements.push(toggleElement);
 		}

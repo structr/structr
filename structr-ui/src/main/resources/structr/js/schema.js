@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-let localStorageSuffix = '_schema_' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Schema);
@@ -48,18 +47,19 @@ let _Schema = {
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
 	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + location.port,
-	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
-	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
+	schemaZoomLevelKey: '_schema_' + location.port + 'zoomLevel',
+	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
+	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
 	showJavaMethods: false,
 	inheritanceTree: undefined,
 	inheritanceSlideout: undefined,
 	onload: () => {
 
-		main[0].innerHTML           = _Schema.templates.main();
-		_Schema.inheritanceSlideout = $('#inheritance-tree');
-		_Schema.inheritanceTree     = $('#inheritance-tree-container');
-		_Schema.ui.canvas           = $('#schema-graph');
+		Structr.mainContainer.innerHTML = _Schema.templates.main();
+		_Schema.inheritanceSlideout     = $('#inheritance-tree');
+		_Schema.inheritanceTree         = $('#inheritance-tree-container');
+		_Schema.ui.canvas               = $('#schema-graph');
 
 		_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
 			if (e.which === 1) {
@@ -401,11 +401,11 @@ let _Schema = {
 					let typeNames = data.result.map(entity => entity.name);
 					for (let typeName of typeNames) {
 
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
+						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
 						if (nodePos) {
 							nodePositions[typeName] = nodePos.position;
 
-							LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
+							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
 						}
 					}
 
@@ -1000,11 +1000,14 @@ let _Schema = {
 
 		Structr.resize();
 	},
-	appendCascadingDeleteHelpText: function() {
+	appendCascadingDeleteHelpText: () => {
+
 		Structr.appendInfoTextToElement({
 			text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
 			element: $('#cascading-delete-selector'),
-			insertAfter: true
+			customToggleIconClasses: ['ml-2', 'icon-blue'],
+			insertAfter: true,
+			noSpan: true
 		});
 	},
 	getRelationshipDefinitionDataFromForm: function() {
@@ -4155,7 +4158,7 @@ let _Schema = {
 	},
 	getTypeInfo: (type, callback) => {
 
-		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === Object) {
+		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === 'object') {
 
 			callback(_Schema.typeInfoCache[type]);
 
@@ -4164,9 +4167,9 @@ let _Schema = {
 			Command.getSchemaInfo(type, (schemaInfo) => {
 
 				let typeInfo = {};
-				$(schemaInfo).each(function(i, prop) {
+				for (let prop of schemaInfo) {
 					typeInfo[prop.jsonName] = prop;
-				});
+				}
 
 				_Schema.typeInfoCache[type] = typeInfo;
 
@@ -4688,14 +4691,16 @@ let _Schema = {
 							<div id="cascading-options">
 								<h3>Cascading Delete</h3>
 								<p>Direction of automatic removal of related nodes when a node is deleted</p>
-			
-								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="0">NONE</option>
-									<option value="1">SOURCE_TO_TARGET</option>
-									<option value="2">TARGET_TO_SOURCE</option>
-									<option value="3">ALWAYS</option>
-									<option value="4">CONSTRAINT_BASED</option>
-								</select>
+
+								<div class="flex items-center">
+									<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+										<option value="0">NONE</option>
+										<option value="1">SOURCE_TO_TARGET</option>
+										<option value="2">TARGET_TO_SOURCE</option>
+										<option value="3">ALWAYS</option>
+										<option value="4">CONSTRAINT_BASED</option>
+									</select>
+								</div>
 			
 								<h3>Automatic Creation of Related Nodes</h3>
 								<p>Direction of automatic creation of related nodes when a node is created</p>

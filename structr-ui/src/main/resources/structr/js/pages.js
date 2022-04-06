@@ -87,7 +87,7 @@ let _Pages = {
 			window.location.hash = urlHash;
 		}
 
-		main[0].innerHTML = _Pages.templates.main();
+		Structr.mainContainer.innerHTML = _Pages.templates.main();
 
 		_Pages.init();
 
@@ -678,8 +678,8 @@ let _Pages = {
 			_Pages.resize();
 		});
 
-		Structr.initVerticalSlider($('.column-resizer-left', main), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
-		Structr.initVerticalSlider($('.column-resizer-right', main), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
 		Structr.unblockMenu(500);
 

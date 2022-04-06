@@ -42,8 +42,8 @@ let _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		main[0].innerHTML             = _Security.templates.main();
-		Structr.functionBar.innerHTML = _Security.templates.functions();
+		Structr.mainContainer.innerHTML = _Security.templates.main();
+		Structr.functionBar.innerHTML   = _Security.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -74,7 +74,7 @@ let _Security = {
 
 		Structr.unblockMenu(100);
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		const isUser             = entity.isUser;
 		const isGroup            = entity.isGroup;
@@ -104,7 +104,7 @@ let _Security = {
 		if (isUser) {
 			elements.push({
 				name: 'Basic',
-				clickHandler: function () {
+				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
 					return false;
 				}

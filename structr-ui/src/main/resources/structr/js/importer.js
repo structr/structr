@@ -23,8 +23,8 @@ $(document).ready(function() {
 	$(document).on('click', '.import-job-action', function (e) {
 		e.preventDefault();
 
-		var mode = $(this).data('action');
-		var jobId = $(this).data('jobId');
+		let mode  = $(this).data('action');
+		let jobId = $(this).data('jobId');
 
 		Command.fileImport(mode, jobId, Importer.updateJobTable);
 
@@ -54,8 +54,8 @@ let Importer = {
 
 		Importer.init();
 
-		main[0].innerHTML             = Importer.templates.main();
-		Structr.functionBar.innerHTML = Importer.templates.functions();
+		Structr.mainContainer.innerHTML = Importer.templates.main();
+		Structr.functionBar.innerHTML   = Importer.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 

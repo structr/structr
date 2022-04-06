@@ -1026,58 +1026,41 @@ let _Entities = {
 			editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
 		}
 	},
-	getSchemaProperties: function(type, view, callback) {
-		let url = Structr.rootUrl + '_schema/' + type + '/' + view;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				200: function(data) {
+	getSchemaProperties: (type, view, callback) => {
 
-					let properties = {};
-					// no schema entry found?
-					if (!data || !data.result || data.result_count === 0) {
+		fetch(Structr.rootUrl + '_schema/' + type + '/' + view).then(async response => {
 
-					} else {
+			let data = await response.json();
 
-						data.result.forEach(function(prop) {
-							properties[prop.jsonName] = prop;
-						});
+			if (response.ok) {
+
+				let properties = {};
+
+				if (data.result) {
+
+					for (let prop of data.result) {
+						properties[prop.jsonName] = prop;
 					}
-
-					if (callback) {
-						callback(properties);
-					}
-				},
-				400: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				401: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				403: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				404: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
 				}
-			},
-			error:function () {
+
+				if (callback) {
+					callback(properties);
+				}
+
+			} else {
+				Structr.errorFromResponse(data, url);
 				console.log("ERROR: loading Schema " + type);
 			}
 		});
+
 	},
-	showProperties: function(obj, activeViewOverride, parent) {
+	showProperties: (obj, activeViewOverride, parent) => {
 
 		let handleGraphObject;
 
-		_Entities.getSchemaProperties(obj.type, 'custom', function(properties) {
+		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
-			handleGraphObject = function(entity) {
+			handleGraphObject = (entity) => {
 
 				let views      = ['ui'];
 				let activeView = 'ui';
@@ -1091,9 +1074,9 @@ let _Entities = {
 					activeView = activeViewOverride;
 				}
 
-				_Schema.getTypeInfo(entity.type, function(typeInfo) {
+				_Schema.getTypeInfo(entity.type, (typeInfo) => {
 
-					var dialogTitle;
+					let dialogTitle = 'Edit properties';
 
 					if (entity.hasOwnProperty('relType')) {
 
@@ -1115,7 +1098,7 @@ let _Entities = {
 						}
 
 						tabTexts._html_ = 'HTML Attributes';
-						tabTexts.ui = 'System Properties';
+						tabTexts.ui     = 'Advanced';
 						tabTexts.custom = 'Custom Properties';
 
 						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
@@ -1124,7 +1107,7 @@ let _Entities = {
 
 					let tabsdiv, mainTabs, contentEl;
 					if (!parent) {
-						Structr.dialog(dialogTitle, function() { return true; }, function() { return true; });
+						Structr.dialog(dialogTitle, () => { return true; }, () => { return true; });
 
 						tabsdiv   = dialogHead.append('<div id="tabs"></div>');
 						mainTabs  = tabsdiv.append('<ul></ul>');
@@ -1241,108 +1224,101 @@ let _Entities = {
 			});
 		});
 	},
-	getNullIconForKey: function(key) {
-		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />';
+	getNullIconForKey: (key) => {
+		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i>';
 	},
-	listProperties: function(entity, view, tabView, typeInfo, callback) {
+	listProperties: (entity, view, tabView, typeInfo, callback) => {
 
-		_Entities.getSchemaProperties(entity.type, view, function(properties) {
+		_Entities.getSchemaProperties(entity.type, view, (properties) => {
 
-			let filteredProperties = Object.keys(properties).filter(function(key) {
-				return !(typeInfo[key].isCollection && typeInfo[key].relatedType);
-			});
+			let filteredProperties   = Object.keys(properties).filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
+			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
-			let collectionProperties = Object.keys(properties).filter(function(key) {
-				return typeInfo[key].isCollection && typeInfo[key].relatedType;
-			});
-
-			$.ajax({
-				url: Structr.rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2',
-				dataType: 'json',
+			fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2', {
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
-				},
-				contentType: 'application/json; charset=utf-8',
-				success: function(data) {
-					// Default: Edit node id
-					var id = entity.id;
+				}
+			}).then(async response => {
 
-					var tempNodeCache = new AsyncObjectCache(function(id) {
-						Command.get(id, 'id,name,type,tag,isContent,content', function (node) {
+				let data          = await response.json();
+				let fetchedEntity = data.result;
+
+				if (response.ok) {
+
+					let tempNodeCache = new AsyncObjectCache((id) => {
+						Command.get(id, 'id,name,type,tag,isContent,content', (node) => {
 							tempNodeCache.addObject(node, node.id);
 						});
 					});
 
-					// ID of graph object to edit
-					$(data.result).each(function(i, res) {
+					let keys           = Object.keys(properties);
+					let noCategoryKeys = [];
+					let groupedKeys    = {};
 
-						// reset id for each object group
-						var keys = Object.keys(properties);
+					if (typeInfo) {
 
-						var noCategoryKeys = [];
-						var groupedKeys = {};
+						for (let key of keys) {
 
-						if (typeInfo) {
-							keys.forEach(function(key) {
+							if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
 
-								if (typeInfo[key] && typeInfo[key].category && typeInfo[key].category !== 'System') {
-
-									var category = typeInfo[key].category;
-									if (!groupedKeys[category]) {
-										groupedKeys[category] = [];
-									}
-									groupedKeys[category].push(key);
-								} else {
-									noCategoryKeys.push(key);
+								let category = typeInfo[key].category;
+								if (!groupedKeys[category]) {
+									groupedKeys[category] = [];
 								}
-							});
+								groupedKeys[category].push(key);
+							} else {
+								noCategoryKeys.push(key);
+							}
 						}
-
-						if (view === '_html_') {
-							// add custom html attributes
-							Object.keys(res).forEach(function(key) {
-								if (key.startsWith('_custom_html_')) {
-									noCategoryKeys.push(key);
-								}
-							});
-						}
-
-						// reset result counts
-						_Entities.collectionPropertiesResultCount = {};
-
-						_Entities.createPropertyTable(null, noCategoryKeys, res, entity, view, tabView, typeInfo, tempNodeCache);
-						Object.keys(groupedKeys).sort().forEach(function(categoryName) {
-							_Entities.createPropertyTable(categoryName, groupedKeys[categoryName], res, entity, view, tabView, typeInfo, tempNodeCache);
-						});
-
-						// populate collection properties with first page
-						collectionProperties.forEach(function(key) {
-							_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
-						});
-					});
-
-					if (typeof callback === 'function') {
-						callback(properties);
 					}
+
+					if (view === '_html_') {
+						// add custom html attributes
+						for (let key in fetchedEntity) {
+
+							if (key.startsWith('_custom_html_')) {
+								noCategoryKeys.push(key);
+							}
+						}
+					}
+
+					// reset result counts
+					_Entities.collectionPropertiesResultCount = {};
+
+					_Entities.createPropertyTable(null, noCategoryKeys, fetchedEntity, entity, view, tabView, typeInfo, tempNodeCache);
+
+					for (let categoryName of Object.keys(groupedKeys).sort()) {
+						_Entities.createPropertyTable(categoryName, groupedKeys[categoryName], fetchedEntity, entity, view, tabView, typeInfo, tempNodeCache);
+					}
+
+					// populate collection properties with first page
+					for (let key of collectionProperties) {
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
+					}
+				}
+
+				if (typeof callback === 'function') {
+					callback(properties);
 				}
 			});
 		});
 	},
-	displayCollectionPager: function(tempNodeCache, entity, key, page) {
+	displayCollectionPager: (tempNodeCache, entity, key, page) => {
 
 		let pageSize = 10, resultCount;
 
 		let cell = $('.value.' + key + '_');
 		cell.css('height', '60px');
 
-		$.ajax({
-			url: Structr.rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page,
-			dataType: 'json',
+		fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page, {
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'
-			},
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
+			}
+		}).then(async response => {
+
+			let data = await response.json();
+
+			if (response.ok) {
 
 				resultCount = _Entities.collectionPropertiesResultCount[key] || data.result_count;
 
@@ -1370,14 +1346,14 @@ let _Entities = {
 				pageDownButton.off('click').addClass('disabled');
 
 				if (page > 1) {
-					pageUpButton.removeClass('disabled').on('click', function() {
+					pageUpButton.removeClass('disabled').on('click', () => {
 						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1);
 						return false;
 					});
 				}
 
 				if ((!resultCount && data.result.length > 0) || page < Math.ceil(resultCount/pageSize)) {
-					pageDownButton.removeClass('disabled').on('click', function() {
+					pageDownButton.removeClass('disabled').on('click', () => {
 						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1);
 						return false;
 					});
@@ -1397,13 +1373,15 @@ let _Entities = {
 
 				if (data.result.length) {
 
-					(data.result[0][key] || data.result).forEach(function(obj) {
+					for (let obj of (data.result[0][key] || data.result)) {
 
 						let nodeId = (typeof obj === 'string') ? obj : obj.id;
 
-						tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
-							_Entities.appendRelatedNode(cell, node, function(nodeEl) {
-								$('.remove', nodeEl).on('click', function(e) {
+						tempNodeCache.registerCallback(nodeId, nodeId, (node) => {
+
+							_Entities.appendRelatedNode(cell, node, (nodeEl) => {
+								$('.remove', nodeEl).on('click', (e) => {
+
 									e.preventDefault();
 									Command.removeFromCollection(entity.id, key, node.id, function() {
 										nodeEl.remove();
@@ -1414,10 +1392,10 @@ let _Entities = {
 								});
 							});
 						});
-					});
+					}
 				}
 			}
-		});
+		})
 	},
 	createPropertyTable: function(heading, keys, res, entity, view, container, typeInfo, tempNodeCache) {
 
@@ -1666,7 +1644,7 @@ let _Entities = {
 				// only run save action if we have a key and we just left the value input
 				if (key !== '' && exitedInput === valInput) {
 
-					var regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
+					let regexAllowed = new RegExp("^[a-zA-Z0-9_\-]*$");
 
 					if (key.indexOf('data-structr-') === 0) {
 
@@ -1680,9 +1658,9 @@ let _Entities = {
 
 					} else {
 
-						var newKey = '_custom_html_' + key;
+						let newKey = '_custom_html_' + key;
 
-						Command.setProperty(id, newKey, val, false, function() {
+						Command.setProperty(id, newKey, val, false, () => {
 							blinkGreen(exitedInput);
 							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
 
@@ -1817,8 +1795,8 @@ let _Entities = {
 		if (_Entities.clearSearchResults(el)) {
 			$('.clearSearchIcon').hide().off('click');
 			$('.search').val('');
-			$('#resourceTabs', main).show();
-			$('#resourceBox', main).show();
+			$('#resourceTabs', $(Structr.mainContainer)).show();
+			$('#resourceBox', $(Structr.mainContainer)).show();
 		}
 	},
 	clearSearchResults: function(el) {
@@ -2038,11 +2016,11 @@ let _Entities = {
 			_Entities.showAccessControlDialog(entity);
 		});
 	},
-	accessControlDialog: function(entity, el, typeInfo) {
+	accessControlDialog: (entity, el, typeInfo) => {
 
 		let id = entity.id;
 
-		let handleGraphObject = function(entity) {
+		let handleGraphObject = (entity) => {
 
 			let owner_select_id = 'owner_select_' + id;
 			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
@@ -2065,11 +2043,11 @@ let _Entities = {
 			var tb = $('#principals tbody', el);
 			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
-			$.ajax({
-				url: Structr.rootUrl + entity.id + '/in',
-				dataType: 'json',
-				contentType: 'application/json; charset=utf-8',
-				success: function(data) {
+			fetch(Structr.rootUrl + entity.id + '/in').then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
 
 					for (let result of data.result) {
 
@@ -2082,19 +2060,19 @@ let _Entities = {
 
 						let principalId = result.principalId;
 						if (principalId) {
-							Command.get(principalId, 'id,name,isGroup', function(p) {
+							Command.get(principalId, 'id,name,isGroup', (p) => {
 								_Entities.addPrincipal(entity, p, permissions, allowRecursive, el);
 							});
 						}
 					}
 				}
-			});
+			})
 
 			let ownerSelect   = $('#' + owner_select_id, el);
 			let granteeSelect = $('#newPrincipal', el);
 			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
 
-			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, function(principals) {
+			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, (principals) => {
 
 				let ownerOptions        = '';
 				let granteeGroupOptions = '';
@@ -2107,7 +2085,7 @@ let _Entities = {
 					ownerOptions += '<option></option>';
 				}
 
-				principals.forEach(function(p) {
+				for (let p of principals) {
 
 					if (p.isGroup) {
 						granteeGroupOptions += '<option value="' + p.id + '" data-type="Group">' + p.name + '</option>';
@@ -2118,7 +2096,7 @@ let _Entities = {
 							ownerOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
 						}
 					}
-				});
+				}
 
 				ownerSelect.append(ownerOptions);
 				granteeSelect.append(granteeGroupOptions + granteeUserOptions);
@@ -2148,7 +2126,7 @@ let _Entities = {
 				}).on('select2:unselecting', function(e) {
 					e.preventDefault();
 
-					Command.setProperty(id, 'owner', null, false, function() {
+					Command.setProperty(id, 'owner', null, false, () => {
 						blinkGreen(ownerSelect.parent());
 						ownerSelect.val(null).trigger('change');
 					});
@@ -2156,7 +2134,7 @@ let _Entities = {
 				}).on('select2:select', function(e) {
 
 					let data = e.params.data;
-					Command.setProperty(id, 'owner', data.id, false, function() {
+					Command.setProperty(id, 'owner', data.id, false, () => {
 						blinkGreen(ownerSelect.parent());
 					});
 				});

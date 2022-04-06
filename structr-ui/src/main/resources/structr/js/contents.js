@@ -16,9 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main;
-var selectedElements = [];
-
 $(document).ready(function() {
 	Structr.registerModule(_Contents);
 });
@@ -34,6 +31,7 @@ let _Contents = {
 	containerPage: 1,
 	currentContentContainerKey: 'structrCurrentContentContainer_' + location.port,
 	contentsResizerLeftKey: 'structrContentsResizerLeftKey_' + location.port,
+	// selectedElements: [],
 
 	init: function() {
 		Structr.makePagesMenuDroppable();
@@ -51,8 +49,7 @@ let _Contents = {
 	},
 	onload: () => {
 
-		let mainHtml = _Contents.templates.contents();
-		main[0].innerHTML = mainHtml;
+		Structr.mainContainer.innerHTML = _Contents.templates.contents();
 
 		_Contents.init();
 
@@ -115,15 +112,6 @@ let _Contents = {
 					}
 				});
 			}
-
-			// if (contentContainerTypes.length === 0) {
-			// 	Structr.appendInfoTextToElement({
-			// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-			// 		element: $(containerTypeSelect).parent(),
-			// 		after: true,
-			// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
-			// 	});
-			// }
 
 			// _Contents.searchField = $('.search', $(functionBar));
 			// _Contents.searchField.focus();
@@ -275,10 +263,10 @@ let _Contents = {
 		}
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#contents-main', main));
+		fastRemoveAllChildren(Structr.mainContainer);
 	},
-	fulltextSearch: function(searchString) {
+	fulltextSearch: (searchString) => {
+
 		_Contents.contentsContents.children().hide();
 
 		var url;
@@ -293,8 +281,8 @@ let _Contents = {
 
 		_Contents.displaySearchResultsForURL(url);
 	},
-	clearSearch: function() {
-		$('.search', main).val('');
+	clearSearch: () => {
+		Structr.mainContainer.querySelector('.search').value = '';
 		$('#search-results').remove();
 		_Contents.contentsContents.children().show();
 	},
@@ -575,11 +563,11 @@ let _Contents = {
 			},
 			helper: function(event) {
 				let helperEl = $(this);
-				selectedElements = $('.node.selected');
-				if (selectedElements.length > 1) {
-					selectedElements.removeClass('selected');
-					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
-				}
+				// _Contents.selectedElements = $('.node.selected');
+				// if (_Contents.selectedElements.length > 1) {
+				// 	_Contents.selectedElements.removeClass('selected');
+				// 	return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
+				// }
 				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
 				return hlp;
@@ -627,160 +615,157 @@ let _Contents = {
 			saveAndClose     = $('#saveAndClose', dialogBtn);
 			let refreshBtn   = $('#refresh', dialogBtn);
 
-			_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
+			_Entities.getSchemaProperties(entity.type, 'custom', (properties) => {
 
 				let props = Object.values(properties);
 
-				//_Contents.sortBySchemaOrder(entity.type, 'custom', properties, function(props) {
+				props.forEach(function(prop) {
 
-					props.forEach(function(prop) {
+					let isRelated    = 'relatedType' in prop;
+					let key          = prop.jsonName;
+					let isCollection = prop.isCollection || false;
+					let isReadOnly   = prop.isReadOnly   || false;
+					let isSystem     = prop.system       || false;
+					let oldVal       = entity[key];
 
-						let isRelated    = 'relatedType' in prop;
-						let key          = prop.jsonName;
-						let isCollection = prop.isCollection || false;
-						let isReadOnly   = prop.isReadOnly   || false;
-						let isSystem     = prop.system       || false;
-						let oldVal       = entity[key];
+					dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
+					let div = $('#prop-' + key);
 
-						dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
-						let div = $('#prop-' + key);
+					if (prop.type === 'Boolean') {
 
-						if (prop.type === 'Boolean') {
+						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
+						let checkbox = div.find('input[type="checkbox"].' + key + '_');
+						Command.getProperty(entity.id, key, function(val) {
+							if (val) {
+								checkbox.prop('checked', true);
+							}
+							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+								checkbox.on('change', function() {
+									var checked = checkbox.prop('checked');
+									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
+								});
+							} else {
+								checkbox.prop('disabled', 'disabled');
+								checkbox.addClass('readOnly');
+								checkbox.addClass('disabled');
+							}
+						});
 
-							div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
-							let checkbox = div.find('input[type="checkbox"].' + key + '_');
-							Command.getProperty(entity.id, key, function(val) {
-								if (val) {
-									checkbox.prop('checked', true);
-								}
-								if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
-									checkbox.on('change', function() {
-										var checked = checkbox.prop('checked');
-										_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
+					} else if (prop.type === 'Date' && !isReadOnly) {
+
+						div.append('<div class="value-container"></div>');
+						let valueInput = _Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+
+						valueInput.on('change', function(e) {
+							if (e.keyCode !== 27) {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+								});
+							}
+						});
+
+					} else if (isRelated) {
+
+						let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> </div>');
+						div.append(relatedNodesList);
+						$(relatedNodesList).children('.add').on('click', function() {
+							Structr.dialog('Add ' + prop.type, function() {
+							}, function() {
+								_Contents.editItem(item);
+							});
+							_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
+						});
+
+						if (entity[key]) {
+
+							let relatedNodes = $('.related-nodes', div);
+
+							if (!isCollection) {
+
+								let nodeId = entity[key].id || entity[key];
+
+								Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+
+									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+
+										$('.remove', nodeEl).on('click', function(e) {
+											e.preventDefault();
+											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
+												if (!newVal) {
+													blinkGreen(relatedNodes);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+													nodeEl.remove();
+												} else {
+													blinkRed(relatedNodes);
+												}
+											});
+											return false;
+										});
 									});
-								} else {
-									checkbox.prop('disabled', 'disabled');
-									checkbox.addClass('readOnly');
-									checkbox.addClass('disabled');
-								}
+								});
+
+							} else {
+
+								entity[key].forEach(function(obj) {
+
+									var nodeId = obj.id || obj;
+
+									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+
+										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+											$('.remove', nodeEl).on('click', function(e) {
+												e.preventDefault();
+												Command.removeFromCollection(entity.id, key, node.id, function() {
+													var nodeEl = $('._' + node.id, relatedNodes);
+													nodeEl.remove();
+													blinkGreen(relatedNodes);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+												});
+												return false;
+											});
+										});
+									});
+								});
+							}
+						}
+
+					} else {
+
+						if (prop.contentType && prop.contentType === 'text/html') {
+							div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
+							let editArea = $('.edit-area', div);
+							editArea.trumbowyg({
+								//btns: ['strong', 'em', '|', 'insertImage'],
+								//autogrow: true
+							}).on('tbwchange', function() {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
+							}).on('tbwpaste', function() {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
 							});
 
-						} else if (prop.type === 'Date' && !isReadOnly) {
-
+						} else {
 							div.append('<div class="value-container"></div>');
-							let valueInput = _Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+							let valueContainer = $('.value-container', div);
+							let valueInput;
 
-							valueInput.on('change', function(e) {
+							valueContainer.append(formatValueInputField(key, oldVal, false, prop.readOnly, prop.format === 'multi-line'));
+							valueInput = valueContainer.find('[name=' + key + ']');
+
+							valueInput.on('keyup', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, key, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
 							});
-
-						} else if (isRelated) {
-
-							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> </div>');
-							div.append(relatedNodesList);
-							$(relatedNodesList).children('.add').on('click', function() {
-								Structr.dialog('Add ' + prop.type, function() {
-								}, function() {
-									_Contents.editItem(item);
-								});
-								_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
-							});
-
-							if (entity[key]) {
-
-								let relatedNodes = $('.related-nodes', div);
-
-								if (!isCollection) {
-
-									let nodeId = entity[key].id || entity[key];
-
-									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
-
-										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
-
-											$('.remove', nodeEl).on('click', function(e) {
-												e.preventDefault();
-												_Entities.setProperty(entity.id, key, null, false, function(newVal) {
-													if (!newVal) {
-														blinkGreen(relatedNodes);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-														nodeEl.remove();
-													} else {
-														blinkRed(relatedNodes);
-													}
-												});
-												return false;
-											});
-										});
-									});
-
-								} else {
-
-									entity[key].forEach(function(obj) {
-
-										var nodeId = obj.id || obj;
-
-										Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
-
-											_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
-												$('.remove', nodeEl).on('click', function(e) {
-													e.preventDefault();
-													Command.removeFromCollection(entity.id, key, node.id, function() {
-														var nodeEl = $('._' + node.id, relatedNodes);
-														nodeEl.remove();
-														blinkGreen(relatedNodes);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-													});
-													return false;
-												});
-											});
-										});
-									});
-								}
-							}
-
-						} else {
-
-							if (prop.contentType && prop.contentType === 'text/html') {
-								div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
-								let editArea = $('.edit-area', div);
-								editArea.trumbowyg({
-									//btns: ['strong', 'em', '|', 'insertImage'],
-									//autogrow: true
-								}).on('tbwchange', function() {
-									Command.get(entity.id, key, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-									});
-								}).on('tbwpaste', function() {
-									Command.get(entity.id, key, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-									});
-								});
-
-							} else {
-								div.append('<div class="value-container"></div>');
-								let valueContainer = $('.value-container', div);
-								let valueInput;
-
-								valueContainer.append(formatValueInputField(key, oldVal, false, prop.readOnly, prop.format === 'multi-line'));
-								valueInput = valueContainer.find('[name=' + key + ']');
-
-								valueInput.on('keyup', function(e) {
-									if (e.keyCode !== 27) {
-										Command.get(entity.id, key, function(newEntity) {
-											_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
-										});
-									}
-								});
-							}
 						}
+					}
 
-					});
-				//});
+				});
 
 			}, true);
 
@@ -862,155 +847,59 @@ let _Contents = {
 
 		}, 'all');
 	},
-	sortBySchemaOrder: function(type, view, properties, callback) {
-
-		let url = Structr.rootUrl + '_schema/' + type + '/' + view;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				200: function(data) {
-
-					// no schema entry found?
-					if (!data || !data.result || data.result_count === 0) {
-
-						//
-
-					} else {
-
-						let sortedProperties = [];
-
-						data.result.forEach(function(prop) {
-							sortedProperties.push(prop.jsonName);
-						});
-
-						//console.log(sortedProperties, properties);
-
-						properties.sort(function(a, b) {
-							return sortedProperties.indexOf(a.name) - sortedProperties.indexOf(b.name);
-						});
-
-						//console.log(properties);
-					}
-
-					if (callback) {
-						callback(properties);
-					}
-				},
-				400: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				401: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				403: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				404: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				}
-			},
-			error:function () {
-				console.log("ERROR: loading Schema " + type);
-			}
-		});
-	},
-	displaySearchResultsForURL: function(url) {
+	displaySearchResultsForURL: (url) => {
 
 		$('#search-results').remove();
 		_Contents.contentsContents.append('<div id="search-results"></div>');
 
 		let searchString = Structr.functionBar.querySelector('.search').value;
 		let container    = $('#search-results');
-		_Contents.contentsContents.on('scroll', function() {
+		_Contents.contentsContents.on('scroll', () => {
 			window.history.pushState('', '', '#contents');
 		});
 
-		$.ajax({
-			url: url,
-			statusCode: {
-				200: function(data) {
+		fetch(url).then(async response => {
 
-					if (!data.result || data.result.length === 0) {
-						container.append('<h1>No results for "' + searchString + '"</h1>');
-						container.append('<h2>Press ESC or click <a href="#contents" class="clear-results">here to clear</a> empty result list.</h2>');
-						$('.clear-results', container).on('click', function() {
-							_Contents.clearSearch();
-						});
-						return;
-					} else {
-						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><!--th>Size</th--></thead><tbody></tbody></table>');
-						data.result.forEach(function(d) {
-							var icon = _Contents.getIcon(d);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><!--td>' + d.size + '</td--></tr>');
+			let data = await response.json();
 
-						});
-					}
+			if (response.ok) {
 
-					// data.result.forEach(function(d) {
-					//
-					// 	$.ajax({
-					// 		url: Structr.rootUrl + 'contents/' + d.id + '/getSearchContext',
-					// 		contentType: 'application/json',
-					// 		method: 'POST',
-					// 		data: JSON.stringify({searchString: searchString, contextLength: 30}),
-					// 		statusCode: {
-					// 			200: function(data) {
-					//
-					// 				if (!data.result) return;
-					//
-					// 				//console.log(data.result);
-					//
-					// 				container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
-					//
-					// 				var div = $('#results' + d.id);
-					// 				var icon = _Contents.getIcon(d);
-					// 				div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
-					// 				div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-					//
-					// 				$('.toggle-height', div).on('click', function() {
-					// 					var icon = $(this);
-					// 					div.toggleClass('collapsed');
-					// 					if (icon.hasClass('fa-expand')) {
-					// 						icon.removeClass('fa-expand');
-					// 						icon.addClass('fa-compress');
-					// 					} else {
-					// 						icon.removeClass('fa-compress');
-					// 						icon.addClass('fa-expand');
-					// 					}
-					//
-					// 				});
-					//
-					// 				$('.go-to-top', div).on('click', function() {
-					// 					content.scrollTop(0);
-					// 					window.history.pushState('', '', '#contents');
-					// 				});
-					//
-					// 				$.each(data.result.context, function(i, contextString) {
-					//
-					// 					searchString.split(/[\s,;]/).forEach(function(str) {
-					// 						contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-					// 					});
-					//
-					// 					div.append('<div class="part">' + contextString + '</div>');
-					//
-					// 				});
-					//
-					// 				div.append('<div style="clear: both;"></div>');
-					// 			}
-					// 		}
-					// 	});
-					//
-					// });
+				if (!data.result || data.result.length === 0) {
+
+					container.append(`
+						<h1>No results for "${searchString}"</h1>
+						<h2>Press ESC or click <a href="#contents" class="clear-results">here to clear</a> empty result list.</h2>
+					`);
+
+					$('.clear-results', container).on('click', _Contents.clearSearch);
+
+				} else {
+
+					container.append(`
+						<h1>${data.result.length} search results:</h1>
+						
+						<table class="props">
+							<thead>
+								<th class="_type">Type</th>
+								<th>Name</th>
+								<!--th>Size</th-->
+							</thead>
+							<tbody>
+								${data.result.map(d => `
+									<tr>
+										<td><i class="fa ${_Contents.getIcon(d)}"></i> ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+										<td><a href="#results${d.id}">${d.name}</a></td>
+										<!--td>${d.size}</td-->
+									</tr>
+								`).join('')}
+							</tbody>
+						</table>
+					`);
 				}
 			}
 		});
 	},
-	getIcon: function(file) {
+	getIcon: (file) => {
 		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
 	},
 	appendEditContentItemIcon: (parent, d) => {

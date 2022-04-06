@@ -17,18 +17,16 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-var main, codeMain, codeTree, codeContents, codeContext;
-var drop;
-var activeMethodId, methodContents = {};
-var methodPageSize = 10000, methodPage = 1;
-var timeout, attempts = 0, maxRetry = 10;
-
 $(document).ready(function() {
 	Structr.registerModule(_Code);
 });
 
 let _Code = {
 	_moduleName: 'code',
+	codeMain: undefined,
+	codeTree: undefined,
+	codeContents: undefined,
+	codeContext: undefined,
 	pathLocationStack: [],
 	pathLocationIndex: 0,
 	searchThreshold: 3,
@@ -44,6 +42,9 @@ let _Code = {
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
 	additionalDirtyChecks: [],
 	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
+	defaultPageSize: 10000,
+	defaultPage: 1,
+	
 	init: function() {
 
 		Structr.makePagesMenuDroppable();
@@ -63,26 +64,26 @@ let _Code = {
 			Structr.resize();
 		});
 	},
-	moveLeftResizer: function(left) {
+	moveLeftResizer: (left) => {
 		requestAnimationFrame(() => {
 			left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 			_Code.updatedResizers(left, null);
 		});
 	},
-	moveRightResizer: function(left) {
+	moveRightResizer: (left) => {
 		requestAnimationFrame(() => {
 			left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 			_Code.updatedResizers(null, left);
 		});
 	},
-	updatedResizers: function(left, right) {
+	updatedResizers: (left, right) => {
 		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 
-		$('.column-resizer-left', codeMain).css({ left: left + 'px'});
-		$('.column-resizer-right', codeMain).css({left: window.innerWidth - right + 'px'});
+		_Code.codeMain[0].querySelector('.column-resizer-left').style.left  = left + 'px';
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left = window.innerWidth - right + 'px';
 
-		document.getElementById('code-tree').style.width = 'calc(' + left + 'px - 1rem)';
+		document.getElementById('code-tree').style.width              = 'calc(' + left + 'px - 1rem)';
 		document.getElementById('code-context-container').style.width = 'calc(' + right + 'px - 3rem)';
 
 		document.getElementById('code-contents').style.width = 'calc(' + (window.innerWidth - left - right) + 'px - 4rem)';
@@ -91,8 +92,8 @@ let _Code = {
 	},
 	onload: function() {
 
-		Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
-		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
+		Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
+		Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, _Code.addAvailableTagsForEntities, false, null, 'tags');
 
 		Structr.functionBar.innerHTML = _Code.templates.functions();
 
@@ -111,30 +112,30 @@ let _Code = {
 			};
 		});
 
-		main.append(_Code.templates.main());
+		Structr.mainContainer.innerHTML = _Code.templates.main();
 
 		_Code.init();
 
-		codeMain     = $('#code-main');
-		codeTree     = $('#code-tree');
-		codeContents = $('#code-contents');
-		codeContext  = $('#code-context');
+		_Code.codeMain     = $('#code-main');
+		_Code.codeTree     = $('#code-tree');
+		_Code.codeContents = $('#code-contents');
+		_Code.codeContext  = $('#code-context');
 
-		Structr.initVerticalSlider($('.column-resizer-left', codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-		Structr.initVerticalSlider($('.column-resizer-right', codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
+		Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
+		Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
 
 		$.jstree.defaults.core.themes.dots      = false;
 		$.jstree.defaults.dnd.inside_pos        = 'last';
 		$.jstree.defaults.dnd.large_drop_target = true;
 
-		codeTree.on('select_node.jstree', _Code.handleTreeClick);
-		codeTree.on('refresh.jstree', _Code.activateLastClicked);
+		_Code.codeTree.on('select_node.jstree', _Code.handleTreeClick);
+		_Code.codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-		_Code.loadRecentlyUsedElements(function() {
-			_TreeHelper.initTree(codeTree, _Code.treeInitFunction, 'structr-ui-code');
+		_Code.loadRecentlyUsedElements(() => {
+			_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
 		});
 
-		$(window).off('resize').resize(function() {
+		$(window).off('resize').resize(() => {
 			_Code.resize();
 		});
 
@@ -143,7 +144,7 @@ let _Code = {
 		_Code.resize();
 		Structr.adaptUiToAvailableFeatures();
 	},
-	addAvailableTagsForEntities: function(entities) {
+	addAvailableTagsForEntities: (entities) => {
 
 		for (let entity of entities) {
 
@@ -197,15 +198,15 @@ let _Code = {
 		}
 	},
 	forceNotDirty: () => {
-		codeContents.find('.to-delete').removeClass('to-delete');
-		codeContents.find('.has-changes').removeClass('has-changes');
+		_Code.codeContents.find('.to-delete').removeClass('to-delete');
+		_Code.codeContents.find('.has-changes').removeClass('has-changes');
 
 		_Code.additionalDirtyChecks = [];
 	},
 	isDirty: () => {
 		let isDirty = false;
-		if (codeContents) {
-			isDirty = (codeContents.find('.to-delete').length + codeContents.find('.has-changes').length) > 0;
+		if (_Code.codeContents) {
+			isDirty = (_Code.codeContents.find('.to-delete').length + _Code.codeContents.find('.has-changes').length) > 0;
 		}
 		return isDirty;
 	},
@@ -227,9 +228,9 @@ let _Code = {
 		}
 
 		if (dirty === true) {
-			codeContents.children().first().addClass('has-changes');
+			_Code.codeContents.children().first().addClass('has-changes');
 		} else {
-			codeContents.children().first().removeClass('has-changes');
+			_Code.codeContents.children().first().removeClass('has-changes');
 		}
 	},
 	testAllowNavigation: () => {
@@ -496,13 +497,12 @@ let _Code = {
 			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
 		}
 
-		let ctx = $('#code-context');
 		let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconClass: iconClass }));
 
 		if (fromStorage) {
-			ctx.append(recentlyUsedButton);
+			_Code.codeContext.append(recentlyUsedButton);
 		} else {
-			ctx.prepend(recentlyUsedButton);
+			_Code.codeContext.prepend(recentlyUsedButton);
 		}
 
 		recentlyUsedButton.on('click.recently-used', () => {
@@ -625,7 +625,7 @@ let _Code = {
 		return parts.join('-');
 	},
 	refreshTree: function() {
-		_TreeHelper.refreshTree(codeTree);
+		_TreeHelper.refreshTree(_Code.codeTree);
 	},
 	treeInitFunction: function(obj, callback) {
 
@@ -970,33 +970,33 @@ let _Code = {
 				}
 			};
 
-			Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
+			Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: parts[0] }, handleExactSchemaNodeSearch, true);
 
 		} else {
 
-			Command.query('SchemaNode',     methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
-			Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
-			Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { name: text }, collectFunction, false);
+			Command.query('SchemaNode',     _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
+			Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { name: text }, collectFunction, false);
 		}
 
 		// text search always happens
-		Command.query('SchemaMethod',   methodPageSize, methodPage, 'name', 'asc', { source: text}, collectFunction, false);
-		Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
-		Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
+		Command.query('SchemaMethod',   _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { source: text}, collectFunction, false);
+		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { writeFunction: text}, collectFunction, false);
+		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
 
 	},
 	loadGlobalSchemaMethods: function(identifier) {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
-			Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: null}, result => _Code.displayFunction(result, identifier), true, 'ui');
+			Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: null}, result => _Code.displayFunction(result, identifier), true, 'ui');
 		}
 	},
 	loadCustomTypes: function(identifier) {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
-			Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: false}, result => _Code.displayFunction(result, identifier), true);
+			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isBuiltinType: false}, result => _Code.displayFunction(result, identifier), true);
 		}
 	},
 	loadWorkingSets: function(identifier) {
@@ -1012,14 +1012,14 @@ let _Code = {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
-			Command.query('SchemaNode', methodPageSize, methodPage, 'name', 'asc', { isBuiltinType: true }, result => _Code.displayFunction(result, identifier), false);
+			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isBuiltinType: true }, result => _Code.displayFunction(result, identifier), false);
 		}
 	},
 	loadType: function(identifier) {
 	       if (identifier.memberCollection) {
 		       _Code.loadTypeMembers(identifier);
 	       } else {
-			Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId}, function(result) {
+			Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: identifier.typeId}, function(result) {
 				_Code.displayFunction(result, identifier);
 			}, true, 'ui');
 	       }
@@ -1052,7 +1052,7 @@ let _Code = {
 	loadLocalProperties: function(identifier) {
 		if (identifier.memberId) {
 		} else {
-			Command.query('SchemaProperty', methodPageSize, methodPage, 'name', 'asc', { schemaNode: identifier.typeId }, function(result) {
+			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { schemaNode: identifier.typeId }, function(result) {
 				_Code.displayFunction(result, identifier);
 			}, true, 'ui');
 		}
@@ -1085,13 +1085,13 @@ let _Code = {
 	},
 	loadViews: function(identifier) {
 
-		Command.query('SchemaView', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
+		Command.query('SchemaView', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
 			_Code.displayFunction(result, identifier);
 		}, true, 'ui');
 	},
 	loadMethods: function(identifier) {
 
-		Command.query('SchemaMethod', methodPageSize, methodPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
+		Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: identifier.typeId }, function(result) {
 			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
 		}, true, 'ui');
 	},
@@ -1132,7 +1132,7 @@ let _Code = {
 		return identifier;
 	},
 	clearMainArea: function() {
-		fastRemoveAllChildren(codeContents[0]);
+		fastRemoveAllChildren(_Code.codeContents[0]);
 		fastRemoveAllChildren($('#code-button-container')[0]);
 	},
 	getDisplayNameInRecentsForType: function (entity) {
@@ -1404,8 +1404,8 @@ let _Code = {
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
 			let html = _Code.templates.type({ type: result });
-			codeContents.empty();
-			codeContents.append(html);
+			_Code.codeContents.empty();
+			_Code.codeContents.append(html);
 
 			_Code.runCurrentEntitySaveAction = function() {
 				_Code.saveEntityAction(result);
@@ -1427,7 +1427,7 @@ let _Code = {
 				});
 			}
 
-			let apiTab = $('#type-openapi', codeContents);
+			let apiTab = $('#type-openapi', _Code.codeContents);
 			apiTab.append(_Code.templates.openAPIConfig({ element: result, availableTags: _Code.availableTags }));
 
 			$('#tags-select', apiTab).select2({
@@ -1514,15 +1514,15 @@ let _Code = {
 
 			_Code.updateDirtyFlag(result);
 
-			$('input[type=checkbox]', codeContents).on('change', function() {
+			$('input[type=checkbox]', _Code.codeContents).on('change', function() {
 				_Code.updateDirtyFlag(result);
 			});
 
-			$('input[type=text]', codeContents).on('keyup', function() {
+			$('input[type=text]', _Code.codeContents).on('keyup', function() {
 				_Code.updateDirtyFlag(result);
 			});
 
-			Structr.activateCommentsInElement(codeContents);
+			Structr.activateCommentsInElement(_Code.codeContents);
 
 			let schemaGrantsTableConfig = {
 				class: 'schema-grants-table schema-props',
@@ -1792,10 +1792,10 @@ let _Code = {
 
 				Command.get(entity.targetId, null, function(targetNode) {
 
-					codeContents.empty();
-					codeContents.append(_Code.templates.propertyRemote({ identifier: identifier }));
+					_Code.codeContents.empty();
+					_Code.codeContents.append(_Code.templates.propertyRemote({ identifier: identifier }));
 
-					_Schema.loadRelationship(entity, $('#headEl', codeContents), $('#contentEl', codeContents), sourceNode, targetNode, _Code.refreshTree);
+					_Schema.loadRelationship(entity, $('#headEl', _Code.codeContents), $('#contentEl', _Code.codeContents), sourceNode, targetNode, _Code.refreshTree);
 				});
 			});
 		});
@@ -1809,8 +1809,8 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
 
-			codeContents.empty();
-			codeContents.append(_Code.templates.method({ method: result }));
+			_Code.codeContents.empty();
+			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
@@ -1824,8 +1824,8 @@ let _Code = {
 				}
 			};
 
-			let sourceEditor = _Editors.getMonacoEditor(result, 'source', codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
-			_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
+			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
 			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
 
@@ -1833,7 +1833,7 @@ let _Code = {
 
 			} else {
 
-				let apiTab = $('#tabView-api', codeContents);
+				let apiTab = $('#tabView-api', _Code.codeContents);
 				apiTab.append(_Code.templates.openAPIConfig({ element: result, availableTags: _Code.availableTags }));
 
 				let openApiConfig = $('#openapi-options', apiTab);
@@ -1932,7 +1932,7 @@ let _Code = {
 
 				let afterSaveCallback = () => {
 					_Code.additionalDirtyChecks = [];
-					_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'), true);
+					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
 				};
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1947,7 +1947,7 @@ let _Code = {
 				_Code.additionalDirtyChecks = [];
 				_Editors.disposeEditorModel(result.id, 'source');
 				_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
-				_Code.displaySchemaMethodContent(data, $('li.active', codeContents).data('name'));
+				_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'));
 			});
 
 			// delete button
@@ -1983,17 +1983,17 @@ let _Code = {
 			}
 
 			let activateTab = (tabName) => {
-				$('.method-tab-content', codeContents).hide();
-				$('li[data-name]', codeContents).removeClass('active');
+				$('.method-tab-content', _Code.codeContents).hide();
+				$('li[data-name]', _Code.codeContents).removeClass('active');
 
-				let activeTab = $('#tabView-' + tabName, codeContents);
+				let activeTab = $('#tabView-' + tabName, _Code.codeContents);
 				activeTab.show();
-				$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 			};
 
-			$('li[data-name]', codeContents).off('click').on('click', function(e) {
+			$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
 				e.stopPropagation();
 				activateTab($(this).data('name'));
 			});
@@ -2005,7 +2005,7 @@ let _Code = {
 	collectSchemaMethodParameters: function() {
 
 		let parametersData = [];
-		for (let formParam of codeContents[0].querySelectorAll('.method-parameter')) {
+		for (let formParam of _Code.codeContents[0].querySelectorAll('.method-parameter')) {
 			let pData = {};
 			for (let formParamValue of formParam.querySelectorAll('[data-parameter-property]')) {
 
@@ -2066,8 +2066,8 @@ let _Code = {
 		_WorkingSets.getWorkingSet(identifier.workingSetId, function(workingSet) {
 
 			_Code.updateRecentlyUsed(workingSet, identifier.source, data.updateLocationStack);
-			codeContents.empty();
-			codeContents.append(_Code.templates.workingSet({ type: workingSet }));
+			_Code.codeContents.empty();
+			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
 			if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
@@ -2181,7 +2181,7 @@ let _Code = {
 	},
 	displayRootContent: function() {
 
-		codeContents.append(_Code.templates.root());
+		_Code.codeContents.append(_Code.templates.root());
 
 		let layouter = new SigmaLayouter('all-types');
 
@@ -2230,7 +2230,7 @@ let _Code = {
 	},
 	displayCustomTypesContent: function() {
 
-		codeContents.append(_Code.templates.custom());
+		_Code.codeContents.append(_Code.templates.custom());
 
 		_Code.displayCreateTypeButton("#type-actions");
 
@@ -2245,10 +2245,10 @@ let _Code = {
 		}, true);
 	},
 	displayWorkingSetsContent: function() {
-		codeContents.append(_Code.templates.workingSets());
+		_Code.codeContents.append(_Code.templates.workingSets());
 	},
 	displayBuiltInTypesContent: function() {
-		codeContents.append(_Code.templates.builtin());
+		_Code.codeContents.append(_Code.templates.builtin());
 
 		// list of existing custom types
 		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true }, function(result) {
@@ -2267,11 +2267,11 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		codeContents.append(_Code.templates.propertiesLocal({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesLocal({ identifier: selection }));
 
 		Command.get(selection.typeId, null, (entity) => {
 
-			_Schema.properties.appendLocalProperties($('.content-container', codeContents), entity, {
+			_Schema.properties.appendLocalProperties($('.content-container', _Code.codeContents), entity, {
 
 				editReadWriteFunction: (property) => {
 					_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
@@ -2282,7 +2282,7 @@ let _Code = {
 			}, _Code.refreshTree);
 
 			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
+				$('.save-all', _Code.codeContents).click();
 			};
 		});
 	},
@@ -2293,13 +2293,13 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		codeContents.append(_Code.templates.propertiesRemote({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesRemote({ identifier: selection }));
 
 		Command.get(selection.typeId, null, (entity) => {
-			_Schema.remoteProperties.appendRemote($('.content-container', codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
+			_Schema.remoteProperties.appendRemote($('.content-container', _Code.codeContents), entity, _Code.schemaNodes, _Code.refreshTree);
 
 			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
+				$('.save-all', _Code.codeContents).click();
 			};
 		});
 	},
@@ -2310,13 +2310,13 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		codeContents.append(_Code.templates.views({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.views({ identifier: selection }));
 
 		Command.get(selection.typeId, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', codeContents), entity, _Code.refreshTree);
+			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, _Code.refreshTree);
 
 			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
+				$('.save-all', _Code.codeContents).click();
 			};
 		});
 	},
@@ -2329,11 +2329,11 @@ let _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, "Global methods", _Icons.getFullSpriteClass(_Icons.world_icon), selection.source, false);
 
-		codeContents.append(_Code.templates.globals());
+		_Code.codeContents.append(_Code.templates.globals());
 
 		Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
 
-			_Schema.methods.appendMethods($('.content-container', codeContents), null, methods, function() {
+			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), null, methods, function() {
 				if (selection && selection.extended) {
 					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
 				} else {
@@ -2342,7 +2342,7 @@ let _Code = {
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
+				$('.save-all', _Code.codeContents).click();
 			};
 		});
 	},
@@ -2355,11 +2355,11 @@ let _Code = {
 
 		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
 
-		codeContents.append(_Code.templates.methods({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.methods({ identifier: selection }));
 
 		Command.get(selection.typeId, null, (entity) => {
 
-			_Schema.methods.appendMethods($('.content-container', codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
+			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), entity, _Schema.filterJavaMethods(entity.schemaMethods), function() {
 				if (selection && selection.extended) {
 					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
 				} else {
@@ -2368,7 +2368,7 @@ let _Code = {
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
-				$('.save-all', codeContents).click();
+				$('.save-all', _Code.codeContents).click();
 			};
 		});
 	},
@@ -2379,10 +2379,10 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		codeContents.append(_Code.templates.propertiesInherited({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesInherited({ identifier: selection }));
 
 		Command.get(selection.typeId, null, (entity) => {
-			_Schema.properties.appendBuiltinProperties($('.content-container', codeContents), entity);
+			_Schema.properties.appendBuiltinProperties($('.content-container', _Code.codeContents), entity);
 		});
 	},
 	displayPropertyDetails: function(selection, identifier) {
@@ -2432,26 +2432,26 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
 
-			codeContents.append(_Code.templates.defaultView({ view: result }));
+			_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
 			_Code.displayDefaultViewOptions(result, undefined, identifier);
 		});
 	},
 	displayFunctionPropertyDetails: function(property, identifier, lastOpenTab) {
 
-		codeContents.append(_Code.templates.functionProperty({ property: property }));
+		_Code.codeContents.append(_Code.templates.functionProperty({ property: property }));
 
 		let activateTab = (tabName) => {
-			$('.function-property-tab-content', codeContents).hide();
-			$('li[data-name]', codeContents).removeClass('active');
+			$('.function-property-tab-content', _Code.codeContents).hide();
+			$('li[data-name]', _Code.codeContents).removeClass('active');
 
-			let activeTab = $('#tabView-' + tabName, codeContents);
+			let activeTab = $('#tabView-' + tabName, _Code.codeContents);
 			activeTab.show();
-			$('li[data-name="' + tabName + '"]', codeContents).addClass('active');
+			$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
 
 			window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 		};
 
-		for (let tabLink of codeContents[0].querySelectorAll('li[data-name]')) {
+		for (let tabLink of _Code.codeContents[0].querySelectorAll('li[data-name]')) {
 			tabLink.addEventListener('click', (e) => {
 				e.stopPropagation();
 				activateTab(tabLink.dataset.name);
@@ -2459,7 +2459,7 @@ let _Code = {
 		}
 		activateTab(lastOpenTab || 'source');
 
-		Structr.activateCommentsInElement(codeContents, { insertAfter: true });
+		Structr.activateCommentsInElement(_Code.codeContents, { insertAfter: true });
 
 		let functionPropertyMonacoConfig = {
 			language: 'auto',
@@ -2471,10 +2471,10 @@ let _Code = {
 			isAutoscriptEnv: true
 		};
 
-		_Editors.getMonacoEditor(property, 'readFunction', codeContents[0].querySelector('#read-code-container .editor'), functionPropertyMonacoConfig);
-		_Editors.getMonacoEditor(property, 'writeFunction', codeContents[0].querySelector('#write-code-container .editor'), functionPropertyMonacoConfig);
+		_Editors.getMonacoEditor(property, 'readFunction', _Code.codeContents[0].querySelector('#read-code-container .editor'), functionPropertyMonacoConfig);
+		_Editors.getMonacoEditor(property, 'writeFunction', _Code.codeContents[0].querySelector('#write-code-container .editor'), functionPropertyMonacoConfig);
 
-		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+		_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
 		let openAPIReturnTypeMonacoConfig = {
 			language: 'json',
@@ -2485,13 +2485,13 @@ let _Code = {
 			}
 		};
 
-		_Editors.getMonacoEditor(property, 'openAPIReturnType', codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
+		_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
 		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 	},
 	displayCypherPropertyDetails: function(property, identifier) {
 
-		codeContents.append(_Code.templates.cypherProperty({ property: property }));
+		_Code.codeContents.append(_Code.templates.cypherProperty({ property: property }));
 
 		let cypherMonacoConfig = {
 			language: 'cypher',
@@ -2503,24 +2503,24 @@ let _Code = {
 			isAutoscriptEnv: false
 		};
 
-		_Editors.getMonacoEditor(property, 'format', codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
-		_Editors.appendEditorOptionsElement(codeContents[0].querySelector('.editor-info'));
+		_Editors.getMonacoEditor(property, 'format', _Code.codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
+		_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
 		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
 	},
 	displayStringPropertyDetails: function(property, identifier) {
 
-		codeContents.append(_Code.templates.stringProperty({ property: property }));
+		_Code.codeContents.append(_Code.templates.stringProperty({ property: property }));
 		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayBooleanPropertyDetails: function(property, identifier) {
 
-		codeContents.append(_Code.templates.booleanProperty({ property: property }));
+		_Code.codeContents.append(_Code.templates.booleanProperty({ property: property }));
 		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayDefaultPropertyDetails: function(property, identifier) {
 
-		codeContents.append(_Code.templates.defaultProperty({ property: property }));
+		_Code.codeContents.append(_Code.templates.defaultProperty({ property: property }));
 		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
 	},
 	displayDefaultPropertyOptions: function(property, callback, identifier) {
@@ -3565,7 +3565,7 @@ let _Code = {
 	}
 };
 
-var _WorkingSets = {
+let _WorkingSets = {
 
 	recentlyUsedName: 'Recently Used Types',
 	deleted: {},
