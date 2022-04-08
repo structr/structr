@@ -20,8 +20,6 @@ package org.structr.web.maintenance.deploy;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -48,16 +46,16 @@ import org.structr.websocket.command.CreateComponentCommand;
 /**
  *
  */
-public class TemplateImportVisitor implements FileVisitor<Path> {
+public class TemplateImporter extends HtmlFileImporter {
 
-	private static final Logger logger                             = LoggerFactory.getLogger(TemplateImportVisitor.class.getName());
+	private static final Logger logger                             = LoggerFactory.getLogger(TemplateImporter.class.getName());
 	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private Map<String, Object> configuration = null;
 	private SecurityContext securityContext   = null;
 	private App app                           = null;
 
-	public TemplateImportVisitor(final Map<String, Object> pagesConfiguration) {
+	public TemplateImporter(final Map<String, Object> pagesConfiguration) {
 
 		this.configuration   = pagesConfiguration;
 		this.securityContext = SecurityContext.getSuperUserInstance();
@@ -66,45 +64,15 @@ public class TemplateImportVisitor implements FileVisitor<Path> {
 	}
 
 	@Override
-	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
-		return FileVisitResult.CONTINUE;
-	}
+	public void processFile(final Path file, final String fileName) throws IOException {
 
-	@Override
-	public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+		try {
 
-		if (attrs.isRegularFile()) {
+			createTemplate(file, fileName);
 
-			final String fileName = file.getFileName().toString();
-			if (fileName.endsWith(".html")) {
-
-				try {
-
-					createTemplate(file, fileName);
-
-				} catch (FrameworkException fex) {
-					logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
-				}
-			}
-
-		} else {
-
-			logger.warn("Unexpected directory {} found in components/ directory, ignoring", file.getFileName().toString());
+		} catch (FrameworkException fex) {
+			logger.warn("Exception while importing shared component {}: {}", new Object[] { name, fex.getMessage() });
 		}
-
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-
-		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
-		return FileVisitResult.CONTINUE;
 	}
 
 	// ----- private methods -----
