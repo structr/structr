@@ -35,7 +35,6 @@ import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -75,7 +74,6 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
@@ -118,12 +116,12 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.maintenance.deploy.ComponentImportVisitor;
+import org.structr.web.maintenance.deploy.ComponentImporter;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportFailureException;
 import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
-import org.structr.web.maintenance.deploy.PageImportVisitor;
-import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.web.maintenance.deploy.PageImporter;
+import org.structr.web.maintenance.deploy.TemplateImporter;
 import org.structr.websocket.command.CreateComponentCommand;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
@@ -1935,7 +1933,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing templates");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
-					Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
+					final TemplateImporter visitor = new TemplateImporter(templatesMetadata);
+					visitor.processFolderContentsSorted(templates);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing templates", ioex);
@@ -1953,16 +1952,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
+					final ComponentImporter visitor = new ComponentImporter(componentsMetadata, relativeVisibility);
 					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
 
 					// first, only import the HULL for each shared component (the outermost element)
 					visitor.setHullMode(true);
-					Files.walkFileTree(components, visitor);
+					visitor.processFolderContentsSorted(components);
 
 					// then, when all of those are imported, import their children so we know they all exist
 					visitor.setHullMode(false);
-					Files.walkFileTree(components, visitor);
+					visitor.processFolderContentsSorted(components);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing shared components", ioex);
@@ -1977,10 +1976,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					final PageImportVisitor visitor = new PageImportVisitor(pages, pagesMetadata, relativeVisibility);
+					final PageImporter visitor = new PageImporter(pages, pagesMetadata, relativeVisibility);
 					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
 
-					Files.walkFileTree(pages, visitor);
+					visitor.processFolderContentsSorted(pages);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);

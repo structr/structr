@@ -20,8 +20,6 @@ package org.structr.web.maintenance.deploy;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -34,7 +32,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.Tx;
@@ -51,9 +48,9 @@ import org.structr.websocket.command.CreateComponentCommand;
 /**
  *
  */
-public class ComponentImportVisitor implements FileVisitor<Path> {
+public class ComponentImporter extends HtmlFileImporter {
 
-	private static final Logger logger       = LoggerFactory.getLogger(ComponentImportVisitor.class.getName());
+	private static final Logger logger       = LoggerFactory.getLogger(ComponentImporter.class.getName());
 	private static final GenericProperty internalSharedTemplateKey = new GenericProperty("shared");
 
 	private Map<String, Object> configuration = null;
@@ -64,7 +61,7 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = null;
 
-	public ComponentImportVisitor(final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
+	public ComponentImporter(final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
 		this.relativeVisibility = relativeVisibility;
 		this.configuration      = pagesConfiguration;
@@ -73,45 +70,15 @@ public class ComponentImportVisitor implements FileVisitor<Path> {
 	}
 
 	@Override
-	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
-		return FileVisitResult.CONTINUE;
-	}
+	public void processFile(final Path file, final String fileName) throws IOException {
 
-	@Override
-	public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+		try {
 
-		if (attrs.isRegularFile()) {
+			createComponentChildren(file, fileName);
 
-			final String fileName = file.getFileName().toString();
-			if (fileName.endsWith(".html")) {
-
-				try {
-
-					createComponentChildren(file, fileName);
-
-				} catch (FrameworkException fex) {
-					logger.warn("Exception while importing shared component {}: {}", fileName, fex.toString());
-				}
-			}
-
-		} else {
-
-			logger.warn("Unexpected directory {} found in components/ directory, ignoring", file.getFileName().toString());
+		} catch (FrameworkException fex) {
+			logger.warn("Exception while importing shared component {}: {}", fileName, fex.toString());
 		}
-
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-
-		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
-		return FileVisitResult.CONTINUE;
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {
