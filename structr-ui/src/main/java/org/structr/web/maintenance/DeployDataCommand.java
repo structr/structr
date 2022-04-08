@@ -690,7 +690,7 @@ public class DeployDataCommand extends DeployCommand {
 
 					entry.put("sourceId", rel.getSourceNodeId());
 					entry.put("targetId", rel.getTargetNodeId());
-					entry.put("relType",  rel.getRelType());
+					entry.put("relType",  rel.getProperty("relType"));
 
 					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
 
