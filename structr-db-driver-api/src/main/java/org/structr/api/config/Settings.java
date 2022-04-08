@@ -126,6 +126,7 @@ public class Settings {
 	public static final Setting<String> ResourceHandlers         = new StringSetting(serverGroup,  "hidden",        "httpservice.resourcehandlers",         "StructrUiHandler", "This handler is needed to serve static files with the built-in Jetty container.");
 	public static final Setting<String> LifecycleListeners       = new StringSetting(serverGroup,  "hidden",        "httpservice.lifecycle.listeners",      "");
 	public static final Setting<Boolean> GzipCompression         = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.gzip.enabled",             true,  "Use GZIP compression for HTTP transfers");
+	public static final Setting<Integer> HttpConnectionRateLimit = new IntegerSetting(serverGroup, "HTTP Settings", "httpservice.connection.ratelimit", 20, "Defines the rate limit per connection for the HTTP Service.");
 	public static final Setting<Boolean> Async                   = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.async",                    true,  "Whether the HttpServices uses asynchronous request handling. Disable this option if you encounter problems with HTTP responses.");
 	public static final Setting<Boolean> HttpBasicAuthEnabled    = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.httpbasicauth.enabled",    false, "Enables HTTP Basic Auth support for pages and files");
 	public static final Setting<Boolean> SNIRequired             = new BooleanSetting(serverGroup, "HTTP Settings", "httpservice.sni.required",             false,  "Enables strict SNI check for the http service.");
@@ -137,6 +138,7 @@ public class Settings {
 	public static final Setting<Integer> MaxSessionsPerUser      = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.max.number",       -1,    "The maximum number of active sessions per user. Default is -1 (unlimited).");
 	public static final Setting<Boolean> ClearSessionsOnStartup  = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onstartup",  false, "Clear all sessions on startup if set to true.");
 	public static final Setting<Boolean> ClearSessionsOnShutdown = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onshutdown", false, "Clear all sessions on shutdown if set to true.");
+
 
 	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",             false, "Enables redirecting HTTP requests from the configured HTTP port to the configured HTTPS port (only works if HTTPS is active).");
 	public static final Setting<Boolean> HttpOnly               = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",        false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
