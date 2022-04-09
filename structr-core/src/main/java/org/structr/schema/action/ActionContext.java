@@ -464,12 +464,18 @@ public class ActionContext {
 							return Services.getInstance().getApplicationStore();
 
 						default:
-							final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
-							if (type != null) {
 
-								hints.reportExistingKey(key);
-								return type;
+							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
+							if (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, ".")) {
+
+								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
+								if (type != null) {
+
+									hints.reportExistingKey(key);
+									return type;
+								}
 							}
+
 							break;
 					}
 				}
