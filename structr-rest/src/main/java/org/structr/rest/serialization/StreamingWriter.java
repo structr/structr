@@ -405,7 +405,7 @@ public abstract class StreamingWriter {
 			if (source != null) {
 
 				hashCode = source.hashCode();
-				visitedObjects.add(hashCode);
+				final boolean notVisitedBefore = visitedObjects.add(hashCode);
 
 				if (source.getPropertyContainer() != null && source.getPropertyContainer().isDeleted()) {
 					skippedDeletedObjects++;
@@ -426,8 +426,13 @@ public abstract class StreamingWriter {
 
 					if (keys != null) {
 
-						// speciality for all, custom and ui view: limit recursive rendering to (id, name)
+						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
 						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
+							keys = idTypeNameOnly;
+						}
+
+						// speciality nested nodes which were already rendered: limit recursive rendering (id, type, name)
+						if (reduceRedundancy && !notVisitedBefore && depth > 0) {
 							keys = idTypeNameOnly;
 						}
 
@@ -455,11 +460,8 @@ public abstract class StreamingWriter {
 							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 
-								if (!(reduceRedundancy && value instanceof GraphObject && visitedObjects.contains(value.hashCode()))) {
-
-									writer.name(key.jsonName());
-									serializeProperty(writer, localKey, value, localPropertyView, depth+1, visitedObjects);
-								}
+								writer.name(key.jsonName());
+								serializeProperty(writer, localKey, value, localPropertyView, depth+1, visitedObjects);
 
 							} else {
 
