@@ -181,6 +181,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);
 
+		if (valid) {
+			// only if we are valid up to here, test for relationship uniqueness
+			valid &= isRelationshipDefinitionUnique(errorBuffer);
+		}
+
 		return valid;
 	}
 
@@ -196,8 +201,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		map.put(previousTargetJsonName, getProperty(targetJsonName));
 
 		setProperties(securityContext, map);
-
-		testIsDuplicateRelationship(errorBuffer);
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
@@ -219,8 +222,6 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		map.put(previousTargetJsonName, getProperty(targetJsonName));
 
 		setProperties(securityContext, map);
-
-		testIsDuplicateRelationship(errorBuffer);
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
@@ -1209,20 +1210,30 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	}
 
-	private void testIsDuplicateRelationship(final ErrorBuffer errorBuffer) throws FrameworkException {
+	private boolean isRelationshipDefinitionUnique(final ErrorBuffer errorBuffer) {
 
-		boolean isDuplicate = false;
-		final List<SchemaRelationshipNode> existingRelationships = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).and(relationshipType, this.getRelationshipType(), true).and(sourceNode, this.getSourceNode()).and(targetNode, this.getTargetNode()).getAsList();
+		boolean allow = true;
 
-		for (final SchemaRelationshipNode exRel : existingRelationships) {
-			if (!exRel.getUuid().equals(this.getUuid())) {
-				isDuplicate = true;
+		try {
+
+			final List<SchemaRelationshipNode> existingRelationships = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).and(relationshipType, this.getRelationshipType(), true).and(sourceNode, this.getSourceNode()).and(targetNode, this.getTargetNode()).getAsList();
+
+			for (final SchemaRelationshipNode exRel : existingRelationships) {
+				if (!exRel.getUuid().equals(this.getUuid())) {
+					allow = false;
+				}
 			}
+
+			if (!allow) {
+				errorBuffer.add(new DuplicateRelationshipToken(getClass().getSimpleName(), "Schema Relationship with same name between source and target node already exists. This is not allowed."));
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
 		}
 
-		if (isDuplicate) {
-			errorBuffer.add(new DuplicateRelationshipToken(getClass().getSimpleName(), "Schema Relationship with same name between source and target node already exists. This is not allowed."));
-		}
+		return allow;
 	}
 
 	// ----- public static methods -----
