@@ -63,8 +63,8 @@ public class FunctionPropertyTest extends StructrRestTestBase {
 			.body("result[0].functionTest.value",                 equalTo(123))
 			.body("result[0].functionTest.me.type",               equalTo("TestTen"))
 			.body("result[0].functionTest.me.id",                 equalTo(uuid))
-			.body("result[0].functionTest.me.functionTest.name",  equalTo("test"))
-			.body("result[0].functionTest.me.functionTest.value", equalTo(123))
+//			.body("result[0].functionTest.me.functionTest.name",  equalTo("test"))
+//			.body("result[0].functionTest.me.functionTest.value", equalTo(123))
 		.when()
 			.get("/TestTen");
 
