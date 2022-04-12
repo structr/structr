@@ -797,22 +797,20 @@ let Structr = {
 		let message = new MessageBuilder().error(text);
 		if (confirmationRequired) {
 			message.requiresConfirmation();
-		} else {
-			message.delayDuration(2000).fadeDuration(1000);
 		}
 		message.show();
 	},
-	errorFromResponse: function(response, url, additionalParameters) {
+	errorFromResponse: (response, url, additionalParameters) => {
 
-		var errorText = '';
+		let errorText = '';
 
 		if (response.errors && response.errors.length) {
 
-			var errorLines = [response.message];
+			let errorLines = [response.message];
 
-			response.errors.forEach(function(error) {
+			for (let error of response.errors) {
 
-				var errorMsg = (error.type ? error.type : '');
+				let errorMsg = (error.type ? error.type : '');
 				if (error.property) {
 					errorMsg += '.' + error.property;
 				}
@@ -827,7 +825,7 @@ let Structr = {
 				}
 
 				errorLines.push(errorMsg);
-			});
+			}
 
 			errorText = errorLines.join('<br>');
 
@@ -839,21 +837,21 @@ let Structr = {
 
 			errorText += response.code + '<br>';
 
-			Object.keys(response).forEach(function(key) {
+			for (let key in response) {
 				if (key !== 'code') {
 					errorText += '<b>' + key.capitalize() + '</b>: ' + response[key] + '<br>';
 				}
-			});
+			}
 		}
 
-		var message = new MessageBuilder().error(errorText);
+		let message = new MessageBuilder().error(errorText);
 
 		if (additionalParameters) {
 			if (additionalParameters.requiresConfirmation) {
 				message.requiresConfirmation();
 			}
 			if (additionalParameters.statusCode) {
-				var title = Structr.getErrorTextForStatusCode(additionalParameters.statusCode);
+				let title = Structr.getErrorTextForStatusCode(additionalParameters.statusCode);
 				if (title) {
 					message.title(title);
 				}
@@ -871,7 +869,7 @@ let Structr = {
 
 		message.show();
 	},
-	getErrorTextForStatusCode: function(statusCode) {
+	getErrorTextForStatusCode: (statusCode) => {
 		switch (statusCode) {
 			case 400: return 'Bad request';
 			case 401: return 'Authentication required';
@@ -2640,11 +2638,11 @@ function MessageBuilder () {
 
 	this.show = function() {
 
-		var uniqueMessageAlreadyPresented = false;
+		let uniqueMessageAlreadyPresented = false;
 
 		if (this.params.uniqueClass) {
 			// find existing one
-			var existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
+			let existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
 			if (existingMsgBuilder) {
 
 				uniqueMessageAlreadyPresented = true;
@@ -2664,7 +2662,7 @@ function MessageBuilder () {
 
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 
-					var selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
+					let selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
 					if (this.params.appendSelector !== '') {
 						selector += ' ' + this.params.appendSelector;
 					}
@@ -2686,10 +2684,10 @@ function MessageBuilder () {
 
 			$('#info-area').append(`
 				<div class="${this.params.classNames.join(' ')}" id="${this.params.msgId}">
-				${(this.params.title ? `<h3 class="title">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
-				<div class="text">${this.params.text}</div>
-				${(this.params.furtherText ? `<div class="furtherText">${this.params.furtherText}</div>` : '')}
-				<div class="message-buttons">${this.getButtonHtml()}</div>
+					${(this.params.title ? `<h3 class="title">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
+					<div class="text">${this.params.text}</div>
+					${(this.params.furtherText ? `<div class="furtherText">${this.params.furtherText}</div>` : '')}
+					<div class="message-buttons">${this.getButtonHtml()}</div>
 				</div>
 			`);
 

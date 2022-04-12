@@ -77,16 +77,15 @@ let _Code = {
 		});
 	},
 	updatedResizers: (left, right) => {
-		left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
+		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 
-		_Code.codeMain[0].querySelector('.column-resizer-left').style.left  = left + 'px';
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left = window.innerWidth - right + 'px';
+		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = left + 'px';
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = window.innerWidth - right + 'px';
 
 		document.getElementById('code-tree').style.width              = 'calc(' + left + 'px - 1rem)';
 		document.getElementById('code-context-container').style.width = 'calc(' + right + 'px - 3rem)';
-
-		document.getElementById('code-contents').style.width = 'calc(' + (window.innerWidth - left - right) + 'px - 4rem)';
+		document.getElementById('code-contents').style.width          = 'calc(' + (window.innerWidth - left - right) + 'px - 4rem)';
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -624,16 +623,16 @@ let _Code = {
 
 		return parts.join('-');
 	},
-	refreshTree: function() {
+	refreshTree: () => {
 		_TreeHelper.refreshTree(_Code.codeTree);
 	},
-	treeInitFunction: function(obj, callback) {
+	treeInitFunction: (obj, callback) => {
 
 		switch (obj.id) {
 
 			case '#':
 
-				var defaultEntries = [
+				let defaultEntries = [
 					{
 						id: 'globals-',
 						text: 'Global Methods',
@@ -695,180 +694,178 @@ let _Code = {
 
 		return allow;
 	},
-	displayFunction: function (result, identifier, dontSort, isSearch) {
+	displayFunction: (result, identifier, dontSort, isSearch) => {
 
-		var list = [];
+		let list = [];
 
-		result.forEach(function(entity) {
+		for (let entity of result) {
 
 			// skip HTML entities
-			if (entity.category && entity.category === 'html') {
-				return;
-			}
+			if (entity?.category !== 'html') {
 
-			var icon     = _Code.getIconForNodeType(entity);
-			var treeId = identifier.source + '-' + entity.id;
+				let icon     = _Code.getIconForNodeType(entity);
+				let treeId = identifier.source + '-' + entity.id;
 
-			switch (entity.type) {
+				switch (entity.type) {
 
-				case 'SchemaGroup':
-
-					list.push({
-						id: treeId,
-						text:  entity.name,
-						children: entity.children.length > 0,
-						icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
-						data: {
-							type: entity.type,
-							name: entity.name
-						}
-					});
-					break;
-
-				case 'SchemaNode':
-
-					var data = {
-						type: entity.name,
-						name: entity.name
-					};
-
-					var children = [];
-
-					// build list of children for this type
-					{
-						children.push({
-							id: treeId + '-properties',
-							text: 'Local Properties',
-							children: entity.schemaProperties.length > 0,
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
-
-						children.push({
-							id: treeId + '-remoteproperties',
-							text: 'Related Properties',
-							children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
-
-						children.push({
-							id: treeId + '-views',
-							text: 'Views',
-							children: entity.schemaViews.length > 0,
-							icon: 'fa fa-television gray',
-							data: data
-						});
-
-						children.push({
-							id: treeId + '-methods',
-							text: 'Methods',
-							children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
-							icon: 'fa fa-code gray',
-							data: data
-						});
-
-						children.push({
-							id: treeId + '-inheritedproperties',
-							text: 'Inherited Properties',
-							children: true,
-							icon: 'fa fa-sliders gray',
-							data: data
-						});
-					}
-
-					list.push({
-						id: treeId,
-						text:  entity.name,
-						children: children,
-						icon: 'fa fa-' + icon,
-						data: {
-							type: entity.type,
-							name: entity.name
-						}
-					});
-					break;
-
-				case 'SchemaRelationshipNode': {
-
-					let name = entity.name || '[unnamed]';
-					let listItemAttributes = {};
-
-					treeId = identifier.source + '-' + entity.id + '-' + name;
-
-					list.push({
-						id: treeId,
-						text:  name,
-						children: false,
-						icon: 'fa fa-' + icon,
-						li_attr: listItemAttributes,
-						data: {
-							type: entity.type,
-							name: entity.name,
-							entity: entity
-						}
-					});
-
-					break;
-				}
-
-				default:
-
-					var name = entity.name || '[unnamed]';
-
-					if (isSearch && entity.schemaNode) {
-						name = entity.schemaNode.name + '.' + name;
-						treeId = 'searchresults-' + _Code.createFullPath(entity);
-					}
-
-					if (entity.inherited) {
+					case 'SchemaGroup': {
 
 						list.push({
 							id: treeId,
-							text:  name + (' (' + (entity.propertyType || '') + ')'),
-							children: false,
-							icon: 'fa fa-' + icon,
-							li_attr: {
-								style: 'color: #aaa;'
-							},
+							text:  entity.name,
+							children: entity.children.length > 0,
+							icon: entity.name === _WorkingSets.recentlyUsedName ? _Icons.clock_icon : _Icons.folder_icon,
 							data: {
 								type: entity.type,
 								name: entity.name
 							}
 						});
 
-					} else {
+						break;
+					}
 
-						let hasVisibleChildren = _Code.hasVisibleChildren(identifier.root, entity);
+					case 'SchemaNode': {
+
+						let data = {
+							type: entity.name,
+							name: entity.name
+						};
+
+						let children = [
+							{
+								id: treeId + '-properties',
+								text: 'Local Properties',
+								children: entity.schemaProperties.length > 0,
+								icon: 'fa fa-sliders gray',
+								data: data
+							},
+							{
+								id: treeId + '-remoteproperties',
+								text: 'Related Properties',
+								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+								icon: 'fa fa-sliders gray',
+								data: data
+							},
+							{
+								id: treeId + '-views',
+								text: 'Views',
+								children: entity.schemaViews.length > 0,
+								icon: 'fa fa-television gray',
+								data: data
+							},
+							{
+								id: treeId + '-methods',
+								text: 'Methods',
+								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
+								icon: 'fa fa-code gray',
+								data: data
+							},
+							{
+								id: treeId + '-inheritedproperties',
+								text: 'Inherited Properties',
+								children: false,
+								icon: 'fa fa-sliders gray',
+								data: data
+							}
+						];
+
+						list.push({
+							id: treeId,
+							text:  entity.name,
+							children: children,
+							icon: 'fa fa-' + icon,
+							data: {
+								type: entity.type,
+								name: entity.name
+							}
+						});
+
+						break;
+					}
+
+					case 'SchemaRelationshipNode': {
+
+						let name = entity.name || '[unnamed]';
 						let listItemAttributes = {};
 
-						if (entity.type === 'SchemaMethod') {
-							name = name + '()';
-						}
-
-						if (entity.type === 'SchemaProperty') {
-							name = name + ' (' + entity.propertyType + ')';
-						}
+						treeId = identifier.source + '-' + entity.id + '-' + name;
 
 						list.push({
 							id: treeId,
 							text:  name,
-							children: hasVisibleChildren,
+							children: false,
 							icon: 'fa fa-' + icon,
 							li_attr: listItemAttributes,
 							data: {
 								type: entity.type,
-								name: entity.name
+								name: entity.name,
+								entity: entity
 							}
 						});
+
+						break;
 					}
-					break;
+
+					default: {
+
+						let name = entity.name || '[unnamed]';
+
+						if (isSearch && entity.schemaNode) {
+							name = entity.schemaNode.name + '.' + name;
+							treeId = 'searchresults-' + _Code.createFullPath(entity);
+						}
+
+						if (entity.inherited) {
+
+							list.push({
+								id: treeId,
+								text:  name + (' (' + (entity.propertyType || '') + ')'),
+								children: false,
+								icon: 'fa fa-' + icon,
+								li_attr: {
+									style: 'color: #aaa;'
+								},
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
+
+						} else {
+
+							let hasVisibleChildren = _Code.hasVisibleChildren(identifier.root, entity);
+							let listItemAttributes = {};
+
+							if (entity.type === 'SchemaMethod') {
+								name = name + '()';
+							}
+
+							if (entity.type === 'SchemaProperty') {
+								name = name + ' (' + entity.propertyType + ')';
+							}
+
+							list.push({
+								id: treeId,
+								text:  name,
+								children: hasVisibleChildren,
+								icon: 'fa fa-' + icon,
+								li_attr: listItemAttributes,
+								data: {
+									type: entity.type,
+									name: entity.name
+								}
+							});
+						}
+
+						break;
+					}
+				}
 			}
-		});
+		}
 
 		if (!dontSort) {
 
-			list.sort(function(a, b) {
+			list.sort((a, b) => {
 				if (a.text > b.text) { return 1; }
 				if (a.text < b.text) { return -1; }
 				return 0;
@@ -877,7 +874,7 @@ let _Code = {
 
 		identifier.callback(list);
 	},
-	load: function(obj, callback) {
+	load: (obj, callback) => {
 
 		let identifier = _Code.splitIdentifier(obj);
 
@@ -912,15 +909,16 @@ let _Code = {
 				break;
 		}
 	},
-	loadSearchResults: function(identifier) {
+	loadSearchResults: (identifier) => {
 
-		var text          = $('#tree-search-input').val();
-		var searchResults = {};
-		var count         = 0;
-		var collectFunction = function(result) {
-			result.forEach(function(r) {
+		let text          = $('#tree-search-input').val();
+		let searchResults = {};
+		let count         = 0;
+		let collectFunction = (result) => {
+			for (let r of result) {
 				searchResults[r.id] = r;
-			});
+			}
+
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
 				_Code.displayFunction(Object.values(searchResults), identifier, false, true);
@@ -931,7 +929,7 @@ let _Code = {
 
 		if (parts.length === 2 && parts[1].trim() !== '') {
 
-			let handleExactSchemaNodeSearch = function(result) {
+			let handleExactSchemaNodeSearch = (result) => {
 
 				if (result.length === 0) {
 					// because we will not find methods/properties if no schema node was found via exact search
@@ -985,21 +983,21 @@ let _Code = {
 		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
 
 	},
-	loadGlobalSchemaMethods: function(identifier) {
+	loadGlobalSchemaMethods: (identifier) => {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
 			Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: null}, result => _Code.displayFunction(result, identifier), true, 'ui');
 		}
 	},
-	loadCustomTypes: function(identifier) {
+	loadCustomTypes: (identifier) => {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
 			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isBuiltinType: false}, result => _Code.displayFunction(result, identifier), true);
 		}
 	},
-	loadWorkingSets: function(identifier) {
+	loadWorkingSets: (identifier) => {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else if (identifier.workingSetId) {
@@ -1008,7 +1006,7 @@ let _Code = {
 			_WorkingSets.getWorkingSets(result => _Code.displayFunction(result, identifier, true));
 		}
 	},
-	loadBuiltInTypes: function(identifier) {
+	loadBuiltInTypes: (identifier) => {
 		if (identifier.typeId) {
 			_Code.loadType(identifier);
 		} else {
@@ -1024,7 +1022,7 @@ let _Code = {
 			}, true, 'ui');
 	       }
 	},
-	loadTypeMembers: function(identifier) {
+	loadTypeMembers: (identifier) => {
 
 		switch (identifier.memberCollection) {
 
@@ -1044,12 +1042,12 @@ let _Code = {
 				_Code.loadMethods(identifier);
 				break;
 
-			case 'inheritedproperties':
-				_Code.loadInheritedProperties(identifier);
-				break;
+			// case 'inheritedproperties':
+			// 	_Code.loadInheritedProperties(identifier);
+			// 	break;
 		}
 	},
-	loadLocalProperties: function(identifier) {
+	loadLocalProperties: (identifier) => {
 		if (identifier.memberId) {
 		} else {
 			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { schemaNode: identifier.typeId }, function(result) {
@@ -1095,25 +1093,26 @@ let _Code = {
 			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
 		}, true, 'ui');
 	},
-	loadInheritedProperties: function(identifier) {
-		Command.listSchemaProperties(identifier.typeId, 'custom', function(result) {
-
-			let filtered = result.filter(function(p) {
-				return p.declaringClass !== identifier.obj.data.type;
-			});
-
-			_Code.displayFunction(filtered.map(function(s) {
-
-				return {
-					id: s.declaringUuid + '-' + s.name,
-					type: 'SchemaProperty',
-					name: s.declaringClass + '.' + s.name,
-					propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
-					inherited: true
-				};
-			}), identifier);
-		});
-	},
+	// loadInheritedProperties: function(identifier) {
+	//
+	// 	Command.listSchemaProperties(identifier.typeId, 'custom', function(result) {
+	//
+	// 		let filtered = result.filter(function(p) {
+	// 			return p.declaringClass !== identifier.obj.data.type;
+	// 		});
+	//
+	// 		_Code.displayFunction(filtered.map(function(s) {
+	//
+	// 			return {
+	// 				id: s.declaringUuid + '-' + s.name,
+	// 				type: 'SchemaProperty',
+	// 				name: s.declaringClass + '.' + s.name,
+	// 				propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
+	// 				inherited: true
+	// 			};
+	// 		}), identifier);
+	// 	});
+	// },
 	splitIdentifier: function(obj) {
 
 		let parts = obj.id.split('-');
@@ -1313,9 +1312,9 @@ let _Code = {
 						_Code.displayInheritedPropertiesContent(identifier, data.updateLocationStack);
 						break;
 
-					case 'inherited':
-						_Code.findAndOpenNode(identifier.source, true);
-						break;
+					// case 'inherited':
+					// 	_Code.findAndOpenNode(identifier.source, true);
+					// 	break;
 				}
 
 			} else if (identifier.typeId) {
@@ -2372,7 +2371,7 @@ let _Code = {
 			};
 		});
 	},
-	displayInheritedPropertiesContent: function(selection, updateLocationStack) {
+	displayInheritedPropertiesContent: (selection, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
 			_Code.updatePathLocationStack(selection.source);
@@ -2919,18 +2918,18 @@ let _Code = {
 	},
 	updatePathLocationButtons: function() {
 
-		var stackSize       = _Code.pathLocationStack.length;
-		var forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
-		var backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
+		let stackSize       = _Code.pathLocationStack.length;
+		let forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
+		let backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
 
 		$('#tree-forward-button').prop('disabled', forwardDisabled);
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
 	doSearch: function(e) {
-		var tree      = $('#code-tree').jstree(true);
-		var input     = $('#tree-search-input');
-		var text      = input.val();
-		var threshold = _Code.searchThreshold;
+		let tree      = $('#code-tree').jstree(true);
+		let input     = $('#tree-search-input');
+		let text      = input.val();
+		let threshold = _Code.searchThreshold;
 
 		if (text.length >= threshold) {
 			$('#cancel-search-button').show();
@@ -2981,9 +2980,9 @@ let _Code = {
 			}
 		);
 	},
-	runGlobalSchemaMethod: function(schemaMethod) {
+	runGlobalSchemaMethod: (schemaMethod) => {
 
-		Structr.dialog('Run global schema method ' + schemaMethod.name, function() {}, function() {
+		Structr.dialog('Run global schema method ' + schemaMethod.name, () => {}, () => {
 			$('#run-method').remove();
 			$('#clear-log').remove();
 		}, ['run-global-schema-method-dialog']);
@@ -3000,7 +2999,7 @@ let _Code = {
 
 		Structr.appendInfoTextToElement({
 			element: $('#params h3'),
-			text: "Parameters can be accessed by using the <code>retrieve()</code> function.",
+			text: "Parameters can be accessed in the called method by using the <code>retrieve()</code> function.",
 			css: { marginLeft: "5px" },
 			helpElementCss: { fontSize: "12px" }
 		});

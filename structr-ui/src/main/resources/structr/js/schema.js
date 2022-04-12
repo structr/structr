@@ -1044,19 +1044,19 @@ let _Schema = {
 		let contentDiv = $('<div class="schema-details"></div>');
 		contentEl.append(contentDiv);
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, (c) => {
 			_Schema.properties.appendLocalProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, (c) => {
 			_Schema.views.appendViews(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, (c) => {
 			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 		}, null, _Editors.resizeVisibleEditors);
 
-		let selectRelationshipOptions = function(rel) {
+		let selectRelationshipOptions = (rel) => {
 			$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
 			$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
 			$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
@@ -1152,7 +1152,7 @@ let _Schema = {
 			cancelButton.show();
 		});
 
-		saveButton.off('click').on('click', (e) => {
+		saveButton.off('click').on('click', async (e) => {
 
 			let newData = _Schema.getRelationshipDefinitionDataFromForm();
 			let relType = newData.relationshipType;
@@ -1178,37 +1178,18 @@ let _Schema = {
 				saveButton.hide();
 				cancelButton.hide();
 
-				_Schema.updateRelationship(entity, newData, () => {
-
-					for (let attribute in newData) {
-						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
-						entity[attribute] = newData[attribute];
-					}
-
+				let success = await _Schema.updateRelationship(entity, newData);
+				if (success) {
 					if (saveSuccessFunction) {
 						saveSuccessFunction();
 					} else {
 						_Schema.reload();
 					}
-
-				}, function(data) {
-
-					var additionalInformation = {};
-
-					if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
-						additionalInformation.requiresConfirmation = true;
-						additionalInformation.title = 'Error';
-						additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
-					}
-
-					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
+				} else {
 					editButton.click();
-
-					for (let attribute in newData) {
-						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
-					}
-				});
+				}
+			} else {
+				cancelButton.click();
 			}
 		});
 
@@ -3164,16 +3145,7 @@ let _Schema = {
 
 		} else {
 
-			let additionalInformation  = {};
-			let hasDuplicateClassError = responseData.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); });
-
-			if (hasDuplicateClassError) {
-				additionalInformation.requiresConfirmation = true;
-				additionalInformation.title = 'Error';
-				additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + relData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
-			}
-
-			Structr.errorFromResponse(responseData, null, additionalInformation);
+			_Schema.reportRelationshipError(data, data, responseData);
 		}
 	},
 	removeRelationshipDefinition: async (id) => {
@@ -3198,13 +3170,14 @@ let _Schema = {
 		}
 
 	},
-	updateRelationship: async (entity, newData, onSuccess, onError, onNoChange) => {
+	updateRelationship: async (entity, newData) => {
 
 		_Schema.showSchemaRecompileMessage();
 
 		let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
 
 		if (getResponse.ok) {
+
 			let existingData = await getResponse.json();
 
 			let hasChanges = Object.keys(newData).some((key) => {
@@ -3219,28 +3192,52 @@ let _Schema = {
 				});
 
 				_Schema.hideSchemaRecompileMessage();
-				let updatedData = await putResponse.json();
+				let responseData = await putResponse.json();
 
 				if (putResponse.ok) {
 
-					onSuccess?.(updatedData);
+					for (let attribute in newData) {
+						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
+						entity[attribute] = newData[attribute];
+					}
+
+					return true;
 
 				} else {
 
-					onError?.(updatedData);
+					_Schema.reportRelationshipError(existingData.result, newData, responseData);
+
+					for (let attribute in newData) {
+						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
+					}
+
+					return false;
 				}
 
 			} else {
 
 				// force a schema-reload so that we dont break the relationships
-				if (onNoChange) {
-					onNoChange();
-				}
-
 				_Schema.reload();
 				_Schema.hideSchemaRecompileMessage();
 			}
 		}
+	},
+	reportRelationshipError: (relData, newData, responseData) => {
+
+		let additionalInformation  = {};
+		let hasDuplicateClassError = responseData.errors.some((e) => { return (e.token === 'duplicate_relationship'); });
+
+		if (hasDuplicateClassError) {
+
+			let relType = newData?.relationshipType ?? relData.relationshipType;
+
+			additionalInformation.requiresConfirmation = true;
+			additionalInformation.title                = 'Error';
+			additionalInformation.furtherText          = 'You are trying to create a second relationship named <strong>' + relType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+			additionalInformation.requiresConfirmation = true;
+		}
+
+		Structr.errorFromResponse(responseData, null, additionalInformation);
 	},
 	askDeleteRelationship: (resId, name) => {
 		Structr.confirmation(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`,

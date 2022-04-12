@@ -50,6 +50,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -196,6 +197,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		setProperties(securityContext, map);
 
+		testIsDuplicateRelationship(errorBuffer);
+
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
 	}
@@ -216,6 +219,8 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		map.put(previousTargetJsonName, getProperty(targetJsonName));
 
 		setProperties(securityContext, map);
+
+		testIsDuplicateRelationship(errorBuffer);
 
 		// register transaction post processing that recreates the schema information
 		TransactionCommand.postProcess("reloadSchema", new ReloadSchema(false));
@@ -1202,6 +1207,22 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 		}
 
+	}
+
+	private void testIsDuplicateRelationship(final ErrorBuffer errorBuffer) throws FrameworkException {
+
+		boolean isDuplicate = false;
+		final List<SchemaRelationshipNode> existingRelationships = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).and(relationshipType, this.getRelationshipType(), true).and(sourceNode, this.getSourceNode()).and(targetNode, this.getTargetNode()).getAsList();
+
+		for (final SchemaRelationshipNode exRel : existingRelationships) {
+			if (!exRel.getUuid().equals(this.getUuid())) {
+				isDuplicate = true;
+			}
+		}
+
+		if (isDuplicate) {
+			errorBuffer.add(new DuplicateRelationshipToken(getClass().getSimpleName(), "Schema Relationship with same name between source and target node already exists. This is not allowed."));
+		}
 	}
 
 	// ----- public static methods -----

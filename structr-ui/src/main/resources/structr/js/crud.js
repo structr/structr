@@ -176,7 +176,7 @@ let _Crud = {
 
 				} else {
 
-					new MessageBuilder().error('No type information found for type: ' + type).delayDuration(5000).fadeDuration(1000).show();
+					new MessageBuilder().error('No type information found for type: ' + type).delayDuration(5000).show();
 					_Crud.showMessageAfterDelay('No type information found for type: <b>' + type + '</b>', 500);
 				}
 
@@ -1351,7 +1351,7 @@ let _Crud = {
 
 		if (response.ok) {
 
-			new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').delayDuration(2000).fadeDuration(1000).show();
+			new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').show();
 			_Crud.typeSelected(type);
 
 		} else {
