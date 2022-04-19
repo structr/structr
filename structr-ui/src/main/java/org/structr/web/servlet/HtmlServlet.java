@@ -508,7 +508,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							try {
 
-								writeOutputSteam (response, buffer);
+								writeOutputStream(response, buffer);
 
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
@@ -943,7 +943,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		});
 	}
 
-	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
