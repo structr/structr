@@ -200,7 +200,7 @@ let _Pages = {
 
 		_Pages.refresh();
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		const isPage             = (entity.type === 'Page');
 		const isContent          = (entity.type === 'Content');
@@ -663,12 +663,11 @@ let _Pages = {
 
 		_Editors.resizeVisibleEditors();
 	},
-	refresh: function() {
+	refresh: () => {
 
 		fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		let functionBarHtml = _Pages.templates.functions();
-		Structr.functionBar.innerHTML = functionBarHtml;
+		Structr.functionBar.innerHTML = _Pages.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -700,7 +699,7 @@ let _Pages = {
 		let pagesPager = $('#pagesPager');
 		let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true, true);
 
-		pPager.cleanupFunction = function () {
+		pPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_Pages.pagesTree[0]);
 		};
 
@@ -751,16 +750,29 @@ let _Pages = {
 			dialog.empty();
 			dialogMsg.empty();
 
-			dialog.append('<h3>Create page from source code ...</h3>'
-					+ '<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>');
-
-			dialog.append('<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3><table class="props">'
-					+ '<tr><td><label for="name">Name of new page:</label></td><td><input id="_name" name="name" size="20"></td></tr>'
-					+ '<tr><td><label for="publicVisibilty">Visible to public</label></td><td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>'
-					+ '<tr><td><label for="authVisibilty">Visible to authenticated users</label></td><td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>'
-					+ '<tr><td><label for="includeInExport">Include imported files in deployment export</label></td><td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>'
-					+ '<tr><td><label for="processDeploymentInfo">Process deployment annotations</label></td><td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>'
-					+ '</table>');
+			dialog.append(`
+				<h3>Create page from source code ...</h3>
+				<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
+				
+				<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
+				<table class="props">
+					<tr>
+						<td><label for="name">Name of new page:</label></td>
+						<td><input id="_name" name="name" size="20"></td></tr>
+					<tr>
+						<td><label for="publicVisibilty">Visible to public</label></td>
+						<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
+					<tr>
+						<td><label for="authVisibilty">Visible to authenticated users</label></td>
+						<td><input type="checkbox" id="_authVisible" name="authVisibilty"></td></tr>
+					<tr>
+						<td><label for="includeInExport">Include imported files in deployment export</label></td>
+						<td><input type="checkbox" id="_includeInExport" name="includeInExport" checked="checked"></td></tr>
+					<tr>
+						<td><label for="processDeploymentInfo">Process deployment annotations</label></td>
+						<td><input type="checkbox" id="_processDeploymentInfo" name="processDeploymentInfo"></td></tr>
+				</table>
+			`);
 
 			$('#_address', dialog).on('blur', function() {
 				let addr = $(this).val().replace(/\/+$/, "");
@@ -789,36 +801,53 @@ let _Pages = {
 		});
 
 		// Display 'Create Page' dialog
-		$('#create_page').on('click', function(e) {
+		let createPageButton = document.querySelector('#create_page');
+		createPageButton.addEventListener('click', async (e) => {
 
-			_Widgets.fetchAllPageTemplateWidgets(function(result) {
+			e.stopPropagation();
 
-				e.stopPropagation();
+			let pageTemplates = await _Widgets.fetchAllPageTemplateWidgets();
 
-				Structr.dialog('Select Template to Create New Page', function() {}, function() {});
+			if (pageTemplates.length === 0) {
+
+				Command.createSimplePage();
+				blinkGreen(createPageButton);
+
+			} else {
+
+				Structr.dialog('Select Template to Create New Page', () => {}, () => {});
 
 				dialog.empty();
 				dialogMsg.empty();
-				dialog.append('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
+				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
+				dialog.append(dialogDom);
 
-				$('#create-simple-page').on('click', function() {
+				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
+				createSimplePageButton.addEventListener('click', () => {
 					Command.createSimplePage();
+					blinkGreen(createSimplePageButton);
 				});
 
 				let container = $('#template-tiles');
 
-				for (let widget of result) {
+				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					container.append('<div class="app-tile"><h4>' + widget.name + '</h4><br><p>' + (widget.description || '') + '</p><button class="action" id="' + id + '">Create</button></div>');
-					$('#' + id).on('click', function() {
-						Command.create({ type: 'Page' }, function(page) {
+					let dom = Structr.createSingleDOMElementFromHTML(`<div class="app-tile"><h4>${widget.name}</h4><br><p>${(widget.description || '')}</p><button class="action" id="${id}">Create</button></div>`);
+
+					let createPageButton = dom.querySelector('#' + id);
+					createPageButton.addEventListener('click', () => {
+						Command.create({ type: 'Page' }, (page) => {
 							Structr.removeExpandedNode(page.id);
 							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
+
+							blinkGreen(createPageButton);
 						});
 					});
+
+					container.append(dom);
 				}
-			});
+			}
 		});
 
 		Structr.adaptUiToAvailableFeatures();
@@ -834,7 +863,7 @@ let _Pages = {
 			});
 		}
 	},
-	removePage: function(page) {
+	removePage: (page) => {
 
 		Structr.removeExpandedNode(page.id);
 	},

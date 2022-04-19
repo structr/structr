@@ -855,14 +855,14 @@ let _Widgets = {
 
 		return [];
 	},
-	fetchAllPageTemplateWidgets: async function(callback) {
+	fetchAllPageTemplateWidgets: async () => {
 
 		let widgets = [];
 
 		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
 		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
 
-		callback(widgets.concat(remotePageWidgets).concat(localPageWidgets));
+		return widgets.concat(remotePageWidgets).concat(localPageWidgets);
 	},
 	fetchRemoteWidgets: async (url, fallbackUrl) => {
 
