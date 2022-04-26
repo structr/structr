@@ -31,18 +31,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
@@ -70,7 +72,6 @@ import org.structr.schema.openapi.result.OpenAPIWriteResponseSchema;
 import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
@@ -80,6 +81,8 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
+
+	private SecurityContext securityContext;
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -95,24 +98,48 @@ public class OpenAPIServlet extends AbstractDataServlet {
 		response.setCharacterEncoding("UTF-8");
 		response.setContentType("application/json");
 
-		try (final Writer writer = response.getWriter()) {
+		try {
 
-			final Authenticator auth = getConfig().getAuthenticator();
+			assertInitialized();
+
+			Authenticator authenticator = null;
+
+			// isolate request authentication in a transaction
 			// Ensure CORS settings apply by letting the authenticator examine the request.
-			auth.initializeAndExamineRequest(request, response);
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getConfig().getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
+			}
 
-			gson.toJson(createOpenAPIRoot(request, tag), writer);
+			// isolate resource authentication
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
 
-			response.setStatus(HttpServletResponse.SC_OK);
-			response.setHeader("Cache-Control", "no-cache");
+				authenticator.checkResourceAccess(securityContext, request, "_openapi", "");
 
-			writer.append("\n");
-			writer.flush();
+				tx.success();
+			}
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+			try (final Writer writer = response.getWriter()) {
+
+				gson.toJson(createOpenAPIRoot(request, tag), writer);
+
+				response.setStatus(HttpServletResponse.SC_OK);
+				response.setHeader("Cache-Control", "no-cache");
+
+				writer.append("\n");
+				writer.flush();
+
+			} catch (FrameworkException fex) {
+				fex.printStackTrace();
+			}
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status
+			response.setStatus(frameworkException.getStatus());
 		}
-
 	}
 
 	@Override
