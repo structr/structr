@@ -395,29 +395,29 @@ let _Dragndrop = {
 				return false;
 			}
 
-			if (selectedElements.length > 1) {
+			if (_Files.selectedElements.length > 1) {
 
-				$.each(selectedElements, function(i, fileEl) {
+				$.each(_Files.selectedElements, function(i, fileEl) {
 					let fileId = Structr.getId(fileEl);
 
 					if (fileId === target.id) {
 						return false;
 					}
 
-					Command.appendFile(fileId, target.id, function() {
+					Command.appendFile(fileId, target.id, () => {
 						if (refreshTimeout) {
 							window.clearTimeout(refreshTimeout);
 						}
-						refreshTimeout = window.setTimeout(function() {
+						refreshTimeout = window.setTimeout(() => {
 							_Files.refreshTree();
 							refreshTimeout = 0;
 						}, 100);
 					});
 				});
-				selectedElements = [];
+				_Files.selectedElements = [];
 
 			} else {
-				Command.appendFile(source.id, target.id, function() {
+				Command.appendFile(source.id, target.id, () => {
 					_Files.refreshTree();
 				});
 			}

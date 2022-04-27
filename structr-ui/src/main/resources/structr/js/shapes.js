@@ -29,7 +29,7 @@ let _Shapes = {
 	autoRefresh: [],
 	onload: function() {
 
-		main.append('');
+		Structr.mainContainer.innerHTML = '';
 
 		_Shapes.init();
 

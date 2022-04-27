@@ -38,8 +38,8 @@ let _VirtualTypes = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
-		main[0].innerHTML             = _VirtualTypes.templates.main();
-		Structr.functionBar.innerHTML = _VirtualTypes.templates.functions();
+		Structr.mainContainer.innerHTML = _VirtualTypes.templates.main();
+		Structr.functionBar.innerHTML   = _VirtualTypes.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -93,7 +93,7 @@ let _VirtualTypes = {
 		Structr.unblockMenu(100);
 
 		_VirtualTypes.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
 
 		_VirtualTypes.resize();
 	},

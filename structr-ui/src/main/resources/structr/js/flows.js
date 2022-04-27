@@ -22,7 +22,7 @@ import { FlowEditor }          from "./flow-editor/src/js/editor/FlowEditor.js";
 import { LayoutModal }         from "./flow-editor/src/js/editor/utility/LayoutModal.js";
 import { Rest }                from "./lib/structr/rest/Rest.js";
 
-let main, flowsMain, flowsTree, flowsCanvas, nodeEditor;
+let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 
@@ -140,8 +140,7 @@ let _Flows = {
 		let rest = new Rest();
 		let persistence = new Persistence();
 
-		main = document.querySelector('#main');
-		main.innerHTML = _Flows.templates.main();
+		Structr.mainContainer.innerHTML = _Flows.templates.main();
 		Structr.functionBar.innerHTML = _Flows.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();

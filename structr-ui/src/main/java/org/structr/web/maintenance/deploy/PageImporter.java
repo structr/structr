@@ -20,11 +20,8 @@ package org.structr.web.maintenance.deploy;
 
 import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -45,12 +42,9 @@ import org.structr.web.maintenance.DeployCommand;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-/**
- *
- */
-public class PageImportVisitor implements FileVisitor<Path> {
+public class PageImporter extends HtmlFileImporter {
 
-	private static final Logger logger        = LoggerFactory.getLogger(PageImportVisitor.class.getName());
+	private static final Logger logger        = LoggerFactory.getLogger(PageImporter.class.getName());
 	private static final String DoctypeString = "<!DOCTYPE";
 
 	private Map<String, Object> pagesConfiguration = null;
@@ -61,7 +55,7 @@ public class PageImportVisitor implements FileVisitor<Path> {
 
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = null;
 
-	public PageImportVisitor(final Path basePath, final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
+	public PageImporter(final Path basePath, final Map<String, Object> pagesConfiguration, final boolean relativeVisibility) {
 
 		this.pagesConfiguration = pagesConfiguration;
 		this.securityContext    = SecurityContext.getSuperUserInstance();
@@ -72,52 +66,15 @@ public class PageImportVisitor implements FileVisitor<Path> {
 	}
 
 	@Override
-	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
+	public void processFile(final Path file, final String fileName) throws IOException {
 
 		try {
 
-			if (attrs.isDirectory()) {
+			createPage(file, fileName);
 
-				createFolder(file);
-
-			} else if (attrs.isRegularFile()) {
-
-				final String fileName = file.getFileName().toString();
-				if (fileName.endsWith(".html")) {
-
-					try {
-
-						createPage(file, fileName);
-
-					} catch (FrameworkException fex) {
-						logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.toString()});
-					}
-				}
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("", t);
+		} catch (FrameworkException fex) {
+			logger.warn("Exception while importing page {}: {}", new Object[] { fileName, fex.toString()});
 		}
-
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
-
-		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
-		return FileVisitResult.CONTINUE;
-	}
-
-	@Override
-	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
-		return FileVisitResult.CONTINUE;
 	}
 
 	public void setDeferredNodesAndTheirProperties(final Map<DOMNode, PropertyMap> data) {

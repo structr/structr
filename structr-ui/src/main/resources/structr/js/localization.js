@@ -48,8 +48,8 @@ let _Localization = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('localization'));
 
-		main[0].innerHTML             = _Localization.templates.main();
-		Structr.functionBar.innerHTML = _Localization.templates.functions();
+		Structr.mainContainer.innerHTML = _Localization.templates.main();
+		Structr.functionBar.innerHTML   = _Localization.templates.functions();
 
 		document.getElementById('add-new-translation').addEventListener('click', (event) => {
 			event.preventDefault();
@@ -121,7 +121,7 @@ let _Localization = {
 		Structr.unblockMenu(100);
 
 		_Localization.moveResizer();
-		Structr.initVerticalSlider($('.column-resizer', main), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
 
 		_Localization.resize();
 	},

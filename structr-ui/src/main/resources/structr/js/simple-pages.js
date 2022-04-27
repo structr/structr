@@ -18,7 +18,6 @@
  */
 document.addEventListener('DOMContentLoaded', function() {
 	Structr.registerModule(_SimplePages);
-	// Structr.classes.push('');
 });
 
 let _SimplePages = {
@@ -32,8 +31,7 @@ let _SimplePages = {
 
 	onload: function() {
 
-		main[0].innerHTML = _SimplePages.templates.main();
-
+		Structr.mainContainer.innerHTML   = _SimplePages.templates.main();
 		_SimplePages.components.main      = document.querySelector('#simple-pages-main');
 		_SimplePages.components.tree      = document.querySelector('#simple-pages-tree');
 		_SimplePages.components.contents  = document.querySelector('#simple-pages-contents');

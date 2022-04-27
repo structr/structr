@@ -100,6 +100,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
 	);
 
+	public static final View schemaView = new View(SchemaNode.class, "schema",
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+	);
+
 	public static final View exportView = new View(SchemaMethod.class, "export",
 		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
 	);

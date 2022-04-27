@@ -43,8 +43,8 @@ let _MailTemplates = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('mail-templates'));
 
-		main[0].innerHTML             = _MailTemplates.templates.main();
-		Structr.functionBar.innerHTML = _MailTemplates.templates.functions();
+		Structr.mainContainer.innerHTML = _MailTemplates.templates.main();
+		Structr.functionBar.innerHTML   = _MailTemplates.templates.functions();
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -127,7 +127,7 @@ let _MailTemplates = {
 
 		Structr.unblockMenu(100);
 
-		Structr.initVerticalSlider($('.column-resizer', main), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 
 		_MailTemplates.moveResizer(LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey));
 	},

@@ -111,21 +111,24 @@ let _Widgets = {
 				var sourceWidget = StructrModel.obj(sourceId);
 
 				if (sourceWidget && sourceWidget.isWidget) {
+
 					if (sourceWidget.treePath) {
 						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
+
 				} else if (sourceId) {
-					$.ajax({
-						url: Structr.viewRootUrl + sourceId + '?edit=1',
-						contentType: 'text/html',
-						statusCode: {
-							200: function(data) {
-								Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, (entity) => {
-									_Elements.dropBlocked = false;
-								});
-							}
+
+					fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
+
+						if (response.ok) {
+
+							let text = await response.text();
+
+							Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', text, (entity) => {
+								_Elements.dropBlocked = false;
+							});
 						}
 					});
 				}
@@ -852,14 +855,14 @@ let _Widgets = {
 
 		return [];
 	},
-	fetchAllPageTemplateWidgets: async function(callback) {
+	fetchAllPageTemplateWidgets: async () => {
 
 		let widgets = [];
 
 		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
 		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
 
-		callback(widgets.concat(remotePageWidgets).concat(localPageWidgets));
+		return widgets.concat(remotePageWidgets).concat(localPageWidgets);
 	},
 	fetchRemoteWidgets: async (url, fallbackUrl) => {
 

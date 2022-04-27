@@ -135,7 +135,7 @@ public class Services implements StructrServices {
 	private static void checkJavaRuntime() {
 
 		final int expectedMajorVersion = 22;
-		final int expectedMinorVersion = 0;
+		final int expectedMinorVersion = 1;
 
 		final Version expectedVersion  = org.graalvm.home.Version.create(expectedMajorVersion, expectedMinorVersion);
 		final Version foundVersion     = org.graalvm.home.Version.getCurrent();

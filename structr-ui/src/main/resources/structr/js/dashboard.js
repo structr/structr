@@ -99,11 +99,8 @@ let _Dashboard = {
 			templateConfig.dataImportRebuildIndexes     = LSWrapper.getItem(_Dashboard.deployment.dataImportRebuildIndexes, true);
 			templateConfig.zipDataImportRebuildIndexes  = LSWrapper.getItem(_Dashboard.deployment.zipDataImportRebuildIndexes, true);
 
-			let mainHtml        = _Dashboard.templates.main(templateConfig);
-			let functionBarHtml = _Dashboard.templates.functions();
-
-			main[0].innerHTML = mainHtml;
-			Structr.functionBar.innerHTML = functionBarHtml;
+			Structr.mainContainer.innerHTML = _Dashboard.templates.main(templateConfig);
+			Structr.functionBar.innerHTML   = _Dashboard.templates.functions();
 
 			UISettings.showSettingsForCurrentModule();
 

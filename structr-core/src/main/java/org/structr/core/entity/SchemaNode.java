@@ -115,7 +115,7 @@ public class SchemaNode extends AbstractSchemaNode {
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
+		name, extendsClass, implementsInterfaces, relatedTo, relatedFrom, defaultSortKey, defaultSortOrder, isBuiltinType, hierarchyLevel, relCount, isInterface, isAbstract, category, schemaGrants, defaultVisibleToPublic, defaultVisibleToAuth, tags, summary, description, includeInOpenAPI
 	);
 
 	public static final View exportView = new View(SchemaNode.class, "export",

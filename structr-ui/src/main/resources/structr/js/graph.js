@@ -215,8 +215,8 @@ var _Graph = {
 			graphBrowser.startForceAtlas2();
 		});
 
-		main[0].innerHTML             = _Graph.templates.main();
-		Structr.functionBar.innerHTML = _Graph.templates.functions();
+		Structr.mainContainer.innerHTML = _Graph.templates.main();
+		Structr.functionBar.innerHTML   = _Graph.templates.functions();
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
 
@@ -669,34 +669,6 @@ var _Graph = {
 		// });
 	},
 
-	loadTypeDefinition: function(type, callback) {
-		var url = Structr.rootUrl + '_schema/' + type;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				200: function(data) {
-					if (callback) {
-						callback(data.result[0]);
-					}
-				},
-				401: function(data) {
-					console.log(data);
-				},
-				404: function(data) {
-					console.log(data);
-				},
-				422: function(data) {
-					console.log(data);
-				}
-			}
-		}).always(function(data) {
-			if (callback) {
-				callback(data.result[0]);
-			}
-		});
-	},
 	getTypeVisibilityConfig: function () {
 
 		return {

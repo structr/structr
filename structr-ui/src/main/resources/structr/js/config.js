@@ -433,32 +433,40 @@ function addConnection(button) {
 		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 	}
 
-	$.ajax({
-		type: 'post',
-		url: Structr.getPrefixedRootUrl('/structr/config/add'),
-		data: data,
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/add'), {
+		method: 'POST',
+		body: convertObjectToFormEncoded(data),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
 
+function convertObjectToFormEncoded (obj) {
+	return Object.entries(obj).map(([key, value]) => {
+		return key + '=' + encodeURIComponent(value);
+	}).join('&');
+}
+
 function deleteConnection(name) {
 
-	$.ajax({
-		type: 'post',
-		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/delete',
-		data: {
-			'active_section': '#databases'
-		},
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response),
-			503: response => handleErrorResponse(name, response)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/delete', {
+		method: 'POST',
+		body: convertObjectToFormEncoded({'active_section': '#databases'}),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response);
 		}
 	});
 }
@@ -480,20 +488,22 @@ function saveConnection(name) {
 		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 	}
 
-	$.ajax({
-		type: 'post',
-		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/use',
-		data: data,
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response),
-			503: response => handleErrorResponse(name, response)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/use', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(data),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response);
 		}
 	});
 }
 
-function reload(response) {
+function reload() {
 
 	_Config.hideNonBlockUILoadingMessage();
 
@@ -513,15 +523,17 @@ function connect(button, name) {
 
 	_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 
-	$.ajax({
-		type: 'post',
-		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/connect',
-		data: collectData(name),
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/connect', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(collectData(name)),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
@@ -538,24 +550,26 @@ function disconnect(button, name) {
 
 	_Config.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
 
-	$.ajax({
-		type: 'post',
-		url: Structr.getPrefixedRootUrl('/structr/config/') + name + '/disconnect',
-		data: collectData(name),
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/disconnect', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(collectData(name)),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
 
-function handleErrorResponse(name, response, button) {
+async function handleErrorResponse(name, response, button) {
 
 	_Config.hideNonBlockUILoadingMessage();
 
-	let json = response.responseJSON;
+	let json = await response.json();
 
 	if (!name) {
 		name = 'structr-new-connection';

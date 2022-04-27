@@ -35,11 +35,9 @@ let _Apps = {
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 
-			let html = _Apps.templates.apps({ hideInfo: _Apps.deployServletAvailable });
+			Structr.mainContainer.innerHTML = _Apps.templates.apps({ hideInfo: _Apps.deployServletAvailable });
 
-			main.append(html);
-
-			_Apps.appsContainer = $('#apps', main);
+			_Apps.appsContainer = Structr.mainContainer.querySelector('#apps');
 
 			_Apps.loadData();
 
@@ -63,11 +61,9 @@ let _Apps = {
 			}
 		}
 	},
-	appendCategory: function(category) {
+	appendCategory: (category) => {
 
-		let html = _Apps.templates.category(category);
-
-		_Apps.appsContainer.append(html);
+		_Apps.appsContainer.insertAdjacentHTML('beforeend', _Apps.templates.category(category));
 
 		let container = $('#' + category.id);
 

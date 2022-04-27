@@ -86,7 +86,7 @@ let StructrWS = {
 				// Delay reconnect dialog to prevent it popping up before page reload
 				window.setTimeout(() => {
 
-					fastRemoveAllChildren(main[0]);
+					fastRemoveAllChildren(Structr.mainContainer);
 					fastRemoveAllChildren(Structr.functionBar);
 
 					Structr.reconnectDialog();

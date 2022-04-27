@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-let localStorageSuffix = '_schema_' + location.port;
 
 $(document).ready(function() {
 	Structr.registerModule(_Schema);
@@ -48,18 +47,19 @@ let _Schema = {
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
 	activeSchemaToolsSelectedVisibilityTab: 'activeSchemaToolsSelectedVisibilityTab_' + location.port,
-	schemaZoomLevelKey: localStorageSuffix + 'zoomLevel',
-	schemaConnectorStyleKey: localStorageSuffix + 'connectorStyle',
+	schemaZoomLevelKey: '_schema_' + location.port + 'zoomLevel',
+	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
+	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
 	showJavaMethods: false,
 	inheritanceTree: undefined,
 	inheritanceSlideout: undefined,
 	onload: () => {
 
-		main[0].innerHTML           = _Schema.templates.main();
-		_Schema.inheritanceSlideout = $('#inheritance-tree');
-		_Schema.inheritanceTree     = $('#inheritance-tree-container');
-		_Schema.ui.canvas           = $('#schema-graph');
+		Structr.mainContainer.innerHTML = _Schema.templates.main();
+		_Schema.inheritanceSlideout     = $('#inheritance-tree');
+		_Schema.inheritanceTree         = $('#inheritance-tree-container');
+		_Schema.ui.canvas               = $('#schema-graph');
 
 		_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
 			if (e.which === 1) {
@@ -401,11 +401,11 @@ let _Schema = {
 					let typeNames = data.result.map(entity => entity.name);
 					for (let typeName of typeNames) {
 
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + localStorageSuffix + 'node-position'));
+						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
 						if (nodePos) {
 							nodePositions[typeName] = nodePos.position;
 
-							LSWrapper.removeItem(typeName + localStorageSuffix + 'node-position');
+							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
 						}
 					}
 
@@ -1000,11 +1000,14 @@ let _Schema = {
 
 		Structr.resize();
 	},
-	appendCascadingDeleteHelpText: function() {
+	appendCascadingDeleteHelpText: () => {
+
 		Structr.appendInfoTextToElement({
 			text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
 			element: $('#cascading-delete-selector'),
-			insertAfter: true
+			customToggleIconClasses: ['ml-2', 'icon-blue'],
+			insertAfter: true,
+			noSpan: true
 		});
 	},
 	getRelationshipDefinitionDataFromForm: function() {
@@ -1041,19 +1044,19 @@ let _Schema = {
 		let contentDiv = $('<div class="schema-details"></div>');
 		contentEl.append(contentDiv);
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, (c) => {
 			_Schema.properties.appendLocalProperties(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, (c) => {
 			_Schema.views.appendViews(c, entity);
 		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, function(c) {
+		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, (c) => {
 			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
 		}, null, _Editors.resizeVisibleEditors);
 
-		let selectRelationshipOptions = function(rel) {
+		let selectRelationshipOptions = (rel) => {
 			$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
 			$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
 			$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
@@ -1149,7 +1152,7 @@ let _Schema = {
 			cancelButton.show();
 		});
 
-		saveButton.off('click').on('click', (e) => {
+		saveButton.off('click').on('click', async (e) => {
 
 			let newData = _Schema.getRelationshipDefinitionDataFromForm();
 			let relType = newData.relationshipType;
@@ -1175,37 +1178,18 @@ let _Schema = {
 				saveButton.hide();
 				cancelButton.hide();
 
-				_Schema.updateRelationship(entity, newData, () => {
-
-					for (let attribute in newData) {
-						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
-						entity[attribute] = newData[attribute];
-					}
-
+				let success = await _Schema.updateRelationship(entity, newData);
+				if (success) {
 					if (saveSuccessFunction) {
 						saveSuccessFunction();
 					} else {
 						_Schema.reload();
 					}
-
-				}, function(data) {
-
-					var additionalInformation = {};
-
-					if (data.responseJSON.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); })) {
-						additionalInformation.requiresConfirmation = true;
-						additionalInformation.title = 'Error';
-						additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + newData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
-					}
-
-					Structr.errorFromResponse(data.responseJSON, null, additionalInformation);
-
+				} else {
 					editButton.click();
-
-					for (let attribute in newData) {
-						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
-					}
-				});
+				}
+			} else {
+				cancelButton.click();
 			}
 		});
 
@@ -3161,16 +3145,7 @@ let _Schema = {
 
 		} else {
 
-			let additionalInformation  = {};
-			let hasDuplicateClassError = responseData.errors.some((e) => { return (e.detail.indexOf('duplicate class') !== -1); });
-
-			if (hasDuplicateClassError) {
-				additionalInformation.requiresConfirmation = true;
-				additionalInformation.title = 'Error';
-				additionalInformation.overrideText = 'You are trying to create a second relationship named <strong>' + relData.relationshipType + '</strong> between these types.<br>Relationship names between types have to be unique.';
-			}
-
-			Structr.errorFromResponse(responseData, null, additionalInformation);
+			_Schema.reportRelationshipError(data, data, responseData);
 		}
 	},
 	removeRelationshipDefinition: async (id) => {
@@ -3195,13 +3170,14 @@ let _Schema = {
 		}
 
 	},
-	updateRelationship: async (entity, newData, onSuccess, onError, onNoChange) => {
+	updateRelationship: async (entity, newData) => {
 
 		_Schema.showSchemaRecompileMessage();
 
 		let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
 
 		if (getResponse.ok) {
+
 			let existingData = await getResponse.json();
 
 			let hasChanges = Object.keys(newData).some((key) => {
@@ -3216,28 +3192,52 @@ let _Schema = {
 				});
 
 				_Schema.hideSchemaRecompileMessage();
-				let updatedData = await putResponse.json();
+				let responseData = await putResponse.json();
 
 				if (putResponse.ok) {
 
-					onSuccess?.(updatedData);
+					for (let attribute in newData) {
+						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
+						entity[attribute] = newData[attribute];
+					}
+
+					return true;
 
 				} else {
 
-					onError?.(updatedData);
+					_Schema.reportRelationshipError(existingData.result, newData, responseData);
+
+					for (let attribute in newData) {
+						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
+					}
+
+					return false;
 				}
 
 			} else {
 
 				// force a schema-reload so that we dont break the relationships
-				if (onNoChange) {
-					onNoChange();
-				}
-
 				_Schema.reload();
 				_Schema.hideSchemaRecompileMessage();
 			}
 		}
+	},
+	reportRelationshipError: (relData, newData, responseData) => {
+
+		let additionalInformation  = {};
+		let hasDuplicateClassError = responseData.errors.some((e) => { return (e.token === 'duplicate_relationship'); });
+
+		if (hasDuplicateClassError) {
+
+			let relType = newData?.relationshipType ?? relData.relationshipType;
+
+			additionalInformation.requiresConfirmation = true;
+			additionalInformation.title                = 'Error';
+			additionalInformation.furtherText          = 'You are trying to create a second relationship named <strong>' + relType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+			additionalInformation.requiresConfirmation = true;
+		}
+
+		Structr.errorFromResponse(responseData, null, additionalInformation);
 	},
 	askDeleteRelationship: (resId, name) => {
 		Structr.confirmation(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`,
@@ -4155,7 +4155,7 @@ let _Schema = {
 	},
 	getTypeInfo: (type, callback) => {
 
-		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === Object) {
+		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === 'object') {
 
 			callback(_Schema.typeInfoCache[type]);
 
@@ -4164,9 +4164,9 @@ let _Schema = {
 			Command.getSchemaInfo(type, (schemaInfo) => {
 
 				let typeInfo = {};
-				$(schemaInfo).each(function(i, prop) {
+				for (let prop of schemaInfo) {
 					typeInfo[prop.jsonName] = prop;
-				});
+				}
 
 				_Schema.typeInfoCache[type] = typeInfo;
 
@@ -4688,14 +4688,16 @@ let _Schema = {
 							<div id="cascading-options">
 								<h3>Cascading Delete</h3>
 								<p>Direction of automatic removal of related nodes when a node is deleted</p>
-			
-								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="0">NONE</option>
-									<option value="1">SOURCE_TO_TARGET</option>
-									<option value="2">TARGET_TO_SOURCE</option>
-									<option value="3">ALWAYS</option>
-									<option value="4">CONSTRAINT_BASED</option>
-								</select>
+
+								<div class="flex items-center">
+									<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+										<option value="0">NONE</option>
+										<option value="1">SOURCE_TO_TARGET</option>
+										<option value="2">TARGET_TO_SOURCE</option>
+										<option value="3">ALWAYS</option>
+										<option value="4">CONSTRAINT_BASED</option>
+									</select>
+								</div>
 			
 								<h3>Automatic Creation of Related Nodes</h3>
 								<p>Direction of automatic creation of related nodes when a node is created</p>

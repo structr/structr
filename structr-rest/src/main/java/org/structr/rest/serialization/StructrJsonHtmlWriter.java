@@ -105,28 +105,11 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		head.inline("title").text(applicationRootPath + baseUrl);
 
 		Tag body = doc.block("body");
-//		Tag top  = body.block("div").id("top");
 
-//		final App app  = StructrApp.getInstance(securityContext);
 		final Tag left = body.block("div").id("left");
 
 		left.inline("button").attr(new Css("collapse right")).text(" - ");
 		left.inline("button").attr(new Css("expand right")).text(" + ");
-
-//		try (final Tx tx = app.tx()) {
-//
-//			final List<SchemaNode> schemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
-//			Collections.sort(schemaNodes);
-//
-//			for (SchemaNode node : schemaNodes) {
-//
-//				final String rawType = node.getName();
-//				top.inline("a").attr(new Href(restPath + "/" + rawType), new If(rawType.equals(currentType), new Css("active"))).text(rawType);
-//			}
-//
-//		} catch (Throwable t) {
-//			logger.warn("", t);
-//		}
 
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 
@@ -245,8 +228,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	@Override
 	public RestWriter value(String value) throws IOException {
 
-		String applicationRootPath = Settings.applicationRootPath.getValue();
-
 		if (!hasName) {
 
 			if (previousElement != null) {
@@ -281,7 +262,6 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			value = StringUtils.replaceEach(value, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 
 			currentElement.inline("span").css("string").text("\"", value, "\"");
-
 		}
 
 		currentElement = currentElement.parent();	// end LI
