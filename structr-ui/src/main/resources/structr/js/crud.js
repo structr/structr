@@ -177,7 +177,7 @@ let _Crud = {
 				} else {
 
 					new MessageBuilder().error('No type information found for type: ' + type).delayDuration(5000).show();
-					_Crud.showMessageAfterDelay('No type information found for type: <b>' + type + '</b>', 500);
+					_Crud.showMessageAfterDelay('<span class="mr-1">No type information found for type: </span><b>' + type + '</b>', 500);
 				}
 
 			} else {
@@ -307,7 +307,7 @@ let _Crud = {
 
 		Structr.appendInfoTextToElement({
 			element: $(_Crud.searchField),
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search like so:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
 			insertAfter: true,
 			css: {
 				left: '-18px',
@@ -491,48 +491,47 @@ let _Crud = {
 	},
 	updateTypeList: () => {
 
-		let $typesList = $('#crud-types-list');
-		$typesList.empty();
-
+		let typesList      = document.querySelector('#crud-types-list');
 		let typeVisibility = _Crud.getStoredTypeVisibilityConfig();
 
-		let typeNames = Object.keys(_Crud.types).sort();
-
-		for (let typeName of typeNames) {
+		let typesToShow    = Object.keys(_Crud.types).sort().filter(typeName => {
 
 			let schemaNode    = _Crud.abstractSchemaNodes[typeName];
 			let type          = _Crud.types[typeName];
 
-			let isRelType     = type.isRel;
-			let isDynamicType = !isRelType && (schemaNode && schemaNode.isBuiltinType === false);
-			let isCoreType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'core');
-			let isHtmlType    = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'html');
-			let isUiType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'ui');
-			let isLogType     = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
-			let isOtherType   = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
+			let isRelType       = type.isRel === true;
+			let isBuiltInRel    = isRelType && (schemaNode === undefined || ((schemaNode?.isPartOfBuiltInSchema ?? false) || (schemaNode?.isBuiltinType ?? false)));
+			let isCustomRelType = isRelType && !(schemaNode === undefined || ((schemaNode?.isPartOfBuiltInSchema ?? false) || (schemaNode?.isBuiltinType ?? false)));
+			let isDynamicType   = !isRelType && (schemaNode && schemaNode.isBuiltinType === false);
+			let isCoreType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'core');
+			let isHtmlType      = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'html');
+			let isUiType        = !isRelType && (schemaNode && schemaNode.isBuiltinType === true && schemaNode.category === 'ui');
+			let isLogType       = !isRelType && type.className.startsWith('org.structr.rest.logging.entity');
+			let isOtherType     = !(isRelType || isDynamicType || isCoreType || isHtmlType || isUiType || isLogType);
 
-			let hide =	(!typeVisibility.rels && isRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) || (!typeVisibility.html && isHtmlType) ||
-						(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
+			let hide =  (!typeVisibility.rels && isBuiltInRel) || (!typeVisibility.customRels && isCustomRelType) || (!typeVisibility.custom && isDynamicType) || (!typeVisibility.core && isCoreType) ||
+				(!typeVisibility.html && isHtmlType) || (!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
-			if (!hide) {
-				$typesList.append('<div class="crud-type" data-type="' + typeName + '">' + typeName + '</div>');
-			}
-		}
+			return !hide;
+		});
+
+		typesList.innerHTML = (typesToShow.length > 0) ? typesToShow.map(typeName => `<div class="crud-type" data-type="${typeName}">${typeName}</div>`).join('') : '<div class="px-3">No types available. Use the above configuration dropdown to adjust the filter settings.</div>';
 
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
 		_Crud.resize();
 	},
-	getStoredTypeVisibilityConfig: function(singleKey) {
+	getStoredTypeVisibilityConfig: (singleKey) => {
 
 		let config = LSWrapper.getItem(_Crud.displayTypeConfigKey, {
-			rels:   true,
-			custom: true,
-			core:   true,
-			html:   true,
-			ui:     true,
-			log:    true,
-			other:  true
+			custom:     true,
+			customRels: true,
+			rels:       false,
+			core:       false,
+			html:       false,
+			ui:         false,
+			log:        false,
+			other:      false
 		});
 
 		if (singleKey) {
@@ -542,19 +541,20 @@ let _Crud = {
 
 		return config;
 	},
-	getTypeVisibilityConfig: function () {
+	getTypeVisibilityConfig: () => {
 
 		return {
-			rels:   $('#crudTypeToggleRels').prop('checked'),
-			custom: $('#crudTypeToggleCustom').prop('checked'),
-			core:   $('#crudTypeToggleCore').prop('checked'),
-			html:   $('#crudTypeToggleHtml').prop('checked'),
-			ui:     $('#crudTypeToggleUi').prop('checked'),
-			log:    $('#crudTypeToggleLog').prop('checked'),
-			other:  $('#crudTypeToggleOther').prop('checked')
+			custom:       $('#crudTypeToggleCustom').prop('checked'),
+			customRels:   $('#crudTypeToggleCustomRels').prop('checked'),
+			rels:         $('#crudTypeToggleRels').prop('checked'),
+			core:         $('#crudTypeToggleCore').prop('checked'),
+			html:         $('#crudTypeToggleHtml').prop('checked'),
+			ui:           $('#crudTypeToggleUi').prop('checked'),
+			log:          $('#crudTypeToggleLog').prop('checked'),
+			other:        $('#crudTypeToggleOther').prop('checked')
 		};
 	},
-	highlightCurrentType: function (selectedType) {
+	highlightCurrentType: (selectedType) => {
 
 		$('#crud-left .crud-type').removeClass('active');
 		$('#crud-left .crud-type[data-type="' + selectedType + '"]').addClass('active');
@@ -600,17 +600,13 @@ let _Crud = {
 
 		if (recentTypes) {
 
-			let $recentTypesList = $('#crud-recent-types-list');
+			let recentTypesList = document.querySelector('#crud-recent-types-list');
 
-			$('.crud-type', $recentTypesList).remove();
-
-			for (let type of recentTypes) {
-				$recentTypesList.append(`
-					<div class="crud-type flex items-center${(selectedType === type ? ' active' : '')}" data-type="${type}">
-						${type}${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
-					</div>
-				`);
-			}
+			recentTypesList.innerHTML = recentTypes.map(type => `
+				<div class="crud-type flex items-center${(selectedType === type ? ' active' : '')}" data-type="${type}">
+					${type}${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+				</div>
+			`).join('');
 		}
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
@@ -1960,7 +1956,7 @@ let _Crud = {
 					}
 				}
 
-			//} else if (propertyType === 'String[]') {
+				//} else if (propertyType === 'String[]') {
 			} else if (isCollection) { // Array types
 
 				let values = value || [];
@@ -2946,16 +2942,21 @@ let _Crud = {
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
 									${_Icons.getSvgIcon('wrench')}
 								</button>
-								<div class="dropdown-menu-container">
+								
+								<div class="dropdown-menu-container" style="width: 17rem;">
+
 									<div class="heading-row">
 										<h3>Type Filters</h3>
 									</div>
 									
 									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"> Relationship Types</label>
+										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"> Custom Types</label>
 									</div>
 									<div class="row">
-										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('custom') ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustom"> Custom Types</label>
+										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('customRels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCustomRels"> Custom Relationship Types</label>
+									</div>
+									<div class="row">
+										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('rels')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleRels"> Built-In Relationship Types</label>
 									</div>
 									<div class="row">
 										<label class="block"><input ${_Crud.getStoredTypeVisibilityConfig('core')   ? 'checked' : ''} type="checkbox" id="crudTypeToggleCore"> Core Types</label>
