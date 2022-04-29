@@ -1,5 +1,5 @@
 #!/bin/sh
-
+_STRUCTR_HOME="/var/lib/structr"
 
 if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
 
@@ -18,6 +18,61 @@ if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
 	exit 1
 fi
 
+function addDefaultConfigEntry {
+	local SETTING="${1}"
+	local VALUE="${2}"
+	local _STRUCTR_HOME="${3}"
+
+	if ! grep -q "^${SETTING}=" "${_STRUCTR_HOME}"/structr.conf
+	then
+		echo -e ${SETTING}=${VALUE} >> "${_STRUCTR_HOME}"/structr.conf
+	fi
+}
+
+function addEnvironmentEntryToConfig {
+	local SETTING="${1}"
+	local VALUE="${2}"
+	local STRUCTR_HOME="${3}"
+
+  # remove setting from config if it already exists...
+	if grep -q -F "${SETTING}=" "${_STRUCTR_HOME}"/structr.conf; then
+		sed --in-place "/^${SETTING}=.*/d" "${_STRUCTR_HOME}"/structr.conf
+	fi
+
+	echo "${SETTING}=${VALUE}" >> "${_STRUCTR_HOME}"/structr.conf
+}
+
+# create memory config file before startup
+touch "${_STRUCTR_HOME}/bin/memory.config"
+if [ -n "$STRUCTR_MAX_HEAP" ] && ! [ -n "$STRUCTR_MIN_HEAP" ]; then
+    echo "STRUCTR_MAX_HEAP set but STRUCTR_MIN_HEAP not found in docker environment"
+    exit 1;
+  elif [ -n "$STRUCTR_MIN_HEAP" ] && ! [ -n "$STRUCTR_MAX_HEAP" ]; then
+    echo "STRUCTR_MIN_HEAP set but STRUCTR_MIN_HEAP not found in docker environment"
+    exit 1;
+  else
+    echo "Creating memory configuration file with -Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}"
+    echo "-Xms${STRUCTR_MIN_HEAP} -Xmx${STRUCTR_MAX_HEAP}" > "${_STRUCTR_HOME}/bin/memory.config"
+fi
+
+unset STRUCTR_MIN_HEAP
+unset STRUCTR_MAX_HEAP
+
+# application settings
+touch "${_STRUCTR_HOME}/structr.conf"
+addDefaultConfigEntry "setup.wizard.completed" "true" "${_STRUCTR_HOME}"
+
+# Add structr conf entries from environment variables
+for i in $( set | grep ^STRUCTR_ | awk -F'=' '{print $1}'); do
+    setting=$(echo "${i}" | sed 's|^STRUCTR_||' | sed 's|_|.|g' | sed 's|\.\.|_|g')
+    value=$(echo "${!i}")
+    # skip settings with no value
+    if [[ -n ${value} ]]; then
+        addEnvironmentEntryToConfig "${setting}" "${value}" "${_STRUCTR_HOME}"
+    fi
+done
+
+# Run startup config script
 . bin/config
 
 LOGS_DIR="logs"
@@ -53,8 +108,8 @@ fi
 
 if [ ! -d $LOGS_DIR ]; then
 		echo "        Creating logs directory..."
-        mkdir $LOGS_DIR
-        touch $LOG_FILE
+		mkdir $LOGS_DIR
+		touch $LOG_FILE
 fi
 
 echo "        Starting structr server $DISPLAY_NAME"
