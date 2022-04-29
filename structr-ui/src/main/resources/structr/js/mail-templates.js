@@ -200,9 +200,10 @@ let _MailTemplates = {
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
+	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_MailTemplates.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));

@@ -17,6 +17,16 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Icons = {
+
+	preloadSVGIcons: () => {
+		// this should be super fast because we inserted a preload rule to the index.html
+		fetch('icon/sprites.svg').then(response => {
+			return response.text();
+		}).then(svgPreload => {
+			document.body.insertAdjacentHTML('afterbegin', svgPreload);
+		});
+	},
+
 	application_form_add: 'icon/application_form_add.png',
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
@@ -92,8 +102,6 @@ let _Icons = {
 	add_file_icon: 'icon/page_white_add.png',
 	add_site_icon: 'icon/page_white_add.png',
 	add_page_icon: 'icon/page_add.png',
-	// ajax_loader_1: 'img/ajax-loader.gif',
-	// ajax_loader_2: 'img/al.gif',
 	structr_logo_small: 'icon/structr_icon_16x16.png',
 	minification_dialog_js_icon: 'icon/script_lightning.png',
 	minification_dialog_css_icon: 'icon/script_palette.png',
@@ -106,9 +114,6 @@ let _Icons = {
 	floppy_icon: 'icon/disk.png',
 	book_icon: 'icon/book_open.png',
 	edition_community_icon: 'icon/tux.png',
-	edition_basic_icon: 'icon/medal_bronze_2.png',
-	edition_small_business_icon: 'icon/medal_silver_2.png',
-	edition_enterprise_icon: 'icon/medal_gold_2.png',
 	import_icon: 'icon/table_lightning.png',
 	hamburger_icon: 'icon/hamburger_white.png',
 	connect_icon: 'icon/connect.png',
@@ -125,6 +130,8 @@ let _Icons = {
 
 	collapsedClass: 'svg-collapsed',
 	expandedClass: 'svg-expanded',
+
+	jstree_fake_icon: 'this-is-empty',
 
 	getSvgIcon: (id, width = 16, height = 16, optionalClasses, title = '') => {
 
@@ -145,6 +152,25 @@ let _Icons = {
 			<title>${title}</title>
 			<use xlink:href="#${id}"></use>
 		</svg>`;
+	},
+
+	updateSvgIconInElement: (element, from, to) => {
+
+		let use = element.querySelector(`use[*|href="#${from}"]`);
+
+		if (!use) {
+			return false;
+		}
+
+		use.setAttribute('xlink:href', '#' + to);
+		return true;
+	},
+
+	hasSvgIcon: (element, icon) => {
+
+		let use = element.querySelector(`use[*|href="#${icon}"]`);
+
+		return (use !== null);
 	},
 
 	getSvgIconClassesForColoredIcon: (customClasses = []) => {
@@ -252,9 +278,6 @@ let _Icons = {
 			case _Icons.floppy_icon:                  return 'sprite-disk';
 			case _Icons.book_icon:                    return 'sprite-book_open';
 			case _Icons.edition_community_icon:       return 'sprite-tux';
-			case _Icons.edition_basic_icon:           return 'sprite-medal_bronze_2';
-			case _Icons.edition_small_business_icon:  return 'sprite-medal_silver_2';
-			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
 			case _Icons.import_icon:                  return 'sprite-table_lightning';
 			case _Icons.hamburger_icon:               return 'sprite-hamburger_white';
 			case _Icons.connect_icon:                 return 'sprite-connect';
@@ -274,8 +297,16 @@ let _Icons = {
 		}
 
 	},
-	getImageOrIcon: function(image) {
-		return (image.contentType && image.contentType.startsWith('image/svg') ? _Icons.getImageMarkup(image.path) : (image.tnSmall ? _Icons.getImageMarkup(image.tnSmall.path) : '<i class="icon sprite sprite-image" />'));
+	getImageOrIcon: (image) => {
+		if (image.contentType && image.contentType.startsWith('image/svg')) {
+			return _Icons.getImageMarkup(image.path);
+		}
+
+		if (image.tnSmall) {
+			return _Icons.getImageMarkup(image.tnSmall.path);
+		}
+
+		return _Icons.getSvgIcon('file-image');
 	},
 	getImageMarkup: function (path) {
 		return '<img class="icon" src="' + path + '">';
@@ -290,38 +321,29 @@ let _Icons = {
 				return _Icons.error_icon;
 		}
 	},
-	getFileIconClass: function(file) {
+	getFileIconSVG: (file) => {
 
-		var fileName = file.name;
-		var contentType = file.contentType;
-
-		var result = 'fa-file-o';
+		// let fileName    = file.name;
+		let contentType = file.contentType;
+		let result      = 'file-empty';
 
 		if (contentType) {
 
 			switch (contentType) {
 
-				case 'text/plain':
-					result = 'fa-file-text-o';
-					break;
-
 				case 'application/pdf':
 				case 'application/postscript':
-					result = 'fa-file-pdf-o';
+					result = 'file-pdf';
 					break;
 
 				case 'application/x-pem-key':
 				case 'application/pkix-cert+pem':
 				case 'application/x-iwork-keynote-sffkey':
-					result = 'fa-key';
-					break;
-
-				case 'application/x-trash':
-					result = 'fa-trash-o';
+					result = 'file-certificate';
 					break;
 
 				case 'application/octet-stream':
-					result = 'fa-terminal';
+					result = 'file-terminal';
 					break;
 
 				case 'application/x-shellscript':
@@ -329,75 +351,68 @@ let _Icons = {
 				case 'application/xml':
 				case 'text/html':
 				case 'text/xml':
-					result = 'fa-file-code-o';
+					result = 'file-code';
 					break;
 
 				case 'application/java-archive':
 				case 'application/zip':
 				case 'application/rar':
 				case 'application/x-bzip':
-					result = 'fa-file-archive-o';
+					result = 'file-archive';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 				case 'application/vnd.oasis.opendocument.text':
 				case 'application/msword':
-					result = 'fa-file-word-o';
+					result = 'file-word';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 				case 'application/vnd.oasis.opendocument.spreadsheet':
 				case 'application/vnd.ms-excel':
-					result = 'fa-file-excel-o';
+					result = 'file-excel';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-					result = 'fa-file-powerpoint-o';
-					break;
-
-				case 'image/jpeg':
-					result = 'fa-picture-o';
-					break;
-
 				case 'application/vnd.oasis.opendocument.chart':
-					result = 'fa-line-chart';
+					result = 'file-presentation';
 					break;
 
 				default:
 					if (contentType.startsWith('image/')) {
-						result = 'fa-file-image-o';
+						result = 'file-image';
 					} else if (contentType.startsWith('text/')) {
-						result = 'fa-file-text-o';
+						result = 'file-text';
 					}
 			}
 
-			if (fileName && fileName.contains('.')) {
-
-				var fileExtensionPosition = fileName.lastIndexOf('.') + 1;
-				var fileExtension = fileName.substring(fileExtensionPosition);
-
-				// add file extension css class to control colors
-				result = fileExtension + ' ' + result;
-			}
+			// if (fileName && fileName.contains('.')) {
+			//
+			// 	let fileExtensionPosition = fileName.lastIndexOf('.') + 1;
+			// 	let fileExtension = fileName.substring(fileExtensionPosition);
+			//
+			// 	// add file extension css class to control colors
+			// 	result = fileExtension + ' ' + result;
+			// }
 		}
 
-		return result;
+		return _Icons.getSvgIcon(result);
 	},
 
-	getIconForEdition: function (edition) {
+	getIconForEdition: (edition) => {
 		switch (edition) {
 			case 'Enterprise':
-				return _Icons.edition_enterprise_icon;
+				return 'edition-enterprise';
 
 			case 'Small Business':
-				return _Icons.edition_small_business_icon;
+				return 'edition-small-business';
 
 			case 'Basic':
-				return _Icons.edition_basic_icon;
+				return 'edition-basic';
 
 			case 'Community':
 			default:
-				return _Icons.edition_community_icon;
+				return 'edition-community';
 		}
 	},
 

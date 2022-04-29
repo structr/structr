@@ -414,7 +414,6 @@
 						<exclude>src/**/*.sh</exclude>
 						<exclude>src/**/*.properties</exclude>
 						<exclude>src/main/resources/**/*.html</exclude>
-						<exclude>src/main/resources/**/*.html</exclude>
 						<exclude>src/main/resources/**/*.xml</exclude>
 						<exclude>src/main/resources/**/*.xsl*</exclude>
 						<exclude>src/main/resources/**/*.eot</exclude>
@@ -437,6 +436,7 @@
 						<exclude>src/test/**/selenium/**/*</exclude>
 						<exclude>src/main/deb/**</exclude>
 						<exclude>src/main/resources/structr/js/flow-editor/**/*</exclude>
+						<exclude>src/main/resources/structr/swagger/**/*</exclude>
 						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>

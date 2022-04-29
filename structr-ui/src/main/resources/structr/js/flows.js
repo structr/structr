@@ -477,14 +477,14 @@ let _Flows = {
                         id: 'root',
                         text: 'Flows',
                         children: true,
-                        icon: _Icons.structr_logo_small,
+                        icon: _Icons.jstree_fake_icon,
+						data: { type: "root", svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
                         path: '/',
                         state: {
                             opened: true,
                             selected: true
-                        },
-                        data: {type: "root"}
-                    }
+                        }
+					}
                 ];
 
                 callback(defaultEntries);

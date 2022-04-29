@@ -171,7 +171,6 @@ form.config-form div.buttons input[type=reset] {
 
 button.toggle-option {
 	margin: 4px 4px 0 0;
-	background-color: #fff !important;
 }
 
 button.toggle-option.active {
@@ -327,10 +326,6 @@ div.connection button {
 	border: 1px solid rgba(0,0,0,.125);
 	position: relative;
 	margin: 0;
-}
-
-div.connection button:hover {
-	background-color: #ddd !important;
 }
 
 .delete-button {

@@ -583,9 +583,9 @@ public class ConfigServlet extends AbstractServletBase {
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
 
-			buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-			buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
-			buttons.empty("input").css("default-action").attr(new Type("submit"), new Value("Save to structr.conf"));
+			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Type("button")).id("new-entry-button").text("Add entry");
+			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
+			buttons.block("button").css("action").attr(new Type("submit")).text("Save to structr.conf");
 		}
 
 		// update active section so we can restore it when redirecting
@@ -608,13 +608,12 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag row1     = table.block("tr");
 
 		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"));
+		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"), new Attr("required", "required"));
 
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
-		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login"));
-
-		button.block("i").css("sprite sprite-key");
+		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login")).css("inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green");
+		button.block("svg").attr(new Attr("width", 16), new Attr("height", 16)).css("mr-2").block("use").attr(new Attr("xlink:href", "#visibility-lock-key"));
 		button.block("span").text(" Login");
 
 		cell13.empty("input").attr(new Type("hidden"), new Name("action"), new Value("login"));
@@ -652,35 +651,6 @@ public class ConfigServlet extends AbstractServletBase {
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
 			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
 		}
-
-		body.text("<svg style=\"display: none\">" +
-				"<symbol id=\"structr-logo\" viewBox=\"0 0 345.12 92.83\" stroke=\"currentColor\" fill=\"currentColor\">" +
-				"<g id=\"Ebene_2\" data-name=\"Ebene 2\"><g id=\"Ebene_1-2\" data-name=\"Ebene 1\"><path d=\"M15,33.71a4,4,0,0,0-4,4v4.87c0,1.63,0,4,3.62,5.88l19.75,11c10.25,5.25,11,9.5,11,14v7.12c0,10.25-8.37,12.25-12.87,12.25H1.62A1.25,1.25,0,0,1,.37,91.58V84.46a1.26,1.26,0,0,1,1.25-1.25H30.37a3.92,3.92,0,0,0,4-3.88V75.08c0-1.62,0-4.5-3.5-6L11,58.21C.75,53.58,0,48.08,0,44.21V35.33c0-7.62,6.37-11.25,12.75-11.25H41.12a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M71.75,32.83V79.08a4.08,4.08,0,0,0,4.12,4.13H88.75A1.25,1.25,0,0,1,90,84.46v7.12a1.26,1.26,0,0,1-1.25,1.25H73.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.73,1.73,0,0,1,1.25-1.75L70.5.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.26,1.26,0,0,1-1.25,1.25Z\"/><path d=\"M119,34.33a3,3,0,0,0-2.75,3l-.13,54.25a1.25,1.25,0,0,1-1.25,1.25H106a1.25,1.25,0,0,1-1.25-1.25l-.13-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M181.62,83.21a4.17,4.17,0,0,0,4.13-4.13V25.33A1.25,1.25,0,0,1,187,24.08h8.87a1.26,1.26,0,0,1,1.25,1.25V79.08c0,6.88-5,13.75-13.75,13.75H161c-8.75,0-13.75-6.87-13.75-13.75V25.33a1.25,1.25,0,0,1,1.25-1.25h8.75a1.26,1.26,0,0,1,1.25,1.25V79.08a4.16,4.16,0,0,0,4.12,4.13Z\"/><path d=\"M245.62,92.83H227a13.66,13.66,0,0,1-13.63-13.62V37.71A13.41,13.41,0,0,1,227,24.08h27.62a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25h-26a4,4,0,0,0-4,4V79.33a3.82,3.82,0,0,0,3.88,3.88h26.12a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M279.74,32.83V79.08a4.08,4.08,0,0,0,4.13,4.13h12.87A1.25,1.25,0,0,1,298,84.46v7.12a1.25,1.25,0,0,1-1.25,1.25H281.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.72,1.72,0,0,1,1.25-1.75L278.49.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M327,34.33a3.05,3.05,0,0,0-2.75,3l-.12,54.25a1.26,1.26,0,0,1-1.25,1.25H314a1.25,1.25,0,0,1-1.25-1.25l-.12-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.26,1.26,0,0,1-1.25,1.25Z\"/></g></g>" +
-				"</symbol>" +
-				"<symbol id=\"interface_delete_circle\" viewBox=\"0 0 10 10\"  stroke=\"currentColor\" fill=\"currentColor\">" +
-				"<g><path d=\"M5,0a5,5,0,1,0,5,5A5.006,5.006,0,0,0,5,0ZM7.28,6.22A.75.75,0,1,1,6.22,7.28L5,6.061,3.78,7.28A.75.75,0,0,1,2.72,6.22L3.939,5,2.72,3.78A.75.75,0,0,1,3.78,2.72L5,3.939,6.22,2.72A.75.75,0,0,1,7.28,3.78L6.061,5Z\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0\"></path></g>" +
-				"</symbol>" +
-				"<symbol id=\"waiting-spinner\" viewBox=\"0 0 50 50\" style=\"fill: var(--structr-green)\">\n" +
-				"<g transform=\"rotate  (0 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.9166666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (30 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.8333333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (60 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.75s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (90 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.6666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(120 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5833333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(150 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(180 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.4166666666666667s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(210 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.3333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(240 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.25s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(270 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(300 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(330 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"0s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"</symbol>" +
-				"<symbol id=\"info-icon\" viewBox=\"0 0 24 24\" fill=\"transparent\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\">" +
-				"<path d=\"M14.25,16.5H13.5A1.5,1.5,0,0,1,12,15V11.25a.75.75,0,0,0-.75-.75H10.5\"></path><path d=\"M11.625,6.75A.375.375,0,1,0,12,7.125a.375.375,0,0,0-.375-.375h0\"></path><path d=\"M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z\"></path>" +
-				"</symbol>" +
-				"<symbol id=\"circle_plus\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"1.5\">" +
-				"<path d=\"M12 7.5L12 16.5\"></path><path d=\"M7.5 12L16.5 12\"></path><path d=\"M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z\"></path>" +
-				"</symbol>" +
-				"</svg>");
 
 		return body;
 	}
@@ -845,8 +815,8 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
-		buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+		buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
+		buttons.block("button").css("action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 

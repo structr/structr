@@ -103,41 +103,46 @@ let _Pages = {
 		_Pages.componentsSlideout      = $('#components');
 		_Pages.unusedElementsSlideout  = $('#elements');
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
-		_Pages.unusedElementsSlideout.data('closeCallback', _Pages.unattachedNodes.removeElementsFromUI);
 
-		let pagesTabSlideoutAction = function () {
-			_Pages.leftSlideoutTrigger(this, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
+		let pagesTab = document.getElementById('pagesTab');
+		let pagesTabSlideoutAction = (e) => {
+			_Pages.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
 				_Pages.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		};
-		$('#pagesTab').on('click', pagesTabSlideoutAction).droppable({
+
+		pagesTab.addEventListener('click', pagesTabSlideoutAction);
+
+		$(pagesTab).droppable({
 			tolerance: 'touch',
 			//over: pagesTabSlideoutAction
 		});
 
-		$('#localizationsTab').on('click', function () {
-			_Pages.leftSlideoutTrigger(this, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabLeftKey, $(this).prop('id'));
+		let localizationsTab = document.getElementById('localizationsTab');
+		localizationsTab.addEventListener('click', () => {
+			_Pages.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
 				_Pages.localizations.refreshPagesForLocalizationPreview();
 				_Pages.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		});
 
-		$('#localizations input.locale').on('keydown', function (e) {
+		document.querySelector('#localizations input.locale').addEventListener('keydown', (e) => {
 			if (e.which === 13) {
 				_Pages.localizations.refreshLocalizations();
 			}
 		});
 
-		$('#localizations button.refresh').on('click', function () {
+		let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
+		refreshLocalizationsButton.addEventListener('click', () => {
 			_Pages.localizations.refreshLocalizations();
 		});
 
 		Structr.appendInfoTextToElement({
-			element: $('#localizations button.refresh'),
+			element: refreshLocalizationsButton,
 			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 			insertAfter: true,
 			helpElementCss: { width: "300px" },
@@ -145,9 +150,10 @@ let _Pages = {
 			offsetY: 10
 		});
 
-		$('#widgetsTab').on('click', function () {
-			_Pages.rightSlideoutClickTrigger(this, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+		let widgetsTab = document.getElementById('widgetsTab');
+		widgetsTab.addEventListener('click', () => {
+			_Pages.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
 				if (params.isOpenAction) {
 					_Widgets.reloadWidgets();
 				}
@@ -155,9 +161,10 @@ let _Pages = {
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
-		$('#paletteTab').on('click', function () {
-			_Pages.rightSlideoutClickTrigger(this, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+		let paletteTab = document.getElementById('paletteTab');
+		paletteTab.addEventListener('click', () => {
+			_Pages.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
 				if (params.isOpenAction) {
 					_Pages.palette.reload();
 				}
@@ -165,19 +172,21 @@ let _Pages = {
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
-		let componentsTab = $('#componentsTab');
-		let componentsTabSlideoutAction = function () {
+		let componentsTab = document.getElementById('componentsTab');
+		let componentsTabSlideoutAction = () => {
 			_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.prop('id'));
+				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				if (params.isOpenAction) {
 					_Pages.sharedComponents.reload();
 				}
 				_Pages.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		};
-		componentsTab.on('click', componentsTabSlideoutAction).droppable({
+		componentsTab.addEventListener('click', componentsTabSlideoutAction);
+
+		$(componentsTab).droppable({
 			tolerance: 'touch',
-			over: function (e, ui) {
+			over: (e, ui) => {
 
 				let isComponentsSlideoutOpen = _Pages.componentsSlideout.hasClass('open');
 				let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
@@ -188,14 +197,18 @@ let _Pages = {
 			}
 		});
 
-		$('#elementsTab').on('click', function () {
-			_Pages.rightSlideoutClickTrigger(this, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
-				LSWrapper.setItem(_Pages.activeTabRightKey, $(this).prop('id'));
+		let elementsTab = document.getElementById('elementsTab');
+		elementsTab.addEventListener('click', () => {
+			_Pages.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
 				if (params.isOpenAction) {
 					_Pages.unattachedNodes.reload();
 				}
 				_Pages.resize();
-			}, _Pages.rightSlideoutClosedCallback);
+			}, (wasOpen) => {
+				_Pages.unattachedNodes.removeElementsFromUI();
+				_Pages.rightSlideoutClosedCallback(wasOpen);
+			});
 		});
 
 		_Pages.refresh();
@@ -569,13 +582,15 @@ let _Pages = {
 
 		return elements;
 	},
-	moveLeftResizer: function(left) {
-		requestAnimationFrame(() => {
+	prevAnimFrameReqId_moveLeftResizer: undefined,
+	moveLeftResizer: (left) => {
+		Structr.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveLeftResizer, () => {
 			_Pages.resizeColumns(left, null);
 		});
 	},
-	moveRightResizer: function(right) {
-		requestAnimationFrame(() => {
+	prevAnimFrameReqId_moveRightResizer: undefined,
+	moveRightResizer: (right) => {
+		Structr.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveRightResizer, () => {
 			_Pages.resizeColumns(null, right);
 		});
 	},
@@ -682,13 +697,8 @@ let _Pages = {
 
 		Structr.unblockMenu(500);
 
-		if (_Pages.getActiveTabLeft()) {
-			$('#' + _Pages.getActiveTabLeft()).click();
-		}
-
-		if (_Pages.getActiveTabRight()) {
-			$('#' + _Pages.getActiveTabRight()).click();
-		}
+		document.getElementById(_Pages.getActiveTabLeft())?.click();
+		document.getElementById(_Pages.getActiveTabRight())?.click();
 
 		_Pages.adaptFunctionBarTabs();
 
@@ -1176,7 +1186,7 @@ let _Pages = {
 				console.log('do something else, urlHash:', urlHash);
 		}
 	},
-	appendPageElement: function(entity) {
+	appendPageElement: (entity) => {
 
 		entity = StructrModel.ensureObject(entity);
 
@@ -1193,7 +1203,7 @@ let _Pages = {
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
-					<i class="typeIcon ${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i>
+					${_Icons.getSvgIcon('browser-page', 16, 16, 'typeIcon')}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						${(entity.position ? ` <span class="position_">${entity.position}</span>` : '')}
@@ -1351,6 +1361,7 @@ let _Pages = {
 		let leftResizer = document.querySelector('.column-resizer-left');
 
 		if (!$(triggerEl).hasClass('noclick')) {
+
 			if (slideoutElement.position().left < -1) {
 				Structr.closeLeftSlideOuts(otherSlideouts, closeCallback);
 				Structr.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
@@ -1366,7 +1377,9 @@ let _Pages = {
 		}
 	},
 	rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+
 		if (!$(triggerEl).hasClass('noclick')) {
+
 			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
 				Structr.closeSlideOuts(otherSlideouts, closeCallback);
 				Structr.openSlideOut(triggerEl, slideoutElement, openCallback);
@@ -1378,6 +1391,7 @@ let _Pages = {
 		}
 	},
 	leftSlideoutClosedCallback: (wasOpen) => {
+		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabLeftKey);
 
@@ -1385,6 +1399,7 @@ let _Pages = {
 		}
 	},
 	rightSlideoutClosedCallback: (wasOpen) => {
+		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabRightKey);
 
@@ -2201,7 +2216,7 @@ let _Pages = {
 							pagesToLink.append(`
 								<div class="node page ${page.id}_ ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										<i class="${_Icons.getFullSpriteClass(_Icons.page_icon)}"></i><b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon('browser-page', 16, 16)}<b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);
@@ -2247,7 +2262,7 @@ let _Pages = {
 						filesToLink.append(`
 							<div class="node file ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									<i class="fa ${_Icons.getFileIconClass(file)}"></i><b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
+									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
 								</div>
 							</div>
 						`);
@@ -2302,36 +2317,41 @@ let _Pages = {
 			folderEl.append(`
 				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${subFolder.id}_ ${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
-						<i class="fa fa-folder"></i><b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+						${_Icons.getSvgIcon('folder-icon', 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
 					</div>
 				</div>
 			`);
 
-			let subFolderEl   = $('.' + subFolder.id + '_', folderEl);
-			let nodeContainer = subFolderEl.children('.node-container');
+			let subFolderEl   = folderEl[0].querySelector('.' + subFolder.id + '_');
+			let nodeContainer = subFolderEl.querySelector('.node-container');
 
-			subFolderEl.on('click', function(e) {
+			subFolderEl.addEventListener('click', (e) => {
 				e.stopPropagation();
 				e.preventDefault();
 
-				if (!nodeContainer.children('.fa-folder-open').length) {
+				let folderIsOpen = _Icons.hasSvgIcon(nodeContainer, 'folder-open-icon');
+
+				if (!folderIsOpen) {
 
 					_Pages.linkableDialog.expandFolder(entityToLinkTo, subFolder);
 
 				} else {
 
-					subFolderEl.children('.node').remove();
-					subFolderEl.children('.clear').remove();
-					nodeContainer.children('.fa-folder-open').removeClass('fa-folder-open').addClass('fa-folder');
+					for (let node of subFolderEl.querySelectorAll('.node')) {
+						node.remove();
+					}
+
+					_Icons.updateSvgIconInElement(nodeContainer, 'folder-open-icon', 'folder-icon');
 				}
 
 				return false;
 			});
 
-			nodeContainer.hover(function(e) {
-				$(this).addClass('nodeHover');
-			}, function(e) {
-				$(this).removeClass('nodeHover');
+			nodeContainer.addEventListener('mouseenter', (e) => {
+				nodeContainer.classList.add('nodeHover');
+			});
+			nodeContainer.addEventListener('mouseleave', (e) => {
+				nodeContainer.classList.remove('nodeHover');
 			});
 
 		},
@@ -2340,7 +2360,7 @@ let _Pages = {
 			Command.get(folder.id, 'id,name,hasParent,files,folders', (node) => {
 
 				let folderEl = $('.' + node.id + '_');
-				folderEl.children('.node-container').children('.fa-folder').removeClass('fa-folder').addClass('fa-folder-open');
+				_Icons.updateSvgIconInElement(folderEl[0], 'folder-icon', 'folder-open-icon');
 
 				for (let subFolder of node.folders) {
 					_Pages.linkableDialog.appendFolder(entityToLinkTo, folderEl, subFolder);
@@ -2353,7 +2373,7 @@ let _Pages = {
 						folderEl.append(`
 							<div class="node file sub ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									<i class="fa ${_Icons.getFileIconClass(file)}"></i><b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
+									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
 								</div>
 							</div>
 						`);
@@ -2440,15 +2460,20 @@ let _Pages = {
 							${_Icons.getSvgIcon('circle_plus')}
 						</button>
 						<div class="dropdown-menu-container">
-							<div class="row">
-								<a id="create_page" title="Create Page" class="flex items-center icon">${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Page</a>
+						
+							<div class="flex flex-col divide-x-0 divide-y">
+								<a id="create_page" title="Create Page" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Page
+								</a>
+								
+								<a id="import_page" title="Import Template" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon('file_add', 16, 16, 'mr-2')} Import Page
+								</a>
+								
+								<!--a id="add_template" title="Add Template" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+									${_Icons.getSvgIcon('magic_wand')} Add Template
+								</a-->
 							</div>
-							<div class="row">
-								<a id="import_page" title="Import Template" class="flex items-center icon">${_Icons.getSvgIcon('file_add', 16, 16, 'mr-2')} Import Page</a>
-							</div>
-							<!--div class="row">
-								<a id="add_template" title="Add Template" class="icon">${_Icons.getSvgIcon('magic_wand')} Add Template</a>
-							</div-->
 						</div>
 					</div>
 				</div>

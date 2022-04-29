@@ -428,7 +428,8 @@ let StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Icons.getFileIconClass(obj);
+				icon = _Icons.getFileIconSVG(d);
+				// TODO: correctly update to: _Icons.getFileIconSVG(d)
 
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');

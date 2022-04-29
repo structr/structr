@@ -111,7 +111,7 @@ public class StringMultiChoiceSetting extends Setting<String> {
 		for (final String option : AvailableOptions) {
 			options.block("button").attr(
 				new Attr("type", "button"),
-				new Attr("class", "toggle-option" + (value.contains(option) ? " active" : "")),
+				new Attr("class", "toggle-option hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666" + (value.contains(option) ? " active" : "")),
 				new Attr("title", "Toggle " + option),
 				new Attr("data-value", option),
 				new Attr("data-target", id)

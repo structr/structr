@@ -237,11 +237,12 @@ let _Contents = {
 
 			case '#':
 
-				var defaultEntries = [{
+				let defaultEntries = [{
 					id: 'root',
 					text: '/',
 					children: true,
-					icon: _Icons.structr_logo_small,
+					icon: _Icons.jstree_fake_icon,
+					data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
 					path: '/',
 					state: {
 						opened: true,

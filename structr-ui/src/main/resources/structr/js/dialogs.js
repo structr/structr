@@ -62,7 +62,7 @@ let _Dialogs = {
 			if (dialogConfig.condition === undefined || (typeof dialogConfig.condition === 'function' && dialogConfig.condition())) {
 
 				// call method with the same callback object for initial callback and show callback
-				_Entities.appendPropTab(entity, mainTabs, contentEl, dialogConfig.id, dialogConfig.title, true, callback, undefined, callback);
+				_Entities.appendPropTab(entity, mainTabs, contentEl, dialogConfig.id, dialogConfig.title, true, callback, callback, true);
 
 				return true;
 			}
@@ -296,7 +296,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el);
+		Structr.activateCommentsInElement(el[0]);
 
 		_Dialogs.focusInput(el);
 	},
@@ -306,7 +306,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el);
+		Structr.activateCommentsInElement(el[0]);
 	},
 	aDialog: (el, entity) => {
 
@@ -388,7 +388,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el);
+		Structr.activateCommentsInElement(el[0]);
 
 		$('button#set-password-button').on('click', (e) => {
 			let input = $('input#password-input');
@@ -412,7 +412,7 @@ let _Dialogs = {
 
 		await _Dialogs.showCustomProperties(el, entity);
 
-		Structr.activateCommentsInElement(el);
+		Structr.activateCommentsInElement(el[0]);
 	},
 	defaultDomDialog: (el, entity) => {
 
@@ -893,7 +893,7 @@ let _Dialogs = {
 				<div class="grid grid-cols-2 gap-8">
 	
 					<div class="option-tile">
-						<label class="block mb-2" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
+						<label class="block mb-3" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
 						<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
 							<option value="">Eager (default)</option>
 							<option value="load">When page has finished loading</option>
@@ -902,7 +902,7 @@ let _Dialogs = {
 							<option value="periodic">With periodic updates</option>
 						</select>
 					</div>
-	
+
 					<div class="option-tile">
 						<label class="block mb-2" for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
 						<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
