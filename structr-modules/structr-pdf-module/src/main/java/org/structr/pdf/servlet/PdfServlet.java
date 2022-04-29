@@ -216,7 +216,6 @@ public class PdfServlet extends HtmlServlet {
 
 	@Override
 	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
-		logger.warn("This is awesome!!!");
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();
