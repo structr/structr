@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -428,7 +428,8 @@ let StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Icons.getFileIconClass(obj);
+				icon = _Icons.getFileIconSVG(d);
+				// TODO: correctly update to: _Icons.getFileIconSVG(d)
 
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');

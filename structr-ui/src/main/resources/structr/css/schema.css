@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -504,9 +504,4 @@
 
 div#inheritance-tree-container {
 	margin-left: 0.5rem;
-}
-
-#methods-container .editor-settings-popup .dropdown-menu-container {
-	margin: 0 0 0 -5rem;
-	bottom: 3rem;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 $(document).ready(function() {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
@@ -33,8 +32,7 @@ let _Schema = {
 	undefinedRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	initialRelType: 'UNDEFINED_RELATIONSHIP_TYPE',
 	schemaLoading: false,
-	schemaLoaded: false,
-	nodes: {},
+	nodeData: {},
 	nodePositions: undefined,
 	availableTypeNames: [],
 	hiddenSchemaNodes: [],
@@ -56,51 +54,54 @@ let _Schema = {
 	inheritanceSlideout: undefined,
 	onload: () => {
 
-		Structr.mainContainer.innerHTML = _Schema.templates.main();
-		_Schema.inheritanceSlideout     = $('#inheritance-tree');
-		_Schema.inheritanceTree         = $('#inheritance-tree-container');
-		_Schema.ui.canvas               = $('#schema-graph');
+		_Code.preloadAvailableTagsForEntities().then(() => {
 
-		_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
-			if (e.which === 1) {
-				_Schema.ui.clearSelection();
-				_Schema.ui.selectionStart(e);
-			}
-		});
+			Structr.mainContainer.innerHTML = _Schema.templates.main();
+			_Schema.inheritanceSlideout     = $('#inheritance-tree');
+			_Schema.inheritanceTree         = $('#inheritance-tree-container');
+			_Schema.ui.canvas               = $('#schema-graph');
 
-		_Schema.ui.canvas[0].addEventListener('mousemove', (e) => {
-			if (e.which === 1) {
-				_Schema.ui.selectionDrag(e);
-			}
-		});
-
-		_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
-			_Schema.ui.selectionStop();
-		});
-
-		let inheritanceTab = $('#inheritanceTab');
-		inheritanceTab.on('click', () => {
-			_Pages.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], (params) => {
-				LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.prop('id'));
-				_Schema.inheritanceTree.show();
-			}, () => {
-				LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
-				_Schema.inheritanceTree.hide();
+			_Schema.ui.canvas[0].addEventListener('mousedown', (e) => {
+				if (e.which === 1) {
+					_Schema.ui.clearSelection();
+					_Schema.ui.selectionStart(e);
+				}
 			});
-		});
 
-		if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-			$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
-		}
+			_Schema.ui.canvas[0].addEventListener('mousemove', (e) => {
+				if (e.which === 1) {
+					_Schema.ui.selectionDrag(e);
+				}
+			});
 
-		_Schema.init(() => {
-			_Schema.resize();
-		});
+			_Schema.ui.canvas[0].addEventListener('mouseup', (e) => {
+				_Schema.ui.selectionStop();
+			});
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
+			let inheritanceTab = $('#inheritanceTab');
+			inheritanceTab.on('click', () => {
+				_Pages.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], (params) => {
+					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.prop('id'));
+					_Schema.inheritanceTree.show();
+				}, () => {
+					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
+					_Schema.inheritanceTree.hide();
+				});
+			});
 
-		$(window).off('resize').on('resize', () => {
-			_Schema.resize();
+			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
+				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+			}
+
+			_Schema.init(() => {
+				_Schema.resize();
+			});
+
+			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
+
+			$(window).off('resize').on('resize', () => {
+				_Schema.resize();
+			});
 		});
 	},
 	reload: (callback) => {
@@ -131,13 +132,12 @@ let _Schema = {
 		LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
 	},
 	clearPositions: () => {
-		 LSWrapper.removeItem(_Schema.schemaPositionsKey);
+		LSWrapper.removeItem(_Schema.schemaPositionsKey);
 		_Schema.reload();
 	},
 	init: (scrollPosition, callback) => {
 
 		_Schema.schemaLoading = false;
-		_Schema.schemaLoaded  = false;
 		_Schema.schema        = [];
 		_Schema.keys          = [];
 
@@ -221,17 +221,7 @@ let _Schema = {
 				if (info.connection.scope === 'jsPlumb_DefaultScope') {
 					if (originalEvent) {
 
-						Structr.dialog("Create Relationship", () => {
-							dialogMeta.show();
-						}, () => {
-							_Schema.currentNodeDialogId = null;
-
-							dialogMeta.show();
-							_Schema.ui.jsPlumbInstance.repaintEverything();
-							_Schema.ui.jsPlumbInstance.detach(info.connection);
-						}, ['schema-edit-dialog']);
-
-						_Schema.createRelationship(Structr.getIdFromPrefixIdString(info.sourceId, 'id_'), Structr.getIdFromPrefixIdString(info.targetId, 'id_'), dialogHead);
+						_Schema.relationships.createRelationship(info);
 					}
 				} else {
 					new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
@@ -292,8 +282,8 @@ let _Schema = {
 		}
 		_Schema.schemaLoading = true;
 
-		await _Schema.loadNodes();
-		await _Schema.loadRels();
+		await _Schema.nodes.loadNodes();
+		await _Schema.relationships.loadRels();
 	},
 	processSchemaRecompileNotification: () => {
 
@@ -302,12 +292,12 @@ let _Schema = {
 		if (Structr.isModuleActive(_Schema)) {
 
 			new MessageBuilder()
-					.title("Schema recompiled")
-					.info("Another user made changes to the schema. Do you want to reload to see the changes?")
-					.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
-					.uniqueClass('schema')
-					.incrementsUniqueCount()
-					.show();
+				.title("Schema recompiled")
+				.info("Another user made changes to the schema. Do you want to reload to see the changes?")
+				.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
+				.uniqueClass('schema')
+				.incrementsUniqueCount()
+				.show();
 		}
 	},
 	reloadSchemaAfterRecompileNotification: () => {
@@ -330,16 +320,6 @@ let _Schema = {
 			_Schema.reload();
 		}
 	},
-	isSchemaLoaded: () => {
-		let all = true;
-		if (!_Schema.schemaLoaded) {
-			$.each(_Schema.types, function(t, type) {
-				all &= (_Schema.schema[type] && _Schema.schema[type] !== null);
-			});
-		}
-		_Schema.schemaLoaded = all;
-		return _Schema.schemaLoaded;
-	},
 	getFirstSchemaLayoutOrFalse: async () => {
 
 		if (!_Schema.hiddenSchemaNodes) {
@@ -359,323 +339,20 @@ let _Schema = {
 
 		return false;
 	},
-	loadNodes: async () => {
-
-		_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
-
-		let savedHiddenSchemaNodesNull = (_Schema.hiddenSchemaNodes === null);
-
-		let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
-
-		if (schemaLayout && !savedHiddenSchemaNodesNull) {
-
-			_Schema.applySavedLayoutConfiguration(schemaLayout);
-
-		} else {
-
-			let response = await fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc');
-
-			if (response.ok) {
-
-				let data             = await response.json();
-				let entities         = {};
-				let inheritancePairs = {};
-				let hierarchy        = {};
-				let x = 0, y = 0;
-
-				if (savedHiddenSchemaNodesNull) {
-					_Schema.hiddenSchemaNodes = data.result.filter((entity) => {
-						return entity.isBuiltinType;
-					}).map((entity) => {
-						return entity.name;
-					});
-					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-				}
-
-				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-				if (!_Schema.nodePositions) {
-
-					let nodePositions = {};
-
-					// positions are stored the 'old' way => convert to the 'new' way
-					let typeNames = data.result.map(entity => entity.name);
-					for (let typeName of typeNames) {
-
-						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
-						if (nodePos) {
-							nodePositions[typeName] = nodePos.position;
-
-							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
-						}
-					}
-
-					_Schema.nodePositions = nodePositions;
-					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-
-					// After we have converted all types we try to find *all* outdated type positions and delete them
-					for (let key in JSON.parse(LSWrapper.getAsJSON())) {
-
-						if (key.endsWith('node-position')) {
-							LSWrapper.removeItem(key);
-						}
-					}
-				}
-
-				_Schema.loadClassTree(data.result);
-
-				_Schema.availableTypeNames = [];
-
-				for (let entity of data.result) {
-
-					_Schema.availableTypeNames.push(entity.name);
-
-					let level   = 0;
-					let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
-					let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
-					let hasRels = (outs > 0 || ins > 0);
-
-					if (ins === 0 && outs === 0) {
-
-						// no rels => push down
-						//level += 100;
-
-					} else {
-
-						if (outs === 0) {
-							level += 10;
-						}
-
-						level += ins;
-					}
-
-					if (entity.isBuiltinType && !hasRels) {
-						level += 10;
-					}
-
-					if (!hierarchy[level]) { hierarchy[level] = []; }
-					hierarchy[level].push(entity);
-
-					entities[entity.id] = entity.id;
-				}
-
-				for (let entity of data.result) {
-
-					if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-						inheritancePairs[entity.id] = entities[entity.extendsClass.id];
-					}
-				}
-
-				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
-
-					for (let entity of entitiesAtHierarchyLevel) {
-
-						_Schema.nodes[entity.id] = entity;
-
-						if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
-
-							let id = 'id_' + entity.id;
-							_Schema.ui.canvas.append(`
-							<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
-								<b>${entity.name}</b>
-								<div class="icons-container flex items-center">
-									${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
-									${(entity.isBuiltinType ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
-								</div>
-							</div>
-						`);
-
-							let node = $('#' + id);
-
-							node[0].addEventListener('mousedown', () => {
-								node[0].style.zIndex = ++_Schema.ui.maxZ;
-							});
-
-							node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
-								_Schema.openEditDialog(entity.id);
-							});
-
-							if (!entity.isBuiltinType) {
-
-								node[0].querySelector('b').addEventListener('click', () => {
-									_Schema.makeAttrEditable(node, 'name');
-								});
-
-								node[0].querySelector('.delete-type-icon').addEventListener('click', () => {
-									Structr.confirmation(
-										`<h3>Delete schema node '${entity.name}'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>`,
-										async () => {
-											$.unblockUI({ fadeOut: 25 });
-
-											await _Schema.deleteNode(entity.id);
-										}
-									);
-								});
-							}
-
-							let nodePosition = _Schema.nodePositions[entity.name];
-
-							if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
-
-								nodePosition = _Schema.ui.calculateNodePosition(x, y);
-
-								let count = 0;
-
-								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-									x++;
-									nodePosition = _Schema.ui.calculateNodePosition(x, y);
-								}
-							}
-
-							let canvasOffsetTop = _Schema.ui.canvas.offset().top;
-
-							if (nodePosition.top < canvasOffsetTop) {
-								nodePosition.top = canvasOffsetTop;
-
-								let count = 0;
-
-								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-									x++;
-									nodePosition = _Schema.ui.calculateNodePosition(x, y);
-								}
-							}
-
-							node.offset(nodePosition);
-
-							_Schema.nodes[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-								anchor: "Top",
-								maxConnections: -1,
-								isTarget: true,
-								deleteEndpointsOnDetach: false
-							});
-							_Schema.nodes[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-								anchor: "Bottom",
-								maxConnections: -1,
-								isSource: true,
-								deleteEndpointsOnDetach: false
-							});
-
-							let currentCanvasOffset;
-							let dragElement;
-							let dragElementId;
-							let dragElementIsSelected = false;
-							let nodeDragStartpoint    = {};
-							let dragStopped           = false;
-
-							_Schema.ui.jsPlumbInstance.draggable(id, {
-								containment: true,
-								start: (ui) => {
-
-									_Schema.ui.updateSelectedNodes();
-
-									dragElement         = $(ui.el);
-									dragElementId       = dragElement.attr('id');
-									currentCanvasOffset = _Schema.ui.canvas.offset();
-									dragStopped         = false;
-									let nodeOffset      = dragElement.offset();
-
-									dragElementIsSelected = dragElement.hasClass('selected');
-									if (!dragElementIsSelected) {
-										_Schema.ui.clearSelection();
-									}
-
-									nodeDragStartpoint = {
-										top: (nodeOffset.top - currentCanvasOffset.top),
-										left: (nodeOffset.left - currentCanvasOffset.left)
-									};
-								},
-								drag: () => {
-
-									if (dragElementIsSelected) {
-										requestAnimationFrame(() => {
-											if (!dragStopped) {
-												let nodeOffset = dragElement.offset();
-
-												let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
-												let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
-
-												for (let selectedNode of _Schema.ui.selectedNodes) {
-
-													if (selectedNode.nodeId !== dragElementId) {
-														let newTop  = selectedNode.pos.top - deltaTop;
-														if (newTop < currentCanvasOffset.top) {
-															newTop = currentCanvasOffset.top;
-														}
-														let newLeft = selectedNode.pos.left - deltaLeft;
-														if (newLeft < currentCanvasOffset.left) {
-															newLeft = currentCanvasOffset.left;
-														}
-
-														$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
-													}
-												}
-
-												_Schema.ui.jsPlumbInstance.repaintEverything();
-											}
-										});
-									}
-
-								},
-								stop: () => {
-									dragStopped = true;
-
-									_Schema.storePositions();
-									_Schema.ui.updateSelectedNodes();
-									_Schema.resize();
-								}
-							});
-							x++;
-						}
-					}
-
-					y++;
-					x = 0;
-				}
-
-				for (let [source, target] of Object.entries(inheritancePairs)) {
-
-					let sourceEntity = _Schema.nodes[source];
-					let targetEntity = _Schema.nodes[target];
-
-					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
-
-					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-						continue;
-					}
-
-					_Schema.ui.jsPlumbInstance.connect({
-						source: 'id_' + source,
-						target: 'id_' + target,
-						endpoint: 'Blank',
-						anchors: [
-							[ 'Perimeter', { shape: 'Rectangle' } ],
-							[ 'Perimeter', { shape: 'Rectangle' } ]
-						],
-						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-						paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-						cssClass: "dashed-inheritance-relationship"
-					});
-				}
-
-			} else {
-				throw new Error("Loading of Schema nodes failed");
-			}
-		}
-	},
-	openEditDialog: function(id, targetView, callback) {
+	openEditDialog: (id, targetView, callback) => {
 
 		targetView = targetView || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + id);
 
 		_Schema.currentNodeDialogId = id;
 
 		dialogMeta.hide();
-		Command.get(id, null, function(entity) {
+		Command.get(id, null, (entity) => {
 
 			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
 
-			Structr.dialog(title, function() {
+			Structr.dialog(title, () => {
 				dialogMeta.show();
-			}, function() {
+			}, () => {
 				_Schema.currentNodeDialogId = null;
 
 				if (callback) {
@@ -683,387 +360,1337 @@ let _Schema = {
 				}
 				dialogMeta.show();
 				_Schema.ui.jsPlumbInstance.repaintEverything();
+
 			}, ['schema-edit-dialog']);
 
+			let tabControls;
+
 			if (entity.type === "SchemaRelationshipNode") {
-				_Schema.loadRelationship(entity, dialogHead, dialogText, _Schema.nodes[entity.sourceId], _Schema.nodes[entity.targetId]);
+				tabControls = _Schema.relationships.loadRelationship(entity, dialogHead, dialogText, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView);
 			} else {
-				_Schema.loadNode(entity, dialogHead, dialogText, targetView);
+				tabControls = _Schema.nodes.loadNode(entity, dialogHead, dialogText, targetView);
 			}
 
+			// remove bulk edit save/discard buttons
+			for (let button of dialogText[0].querySelectorAll('.discard-all, .save-all')) {
+				button.remove();
+			}
+
+			let actionButtons = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaActionButtons({ saveButtonText: 'Save All', discardButtonText: 'Discard All' }));
+			dialogBtn[0].prepend(actionButtons);
+
+			let saveButton   = actionButtons.querySelector('#save-entity-button');
+			let cancelButton = actionButtons.querySelector('#discard-entity-changes-button');
+
+			saveButton.addEventListener('click', async (e) => {
+				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(id, tabControls);
+
+				if (ok) {
+					_Schema.openEditDialog(id);
+				}
+			});
+
+			cancelButton.addEventListener('click', (e) => {
+				_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+			});
+
+			let disableButtons = () => {
+				saveButton.disabled = true;
+				cancelButton.disabled = true;
+
+				saveButton.classList.add('disabled');
+				cancelButton.classList.add('disabled');
+			};
+			disableButtons();
+
+			let enableButtons = () => {
+				saveButton.removeAttribute('disabled');
+				cancelButton.removeAttribute('disabled');
+
+				saveButton.classList.remove('disabled');
+				cancelButton.classList.remove('disabled');
+			};
+
+			dialogText[0].childNodes[0].addEventListener('bulk-data-change', (e) => {
+
+				e.stopPropagation();
+
+				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
+				if (changeCount > 0) {
+					enableButtons();
+				} else {
+					disableButtons();
+				}
+			});
+
 			_Schema.ui.clearSelection();
-		});
+		}, 'schema');
 
 	},
-	loadRels: async () => {
+	bulkDialogsGeneral: {
+		overrideDialogCancel: (mainTabs) => {
+			dialogCancelButton.off('click').on('click', async () => {
 
-		let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes');
-		let data = await response.json();
+				let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?"));
 
-		let existingRels = {};
-		let relCnt       = {};
+				if (okToNavigate) {
+					Structr.dialogCancelBaseAction();
+				}
+			});
+		},
+		hasUnsavedChangesInTabs: (mainTabs) => {
+			return (mainTabs.find('.has-changes').length > 0);
+		},
+		hasUnsavedChangesInTable: (table) => {
+			return (table[0].querySelectorAll('tbody tr.to-delete, tbody tr.has-changes').length > 0);
+		},
+		tableChanged: (table) => {
+			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(table);
+			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, table, table.find('tfoot'));
+		},
+		hasUnsavedChangesInFakeTable: (fakeTable) => {
+			return (fakeTable[0].querySelectorAll('.fake-tbody .fake-tr.to-delete, .fake-tbody .fake-tr.has-changes').length > 0);
+		},
+		fakeTableChanged: (fakeTable) => {
+			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInFakeTable(fakeTable);
+			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, fakeTable, fakeTable.find('.fake-tfoot'));
+		},
+		dataChanged: (unsavedChanges, table, tfoot) => {
 
-		for (let res of data.result) {
+			let tabContainer = table.closest('.propTabContent');
+			if (tabContainer.length > 0) {
+				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContainer, unsavedChanges);
+			}
 
-			if (!_Schema.nodes[res.sourceId] || !_Schema.nodes[res.targetId] || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodes[res.sourceId].name) > -1 || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodes[res.targetId].name) > -1) {
+			if (unsavedChanges) {
 
-				// relationship is not displayed
+				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
+				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
 
 			} else {
 
-				let relIndex = res.sourceId + '-' + res.targetId;
-				if (relCnt[relIndex] === undefined) {
-					relCnt[relIndex] = 0;
+				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
+				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
+			}
+		},
+		dataChangedInTab: (tabContainer, unsavedChanges) => {
+
+			let tab = document.querySelector('#' + tabContainer.data('tabId'));
+
+			if (tab) {
+
+				if (unsavedChanges) {
+					tab.classList.add('has-changes');
 				} else {
-					relCnt[relIndex]++;
+					tab.classList.remove('has-changes');
+				}
+			}
+
+			tabContainer[0].dispatchEvent(new CustomEvent('bulk-data-change', {
+				// detail: {
+				// 	bar: 'baz'
+				// },
+				bubbles: true
+			}));
+		},
+		getBulkInfoFromTabControls: (tabControls, doValidate = true) => {
+			let data = {};
+			for (let key in tabControls) {
+				data[key] = tabControls[key].getBulkInfo(doValidate);
+			}
+			return data;
+		},
+		isSaveAllowedFromBulkInfo: (bulkInfo) => {
+
+			let allow = true;
+			let reasons = [];
+
+			for (let [key, info] of Object.entries(bulkInfo)) {
+				if (!info.allow) {
+					allow = false;
+					reasons.push(info.name);
+				}
+			}
+
+			return {allow, reasons};
+		},
+		getChangeCountFromBulkInfo: (bulkInfo) => {
+			let total = 0;
+
+			for (let [key, info] of Object.entries(bulkInfo)) {
+				for (let [countKey, count] of Object.entries(info.counts)) {
+					total += count;
+				}
+			}
+
+			return total;
+		},
+		getPayloadFromBulkInfo: (bulkInfo) => {
+
+			let data = {};
+
+			for (let [key, info] of Object.entries(bulkInfo)) {
+				if (info.data) {
+					Object.assign(data, info.data);
+				}
+			}
+
+			return data;
+		},
+		resetInputsViaTabControls: (tabControls) => {
+			Object.entries(tabControls).map(e => e[1].reset());
+		},
+		saveEntityFromTabControls: async (id, tabControls) => {
+
+			let bulkInfo         = _Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, true);
+			let counts           = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(bulkInfo);
+			let {allow, reasons} = _Schema.bulkDialogsGeneral.isSaveAllowedFromBulkInfo(bulkInfo);
+
+			if (counts > 0) {
+
+				if (!allow) {
+					new MessageBuilder().warning(`Unable to save. ${reasons.join()} are preventing saving.`).show();
+				} else {
+
+					// save data
+					_Schema.showSchemaRecompileMessage();
+					let data = _Schema.bulkDialogsGeneral.getPayloadFromBulkInfo(bulkInfo);
+
+					let response = await fetch(Structr.rootUrl + id, {
+						method: 'PATCH',
+						body: JSON.stringify(data)
+					});
+
+					_Schema.hideSchemaRecompileMessage();
+
+					if (response.ok) {
+						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+					} else {
+
+						let data = await response.json();
+
+						Structr.errorFromResponse(data);
+					}
+
+					return response.ok;
+				}
+			}
+
+			return false;
+		}
+	},
+	prevAnimFrameReqId_dragNode: undefined,
+	nodes: {
+		loadNodes: async () => {
+
+			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
+
+			let savedHiddenSchemaNodesNull = (_Schema.hiddenSchemaNodes === null);
+
+			let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
+
+			if (schemaLayout && !savedHiddenSchemaNodesNull) {
+
+				_Schema.applySavedLayoutConfiguration(schemaLayout);
+
+			} else {
+
+				let response = await fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc');
+
+				if (response.ok) {
+
+					let data             = await response.json();
+					let entities         = {};
+					let inheritancePairs = {};
+					let hierarchy        = {};
+					let x = 0, y = 0;
+
+					if (savedHiddenSchemaNodesNull) {
+						_Schema.hiddenSchemaNodes = data.result.filter((entity) => {
+							return entity.isBuiltinType;
+						}).map((entity) => {
+							return entity.name;
+						});
+						LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+					}
+
+					_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
+					if (!_Schema.nodePositions) {
+
+						let nodePositions = {};
+
+						// positions are stored the 'old' way => convert to the 'new' way
+						let typeNames = data.result.map(entity => entity.name);
+						for (let typeName of typeNames) {
+
+							let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
+							if (nodePos) {
+								nodePositions[typeName] = nodePos.position;
+
+								LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
+							}
+						}
+
+						_Schema.nodePositions = nodePositions;
+						LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
+
+						// After we have converted all types we try to find *all* outdated type positions and delete them
+						for (let key in JSON.parse(LSWrapper.getAsJSON())) {
+
+							if (key.endsWith('node-position')) {
+								LSWrapper.removeItem(key);
+							}
+						}
+					}
+
+					_Schema.loadClassTree(data.result);
+
+					_Schema.availableTypeNames = [];
+
+					for (let entity of data.result) {
+
+						_Schema.availableTypeNames.push(entity.name);
+
+						let level   = 0;
+						let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
+						let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
+						let hasRels = (outs > 0 || ins > 0);
+
+						if (ins === 0 && outs === 0) {
+
+							// no rels => push down
+							//level += 100;
+
+						} else {
+
+							if (outs === 0) {
+								level += 10;
+							}
+
+							level += ins;
+						}
+
+						if (entity.isBuiltinType && !hasRels) {
+							level += 10;
+						}
+
+						if (!hierarchy[level]) { hierarchy[level] = []; }
+						hierarchy[level].push(entity);
+
+						entities[entity.id] = entity.id;
+					}
+
+					for (let entity of data.result) {
+
+						if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
+							inheritancePairs[entity.id] = entities[entity.extendsClass.id];
+						}
+					}
+
+					for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
+
+						for (let entity of entitiesAtHierarchyLevel) {
+
+							_Schema.nodeData[entity.id] = entity;
+
+							if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
+
+								let id = 'id_' + entity.id;
+								_Schema.ui.canvas.append(`
+									<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
+										<b>${entity.name}</b>
+										<div class="icons-container flex items-center">
+											${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
+											${(entity.isBuiltinType ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
+										</div>
+									</div>
+								`);
+
+								let node = $('#' + id);
+
+								node[0].addEventListener('mousedown', () => {
+									node[0].style.zIndex = ++_Schema.ui.maxZ;
+								});
+
+								node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+									_Schema.openEditDialog(entity.id);
+								});
+
+								if (!entity.isBuiltinType) {
+
+									node[0].querySelector('b').addEventListener('click', () => {
+										_Schema.makeAttrEditable(node, 'name');
+									});
+
+									node[0].querySelector('.delete-type-icon').addEventListener('click', () => {
+										Structr.confirmation(
+											`<h3>Delete schema node '${entity.name}'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>`,
+											async () => {
+												$.unblockUI({ fadeOut: 25 });
+
+												await _Schema.deleteNode(entity.id);
+											}
+										);
+									});
+								}
+
+								let nodePosition = _Schema.nodePositions[entity.name];
+
+								if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
+
+									nodePosition = _Schema.ui.calculateNodePosition(x, y);
+
+									let count = 0;
+
+									while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+										x++;
+										nodePosition = _Schema.ui.calculateNodePosition(x, y);
+									}
+								}
+
+								let canvasOffsetTop = _Schema.ui.canvas.offset().top;
+
+								if (nodePosition.top < canvasOffsetTop) {
+									nodePosition.top = canvasOffsetTop;
+
+									let count = 0;
+
+									while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+										x++;
+										nodePosition = _Schema.ui.calculateNodePosition(x, y);
+									}
+								}
+
+								node.offset(nodePosition);
+
+								_Schema.nodeData[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+									anchor: "Top",
+									maxConnections: -1,
+									isTarget: true,
+									deleteEndpointsOnDetach: false
+								});
+								_Schema.nodeData[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+									anchor: "Bottom",
+									maxConnections: -1,
+									isSource: true,
+									deleteEndpointsOnDetach: false
+								});
+
+								let currentCanvasOffset;
+								let dragElement;
+								let dragElementId;
+								let dragElementIsSelected = false;
+								let nodeDragStartpoint    = {};
+								let dragStopped           = false;
+
+								_Schema.ui.jsPlumbInstance.draggable(id, {
+									containment: true,
+									start: (ui) => {
+
+										_Schema.ui.updateSelectedNodes();
+
+										dragElement         = $(ui.el);
+										dragElementId       = dragElement.attr('id');
+										currentCanvasOffset = _Schema.ui.canvas.offset();
+										dragStopped         = false;
+										let nodeOffset      = dragElement.offset();
+
+										dragElementIsSelected = dragElement.hasClass('selected');
+										if (!dragElementIsSelected) {
+											_Schema.ui.clearSelection();
+										}
+
+										nodeDragStartpoint = {
+											top: (nodeOffset.top - currentCanvasOffset.top),
+											left: (nodeOffset.left - currentCanvasOffset.left)
+										};
+									},
+									drag: () => {
+
+										if (dragElementIsSelected) {
+
+											Structr.requestAnimationFrameWrapper(_Schema.prevAnimFrameReqId_dragNode, () => {
+												if (!dragStopped) {
+													let nodeOffset = dragElement.offset();
+
+													let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
+													let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
+
+													for (let selectedNode of _Schema.ui.selectedNodes) {
+
+														if (selectedNode.nodeId !== dragElementId) {
+															let newTop  = selectedNode.pos.top - deltaTop;
+															if (newTop < currentCanvasOffset.top) {
+																newTop = currentCanvasOffset.top;
+															}
+															let newLeft = selectedNode.pos.left - deltaLeft;
+															if (newLeft < currentCanvasOffset.left) {
+																newLeft = currentCanvasOffset.left;
+															}
+
+															$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
+														}
+													}
+
+													_Schema.ui.jsPlumbInstance.repaintEverything();
+												}
+											});
+										}
+
+									},
+									stop: () => {
+										dragStopped = true;
+
+										_Schema.storePositions();
+										_Schema.ui.updateSelectedNodes();
+										_Schema.resize();
+									}
+								});
+								x++;
+							}
+						}
+
+						y++;
+						x = 0;
+					}
+
+					for (let [source, target] of Object.entries(inheritancePairs)) {
+
+						let sourceEntity = _Schema.nodeData[source];
+						let targetEntity = _Schema.nodeData[target];
+
+						let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
+						let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+
+						if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
+							continue;
+						}
+
+						_Schema.ui.jsPlumbInstance.connect({
+							source: 'id_' + source,
+							target: 'id_' + target,
+							endpoint: 'Blank',
+							anchors: [
+								[ 'Perimeter', { shape: 'Rectangle' } ],
+								[ 'Perimeter', { shape: 'Rectangle' } ]
+							],
+							connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+							paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+							cssClass: "dashed-inheritance-relationship"
+						});
+					}
+
+				} else {
+					throw new Error("Loading of Schema nodes failed");
+				}
+			}
+		},
+		loadNode: (entity, headEl, contentEl, targetView = 'local') => {
+
+			headEl.append('<div id="tabs"><ul></ul></div>');
+			let mainTabs = $('#tabs', headEl);
+
+			let contentDiv = $('<div class="schema-details h-full relative"></div>');
+			contentEl.append(contentDiv);
+
+			let tabControls = {};
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic', (tabContent, entity) => {
+				tabControls.basic = _Schema.nodes.appendBasicNodeInfo(tabContent, entity, mainTabs);
+			});
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(c, entity);
+			});
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', (c) => {
+				let editSchemaObjectLinkHandler = async ($el) => {
+					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+					if (okToNavigate) {
+						_Schema.openEditDialog($el.data('objectId'));
+					}
+				};
+				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
+			});
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', (c) => {
+				_Schema.properties.appendBuiltinProperties(c, entity);
+			});
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
+				tabControls.schemaViews = _Schema.views.appendViews(c, entity);
+			});
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
+				tabControls.schemaMethods = _Schema.methods.appendMethods(c, entity, entity.schemaMethods);
+			}, _Editors.resizeVisibleEditors);
+
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants', (c) => {
+				tabControls.schemaGrants = _Schema.nodes.schemaGrants.appendSchemaGrants(c, entity);
+			});
+
+			if (Structr.isModuleActive(_Code)) {
+
+				// only show the following tabs in the Code area where it is not opened in a popup
+
+				_Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets', (tabContent, entity) => {
+					_Schema.nodes.appendWorkingSets(tabContent, entity);
+				});
+
+				_Entities.appendPropTab(entity, mainTabs, contentDiv, 'usage-search', 'Usage Search', targetView === 'usage-search', (tabContent, entity) => {
+					_Schema.nodes.appendUsageSearch(tabContent, entity);
+				});
+
+				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
+			}
+
+			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs);
+
+			Structr.resize();
+
+			return tabControls;
+		},
+		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
+
+			tabContent.append(_Schema.templates.typeBasicTab({ type: entity }));
+
+			Structr.activateCommentsInElement(tabContent[0]);
+
+			let updateChangeStatus = () => {
+
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent[0], entity);
+				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+				let hasChanges  = Object.keys(changedData).length > 0;
+
+				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
+			};
+
+			for (let property of tabContent[0].querySelectorAll('[data-property]')) {
+				property.addEventListener('input', updateChangeStatus);
+			}
+
+			if (!entity.isBuiltinType || entity.extendsClass) {
+
+				let classSelect = $('.extends-class-select', tabContent);
+
+				fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
+
+					let data         = await response.json();
+					let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
+					let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+
+					let getOptionsForList = (list) => {
+						return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
+					};
+
+					classSelect.append(`
+						<optgroup label="Default Type">
+							<option value="">AbstractNode - Structr default base type</option>
+						</optgroup>
+						${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>` : ''}
+						${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>` : ''}
+					`);
+
+					classSelect.select2({
+						search_contains: true,
+						width: '500px'
+					}).on('change', () => {
+						updateChangeStatus();
+					});
+				});
+
+				tabContent[0].querySelector('.edit-parent-type')?.addEventListener('click', async () => {
+
+					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to parent type?"));
+					if (okToNavigate) {
+						_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
+
+							window.setTimeout(() => {
+								_Schema.openEditDialog(entity.id);
+							}, 250);
+						});
+					}
+				});
+			}
+
+			let apiTab = $('#openapi-options', _Code.codeContents);
+
+			$('#tags-select', apiTab).select2({
+				tags: true,
+				width: '100%'
+			}).on('change', () => {
+				updateChangeStatus();
+			});
+
+			return {
+				getBulkInfo: (doValidate) => {
+
+					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent[0], entity);
+					let allow       = true;
+					if (doValidate) {
+						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent[0]);
+					}
+					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
+
+					_Code.addAvailableTagsForEntities([typeInfo]);
+
+					return {
+						name: 'Basic type attributes',
+						data: typeInfo,
+						counts: {
+							updated: changeCount
+						},
+						allow: allow
+					}
+				},
+				reset: () => {
+					_Schema.nodes.resetTypeDefinition(tabContent[0], entity);
+				}
+			};
+		},
+		appendWorkingSets: (tabContent, entity) => {
+
+			tabContent.append(_Schema.templates.workingSets({ type: entity, addButtonText: 'Add Working Set' }));
+
+			// manage working sets
+			_WorkingSets.getWorkingSets((workingSets) => {
+
+				let groupSelect = document.querySelector('select#type-groups');
+
+				let createAndAddWorkingSetOption = (set, forceAdd) => {
+
+					let setOption = document.createElement('option');
+					setOption.textContent = set.name;
+					setOption.dataset['groupId'] = set.id;
+
+					if (forceAdd === true || set.children && set.children.includes(entity.name)) {
+						setOption.selected = true;
+					}
+
+					groupSelect.appendChild(setOption);
+				};
+
+				for (let set of workingSets) {
+
+					if (set.name !== _WorkingSets.recentlyUsedName) {
+						createAndAddWorkingSetOption(set);
+					}
 				}
 
-				existingRels[relIndex] = true;
-				if (res.targetId !== res.sourceId && existingRels[res.targetId + '-' + res.sourceId]) {
-					relCnt[relIndex] += existingRels[res.targetId + '-' + res.sourceId];
+				let isUnselect = false;
+				$(groupSelect).select2({
+					search_contains: true,
+					width: '100%',
+					closeOnSelect: false
+				}).on('select2:unselecting', function(e, p) {
+					isUnselect = true;
+
+				}).on('select2:opening', function(e, p) {
+					if (isUnselect) {
+						e.preventDefault();
+						isUnselect = false;
+					}
+
+				}).on('select2:select', function(e, p) {
+					let id = e.params.data.element.dataset['groupId'];
+
+					_WorkingSets.addTypeToSet(id, entity.name, function() {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+					});
+
+				}).on('select2:unselect', function(e, p) {
+					let id = e.params.data.element.dataset['groupId'];
+
+					_WorkingSets.removeTypeFromSet(id, entity.name, function() {
+						_TreeHelper.refreshNode('#code-tree', 'workingsets-' + id);
+					});
+				});
+
+				tabContent[0].querySelector('.add-button')?.addEventListener('click', () => {
+
+					_WorkingSets.createNewSetAndAddType(entity.name, (ws) => {
+
+						_TreeHelper.refreshNode('#code-tree', 'workingsets');
+
+						createAndAddWorkingSetOption(ws, true);
+						$(groupSelect).trigger('change');
+					});
+				})
+			});
+
+		},
+		appendUsageSearch: (tabContent, entity) => {
+			tabContent.append(_Schema.templates.usageSearch({ type: entity }));
+
+			// usedIn property
+			if (entity.usedIn && entity.usedIn.length > 0) {
+
+				let usageTreeContainer = document.querySelector('#usage-tree');
+				let label              = document.querySelector('#usage-label');
+
+				// add help text
+				label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
+
+				let sorted = entity.usedIn.sort((a, b) => {
+
+					let p1 = a.path || a.page || a.type || a.id;
+					let p2 = b.path || b.page || b.type || b.id;
+
+					return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
+				});
+
+				let tree = { name: 'Usage', children: {} };
+
+				// append rows
+				for (let usage of sorted) {
+
+					let path = usage.path;
+
+					// The path is split into its parts to form the hierarchy, so if there is no
+					// path, we use the root term "Types" plus the type of the node.
+					if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
+
+					let parts   = path.split('/').filter(p => p.length > 0);
+					let current = tree;
+
+					for (let part of parts) {
+
+						if (!current.children[part]) {
+
+							current.children[part] = {
+								name: part,
+								children: {}
+							};
+						}
+
+						current = current.children[part];
+					}
+
+					current.data = usage;
 				}
 
-				let stub   = 30 + 80 * relCnt[relIndex];
-				let offset =     0.2 * relCnt[relIndex];
+				let buildTree = function(root, rootElement) {
 
-				_Schema.ui.jsPlumbInstance.connect({
-					source: _Schema.nodes[res.sourceId + '_bottom'],
-					target: _Schema.nodes[res.targetId + '_top'],
-					deleteEndpointsOnDetach: false,
-					scope: res.id,
-					connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
-					paintStyle: { lineWidth: 4, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
-					overlays: [
-						["Label", {
+					let listItem = document.createElement('li');
+					listItem.dataset.jstree = JSON.stringify({ icon: Structr.getPrefixedRootUrl('/structr/icon/folder.png') });
+					listItem.innerHTML = root.name;
+					rootElement.appendChild(listItem);
+
+					let list = document.createElement('ul');
+					listItem.appendChild(list);
+
+					if (root.data) {
+
+						for (let key in root.data.mapped) {
+
+							let value = root.data.mapped[key];
+							let item  = document.createElement('li');
+							item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
+							item.dataset.id = root.data.id;
+							item.innerHTML = key + ': '+ value;
+
+							list.append(item);
+						}
+					}
+
+					for (let key in root.children) {
+						let child = root.children[key];
+						buildTree(child, list);
+					}
+				};
+
+				buildTree(tree, usageTreeContainer);
+
+				let usageTree = $('#usage-tree-container').jstree({
+					plugins: ["themes"],
+					core: {
+						animation: 0
+					}
+				});
+
+				usageTree.on('select_node.jstree', function(node, selected, event) {
+
+					let id = selected.node.data.id;
+
+					if (id) {
+
+						Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', (obj) => {
+
+							switch (obj.type) {
+
+								case 'Content':
+								case 'Template':
+									_Elements.openEditContentDialog(obj);
+									break;
+								default:
+									_Entities.showProperties(obj);
+									break;
+							}
+						});
+
+					} else {
+
+						// not a leaf, toggle "opened" state
+						usageTree.jstree('toggle_node', selected.node);
+					}
+				});
+
+			} else {
+
+				let label = document.querySelector('#usage-label');
+				if (label) {
+
+					label.innerHTML = 'Browse through your application to populate the usage list for this type.';
+				}
+			}
+		},
+		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
+
+			let generatedSourceTabShowCallback = (tabContent) => {
+				_Schema.showGeneratedSource(tabContent[0].querySelector('.generated-source')).then(() => {
+					_Editors.resizeVisibleEditors();
+				});
+			};
+			let { tab, tabContent } = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', (tabContent, entity) => {
+				tabContent[0].innerHTML = `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`;
+			}, generatedSourceTabShowCallback);
+
+			tab.addClass('tab');
+			tab.addClass('generated-source');
+			tabContent.addClass('generated-source');
+
+			if (targetView === 'source-code') {
+				generatedSourceTabShowCallback(tabContent);
+			} else {
+				tab.css('display', 'none');
+			}
+		},
+		getTypeDefinitionDataFromForm: (tabContent, entity) => {
+			return _Code.collectDataFromContainer(tabContent, entity);
+		},
+		validateBasicTypeInfo: (typeInfo, container) => {
+
+			let allow = true;
+
+			// check type name against regex
+			let match = typeInfo.name.match(/^[A-Z][a-zA-Z0-9_]*$/);
+			if (match === null) {
+				allow = false;
+				blinkRed(container.querySelector('[name="name"]'));
+			}
+
+			return allow;
+		},
+		getTypeDefinitionChanges: (entity, newData) => {
+
+			for (let key in newData) {
+
+				let shouldDelete = (entity[key] === newData[key]);
+
+				if (key === 'tags') {
+					let prevTags = entity[key];
+					let newTags  = newData[key];
+					if (prevTags.length === newTags.length) {
+						let difference = prevTags.filter(t => !newTags.includes(t));
+						shouldDelete = (difference.length === 0);
+					}
+				} else if (key === 'extendsClass') {
+					shouldDelete = (entity.extendsClass && entity.extendsClass.id === newData.extendsClass) || (!entity.extendsClass && newData.extendsClass === '');
+				}
+
+				if (shouldDelete) {
+					delete newData[key];
+				}
+			}
+
+			return newData;
+		},
+		resetTypeDefinition: (container, entity) => {
+			_Code.revertFormDataInContainer(container, entity);
+		},
+
+		schemaGrants: {
+			appendSchemaGrants: (tabContent, entity, mainTabs) => {
+
+				let schemaGrantsTableConfig = {
+					class: 'schema-grants-table schema-props',
+					cols: [
+						{ class: '', title: 'Group' },
+						{ class: '', title: 'read' },
+						{ class: '', title: 'write' },
+						{ class: '', title: 'delete' },
+						{ class: '', title: 'access control' }
+					],
+					discardButtonText: 'Discard Schema Grant changes',
+					saveButtonText: 'Save Schema Grants'
+				};
+
+				let schemaGrantsContainer = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaGrantsTabContent({ tableMarkup: _Schema.templates.schemaTable(schemaGrantsTableConfig) }));
+				tabContent[0].append(schemaGrantsContainer);
+
+				let tbody = schemaGrantsContainer.querySelector('tbody');
+
+				let updateStatus = () => {
+					let hasChanges = ((schemaGrantsContainer.querySelectorAll('.changed')).length > 0);
+
+					_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
+				};
+
+				let schemaGrantsTableChange = (cb, rowConfig) => {
+
+					let property = cb.dataset['property'];
+					if (rowConfig[property] !== cb.checked) {
+						cb.classList.add('changed');
+					} else {
+						cb.classList.remove('changed');
+					}
+
+					updateStatus();
+				};
+
+				let getGrantData = () => {
+
+					let grantData = [];
+
+					for (let row of tbody.querySelectorAll('tr')) {
+
+						let rowConfig = {
+							principal:          row.dataset['groupId'],
+							schemaNode:         entity.id,
+							allowRead:          row.querySelector('input[data-property=allowRead]').checked,
+							allowWrite:         row.querySelector('input[data-property=allowWrite]').checked,
+							allowDelete:        row.querySelector('input[data-property=allowDelete]').checked,
+							allowAccessControl: row.querySelector('input[data-property=allowAccessControl]').checked
+						};
+
+						let grantId = row.dataset['grantId'];
+						if (grantId) {
+							rowConfig.id = grantId;
+						}
+
+						let isChanged         = (row.querySelectorAll('.changed').length > 0);
+						let atLeastOneChecked = (row.querySelectorAll('input:checked').length > 0);
+
+						if (isChanged || atLeastOneChecked) {
+							grantData.push(rowConfig);
+						}
+					}
+
+					return grantData;
+				};
+
+				let grants = {};
+
+				for (let grant of entity.schemaGrants) {
+					grants[grant.principal.id] = grant;
+				}
+
+				let getGrantConfigForGroup = (group) => {
+					return {
+						groupId: group.id,
+						name: group.name,
+						grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
+						allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
+						allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
+						allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
+						allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+					};
+				};
+
+				Command.query('Group', 1000, 1, 'name', 'asc', {}, (groupResult) => {
+
+					for (let group of groupResult) {
+
+						let tplConfig = getGrantConfigForGroup(group);
+
+						let row = Structr.createSingleDOMElementFromHTML(_Code.templates.schemaGrantsRow(tplConfig));
+						tbody.appendChild(row);
+
+						for (let cb of row.querySelectorAll('input')) {
+
+							cb.addEventListener('change', (e) => {
+								schemaGrantsTableChange(cb, tplConfig);
+							});
+						}
+					}
+				});
+
+				return {
+					getBulkInfo: (doValidate) => {
+
+						let data = {
+							schemaGrants: getGrantData()
+						};
+						let changeCount = (schemaGrantsContainer.querySelectorAll('.changed')).length;
+
+						return {
+							name: 'Basic type attributes',
+							data: data,
+							counts: {
+								updated: changeCount
+							},
+							allow: true
+						}
+					},
+					reset: () => {
+
+						for (let row of schemaGrantsContainer.querySelectorAll('tbody tr')) {
+							let tplConfig = getGrantConfigForGroup({
+								id: row.dataset['groupId']
+							});
+
+							_Code.revertFormDataInContainer(row, tplConfig);
+						}
+
+						for (let cb of tbody.querySelectorAll('.changed')) {
+							cb.classList.remove('changed');
+						}
+
+						updateStatus();
+					}
+				};
+			}
+		},
+	},
+	relationships: {
+		loadRels: async () => {
+
+			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes');
+			let data = await response.json();
+
+			let existingRels = {};
+			let relCnt       = {};
+
+			for (let res of data.result) {
+
+				if (!_Schema.nodeData[res.sourceId] || !_Schema.nodeData[res.targetId] || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodeData[res.sourceId].name) > -1 || _Schema.hiddenSchemaNodes.indexOf(_Schema.nodeData[res.targetId].name) > -1) {
+
+					// relationship is not displayed
+
+				} else {
+
+					let relIndex = res.sourceId + '-' + res.targetId;
+					if (relCnt[relIndex] === undefined) {
+						relCnt[relIndex] = 0;
+					} else {
+						relCnt[relIndex]++;
+					}
+
+					existingRels[relIndex] = true;
+					if (res.targetId !== res.sourceId && existingRels[res.targetId + '-' + res.sourceId]) {
+						relCnt[relIndex] += existingRels[res.targetId + '-' + res.sourceId];
+					}
+
+					let stub   = 30 + 80 * relCnt[relIndex];
+					let offset =     0.2 * relCnt[relIndex];
+
+					_Schema.ui.jsPlumbInstance.connect({
+						source: _Schema.nodeData[res.sourceId + '_bottom'],
+						target: _Schema.nodeData[res.targetId + '_top'],
+						deleteEndpointsOnDetach: false,
+						scope: res.id,
+						connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
+						paintStyle: { lineWidth: 4, strokeStyle: res.permissionPropagation !== 'None' ? "#ffad25" : "#81ce25" },
+						overlays: [
+							["Label", {
 								cssClass: "label multiplicity",
 								label: res.sourceMultiplicity ? res.sourceMultiplicity : '*',
 								location: Math.min(.2 + offset, .4),
 								id: "sourceMultiplicity"
-							}
-						],
-						["Label", {
+							}],
+							["Label", {
 								cssClass: "label rel-type",
-								label: `<div id="rel_${res.id}" class="flex">
+								label: `<div id="rel_${res.id}" class="flex items-center">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
 											${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']))}
-											${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon']))}
+											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon'])))}
 										</div>`,
 								location: .5,
 								id: "label"
-							}
-						],
-						["Label", {
+							}],
+							["Label", {
 								cssClass: "label multiplicity",
 								label: res.targetMultiplicity ? res.targetMultiplicity : '*',
 								location: Math.max(.8 - offset, .6),
 								id: "targetMultiplicity"
-							}
+							}]
 						]
-					]
-				});
-
-				let relTypeOverlay = $('#rel_' + res.id);
-
-				if (res.relationshipType === _Schema.initialRelType) {
-
-					relTypeOverlay.css({
-						width: "80px"
 					});
-					relTypeOverlay.parent().addClass('schema-reltype-warning');
 
-					Structr.appendInfoTextToElement({
-						text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
-						element: $('span', relTypeOverlay),
-						customToggleIcon: 'warning-sign-icon',
-						customToggleIconClasses: ['icon-grey', 'ml-2'],
-						appendToElement: $('#schema-container')
+					let relTypeOverlay = $('#rel_' + res.id);
+
+					if (res.relationshipType === _Schema.initialRelType) {
+
+						relTypeOverlay.css({
+							width: "80px"
+						});
+						relTypeOverlay.parent().addClass('schema-reltype-warning');
+
+						Structr.appendInfoTextToElement({
+							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
+							element: $('span', relTypeOverlay),
+							customToggleIcon: 'warning-sign-icon-filled',
+							customToggleIconClasses: ['ml-2'],
+							appendToElement: $('#schema-container')
+						});
+					}
+
+					relTypeOverlay.find('.edit-relationship-icon').on('click', () => {
+						_Schema.openEditDialog(res.id);
+					});
+
+					relTypeOverlay.find('.delete-relationship-icon').on('click', () => {
+						_Schema.relationships.askDeleteRelationship(res.id, res.relationshipType);
+						return false;
 					});
 				}
-
-				relTypeOverlay.find('.edit-relationship-icon').on('click', function() {
-					_Schema.openEditDialog(res.id);
-				});
-
-				relTypeOverlay.find('.delete-relationship-icon').on('click', function() {
-					_Schema.askDeleteRelationship(res.id, res.relationshipType);
-					return false;
-				});
 			}
-		}
-	},
-	loadNode: function(entity, headEl, contentEl, targetView) {
+		},
+		loadRelationship: (entity, headEl, contentEl, sourceNode, targetNode, targetView) => {
 
-		if (!targetView) {
-			targetView = 'local';
-		}
+			let mainTabs = $('<div id="tabs"><ul></ul></div>');
+			headEl.append(mainTabs);
 
-		let id = '___' + entity.id;
-		headEl.append(`
-			<div id="${id}_head" class="schema-details">
-				<div id="class-inheritance" class="flex items-center gap-x-2">
-					<b>${entity.name}</b>
-				</div>
-			</div>
-		`);
-		let headContentDiv = $('#' + id + '_head');
-		let inheritanceDiv = $('#class-inheritance', headContentDiv);
+			let contentDiv = $('<div class="schema-details h-full"></div>');
+			contentEl.append(contentDiv);
 
-		if (!entity.isBuiltinType || entity.extendsClass) {
+			let tabControls = {};
 
-			inheritanceDiv.append(' extends <select class="extends-class-select"></select>');
-
-			let classSelect = $('.extends-class-select', inheritanceDiv);
-
-			fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
-
-				let data = await response.json();
-
-				classSelect.append('<optgroup label="Default Type"><option value="">AbstractNode - Structr default base type</option></optgroup>');
-
-				let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-				let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
-
-				let getOptionsForList = (list) => {
-
-					return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
-				};
-
-				if (customTypes.length) {
-
-					classSelect.append(`<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>`);
-				}
-
-				if (builtinTypes.length) {
-
-					classSelect.append(`<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>`);
-				}
-
-				classSelect.chosen({
-					search_contains: true,
-					width: '500px'
-				});
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic', (tabContent, entity) => {
+				tabControls.basic = _Schema.relationships.appendBasicRelInfo(tabContent, entity, sourceNode, targetNode, mainTabs);
 			});
 
-			classSelect.off('change').on('change', () => {
-				_Schema.storeSchemaEntity(entity, JSON.stringify({ extendsClass: classSelect.val() }), () => {
-					_Schema.openEditDialog(entity.id);
-				});
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
+				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(c, entity);
 			});
 
-			if (entity.extendsClass) {
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
+				tabControls.schemaViews = _Schema.views.appendViews(c, entity);
+			});
 
-				inheritanceDiv.append(_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type'));
+			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
+				tabControls.schemaMethods = _Schema.methods.appendMethods(c, entity, entity.schemaMethods);
+			}, _Editors.resizeVisibleEditors);
 
-				$(".edit-parent-type", inheritanceDiv).click(() => {
+			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs);
 
-					_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
+			Structr.resize();
 
-						window.setTimeout(() => {
-							_Schema.openEditDialog(entity.id);
-						}, 250);
-					});
-				});
-			}
-		}
+			return tabControls;
+		},
+		appendBasicRelInfo: (tabContent, entity, sourceNode, targetNode, mainTabs) => {
 
-		headContentDiv.append('<div id="tabs"><ul></ul></div>');
-		let mainTabs = $('#tabs', headContentDiv);
+			tabContent[0].insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
 
-		let contentDiv = $('<div class="schema-details"></div>');
-		contentEl.append(contentDiv);
+			_Schema.relationships.appendCascadingDeleteHelpText();
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
-			_Schema.properties.appendLocalProperties(c, entity);
-		});
+			let updateChangeStatus = () => {
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', (c) => {
-			let editSchemaObjectLinkHandler = ($el) => {
-				_Schema.openEditDialog($el.data('objectId'));
+				let changedData = _Schema.relationships.getRelationshipDefinitionChanges(entity);
+				let hasChanges  = Object.keys(changedData).length > 0;
+
+				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
 			};
-			_Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
-		});
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', (c) => {
-			_Schema.properties.appendBuiltinProperties(c, entity);
-		});
+			_Schema.relationships.populateBasicRelInfo(entity, sourceNode, targetNode);
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
-			_Schema.views.appendViews(c, entity);
-		});
+			let sourceHelpElements = [];
+			let targetHelpElements = [];
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
-			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
-		}, null, _Editors.resizeVisibleEditors);
+			let reactToCardinalityChange = () => {
+				_Schema.relationships.reactToCardinalityChange(entity, sourceHelpElements, targetHelpElements);
+			};
 
-		if (!entity.isBuiltinType) {
+			updateChangeStatus();
 
-			inheritanceDiv.children('b').off('click').on('click', () => {
-				_Schema.makeAttrEditable(inheritanceDiv, 'name');
-			});
-		}
+			if (Structr.isModuleActive(_Schema)) {
 
-		Structr.resize();
-	},
-	createRemotePropertyNameSuggestion: (typeName, cardinality) => {
+				for (let editLink of tabContent[0].querySelectorAll('.edit-schema-object')) {
 
-		if (cardinality === '1') {
+					editLink.addEventListener('click', async (e) => {
+						e.stopPropagation();
 
-			return 'a' + typeName;
+						let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+						if (okToNavigate) {
+							_Schema.openEditDialog(editLink.dataset['objectId']);
+						}
 
-		} else if (cardinality === '*') {
-
-			let suggestion = 'many' + typeName;
-
-			if (suggestion.slice(-1) !== 's') {
-				suggestion += 's';
-			}
-
-			return suggestion;
-
-		} else {
-
-			new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for linked property name. Unsupported cardinality encountered!').requiresConfirmation().show();
-			return typeName;
-		}
-	},
-	createRelationship: (sourceId, targetId, headEl) => {
-
-		let relationshipDialogHtml = _Schema.templates.relationshipDialog();
-
-		headEl.append(relationshipDialogHtml);
-
-		_Schema.appendCascadingDeleteHelpText();
-
-		let sourceTypeName = _Schema.nodes[sourceId].name;
-		let targetTypeName = _Schema.nodes[targetId].name;
-
-		$('#source-type-name').text(sourceTypeName);
-		$('#target-type-name').text(targetTypeName);
-
-		if (Structr.isModuleActive(_Schema)) {
-			// move buttons to footer of dialog (in code area they stay put)
-			let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
-			dialogBtn[0].prepend(buttonsContainer);
-		}
-
-		$('#edit-rel-options-button').hide();
-		let saveButton = $('#save-rel-options-button');
-		let cancelButton = $('#cancel-rel-options-button');
-
-		let previousSourceSuggestion = '';
-		let previousTargetSuggestion = '';
-
-		let updateSuggestions = () => {
-
-			let currentSourceSuggestion = _Schema.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
-			let currentTargetSuggestion = _Schema.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
-
-			if (currentSourceSuggestion === currentTargetSuggestion) {
-				currentSourceSuggestion += '_source';
-				currentTargetSuggestion += '_target';
-			}
-
-			if (previousSourceSuggestion === $('#source-json-name').val()) {
-				$('#source-json-name').val(currentSourceSuggestion);
-				previousSourceSuggestion = currentSourceSuggestion;
-			}
-
-			if (previousTargetSuggestion === $('#target-json-name').val()) {
-				$('#target-json-name').val(currentTargetSuggestion);
-				previousTargetSuggestion = currentTargetSuggestion;
-			}
-		};
-		updateSuggestions();
-
-		$('#source-multiplicity-selector').on('change', updateSuggestions);
-		$('#target-multiplicity-selector').on('change', updateSuggestions);
-
-		saveButton.off('click').on('click', async (e) => {
-
-			let relData = _Schema.getRelationshipDefinitionDataFromForm();
-			relData.sourceId = sourceId;
-			relData.targetId = targetId;
-
-			if (relData.relationshipType.trim() === '') {
-
-				blinkRed($('#relationship-type-name'));
-
+						return false;
+					});
+				}
 			} else {
-
-				await _Schema.createRelationshipDefinition(relData);
+				$('.edit-schema-object', tabContent).removeClass('edit-schema-object');
 			}
-		});
 
-		cancelButton.off('click').on('click', function(e) {
-			dialogCancelButton.click();
-		});
+			let initActions = () => {
 
-		Structr.resize();
-	},
-	appendCascadingDeleteHelpText: () => {
+				let tabContentEl = tabContent[0];
 
-		Structr.appendInfoTextToElement({
-			text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
-			element: $('#cascading-delete-selector'),
-			customToggleIconClasses: ['ml-2', 'icon-blue'],
-			insertAfter: true,
-			noSpan: true
-		});
-	},
-	getRelationshipDefinitionDataFromForm: function() {
+				tabContentEl.querySelector('#source-json-name').addEventListener('keyup', updateChangeStatus);
+				tabContentEl.querySelector('#target-json-name').addEventListener('keyup', updateChangeStatus);
 
-		return {
-			relationshipType: $('#relationship-type-name').val(),
-			sourceMultiplicity: $('#source-multiplicity-selector').val(),
-			targetMultiplicity: $('#target-multiplicity-selector').val(),
-			sourceJsonName: $('#source-json-name').val(),
-			targetJsonName: $('#target-json-name').val(),
-			cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-			autocreationFlag: parseInt($('#autocreate-selector').val()),
-			permissionPropagation: $('#propagation-selector').val(),
-			readPropagation: $('#read-selector').val(),
-			writePropagation: $('#write-selector').val(),
-			deletePropagation: $('#delete-selector').val(),
-			accessControlPropagation: $('#access-control-selector').val(),
-			propertyMask: $('#masked-properties').val()
-		};
+				tabContentEl.querySelector('#source-multiplicity-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#target-multiplicity-selector').addEventListener('change', updateChangeStatus);
 
-	},
-	loadRelationship: (entity, headEl, contentEl, sourceNode, targetNode, saveSuccessFunction) => {
+				tabContentEl.querySelector('#relationship-type-name').addEventListener('keyup', updateChangeStatus);
 
-		let relationshipDialogHtml = _Schema.templates.relationshipDialog();
+				tabContentEl.querySelector('#cascading-delete-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#autocreate-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#propagation-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#read-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#write-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#delete-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#access-control-selector').addEventListener('change', updateChangeStatus);
+				tabContentEl.querySelector('#masked-properties').addEventListener('keyup', updateChangeStatus);
 
-		headEl.append(relationshipDialogHtml);
+				tabContentEl.querySelector('#source-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
+				tabContentEl.querySelector('#target-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
+				tabContentEl.querySelector('#source-json-name').addEventListener('keyup', reactToCardinalityChange);
+				tabContentEl.querySelector('#target-json-name').addEventListener('keyup', reactToCardinalityChange);
+			};
+			initActions();
 
-		$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+			return {
+				getBulkInfo: (doValidate) => {
 
-		_Schema.appendCascadingDeleteHelpText();
+					let relInfo     = _Schema.relationships.getRelationshipDefinitionDataFromForm();
+					let allow       = true;
+					if (doValidate) {
+						allow = _Schema.relationships.validateBasicRelInfo(relInfo, tabContent[0]);
+					}
+					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(entity)).length;
 
-		let mainTabs = $('#tabs', headEl);
+					return {
+						name: 'Basic relationship attributes',
+						data: relInfo,
+						counts: {
+							updated: changeCount
+						},
+						allow: allow
+					}
+				},
+				reset: () => {
+					_Schema.relationships.populateBasicRelInfo(entity, sourceNode, targetNode);
+					reactToCardinalityChange();
+					updateChangeStatus();
+				},
+			};
+		},
+		populateBasicRelInfo: (rel, sourceNode, targetNode) => {
 
-		let contentDiv = $('<div class="schema-details"></div>');
-		contentEl.append(contentDiv);
+			$('#source-type-name').text(sourceNode.name);
+			document.querySelector('#source-type-name').dataset['objectId'] = rel.sourceId;
+			$('#target-type-name').text(targetNode.name);
+			document.querySelector('#target-type-name').dataset['objectId'] = rel.targetId;
 
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', true, (c) => {
-			_Schema.properties.appendLocalProperties(c, entity);
-		});
-
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', false, (c) => {
-			_Schema.views.appendViews(c, entity);
-		});
-
-		_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', false, (c) => {
-			_Schema.methods.appendMethods(c, entity, _Schema.filterJavaMethods(entity.schemaMethods));
-		}, null, _Editors.resizeVisibleEditors);
-
-		let selectRelationshipOptions = (rel) => {
-			$('#source-type-name').text(sourceNode.name).data('objectId', rel.sourceId);
 			$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
 			$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
+
 			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
-			$('#relationship-type-name').val(rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
 			$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
-			$('#target-type-name').text(targetNode.name).data('objectId', rel.targetId);
+
+			$('#relationship-type-name').val(rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
+
 			$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
 			$('#autocreate-selector').val(rel.autocreationFlag || 0);
 			$('#propagation-selector').val(rel.permissionPropagation || 'None');
@@ -1072,92 +1699,164 @@ let _Schema = {
 			$('#delete-selector').val(rel.deletePropagation || 'Remove');
 			$('#access-control-selector').val(rel.accessControlPropagation || 'Remove');
 			$('#masked-properties').val(rel.propertyMask);
-		};
+		},
+		reactToCardinalityChange: (entity, sourceHelpElements, targetHelpElements) => {
 
-		if (Structr.isModuleActive(_Schema)) {
-			// move buttons to footer of dialog (in code area they stay put)
-			let buttonsContainer = headEl[0].querySelector('#rel-edit-buttons');
-			dialogBtn[0].prepend(buttonsContainer);
-		}
+			sourceHelpElements.map(e => e.remove());
+			while (sourceHelpElements.length > 0) sourceHelpElements.pop();
 
-		if (!saveSuccessFunction) {
+			if ($('#source-multiplicity-selector').val() !== (entity.sourceMultiplicity || '*') && $('#source-json-name').val() === (entity.sourceJsonName || entity.oldSourceJsonName)) {
+				for (let el of _Schema.relationships.appendCardinalityChangeInfo($('#source-json-name'))) {
+					sourceHelpElements.push(el);
+				}
+			}
 
-			$('.edit-schema-object', headEl).off('click').on('click', function(e) {
-				e.stopPropagation();
+			targetHelpElements.map(e => e.remove());
+			while (targetHelpElements.length > 0) targetHelpElements.pop();
 
-				// todo: only navigate if no changes
-
-				_Schema.openEditDialog($(this).data('objectId'));
-				return false;
-			});
-		} else {
-			$('.edit-schema-object', headEl).off('click').removeClass('edit-schema-object');
-		}
-
-		selectRelationshipOptions(entity);
-
-		let sourceHelpElements = undefined;
-		let targetHelpElements = undefined;
-
-		let appendMultiplicityChangeInfo = (el) => {
+			if ($('#target-multiplicity-selector').val() !== (entity.targetMultiplicity || '*') && $('#target-json-name').val() === (entity.targetJsonName || entity.oldTargetJsonName)) {
+				for (let el of _Schema.relationships.appendCardinalityChangeInfo($('#target-json-name'))) {
+					targetHelpElements.push(el);
+				}
+			}
+		},
+		appendCardinalityChangeInfo: (el) => {
 			return Structr.appendInfoTextToElement({
 				text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
 				element: el,
 				insertAfter: true,
-				customToggleIcon: 'warning-sign-icon',
-				customToggleIconClasses: ['icon-grey', 'ml-2'],
+				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIconClasses: ['ml-2'],
 				helpElementCss: {
 					fontSize: '9pt'
 				}
 			});
-		};
+		},
+		validateBasicRelInfo: (relDef, container) => {
 
-		let reactToCardinalityChange = () => {
+			let allow = true;
 
-			if (sourceHelpElements) {
-				sourceHelpElements.map(e => e.remove());
-				sourceHelpElements = undefined;
+			// check relationshipType against regex
+			let match = relDef.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
+			if (match === null) {
+				allow = false;
+				blinkRed(container.querySelector('#relationship-type-name'));
 			}
 
-			if ($('#source-multiplicity-selector').val() !== (entity.sourceMultiplicity || '*') && $('#source-json-name').val() === (entity.sourceJsonName || entity.oldSourceJsonName)) {
-				sourceHelpElements = appendMultiplicityChangeInfo($('#source-json-name'));
+			return allow;
+		},
+		createRelationship: (info) => {
+
+			let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
+			let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
+
+			Structr.dialog("Create Relationship", () => {}, () => {}, ['schema-edit-dialog']);
+
+			dialogCancelButton.hide();
+
+			let container = dialogText;
+
+			container.append(_Schema.templates.relationshipBasicTab());
+
+			_Schema.relationships.appendCascadingDeleteHelpText();
+
+			let sourceTypeName = _Schema.nodeData[sourceId].name;
+			let targetTypeName = _Schema.nodeData[targetId].name;
+
+			$('#source-type-name').text(sourceTypeName);
+			$('#target-type-name').text(targetTypeName);
+
+			let previousSourceSuggestion = '';
+			let previousTargetSuggestion = '';
+
+			let updateSuggestions = () => {
+
+				let currentSourceSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
+				let currentTargetSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+
+				if (currentSourceSuggestion === currentTargetSuggestion) {
+					currentSourceSuggestion += '_source';
+					currentTargetSuggestion += '_target';
+				}
+
+				if (previousSourceSuggestion === $('#source-json-name').val()) {
+					$('#source-json-name').val(currentSourceSuggestion);
+					previousSourceSuggestion = currentSourceSuggestion;
+				}
+
+				if (previousTargetSuggestion === $('#target-json-name').val()) {
+					$('#target-json-name').val(currentTargetSuggestion);
+					previousTargetSuggestion = currentTargetSuggestion;
+				}
+			};
+			updateSuggestions();
+
+			$('#source-multiplicity-selector').on('change', updateSuggestions);
+			$('#target-multiplicity-selector').on('change', updateSuggestions);
+
+			if (Structr.isModuleActive(_Schema)) {
+
+				let actionButtons = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaActionButtons({ saveButtonText: 'Create', discardButtonText: 'Discard and close' }));
+				dialogBtn[0].prepend(actionButtons);
+
+				let saveButton    = actionButtons.querySelector('#save-entity-button');
+				let discardButton = actionButtons.querySelector('#discard-entity-changes-button');
+
+				saveButton.addEventListener('click', async (e) => {
+
+					let relData = _Schema.relationships.getRelationshipDefinitionDataFromForm();
+					relData.sourceId = sourceId;
+					relData.targetId = targetId;
+
+					if (relData.relationshipType.trim() === '') {
+
+						blinkRed($('#relationship-type-name'));
+
+					} else {
+
+						await _Schema.relationships.createRelationshipDefinition(relData);
+					}
+				});
+
+				discardButton.addEventListener('click', function(e) {
+
+					_Schema.currentNodeDialogId = null;
+
+					_Schema.ui.jsPlumbInstance.repaintEverything();
+					_Schema.ui.jsPlumbInstance.detach(info.connection);
+
+					Structr.dialogCancelBaseAction();
+
+					dialogCancelButton.show();
+				});
 			}
 
-			if (targetHelpElements) {
-				targetHelpElements.map(e => e.remove());
-				targetHelpElements = undefined;
-			}
+			Structr.resize();
+		},
+		getRelationshipDefinitionDataFromForm: () => {
 
-			if ($('#target-multiplicity-selector').val() !== (entity.targetMultiplicity || '*') && $('#target-json-name').val() === (entity.targetJsonName || entity.oldTargetJsonName)) {
-				targetHelpElements = appendMultiplicityChangeInfo($('#target-json-name'));
-			}
-		};
+			return {
+				relationshipType: $('#relationship-type-name').val(),
+				sourceMultiplicity: $('#source-multiplicity-selector').val(),
+				targetMultiplicity: $('#target-multiplicity-selector').val(),
+				sourceJsonName: $('#source-json-name').val(),
+				targetJsonName: $('#target-json-name').val(),
+				cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
+				autocreationFlag: parseInt($('#autocreate-selector').val()),
+				permissionPropagation: $('#propagation-selector').val(),
+				readPropagation: $('#read-selector').val(),
+				writePropagation: $('#write-selector').val(),
+				deletePropagation: $('#delete-selector').val(),
+				accessControlPropagation: $('#access-control-selector').val(),
+				propertyMask: $('#masked-properties').val()
+			};
 
-		$('#source-multiplicity-selector').on('change', reactToCardinalityChange);
-		$('#target-multiplicity-selector').on('change', reactToCardinalityChange);
-		$('#source-json-name').on('keyup', reactToCardinalityChange);
-		$('#target-json-name').on('keyup', reactToCardinalityChange);
+		},
+		getRelationshipDefinitionChanges: (entity) => {
 
-		let editButton = $('#edit-rel-options-button');
-		let saveButton = $('#save-rel-options-button').hide();
-		let cancelButton = $('#cancel-rel-options-button').hide();
+			let newData = _Schema.relationships.getRelationshipDefinitionDataFromForm();
 
-		editButton.off('click').on('click', function(e) {
-			e.preventDefault();
-
-			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', false).css('color', '').css('background-color', '');
-
-			editButton.hide();
-			saveButton.show();
-			cancelButton.show();
-		});
-
-		saveButton.off('click').on('click', async (e) => {
-
-			let newData = _Schema.getRelationshipDefinitionDataFromForm();
-			let relType = newData.relationshipType;
-
-			for (let key of Object.keys(newData)) {
+			for (let key in newData) {
 
 				let shouldDelete = (entity[key] === newData[key]) || (key === 'cascadingDeleteFlag' && !(entity[key]) && newData[key] === 0) || (key === 'autocreationFlag' && !(entity[key]) && newData[key] === 0) || (key === 'propertyMask' && !(entity[key]) && newData[key].trim() === '');
 
@@ -1166,47 +1865,171 @@ let _Schema = {
 				}
 			}
 
-			if (relType.trim() === '') {
+			return newData;
+		},
+		createRemotePropertyNameSuggestion: (typeName, cardinality) => {
 
-				blinkRed($('#relationship-type-name'));
+			if (cardinality === '1') {
 
-			} else if (Object.keys(newData).length > 0) {
+				return 'a' + typeName;
 
-				$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+			} else if (cardinality === '*') {
 
-				editButton.show();
-				saveButton.hide();
-				cancelButton.hide();
+				let suggestion = 'many' + typeName;
 
-				let success = await _Schema.updateRelationship(entity, newData);
-				if (success) {
-					if (saveSuccessFunction) {
-						saveSuccessFunction();
-					} else {
-						_Schema.reload();
-					}
-				} else {
-					editButton.click();
+				if (suggestion.slice(-1) !== 's') {
+					suggestion += 's';
 				}
+
+				return suggestion;
+
 			} else {
-				cancelButton.click();
+
+				new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for linked property name. Unsupported cardinality encountered!').requiresConfirmation().show();
+				return typeName;
 			}
-		});
+		},
+		appendCascadingDeleteHelpText: () => {
 
-		cancelButton.off('click').on('click', function(e) {
+			Structr.appendInfoTextToElement({
+				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
+				element: $('#cascading-delete-selector'),
+				customToggleIconClasses: ['ml-2', 'icon-blue'],
+				insertAfter: true,
+				noSpan: true
+			});
+		},
+		createRelationshipDefinition: async (data) => {
 
-			selectRelationshipOptions(entity);
-			$('#relationship-options select, #relationship-options textarea, #relationship-options input').attr('disabled', true);
+			_Schema.showSchemaRecompileMessage();
 
-			editButton.show();
-			saveButton.hide();
-			cancelButton.hide();
-		});
+			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes', {
+				method: 'POST',
+				body: JSON.stringify(data)
+			});
 
-		Structr.resize();
+			let responseData = await response.json();
+
+			_Schema.hideSchemaRecompileMessage();
+
+			if (response.ok) {
+
+				_Schema.openEditDialog(responseData.result[0]);
+				_Schema.reload();
+
+			} else {
+
+				_Schema.relationships.reportRelationshipError(data, data, responseData);
+			}
+		},
+		removeRelationshipDefinition: async (id) => {
+
+			_Schema.showSchemaRecompileMessage();
+
+			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + id, {
+				method: 'DELETE'
+			});
+
+			if (response.ok) {
+
+				_Schema.reload();
+				_Schema.hideSchemaRecompileMessage();
+
+			} else {
+
+				let data = await response.json();
+
+				_Schema.hideSchemaRecompileMessage();
+				Structr.errorFromResponse(data);
+			}
+
+		},
+		updateRelationship: async (entity, newData) => {
+
+			_Schema.showSchemaRecompileMessage();
+
+			let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
+
+			if (getResponse.ok) {
+
+				let existingData = await getResponse.json();
+
+				let hasChanges = Object.keys(newData).some((key) => {
+					return (existingData.result[key] !== newData[key]);
+				});
+
+				if (hasChanges) {
+
+					let putResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id, {
+						method: 'PUT',
+						body: JSON.stringify(newData)
+					});
+
+					_Schema.hideSchemaRecompileMessage();
+					let responseData = await putResponse.json();
+
+					if (putResponse.ok) {
+
+						for (let attribute in newData) {
+							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
+							entity[attribute] = newData[attribute];
+						}
+
+						return true;
+
+					} else {
+
+						_Schema.relationships.reportRelationshipError(existingData.result, newData, responseData);
+
+						for (let attribute in newData) {
+							blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
+						}
+
+						return false;
+					}
+
+				} else {
+
+					// force a schema-reload so that we dont break the relationships
+					_Schema.reload();
+					_Schema.hideSchemaRecompileMessage();
+				}
+			}
+		},
+		reportRelationshipError: (relData, newData, responseData) => {
+
+			for (let error in responseData.errors) {
+				blinkRed($('#relationship-options [data-attr-name=' + error.property + ']'));
+			}
+
+			let additionalInformation  = {};
+			let hasDuplicateClassError = responseData.errors.some((e) => { return (e.token === 'duplicate_relationship_definition'); });
+
+			if (hasDuplicateClassError) {
+
+				let relType = newData?.relationshipType ?? relData.relationshipType;
+
+				additionalInformation.requiresConfirmation = true;
+				additionalInformation.title                = 'Error';
+				additionalInformation.furtherText          = 'You are trying to create a second relationship named <strong>' + relType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+				additionalInformation.requiresConfirmation = true;
+			}
+
+			Structr.errorFromResponse(responseData, null, additionalInformation);
+		},
+		askDeleteRelationship: (resId, name) => {
+			Structr.confirmation(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`,
+				async() => {
+					$.unblockUI({
+						fadeOut: 25
+					});
+
+					await _Schema.relationships.removeRelationshipDefinition(resId);
+				});
+		},
 	},
 	properties: {
-		appendLocalProperties: function(el, entity, overrides, optionalAfterSaveCallback) {
+		appendLocalProperties: (el, entity, overrides, optionalAfterSaveCallback) => {
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -1237,23 +2060,21 @@ let _Schema = {
 
 			for (let prop of entity.schemaProperties) {
 
-				let localPropertyHtml = _Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions });
-
-				let row = $(localPropertyHtml);
+				let row = $(_Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }));
 				tbody.append(row);
 
 				_Schema.properties.setAttributesInRow(prop, row);
 				_Schema.properties.bindRowEvents(prop, row, overrides);
 
-				_Schema.properties.tableChanged(propertiesTable);
+				_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
 			}
 
-			propertiesTable[0].querySelector('.discard-all').addEventListener('click', () => {
-
+			let resetFunction = () => {
 				for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
-			});
+			};
+			propertiesTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
 			propertiesTable[0].querySelector('.save-all').addEventListener('click', () => {
 				_Schema.properties.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
@@ -1287,27 +2108,33 @@ let _Schema = {
 
 				tr[0].querySelector('.discard-changes').addEventListener('click', () => {
 					tr.remove();
-					_Schema.properties.tableChanged(propertiesTable);
+					_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
 				});
 
-				_Schema.properties.tableChanged(propertiesTable);
+				_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
 			});
+
+			return {
+				getBulkInfo: (doValidate) => {
+					return _Schema.properties.getDataFromTable(el, tbody, entity, doValidate);
+				},
+				reset: resetFunction
+			};
 		},
-		bulkSave: function(el, tbody, entity, optionalAfterSaveCallback) {
+		getDataFromTable: (el, tbody, entity, doValidate = true) => {
 
-			if (!_Schema.properties.hasUnsavedChanges(tbody.closest('table'))) {
-				return;
-			}
-
-			let schemaProperties = [];
+			let name = 'Properties';
+			let data = {
+				schemaProperties: []
+			};
 			let allow = true;
 			let counts = {
-				update:0,
-				delete:0,
-				new:0
+				update: 0,
+				delete: 0,
+				new: 0
 			};
 
-			tbody.find('tr').each((i, tr) => {
+			for (let tr of tbody[0].querySelectorAll('tr')) {
 
 				let row        = $(tr);
 				let propertyId = row.data('propertyId');
@@ -1321,68 +2148,67 @@ let _Schema = {
 						// changed lines
 						counts.update++;
 						prop.id = propertyId;
-						allow = _Schema.properties.validateProperty(prop, row) && allow;
-						schemaProperties.push(prop);
+						if (doValidate) {
+							allow = _Schema.properties.validateProperty(prop, row) && allow;
+						}
+						data.schemaProperties.push(prop);
 					} else {
 						// unchanged lines, only transmit id
 						prop = { id: propertyId };
-						schemaProperties.push(prop);
+						data.schemaProperties.push(prop);
 					}
 
 				} else {
 					//new lines
 					counts.new++;
 					prop.type = 'SchemaProperty';
-					allow = _Schema.properties.validateProperty(prop, row) && allow;
-					schemaProperties.push(prop);
+					if (doValidate) {
+						allow = _Schema.properties.validateProperty(prop, row) && allow;
+					}
+					data.schemaProperties.push(prop);
 				}
-			});
+			}
+
+			return { name, data, allow, counts };
+		},
+		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
+
+			let { allow, counts, data } = _Schema.properties.getDataFromTable(el, tbody, entity);
 
 			if (allow) {
 
-				let message = 'Update properties for ' + entity.name + '?\n\n';
-				message += (counts.new > 0 ? 'Create ' + counts.new + ' properties.\n' : '');
-				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' properties. (Note: Builtin properties will be restored in their initial configuration!)\n' : '');
-				message += (counts.update > 0 ? 'Update ' + counts.update + ' properties.\n' : '');
+				_Schema.showSchemaRecompileMessage();
 
-				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+				fetch(Structr.rootUrl + entity.id, {
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}).then((response) => {
 
-				if (onlyOneChange || confirm(message)) {
+					if (response.ok) {
 
-					_Schema.showSchemaRecompileMessage();
+						Command.get(entity.id, null, (reloadedEntity) => {
 
-					fetch(Structr.rootUrl + entity.id, {
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						method: 'PUT',
-						body: JSON.stringify({
-							schemaProperties: schemaProperties
-						})
-					}).then((response) => {
-
-						if (response.ok) {
-
-							Command.get(entity.id, null, function(reloadedEntity) {
-								el.empty();
-								_Schema.properties.appendLocalProperties(el, reloadedEntity);
-								_Schema.hideSchemaRecompileMessage();
-
-								if (optionalAfterSaveCallback) {
-									optionalAfterSaveCallback();
-								}
-							});
-
-						} else {
-							response.json().then((data) => {
-								Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
-							});
+							el.empty();
+							_Schema.properties.appendLocalProperties(el, reloadedEntity);
 							_Schema.hideSchemaRecompileMessage();
-						}
-					});
-				}
+
+							if (optionalAfterSaveCallback) {
+								optionalAfterSaveCallback();
+							}
+						});
+
+					} else {
+
+						response.json().then((data) => {
+							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
+						});
+
+						_Schema.hideSchemaRecompileMessage();
+					}
+				});
 			}
 		},
-		bindRowEvents: function(property, row, overrides) {
+		bindRowEvents: (property, row, overrides) => {
 
 			let propertyInfoChangeHandler = () => {
 				_Schema.properties.rowChanged(property, row);
@@ -1432,7 +2258,7 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
@@ -1458,7 +2284,7 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.properties.hasUnsavedChanges(row.closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForCypherProperty(property.id, () => {
@@ -1493,7 +2319,7 @@ let _Schema = {
 				$('.remove-action', row).hide();
 			}
 		},
-		getInfoFromRow: function(tr) {
+		getInfoFromRow: (tr) => {
 
 			let obj = {
 				name:             $('.property-name', tr).val(),
@@ -1516,7 +2342,7 @@ let _Schema = {
 
 			return obj;
 		},
-		setAttributesInRow: function(property, tr) {
+		setAttributesInRow: (property, tr) => {
 
 			$('.property-name', tr).val(property.name);
 			$('.property-dbname', tr).val(property.dbName);
@@ -1531,25 +2357,7 @@ let _Schema = {
 			$('.caching-enabled', tr).prop('checked', property.isCachingEnabled);
 			$('.type-hint', tr).val(property.typeHint || "null");
 		},
-		hasUnsavedChanges: function (table) {
-			let tbody = $('tbody', table);
-			return (tbody.find('tr.to-delete').length + tbody.find('tr.has-changes').length) > 0;
-		},
-		tableChanged: function (table) {
-
-			let unsavedChanges = _Schema.properties.hasUnsavedChanges(table);
-
-			let tfoot = table.find('tfoot');
-
-			if (unsavedChanges) {
-				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
-				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
-			} else {
-				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-			}
-		},
-		rowChanged: function(property, row) {
+		rowChanged: (property, row) => {
 
 			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
 			let hasChanges     = false;
@@ -1569,9 +2377,9 @@ let _Schema = {
 				row.removeClass('has-changes');
 			}
 
-			_Schema.properties.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
 		},
-		validateProperty: function (propertyDefinition, tr) {
+		validateProperty: (propertyDefinition, tr) => {
 
 			if (propertyDefinition.name.length === 0) {
 
@@ -1603,13 +2411,13 @@ let _Schema = {
 
 			return true;
 		},
-		openCodeEditorForFunctionProperty: function(id, key, callback) {
+		openCodeEditorForFunctionProperty: (id, key, callback) => {
 
 			dialogMeta.show();
 
-			Command.get(id, 'id,name,contentType,' + key, function(entity) {
+			Command.get(id, 'id,name,contentType,' + key, (entity) => {
 
-				Structr.dialog('Edit ' + key + ' of ' + entity.name, function() {}, function() {}, ['popup-dialog-with-editor']);
+				Structr.dialog('Edit ' + key + ' of ' + entity.name, () => {}, () => {}, ['popup-dialog-with-editor']);
 
 				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, () => {
 					window.setTimeout(() => {
@@ -1877,7 +2685,7 @@ let _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		appendRemote: function(el, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) {
+		appendRemote: (el, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -1888,54 +2696,65 @@ let _Schema = {
 				]
 			};
 
-			let schemaTableHtml = _Schema.templates.schemaTable(tableConfig);
-			let tbl   = $(schemaTableHtml);
+			let tbl   = $(_Schema.templates.schemaTable(tableConfig));
 			let tbody = tbl.find('tbody');
 			el.append(tbl);
 
 			if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
+
 				tbody.append('<td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
 				$('tfoot', tbl).addClass('hidden');
+
 			} else {
 
-				entity.relatedTo.forEach(function(target) {
+				for (let target of entity.relatedTo) {
 					_Schema.remoteProperties.appendRemoteProperty(tbody, target, true, editSchemaObjectLinkHandler);
-				});
+				}
 
-				entity.relatedFrom.forEach(function(source) {
+				for (let source of entity.relatedFrom) {
 					_Schema.remoteProperties.appendRemoteProperty(tbody, source, false, editSchemaObjectLinkHandler);
-				});
+				}
 			}
 
-			$('.discard-all', tbl).on('click', () => {
+			let resetFunction = () => {
 				for (let discardIcon of tbl[0].querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
-			});
+			};
+			tbl[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			$('.save-all', tbl).on('click', () => {
+			tbl[0].querySelector('.save-all').addEventListener('click', () => {
 				_Schema.remoteProperties.bulkSave(el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
 			});
+
+			_Schema.bulkDialogsGeneral.tableChanged(tbl);
+
+			return {
+				getBulkInfo: (doValidate) => {
+					return _Schema.remoteProperties.getDataFromTable(el, tbody, entity, doValidate);
+				},
+				reset: resetFunction
+			};
 		},
-		bulkSave: function(el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) {
+		getDataFromTable: (el, tbody, entity, doValidate = true) => {
 
-			if (!_Schema.remoteProperties.hasUnsavedChanges(tbody.closest('table'))) {
-				return;
-			}
-
+			let name = 'Linked Properties';
+			let data = {
+				relatedTo: [],
+				relatedFrom: []
+			};
 			let allow = true;
 			let counts = {
 				update:0,
 				reset:0
 			};
-			let payload = {
-				relatedTo: [],
-				relatedFrom: []
-			};
-			tbody.find('tr').each((i, tr) => {
 
-				let row = $(tr);
-				let info = { id: row.data('relationshipId') };
+			for (let tr of tbody[0].querySelectorAll('tr')) {
+
+				let row  = $(tr);
+				let info = {
+					id: row.data('relationshipId')
+				};
 
 				info[row.data('propertyName')] = $('.property-name', row).val();
 				if (info[row.data('propertyName')] === '') {
@@ -1943,7 +2762,9 @@ let _Schema = {
 				}
 
 				if (row.hasClass('has-changes')) {
-					allow = _Schema.remoteProperties.validate(row) && allow;
+					if (doValidate) {
+						allow = _Schema.remoteProperties.validate(row) && allow;
+					}
 
 					if (info[row.data('propertyName')] === null) {
 						counts.reset++;
@@ -1952,53 +2773,49 @@ let _Schema = {
 					}
 				}
 
-				payload[row.data('targetCollection')].push(info);
-			});
+				data[row.data('targetCollection')].push(info);
+			}
+
+			return { name, data, allow, counts };
+		},
+		bulkSave: (el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
+
+			let { allow, counts, data } = _Schema.remoteProperties.getDataFromTable(el, tbody, entity);
 
 			if (allow) {
 
-				let message = 'Update linked property names for ' + entity.name + '?\n\n';
-				message += (counts.update > 0 ? 'Update ' + counts.update + ' linked property names.\n' : '');
-				message += (counts.reset > 0 ? 'Reset ' + counts.reset + ' linked property names.\n' : '');
+				_Schema.showSchemaRecompileMessage();
 
-				let onlyOneChange = (counts.reset + counts.update) === 1;
+				fetch(Structr.rootUrl + entity.id, {
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}).then((response) => {
 
-				if (onlyOneChange || confirm(message)) {
+					if (response.ok) {
 
-					_Schema.showSchemaRecompileMessage();
-
-					fetch(Structr.rootUrl + entity.id, {
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						method: 'PUT',
-						body: JSON.stringify(payload)
-					}).then((response) => {
-
-						if (response.ok) {
-
-							Command.get(entity.id, null, function(reloadedEntity) {
-								el.empty();
-								_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
-								_Schema.hideSchemaRecompileMessage();
-
-								if (optionalAfterSaveCallback) {
-									optionalAfterSaveCallback();
-								}
-							});
-
-						} else {
+						Command.get(entity.id, null, (reloadedEntity) => {
+							el.empty();
+							_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
 							_Schema.hideSchemaRecompileMessage();
-							response.json().then((data) => {
-								Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
-							});
-						}
-					});
-				}
+
+							if (optionalAfterSaveCallback) {
+								optionalAfterSaveCallback();
+							}
+						});
+
+					} else {
+
+						_Schema.hideSchemaRecompileMessage();
+						response.json().then((data) => {
+							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
+						});
+					}
+				});
 			}
 		},
-		appendRemoteProperty: function(el, rel, out, editSchemaObjectLinkHandler) {
+		appendRemoteProperty: (el, rel, out, editSchemaObjectLinkHandler) => {
 
-			let relType = (rel.relationshipType === _Schema.undefinedRelType) ? '' : rel.relationshipType;
+			let relType       = (rel.relationshipType === _Schema.undefinedRelType) ? '' : rel.relationshipType;
 			let relatedNodeId = (out ? rel.targetId : rel.sourceId);
 			let attributeName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
@@ -2022,14 +2839,12 @@ let _Schema = {
 					_Schema.remoteProperties.rowChanged(row, attributeName);
 				});
 
-				if (!editSchemaObjectLinkHandler) {
-					$('.edit-schema-object', row).removeClass('edit-schema-object');
-				} else {
-
-					$('.edit-schema-object', row).on('click', (e) => {
+				if (Structr.isModuleActive(_Schema)) {
+					$('.edit-schema-object', row).on('click', async (e) => {
 						e.stopPropagation();
 
-						let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(row.closest('table'));
+
+						let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
 
 						if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
 							editSchemaObjectLinkHandler($(e.target));
@@ -2037,6 +2852,8 @@ let _Schema = {
 
 						return false;
 					});
+				} else {
+					$('.edit-schema-object', row).removeClass('edit-schema-object');
 				}
 			};
 
@@ -2053,34 +2870,15 @@ let _Schema = {
 				relatedNodeId: relatedNodeId
 			};
 
-			if (!_Schema.nodes[relatedNodeId]) {
+			if (!_Schema.nodeData[relatedNodeId]) {
 				Command.get(relatedNodeId, 'name', (data) => {
 					tplConfig.relatedNodeType = data.name;
 					renderRemoteProperty(tplConfig);
 				});
 			} else {
-				tplConfig.relatedNodeType = _Schema.nodes[relatedNodeId].name;
+				tplConfig.relatedNodeType = _Schema.nodeData[relatedNodeId].name;
 				renderRemoteProperty(tplConfig);
 			}
-		},
-		hasUnsavedChanges: function (table) {
-			let tbody = $('tbody', table);
-			return (tbody.find('tr.has-changes').length) > 0;
-		},
-		tableChanged: function (table) {
-
-			let unsavedChanges = _Schema.remoteProperties.hasUnsavedChanges(table);
-
-			let tfoot = table.find('tfoot');
-
-			if (unsavedChanges) {
-				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
-				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
-			} else {
-				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-			}
-
 		},
 		rowChanged: (row, originalName) => {
 
@@ -2093,7 +2891,7 @@ let _Schema = {
 				row.removeClass('has-changes');
 			}
 
-			_Schema.remoteProperties.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
 		},
 		validate: (row) => {
 			return true;
@@ -2112,9 +2910,7 @@ let _Schema = {
 				addButtonText: 'Add view'
 			};
 
-			let schemaTableHtml = _Schema.templates.schemaTable(tableConfig);
-
-			let viewsTable = $(schemaTableHtml);
+			let viewsTable = $(_Schema.templates.schemaTable(tableConfig));
 			el.append(viewsTable);
 
 			let tbody = viewsTable.find('tbody');
@@ -2125,41 +2921,50 @@ let _Schema = {
 				_Schema.views.appendView(tbody, view, entity);
 			}
 
-			viewsTable[0].querySelector('.discard-all').addEventListener('click', () => {
+			let resetFunction = () => {
 				for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
-			});
+			};
+			viewsTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
 			viewsTable[0].querySelector('.save-all').addEventListener('click', () => {
 				_Schema.views.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
 			});
 
-			el[0].querySelector('button.add-button', ).addEventListener('click', () => {
+			el[0].querySelector('button.add-button').addEventListener('click', () => {
 
 				let newViewHtml = _Schema.templates.viewNew();
 				let row = $(newViewHtml);
 				tbody.append(row);
 
-				_Schema.views.tableChanged(viewsTable);
-
 				_Schema.views.appendViewSelectionElement(row, { name: 'new' }, entity, (chznElement) => {
 					chznElement.chosenSortable();
+
+					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
 
 				row[0].querySelector('.discard-changes').addEventListener('click', () => {
 					row.remove();
-					_Schema.views.tableChanged(viewsTable);
+					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
 			});
+
+			_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
+
+			return {
+				getBulkInfo: (doValidate) => {
+					return _Schema.views.getDataFromTable(el, tbody, entity, doValidate);
+				},
+				reset: resetFunction
+			};
 		},
-		bulkSave: function(el, tbody, entity, optionalAfterSaveCallback) {
+		getDataFromTable: (el, tbody, entity, doValidate = true) => {
 
-			if (!_Schema.views.hasUnsavedChanges(tbody.closest('table'))) {
-				return;
-			}
-
-			let schemaViews = [];
+			let name = 'Views';
+			let data = {
+				schemaViews: []
+			};
 			let allow = true;
 			let counts = {
 				update: 0,
@@ -2167,13 +2972,14 @@ let _Schema = {
 				new: 0
 			};
 
-			tbody.find('tr').each((i, tr) => {
+			for (let tr of tbody[0].querySelectorAll('tr')) {
 
 				let row    = $(tr);
 				let viewId = row.data('viewId');
 				let view   = _Schema.views.getInfoFromRow(row, entity);
 
 				if (viewId) {
+
 					if (row.hasClass('to-delete')) {
 						// do not add this property to the list
 						counts.delete++;
@@ -2181,74 +2987,71 @@ let _Schema = {
 						// changed lines
 						counts.update++;
 						view.id = viewId;
-						allow = _Schema.views.validateViewRow(row) && allow;
-						schemaViews.push(view);
+						if (doValidate) {
+							allow = _Schema.views.validateViewRow(row) && allow;
+						}
+						data.schemaViews.push(view);
 					} else {
 						// unchanged lines, only transmit id
 						view = { id: viewId };
-						schemaViews.push(view);
+						data.schemaViews.push(view);
 					}
 
 				} else {
-					//new lines
+
+					// new views
 					counts.new++;
 					view.type = 'SchemaView';
-					allow = _Schema.views.validateViewRow(row) && allow;
-					schemaViews.push(view);
+					if (doValidate) {
+						allow = _Schema.views.validateViewRow(row) && allow;
+					}
+					data.schemaViews.push(view);
 				}
-			});
+			}
+
+			return { name, data, allow, counts };
+		},
+		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
+
+			let { data, allow, counts } = _Schema.views.getDataFromTable(el, tbody, entity);
 
 			if (allow) {
 
-				let message = 'Update views for ' + entity.name + '?\n\n';
-				message += (counts.new > 0 ? 'Create ' + counts.new + ' views.\n' : '');
-				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' views. (Note: Builtin views will be restored in their initial configuration!)\n' : '');
-				message += (counts.update > 0 ? 'Update ' + counts.update + ' views.\n' : '');
+				_Schema.showSchemaRecompileMessage();
 
-				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+				fetch(Structr.rootUrl + entity.id, {
+					method: 'PUT',
+					body: JSON.stringify(data)
+				}).then((response) => {
 
-				if (onlyOneChange || confirm(message)) {
+					if (response.ok) {
 
-					_Schema.showSchemaRecompileMessage();
-
-					fetch(Structr.rootUrl + entity.id, {
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						method: 'PUT',
-						body: JSON.stringify({
-							schemaViews: schemaViews
-						})
-					}).then((response) => {
-
-						if (response.ok) {
-
-							Command.get(entity.id, null, function(reloadedEntity) {
-								el.empty();
-								_Schema.views.appendViews(el, reloadedEntity);
-								_Schema.hideSchemaRecompileMessage();
-
-								if (optionalAfterSaveCallback) {
-									optionalAfterSaveCallback();
-								}
-							});
-
-						} else {
-							response.json().then((data) => {
-								Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
-							});
+						Command.get(entity.id, null, (reloadedEntity) => {
+							el.empty();
+							_Schema.views.appendViews(el, reloadedEntity);
 							_Schema.hideSchemaRecompileMessage();
-						}
-					});
-				}
+
+							if (optionalAfterSaveCallback) {
+								optionalAfterSaveCallback();
+							}
+						});
+
+					} else {
+						response.json().then((data) => {
+							Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
+						});
+						_Schema.hideSchemaRecompileMessage();
+					}
+				});
 			}
 		},
-		appendView: function(el, view, entity) {
+		appendView: (el, view, entity) => {
 
 			let viewHtml = _Schema.templates.view({view: view, type: entity});
 			let row = $(viewHtml);
 			el.append(row);
 
-			_Schema.views.appendViewSelectionElement(row, view, entity, function (chznElement) {
+			_Schema.views.appendViewSelectionElement(row, view, entity, (chznElement) => {
 
 				// store initial configuration for later comparison
 				let initialViewConfig = _Schema.views.getInfoFromRow(row, entity);
@@ -2261,7 +3064,7 @@ let _Schema = {
 				_Schema.views.bindRowEvents(row, entity, view, initialViewConfig);
 			});
 		},
-		bindRowEvents: function(row, entity, view, initialViewConfig) {
+		bindRowEvents: (row, entity, view, initialViewConfig) => {
 
 			let viewInfoChangeHandler = (event, params) => {
 				_Schema.views.rowChanged(row, entity, initialViewConfig);
@@ -2276,18 +3079,18 @@ let _Schema = {
 
 				$('.view.property-name', row).val(view.name);
 
-				Command.listSchemaProperties(entity.id, view.name, function(data) {
+				Command.listSchemaProperties(entity.id, view.name, (data) => {
 
-					data.forEach(function(prop) {
+					for (let prop of data) {
 						$('option[value="' + prop.name + '"]', select).prop('selected', prop.isSelected);
-					});
+					}
 
 					select.trigger('chosen:updated');
 
 					row.removeClass('to-delete');
 					row.removeClass('has-changes');
 
-					_Schema.views.tableChanged(row.closest('table'));
+					_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
 				});
 			});
 
@@ -2298,15 +3101,15 @@ let _Schema = {
 
 			}).prop('disabled', null);
 		},
-		appendViewSelectionElement: function(row, view, schemaEntity, callback) {
+		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
 			let propertySelectTd = $('.view-properties-select', row).last();
 			propertySelectTd.append('<select class="property-attrs view chosen-sortable" multiple="multiple"></select>');
 			let viewSelectElem = $('.property-attrs', propertySelectTd);
 
-			Command.listSchemaProperties(schemaEntity.id, view.name, function(properties) {
+			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
-				let appendProperty = function(prop) {
+				let appendProperty = (prop) => {
 					let name       = prop.name;
 					let isSelected = prop.isSelected ? ' selected="selected"' : '';
 					let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
@@ -2315,25 +3118,21 @@ let _Schema = {
 				};
 
 				if (view.sortOrder) {
-					view.sortOrder.split(',').forEach(function(sortedProp) {
+					for (let sortedProp of view.sortOrder.split(',')) {
 
-						let prop = properties.filter(function(prop) {
-							return (prop.name === sortedProp);
-						});
+						let prop = properties.filter(prop => (prop.name === sortedProp));
 
-						if (prop.length) {
+						if (prop.length > 0) {
 							appendProperty(prop[0]);
 
-							properties = properties.filter(function(prop) {
-								return (prop.name !== sortedProp);
-							});
+							properties = properties.filter(prop => (prop.name !== sortedProp));
 						}
-					});
+					}
 				}
 
-				properties.forEach(function (prop) {
+				for (let prop of properties) {
 					appendProperty(prop);
-				});
+				}
 
 				let chzn = viewSelectElem.chosen({
 					search_contains: true,
@@ -2346,49 +3145,45 @@ let _Schema = {
 				callback(chzn);
 			});
 		},
-		findSchemaPropertiesByNodeAndName: function(entity, names) {
+		findSchemaPropertiesByNodeAndName: (entity, names) => {
 
-			var result = [];
-			var props  = entity['schemaProperties'];
+			let result = [];
+			let props  = entity['schemaProperties'];
 
-			if (names && names.length && props && props.length) {
+			for (let name of names) {
 
-				$.each(names, function(i, name) {
+				for (let prop of props) {
 
-					$.each(props, function(i, prop) {
-
-						if (prop.name === name) {
-							result.push( { id: prop.id, name: prop.name } );
-						}
-					});
-				});
+					if (prop.name === name) {
+						result.push( { id: prop.id, name: prop.name } );
+					}
+				}
 			}
 
 			return result;
 		},
-		findNonGraphProperties: function(entity, names) {
+		findNonGraphProperties: (entity, names) => {
 
-			var result = [];
-			var props  = entity['schemaProperties'];
+			let result = [];
+			let props  = entity['schemaProperties'];
 
 			if (names && names.length && props && props.length) {
 
-				$.each(names, function(i, name) {
+				for (let name of names) {
 
-					var found = false;
+					let found = false;
 
-					$.each(props, function(i, prop) {
+					for (let prop of props) {
 
 						if (prop.name === name) {
 							found = true;
-							return;
 						}
-					});
+					}
 
 					if (!found) {
 						result.push(name);
 					}
-				});
+				}
 
 			} else if (names) {
 
@@ -2397,25 +3192,7 @@ let _Schema = {
 
 			return result.join(', ');
 		},
-		hasUnsavedChanges: function (table) {
-			let tbody = $('tbody', table);
-			return (tbody.find('tr.to-delete').length + tbody.find('tr.has-changes').length) > 0;
-		},
-		tableChanged: function (table) {
-
-			let unsavedChanges = _Schema.views.hasUnsavedChanges(table);
-
-			let tfoot = table.find('tfoot');
-
-			if (unsavedChanges) {
-				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
-				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
-			} else {
-				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-			}
-		},
-		getInfoFromRow:function(row, schemaNodeEntity) {
+		getInfoFromRow: (row, schemaNodeEntity) => {
 
 			let sortedAttrs = $('.view.property-attrs', row).sortedVals();
 
@@ -2426,9 +3203,9 @@ let _Schema = {
 				sortOrder: sortedAttrs.join(',')
 			};
 		},
-		rowChanged: function(row, entity, initialViewConfig) {
+		rowChanged: (row, entity, initialViewConfig) => {
 
-			var viewInfoInUI = _Schema.views.getInfoFromRow(row, entity);
+			let viewInfoInUI = _Schema.views.getInfoFromRow(row, entity);
 			let hasChanges   = false;
 
 			for (let key in viewInfoInUI) {
@@ -2453,9 +3230,9 @@ let _Schema = {
 				row.removeClass('has-changes');
 			}
 
-			_Schema.views.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
 		},
-		validateViewRow: function (row) {
+		validateViewRow: (row) => {
 
 			if ($('.property-name', row).val().length === 0) {
 
@@ -2485,8 +3262,9 @@ let _Schema = {
 
 			_Schema.methods.methodsData = {};
 
-			let methodsHtml = _Schema.templates.methods({ class: (entity ? 'entity' : 'global') });
-			el.append(methodsHtml);
+			methods = _Schema.filterJavaMethods(methods);
+
+			el.append(_Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
 
 			let tableConfig = {
 				class: 'actions schema-props',
@@ -2494,11 +3272,11 @@ let _Schema = {
 					{ class: '', title: 'Name' },
 					{ class: 'isstatic-col', title: 'isStatic' },
 					{ class: 'actions-col', title: 'Action' }
-				]
+				],
+				entity: entity
 			};
 
-			let fakeTableHtml    = _Schema.templates.fakeTable(tableConfig);
-			let methodsFakeTable = $(fakeTableHtml);
+			let methodsFakeTable = $(_Schema.templates.fakeTable(tableConfig));
 			let fakeTbody        = methodsFakeTable.find('.fake-tbody');
 			$('#methods-table-container', el).append(methodsFakeTable);
 
@@ -2539,33 +3317,39 @@ let _Schema = {
 				}
 			}
 
-			// activate
 			if (rowToActivate) {
 				rowToActivate[0].querySelector('.edit-action').dispatchEvent(new Event('click'));
 			}
 
-			$('.discard-all', methodsFakeTable).on('click', () => {
+			let resetFunction = () => {
 				for (let discardIcon of methodsFakeTable[0].querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
-			});
+			};
+			methodsFakeTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			$('.save-all', methodsFakeTable).on('click', () => {
+			methodsFakeTable[0].querySelector('.save-all').addEventListener('click', () => {
 				_Schema.methods.bulkSave(el, fakeTbody, entity, optionalAfterSaveCallback);
 			});
 
-			$('#methods-container-right', el).append('<div class="editor-info"></div>');
-
 			let editorInfo = el[0].querySelector('#methods-container-right .editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
+
+			_Schema.bulkDialogsGeneral.fakeTableChanged(methodsFakeTable);
+
+			return {
+				getBulkInfo: (doValidate) => {
+					return _Schema.methods.getDataFromTable(el, fakeTbody, entity, doValidate);
+				},
+				reset: resetFunction
+			};
 		},
-		bulkSave: (el, fakeTbody, entity, optionalAfterSaveCallback) => {
+		getDataFromTable: (el, tbody, entity, doValidate = true) => {
 
-			if (!_Schema.methods.hasUnsavedChanges(fakeTbody.closest('.fake-table'))) {
-				return;
-			}
-
-			let methods = [];
+			let name = 'Methods';
+			let data = {
+				schemaMethods: []
+			};
 			let allow = true;
 			let counts = {
 				update: 0,
@@ -2573,7 +3357,13 @@ let _Schema = {
 				new: 0
 			};
 
-			fakeTbody.find('.fake-tr').each((i, tr) => {
+			// insert java methods if they are not being displayed
+			let javaMethodsOrEmpty = _Schema.getOnlyJavaMethodsIfFilteringIsActive(entity.schemaMethods);
+			for (let javaMethod of javaMethodsOrEmpty) {
+				data.schemaMethods.push({ id: javaMethod.id });
+			}
+
+			for (let tr of tbody[0].querySelectorAll('.fake-tr')) {
 
 				let row        = $(tr);
 				let methodId   = row.data('methodId');
@@ -2584,7 +3374,7 @@ let _Schema = {
 					if (row.hasClass('to-delete')) {
 
 						counts.delete++;
-						methods.push({
+						data.schemaMethods.push({
 							id: methodId,
 							deleteMethod: true
 						});
@@ -2592,19 +3382,32 @@ let _Schema = {
 					} else if (row.hasClass('has-changes')) {
 
 						counts.update++;
-						methods.push({
+						data.schemaMethods.push({
 							id:       methodId,
 							name:     methodData.name,
 							isStatic: methodData.isStatic,
 							source:   methodData.source,
 						});
-						allow = _Schema.methods.validateMethodRow(row) && allow;
+						if (doValidate) {
+							allow = _Schema.methods.validateMethodRow(row) && allow;
+						}
+
+					} else {
+
+						// unchanged lines, only transmit id (and only for entity-methods)
+						if (entity) {
+							data.schemaMethods.push({
+								id: methodId,
+							});
+						}
 					}
 
 				} else {
 
 					counts.new++;
-					allow = _Schema.methods.validateMethodRow(row) && allow;
+					if (doValidate) {
+						allow = _Schema.methods.validateMethodRow(row) && allow;
+					}
 					let method = {
 						type:     'SchemaMethod',
 						name:     methodData.name,
@@ -2612,76 +3415,75 @@ let _Schema = {
 						source:   methodData.source,
 					};
 
-					if (entity) {
-						method.schemaNode = entity.id;
-					}
-
-					methods.push(method);
+					data.schemaMethods.push(method);
 				}
-			});
+			}
+
+			if (!entity) {
+				// global schema methods are saved differently
+				data = data.schemaMethods;
+			}
+
+			return { name, data, allow, counts };
+		},
+		bulkSave: (el, fakeTbody, entity, optionalAfterSaveCallback) => {
+
+			let { data, allow, counts } = _Schema.methods.getDataFromTable(el, fakeTbody, entity);
 
 			if (allow) {
 
-				let message = (entity ? 'Update methods for ' + entity.name + '?\n\n' : 'Update global methods?\n\n');
-				message += (counts.new > 0 ? 'Create ' + counts.new + ' methods.\n' : '');
-				message += (counts.delete > 0 ? 'Delete ' + counts.delete + ' methods.' + (entity ? '(Note: Builtin methods will be restored in their initial configuration!)\n' : '\n') : '');
-				message += (counts.update > 0 ? 'Update ' + counts.update + ' methods.\n' : '');
+				let activeMethod = fakeTbody.find('.fake-tr.editing');
+				if (activeMethod) {
+					_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.data('methodId')]);
+				} else {
+					_Schema.methods.setLastEditedMethod(entity, undefined);
+				}
 
-				let onlyOneChange = (counts.new + counts.delete + counts.update) === 1;
+				_Schema.showSchemaRecompileMessage();
 
-				if (onlyOneChange || confirm(message)) {
+				let targetUrl = (entity ? Structr.rootUrl + entity.id : Structr.rootUrl + 'SchemaMethod');
 
-					let activeMethod = fakeTbody.find('.fake-tr.editing');
-					if (activeMethod) {
-						_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.data('methodId')]);
-					} else {
-						_Schema.methods.setLastEditedMethod(entity, undefined);
-					}
+				fetch(targetUrl, {
+					method: 'PATCH',
+					body: JSON.stringify(data)
+				}).then((response) => {
 
-					_Schema.showSchemaRecompileMessage();
+					if (response.ok) {
 
-					fetch(Structr.rootUrl + 'SchemaMethod', {
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						method: 'PATCH',
-						body: JSON.stringify(methods)
-					}).then((response) => {
+						if (entity) {
 
-						if (response.ok) {
+							Command.get(entity.id, null, (reloadedEntity) => {
 
-							if (entity) {
+								el.empty();
+								_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods);
+								_Schema.hideSchemaRecompileMessage();
 
-								Command.get(entity.id, null, (reloadedEntity) => {
-									el.empty();
-									_Schema.methods.appendMethods(el, reloadedEntity, _Schema.filterJavaMethods(reloadedEntity.schemaMethods));
-									_Schema.hideSchemaRecompileMessage();
-
-									if (optionalAfterSaveCallback) {
-										optionalAfterSaveCallback();
-									}
-								});
-
-							} else {
-
-								Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', function (methods) {
-									el.empty();
-									_Schema.methods.appendMethods(el, null, _Schema.filterJavaMethods(methods));
-									_Schema.hideSchemaRecompileMessage();
-
-									if (optionalAfterSaveCallback) {
-										optionalAfterSaveCallback();
-									}
-								});
-							}
+								if (optionalAfterSaveCallback) {
+									optionalAfterSaveCallback();
+								}
+							});
 
 						} else {
-							response.json().then((data) => {
-								Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
+
+							Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
+								el.empty();
+								_Schema.methods.appendMethods(el, null, methods);
+								_Schema.hideSchemaRecompileMessage();
+
+								if (optionalAfterSaveCallback) {
+									optionalAfterSaveCallback();
+								}
 							});
-							_Schema.hideSchemaRecompileMessage();
 						}
-					});
-				}
+
+					} else {
+
+						response.json().then((data) => {
+							Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
+						});
+						_Schema.hideSchemaRecompileMessage();
+					}
+				});
 			}
 		},
 		activateUIActions: (el, fakeTbody, entity) => {
@@ -2699,29 +3501,19 @@ let _Schema = {
 				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''), entity);
 			});
 
-			if (entity) {
+			el[0].querySelector('.add-onCreate-button')?.addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'), entity);
+			});
 
-				el[0].querySelector('.add-onCreate-button').addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'), entity);
-				});
+			el[0].querySelector('.add-afterCreate-button')?.addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'), entity);
+			});
 
-				let addAfterCreateButton = el[0].querySelector('.add-afterCreate-button');
+			el[0].querySelector('.add-onSave-button')?.addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'), entity);
+			});
 
-				addAfterCreateButton.addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'), entity);
-				});
-
-				Structr.appendInfoTextToElement({
-					text: "The difference between onCreate an afterCreate is that afterCreate is called after all checks have run and the transaction is committed.<br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.",
-					element: $(addAfterCreateButton),
-					insertAfter: true,
-					customToggleIconClasses: ['icon-blue', 'ml-1', 'mb-2']
-				});
-
-				el[0].querySelector('.add-onSave-button').addEventListener('click', () => {
-					_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'), entity);
-				});
-			}
+			Structr.activateCommentsInElement(el[0], { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
 		},
 		appendNewMethod: (fakeTbody, method, entity) => {
 
@@ -2774,7 +3566,7 @@ let _Schema = {
 				_Editors.nukeEditorsById(method.id);
 			});
 
-			_Schema.methods.fakeTableChanged(fakeTbody.closest('.fake-table'));
+			_Schema.bulkDialogsGeneral.fakeTableChanged(fakeTbody.closest('.fake-table'));
 
 			_Schema.methods.editMethod(row, entity);
 		},
@@ -2933,24 +3725,6 @@ let _Schema = {
 				_Schema.methods.appendMethods(contentDiv, null, methods);
 			});
 		},
-		hasUnsavedChanges: (fakeTable) => {
-			let fakeTbody = $('.fake-tbody', fakeTable);
-			return (fakeTbody.find('.fake-tr.to-delete').length + fakeTbody.find('.fake-tr.has-changes').length) > 0;
-		},
-		fakeTableChanged: (fakeTable) => {
-
-			let unsavedChanges = _Schema.methods.hasUnsavedChanges(fakeTable);
-
-			let footer = fakeTable.find('.fake-tfoot');
-
-			if (unsavedChanges) {
-				$('.discard-all', footer).removeClass('disabled').attr('disabled', null);
-				$('.save-all', footer).removeClass('disabled').attr('disabled', null);
-			} else {
-				$('.discard-all', footer).addClass('disabled').attr('disabled', 'disabled');
-				$('.save-all', footer).addClass('disabled').attr('disabled', 'disabled');
-			}
-		},
 		rowChanged: (row, hasChanges) => {
 
 			if (hasChanges) {
@@ -2959,7 +3733,7 @@ let _Schema = {
 				row.removeClass('has-changes');
 			}
 
-			_Schema.methods.fakeTableChanged(row.closest('.fake-table'));
+			_Schema.bulkDialogsGeneral.fakeTableChanged(row.closest('.fake-table'));
 		},
 		validateMethodRow: (row) => {
 
@@ -2972,28 +3746,63 @@ let _Schema = {
 			return true;
 		},
 	},
+	showGeneratedSource: async (sourceContainer) => {
+
+		if (sourceContainer) {
+
+			let typeName = sourceContainer.dataset.typeName;
+			let typeId   = sourceContainer.dataset.typeId;
+
+			if (typeName && typeId) {
+
+				fastRemoveAllChildren(sourceContainer);
+
+				sourceContainer.classList.add('h-full');
+
+				let response = await fetch(Structr.rootUrl + typeName + '/' + typeId + '/getGeneratedSourceCode', { method: 'POST' });
+
+				if (response.ok) {
+
+					// remove id so we do not refresh the editor all the time
+					sourceContainer.dataset.typeId = '';
+
+					let result = await response.json();
+
+					let typeSourceConfig = {
+						value: result.result,
+						language: 'java',
+						lint: false,
+						autocomplete: false,
+						readOnly: true
+					};
+
+					_Editors.getMonacoEditor({}, 'source-code', sourceContainer, typeSourceConfig);
+
+					_Editors.resizeVisibleEditors();
+				}
+			}
+		}
+	},
 	resize: function() {
 
 		Structr.resize();
 
 		if (_Schema.ui.canvas) {
 
-			let zoom = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
+			let zoom           = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
 			let canvasPosition = _Schema.ui.canvas.offset();
-			let padding = 100;
-
+			let padding        = 100;
 
 			let canvasSize = {
 				w: ($(window).width() - canvasPosition.left) / zoom,
 				h: ($(window).height() - canvasPosition.top) / zoom
 			};
 
-			$('.node').each(function(i, elem) {
+			for (let elem of document.querySelectorAll('.node')) {
 				let $elem = $(elem);
 				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
 				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
-
-			});
+			}
 
 			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
 				canvasSize.w = ($(window).width()) / zoom - canvasPosition.left + padding;
@@ -3102,7 +3911,7 @@ let _Schema = {
 
 		} else {
 
-			Structr.errorFromResponse(data, undefined, {requiresConfirmation: true});
+			Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 		}
 	},
 	deleteNode: async (id) => {
@@ -3124,130 +3933,6 @@ let _Schema = {
 
 			Structr.errorFromResponse(data);
 		}
-	},
-	createRelationshipDefinition: async (data) => {
-
-		_Schema.showSchemaRecompileMessage();
-
-		let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes', {
-			method: 'POST',
-			body: JSON.stringify(data)
-		});
-
-		let responseData = await response.json();
-
-		_Schema.hideSchemaRecompileMessage();
-
-		if (response.ok) {
-
-			_Schema.openEditDialog(responseData.result[0]);
-			_Schema.reload();
-
-		} else {
-
-			_Schema.reportRelationshipError(data, data, responseData);
-		}
-	},
-	removeRelationshipDefinition: async (id) => {
-
-		_Schema.showSchemaRecompileMessage();
-
-		let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + id, {
-			method: 'DELETE'
-		});
-
-		if (response.ok) {
-
-			_Schema.reload();
-			_Schema.hideSchemaRecompileMessage();
-
-		} else {
-
-			let data = await response.json();
-
-			_Schema.hideSchemaRecompileMessage();
-			Structr.errorFromResponse(data);
-		}
-
-	},
-	updateRelationship: async (entity, newData) => {
-
-		_Schema.showSchemaRecompileMessage();
-
-		let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
-
-		if (getResponse.ok) {
-
-			let existingData = await getResponse.json();
-
-			let hasChanges = Object.keys(newData).some((key) => {
-				return (existingData.result[key] !== newData[key]);
-			});
-
-			if (hasChanges) {
-
-				let putResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id, {
-					method: 'PUT',
-					body: JSON.stringify(newData)
-				});
-
-				_Schema.hideSchemaRecompileMessage();
-				let responseData = await putResponse.json();
-
-				if (putResponse.ok) {
-
-					for (let attribute in newData) {
-						blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
-						entity[attribute] = newData[attribute];
-					}
-
-					return true;
-
-				} else {
-
-					_Schema.reportRelationshipError(existingData.result, newData, responseData);
-
-					for (let attribute in newData) {
-						blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
-					}
-
-					return false;
-				}
-
-			} else {
-
-				// force a schema-reload so that we dont break the relationships
-				_Schema.reload();
-				_Schema.hideSchemaRecompileMessage();
-			}
-		}
-	},
-	reportRelationshipError: (relData, newData, responseData) => {
-
-		let additionalInformation  = {};
-		let hasDuplicateClassError = responseData.errors.some((e) => { return (e.token === 'duplicate_relationship'); });
-
-		if (hasDuplicateClassError) {
-
-			let relType = newData?.relationshipType ?? relData.relationshipType;
-
-			additionalInformation.requiresConfirmation = true;
-			additionalInformation.title                = 'Error';
-			additionalInformation.furtherText          = 'You are trying to create a second relationship named <strong>' + relType + '</strong> between these types.<br>Relationship names between types have to be unique.';
-			additionalInformation.requiresConfirmation = true;
-		}
-
-		Structr.errorFromResponse(responseData, null, additionalInformation);
-	},
-	askDeleteRelationship: (resId, name) => {
-		Structr.confirmation(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`,
-			async() => {
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				await _Schema.removeRelationshipDefinition(resId);
-			});
 	},
 	makeAttrEditable: (element, key) => {
 
@@ -3380,7 +4065,7 @@ let _Schema = {
 					types.push(selectedNode.name);
 				}
 
-				$('.label.rel-type', _Schema.ui.canvas).each(function(idx, el) {
+				for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
 					let $el = $(el);
 
 					let sourceType = $el.children('div').attr('data-source-type');
@@ -3390,7 +4075,7 @@ let _Schema = {
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
 						types.push($el.children('div').attr('data-name'));
 					}
-				});
+				}
 			}
 
 			Command.snapshots('export', suffix, types, (data) => {
@@ -3809,32 +4494,32 @@ let _Schema = {
 	},
 	openTypeVisibilityDialog: () => {
 
-		Structr.dialog('', function() {}, function() {});
+		Structr.dialog('', () => {}, () => {});
 
 		let visibilityTables = [
 			{
 				caption: "Custom Types",
-				filterFn: (node) => { return node.isBuiltinType === false; },
+				filterFn: node => (node.isBuiltinType === false),
 				exact: true
 			},
 			{
 				caption: "Core Types",
-				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'core'; },
+				filterFn: node => (node.isBuiltinType === true && node.category === 'core'),
 				exact: false
 			},
 			{
 				caption: "UI Types",
-				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'ui'; },
+				filterFn: node => (node.isBuiltinType === true && node.category === 'ui'),
 				exact: false
 			},
 			{
 				caption: "HTML Types",
-				filterFn: (node) => { return node.isBuiltinType === true && node.category === 'html'; },
+				filterFn: node => (node.isBuiltinType === true && node.category === 'html'),
 				exact: false
 			},
 			{
 				caption: "Uncategorized Types",
-				filterFn: (node) => { return node.isBuiltinType === true && node.category === null; },
+				filterFn: node => (node.isBuiltinType === true && node.category === null),
 				exact: true
 			}
 		];
@@ -3854,68 +4539,86 @@ let _Schema = {
 
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, (schemaNodes) => {
 
-			for (let visType of visibilityTables) {
+			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
+			ul.append(tabsHtml);
 
-				ul.append('<li id="tab" data-name="' + visType.caption + '">' + visType.caption + '</li>');
+			let tabContentsHtml = visibilityTables.map(visType => `
+				<div class="tab" data-name="${visType.caption}">
+					<table class="props schema-visibility-table">
+						<tr>
+							<th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ${_Icons.getFullSpriteClass(_Icons.toggle_icon)}" title="Invert all"></i> Visible</th>
+							<th>Type</th>
+						</tr>
+						${schemaNodes.filter(schemaNode => visType.filterFn(schemaNode)).map(schemaNode => {
+							let isHidden = (_Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1);
+							return `<tr><td><input class="toggle-type" data-structr-type="${schemaNode.name}" type="checkbox" ${(isHidden ? '' : 'checked')}></td><td>${schemaNode.name}</td></tr>`;
+						}).join('')}
+					</table>
+				</div>
+			`).join('');
+			contentEl.append(tabContentsHtml);
 
-				let tab = $('<div class="tab" data-name="' + visType.caption + '"></div>');
-				contentEl.append(tab);
 
-				let schemaVisibilityTable = $('<table class="props schema-visibility-table"></table>');
-				schemaVisibilityTable.append('<tr><th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ' + _Icons.getFullSpriteClass(_Icons.toggle_icon) + '" title="Invert all"></i> Visible</th><th>Type</th></tr>');
-				tab.append(schemaVisibilityTable);
+			for (let toggleAllCb of contentEl[0].querySelectorAll('input.toggle-all-types')) {
 
-				for (let schemaNode of schemaNodes) {
+				toggleAllCb.addEventListener('change', () => {
 
-					if (visType.filterFn(schemaNode)) {
-						let hidden = _Schema.hiddenSchemaNodes.indexOf(schemaNode.name) > -1;
-						schemaVisibilityTable.append('<tr><td><input class="toggle-type" data-structr-type="' + schemaNode.name + '" type="checkbox" ' + (hidden ? '' : 'checked') + '></td><td>' + schemaNode.name + '</td></tr>');
+					let typeTable = toggleAllCb.closest('table');
+					let checked   = toggleAllCb.checked;
+
+					for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+						checkbox.checked = checked;
 					}
-				}
+					_Schema.updateHiddenSchemaTypes();
+					_Schema.reload();
+				});
 			}
 
-			$('input.toggle-all-types', contentEl).on('click', function() {
-				let typeTable = $(this).closest('table');
-				let checked   = $(this).prop("checked");
-				$('.toggle-type', typeTable).each(function(i, checkbox) {
-					let inp = $(checkbox);
-					inp.prop("checked", checked);
-				});
-				_Schema.updateHiddenSchemaTypes();
-				_Schema.reload();
-			});
+			for (let invertAllCb of contentEl[0].querySelectorAll('i.invert-all-types')) {
 
-			$('i.invert-all-types', contentEl).on('click', function() {
-				let typeTable = $(this).closest('table');
-				$('.toggle-type', typeTable).each(function(i, checkbox) {
-					let inp = $(checkbox);
-					inp.prop("checked", !inp.prop("checked"));
-				});
-				_Schema.updateHiddenSchemaTypes();
-				_Schema.reload();
-			});
+				invertAllCb.addEventListener('click', () => {
 
-			$('td .toggle-type', contentEl).on('click', function(e) {
+					let typeTable = invertAllCb.closest('table');
+
+					for (let checkbox of typeTable.querySelectorAll('.toggle-type')) {
+						checkbox.checked = !checkbox.checked;
+					}
+					_Schema.updateHiddenSchemaTypes();
+					_Schema.reload();
+				});
+			}
+
+			let ignoreClickOnCheckbox = (e) => {
 				e.stopPropagation();
 				e.preventDefault();
 				return false;
-			});
+			};
+			for (let toggleSingleCb of contentEl[0].querySelectorAll('td .toggle-type')) {
+				toggleSingleCb.addEventListener('click', ignoreClickOnCheckbox);
+			}
 
-			$('.schema-visibility-table td', contentEl).on('mouseup', function(e) {
+			let handleRowClick = (e) => {
 				e.stopPropagation();
 				e.preventDefault();
-				let td  = $(this);
-				let inp = $('.toggle-type', td.parent());
-				inp.prop("checked", !inp.prop("checked"));
+
+				let inp = e.target.closest('tr').querySelector('.toggle-type');
+				inp.checked = !inp.checked;
+
 				_Schema.updateHiddenSchemaTypes();
 				_Schema.reload();
-				return false;
-			});
 
-			$('li', ul).off('click').on('click', function(e) {
-				e.stopPropagation();
-				activateTab($(this).data('name'));
-			});
+				return false;
+			};
+			for (let tableRow of contentEl[0].querySelectorAll('.schema-visibility-table td')) {
+				tableRow.addEventListener('click', handleRowClick);
+			}
+
+			for (let tab of ul[0].querySelectorAll('li')) {
+				tab.addEventListener('click', (e) => {
+					e.stopPropagation();
+					activateTab(tab.dataset['name']);
+				});
+			}
 
 			let activeTab = LSWrapper.getItem(_Schema.activeSchemaToolsSelectedVisibilityTab) || visibilityTables[0].caption;
 			activateTab(activeTab);
@@ -4030,7 +4733,8 @@ let _Schema = {
 						</div>
 					`;
 
-					let $newLi = $(`<li data-jstree='{"opened":true}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
+					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-icon';
+					let $newLi = $(`<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
 
 					printClassTree($newLi, classTree[classname]);
 				}
@@ -4080,6 +4784,7 @@ let _Schema = {
 		printClassTree(_Schema.inheritanceTree, classTree);
 		_Schema.inheritanceTree.jstree({
 			core: {
+				animation: 0,
 				multiple: false,
 				themes: {
 					dots: false
@@ -4112,13 +4817,20 @@ let _Schema = {
 
 
 		}).on('changed.jstree', function(e, data) {
-			let $node = $('#id_' + data.node.data.id);
-			if ($node.length > 0) {
-				$('.selected').removeClass('selected');
-				$node.addClass('selected');
-				_Schema.ui.selectedNodes = [$node];
+
+			if (data.node) {
+				let $node = $('#id_' + data.node.data.id);
+				if ($node.length > 0) {
+					$('.selected').removeClass('selected');
+					$node.addClass('selected');
+					_Schema.ui.selectedNodes = [$node];
+				}
 			}
 		});
+
+		_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
+
+		_Schema.inheritanceTree.jstree(true).refresh();
 
 		let searchTimeout;
 		$('#search-classes').keyup((e) => {
@@ -4272,14 +4984,18 @@ let _Schema = {
 			_Schema.ui.mouseDownCoords.x = e.pageX - schemaOffset.left;
 			_Schema.ui.mouseDownCoords.y = e.pageY - schemaOffset.top;
 		},
+		prevAnimFrameReqId_selectionDrag: undefined,
 		selectionDrag: (e) => {
 			if (_Schema.ui.selectionInProgress === true) {
 
-				let schemaOffset = _Schema.ui.canvas.offset();
-				_Schema.ui.mouseUpCoords.x = e.pageX - schemaOffset.left;
-				_Schema.ui.mouseUpCoords.y = e.pageY - schemaOffset.top;
+				Structr.requestAnimationFrameWrapper(_Schema.ui.prevAnimFrameReqId_selectionDrag, () => {
+					let schemaOffset = _Schema.ui.canvas.offset();
+					_Schema.ui.mouseUpCoords.x = e.pageX - schemaOffset.left;
+					_Schema.ui.mouseUpCoords.y = e.pageY - schemaOffset.top;
 
-				_Schema.ui.drawSelectElem();
+
+					_Schema.ui.drawSelectElem();
+				});
 			}
 		},
 		selectionStop: () => {
@@ -4423,6 +5139,13 @@ let _Schema = {
 		}
 		return methods;
 	},
+	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
+		if (_Schema.showJavaMethods) {
+			return [];
+		} else {
+			return methods.filter(m => m.codeType === 'java');
+		}
+	},
 
 	templates: {
 		main: config => `
@@ -4447,13 +5170,13 @@ let _Schema = {
 		functions: config => `
 			<div class="flex-grow">
 				<div class="inline-flex">
-			
+
 					<input class="schema-input mr-2" id="type-name" type="text" size="10" placeholder="New type" autocomplete="off">
-			
+
 					<button id="create-type" class="action inline-flex items-center">
 						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
 					</button>
-			
+
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
 							${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods
@@ -4601,13 +5324,6 @@ let _Schema = {
 							<div class="heading-row">
 								<h3>Maintenance</h3>
 							</div>
-							<!--<div class="inline-info"><div class="inline-info-icon">${_Icons.getSvgIcon('info-icon', 24, 24)}</div>-->
-							<!--	<div class="inline-info-text">-->
-							<!--		A repeater is a node in the tree that is repeatedly displayed for each element of the result set.<br><br>-->
-							<!--		The result set is a list or collection of objects that can be generated via a database query, a flow or a function.<br><br>-->
-							<!--		The respective result element can be accessed via a keyword configured further below.-->
-							<!--	</div>-->
-							<!--</div>-->
 							<div class="row flex items-center">
 								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Flush Caches
@@ -4634,173 +5350,200 @@ let _Schema = {
 			
 			<div id="zoom-slider"></div>
 		`,
-		relationshipDialog: config => `
+		typeBasicTab: config => `
+			<div class="schema-details pl-2">
+				<div class="flex items-center gap-x-2 pt-4">
+
+					${config.type.isBuiltinType ? `<input class="disabled" disabled value="${config.type.name}">` : `<input data-property="name" value="${config.type.name}">`}
+					
+					${(!config.type.isBuiltinType || config.type.extendsClass) ? `
+						<div class="extends-type">
+							extends <select class="extends-class-select" data-property="extendsClass"></select>
+							${(config.type.extendsClass) ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
+						</div>
+					` : ''}
+				</div>
+				
+				<h3>Options</h3>
+				<div class="property-options-group">
+					<div>
+						<label data-comment="Only takes effect if the changelog is active">
+							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled" ${config.type.changelogDisabled ? 'checked' : ''}> Disable changelog
+						</label>
+						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
+							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic" ${config.type.defaultVisibleToPublic ? 'checked' : ''}> Visible for public users
+						</label>
+						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth" ${config.type.defaultVisibleToAuth ? 'checked' : ''}> Visible for authenticated users
+						</label>
+					</div>
+				</div>
+				
+				<h3>OpenAPI</h3>
+				<div class="property-options-group">
+					<div id="type-openapi">
+						${_Code.templates.openAPIBaseConfig({ element: config.type, availableTags: _Code.availableTags })}
+					</div>
+				</div>
+			</div>
+		`,
+		relationshipBasicTab: config => `
 			<div class="schema-details">
 				<div id="relationship-options">
 			
-						<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-center">
-			
-							<div class="text-right pb-2 truncate">
-								<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
-							</div>
-			
-							<div class="flex items-center justify-around">
-								<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
-			
-								<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="1">1</option>
-									<option value="*" selected>*</option>
-								</select>
-			
-								<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
-							</div>
-			
-							<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
-			
-							<div class="flex items-center justify-around">
-								<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
-			
-								<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="1">1</option>
-									<option value="*" selected>*</option>
-								</select>
-			
-								<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
-							</div>
-			
-							<div class="text-left pb-2 truncate">
-								<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
-							</div>
-			
-							<div></div>
-							<div class="flex items-center">
-								<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
-							</div>
-							<div></div>
-							<div class="flex items-center">
-								<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
-							</div>
-							<div></div>
+					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-center mb-4">
+		
+						<div class="text-right pb-2 truncate">
+							<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
 						</div>
-			
-						<div class="grid grid-cols-2 gap-x-4">
-			
-							<div id="cascading-options">
-								<h3>Cascading Delete</h3>
-								<p>Direction of automatic removal of related nodes when a node is deleted</p>
+		
+						<div class="flex items-center justify-around">
+							<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
+		
+							<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="1">1</option>
+								<option value="*" selected>*</option>
+							</select>
+		
+							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
+						</div>
+		
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
+		
+						<div class="flex items-center justify-around">
+							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
+		
+							<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="1">1</option>
+								<option value="*" selected>*</option>
+							</select>
+		
+							<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
+						</div>
+		
+						<div class="text-left pb-2 truncate">
+							<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
+						</div>
+		
+						<div></div>
+						<div class="flex items-center">
+							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
+						</div>
+						<div></div>
+						<div class="flex items-center">
+							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
+						</div>
+						<div></div>
+					</div>
+		
+					<div class="grid grid-cols-2 gap-x-4">
+		
+						<div id="cascading-options">
+							<h3>Cascading Delete</h3>
+							<p>Direction of automatic removal of related nodes when a node is deleted</p>
 
-								<div class="flex items-center">
-									<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-										<option value="0">NONE</option>
-										<option value="1">SOURCE_TO_TARGET</option>
-										<option value="2">TARGET_TO_SOURCE</option>
-										<option value="3">ALWAYS</option>
-										<option value="4">CONSTRAINT_BASED</option>
-									</select>
-								</div>
-			
-								<h3>Automatic Creation of Related Nodes</h3>
-								<p>Direction of automatic creation of related nodes when a node is created</p>
-			
-								<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<div class="flex items-center">
+								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									<option value="0">NONE</option>
 									<option value="1">SOURCE_TO_TARGET</option>
 									<option value="2">TARGET_TO_SOURCE</option>
 									<option value="3">ALWAYS</option>
+									<option value="4">CONSTRAINT_BASED</option>
 								</select>
 							</div>
-			
-							<div id="propagation-options">
-			
-								<div>
-									<h3>Permission Resolution</h3>
-									<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-										<option value="None">NONE</option>
-										<option value="Out">SOURCE_TO_TARGET</option>
-										<option value="In">TARGET_TO_SOURCE</option>
-										<option value="Both">ALWAYS</option>
-									</select>
-								</div>
-			
-								<div class="mt-4">
-									<div id="propagation-table" class="flex">
-										<div class="selector">
-											<p>Read</p>
-											<select id="read-selector" data-attr-name="readPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-												<option value="Add">Add</option>
-												<option value="Keep">Keep</option>
-												<option value="Remove" selected>Remove</option>
-											</select>
-										</div>
-			
-										<div class="selector">
-											<p>Write</p>
-											<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-												<option value="Add">Add</option>
-												<option value="Keep">Keep</option>
-												<option value="Remove" selected>Remove</option>
-											</select>
-										</div>
-			
-										<div class="selector">
-											<p>Delete</p>
-											<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-												<option value="Add">Add</option>
-												<option value="Keep">Keep</option>
-												<option value="Remove" selected>Remove</option>
-											</select>
-										</div>
-			
-										<div class="selector">
-											<p>AccessControl</p>
-											<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-												<option value="Add">Add</option>
-												<option value="Keep">Keep</option>
-												<option value="Remove" selected>Remove</option>
-											</select>
-										</div>
+		
+							<h3>Automatic Creation of Related Nodes</h3>
+							<p>Direction of automatic creation of related nodes when a node is created</p>
+		
+							<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="0">NONE</option>
+								<option value="1">SOURCE_TO_TARGET</option>
+								<option value="2">TARGET_TO_SOURCE</option>
+								<option value="3">ALWAYS</option>
+							</select>
+						</div>
+		
+						<div id="propagation-options">
+		
+							<div>
+								<h3>Permission Resolution</h3>
+								<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option value="None">NONE</option>
+									<option value="Out">SOURCE_TO_TARGET</option>
+									<option value="In">TARGET_TO_SOURCE</option>
+									<option value="Both">ALWAYS</option>
+								</select>
+							</div>
+		
+							<div class="mt-4">
+								<div id="propagation-table" class="flex">
+									<div class="selector">
+										<p>Read</p>
+										<select id="read-selector" data-attr-name="readPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+		
+									<div class="selector">
+										<p>Write</p>
+										<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+		
+									<div class="selector">
+										<p>Delete</p>
+										<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+		
+									<div class="selector">
+										<p>AccessControl</p>
+										<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
 									</div>
 								</div>
-			
-								<p class="mt-4">Hidden properties</p>
-								<textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask"></textarea>
 							</div>
+		
+							<p class="mt-4">Hidden properties</p>
+							<textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask"></textarea>
 						</div>
 					</div>
 				</div>
-			
-				<div id="rel-edit-buttons">
-					<button id="edit-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('pencil_edit', 16, 16, ['icon-grey', 'mr-2'])} Edit relationship options
-					</button>
-					<button id="save-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('checkmark_bold', 16, 16, ['icon-green', 'mr-2'])} Save
-					</button>
-					<button id="cancel-rel-options-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('close-dialog-x', 16, 16, ['icon-red', 'mr-2'])} Discard
-					</button>
-				</div>
-			
-				<div id="tabs">
-					<ul></ul>
-				</div>
+			</div>
+		`,
+		schemaActionButtons: config => `
+			<div>
+				<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('checkmark_bold', 16, 16, ['icon-green', 'mr-2'])} ${(config?.saveButtonText ?? 'Save')}
+				</button>
+				<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('close-dialog-x', 16, 16, ['icon-red', 'mr-2'])} ${(config?.discardButtonText ?? 'Discard')}
+				</button>
 			</div>
 		`,
 		methods: config => `
-			<div id="methods-container" class="${config.class} flex">
-			
+			<div id="methods-container" class="${config.class} h-full flex">
 				<div id="methods-container-left">
-			
 					<div id="methods-table-container"></div>
-			
 				</div>
 			
 				<div id="methods-container-right" class="flex flex-col flex-grow">
 					<div id="methods-content" class="flex-grow">
 						<div class="editor h-full"></div>
 					</div>
+					<div class="editor-info"></div>
 				</div>
-			
 			</div>
 		`,
 		method: config => `
@@ -4892,7 +5635,11 @@ let _Schema = {
 		`,
 		fakeTable: config => `
 			<div class="fake-table ${config.class}">
-				<div class="fake-thead"><div class="fake-tr">${config.cols.reduce((acc, col) => { return acc + `<div class="fake-th ${col.class}">${col.title}</div>`; }, '')}</div></div>
+				<div class="fake-thead">
+					<div class="fake-tr">
+						${config.cols.map(col=> `<div class="fake-th ${col.class}">${col.title}</div>`).join('')}
+					</div>
+				</div>
 				<div class="fake-tbody"></div>
 				<div class="fake-tfoot">
 					<div class="fake-tr">
@@ -4907,25 +5654,44 @@ let _Schema = {
 					</div>
 				</div>
 				<div class="fake-tfoot-buttons">
-					<button class="add-action-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
-					</button>
-					<button class="add-onCreate-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
-					</button>
-					<button class="add-afterCreate-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
-					</button>
-					<button class="add-onSave-button add-icon inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
-					</button>
+
+					${(config.entity ? _Schema.templates.addMethodsDropdown(config) : _Schema.templates.addMethodDropdown(config))}
+
 				</div>
 			</div>
+		`,
+		addMethodsDropdown: config => `
+			<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')}
+				</button>
+				<div class="dropdown-menu-container">
+					<div class="flex flex-col divide-x-0 divide-y">
+						<a class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
+						</a>
+						<a class="add-onCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
+						</a>
+						<a class="add-afterCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
+						</a>
+						<a class="add-onSave-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
+						</a>
+					</div>
+				</div>
+			</div>
+		`,
+		addMethodDropdown: config => `
+			<button class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
+				${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
+			</button>
 		`,
 		schemaTable: config => `
 			<table class="${config.class}">
 				<thead>
-					<tr>${config.cols.reduce((acc, col) => { return acc + `<th class="${col.class}">${col.title}</th>`; }, '')}</tr>
+					<tr>${config.cols.map(col=> `<th class="${col.class}">${col.title}</th>`).join('')}</tr>
 				</thead>
 				<tbody></tbody>
 				<tfoot>
@@ -5008,6 +5774,54 @@ let _Schema = {
 					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 				</td>
 			</tr>
+		`,
+		schemaGrantsTabContent: config => `
+			<div>
+				<div class="inline-info">
+					<div class="inline-info-icon">
+						${_Icons.getSvgIcon('info-icon', 24, 24)}
+					</div>
+					<div class="inline-info-text">
+						To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+					</div>
+				</div>
+
+				<div style="width: calc(100% - 4rem);" class="pt-4">
+					${config.tableMarkup}
+				</div>
+
+			</div>
+		`,
+		workingSets: config => `
+			<div>
+				<div class="inline-info">
+					<div class="inline-info-icon">
+						${_Icons.getSvgIcon('info-icon', 24, 24)}
+					</div>
+					<div class="inline-info-text">
+						Working Sets are identical to layouts. Removing an element from a group removes it from the layout
+					</div>
+				</div>
+
+				<div style="width: calc(100% - 4rem);" class="pt-4 mb-4">
+					<select id="type-groups" multiple="multiple"></select>
+					<span id="add-to-new-group"></span>
+				</div>
+				
+				${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+
+			</div>
+		`,
+		usageSearch: config => `
+			<div class="mb-4">
+				<div>
+					<label id="usage-label"></label>
+				</div>
+				
+				<div id="usage-tree-container">
+					<ul id="usage-tree"></ul>
+				</div>
+			</div>
 		`,
 	}
 };

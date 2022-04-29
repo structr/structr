@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
 require(['vs/editor/editor.main'], () => {
 	_Editors.setupMonacoAutoCompleteOnce();
@@ -97,8 +96,8 @@ let _Editors = {
 
 			let container = _Editors.getContainerForIdAndProperty(id, propertyName);
 
-			container?.instance.dispose();
-			container?.model.dispose();
+			container?.instance?.dispose();
+			container?.model?.dispose();
 
 			// dispose previous disposables
 			for (let disposable of container?.instanceDisposables ?? []) {
@@ -225,9 +224,10 @@ let _Editors = {
 			return events;
 		}
 	},
+	prevAnimFrameReqId_resizeVisibleEditors: undefined,
 	resizeVisibleEditors: () => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Editors.prevAnimFrameReqId_resizeVisibleEditors, () => {
 
 			for (let id in _Editors.editors) {
 
@@ -248,21 +248,10 @@ let _Editors = {
 	},
 	resizeEditor: (monacoEditor) => {
 
-		let domNode = monacoEditor.getDomNode();
+		// resize editor to minimal size...
+		monacoEditor.layout({ width: 1, height: 1 });
 
-		// first set to 0 to allow the parent box to auto-calc its height
-		domNode.style.height            = 0;
-		domNode.style.width             = 0;
-		domNode.firstChild.style.height = 0;
-		domNode.firstChild.style.width  = 0;
-
-		// domNode.style.overflow          = 'hidden';
-		domNode.style.height            = '100%';
-		domNode.style.width             = '100%';
-		domNode.firstChild.style.width  = '100%';
-		domNode.firstChild.style.height = '100%';
-
-		// let editor auto-layout
+		// ... so that editor auto-layout works
 		monacoEditor.layout();
 	},
 	setupMonacoAutoCompleteOnce: () => {
@@ -712,8 +701,9 @@ let _Editors = {
 	},
 	appendEditorOptionsElement: (element) => {
 
-		let dropdown = Structr.createSingleDOMElementFromHTML(`<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+		let dropdown = Structr.createSingleDOMElementFromHTML(`
+			<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="top" data-wants-fixed="true">
 					${_Icons.getSvgIcon('text-settings')}
 				</button>
 				
@@ -815,10 +805,11 @@ let _Editors = {
 					<div class="font-bold pt-4 pb-2">Global Editor Behaviour Settings</div>
 					
 					<div class="editor-setting flex items-center p-1">
-						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. The are only lost after a page reload or navigation event."><input name="restoreModels" type="checkbox"> Restore text models</label>
+						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. They are only lost after a page reload or navigation event.<br><br>This may lead to confusing situations where the editor shows unsaved html/code and the html/code is not shown/run because it is not saved. Be aware of such situations!"><input name="restoreModels" type="checkbox"> Restore text models</label>
 					</div>
 				</div>
-			</div>`);
+			</div>
+		`);
 
 		let savedOptions = _Editors.getOurEditorOptionsForDOM();
 

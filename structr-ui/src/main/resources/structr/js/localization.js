@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -166,9 +166,10 @@ let _Localization = {
 
 		return elements;
 	},
-	moveResizer: function(left) {
+	prevAnimFrameReqId_moveResizer: undefined,
+	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Localization.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -978,14 +978,15 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	 * Splits version strings into individual elements and creates comparable numbers.
 	 * This implementation supports version strings with up to 4 components
 	 * and minor versions up to 9999. If you need more, please  adapt the "num"
-	 * and "size values below.
+	 * and "size values below. Before splitting at ".", we remove all characters that
+	 * are non-numeric and not the ".".
 
 	 * @param version
 	 * @return a numerical representation of the version string
 	 */
 	private long parseVersionString(final String version) {
 
-		final String[] parts = version.split("\\.");
+		final String[] parts = version.replaceAll("[^0-9.]", "").split("\\.");
 		final int num        = 4; // 4 components
 		final int size       = 4; // 0 - 9999
 		long versionNumber   = 0L;

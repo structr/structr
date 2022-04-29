@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -71,10 +71,11 @@ let _Files = {
 			$('div.xml-mapping').css({ height: dialogBox.height() - 118 });
 		}
 	},
+	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
 		// throttle
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Files.prevAnimFrameReqId_moveResizer, () => {
 			left = left || LSWrapper.getItem(_Files.filesResizerLeftKey) || 300;
 			$('.column-resizer', _Files.filesMain).css({ left: left });
 
@@ -505,13 +506,15 @@ let _Files = {
 						id: 'favorites',
 						text: 'Favorite Files',
 						children: false,
-						icon: _Icons.star_icon
+						icon: _Icons.jstree_fake_icon,
+						data: { svgIcon: _Icons.getSvgIcon('favorite-star', 18, 24) },
 					},
 					{
 						id: 'root',
 						text: '/',
 						children: true,
-						icon: _Icons.structr_logo_small,
+						icon: _Icons.jstree_fake_icon,
+						data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
 						path: '/',
 						state: {
 							opened: true
@@ -655,16 +658,17 @@ let _Files = {
 			callback();
 		});
 	},
-	load: function(id, callback) {
+	load: (id, callback) => {
 
-		let displayFunction = function (folders) {
+		let displayFunction = (folders) => {
 
 			let list = folders.map((d) => {
 				return {
 					id: d.id,
 					text:  d.name || '[unnamed]',
 					children: d.foldersCount > 0,
-					icon: 'fa fa-folder',
+					icon: _Icons.jstree_fake_icon,
+					data: { svgIcon: _Icons.getSvgIcon('folder-icon', 16, 24) },
 					path: d.path
 				};
 			});
@@ -847,18 +851,18 @@ let _Files = {
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}"><i class="fa fa-folder"></i></div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 			}
 		}
@@ -937,17 +941,14 @@ let _Files = {
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
-		let size = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
-		let icon = d.isFolder ? 'fa-folder' : _Icons.getFileIconClass(d);
-		let name = d.name ? d.name : '[unnamed]';
-
-		let listModeActive  = _Files.isViewModeActive('list');
-		let tilesModeActive = _Files.isViewModeActive('tiles');
-		let imageModeActive = _Files.isViewModeActive('img');
-
-		let folderIconElement = (d.isMounted) ? `<span class="fa-stack"><i class="fa ${icon} fa-stack-2x"></i><i class="fa fa-plug fa-stack-1x"></i></span>` : `<i class="fa ${icon}"></i>`;
-
-		let filePath = `${Structr.getPrefixedRootUrl('')}${d.path}`;
+		let size              = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
+		let progressIndicator = `<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>`;
+		let name              = d.name || '[unnamed]';
+		let fileIcon          = _Icons.getFileIconSVG(d);
+		let listModeActive    = _Files.isViewModeActive('list');
+		let tilesModeActive   = _Files.isViewModeActive('tiles');
+		let imageModeActive   = _Files.isViewModeActive('img');
+		let filePath          = `${Structr.getPrefixedRootUrl('')}${d.path}`;
 
 		if (listModeActive) {
 
@@ -962,21 +963,24 @@ let _Files = {
 			if (d.isFolder) {
 
 				row.append(`
-					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</td>
+					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon((d.isMounted) ? 'folder-share' : 'folder-icon', 16, 16)}</td>
 					<td>
-						<div id="id_${d.id}" class="node folder flex items-center justify-between"><b class="name_ leading-8 truncate">${name}</b><div class="icons-container flex items-center"></div></div>
+						<div id="id_${d.id}" class="node folder flex items-center justify-between">
+							<b class="name_ leading-8 truncate">${name}</b>
+							<div class="icons-container flex items-center"></div>
+						</div>
 					</td>
 				`);
 
 			} else {
 
 				row.append(`
-					<td class="file-icon"><a href="${ filePath }" target="_blank"><i class="fa ${icon}"></i></a></td>
+					<td class="file-icon"><a href="${filePath}" target="_blank">${fileIcon}</a></td>
 					<td>
 						<div id="id_${d.id}" class="node file flex items-center justify-between">
 							<b class="name_ leading-8 truncate">${name}</b>
 							<div class="icons-container flex items-center"></div>
-							<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
+							${progressIndicator}
 						</div>
 					</td>
 				`);
@@ -1006,7 +1010,7 @@ let _Files = {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node folder">
-						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${folderIconElement}</div>
+						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon((d.isMounted) ? 'folder-share' : 'folder-icon', 48, 48)}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -1015,13 +1019,13 @@ let _Files = {
 			} else {
 
 				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
-				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${ filePath }">` : `<i class="fa ${icon}"></i>`;
+				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${filePath}">` : fileIcon;
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
 						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl('')}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
-						<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>
+						${progressIndicator}
 						<div class="icons-container flex items-center"></div>
 					</div>
 				`);
@@ -1640,7 +1644,7 @@ let _Files = {
 
 				for (let d of data.result) {
 
-					tbody.append('<tr><td><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
+					tbody.append('<tr><td>' + _Icons.getFileIconSVG(d) + ' ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
 
 					let contextResponse = await fetch(Structr.rootUrl + 'files/' + d.id + '/getSearchContext', {
 						method: 'POST',
@@ -1660,7 +1664,7 @@ let _Files = {
 
 							let div = $('#results' + d.id);
 
-							div.append('<h2><i class="fa ' + _Icons.getFileIconClass(d) + '"></i> ' + d.name + '</h2>');
+							div.append('<h2>' + _Icons.getFileIconSVG(d) + ' ' + d.name + '</h2>');
 							div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
 
 							$('.toggle-height', div).on('click', function() {

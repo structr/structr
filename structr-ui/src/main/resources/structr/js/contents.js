@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -237,11 +237,12 @@ let _Contents = {
 
 			case '#':
 
-				var defaultEntries = [{
+				let defaultEntries = [{
 					id: 'root',
 					text: '/',
 					children: true,
-					icon: _Icons.structr_logo_small,
+					icon: _Icons.jstree_fake_icon,
+					data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
 					path: '/',
 					state: {
 						opened: true,

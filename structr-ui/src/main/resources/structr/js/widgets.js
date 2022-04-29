@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -74,26 +74,25 @@ let _Widgets = {
 		return elements;
 	},
 
-	reloadWidgets: function() {
+	reloadWidgets: () => {
 
-		_Pages.widgetsSlideout.find(':not(.slideout-activator)').remove();
+		fastRemoveAllChildren(_Pages.widgetsSlideout);
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
 			remoteCollapsed: LSWrapper.getItem(_Widgets.remoteWidgetsCollapsedKey, false)
 		};
 
-		let slideoutHtml = _Widgets.templates.slideout(templateConfig);
-		_Pages.widgetsSlideout.append(slideoutHtml);
+		_Pages.widgetsSlideout.append(_Widgets.templates.slideout(templateConfig));
 
-		_Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
+		for (let toggleLink of _Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle')) {
 
 			toggleLink.addEventListener('click', function(event) {
 				let tabGroup = event.target.closest('.tab-group');
 				tabGroup.classList.toggle('collapsed');
 				LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
 			});
-		});
+		}
 
 		_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
@@ -162,11 +161,11 @@ let _Widgets = {
 
 		document.querySelector('.edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
 
-		_Widgets.updateWidgetServerSelector(function() {
+		_Widgets.updateWidgetServerSelector(() => {
 			_Widgets.refreshRemoteWidgets();
 		});
 	},
-	getWidgetServerUrl: function() {
+	getWidgetServerUrl: () => {
 
 		if (_Widgets.widgetServerSelector) {
 			return _Widgets.widgetServerSelector.value;
@@ -181,27 +180,26 @@ let _Widgets = {
 			callback(appConfigDataNodes);
 		});
 	},
-	showWidgetServersDialog: function() {
+	showWidgetServersDialog: () => {
 
-		let html = _Widgets.templates.serversDialog();
 		Structr.dialog('Widget Servers');
-		dialogText.html(html);
+		dialogText.html(_Widgets.templates.serversDialog());
 
-		Structr.activateCommentsInElement(dialogText, {helpElementCss: { 'font-size': '13px'}});
+		Structr.activateCommentsInElement(dialogText[0], { helpElementCss: { 'font-size': '13px'} });
 
 		_Widgets.updateWidgetServersTable();
 
-		dialogText[0].querySelector('button#save-widget-server').addEventListener('click', function () {
-			let name = document.querySelector("#new-widget-server-name").value;
-			let url = document.querySelector("#new-widget-server-url").value;
+		dialogText[0].querySelector('button#save-widget-server').addEventListener('click', () => {
+			let name = document.querySelector('#new-widget-server-name').value;
+			let url  = document.querySelector('#new-widget-server-url').value;
 
-			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, function(e) {
+			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, () => {
 				_Widgets.updateWidgetServersTable();
 				_Widgets.updateWidgetServerSelector();
 			});
 		});
 	},
-	updateWidgetServersTable: function() {
+	updateWidgetServersTable: () => {
 
 		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
@@ -247,12 +245,12 @@ let _Widgets = {
 
 			for (let input of container.querySelectorAll('input')) {
 
-				input.addEventListener('change', function(e) {
+				input.addEventListener('change', (e) => {
 					let el     = e.target;
 					let acdnID = el.closest('div').dataset.acdnId;
 					let key    = el.dataset.key;
 
-					Command.setProperty(acdnID, key, el.value, false, function(e) {
+					Command.setProperty(acdnID, key, el.value, false, () => {
 
 						blinkGreen($(el));
 
@@ -262,7 +260,7 @@ let _Widgets = {
 			}
 		});
 	},
-	updateWidgetServerSelector: function(callback) {
+	updateWidgetServerSelector: (callback) => {
 
 		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
@@ -271,10 +269,9 @@ let _Widgets = {
 				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
 			};
 
-			let html = _Widgets.templates.serversSelector(templateConfig);
-			let newElement = Structr.createSingleDOMElementFromHTML(html);
+			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
 
-			if (_Widgets.widgetServerSelector) {
+			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parent) {
 
 				_Widgets.widgetServerSelector.replaceWith(newElement);
 
@@ -1015,7 +1012,7 @@ let _Widgets = {
 				<h3>Configured Servers</h3>
 				<div id="widget-servers-container"></div>
 			
-				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{"customToggleIcon": "warning-sign-icon","customToggleIconClasses": ["icon-grey"], "helpElementCss": { "font-size": "14px"}}'>Add Server</h3>
+				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{ "customToggleIcon": "warning-sign-icon-filled", "customToggleIconClasses": [], "helpElementCss": { "font-size": "14px"} }'>Add Server</h3>
 			
 				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
 			

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
+	_Icons.preloadSVGIcons();
+
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
 	$.blockUI.defaults.overlayCSS.cursor         = 'default';
 	$.blockUI.defaults.applyPlatformOpacityRules = false;
@@ -37,6 +39,9 @@ $(function() {
 	Structr.functionBar   = document.getElementById('function-bar');
 	loginBox              = $('#login');
 
+	Structr.mainContainerOffscreen = document.createElement('div');
+	Structr.functionBarOffscreen   = document.createElement('div');
+
 	dialogBox           = $('#dialogBox');
 	dialog              = $('.dialogText', dialogBox);
 	dialogText          = $('.dialogText', dialogBox);
@@ -48,23 +53,29 @@ $(function() {
 	dialogCancelButton  = $('.closeButton', dialogBox);
 	dialogSaveButton    = $('.save', dialogBox);
 
-	$('#loginButton').on('click', function(e) {
+	document.querySelector('#loginForm').addEventListener('submit', (e) => {
 		e.stopPropagation();
-		let username = $('#usernameField').val();
-		let password = $('#passwordField').val();
+		e.preventDefault();
+
+		let username = document.querySelector('#usernameField').value;
+		let password = document.querySelector('#passwordField').value;
+
 		Structr.doLogin(username, password);
 		return false;
 	});
 
-	$('#loginButtonTFA').on('click', function(e) {
+	document.querySelector('#two-factor-form').addEventListener('submit', (e) => {
 		e.stopPropagation();
-		var tfaToken = $('#twoFactorTokenField').val();
-		var tfaCode  = $('#twoFactorCodeField').val();
+		e.preventDefault();
+
+		let tfaToken = $('#twoFactorTokenField').val();
+		let tfaCode  = $('#twoFactorCodeField').val();
+
 		Structr.doTFALogin(tfaCode, tfaToken);
 		return false;
 	});
 
-	$('#logout_').on('click', function(e) {
+	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
 		Structr.doLogout();
 	});
@@ -105,7 +116,7 @@ $(function() {
 		$(target).removeClass('visible');
 	});
 
-	Structr.connect();
+	StructrWS.init();
 
 	// Reset keys in case of window switching
 	$(window).blur(function(e) {
@@ -219,9 +230,9 @@ $(function() {
 		// Ctrl-Alt-m
 		if (k === 77 && altKey && ctrlKey) {
 			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
+			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
 			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, function(obj) {
+				Command.get(uuid, null, (obj) => {
 					_Elements.openEditContentDialog(obj);
 				});
 			} else {
@@ -231,9 +242,9 @@ $(function() {
 		// Ctrl-Alt-g
 		if (k === 71 && altKey && ctrlKey) {
 			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
 			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, function(obj) {
+				Command.get(uuid, null, (obj) => {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
@@ -243,7 +254,7 @@ $(function() {
 		// Ctrl-Alt-h
 		if (k === 72 && altKey && ctrlKey) {
 			e.preventDefault();
-			if ("schema" === Structr.getActiveModuleName()) {
+			if (Structr.isModuleActive(_Schema)) {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
@@ -253,6 +264,31 @@ $(function() {
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
+
+		// ctrl-u / cmd-u
+		if (k === 85 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
+			e.preventDefault();
+
+			let elements = document.querySelectorAll('.generated-source');
+
+			if (elements.length > 0) {
+
+				for (let el of elements) {
+
+					_Schema.showGeneratedSource(el);
+
+					if (el.classList.contains('tab')) {
+						el.dispatchEvent(new Event('click'));
+					}
+					if (el.classList.contains('propTabContent')) {
+						el.style.display = 'block';
+					} else {
+						el.style.display = null;
+					}
+				}
+			}
+		}
+
 	});
 
 	$(window).on('resize', () => {
@@ -320,16 +356,16 @@ let Structr = {
 		}
 		return Structr.diffMatchPatch;
 	},
-    getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+	getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
 
 	    let prefix = [];
 	    const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
 	    let entry = pathEntries.shift();
 
 	    while (entry !== 'structr' && entry !== undefined) {
-           prefix.push(entry);
-           entry = pathEntries.shift();
-        }
+			prefix.push(entry);
+			entry = pathEntries.shift();
+		}
 
 	    return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
 	},
@@ -343,48 +379,40 @@ let Structr = {
 		}
 	},
 
-	reconnect: function() {
-		Structr.stopPing();
-		Structr.stopReconnect();
-		StructrWS.reconnectIntervalId = window.setInterval(function() {
-			StructrWS.connect();
-		}, 1000);
-		StructrWS.connect();
+	moveUIOffscreen: () => {
+
+		fastRemoveAllChildren(Structr.functionBarOffscreen);
+		Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+
+		fastRemoveAllChildren(Structr.mainContainerOffscreen);
+		Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
 	},
-	stopReconnect: function() {
-		if (StructrWS.reconnectIntervalId) {
-			window.clearInterval(StructrWS.reconnectIntervalId);
-			StructrWS.reconnectIntervalId = undefined;
-			StructrWS.user = undefined;
+	moveOffscreenUIOnscreen: () => {
+
+		if (Structr.mainContainerOffscreen.children.length > 0 && Structr.functionBarOffscreen.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.functionBar);
+			Structr.functionBar.append(...Structr.functionBarOffscreen.children);
+
+			fastRemoveAllChildren(Structr.mainContainer);
+			Structr.mainContainer.append(...Structr.mainContainerOffscreen.children);
+
+			return true;
 		}
+
+		return false;
 	},
-	init: function() {
+	init: () => {
 		$('#errorText').empty();
-		Structr.ping();
-		Structr.startPing();
 	},
-	ping: function(callback) {
+	refreshUi: (isLogin = false) => {
 
-		if (StructrWS.ws.readyState !== 1) {
-			Structr.reconnect();
-		}
-
-		StructrWS.sessionId = Structr.getSessionId();
-
-		if (StructrWS.sessionId) {
-			Command.ping(callback);
-		} else {
-			Structr.renewSessionId(function() {
-				Command.ping(callback);
-			});
-		}
-	},
-	refreshUi: function(isLogin = false) {
 		Structr.showLoadingSpinner();
 
 		Structr.clearMain();
-		Structr.loadInitialModule(isLogin, function() {
-			Structr.startPing();
+		Structr.loadInitialModule(isLogin, () => {
+			StructrWS.startPing();
+
 			if (!dialogText.text().length) {
 				LSWrapper.removeItem(Structr.dialogDataKey);
 			} else {
@@ -393,46 +421,23 @@ let Structr = {
 					Structr.restoreDialog(dialogData);
 				}
 			}
+
 			Structr.hideLoadingSpinner();
 			_Console.initConsole();
 			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
 			_Favorites.initFavorites();
 		});
 	},
-	updateUsername: function(name) {
+	updateUsername: (name) => {
 		if (name !== StructrWS.user) {
 			StructrWS.user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
 		}
 	},
-	startPing: function() {
-		Structr.stopPing();
-		if (!StructrWS.ping) {
-			StructrWS.ping = window.setInterval(function() {
-				Structr.ping();
-			}, 1000);
-		}
-	},
-	stopPing: function() {
-		if (StructrWS.ping) {
-			window.clearInterval(StructrWS.ping);
-			StructrWS.ping = undefined;
-		}
-	},
-	getSessionId: function() {
+	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
 	},
-	connect: function() {
-		StructrWS.sessionId = Structr.getSessionId();
-		if (!StructrWS.sessionId) {
-			Structr.renewSessionId(function() {
-				StructrWS.connect();
-			});
-		} else {
-			StructrWS.connect();
-		}
-	},
-	login: function(text) {
+	login: (text) => {
 
 		if (!loginBox.is(':visible')) {
 
@@ -441,6 +446,8 @@ let Structr = {
 
 			fastRemoveAllChildren(Structr.mainContainer);
 			fastRemoveAllChildren(Structr.functionBar);
+			fastRemoveAllChildren(Structr.mainContainerOffscreen);
+			fastRemoveAllChildren(Structr.functionBarOffscreen);
 			_Elements.removeContextMenu();
 
 			$.blockUI({
@@ -458,7 +465,7 @@ let Structr = {
 			$('#errorText-two-factor').html(text);
 		}
 	},
-	clearLoginForm: function() {
+	clearLoginForm: () => {
 		loginBox.find('#usernameField').val('');
 		loginBox.find('#passwordField').val('');
 		loginBox.find('#errorText').empty();
@@ -471,7 +478,7 @@ let Structr = {
 		loginBox.find('#twoFactorTokenField').val('');
 		loginBox.find('#twoFactorCodeField').val('');
 	},
-	toggle2FALoginBox: function(data) {
+	toggle2FALoginBox: (data) => {
 
 		$('#errorText').html('');
 		$('#errorText-two-factor').html('');
@@ -487,23 +494,23 @@ let Structr = {
 		$('#twoFactorTokenField').val(data.token);
 		$('#twoFactorCodeField').val('').focus();
 	},
-	doLogin: function(username, password) {
-		Structr.renewSessionId(function() {
+	doLogin: (username, password) => {
+		Structr.renewSessionId(() => {
 			Command.login({
 				username: username,
 				password: password
 			});
 		});
 	},
-	doTFALogin: function(twoFactorCode, twoFacorToken) {
-		Structr.renewSessionId(function() {
+	doTFALogin: (twoFactorCode, twoFacorToken) => {
+		Structr.renewSessionId(() => {
 			Command.login({
 				twoFactorCode: twoFactorCode,
 				twoFactorToken: twoFacorToken
 			});
 		});
 	},
-	doLogout: function(text) {
+	doLogout: (text) => {
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
@@ -516,11 +523,13 @@ let Structr = {
 			Structr.login(text);
 			return true;
 		}
-		StructrWS.ws.close();
+		StructrWS.close();
 		return false;
 	},
-	renewSessionId: function(callback) {
-		$.get(Structr.getPrefixedRootUrl('/')).always(function() {
+	renewSessionId: (callback) => {
+
+		fetch(Structr.getPrefixedRootUrl('/')).then(response => {
+
 			StructrWS.sessionId = Structr.getSessionId();
 
 			if (!StructrWS.sessionId && location.protocol === 'http:') {
@@ -538,9 +547,9 @@ let Structr = {
 			}
 		});
 	},
-	loadInitialModule: function(isLogin, callback) {
+	loadInitialModule: (isLogin, callback) => {
 
-		LSWrapper.restore(function() {
+		LSWrapper.restore(() => {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(Structr.expandedIdsKey));
 
@@ -564,7 +573,7 @@ let Structr = {
 		Structr.mainModule = navState[0];
 		Structr.subModule  = navState.length > 1 ? navState[1] : null;
 	},
-	clearMain: function() {
+	clearMain: () => {
 		let newDroppables = new Array();
 		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
@@ -576,46 +585,14 @@ let Structr = {
 
 		fastRemoveAllChildren(Structr.mainContainer);
 		fastRemoveAllChildren(Structr.functionBar);
+		fastRemoveAllChildren(Structr.mainContainerOffscreen);
+		fastRemoveAllChildren(Structr.functionBarOffscreen);
+
 		_Elements.removeContextMenu();
 	},
-	confirmation: function(text, yesCallback, noCallback) {
-		if (text) {
-			$('#confirmation .confirmationText').html(text);
-		}
-		let yesButton = $('#confirmation .yesButton');
-		let noButton  = $('#confirmation .noButton');
+	restoreDialog: (dialogData) => {
 
-		if (yesCallback) {
-			yesButton.on('click', function(e) {
-				e.stopPropagation();
-				yesCallback();
-				yesButton.off('click');
-				noButton.off('click');
-			});
-		}
-
-		noButton.on('click', function(e) {
-			e.stopPropagation();
-			$.unblockUI({
-				fadeOut: 25
-			});
-			if (noCallback) {
-				noCallback();
-			}
-			yesButton.off('click');
-			noButton.off('click');
-		});
-
-		$.blockUI({
-			fadeIn: 25,
-			fadeOut: 25,
-			message: $('#confirmation'),
-			css: Structr.defaultBlockUICss
-		});
-	},
-	restoreDialog: function(dialogData) {
-
-		window.setTimeout(function() {
+		window.setTimeout(() => {
 
 			Structr.blockUI(dialogData);
 			Structr.resize();
@@ -623,7 +600,7 @@ let Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel, customClasses) {
+	dialog: (text, callbackOk, callbackCancel, customClasses) => {
 
 		dialogHead.empty();
 		dialogText.empty();
@@ -649,16 +626,8 @@ let Structr = {
 
 		dialogCancelButton.off('click').on('click', function(e) {
 			e.stopPropagation();
-			dialogText.empty();
-			$.unblockUI({
-				fadeOut: 25
-			});
 
-			dialogBtn.children(':not(.closeButton)').remove();
-
-			Structr.focusSearchField();
-
-			LSWrapper.removeItem(Structr.dialogDataKey);
+			Structr.dialogCancelBaseAction();
 
 			if (callbackCancel) {
 				window.setTimeout(callbackCancel, 100);
@@ -674,7 +643,19 @@ let Structr = {
 		LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
 
 	},
-	focusSearchField: function() {
+	dialogCancelBaseAction: () => {
+		dialogText.empty();
+		$.unblockUI({
+			fadeOut: 25
+		});
+
+		dialogBtn.children(':not(.closeButton)').remove();
+
+		Structr.focusSearchField();
+
+		LSWrapper.removeItem(Structr.dialogDataKey);
+	},
+	focusSearchField: () => {
 		let activeModule = Structr.getActiveModule();
 		if (activeModule) {
 			let searchField = activeModule.searchField;
@@ -684,13 +665,13 @@ let Structr = {
 			}
 		}
 	},
-	getDialogDimensions: function(marginLeft, marginTop) {
+	getDialogDimensions: (marginLeft, marginTop) => {
 
-		var winW = $(window).width();
-		var winH = $(window).height();
+		let winW = $(window).width();
+		let winH = $(window).height();
 
-		var width = Math.min(900, winW - marginLeft);
-		var height = Math.min(600, winH - marginTop);
+		let width = Math.min(900, winW - marginLeft);
+		let height = Math.min(600, winH - marginTop);
 
 		return {
 			width: width,
@@ -700,7 +681,7 @@ let Structr = {
 		};
 
 	},
-	blockUI: function(dimensions) {
+	blockUI: (dimensions) => {
 
 		$.blockUI({
 			fadeIn: 25,
@@ -725,7 +706,7 @@ let Structr = {
 		});
 
 	},
-	setSize: function(w, h, dw, dh) {
+	setSize: (w, h, dw, dh) => {
 
 		let l = parseInt((w - dw) / 2);
 		let t = parseInt((h - dh) / 2);
@@ -733,7 +714,7 @@ let Structr = {
 		let horizontalOffset = 148;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
-		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
+		let headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
 
 		$('#dialogBox .dialogTextWrapper').css('width', 'calc(' + dw + 'px - 3rem)');
 		$('#dialogBox .dialogTextWrapper').css('height', dh - horizontalOffset - headerHeight);
@@ -749,7 +730,7 @@ let Structr = {
 			height: h - 84 + 'px'
 		});
 	},
-	resize: function(callback) {
+	resize: (callback) => {
 
 		Structr.isMax = LSWrapper.getItem(Structr.dialogMaximizedKey);
 
@@ -772,7 +753,7 @@ let Structr = {
 			callback();
 		}
 	},
-	maximize: function() {
+	maximize: () => {
 
 		// Calculate dimensions of dialog
 		if ($('.blockPage').length && !loginBox.is(':visible')) {
@@ -897,7 +878,7 @@ let Structr = {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
-	tempInfo: function(text, autoclose) {
+	tempInfo: (text, autoclose) => {
 
 		window.clearTimeout(Structr.dialogTimeoutId);
 
@@ -941,7 +922,7 @@ let Structr = {
 			<div id="tempErrorBox" class="dialog block">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
-						<i class="${_Icons.getFullSpriteClass(_Icons.error_icon)} mr-2"></i>
+						${_Icons.getSvgIcon('warning-sign-icon-filled', 16, 16, 'mr-2')}
 						<b>Connection lost or timed out.</b>
 					</div>
 
@@ -977,7 +958,7 @@ let Structr = {
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
 		}, ms || 0);
 	},
-	requestActivateModule: function(event, name) {
+	requestActivateModule: (event, name) => {
 		if (Structr.menuBlocked) {
 			return false;
 		}
@@ -989,7 +970,7 @@ let Structr = {
 
 		return true;
 	},
-	doActivateModule: function(name) {
+	doActivateModule: (name) => {
 		Structr.determineModule();
 
 		if (Structr.modules[name]) {
@@ -1017,7 +998,7 @@ let Structr = {
 
 		return true;
 	},
-	activateMenuEntry: function(name) {
+	activateMenuEntry: (name) => {
 		Structr.blockMenu();
 		let menuEntry = $('#' + name + '_');
 		let li = menuEntry.parent();
@@ -1033,7 +1014,7 @@ let Structr = {
 			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
 		}
 	},
-	registerModule: function(module) {
+	registerModule: (module) => {
 		let name = module._moduleName;
 		if (!name || name.trim().length === 0) {
 			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
@@ -1055,7 +1036,8 @@ let Structr = {
 	containsNodes: (element) => {
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
-	numberOfNodes: function(element, excludeId) {
+	numberOfNodes: (element, excludeId) => {
+
 		let childNodes = $(element).children('.node');
 
 		if (excludeId) {
@@ -1165,7 +1147,7 @@ let Structr = {
 
 		});
 	},
-	openSlideOut: function(triggerEl, slideoutElement, callback) {
+	openSlideOut: (triggerEl, slideoutElement, callback) => {
 
 		let storedRightSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerRigthKey);
 		let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
@@ -1173,15 +1155,16 @@ let Structr = {
 		let t = $(triggerEl);
 		t.addClass('active');
 		slideoutElement.width(rsw);
+
 		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
+		});
 
 		slideoutElement.addClass('open');
 	},
-	openLeftSlideOut: function(triggerEl, slideoutElement, callback) {
+	openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
 
 		let storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerLeftKey);
 		let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
@@ -1191,24 +1174,28 @@ let Structr = {
 
 		slideoutElement.width(psw);
 
-		slideoutElement.animate({left: 0}, 100, function() {
+		slideoutElement.animate({ left: 0 }, 100, () => {
 			if (typeof callback === 'function') {
+
 				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
+		});
 
 		slideoutElement.addClass('open');
 	},
-	closeSlideOuts: function(slideouts, callback) {
-		var wasOpen = false;
+	closeSlideOuts: (slideouts, callback) => {
 
-		slideouts.forEach(function(slideout) {
+		let wasOpen = false;
+
+		for (let slideout of slideouts) {
+
 			slideout.removeClass('open');
+
 			let left          = slideout.position().left;
 			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (left < $(window).width()) {
-			//if (Math.abs($(window).width() - left) >= 3) {
+			if ((window.innerWidth - left) > 1) {
+
 				wasOpen = true;
 				slideout.animate({ right: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
@@ -1216,26 +1203,25 @@ let Structr = {
 					}
 				}).zIndex(2);
 				$('.slideout-activator.right.active').removeClass('active');
-
-				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === 'function') {
-					openSlideoutCallback();
-				}
 			}
-		});
+		}
 
 		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
-	closeLeftSlideOuts: function(slideouts, callback) {
+	closeLeftSlideOuts: (slideouts, callback) => {
+
 		let wasOpen = false;
 		let oldSlideoutWidth;
 
-		slideouts.forEach(function(slideout) {
+		for (let slideout of slideouts) {
+
 			slideout.removeClass('open');
+
 			let left          = slideout.position().left;
 			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
 			if (left > -1) {
+
 				wasOpen = true;
 				oldSlideoutWidth = slideoutWidth;
 				slideout.animate({ left: -slideoutWidth }, 100, function() {
@@ -1243,13 +1229,14 @@ let Structr = {
 						callback(wasOpen, -oldSlideoutWidth, 0);
 					}
 				}).zIndex(2);
+
 				$('.slideout-activator.left.active').removeClass('active');
 			}
-		});
+		}
 	},
-	updateVersionInfo: function(retryCount = 0, isLogin = false) {
+	updateVersionInfo: (retryCount = 0, isLogin = false) => {
 
-		fetch(Structr.rootUrl + '_env').then(function(response) {
+		fetch(Structr.rootUrl + '_env').then((response) => {
 
 			if (response.ok) {
 				return response.json();
@@ -1267,19 +1254,20 @@ let Structr = {
 			let dbInfoEl = $('#header .structr-instance-db');
 
 			if (envInfo.databaseService) {
+
 				let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
-				let icon       = _Icons.database_icon;
-
-				if (envInfo.databaseService === 'MemoryDatabaseService') {
-					icon = _Icons.database_error_icon;
-				}
-
-				dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
 
 				Structr.isInMemoryDatabase = (envInfo.databaseService === 'MemoryDatabaseService');
-				if (Structr.isInMemoryDatabase === true) {
-					Structr.isInMemoryDatabase = true;
-					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+
+				if (!Structr.isInMemoryDatabase) {
+
+					dbInfoEl.html(`<span>${_Icons.getSvgIcon('database-icon-color', 16, 16, [], driverName)}</span>`);
+
+				} else {
+
+					dbInfoEl.html('<span></span>');
+
+					Structr.appendInMemoryInfoToElement($('span', dbInfoEl));
 
 					if (isLogin) {
 						new MessageBuilder().warning(Structr.inMemoryWarningText).requiresConfirmation().show();
@@ -1296,7 +1284,6 @@ let Structr = {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
 
-
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 
@@ -1304,11 +1291,9 @@ let Structr = {
 				let date        = ui.date;
 				let versionInfo = `
 					<div>
-						<a target="_blank" href="https://structr.com/download">
-							${ui.version}
-						</a>
+						<a target="_blank" href="https://structr.com/download">${ui.version}</a>
 						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
-						${(envInfo.edition) ? `<i title="Structr ${envInfo.edition} Edition\n${(envInfo.licensee) ? `Licensed to: ${envInfo.licensee}` : 'Unlicensed'}" class="edition-icon ${_Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition))}"></i>` : ''}
+						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
 					</div>
 				`;
 
@@ -1383,13 +1368,16 @@ let Structr = {
 		}
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
-	appendInMemoryInfoToElement: (el, optionalToggleElement) => {
+	appendInMemoryInfoToElement: (el) => {
 
 		let config = {
 			element: el,
 			text: Structr.inMemoryWarningText,
 			customToggleIcon: 'database-warning-sign-icon',
-			customToggleIconClasses: ['icon-red', 'ml-2'],
+			customToggleIconClasses: ['ml-2'],
+			width: 20,
+			height: 20,
+			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
 				'border-radius': '4px',
@@ -1399,13 +1387,9 @@ let Structr = {
 			}
 		};
 
-		if (optionalToggleElement) {
-			config.toggleElement = optionalToggleElement;
-		}
-
 		Structr.appendInfoTextToElement(config);
 	},
-	getDatabaseDriverNameForDatabaseServiceName: function (databaseServiceName) {
+	getDatabaseDriverNameForDatabaseServiceName: (databaseServiceName) => {
 		switch (databaseServiceName) {
 			case 'BoltDatabaseService':
 				return 'Bolt Database Driver';
@@ -1417,36 +1401,36 @@ let Structr = {
 
 		return 'Unknown database driver!';
 	},
-	clearVersionInfo: function() {
+	clearVersionInfo: () => {
 		$('.structr-version').html('');
 	},
-	getId: function(element) {
+	getId: (element) => {
 		let id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
 		return id || undefined;
 	},
-	getIdFromPrefixIdString: function(idString, prefix) {
+	getIdFromPrefixIdString: (idString, prefix) => {
 		if (!idString || !idString.startsWith(prefix)) {
 			return false;
 		}
 		return idString.substring(prefix.length);
 	},
-	getComponentId: function(element) {
+	getComponentId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
 	},
-	getUserId: function(element) {
+	getUserId: (element) => {
 		return element.data('userId');
 	},
-	getGroupId: function(element) {
+	getGroupId: (element) => {
 		return element.data('groupId');
 	},
-	getActiveElementId: function(element) {
+	getActiveElementId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToAvailableFeatures: function() {
+	adaptUiToAvailableFeatures: () => {
 		Structr.adaptUiToAvailableModules();
 		Structr.adaptUiToEdition();
 	},
-	adaptUiToAvailableModules: function() {
+	adaptUiToAvailableModules: () => {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
@@ -1457,23 +1441,23 @@ let Structr = {
 			}
 		});
 	},
-	isModulePresent: function(moduleName) {
+	isModulePresent: (moduleName) => {
 		return Structr.activeModules[moduleName] !== undefined;
 	},
-	isModuleInformationAvailable: function() {
+	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
-	performModuleDependendAction: function(action) {
+	performModuleDependendAction: (action) => {
 		if (Structr.isModuleInformationAvailable()) {
 			action();
 		} else {
 			Structr.registerActionAfterModuleInformationIsAvailable(action);
 		}
 	},
-	registerActionAfterModuleInformationIsAvailable: function(cb) {
+	registerActionAfterModuleInformationIsAvailable: (cb) => {
 		Structr.moduleAvailabilityCallbacks.push(cb);
 	},
-	adaptUiToEdition: function() {
+	adaptUiToEdition: () => {
 		$('.edition-dependend').each(function(idx, element) {
 			var el = $(element);
 
@@ -1484,7 +1468,7 @@ let Structr = {
 			}
 		});
 	},
-	isAvailableInEdition: function(requiredEdition) {
+	isAvailableInEdition: (requiredEdition) => {
 		switch(Structr.edition) {
 			case 'Enterprise':
 				return true;
@@ -1496,16 +1480,16 @@ let Structr = {
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
 	},
-	updateMainHelpLink: function(newUrl) {
+	updateMainHelpLink: (newUrl) => {
 		$('#main-help a').attr('href', newUrl);
 	},
-	isButtonDisabled: function(button) {
+	isButtonDisabled: (button) => {
 		return $(button).data('disabled');
 	},
-	disableButton: function(btn) {
+	disableButton: (btn) => {
 		$(btn).addClass('disabled').attr('disabled', 'disabled');
 	},
-	enableButton: function(btn) {
+	enableButton: (btn) => {
 		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
 	addExpandedNode: (id) => {
@@ -1547,13 +1531,13 @@ let Structr = {
 		}
 		return Structr.expanded;
 	},
-	showAndHideInfoBoxMessage: function(msg, msgClass, delayTime, fadeTime) {
-		var newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
+	showAndHideInfoBoxMessage: (msg, msgClass, delayTime, fadeTime) => {
+		let newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
 		newDiv.text(msg);
 		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
-	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback, isRight) {
+	initVerticalSlider: (sliderEl, localstorageKey, minWidth, dragCallback, isRight) => {
 
 		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
@@ -1576,11 +1560,13 @@ let Structr = {
 
 	},
 	getSliderValueForDragCallback: (leftPos, minWidth, isRight) => {
+
 		let val = (isRight === true) ? Math.max(minWidth, window.innerWidth - leftPos) : Math.max(minWidth, leftPos);
 
 		// If there are two resizer elements, distance between resizers must always be larger than minWidth.
-		let leftResizer = document.querySelector('.column-resizer-left');
+		let leftResizer  = document.querySelector('.column-resizer-left');
 		let rightResizer = document.querySelector('.column-resizer-right');
+
 		if (isRight && !leftResizer.classList.contains('hidden')) {
 			let leftResizerLeft = leftResizer.getBoundingClientRect().left;
 			val = Math.min(val, window.innerWidth - leftResizerLeft - minWidth + leftResizer.getBoundingClientRect().width + 3);
@@ -1599,7 +1585,7 @@ let Structr = {
 	},
 	appendInfoTextToElement: (config) => {
 
-		let element            = config.element;
+		let element            = $(config.element);
 		let appendToElement    = config.appendToElement || element;
 		let text               = config.text || 'No text supplied!';
 		let toggleElementCss   = config.css || {};
@@ -1611,6 +1597,8 @@ let Structr = {
 		let insertAfter        = config.insertAfter || false;
 		let offsetX            = config.offsetX || 0;
 		let offsetY            = config.offsetY || 0;
+		let width              = config.width || 16;
+		let height             = config.height || 16;
 
 		let createdElements = [];
 
@@ -1620,7 +1608,7 @@ let Structr = {
 			customToggleElement = false;
 			toggleElement = $(`
 				${(config.noSpan) ? '' : '<span>'}
-					${_Icons.getSvgIcon(customToggleIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
+					${_Icons.getSvgIcon(customToggleIcon, width, height, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
 				${(config.noSpan) ? '' : '</span>'}
 			`);
 
@@ -1663,7 +1651,7 @@ let Structr = {
 
 		return createdElements;
 	},
-	refreshPositionsForCurrentlyActiveSortable: function() {
+	refreshPositionsForCurrentlyActiveSortable: () => {
 
 		if (Structr.currentlyActiveSortable) {
 
@@ -2194,7 +2182,7 @@ let Structr = {
 
 				let text = `
 					<p>No handler for generic message of type <b>${data.type}</b> defined - printing complete message data.</p>
-					${Object.entries(data).map(([key, value]) => `<b>${key}</b>:${data[key]}<br>`).join('')}
+					${Object.entries(data).map(([key, value]) => `<b>${key}</b>:${value}`).join('<br>')}
 				`;
 
 				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
@@ -2202,9 +2190,11 @@ let Structr = {
 			}
 		}
 	},
-	activateCommentsInElement: function(elem, defaults) {
+	activateCommentsInElement: (elem, defaults) => {
 
-		$('[data-comment]', elem).each(function(idx, el) {
+		let elsWithComment = elem.querySelectorAll('[data-comment]') || [];
+
+		for (let el of elsWithComment) {
 
 			let $el = $(el);
 
@@ -2227,11 +2217,11 @@ let Structr = {
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
 				Structr.appendInfoTextToElement(infoConfig);
 			}
-		});
+		}
 
 	},
-	blockUiGeneric: function(html, timeout) {
-		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
+	blockUiGeneric: (html, timeout) => {
+		Structr.loadingSpinnerTimeout = window.setTimeout(() => {
 
 			$.blockUI({
 				fadeIn: 0,
@@ -2242,7 +2232,7 @@ let Structr = {
 			});
 		}, timeout || 0);
 	},
-	unblockUiGeneric: function() {
+	unblockUiGeneric: () => {
 		window.clearTimeout(Structr.loadingSpinnerTimeout);
 		Structr.loadingSpinnerTimeout = undefined;
 
@@ -2272,7 +2262,7 @@ let Structr = {
 
 	nonBlockUIBlockerId: 'non-block-ui-blocker',
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	showNonBlockUILoadingMessage: function(title, text) {
+	showNonBlockUILoadingMessage: (title, text) => {
 
 		let messageTitle = title || 'Executing Task';
 		let messageText  = text || 'Please wait until the operation has finished...';
@@ -2284,11 +2274,88 @@ let Structr = {
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);
 	},
-	hideNonBlockUILoadingMessage: function() {
+	hideNonBlockUILoadingMessage: () => {
 		$('#' + Structr.nonBlockUIBlockerId).remove();
 		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	},
-	getDocumentationURLForTopic: function (topic) {
+
+	confirmation: (text, yesCallback, noCallback) => {
+		if (text) {
+			$('#confirmation .confirmationText').html(text);
+		}
+		let yesButton = $('#confirmation .yesButton');
+		let noButton  = $('#confirmation .noButton');
+
+		if (yesCallback) {
+			yesButton.on('click', function(e) {
+				e.stopPropagation();
+				yesCallback();
+				yesButton.off('click');
+				noButton.off('click');
+			});
+		}
+
+		noButton.on('click', function(e) {
+			e.stopPropagation();
+			$.unblockUI({
+				fadeOut: 25
+			});
+			if (noCallback) {
+				noCallback();
+			}
+			yesButton.off('click');
+			noButton.off('click');
+		});
+
+		$.blockUI({
+			fadeIn: 25,
+			fadeOut: 25,
+			message: $('#confirmation'),
+			css: Structr.defaultBlockUICss
+		});
+	},
+	confirmationPromiseNonBlockUI: (text) => {
+
+		return new Promise((resolve, reject) => {
+
+			let pageBlockerDiv = Structr.createSingleDOMElementFromHTML(`<div id="${Structr.nonBlockUIBlockerId}"></div>`);
+			let messageDiv     = Structr.createSingleDOMElementFromHTML(`<div id="${Structr.nonBlockUIBlockerContentId}"></div>`);
+
+			let el = document.getElementById('confirmation').cloneNode(true);
+			el.id = 'confirmation-new';
+			el.classList.remove('dialog');
+
+			el.querySelector('.confirmationText').innerHTML = text;
+
+			messageDiv.appendChild(el);
+
+			let yesButton = el.querySelector('.yesButton');
+			let noButton  = el.querySelector('.noButton');
+
+			yesButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				pageBlockerDiv.remove();
+				messageDiv.remove();
+
+				resolve(true);
+			});
+
+			noButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				pageBlockerDiv.remove();
+				messageDiv.remove();
+
+				resolve(false);
+			});
+
+			let body = document.querySelector('body');
+			body.appendChild(pageBlockerDiv);
+			body.appendChild(messageDiv);
+		});
+	},
+	getDocumentationURLForTopic: (topic) => {
 		switch (topic) {
 			case 'security':       return 'https://docs.structr.com/docs/security';
 			case 'schema-enum':    return 'https://docs.structr.com/docs/troubleshooting-guide#enum-property';
@@ -2370,6 +2437,7 @@ let Structr = {
 		return (contentType && contentType.indexOf('video') > -1);
 	},
 	handleDropdownClick: (e) => {
+
 		let menu = e.target.closest('.dropdown-menu');
 
 		if (menu) {
@@ -2378,27 +2446,70 @@ let Structr = {
 
 			if (container) {
 
-				if (container.style.display === 'none' || container.style.display === '') {
+				let isVisible = (container.dataset['visible'] === 'true');
+
+				if (isVisible) {
+
+					Structr.hideDropdownContainer(container);
+
+				} else {
 
 					Structr.hideOpenDropdownsExcept(container);
 
-					container.style.display = 'inline-block';
+					container.dataset['visible'] = 'true';
 
-				} else if (container.style.display === 'inline-block') {
+					container.style.display  = 'block';
 
-					container.style.display = 'none';
+					let btn     = e.target.closest('.dropdown-select');
+					let btnRect = btn.getBoundingClientRect();
+					let containerRect = container.getBoundingClientRect();
+
+					if (btn.dataset['preferredPositionY'] === 'top') {
+
+						// position dropdown over activator button
+						container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+					}
+
+					if (btn.dataset['preferredPositionX'] === 'left') {
+
+						// position dropdown left of button
+						container.style.right    = `calc(${window.innerWidth - btnRect.right}px + 2.5rem)`;
+					}
+
+					if (btn.dataset['wantsFixed'] === 'true') {
+						/*
+							this is important for the editor tools in a popup which need to break free from the popup dialog
+						*/
+						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+					}
 				}
 			}
 		}
 	},
 	hideOpenDropdownsExcept: (exception) => {
 
-		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
+		for (let container of document.querySelectorAll('.dropdown-menu-container')) {
 
 			if (container != exception) {
-				container.style.display    = 'none';
+				Structr.hideDropdownContainer(container);
 			}
-		});
+		}
+	},
+	hideDropdownContainer: (container) => {
+
+		container.dataset['visible'] = null;
+
+		container.style.display = 'none';
+		container.style.position = null;
+		container.style.bottom   = null;
+		container.style.top      = null;
+	},
+	requestAnimationFrameWrapper: (key, callback) => {
+		if (key) {
+			cancelAnimationFrame(key);
+		}
+
+		key = requestAnimationFrame(callback);
 	}
 };
 
@@ -2409,8 +2520,8 @@ Structr.wsRoot      = Structr.getPrefixedRootUrl('/structr/ws');
 Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
-	initTree: function(tree, initFunction, stateKey) {
-		$(tree).jstree({
+	initTree: (tree, initFunction, stateKey) => {
+		let initedTree = $(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
@@ -2420,6 +2531,74 @@ let _TreeHelper = {
 			state: {
 				key: stateKey
 			}
+		});
+
+		_TreeHelper.addSvgIconReplacementBehaviorToTree(initedTree);
+	},
+	addSvgIconReplacementBehaviorToTree: (tree) => {
+
+		let getSvgIconFromNode = (node) => {
+			return node?.data?.svgIcon ?? node?.state?.svgIcon;
+		};
+
+		let replaceIconWithSvgIfPresent = (nodeId) => {
+
+			let node = $(tree).jstree().get_node(nodeId);
+
+			// recursively change children icons (if node is opened)
+			if (node.state.opened) {
+				node.children?.map(replaceIconWithSvgIfPresent);
+			}
+
+			let svgIcon = getSvgIconFromNode(node);
+			if (svgIcon) {
+
+				let anchor = document.getElementById(node.a_attr.id);
+				if (anchor) {
+					let icon = anchor.querySelector('.jstree-icon');
+					if (icon) {
+
+						icon.style     = null;
+						icon.innerHTML = svgIcon;
+					}
+				}
+			}
+		};
+
+		let replaceFolderIcon = (nodeId, from, to) => {
+			let node = $(tree).jstree().get_node(nodeId);
+
+			let anchor = document.getElementById(node.a_attr.id);
+			if (anchor) {
+				_Icons.updateSvgIconInElement(anchor, from, to);
+			}
+		};
+
+		tree.on('after_open.jstree', (event, data) => {
+
+			if (data.node.id !== 'root') {
+
+				let svgIcon = getSvgIconFromNode(data.node);
+				if (svgIcon) {
+					replaceFolderIcon(data.node.id, 'folder-icon', 'folder-open-icon');
+				}
+			}
+
+			data.node.children?.map(replaceIconWithSvgIfPresent);
+		});
+
+		tree.on('after_close.jstree', (event, data) => {
+
+			if (data.node.id !== 'root') {
+				let svgIcon = getSvgIconFromNode(data.node);
+				if (svgIcon) {
+					replaceFolderIcon(data.node.id, 'folder-open-icon', 'folder-icon');
+				}
+			}
+		});
+
+		tree.on('redraw.jstree', (event, data) => {
+			data.nodes?.map(replaceIconWithSvgIfPresent);
 		});
 	},
 	deepOpen: function(tree, element, parentElements, parentKey, selectedNodeId) {
@@ -2800,7 +2979,7 @@ let UISettings = {
 		if (moduleSettings) {
 
 			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
 					${_Icons.getSvgIcon('ui_configuration_settings')}
 				</button>
 				<div class="dropdown-menu-container" style=display: none;"></div>

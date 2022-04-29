@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -200,9 +200,10 @@ let _MailTemplates = {
 		_MailTemplates.moveResizer();
 		Structr.resize();
 	},
+	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_MailTemplates.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_MailTemplates.mailTemplatesResizerLeftKey) || 300;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -222,9 +222,10 @@ let _Crud = {
 	page: {},
 	exact: {},
 	pageSize: {},
+	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Crud.prevAnimFrameReqId_moveResizer, () => {
 			left = left || LSWrapper.getItem(_Crud.crudResizerLeftKey) || 210;
 			Structr.mainContainer.querySelector('.column-resizer').style.left = left + 'px';
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -36,12 +36,12 @@ let _Dashboard = {
 	unload: function() {
 		window.clearInterval(_Dashboard.serverlog.interval);
 	},
-	removeActiveClass: function(nodelist) {
-		nodelist.forEach(function(el) {
+	removeActiveClass: (nodelist) => {
+		for (let el of nodelist) {
 			el.classList.remove('active');
-		});
+		}
 	},
-	onload: async function(retryCount = 0) {
+	onload: async (retryCount = 0) => {
 
 		try {
 
@@ -113,9 +113,9 @@ let _Dashboard = {
 
 			_Dashboard.gatherVersionUpdateInfo(templateConfig.envInfo.version, releasesIndexUrl, snapshotsIndexUrl);
 
-			document.querySelectorAll('#function-bar .tabs-menu li a').forEach(function(tabLink) {
+			for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 
-				tabLink.addEventListener('click', function(e) {
+				tabLink.addEventListener('click', (e) => {
 					e.preventDefault();
 
 					let urlHash   = e.target.closest('a').getAttribute('href');
@@ -132,7 +132,7 @@ let _Dashboard = {
 
 					$(targetId).trigger('show');
 				});
-			});
+			}
 
 			// activate tab - either defined by URL or by last accessed
 			let tabSelected = false;
@@ -160,7 +160,7 @@ let _Dashboard = {
 				}
 			}
 
-			_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'));
+			_Dashboard.checkLicenseEnd(templateConfig.envInfo, $('#dashboard-about-structr .end-date'), { noSpan: true });
 
 			_Dashboard.deployment.init();
 
@@ -280,14 +280,14 @@ let _Dashboard = {
 
 			if (daysLeft <= 0) {
 
-				config.customToggleIcon        = 'error-sign-icon';
+				config.customToggleIcon        = 'error-sign-icon-filled';
 				config.customToggleIconClasses = ['icon-red', 'ml-2'];
 				config.text = "Your Structr <b>license has expired</b>. Upon restart the Community edition will be loaded.";
 
 			} else if (daysLeft <= 7) {
 
-				config.customToggleIcon = 'warning-sign-icon';
-				config.customToggleIconClasses = ['icon-grey', 'ml-2'];
+				config.customToggleIcon        = 'warning-sign-icon-filled';
+				config.customToggleIconClasses = ['ml-2'];
 				config.text = "Your Structr <b>license will expire in less than a week</b>. After that the Community edition will be loaded.";
 
 			} else {
@@ -989,14 +989,42 @@ let _Dashboard = {
 					<div class="tab-content" id="dashboard-about-structr">
 			
 						<table class="props">
-							<tr><td class="key">Version</td><td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} <span id="version-update-info"></span></td></tr>
-							<tr><td class="key">Edition</td><td><i title="Structr ${config.envInfo.edition} Edition" class="${_Icons.getFullSpriteClass(_Icons.getIconForEdition(config.envInfo.edition))}"></i> (Structr ${config.envInfo.edition} Edition)</td></tr>
-							<tr><td class="key">Modules</td><td>${Object.keys(config.envInfo.modules).join(', ')}</td></tr>
-							<tr><td class="key">Licensee</td><td>${config.envInfo.licensee || 'Unlicensed'}</td></tr>
-							<tr><td class="key">Host ID</td><td>${config.envInfo.hostId || ''}</td></tr>
-							<tr><td class="key">License Start Date</td><td>${config.envInfo.startDate || '-'}</td></tr>
-							<tr><td class="key">License End Date</td><td class="end-date">${config.envInfo.endDate || '-'}</td></tr>
-							<tr><td class="key">Database Driver</td><td class="db-driver">${config.databaseDriver}</td></tr>
+							<tr>
+								<td class="key">Version</td>
+								<td>${config.envInfo.version} ${config.envInfo.build} ${config.envInfo.date} <span id="version-update-info"></span></td>
+							</tr>
+							<tr>
+								<td class="key">Edition</td>
+								<td>
+									<div class="flex items-center">
+										${_Icons.getSvgIcon(_Icons.getIconForEdition(config.envInfo.edition), 16,16,['mr-2'], `Structr ${config.envInfo.edition} Edition`)} (Structr ${config.envInfo.edition} Edition)
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td class="key">Modules</td>
+								<td>${Object.keys(config.envInfo.modules).join(', ')}</td>
+							</tr>
+							<tr>
+								<td class="key">Licensee</td>
+								<td>${config.envInfo.licensee || 'Unlicensed'}</td>
+							</tr>
+							<tr>
+								<td class="key">Host ID</td>
+								<td>${config.envInfo.hostId || ''}</td>
+							</tr>
+							<tr>
+								<td class="key">License Start Date</td>
+								<td>${config.envInfo.startDate || '-'}</td>
+							</tr>
+							<tr>
+								<td class="key">License End Date</td>
+								<td><div class="end-date flex items-center">${config.envInfo.endDate || '-'}</div></td>
+							</tr>
+							<tr>
+								<td class="key">Database Driver</td>
+								<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
+							</tr>
 						</table>
 					</div>
 			

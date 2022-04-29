@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -129,7 +129,7 @@ let _Entities = {
 		el.append(eventsHtml);
 
 		let width = '100%';
-		let style = 'text-align: left;';
+		let style = 'text-align: left; color: red;';
 		let parent = $('.blockPage');
 
 		if (parent.length === 0) {
@@ -231,7 +231,7 @@ let _Entities = {
 		customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
 		paginationNameInput.on('change', function(e) { paginationNameInput.removeClass('required'); });
 
-		Structr.activateCommentsInElement(el);
+		Structr.activateCommentsInElement(el[0]);
 
 		// initialize fields from values in the object
 		let eventMapping = JSON.parse(entity.eventMapping);
@@ -1123,7 +1123,7 @@ let _Entities = {
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
 					if (!entity.hasOwnProperty('relType')) {
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false, function(c) {
+						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false, (c) => {
 							_Entities.accessControlDialog(entity, c, typeInfo);
 						});
 					}
@@ -1136,74 +1136,77 @@ let _Entities = {
 			};
 
 			if (obj.relType) {
-				Command.getRelationship(obj.id, obj.target, null, function(entity) { handleGraphObject(entity); }, 'ui');
+				Command.getRelationship(obj.id, obj.target, null, entity => handleGraphObject(entity), 'ui');
 			} else {
-				Command.get(obj.id, null, function(entity) { handleGraphObject(entity); }, 'ui');
+				Command.get(obj.id, null, entity => handleGraphObject(entity), 'ui');
 			}
 		});
 	},
-	appendPropTab: function(entity, tabsEl, contentEl, name, label, active, callback, initCallback, showCallback) {
+	appendPropTab: (entity, tabsEl, contentEl, name, label, isActive, callback, showCallback, refreshOnShow = false) => {
 
-		let ul = tabsEl.children('ul');
-		ul.append(`<li id="tab-${name}">${label}</li>`);
+		let tabId     = `tab-${name}`;
+		let tabViewId = `tabView-${name}`;
+		let ul        = tabsEl.children('ul');
 
-		let tab = $('#tab-' + name + '');
-		if (active) {
+		ul.append(`<li id="${tabId}">${label}</li>`);
+		contentEl.append(`<div class="propTabContent h-full" id="${tabViewId}" data-tab-id="${tabId}"></div>`);
+
+		let tabContent = $('#' + tabViewId);
+		let tab        = $('#' + tabId);
+		if (isActive) {
 			tab.addClass('active');
 		}
 
-		tab.on('click', function(e) {
+		tab.on('click', (e) => {
+
 			e.stopPropagation();
-			$('.propTabContent').hide();
+			$('.propTabContent', contentEl).hide();
 			$('li', ul).removeClass('active');
-			$('#tabView-' + name).show();
+			tabContent.show();
 			tab.addClass('active');
 			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
 
-			if (typeof initCallback === "function") {
-				initCallback();
-			}
+			if (typeof showCallback === 'function') {
 
-			if (typeof showCallback === "function") {
+				// this does not really work for the initially active tab because its html is not yet output... showCallback must also be called from 'outside'
 
-				// update entity for show callback
-				if (entity.relType) {
-					Command.getRelationship(entity.id, entity.target, null, function(e) {
-						showCallback($('#tabView-' + name), e);
-					});
+				if (refreshOnShow === true) {
+					// update entity for show callback
+					if (entity.relType) {
+						Command.getRelationship(entity.id, entity.target, null, (e) => {
+							showCallback(tabContent, e);
+						});
+					} else {
+						Command.get(entity.id, null, (e) => {
+							showCallback(tabContent, e);
+						});
+					}
 				} else {
-					Command.get(entity.id, null, function(e) {
-						showCallback($('#tabView-' + name), e);
-					});
+					showCallback(tabContent, e);
 				}
 			}
 		});
-		contentEl.append('<div class="propTabContent" id="tabView-' + name + '"></div>');
-		var content = $('#tabView-' + name);
-		if (active) {
-			content.show();
+
+		if (isActive) {
+			tabContent.show();
 		}
 		if (callback) {
-			callback(content, entity);
+			callback(tabContent, entity);
 		}
-		if (active && typeof initCallback === "function") {
-			initCallback();
-		}
-		return content;
+
+		return { tab: tab, tabContent, tabContent };
 	},
 	appendViews: function(entity, views, texts, tabsEl, contentEl, typeInfo) {
 
-		var ul = tabsEl.children('ul');
+		let ul = tabsEl.children('ul');
 
-		$(views).each(function(i, view) {
+		for (let view of views) {
 
-			var tabText = texts[view];
-
-			ul.append('<li id="tab-' + view + '">' + tabText + '</li>');
+			ul.append('<li id="tab-' + view + '">' + texts[view] + '</li>');
 
 			contentEl.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
 
-			var tab = $('#tab-' + view);
+			let tab = $('#tab-' + view);
 
 			tab.on('click', function(e) {
 				e.stopPropagation();
@@ -1216,13 +1219,13 @@ let _Entities = {
 				tabView.show();
 				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
 
-				_Entities.listProperties(entity, view, tabView, typeInfo, function() {
+				_Entities.listProperties(entity, view, tabView, typeInfo, () => {
 					$('input.dateField', tabView).each(function(i, input) {
 						_Entities.activateDatePicker($(input));
 					});
 				});
 			});
-		});
+		}
 	},
 	getNullIconForKey: (key) => {
 		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i>';
@@ -1610,9 +1613,9 @@ let _Entities = {
 			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
 
 			container.append(`
-				<div class="mt-4 mb-4">
+				<div class="flex items-center mt-4 mb-4">
 					<button class="show-all hover:bg-gray-100 focus:border-gray-666 active:border-green ml-4 mr-4">Show all attributes</button>
-					<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green">Add custom property</button>
+					<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Add custom property</button>
 				</div>
 			`);
 			$('.show-all', container).on('click', function() {
@@ -1630,7 +1633,8 @@ let _Entities = {
 				element: addCustomAttributeButton,
 				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
-				customToggleIconClasses: ['icon-blue', 'mb-2']
+				customToggleIconClasses: ['icon-blue'],
+				noSpan: true
 			});
 
 			let saveCustomHTMLAttribute = (row, exitedInput) => {

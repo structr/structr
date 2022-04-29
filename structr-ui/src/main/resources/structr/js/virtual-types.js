@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -116,13 +116,14 @@ let _VirtualTypes = {
 			_VirtualTypes.virtualTypeDetail.style.display = 'none';
 		}
 	},
-	resize: function() {
+	resize: () => {
 		_VirtualTypes.moveResizer();
 		Structr.resize();
 	},
-	moveResizer: function(left) {
+	prevAnimFrameReqId_moveResizer: undefined,
+	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_VirtualTypes.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 340;
 			left = Math.max(340, Math.min(left, window.innerWidth - 340));

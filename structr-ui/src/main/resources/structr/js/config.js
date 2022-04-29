@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -55,7 +55,8 @@ function appendInfoTextToElement (text, el, css) {
 		helpElement.hide();
 	});
 
-	return el.append(toggleElement).append(helpElement);
+	el.appendChild(toggleElement[0]);
+	el.appendChild(helpElement[0]);
 }
 
 /* config search */
@@ -295,6 +296,8 @@ const Structr = {
 
 document.addEventListener('DOMContentLoaded', () => {
 
+	_Icons.preloadSVGIcons();
+
 	$('#new-entry-button').on('click', createNewEntry);
 
 	for (let resetButton of document.querySelectorAll('.reset-key')) {
@@ -332,49 +335,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	resizeFunction();
 
-	$('label.has-comment').each(function(idx, label) {
-		appendInfoTextToElement($(label).data("comment"), $(label));
-	});
+	for (let label of document.querySelectorAll('label.has-comment')) {
+		appendInfoTextToElement(label.dataset['comment'], label);
+	}
 
 	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
-	$('a[href$=' + anchor + ']').click();
+	document.querySelector('a[href$=' + anchor + ']').click();
 
-	$("button.toggle-option").on('click', function() {
-
-		var button = $(this);
-		var target = $('#' + button.data('target'));
+	let toggleButtonClicked = (button) => {
+		let target = document.querySelector('#' + button.dataset['target']);
 		if (target) {
 
-			var value = button.data('value');
-			var list  = target.val();
-			var parts = list.split(" ");
+			let value = button.dataset['value'];
+			let list  = target.value;
+			let parts = list.split(" ");
 
 			// remove empty elements
-			parts.forEach(function(p, i) {
+			parts = parts.filter(p => (p.length >= 2));
 
-				if (p.length < 2) {
-					parts.splice(i, 1);
-				}
-			});
-			var pos = parts.indexOf(value);
+			let pos = parts.indexOf(value);
 			if (pos >= 0) {
 
 				parts.splice(pos, 1);
-				button.removeClass('active');
+				button.classList.remove('active');
 
 			} else {
 
 				parts.push(value);
-				button.addClass('active');
+				button.classList.add('active');
 			}
 
-			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
+			target.value = parts.filter(e => (e && e.length)).join(' ');
 		}
-	});
+	};
 
-	$('.new-connection.collapsed').on('click', function() {
-		$(this).removeClass('collapsed');
-	});
+	for (let button of document.querySelectorAll('button.toggle-option')) {
+
+		button.addEventListener('click', () => {
+			toggleButtonClicked(button);
+		});
+	}
+
+	for (let collapsed of document.querySelectorAll('.new-connection.collapsed')) {
+		collapsed.addEventListener('click', () => {
+			collapsed.classList.remove('collapsed');
+		});
+	}
 
 	_Search.init();
 });

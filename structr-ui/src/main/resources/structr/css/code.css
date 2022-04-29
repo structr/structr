@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 #code-contents-container {
 	/*margin-left: 2px;*/
 	/*margin-right: 9px;*/
@@ -29,11 +28,6 @@
 #code-contents h2 {
 	margin: 0 0 1rem 0;
 	/*border-bottom: 1px solid var(--gray-ccc);*/
-}
-
-#code-contents h3 {
-	/*font-size: 12pt;*/
-	margin: 8px 0 8px 0;
 }
 
 #code-contents h4 {
@@ -59,15 +53,6 @@
 
 #code-contents .action-button .action-button-icon {
 	text-align: center;
-}
-
-#code-contents .property-options-group {
-	margin: 0 0 1rem 0;
-}
-
-#code-contents .property-options-group span,
-#code-contents .property-options-group i {
-	vertical-align: middle;
 }
 
 #code-context .code-favorite {
@@ -190,11 +175,6 @@ ul#usage-tree {
 
 #tabView-source .property-code {
 	width: 100%;
-}
-
-#code-contents .editor-settings-popup .dropdown-menu-container {
-	margin: 0 0 0 -5rem;
-	bottom: 4rem;
 }
 
 h2.has-changes::after {

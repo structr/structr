@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -508,7 +508,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							try {
 
-								writeOutputSteam (response, buffer);
+								writeOutputStream(response, buffer);
 
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
@@ -943,7 +943,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		});
 	}
 
-	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();

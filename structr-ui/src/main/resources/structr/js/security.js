@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2021 Structr GmbH
+ * Copyright (C) 2010-2022 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -354,9 +354,10 @@ let _UsersAndGroups = {
 				((principal.isAdmin === true) ? _Icons.user_red_icon : ((principal.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon))
 		);
 	},
+	prevAnimFrameReqId_updateUserElementAfterModelChange: undefined,
 	updateUserElementAfterModelChange: (user) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateUserElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
@@ -559,9 +560,10 @@ let _UsersAndGroups = {
 
 		return groupElement;
 	},
+	prevAnimFrameReqId_updateGroupElementAfterModelChange: undefined,
 	updateGroupElementAfterModelChange: (group) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateGroupElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
@@ -662,7 +664,7 @@ let _UsersAndGroups = {
 
 let _ResourceAccessGrants = {
 
-	refreshResourceAccesses: function() {
+	refreshResourceAccesses: () => {
 
 		if (Structr.isInMemoryDatabase === undefined) {
 			window.setTimeout(() => {
@@ -675,11 +677,11 @@ let _ResourceAccessGrants = {
 		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
 		_Security.resourceAccesses.html(resourceAccessHtml);
 
-		Structr.activateCommentsInElement(_Security.resourceAccesses);
+		Structr.activateCommentsInElement(_Security.resourceAccesses[0]);
 
 		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', undefined, true);
 
-		raPager.cleanupFunction = function () {
+		raPager.cleanupFunction = () => {
 			$('#resourceAccessesTable tbody tr').remove();
 		};
 
@@ -697,12 +699,12 @@ let _ResourceAccessGrants = {
 			}
 		});
 	},
-	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+	customPagerTransportFunction: (type, pageSize, page, filterAttrs, callback) => {
 
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map(function(key) {
+			filterString = 'WHERE ' + presentFilters.map((key) => {
 				if (key === 'flags') {
 					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
 				} else {
@@ -739,14 +741,14 @@ let _ResourceAccessGrants = {
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
-		let reEnableInput = function () {
+		let reEnableInput = () => {
 			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
 		let sig = inp.val();
 		if (sig) {
-			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, function() {
+			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, () => {
 				reEnableInput();
 				inp.val('');
 			});
@@ -756,7 +758,7 @@ let _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
-	createResourceAccessGrant: function(signature, flags, callback, additionalData) {
+	createResourceAccessGrant: (signature, flags, callback, additionalData) => {
 		let grantData = {
 			type: 'ResourceAccess',
 			signature: signature,
@@ -877,8 +879,8 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
 				element: $('.title-cell b', tr),
-				customToggleIcon: 'warning-sign-icon',
-				customToggleIconClasses: ['icon-grey'],
+				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIconClasses: [],
 				css: {
 					float:'right',
 					marginRight: '5px'
@@ -890,8 +892,8 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: flagWarningTexts[key].join('<br><br>'),
 				element: $('input[data-key=' + key + ']', tr),
-				customToggleIcon: 'warning-sign-icon',
-				customToggleIconClasses: ['icon-grey'],
+				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIconClasses: [],
 				css: { position: 'absolute' },
 				insertAfter: true
 			});
@@ -902,7 +904,7 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: 'error-sign-icon',
+					customToggleIcon: 'error-sign-icon-filled',
 					customToggleIconClasses: ['icon-red'],
 					css: { position: 'absolute' },
 					insertAfter: true
