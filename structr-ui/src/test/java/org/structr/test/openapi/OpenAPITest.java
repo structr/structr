@@ -765,6 +765,9 @@ public class OpenAPITest extends StructrUiTest {
 				.given()
 				.contentType("application/json; charset=UTF-8")
 
+				.header("X-User",     "admin")
+				.header("X-Password", "admin")
+
 				.expect()
 				.statusCode(200)
 

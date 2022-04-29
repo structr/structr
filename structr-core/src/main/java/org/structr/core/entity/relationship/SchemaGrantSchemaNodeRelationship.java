@@ -19,6 +19,7 @@
 package org.structr.core.entity.relationship;
 
 import org.structr.core.entity.ManyToOne;
+import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaGrant;
 import org.structr.core.entity.SchemaNode;
 
@@ -46,5 +47,10 @@ public class SchemaGrantSchemaNodeRelationship extends ManyToOne<SchemaGrant, Sc
 	@Override
 	public boolean isInternal() {
 		return true;
+	}
+
+	@Override
+	public int getAutocreationFlag() {
+		return Relation.TARGET_TO_SOURCE;
 	}
 }
