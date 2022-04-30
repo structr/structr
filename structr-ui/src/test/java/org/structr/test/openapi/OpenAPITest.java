@@ -21,6 +21,7 @@ package org.structr.test.openapi;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
@@ -47,7 +48,7 @@ public class OpenAPITest extends StructrUiTest {
 
 		RestAssured.basePath = "/structr/openapi";
 
-		final Map<String, Object> response = fetchOpenAPI("/");
+		final Map<String, Object> response = fetchOpenAPIWithCredentials("/", Settings.SuperUserName.getValue(), Settings.SuperUserPassword.getValue());
 
 		HttpFunctionsTest.assertMapPathValueIs(response, "openapi",      "3.0.2");
 		HttpFunctionsTest.assertMapPathValueIs(response, "info.title",   "Structr REST Server");
@@ -293,7 +294,7 @@ public class OpenAPITest extends StructrUiTest {
 
 		// check result for tag "test"
 		{
-			final Map<String, Object> response = fetchOpenAPI("/test.json");
+			final Map<String, Object> response = fetchOpenAPIWithCredentials("/test.json", Settings.SuperUserName.getValue(), Settings.SuperUserPassword.getValue());
 
 			HttpFunctionsTest.assertMapPathValueIs(response, "openapi",      "3.0.2");
 			HttpFunctionsTest.assertMapPathValueIs(response, "info.title",   "Structr REST Server");
@@ -462,7 +463,7 @@ public class OpenAPITest extends StructrUiTest {
 
 		// check result for tag "customer"
 		{
-			final Map<String, Object> response = fetchOpenAPI("/customer.json");
+			final Map<String, Object> response = fetchOpenAPIWithCredentials("/customer.json", Settings.SuperUserName.getValue(), Settings.SuperUserPassword.getValue());
 
 			HttpFunctionsTest.assertMapPathValueIs(response, "openapi",      "3.0.2");
 			HttpFunctionsTest.assertMapPathValueIs(response, "info.title",   "Structr REST Server");
@@ -616,7 +617,7 @@ public class OpenAPITest extends StructrUiTest {
 
 		// check result for tag "contact"
 		{
-			final Map<String, Object> response = fetchOpenAPI("/contact.json");
+			final Map<String, Object> response = fetchOpenAPIWithCredentials("/contact.json", Settings.SuperUserName.getValue(), Settings.SuperUserPassword.getValue());
 
 			HttpFunctionsTest.assertMapPathValueIs(response, "openapi",      "3.0.2");
 			HttpFunctionsTest.assertMapPathValueIs(response, "info.title",   "Structr REST Server");
@@ -733,6 +734,25 @@ public class OpenAPITest extends StructrUiTest {
 		}
 	}
 
+	@Test
+	public void testOpenAPIEndpointUnauthorizedAndWithoutGrant() {
+
+		RestAssured.basePath = "/";
+
+		// expect 401 for GET without grant and without user context
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(RequestLoggingFilter.logRequestTo(System.out))
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+			.expect()
+				.statusCode(401)
+			.when()
+				.get("/structr/openapi/schema.json");
+
+	}
+
 	// ----- private methods -----
 	private void checkPaths(final Map<String, Object> response, final List<Map<String, Map<String, List<String>>>> paths) {
 
@@ -759,14 +779,14 @@ public class OpenAPITest extends StructrUiTest {
 		}
 	}
 
-	private Map<String, Object> fetchOpenAPI(final String url) {
+	private Map<String, Object> fetchOpenAPIWithCredentials(final String url, final String username, final String password) {
 
 		return RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
 
-				.header("X-User",     "admin")
-				.header("X-Password", "admin")
+				.header("X-User",     username)
+				.header("X-Password", password)
 
 				.expect()
 				.statusCode(200)
@@ -776,25 +796,6 @@ public class OpenAPITest extends StructrUiTest {
 
 				.andReturn()
 				.as(Map.class);
-	}
-
-	@Test
-	public void testOpenAPIEndpoint() {
-
-		RestAssured.basePath = "/";
-
-		// provoke 404 error with GET on non-existing resource
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-				.filter(RequestLoggingFilter.logRequestTo(System.out))
-				.filter(ResponseLoggingFilter.logResponseTo(System.out))
-			.expect()
-				.statusCode(200)
-			.when()
-				.get("/structr/openapi/schema.json");
-
 	}
 
 }
