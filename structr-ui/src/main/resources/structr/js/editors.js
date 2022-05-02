@@ -365,6 +365,7 @@ let _Editors = {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
+			readOnly: customConfig.readOnly
 		});
 
 		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
