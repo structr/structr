@@ -25,7 +25,11 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.servlet.http.HttpSession;
 import org.eclipse.jetty.server.session.Session;
 import org.structr.api.config.Settings;
@@ -95,11 +99,12 @@ public class PDFFunction extends Function<Object, Object> {
 
 		Principal currentUser = ctx.getSecurityContext().getUser(false);
 
-		List<Param> parameterList = new ArrayList<Param>();
+		final List<Param> parameterList = new ArrayList<Param>();
 
 		if (currentUser instanceof SuperUser) {
 
-			parameterList.add(new Param("--custom-header X-User superadmin --custom-header X-Password " + Settings.SuperUserPassword.getValue()));
+			parameterList.add(new Param("--custom-header", "X-User", "superadmin"));
+			parameterList.add(new Param("--custom-header", "X-Password", Settings.SuperUserPassword.getValue()));
 			parameterList.add(new Param("--custom-header-propagation"));
 
 		} else {
@@ -107,11 +112,40 @@ public class PDFFunction extends Function<Object, Object> {
 			final HttpSession session = ctx.getSecurityContext().getSession();
 			final String sessionId    = (session instanceof Session) ? ((Session) session).getExtendedId() : session.getId();
 
-			parameterList.add(new Param("--cookie JSESSIONID " + sessionId));
+			parameterList.add(new Param("--cookie", "JSESSIONID", sessionId));
 		}
 
 		if (userParameter != null) {
-			parameterList.add(new Param(userParameter));
+
+			// use regular expression to extract quoted parts and single terms to be able to convert them to params
+			final Map<String, List<String>> map = new HashMap<>();
+			final Matcher matcher = Pattern.compile("(\"[^\"]*\")|(\\S+)").matcher(userParameter);
+			String lastParam = "";
+			while (matcher.find()) {
+
+				final String val = (matcher.group(1) != null) ? matcher.group(1) : matcher.group(2);
+
+				if (val.length() > 0) {
+					if (val.startsWith("-")) {
+						lastParam = val;
+						map.put(val, new ArrayList());
+					} else {
+						map.get(lastParam).add(val);
+					}
+				}
+			}
+
+			// now convert Map to Param objects
+			map.entrySet().stream().forEach(e -> {
+				final String paramName         = e.getKey();
+				final List<String> paramValues = e.getValue();
+
+				if (paramValues.size() == 0) {
+					parameterList.add(new Param(paramName));
+				} else {
+					parameterList.add(new Param(paramName, paramValues.toArray(new String[0])));
+				}
+			});
 		}
 
 		final ByteArrayOutputStream baos = new ByteArrayOutputStream();
