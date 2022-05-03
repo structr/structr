@@ -229,6 +229,7 @@ export class Frontend {
 	}
 
 	handleError(element, error, status) {
+		console.log(error);
 
 	    console.error({element, error, status});
 
@@ -253,7 +254,7 @@ export class Frontend {
 		    let data = container.dataset;
 		    let id   = data.structrId;
 
-		    if (!id && id.length !== 32) {
+		    if (!id || id.length !== 32) {
 			console.log('Container with selector ' + selector + ' has no data-id attribute, will not be reloaded.');
 			continue;
 		    }
@@ -460,20 +461,20 @@ export class Frontend {
 			} else if (id && id.length === 32) {
 
 				// server-side
-                // store event type in htmlEvent property
-                data.htmlEvent = event.type;
+				// store event type in htmlEvent property
+				data.htmlEvent = event.type;
 
-                fetch('/structr/rest/DOMElement/' + id + '/event', {
-                    body: JSON.stringify(this.resolveData(event, target)),
-                    method: 'post',
-                    credentials: 'same-origin'
-                })
+				fetch('/structr/rest/DOMElement/' + id + '/event', {
+				    body: JSON.stringify(this.resolveData(event, target)),
+				    method: 'post',
+				    credentials: 'same-origin'
+				})
 
-                .then(response => {
-                    return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
-                })
-                .then(response => this.handleResult(target, response.json, response.status))
-                .catch(error   => this.handleError(target, error, {}));
+				.then(response => {
+				    return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+				})
+				.then(response => this.handleResult(target, response.json, response.status))
+				.catch(error   => this.handleError(target, error, {}));
 			}
 
 		}, delay);
