@@ -275,8 +275,6 @@ $(function() {
 
 				for (let el of elements) {
 
-					_Schema.showGeneratedSource(el);
-
 					if (el.classList.contains('tab')) {
 						el.dispatchEvent(new Event('click'));
 					}
