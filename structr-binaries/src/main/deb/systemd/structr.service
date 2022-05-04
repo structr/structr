@@ -1,0 +1,22 @@
+[Unit]
+Description=Structr
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+## needed because we fork our process from the bash script (otherwise ExecStop is called immediately)
+Type=forking
+
+Restart=always
+RestartSec=1
+WorkingDirectory=/usr/lib/structr
+ExecStart=/usr/lib/structr/bin/start
+ExecStop=/usr/lib/structr/bin/stop
+LimitNOFILE=60000
+TimeoutSec=120
+
+# not necessary with Type=forking
+#StandardOutput=append:/var/log/structr.log
+
+[Install]
+WantedBy=multi-user.target
