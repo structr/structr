@@ -133,6 +133,16 @@
 									</mapper>
 								</data>
 
+<!--								<data>-->
+<!--									<src>${basedir}/src/main/deb/systemd</src>-->
+<!--									<type>directory</type>-->
+<!--									<mapper>-->
+<!--										<type>perm</type>-->
+<!--										<prefix>/lib/systemd/system/</prefix>-->
+<!--										<filemode>755</filemode>-->
+<!--									</mapper>-->
+<!--								</data>-->
+
 								<data>
 									<src>${basedir}/src/main/deb/logrotate.d</src>
 									<type>directory</type>

@@ -3358,7 +3358,7 @@ let _Schema = {
 			};
 
 			// insert java methods if they are not being displayed
-			let javaMethodsOrEmpty = _Schema.getOnlyJavaMethodsIfFilteringIsActive(entity.schemaMethods);
+			let javaMethodsOrEmpty = _Schema.getOnlyJavaMethodsIfFilteringIsActive(entity?.schemaMethods ?? []);
 			for (let javaMethod of javaMethodsOrEmpty) {
 				data.schemaMethods.push({ id: javaMethod.id });
 			}
