@@ -226,9 +226,9 @@ public class Scripting {
 				try {
 
 					final EvaluationHints hints = new EvaluationHints();
-					Object extractedValue = Functions.evaluate(actionContext, entity, snippet, hints);
-					final String value = extractedValue != null ? extractedValue.toString() : "";
-					final String output = actionContext.getOutput();
+					Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
+					final String value          = extractedValue != null ? extractedValue.toString() : "";
+					final String output         = actionContext.getOutput();
 
 					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
 						extractedValue = output;
@@ -238,10 +238,12 @@ public class Scripting {
 						securityContext.setDoTransactionNotifications(true);
 					}
 
+					/* disabled
 					hints.checkForErrorsAndThrowException((message, row, column) -> {
 						// report usage errors (missing keys etc.)
 						reportError(actionContext.getSecurityContext(), entity, message, row, column, snippet);
 					});
+					*/
 
 					return extractedValue;
 
