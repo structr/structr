@@ -1423,7 +1423,7 @@ let _Files = {
 
 		let editorInfo = dialogMeta[0].querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
-		_Files.appendTemplateConfig(editorInfo, monacoEditor, file, element, urlForFileAndPreview);
+		let { isTemplateCheckbox, showPreviewCheckbox } = _Files.appendTemplateConfig(editorInfo, monacoEditor, file, element, urlForFileAndPreview);
 
 		_Editors.resizeVisibleEditors();
 
@@ -1451,12 +1451,12 @@ let _Files = {
 				saveAndClose.prop("disabled", true).addClass('disabled');
 			};
 
-			if ($('#isTemplate').is(':checked')) {
+			if (isTemplateCheckbox.checked) {
 
 				_Entities.setProperty(file.id, 'isTemplate', false, false, () => {
 					saveFileAction(() => {
 						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
-							let active = showPreviewCheckbox.is(':checked');
+							let active = showPreviewCheckbox.checked;
 							if (active) {
 								_Files.updateTemplatePreview(element, urlForFileAndPreview);
 							}
@@ -1548,6 +1548,8 @@ let _Files = {
 
 			_Editors.resizeVisibleEditors();
 		});
+
+		return { isTemplateCheckbox, showPreviewCheckbox };
 	},
 	getLanguageForFile: (file) => {
 

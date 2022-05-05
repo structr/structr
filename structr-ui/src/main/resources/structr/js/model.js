@@ -428,7 +428,7 @@ let StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Icons.getFileIconSVG(d);
+				icon = _Icons.getFileIconSVG(obj);
 				// TODO: correctly update to: _Icons.getFileIconSVG(d)
 
 				if (Structr.isModuleActive(_Files)) {
