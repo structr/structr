@@ -269,24 +269,24 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 		});
 
 		this.pageNo.on('change', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+			if (this.pageNo[0].classList.contains('disabled')) return;
 			limitPager(this);
 		});
 
 		this.pageNo.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+			if (this.pageNo[0].classList.contains('disabled')) return;
 			e.target.select();
 		});
 
 		this.pageLeft.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+			if (this.pageLeft[0].classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]--;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
 		});
 
 		this.pageRight.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+			if (this.pageRight[0].classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]++;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
