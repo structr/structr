@@ -802,7 +802,7 @@ let _ResourceAccessGrants = {
 
 		let flags = parseInt(resourceAccess.flags);
 
-		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b class="name_">${resourceAccess.signature}</b></td>`;
+		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b>${resourceAccess.signature}</b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
