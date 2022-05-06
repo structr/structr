@@ -190,7 +190,7 @@ let _Localization = {
 		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, undefined, true);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.pager.append(`
+		_Localization.keyAndDomainPager.appendFilterElements(`
 			Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
 			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">

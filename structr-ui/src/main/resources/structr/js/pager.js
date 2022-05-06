@@ -194,16 +194,16 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 
 		_Pager.rawResultCount[pagerObj.id] = count;
 		_Pager.pageCount[pagerObj.id] = Math.max(1, Math.ceil(_Pager.rawResultCount[pagerObj.id] / _Pager.pageSize[pagerObj.id]));
-		pagerObj.pageCount.val(_Pager.pageCount[pagerObj.id]);
+		pagerObj.pageCount.value = _Pager.pageCount[pagerObj.id];
 
 		if (_Pager.page[pagerObj.id] < 1) {
 			_Pager.page[pagerObj.id] = 1;
-			pagerObj.pageNo.val(_Pager.page[pagerObj.id]);
+			pagerObj.pageNo.value = _Pager.page[pagerObj.id];
 		}
 
 		if (_Pager.page[pagerObj.id] > _Pager.pageCount[pagerObj.id]) {
 			_Pager.page[pagerObj.id] = _Pager.pageCount[pagerObj.id];
-			pagerObj.pageNo.val(_Pager.page[pagerObj.id]);
+			pagerObj.pageNo.value = _Pager.page[pagerObj.id];
 		}
 
 		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
@@ -237,24 +237,25 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 			this.el.append(pagerHtml);
 		}
 
-		this.pager     = $('.pager' + this.id, this.el);
-		this.pageLeft  = $('.pageLeft', this.pager);
-		this.pageRight = $('.pageRight', this.pager);
-		this.pageNo    = $('.pageNo', this.pager);
-		this.pageSize  = $('.pageSize', this.pager);
-		this.pageCount = $('.pageCount', this.pager);
+		this.pager     = this.el[0].querySelector('.pager' + this.id);
+		this.pageLeft  = this.pager.querySelector('.pageLeft');
+		this.pageRight = this.pager.querySelector('.pageRight');
+		this.pageNo    = this.pager.querySelector('.pageNo');
+		this.pageSize  = this.pager.querySelector('.pageSize');
+		this.pageCount = this.pager.querySelector('.pageCount');
 
-		this.pageSize.on('change', function(e) {
-			_Pager.pageSize[pagerObj.id] = $(this).val();
-			_Pager.page[pagerObj.id] = 1;
+		this.pageSize.addEventListener('change', (e) => {
+			_Pager.pageSize[pagerObj.id] = this.pageSize.value;
+			_Pager.page[pagerObj.id]     = 1;
+
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
 		});
 
-		let limitPager = function(inputEl) {
-			let val = parseInt($(inputEl).val());
+		let limitPager = (inputEl) => {
+			let val = parseInt(inputEl.value);
 			if (val < 1 || val > _Pager.pageCount[pagerObj.id]) {
-				$(inputEl).val(_Pager.page[pagerObj.id]);
+				inputEl.value = _Pager.page[pagerObj.id];
 			} else {
 				_Pager.page[pagerObj.id] = val;
 			}
@@ -262,31 +263,31 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 			pagerObj.transportFunction();
 		};
 
-		this.pageNo.on('keypress', function(e) {
+		this.pageNo.addEventListener('keypress', (e) => {
 			if (e.keyCode === 13) {
-				limitPager(this);
+				limitPager(this.pageNo);
 			}
 		});
 
-		this.pageNo.on('change', function(e) {
-			if (this.pageNo[0].classList.contains('disabled')) return;
-			limitPager(this);
+		this.pageNo.addEventListener('change', (e) => {
+			if (this.pageNo.classList.contains('disabled')) return;
+			limitPager(this.pageNo);
 		});
 
-		this.pageNo.on('click', function(e) {
-			if (this.pageNo[0].classList.contains('disabled')) return;
-			e.target.select();
+		this.pageNo.addEventListener('click', (e) => {
+			if (this.pageNo.classList.contains('disabled')) return;
+			this.pageNo.select();
 		});
 
-		this.pageLeft.on('click', function(e) {
-			if (this.pageLeft[0].classList.contains('disabled')) return;
+		this.pageLeft.addEventListener('click', (e) => {
+			if (this.pageLeft.classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]--;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
 		});
 
-		this.pageRight.on('click', function(e) {
-			if (this.pageRight[0].classList.contains('disabled')) return;
+		this.pageRight.addEventListener('click', (e) => {
+			if (this.pageRight.classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]++;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
@@ -301,21 +302,27 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 	this.updatePager = function() {
 
 		if (_Pager.page[this.id] === 1) {
-			this.pageLeft.attr('disabled', 'disabled').addClass('disabled');
+			this.pageLeft.disabled = true;
+			this.pageLeft.classList.add('disabled');
 		} else {
-			this.pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageLeft.disabled = false;
+			this.pageLeft.classList.remove('disabled');
 		}
 
 		if (_Pager.pageCount[this.id] === 1 || (_Pager.page[this.id] === _Pager.pageCount[this.id])) {
-			this.pageRight.attr('disabled', 'disabled').addClass('disabled');
+			this.pageRight.disabled = true;
+			this.pageRight.classList.add('disabled');
 		} else {
-			this.pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageRight.disabled = false;
+			this.pageRight.classList.remove('disabled');
 		}
 
 		if (_Pager.pageCount[this.id] === 1) {
-			this.pageNo.attr('disabled', 'disabled').addClass('disabled');
+			this.pageNo.disabled = true;
+			this.pageNo.classList.add('disabled');
 		} else {
-			this.pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageNo.disabled = false;
+			this.pageNo.classList.remove('disabled');
 		}
 
 		_Pager.storePagerData(this.id, _Pager.pagerType[this.id], _Pager.page[this.id], _Pager.pageSize[this.id], _Pager.sortKey[this.id], _Pager.sortOrder[this.id], _Pager.pagerFilters[this.id]);
@@ -325,8 +332,8 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 	 * Gets called whenever a change has been made (i.e. button has been pressed)
 	 */
 	this.updatePagerElements = function () {
-		$('.pageNo',   this.pager).val(_Pager.page[this.id]);
-		$('.pageSize', this.pager).val(_Pager.pageSize[this.id]);
+		this.pageNo.value   = _Pager.page[this.id];
+		this.pageSize.value = _Pager.pageSize[this.id];
 
 		this.cleanupFunction();
 	};
@@ -345,6 +352,10 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 	 */
 	this.cleanupFunction = function () {
 		$('.node', pagerObj.el).remove();
+	};
+
+	this.appendFilterElements = (markup) => {
+		this.pager.insertAdjacentHTML('beforeend', markup);
 	};
 
 	/**

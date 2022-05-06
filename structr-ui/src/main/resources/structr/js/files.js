@@ -834,7 +834,7 @@ let _Files = {
 				}
 			};
 
-			filesPager.pager.append(`
+			filesPager.appendFilterElements(`
 				<span class="mr-1">Filter:</span>
 				<input type="text" class="filter" data-attribute="name">
 				<input type="text" class="filter" data-attribute="parentId" value="${(parentIsRoot ? '' : id)}" hidden>

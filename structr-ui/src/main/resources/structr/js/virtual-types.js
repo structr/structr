@@ -189,7 +189,7 @@ let _VirtualTypes = {
 		_VirtualTypes.virtualTypesPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
-		_VirtualTypes.virtualTypesPager.pager.append(`
+		_VirtualTypes.virtualTypesPager.appendFilterElements(`
 			Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
 		`);

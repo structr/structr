@@ -143,7 +143,7 @@ let _Widgets = {
 			}
 		}, undefined, undefined, undefined, true);
 
-		_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
+		_wPager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
 		_wPager.activateFilterElements();
 		_wPager.setIsPaused(false);
 		_wPager.refresh();

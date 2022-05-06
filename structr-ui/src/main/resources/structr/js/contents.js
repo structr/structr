@@ -367,7 +367,7 @@ let _Contents = {
 			});
 		};
 
-		itemsPager.pager.append(`
+		itemsPager.appendFilterElements(`
 			<span class="mr-1">Filter:</span>
 			<input type="text" class="filter" data-attribute="name">
 			<input type="text" class="filter" data-attribute="containers" value="${(parentIsRoot ? '' : id)}" hidden>

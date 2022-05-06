@@ -324,7 +324,7 @@ let _UsersAndGroups = {
 			fastRemoveAllChildren(_Security.userList);
 		};
 
-		userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		userPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		userPager.activateFilterElements();
 		userPager.setIsPaused(false);
 		userPager.refresh();
@@ -506,7 +506,7 @@ let _UsersAndGroups = {
 		groupPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_Security.groupList);
 		};
-		groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		groupPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		groupPager.activateFilterElements();
 		groupPager.setIsPaused(false);
 		groupPager.refresh();

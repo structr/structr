@@ -745,7 +745,7 @@ let _Pages = {
 			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
 			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
 			+ '</button>');
-		pPager.pager.append(bulkEditingHelper);
+		pPager.appendFilterElements(bulkEditingHelper);
 		bulkEditingHelper.on('click', e => {
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
@@ -2228,8 +2228,7 @@ let _Pages = {
 					}
 				}, undefined, undefined, undefined, true);
 
-				let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
-				linkPagePager.pager.append(pagesPagerFilters);
+				linkPagePager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkPagePager.activateFilterElements();
 				linkPagePager.setIsPaused(false);
 				linkPagePager.refresh();
@@ -2248,8 +2247,7 @@ let _Pages = {
 					}
 				}, null, 'id,name,hasParent', undefined, true);
 
-				let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
-				linkFolderPager.pager.append(folderPagerFilters);
+				linkFolderPager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkFolderPager.activateFilterElements();
 				linkFolderPager.setIsPaused(false);
 				linkFolderPager.refresh();
@@ -2273,8 +2271,7 @@ let _Pages = {
 					}
 				}, null, 'id,name,contentType,linkingElementsIds,path', undefined, true);
 
-				let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
-				linkFilesPager.pager.append(filesPagerFilters);
+				linkFilesPager.appendFilterElements('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
 				linkFilesPager.activateFilterElements();
 				linkFilesPager.setIsPaused(false);
 				linkFilesPager.refresh();
@@ -2305,8 +2302,7 @@ let _Pages = {
 					}
 				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall', undefined, true);
 
-				let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
-				linkImagePager.pager.append(imagesPagerFilters);
+				linkImagePager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkImagePager.activateFilterElements();
 				linkImagePager.setIsPaused(false);
 				linkImagePager.refresh();

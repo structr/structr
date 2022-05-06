@@ -228,7 +228,7 @@ let _MailTemplates = {
 		_MailTemplates.mailTemplatesPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_MailTemplates.mailTemplatesList);
 		};
-		_MailTemplates.mailTemplatesPager.pager.append(`
+		_MailTemplates.mailTemplatesPager.appendFilterElements(`
 			Filters: <input type="text" class="filter w100 mail-template-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 mail-template-locale" data-attribute="locale" placeholder="Locale">
 		`);
