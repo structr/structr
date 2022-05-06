@@ -33,7 +33,8 @@ let _Editors = {
 				instanceDisposables: [],
 				modelDisposables:    [],
 				decorations:         []
-			}
+			},
+			lastScriptErrorLookup: 0
 		}	*/
 	},
 	getContainerForIdAndProperty: (id, propertyName) => {
@@ -151,14 +152,29 @@ let _Editors = {
 	restoreViewStateFromLocalStorage: (id, propertyName) => {
 		return LSWrapper.getItem(_Editors.getStorageKeyForViewState(id, propertyName));
 	},
-	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName) => {
+	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName, forceUpdate = false) => {
 
-		let storageContainer         = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
-		storageContainer.decorations = storageContainer?.decorations ?? [];
-		let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
-		storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+		// prevent script error lookup for new/unsaved methods
+		if (entity?.isNew === true) {
+			return;
+		}
+
+		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+
+		// prevent script error lookup for same editor in less than 5 seconds
+		let minTimeBetweenLookups = 5000;
+		let lastLookup = storageContainer.lastScriptErrorLookup ?? 0;
+		if (lastLookup + minTimeBetweenLookups < performance.now() || forceUpdate === true) {
+
+			storageContainer.lastScriptErrorLookup = performance.now();
+
+			// check linting updates for this element max every 10 seconds (unless forced)
+			storageContainer.decorations = storageContainer?.decorations ?? [];
+			let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
+			storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+		}
 	},
-	getScriptErrors: async function(entity, errorAttributeName) {
+	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
 		let response   = await fetch(Structr.rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
@@ -406,7 +422,7 @@ let _Editors = {
 
 			// onFocus handler
 			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
 			}));
 		}
 
