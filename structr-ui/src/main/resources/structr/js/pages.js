@@ -1161,17 +1161,17 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.events());
 				let eventsContainer = document.querySelector('#center-pane .events-container');
 
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 					_Entities.dataBindingDialog(obj, $(eventsContainer), typeInfo);
 				});
-
 				break;
 
 			case '#pages:security':
 
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.security());
 				let securityContainer = document.querySelector('#center-pane .security-container');
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 					_Entities.accessControlDialog(obj, $(securityContainer), typeInfo);
 				});
 				break;
@@ -2204,7 +2204,7 @@ let _Pages = {
 					<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>
 				`);
 
-				let pagesToLink = $('#pagesToLink');
+				let pagesToLink = document.querySelector('#pagesToLink');
 
 				_Pager.initPager('pages-to-link', 'Page', 1, 25);
 				let linkPagePager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, (pages) => {
@@ -2213,15 +2213,15 @@ let _Pages = {
 
 						if (page.type !== 'ShadowDocument') {
 
-							pagesToLink.append(`
-								<div class="node page ${page.id}_ ${_Pages.linkableDialog.nodeClasses}">
+							let div = Structr.createSingleDOMElementFromHTML(`
+								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
 										${_Icons.getSvgIcon('browser-page', 16, 16)}<b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);
 
-							let div = $(`.${page.id}_`, pagesToLink);
+							pagesToLink.appendChild(div);
 
 							_Pages.linkableDialog.handleLinkableElement(div, entity, page);
 						}
@@ -2235,8 +2235,8 @@ let _Pages = {
 
 				targetNode.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
 
-				let filesToLink   = $('#filesToLink');
-				let foldersToLink = $('#foldersToLink');
+				let filesToLink   = document.querySelector('#filesToLink');
+				let foldersToLink = document.querySelector('#foldersToLink');
 
 				_Pager.initPager('folders-to-link', 'Folder', 1, 25);
 				_Pager.forceAddFilters('folders-to-link', 'Folder', { hasParent: false });
@@ -2257,15 +2257,15 @@ let _Pages = {
 
 					for (let file of files) {
 
-						filesToLink.append(`
-							<div class="node file ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
+						let div = Structr.createSingleDOMElementFromHTML(`
+							<div class="node file ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
 									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
 								</div>
 							</div>
 						`);
 
-						let div = $(`.${file.id}_`, filesToLink);
+						filesToLink.appendChild(div);
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, file);
 					}
@@ -2281,22 +2281,22 @@ let _Pages = {
 
 				targetNode.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
 
-				let imagesToLink = $('#imagesToLink');
+				let imagesToLink = document.querySelector('#imagesToLink');
 
 				_Pager.initPager('images-to-link', 'Image', 1, 25);
 				let linkImagePager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', (images) => {
 
 					for (let image of images) {
 
-						imagesToLink.append(`
-							<div class="node file ${image.id}_ ${_Pages.linkableDialog.nodeClasses}" title="${escapeForHtmlAttributes(image.path)}">
+						let div = Structr.createSingleDOMElementFromHTML(`
+							<div class="node file ${_Pages.linkableDialog.nodeClasses}" title="${escapeForHtmlAttributes(image.path)}">
 								<div class="node-container flex items-center gap-x-2 p-2">
 									${_Icons.getImageOrIcon(image)}<b class="name_ abbr-ellipsis abbr-120">${image.name}</b>
 								</div>
 							</div>
 						`);
 
-						let div = $(`.${image.id}_`, imagesToLink);
+						imagesToLink.append(div);
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, image);
 					}
@@ -2310,15 +2310,15 @@ let _Pages = {
 		},
 		appendFolder: (entityToLinkTo, folderEl, subFolder) => {
 
-			folderEl.append(`
-				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${subFolder.id}_ ${_Pages.linkableDialog.nodeClasses}">
+			let subFolderEl = Structr.createSingleDOMElementFromHTML(`
+				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
 						${_Icons.getSvgIcon('folder-icon', 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
 					</div>
 				</div>
 			`);
+			folderEl.appendChild(subFolderEl);
 
-			let subFolderEl   = folderEl[0].querySelector('.' + subFolder.id + '_');
 			let nodeContainer = subFolderEl.querySelector('.node-container');
 
 			subFolderEl.addEventListener('click', (e) => {
@@ -2329,7 +2329,7 @@ let _Pages = {
 
 				if (!folderIsOpen) {
 
-					_Pages.linkableDialog.expandFolder(entityToLinkTo, subFolder);
+					_Pages.linkableDialog.expandFolder(entityToLinkTo, subFolder, subFolderEl);
 
 				} else {
 
@@ -2351,12 +2351,11 @@ let _Pages = {
 			});
 
 		},
-		expandFolder: (entityToLinkTo, folder) => {
+		expandFolder: (entityToLinkTo, folder, folderEl) => {
 
 			Command.get(folder.id, 'id,name,hasParent,files,folders', (node) => {
 
-				let folderEl = $('.' + node.id + '_');
-				_Icons.updateSvgIconInElement(folderEl[0], 'folder-icon', 'folder-open-icon');
+				_Icons.updateSvgIconInElement(folderEl, 'folder-icon', 'folder-open-icon');
 
 				for (let subFolder of node.folders) {
 					_Pages.linkableDialog.appendFolder(entityToLinkTo, folderEl, subFolder);
@@ -2366,15 +2365,14 @@ let _Pages = {
 
 					Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', (file) => {
 
-						folderEl.append(`
-							<div class="node file sub ${file.id}_ ${_Pages.linkableDialog.nodeClasses}">
+						let div = Structr.createSingleDOMElementFromHTML(`
+							<div class="node file sub ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
 									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
 								</div>
 							</div>
 						`);
-
-						let div = $('.' + file.id + '_');
+						folderEl.appendChild(div);
 
 						_Pages.linkableDialog.handleLinkableElement(div, entityToLinkTo, file);
 					});
@@ -2384,16 +2382,16 @@ let _Pages = {
 		handleLinkableElement: (div, entityToLinkTo, linkableObject) => {
 
 			if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
-				div.addClass('nodeActive');
+				div.classList.add('nodeActive');
 			}
 
-			div.on('click', function(event) {
+			div.addEventListener('click', (e) => {
 
-				event.stopPropagation();
+				e.stopPropagation();
 
-				let isActive = div.hasClass('nodeActive');
+				let isActive = div.classList.contains('nodeActive');
 
-				div.closest('.linkBox').find('.node').removeClass('nodeActive');
+				div.closest('.linkable-container')?.querySelector('.node.nodeActive')?.classList.remove('nodeActive');
 
 				if (isActive) {
 
@@ -2411,15 +2409,17 @@ let _Pages = {
 
 					Command.link(entityToLinkTo.id, linkableObject.id);
 
-					div.addClass('nodeActive');
+					div.classList.add('nodeActive');
 				}
 
 				_Entities.reloadChildren(entityToLinkTo.parent.id);
+			});
 
-			}).hover(function() {
-				$(this).addClass('nodeHover');
-			}, function() {
-				$(this).removeClass('nodeHover');
+			div.addEventListener('mouseenter', (e) => {
+				div.classList.add('nodeHover');
+			});
+			div.addEventListener('mouseleave', (e) => {
+				div.classList.remove('nodeHover');
 			});
 		},
 	},

@@ -160,7 +160,7 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 	let pagerObj = this;
 
 	// Parameters
-	this.el       = el;
+	this.el       = $(el);
 	this.filterEl = undefined; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
 	this.id       = id;
