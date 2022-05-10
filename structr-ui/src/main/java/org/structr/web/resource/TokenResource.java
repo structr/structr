@@ -151,11 +151,10 @@ public class TokenResource extends LoginResource {
             refreshCookie.setHttpOnly(true);
             refreshCookie.setMaxAge(refreshMaxAge * 60);
 
-            if (Settings.ForceHttps.getValue()) {
+            if (Settings.ForceHttps.getValue() || securityContext.getRequest().isSecure()) {
 
                 tokenCookie.setSecure(true);
                 refreshCookie.setSecure(true);
-
             }
 
             response.addCookie(tokenCookie);
