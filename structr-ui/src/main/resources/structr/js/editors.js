@@ -51,6 +51,23 @@ let _Editors = {
 
 		return _Editors.editors[id][propertyName].instance;
 	},
+	disposeAllUnattachedEditors: (exceptionIds = []) => {
+
+		for (let id in _Editors.editors) {
+
+			for (let propertyName in _Editors.editors[id]) {
+
+				if (exceptionIds.indexOf(id) === -1) {
+
+					let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+					let domNode   = container?.instance?.getDomNode();
+					if (domNode === null || domNode === undefined || domNode.offsetParent === null) {
+						_Editors.disposeEditor(id, propertyName);
+					}
+				}
+			}
+		}
+	},
 	disposeAllEditors: (exceptionIds = []) => {
 
 		for (let id in _Editors.editors) {
@@ -384,12 +401,8 @@ let _Editors = {
 			readOnly: customConfig.readOnly
 		});
 
-		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
-		if (customConfig.preventDisposeForIds) {
-			_Editors.disposeAllEditors(customConfig.preventDisposeForIds);
-		} else {
-			_Editors.disposeAllEditors([entity.id]);
-		}
+		// dispose previously existing editors
+		_Editors.disposeAllUnattachedEditors(customConfig.preventDisposeForIds);
 
 		// also delete a possible previous editor for this id and propertyName to start fresh
 		storageContainer?.instance?.dispose();
