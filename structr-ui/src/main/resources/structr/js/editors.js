@@ -630,7 +630,7 @@ let _Editors = {
 	getDefaultEditorOptionsForStorage: () => {
 		/**
 		 * This is almost identical to IEditorOptions (https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneEditorConstructionOptions.html)
-		 * but adapated so we can seamlessly use it in our UI.
+		 * but adapted so we can seamlessly use it in our UI.
 		 *
 		 * The return value of this function must be transformed to be used with the editor
 		 */
@@ -638,7 +638,7 @@ let _Editors = {
 			// section identical to IEditorOptions
 			roundedSelection: true,
 			glyphMargin: true,
-			scrollBeyondLastLine: false,
+			scrollBeyondLastLine: true,
 			readOnly: false,
 			renderLineHighlight: 'all',
 			folding: true,
