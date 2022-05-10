@@ -530,6 +530,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			logger.error("Exception while processing request: {}", fex.getMessage());
 			UiAuthenticator.writeFrameworkException(response, fex);
 
+		} catch (EofException ex) {
+
+			// ignore EofException which (by jettys standards) should be handled less verbosely
+
 		} catch (IOException ioex) {
 
 			logger.error("Exception while processing request: {}", ioex.getMessage());
