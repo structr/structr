@@ -4525,22 +4525,24 @@ let _Schema = {
 		];
 
 		let id = "schema-tools-visibility";
-		dialogText.append('<div id="' + id + '_head"><div class="data-tabs level-two"><ul id="' + id + '-tabs"></ul></div></div><div id="' + id + '_content"></div>');
-		let ul        = $('#' + id + '-tabs', dialogText);
-		let contentEl = $('#' + id + '_content', dialogText);
+		dialogHead.append(`<div class="data-tabs level-two"><ul id="${id}-tabs"></ul></div>`);
+		dialogText.append(`<div id="${id}_content"></div>`);
+
+		let ul        = dialogHead[0].querySelector('#' + id + '-tabs', );
+		let contentEl = dialogText[0].querySelector('#' + id + '_content');
 
 		let activateTab = (tabName) => {
-			$('.tab', contentEl).hide();
-			$('li', ul).removeClass('active');
-			$('div[data-name="' + tabName + '"]', contentEl).show();
-			$('li[data-name="' + tabName + '"]', ul).addClass('active');
+			[...contentEl.querySelectorAll('.tab')].forEach(tab => tab.style.display = 'none');
+			[...ul.querySelectorAll('li')].forEach(li => li.classList.remove('active'));
+			contentEl.querySelector('div[data-name="' + tabName + '"]').style.display = 'block';
+			ul.querySelector('li[data-name="' + tabName + '"]').classList.add('active');
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
 		Command.query('SchemaNode', 2000, 1, 'name', 'asc', {}, (schemaNodes) => {
 
 			let tabsHtml = visibilityTables.map(visType => `<li id="tab" data-name="${visType.caption}">${visType.caption}</li>`).join('');
-			ul.append(tabsHtml);
+			ul.insertAdjacentHTML('beforeend', tabsHtml);
 
 			let tabContentsHtml = visibilityTables.map(visType => `
 				<div class="tab" data-name="${visType.caption}">
@@ -4556,10 +4558,10 @@ let _Schema = {
 					</table>
 				</div>
 			`).join('');
-			contentEl.append(tabContentsHtml);
+			contentEl.insertAdjacentHTML('beforeend', tabContentsHtml);
 
 
-			for (let toggleAllCb of contentEl[0].querySelectorAll('input.toggle-all-types')) {
+			for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
 				toggleAllCb.addEventListener('change', () => {
 
@@ -4574,7 +4576,7 @@ let _Schema = {
 				});
 			}
 
-			for (let invertAllCb of contentEl[0].querySelectorAll('i.invert-all-types')) {
+			for (let invertAllCb of contentEl.querySelectorAll('i.invert-all-types')) {
 
 				invertAllCb.addEventListener('click', () => {
 
@@ -4588,32 +4590,24 @@ let _Schema = {
 				});
 			}
 
-			let ignoreClickOnCheckbox = (e) => {
+			let handleToggleVisibility = (e) => {
 				e.stopPropagation();
-				e.preventDefault();
-				return false;
-			};
-			for (let toggleSingleCb of contentEl[0].querySelectorAll('td .toggle-type')) {
-				toggleSingleCb.addEventListener('click', ignoreClickOnCheckbox);
-			}
-
-			let handleRowClick = (e) => {
-				e.stopPropagation();
-				e.preventDefault();
 
 				let inp = e.target.closest('tr').querySelector('.toggle-type');
-				inp.checked = !inp.checked;
+				console.log(inp, e.target, inp === e.target);
+				if (inp !== e.target) {
+					inp.checked = !inp.checked;
+				}
 
 				_Schema.updateHiddenSchemaTypes();
 				_Schema.reload();
-
-				return false;
 			};
-			for (let tableRow of contentEl[0].querySelectorAll('.schema-visibility-table td')) {
-				tableRow.addEventListener('click', handleRowClick);
+
+			for (let el of contentEl.querySelectorAll('td .toggle-type, .schema-visibility-table td')) {
+				el.addEventListener('click', handleToggleVisibility);
 			}
 
-			for (let tab of ul[0].querySelectorAll('li')) {
+			for (let tab of ul.querySelectorAll('li')) {
 				tab.addEventListener('click', (e) => {
 					e.stopPropagation();
 					activateTab(tab.dataset['name']);
