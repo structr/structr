@@ -49,12 +49,14 @@ let _Crud = {
 	crudPagerDataKey: 'structrCrudPagerData_' + location.port + '_',
 	crudTypeKey: 'structrCrudType_' + location.port,
 	crudHiddenColumnsKey: 'structrCrudHiddenColumns_' + location.port,
+	crudSortedColumnsKey: 'structrCrudSortedColumns_' + location.port,
 	crudRecentTypesKey: 'structrCrudRecentTypes_' + location.port,
 	crudResizerLeftKey: 'structrCrudResizerLeft_' + location.port,
 	crudExactTypeKey: 'structrCrudExactType_' + location.port,
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	types: {},
+	typeColumnSort: {},
 	abstractSchemaNodes: {},
 	availableViews: {},
 	relInfo: {},
@@ -398,20 +400,21 @@ let _Crud = {
 	removeMessage: () => {
 		$('#crud-type-detail .crud-message').remove();
 	},
-	typeSelected: function (type) {
+	typeSelected: (type) => {
 
 		_Crud.updateRecentTypeList(type);
 		_Crud.highlightCurrentType(type);
 
-		var crudRight = $('#crud-type-detail');
-		fastRemoveAllChildren(crudRight[0]);
+		let crudRight = document.querySelector('#crud-type-detail');
+		fastRemoveAllChildren(crudRight);
+
 		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + type + '</b>', 500);
 
-		_Crud.getProperties(type, function() {
+		_Crud.getProperties(type, () => {
 
 			clearTimeout(_Crud.messageTimeout);
 
-			fastRemoveAllChildren(crudRight[0]);
+			fastRemoveAllChildren(crudRight);
 
 			let buttonsHtml = _Crud.templates.typeButtons({ type: type });
 
@@ -419,42 +422,44 @@ let _Crud = {
 
 			_Crud.determinePagerData(type);
 
-			let pagerNode = _Crud.addPager(type, crudRight);
+			let pagerNode = _Crud.addPager(type, $(crudRight));
 
-			crudRight.append('<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table>');
-			crudRight.append('<div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
+			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
 			_Crud.updateCrudTableHeader(type);
 
-			$('#create' + type).on('click', () => {
+			document.querySelector('#create' + type).addEventListener('click', () => {
 				_Crud.crudCreate(type);
 			});
 
-			$('#export' + type).on('click', () => {
+			document.querySelector('#export' + type).addEventListener('click', () => {
 				_Crud.crudExport(type);
 			});
 
-			$('#import' + type).on('click', () => {
+			document.querySelector('#import' + type).addEventListener('click', () => {
 				_Crud.crudImport(type);
 			});
 
-			let exactTypeCheckbox = $('#exact_type_' + type);
-			if (_Crud.exact[type] === true) {
-				exactTypeCheckbox.prop('checked', true);
-			}
-			exactTypeCheckbox.on('change', () => {
-				_Crud.exact[type] = exactTypeCheckbox.prop('checked');
+			let exactTypeCheckbox = document.querySelector('#exact_type_' + type);
+			exactTypeCheckbox.checked = _Crud.exact[type];
+
+			exactTypeCheckbox.addEventListener('change', () => {
+				_Crud.exact[type] = exactTypeCheckbox.checked;
 				LSWrapper.setItem(_Crud.crudExactTypeKey, _Crud.exact);
 				_Crud.refreshList(type);
 			});
 
-			$('#delete' + type).on('click', () => {
+			document.querySelector('#delete' + type).addEventListener('click', () => {
 
-				Structr.confirmation('<h3>WARNING: Really delete all objects of type \'' + type + '\'?</h3><p>This will delete all objects of the type (and of all inheriting types!).</p><p>Depending on the amount of objects this can take a while.</p>', () => {
-					$.unblockUI({ fadeOut: 25 });
+				let answer = Structr.confirmationPromiseNonBlockUI(`
+					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
+					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
+					<p>Depending on the amount of objects this can take a while.</p>
+				`);
 
-					_Crud.deleteAllNodesOfType(type, exactTypeCheckbox.value);
-				});
+				if (answer === true) {
+					_Crud.deleteAllNodesOfType(type, exactTypeCheckbox.checked);
+				}
 			});
 
 			_Crud.deActivatePagerElements(pagerNode);
@@ -484,10 +489,10 @@ let _Crud = {
 
 		fastRemoveAllChildren(tableHeaderRow[0]);
 
-		tableHeaderRow.append('<th class="___action_header">Actions</th>');
+		tableHeaderRow.append('<th class="___action_header" data-key="action_header">Actions</th>');
 
 		for (let key of _Crud.filterKeys(type, Object.keys(properties))) {
-			tableHeaderRow.append('<th class="' + _Crud.cssClassForKey(key) + '">' + key + '</th>');
+			tableHeaderRow.append(`<th class="${_Crud.cssClassForKey(key)}" data-key="${key}">${key}</th>`);
 		}
 	},
 	updateTypeList: () => {
@@ -573,7 +578,7 @@ let _Crud = {
 		}
 
 	},
-	filterTypes: function (filterVal) {
+	filterTypes: (filterVal) => {
 		$('#crud-types-list .crud-type').each(function (i, el) {
 			let $el = $(el);
 			if ($el.data('type').toLowerCase().indexOf(filterVal) === -1) {
@@ -667,7 +672,7 @@ let _Crud = {
 			}
 		}
 	},
-	determinePagerData: function(type) {
+	determinePagerData: (type) => {
 
 		// Priority: JS vars -> Local Storage -> URL -> Default
 
@@ -831,29 +836,36 @@ let _Crud = {
 	},
 	replaceSortHeader: (type) => {
 
-		var table = $('#crud-type-detail table');
-		var newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
+		let newOrder = (_Crud.order[type] && _Crud.order[type] === 'desc' ? 'asc' : 'desc');
 
-		$('th', table).each(function(i, t) {
-			var th = $(t);
-			var key = th.attr('class').substring(3);
+		for (let th of document.querySelectorAll('#crud-type-detail table th')) {
+
+			let key = th.dataset['key'];
+
 			if (key === "action_header") {
 
-				th.empty();
-				th.append('Actions <i title="Configure columns" style="margin-left: 4px" class="' + _Icons.getFullSpriteClass(_Icons.view_detail_icon) + '"></i>');
-				$('i', th).on('click', function(event) {
+				th.innerHTML = '<div class="flex items-center">Actions</div>';
 
-					_Crud.dialog('<h3>Configure columns for type ' + type + '</h3>', () => {}, () => {});
+				let configIcon = Structr.createSingleDOMElementFromHTML(_Icons.getSvgIcon('ui_configuration_settings', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2'])));
 
-					$('div.dialogText').append('<table class="props" id="configure-' + type + '-columns"></table>');
+				th.firstChild.appendChild(configIcon);
 
-					var table = $('#configure-' + type + '-columns');
+				configIcon.addEventListener('click', (e) => {
 
-					// append header row
-					table.append('<tr><th>Column Key</th><th>Visible</th></tr>');
+					let saveAndCloseButton = Structr.createSingleDOMElementFromHTML('<button id="saveAndClose">Save and close</button>');
 
-					let url = Structr.rootUrl + '_schema/' + type + '/' + _Crud.defaultView;
-					fetch(url).then(async response => {
+					_Crud.dialog(`<h3>Configure columns for type ${type}</h3>`, () => {
+						saveAndCloseButton.remove();
+					}, () => {
+						saveAndCloseButton.remove();
+					});
+
+					dialogBtn.append(saveAndCloseButton);
+
+					document.querySelector('div.dialogText').innerHTML = _Crud.templates.configureColumns();
+					let columnSelect = document.querySelector('div.dialogText #columns-select');
+
+					fetch(Structr.rootUrl + '_schema/' + type + '/' + _Crud.defaultView).then(async response => {
 
 						if (response.ok) {
 
@@ -862,38 +874,52 @@ let _Crud = {
 							// no schema entry found?
 							if (!data || !data.result || data.result_count === 0) {
 
-								new MessageBuilder().warning('Unable to find schema information for type \'' + type + '\'. There might be database nodes with no type information or a type unknown to Structr in the database.').show();
+								new MessageBuilder().warning(`Unable to find schema information for type '${type}'. There might be database nodes with no type information or a type unknown to Structr in the database.`).show();
 
 							} else {
 
-								let properties = {};
-								for (let prop of data.result) {
-									properties[prop.jsonName] = prop;
+								let sortOrder    = _Crud.getSortOrderOfColumns(type);
+								let currentOrder = _Crud.filterKeys(type, Object.keys(_Crud.getCurrentProperties(type)));
+
+								if (sortOrder.length > 0) {
+									currentOrder = sortOrder;
 								}
 
-								let hiddenKeys = _Crud.getHiddenKeys(type);
 
-								for (let key in properties) {
+								let properties   = Object.fromEntries(data.result.map(prop => [prop.jsonName, prop]));
+								let hiddenKeys   = _Crud.getHiddenKeys(type);
 
-									let checkboxKey = 'column-' + type + '-' + key + '-visible';
-									let hidden      = hiddenKeys.includes(key);
-
-									table.append(`
-										<tr>
-											<td><b>${key}</b></td>
-											<td><input type="checkbox" id="${checkboxKey}" ${(hidden ? '' : 'checked="checked"')}></td>
-										</tr>
-									`);
-
-									document.getElementById(checkboxKey).addEventListener('click', () => {
-										_Crud.toggleColumn(type, key);
-									});
+								let orderedColumnsSet = new Set(currentOrder);
+								for (let key of Object.keys(properties)) {
+									orderedColumnsSet.add(key);
 								}
+								columnSelect.innerHTML = Array.from(orderedColumnsSet).map(key => {
+									let isHidden   = hiddenKeys.includes(key);
+									let isIdOrType = (key === 'id' || key === 'type');
+									let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
+									let isDisabled = (isIdOrType ? 'disabled' : '');
 
-								let dialogCloseButton = $('.closeButton', $('#dialogBox'));
-								dialogCloseButton.on('click', function() {
+									return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
+								}).join('');
+
+								let jqSelect = $(columnSelect);
+
+								jqSelect.chosen({
+									search_contains: true,
+									width: '100%',
+									display_selected_options: false,
+									hide_results_on_select: false,
+									display_disabled_options: false
+								}).chosenSortable();
+
+								saveAndCloseButton.addEventListener('click', (e) => {
+									e.stopPropagation();
+
+									_Crud.saveSortOrderOfColumns(type, jqSelect.sortedVals());
 									_Crud.reloadList();
-								});
+
+									dialogCancelButton.click();
+								})
 							}
 						}
 					});
@@ -901,14 +927,14 @@ let _Crud = {
 
 			} else if (key !== 'Actions') {
 
-				$('a', th).off('click');
-				th.empty();
-				var sortKey = key;
-				th.append(
-					'<a class="' + ((_Crud.sort[type] === key) ? 'column-sorted-active' : '') + '" href="' + _Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type]) + '#' + type + '">' + key + '</a> <i title="Hide column ' + key + '" class="' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />&nbsp;');
+				let sortKey = key;
+				th.innerHTML = `
+					<a class="${((_Crud.sort[type] === key) ? 'column-sorted-active' : '')}" href="${_Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type])}#${type}">${key}</a>
+					<i title="Hide column ${key}" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+				`;
 
 				if (_Crud.isCollection(key, type)) {
-					_Crud.appendPerCollectionPager(th, type, key);
+					_Crud.appendPerCollectionPager($(th), type, key);
 				}
 
 				$('a', th).on('click', function(event) {
@@ -925,7 +951,7 @@ let _Crud = {
 					return false;
 				});
 			}
-		});
+		}
 	},
 	appendPerCollectionPager: (el, type, key, callback) => {
 		el.append('<input type="text" class="collection-page-size" size="1" value="' + (_Crud.getCollectionPageSize(type, key) || _Crud.defaultCollectionPageSize) + '">');
@@ -1343,18 +1369,18 @@ let _Crud = {
 	},
 	deleteAllNodesOfType: async (type, exact) => {
 
-		let url      = Structr.rootUrl + type + ((exact === true) ? '?type=' + type : '');
+		let url      = `${Structr.rootUrl}${type}${((exact === true) ? `?type=${type}` : '')}`;
 		let response = await fetch(url, { method: 'DELETE' });
 
 		if (response.ok) {
 
-			new MessageBuilder().success('Deletion of all nodes of type \'' + type + '\' finished.').show();
+			new MessageBuilder().success(`Deletion of all nodes of type '${type}' finished.`).show();
 			_Crud.typeSelected(type);
 
 		} else {
 
 			let data = await response.json();
-			Structr.errorFromResponse(data, url, {statusCode: 400, requiresConfirmation: true});
+			Structr.errorFromResponse(data, url, { statusCode: 400, requiresConfirmation: true });
 		}
 	},
 	updatePager: function(type, qt, st, ps, p, pc) {
@@ -2813,6 +2839,21 @@ let _Crud = {
 
 		return hiddenKeys;
 	},
+	getSortOrderOfColumns: (type) => {
+		let sortOrder = LSWrapper.getItem(_Crud.crudSortedColumnsKey + type, '[]');
+		return JSON.parse(sortOrder);
+	},
+	saveSortOrderOfColumns: (type, order) => {
+
+		_Crud.typeColumnSort[type] = order;
+
+		// this also updates hidden keys (inverted!)
+		let allPropertiesOfType = Object.keys(_Crud.getCurrentProperties(type));
+		let hiddenKeys          = allPropertiesOfType.filter(prop => !order.includes(prop));
+
+		LSWrapper.setItem(_Crud.crudHiddenColumnsKey + type, JSON.stringify(hiddenKeys));
+		LSWrapper.setItem(_Crud.crudSortedColumnsKey + type, JSON.stringify(order));
+	},
 	isPrincipalType: (typeDef) => {
 		let cls = 'org.structr.dynamic.Principal';
 		return typeDef.className === cls || _Crud.inheritsFromAncestorType(typeDef, cls);
@@ -2849,8 +2890,13 @@ let _Crud = {
 			return;
 		}
 
+		let sortOrder    = _Crud.getSortOrderOfColumns(type);
 		let hiddenKeys   = _Crud.getHiddenKeys(type);
 		let filteredKeys = sourceArray.filter(key => !(hiddenKeys.includes(key)));
+
+		if (sortOrder.length > 0) {
+			return sortOrder.filter(prop => sourceArray.includes(prop));
+		}
 
 		let typePos = filteredKeys.indexOf('type');
 		if (typePos !== -1) {
@@ -2866,7 +2912,7 @@ let _Crud = {
 
 		return filteredKeys;
 	},
-	toggleColumn: function(type, key) {
+	toggleColumn: (type, key) => {
 
 		let hiddenKeys = _Crud.getHiddenKeys(type);
 
@@ -2919,7 +2965,7 @@ let _Crud = {
 		el.attr('style', 'background-color: #fc0 !important;');
 		el.attr('title', _Crud.getSoftLimitMessage());
 	},
-	cssClassForKey: function (key) {
+	cssClassForKey: (key) => {
 		return '___' + key.replace(/\s/g,  '_whitespace_');
 	},
 
@@ -3020,6 +3066,22 @@ let _Crud = {
 					${_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2', 'icon-red'])} <span>Delete <b>all</b> objects of this type</span>
 				</button>
 				<label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
+			</div>
+		`,
+		configureColumns: config => `
+			<div>
+				<h3>Configure and sort columns here</h3>
+				
+				<p>This sets the global sort order for this type - on all views. Depending on the current view, you may see properties here, which are not contained in the view.</p>
+			
+				<div class="mb-4">
+					<div>
+						<label class="font-semibold">Columns</label>
+					</div>
+					<div id="view-properties">
+						<select id="columns-select" class="property-attrs view chosen-sortable" multiple="multiple"></select>
+					</div>
+				</div>
 			</div>
 		`
 	}

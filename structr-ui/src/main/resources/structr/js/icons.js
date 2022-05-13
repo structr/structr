@@ -174,11 +174,11 @@ let _Icons = {
 	},
 
 	getSvgIconClassesForColoredIcon: (customClasses = []) => {
-		return [...customClasses].concat(['opacity-80', 'hover:opacity-100']).concat('cursor-pointer');
+		return [...customClasses].concat(['opacity-80', 'hover:opacity-100', 'cursor-pointer']);
 	},
 
 	getSvgIconClassesNonColorIcon: (customClasses = []) => {
-		return [...customClasses].concat(['icon-inactive', 'hover:icon-active']).concat('cursor-pointer');
+		return [...customClasses].concat(['icon-inactive', 'hover:icon-active', 'cursor-pointer']);
 	},
 
 	getFullSpriteClass: (key) => {
