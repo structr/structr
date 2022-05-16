@@ -86,51 +86,54 @@ public class FormUrlEncodeFunction extends CoreFunction {
 	// ----- private methods -----
 	private void recursivelyEncodeObject(final StringBuilder buf, final String key, final Object root, final int level) throws UnsupportedEncodingException {
 
-		if (root instanceof Map) {
+		if (root != null) {
 
-			for (final Entry<String, Object> entry : ((Map<String, Object>)root).entrySet()) {
+			if (root instanceof Map) {
 
-				final String mapKey      = entry.getKey();
-				final String compoundKey = level > 0 ? key + '[' + mapKey + ']' : mapKey;
+				for (final Entry<String, Object> entry : ((Map<String, Object>)root).entrySet()) {
 
-				recursivelyEncodeObject(buf, compoundKey, entry.getValue(), level + 1);
-			}
+					final String mapKey      = entry.getKey();
+					final String compoundKey = level > 0 ? key + '[' + mapKey + ']' : mapKey;
 
-		} else if (root instanceof Iterable) {
+					recursivelyEncodeObject(buf, compoundKey, entry.getValue(), level + 1);
+				}
 
-			int index = 0;
+			} else if (root instanceof Iterable) {
 
-			for (final Object o : (Iterable)root) {
+				int index = 0;
 
-				recursivelyEncodeObject(buf, key + "[" + index++ + "]", o, level + 1);
-			}
+				for (final Object o : (Iterable)root) {
 
-		} else {
-
-			// append separator
-			buf.append(buf.length() == 0 ? "" : "&");
-
-			buf.append(key);
-			buf.append("=");
-
-			// special handling for numbers
-			if (root instanceof Number) {
-
-				final Number num = (Number)root;
-
-				// serialize integers without decimals
-				if ((num.doubleValue() % 1) == 0) {
-
-					buf.append(num.longValue());
-
-				} else {
-
-					buf.append(num.doubleValue());
+					recursivelyEncodeObject(buf, key + "[" + index++ + "]", o, level + 1);
 				}
 
 			} else {
 
-				buf.append(URLEncoder.encode(root.toString(), "utf-8"));
+				// append separator
+				buf.append(buf.length() == 0 ? "" : "&");
+
+				buf.append(key);
+				buf.append("=");
+
+				// special handling for numbers
+				if (root instanceof Number) {
+
+					final Number num = (Number)root;
+
+					// serialize integers without decimals
+					if ((num.doubleValue() % 1) == 0) {
+
+						buf.append(num.longValue());
+
+					} else {
+
+						buf.append(num.doubleValue());
+					}
+
+				} else {
+
+					buf.append(URLEncoder.encode(root.toString(), "utf-8"));
+				}
 			}
 		}
 	}
