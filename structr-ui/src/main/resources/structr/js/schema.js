@@ -1296,7 +1296,9 @@ let _Schema = {
 				if (key === 'tags') {
 					let prevTags = entity[key];
 					let newTags  = newData[key];
-					if (prevTags.length === newTags.length) {
+					if (!prevTags && newTags.length === 0) {
+						shouldDelete = true
+					} else if (prevTags.length === newTags.length) {
 						let difference = prevTags.filter(t => !newTags.includes(t));
 						shouldDelete = (difference.length === 0);
 					}
