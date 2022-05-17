@@ -993,7 +993,8 @@ let _Schema = {
 
 					classSelect.select2({
 						search_contains: true,
-						width: '500px'
+						width: '500px',
+						dropdownParent: tabContent
 					}).on('change', () => {
 						updateChangeStatus();
 					});
