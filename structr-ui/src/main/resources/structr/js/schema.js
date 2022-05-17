@@ -341,7 +341,7 @@ let _Schema = {
 	},
 	openEditDialog: (id, targetView, callback) => {
 
-		targetView = targetView || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + id);
+		targetView = targetView || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + id) || 'basic';
 
 		_Schema.currentNodeDialogId = id;
 
@@ -350,9 +350,7 @@ let _Schema = {
 
 			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
 
-			Structr.dialog(title, () => {
-				dialogMeta.show();
-			}, () => {
+			let callbackCancel = () => {
 				_Schema.currentNodeDialogId = null;
 
 				if (callback) {
@@ -360,15 +358,18 @@ let _Schema = {
 				}
 				dialogMeta.show();
 				_Schema.ui.jsPlumbInstance.repaintEverything();
+			};
 
-			}, ['schema-edit-dialog']);
+			Structr.dialog(title, () => {
+				dialogMeta.show();
+			}, callbackCancel, ['schema-edit-dialog']);
 
 			let tabControls;
 
 			if (entity.type === "SchemaRelationshipNode") {
-				tabControls = _Schema.relationships.loadRelationship(entity, dialogHead, dialogText, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView);
+				tabControls = _Schema.relationships.loadRelationship(entity, dialogHead, dialogText, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView, callbackCancel);
 			} else {
-				tabControls = _Schema.nodes.loadNode(entity, dialogHead, dialogText, targetView);
+				tabControls = _Schema.nodes.loadNode(entity, dialogHead, dialogText, targetView, callbackCancel);
 			}
 
 			// remove bulk edit save/discard buttons
@@ -428,13 +429,17 @@ let _Schema = {
 
 	},
 	bulkDialogsGeneral: {
-		overrideDialogCancel: (mainTabs) => {
+		overrideDialogCancel: (mainTabs, additionalCallback) => {
 			dialogCancelButton.off('click').on('click', async () => {
 
 				let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?"));
 
 				if (okToNavigate) {
 					Structr.dialogCancelBaseAction();
+
+					if (additionalCallback) {
+						additionalCallback();
+					}
 				}
 			});
 		},
@@ -885,7 +890,7 @@ let _Schema = {
 				}
 			}
 		},
-		loadNode: (entity, headEl, contentEl, targetView = 'local') => {
+		loadNode: (entity, headEl, contentEl, targetView = 'local', callbackCancel) => {
 
 			headEl.append('<div id="tabs"><ul></ul></div>');
 			let mainTabs = $('#tabs', headEl);
@@ -944,7 +949,7 @@ let _Schema = {
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
 
-			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs);
+			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
 
 			Structr.resize();
 
@@ -1547,7 +1552,7 @@ let _Schema = {
 				}
 			}
 		},
-		loadRelationship: (entity, headEl, contentEl, sourceNode, targetNode, targetView) => {
+		loadRelationship: (entity, headEl, contentEl, sourceNode, targetNode, targetView, callbackCancel) => {
 
 			let mainTabs = $('<div id="tabs"><ul></ul></div>');
 			headEl.append(mainTabs);
@@ -1573,7 +1578,7 @@ let _Schema = {
 				tabControls.schemaMethods = _Schema.methods.appendMethods(c, entity, entity.schemaMethods);
 			}, _Editors.resizeVisibleEditors);
 
-			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs);
+			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
 
 			Structr.resize();
 
@@ -5349,7 +5354,7 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					${config.type.isBuiltinType ? `<input class="disabled" disabled value="${config.type.name}">` : `<input data-property="name" value="${config.type.name}">`}
+					${config.type.isBuiltinType ? `<input class="disabled" disabled value="${config.type.name}" class="flex-grow">` : `<input data-property="name" value="${config.type.name}" class="flex-grow">`}
 					
 					${(!config.type.isBuiltinType || config.type.extendsClass) ? `
 						<div class="extends-type">
