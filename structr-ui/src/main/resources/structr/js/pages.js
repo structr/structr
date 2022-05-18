@@ -1391,7 +1391,6 @@ let _Pages = {
 		}
 	},
 	leftSlideoutClosedCallback: (wasOpen) => {
-		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabLeftKey);
 
@@ -1399,7 +1398,6 @@ let _Pages = {
 		}
 	},
 	rightSlideoutClosedCallback: (wasOpen) => {
-		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabRightKey);
 
@@ -1926,7 +1924,7 @@ let _Pages = {
 						_Pages.previews.activePreviewHighlightElementId = highlightElementId;
 					}
 
-					Command.get(pageId, 'id,name,path,site', function (pageObj) {
+					Command.get(pageId, 'id,name,path,site', (pageObj) => {
 
 						_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
