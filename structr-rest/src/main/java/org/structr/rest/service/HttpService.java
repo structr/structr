@@ -18,20 +18,11 @@
  */
 package org.structr.rest.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.SecureRandom;
-import java.util.*;
-import java.util.function.Consumer;
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.DispatcherType;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
@@ -47,14 +38,7 @@ import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
-import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
@@ -70,15 +54,7 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.InitializationCallback;
-import org.structr.api.service.LicenseManager;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
@@ -86,6 +62,18 @@ import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.function.Consumer;
+
+;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -291,6 +279,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
 			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+
 		}
 
 		servletContext.insertHandler(gzipHandler);
@@ -371,9 +360,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (enableRewriteFilter) {
 
+			/* TODO: Migrate to jakarta based solution. Disabled until resolved.
 			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
 			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
 			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+			 */
 		}
 
 		contexts.addHandler(servletContext);

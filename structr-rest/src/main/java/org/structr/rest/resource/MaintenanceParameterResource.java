@@ -20,7 +20,7 @@ package org.structr.rest.resource;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.agent.Task;
 import org.structr.api.search.SortOrder;
 import org.structr.api.service.Command;

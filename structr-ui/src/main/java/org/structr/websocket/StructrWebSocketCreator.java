@@ -54,7 +54,7 @@ public class StructrWebSocketCreator implements JettyWebSocketCreator {
 				response.setAcceptedSubProtocol(subprotocol);
 
 				StructrWebSocket webSocket = new StructrWebSocket(syncController, gson, authenticator);
-				webSocket.setRequest(request.getHttpServletRequest());
+				webSocket.setRequest(request.getRequest());
 
 				return webSocket;
 			}

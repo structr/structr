@@ -20,15 +20,11 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.client.RequestWrapper;
+import org.eclipse.jetty.server.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -45,6 +41,11 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 
 public class WrappedRestCommand extends AbstractCommand {
@@ -93,7 +94,7 @@ public class WrappedRestCommand extends AbstractCommand {
 		final String url                     = webSocketData.getNodeDataStringValue("url");
 
 		// mimic HTTP request
-		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest()) {
+		final HttpServletRequest wrappedRequest = new RequestWrapper(socket.getRequest()) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {

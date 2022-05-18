@@ -28,10 +28,10 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.fileupload.FileItemIterator;
 import org.apache.commons.fileupload.FileItemStream;
 import org.apache.commons.fileupload.FileUploadException;
@@ -111,7 +111,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	@Override
-	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+	protected void doPost(final Request request, final Response response) throws ServletException {
 
 		try {
 
@@ -120,7 +120,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} catch (FrameworkException fex) {
 
 			try {
-				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.setStatus(Response.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
 
 			} catch (IOException ioex) {
@@ -136,7 +136,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		try {
 
 			if (!ServletFileUpload.isMultipartContent(request)) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.setStatus(Response.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
 			}
@@ -158,7 +158,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			} catch (AuthenticationException ae) {
 
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setStatus(Response.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Invalid user or password.\n".getBytes("UTF-8"));
 				return;
 			}
@@ -183,7 +183,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
 
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+				response.setStatus(Response.SC_UNAUTHORIZED);
 				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
 
 				return;
@@ -415,7 +415,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	@Override
-	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
+	protected void doPut(final Request request, final Response response) throws ServletException {
 
 		try {
 
@@ -424,7 +424,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} catch (FrameworkException fex) {
 
 			try {
-				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+				response.setStatus(Response.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
 
 			} catch (IOException ioex) {
@@ -442,7 +442,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			final String uuid = PathHelper.getName(request.getPathInfo());
 
 			if (uuid == null) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.setStatus(Response.SC_BAD_REQUEST);
 				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
 			}
@@ -451,7 +451,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			matcher.reset(uuid);
 
 			if (!matcher.matches()) {
-				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+				response.setStatus(Response.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
 			}
@@ -485,7 +485,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 					if (node == null) {
 
-						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+						response.setStatus(Response.SC_NOT_FOUND);
 						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
 
 					}
@@ -506,7 +506,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						} else {
 
-							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+							response.setStatus(Response.SC_FORBIDDEN);
 							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
 
 						}
@@ -528,7 +528,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	@Override
-	protected void doOptions(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doOptions(Request request, Response response) throws ServletException, IOException {
 
 		setCustomResponseHeaders(response);
 
@@ -544,7 +544,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			final String origin      = request.getHeader("Origin");
 			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
 			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
-			int statusCode           = HttpServletResponse.SC_OK;
+			int statusCode           = Response.SC_OK;
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
 
@@ -555,7 +555,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			} else {
 
 				// OPTIONS is not allowed for non-CORS requests
-				statusCode = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
+				statusCode = Response.SC_METHOD_NOT_ALLOWED;
 			}
 
 			response.setContentLength(0);

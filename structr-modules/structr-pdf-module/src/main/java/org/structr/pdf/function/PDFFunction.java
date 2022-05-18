@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import org.eclipse.jetty.server.session.Session;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;

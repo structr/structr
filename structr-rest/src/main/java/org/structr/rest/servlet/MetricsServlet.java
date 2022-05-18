@@ -19,12 +19,12 @@
 package org.structr.rest.servlet;
 
 import io.prometheus.client.hotspot.DefaultExports;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class MetricsServlet extends AbstractDataServlet {
@@ -37,12 +37,16 @@ public class MetricsServlet extends AbstractDataServlet {
 
 	@Override
 	public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
+		/* TODO: Find jakarta compatible solution. Disabled until resolved.
 		servlet.service(req, res);
+		 */
 	}
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+		/* TODO: Find jakarta compatible solution. Disabled until resolved.
 		servlet.service(req, resp);
+		 */
 	}
 
 	@Override

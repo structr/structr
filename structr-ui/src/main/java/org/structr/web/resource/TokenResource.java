@@ -29,8 +29,8 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 public class TokenResource extends LoginResource {
@@ -136,7 +136,7 @@ public class TokenResource extends LoginResource {
         RestMethodResult returnedMethodResult = new RestMethodResult(200);
         returnedMethodResult.addContent(tokenMap);
 
-        final HttpServletResponse response = securityContext.getResponse();
+        final Response response = securityContext.getResponse();
 
         if (response != null) {
             final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();

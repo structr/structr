@@ -18,7 +18,7 @@
  */
 package org.structr.web.function;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -51,7 +51,7 @@ public class GetRequestHeaderFunction extends UiAdvancedFunction {
 
 			if (securityContext != null) {
 
-				final HttpServletRequest request = securityContext.getRequest();
+				final Request request = securityContext.getRequest();
 				if (request != null) {
 
 					return request.getHeader(name);

@@ -31,9 +31,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	protected int statusCode                 = -1;
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(final Request request, final Response response) throws ServletException, IOException {
 
 		try {
 			final Authenticator auth = getConfig().getAuthenticator();
@@ -82,10 +82,10 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
 
-						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+						response.setStatus(Response.SC_SERVICE_UNAVAILABLE);
 					} else {
 
-						response.setStatus(HttpServletResponse.SC_OK);
+						response.setStatus(Response.SC_OK);
 					}
 
 					return;
@@ -94,7 +94,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 				final Set<String> wl = getWhitelistAddresses();
 				if (!wl.contains(remoteAddress)) {
 
-					response.setStatus(HttpServletResponse.SC_OK);
+					response.setStatus(Response.SC_OK);
 					return;
 				}
 			}
@@ -210,11 +210,11 @@ public class HealthCheckServlet extends AbstractDataServlet {
 								}
 							}
 
-							statusCode = HttpServletResponse.SC_OK;
+							statusCode = Response.SC_OK;
 
 						} else {
 
-							statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
+							statusCode = Response.SC_SERVICE_UNAVAILABLE;
 
 							data.put("status", "fail");
 						}

@@ -18,8 +18,8 @@
  */
 package org.structr.web.common;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.rest.service.HttpService;
@@ -30,7 +30,7 @@ import org.structr.rest.service.HttpService;
  */
 public class RewriteRule extends org.tuckey.web.filters.urlrewrite.extend.RewriteRule {
 
-	public void checkConfig(final HttpServletRequest request, final HttpServletResponse response) {
+	public void checkConfig(final Request request, final Response response) {
 
 		boolean forceHttps = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
 

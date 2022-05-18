@@ -18,7 +18,6 @@
  */
 package org.structr.rest.servlet;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
 import java.io.IOException;
@@ -35,11 +34,13 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;

@@ -18,8 +18,9 @@
  */
 package org.structr.web.auth;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 
 /**

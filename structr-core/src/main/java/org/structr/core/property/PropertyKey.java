@@ -18,9 +18,7 @@
  */
 package org.structr.core.property;
 
-import java.util.Comparator;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
@@ -31,6 +29,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.search.SearchAttribute;
+
+import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Base interface for typed property keys.

@@ -18,11 +18,10 @@
  */
 package org.structr.rest.auth;
 
-import java.time.Instant;
-import java.util.Date;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import org.eclipse.jetty.server.session.Session;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
 import org.slf4j.Logger;
@@ -36,6 +35,9 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
+
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Utility class for session handling
@@ -146,7 +148,7 @@ public class SessionHelper {
 
 			for (final String sessionId : sessionIds) {
 
-				HttpSession session = getSessionFromCache(sessionCache, sessionId);
+				Session session = getSessionFromCache(sessionCache, sessionId);
 
 				if (session == null || SessionHelper.isSessionTimedOut(session)) {
 					SessionHelper.clearSession(sessionId);
@@ -348,12 +350,12 @@ public class SessionHelper {
 		return Services.getInstance().getService(HttpService.class, "default").getSessionCache();
 	}
 
-	private static HttpSession getSessionFromCache(final String sessionId) {
+	private static Session getSessionFromCache(final String sessionId) {
 
 		return getSessionFromCache(getDefaultSessionCache(), sessionId);
 	}
 
-	private static HttpSession getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
+	private static Session getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
 
 		try {
 

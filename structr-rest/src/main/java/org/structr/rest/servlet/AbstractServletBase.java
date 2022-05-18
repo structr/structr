@@ -18,17 +18,19 @@
  */
 package org.structr.rest.servlet;
 
-import java.io.IOException;
-import java.util.Arrays;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.rest.common.StatsCallback;
+
+import java.io.IOException;
+import java.util.Arrays;
 
 public abstract class AbstractServletBase extends HttpServlet {
 

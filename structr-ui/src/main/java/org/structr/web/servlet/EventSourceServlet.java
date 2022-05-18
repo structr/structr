@@ -28,9 +28,9 @@ import java.util.Set;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 import java.util.regex.Pattern;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.servlets.EventSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,12 +86,12 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	}
 
 	@Override
-	protected EventSource newEventSource(HttpServletRequest hsr) {
+	protected EventSource newEventSource(Request hsr) {
 		return new StructrEventSource(securityContext.getSessionId());
 	}
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(final Request request, final Response response) throws ServletException, IOException {
 
 		try {
 
@@ -132,7 +132,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 			logger.warn("Exception in GET", t);
 
-			int code = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
+			int code = Response.SC_INTERNAL_SERVER_ERROR;
 
 			response.setStatus(code);
 		}
@@ -316,7 +316,7 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 		final Services services = Services.getInstance();
 		if (!services.isInitialized()) {
-			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
+			throw new FrameworkException(Response.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
 		}
 	}
 

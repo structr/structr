@@ -18,8 +18,8 @@
  */
 package org.structr.core.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
@@ -27,7 +27,7 @@ import org.structr.core.entity.Principal;
 
 /**
  * An authenticator interface that defines how the system can obtain a principal
- * from a HttpServletRequest.
+ * from a Request.
  *
  *
  *
@@ -67,7 +67,7 @@ public interface Authenticator {
 
 	/**
 	 *
-	 * Tries to authenticate the given HttpServletRequest.
+	 * Tries to authenticate the given Request.
 	 *
 	 * @param request the request to authenticate
 	 * @param emailOrUsername the (optional) email/username

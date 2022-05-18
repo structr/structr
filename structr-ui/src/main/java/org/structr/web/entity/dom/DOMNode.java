@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -2035,7 +2035,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public void setSessionAttribute(final SecurityContext securityContext, final String key, final Object value) {
 
-		final HttpServletRequest request = securityContext.getRequest();
+		final Request request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);
@@ -2048,7 +2048,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public void removeSessionAttribute(final SecurityContext securityContext, final String key) {
 
-		final HttpServletRequest request = securityContext.getRequest();
+		final Request request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);
@@ -2061,7 +2061,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public Object getSessionAttribute(final SecurityContext securityContext, final String key) {
 
-		final HttpServletRequest request = securityContext.getRequest();
+		final Request request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);

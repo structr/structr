@@ -26,7 +26,7 @@ import com.google.gson.JsonPrimitive;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 
 /**
  * The base class for all structr exceptions. This class contains

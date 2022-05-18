@@ -24,8 +24,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.RequestWrapper;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -100,14 +100,14 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
-		HttpServletRequest request = securityContext.getRequest();
+		Request request = securityContext.getRequest();
 		if (request == null) {
 			request = renderContext.getRequest();
 		}
 
 		// initialize variables
 		// mimic HTTP request
-		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
+		final Request wrappedRequest = new RequestWrapper(request) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {
@@ -155,7 +155,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		};
 
 		// store original request
-		final HttpServletRequest origRequest = securityContext.getRequest();
+		final Request origRequest = securityContext.getRequest();
 
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);

@@ -18,7 +18,7 @@
  */
 package org.structr.web.function;
 
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
@@ -50,7 +50,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
             final SecurityContext securityContext = ctx.getSecurityContext();
             if (securityContext != null) {
 
-                final HttpServletResponse response = securityContext.getResponse();
+                final Response response = securityContext.getResponse();
                 if (response != null) {
 
                     response.setHeader(name, null);

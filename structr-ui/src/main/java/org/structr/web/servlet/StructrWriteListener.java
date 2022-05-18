@@ -20,9 +20,9 @@ package org.structr.web.servlet;
 
 import java.io.IOException;
 import java.io.InputStream;
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.renjin.repackaged.guava.base.CaseFormat;
@@ -1238,7 +1238,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						}
 
 						// realization: all dynamic parameters must be stored on the reload target!
-						final HttpServletRequest request = renderContext.getRequest();
+						final Request request = renderContext.getRequest();
 						if (request != null) {
 
 							final Map<String, String[]> parameters = request.getParameterMap();

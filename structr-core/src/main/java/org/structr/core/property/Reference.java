@@ -20,8 +20,8 @@ package org.structr.core.property;
 
 import java.util.Comparator;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;

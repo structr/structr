@@ -29,21 +29,21 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
-import javax.servlet.AsyncContext;
-import javax.servlet.DispatcherType;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletInputStream;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-import javax.servlet.http.HttpUpgradeHandler;
-import javax.servlet.http.Part;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.ServletInputStream;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpUpgradeHandler;
+import jakarta.servlet.http.Part;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
@@ -1865,7 +1865,7 @@ public class UiScriptingTest extends StructrUiTest {
 		return buf.toString();
 	}
 
-	public class RequestMockUp implements HttpServletRequest {
+	public class RequestMockUp implements Request {
 
 		@Override
 		public String getAuthType() {
@@ -1998,7 +1998,7 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public boolean authenticate(HttpServletResponse response) throws IOException, ServletException {
+		public boolean authenticate(Response response) throws IOException, ServletException {
 			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
 		}
 
@@ -2213,7 +2213,7 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
-	public class ResponseMockUp implements HttpServletResponse {
+	public class ResponseMockUp implements Response {
 
 		@Override
 		public void addCookie(Cookie cookie) {

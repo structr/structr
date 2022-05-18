@@ -44,32 +44,38 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>10.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>10.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>http2-server</artifactId>
-			<version>10.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-jetty-server</artifactId>
-			<version>10.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-alpn-server</artifactId>
-			<version>11.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-alpn-java-server</artifactId>
-			<version>11.0.6</version>
+			<version>11.0.9</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
@@ -98,19 +104,19 @@
 		<dependency>
 		  <groupId>io.prometheus</groupId>
 		  <artifactId>simpleclient</artifactId>
-		  <version>0.11.0</version>
+		  <version>0.15.0</version>
 		</dependency>
 		<!-- Prometheus HTTPServer -->
 		<dependency>
 			<groupId>io.prometheus</groupId>
 			<artifactId>simpleclient_servlet</artifactId>
-			<version>0.11.0</version>
+			<version>0.15.0</version>
 		</dependency>
 		<!-- Prometheus Hotspot -->
 		<dependency>
 			<groupId>io.prometheus</groupId>
 			<artifactId>simpleclient_hotspot</artifactId>
-			<version>0.11.0</version>
+			<version>0.15.0</version>
 		</dependency>
     </dependencies>
 

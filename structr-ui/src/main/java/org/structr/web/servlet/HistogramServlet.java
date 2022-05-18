@@ -21,9 +21,9 @@ package org.structr.web.servlet;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Set;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryHistogram;
@@ -36,7 +36,7 @@ public class HistogramServlet extends HealthCheckServlet {
 	private static final Logger logger = LoggerFactory.getLogger(HistogramServlet.class);
 
 	@Override
-	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doGet(final Request request, final Response response) throws ServletException, IOException {
 
 		request.setCharacterEncoding("UTF-8");
 		response.setCharacterEncoding("UTF-8");
@@ -50,7 +50,7 @@ public class HistogramServlet extends HealthCheckServlet {
 
 				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to histogramservlet.whitelist in structr.conf.", remoteAddress, remoteAddress);
 
-				response.sendError(HttpServletResponse.SC_FORBIDDEN);
+				response.sendError(Response.SC_FORBIDDEN);
 
 				return;
 			}
@@ -63,7 +63,7 @@ public class HistogramServlet extends HealthCheckServlet {
 
 			gson.toJson(QueryHistogram.analyze(stringOrDefault(sortKey, "total"), intOrDefault(top, 1000)), writer);
 
-			response.setStatus(HttpServletResponse.SC_OK);
+			response.setStatus(Response.SC_OK);
 			response.setHeader("Cache-Control", "max-age=60");
 
 			writer.append("\n");
