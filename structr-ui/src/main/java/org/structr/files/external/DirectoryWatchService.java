@@ -127,14 +127,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final FolderInfo info = watchedRoots.get(uuid);
 
 		// upon creation, set the last scanned date correctly to prevent early scanning
-		final Long lastScanDate  = folder.getProperty(StructrApp.key(Folder.class, "mountLastScanned"));
-		if (lastScanDate != null) {
+		final Long lastScanDate       = folder.getProperty(StructrApp.key(Folder.class, "mountLastScanned"));
+		final boolean wasNeverScanned = (lastScanDate == null);
+
+		if (!wasNeverScanned) {
 			info.setLastScanned(lastScanDate);
-		} else {
-			info.setLastScanned(0);
 		}
 
-		if (info.shouldScan()) {
+		if (wasNeverScanned || info.shouldScan()) {
 
 			info.setLastScanned(System.currentTimeMillis());
 
