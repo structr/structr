@@ -1234,9 +1234,8 @@ span.id {
 
 
 /* set the hidden nodes icon to have a background and little opacity */
-.is-hidden > .typeIcon {
+.is-hidden > .node-container .typeIcon {
 	opacity: 0.5;
-	background-color: lightgray;
 }
 
 /* set all children of a hidden node to have even less opacity */
