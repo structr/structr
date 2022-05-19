@@ -48,17 +48,23 @@
 		<path d="M.75 11.998a11.25 11.25 0 1 0 22.5 0 11.25 11.25 0 1 0-22.5 0z"></path><path d="M9 15.613a1.636 1.636 0 0 0 2.712 1.231L17.25 12l-5.538-4.847A1.635 1.635 0 0 0 9 8.384z"></path>
 	</symbol>
 
-	<symbol id="folder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
-		<path d="M23.25,6.75a1.5,1.5,0,0,0-1.5-1.5H10.5L8.7,2.85a1.5,1.5,0,0,0-1.2-.6H2.25a1.5,1.5,0,0,0-1.5,1.5v16.5a1.5,1.5,0,0,0,1.5,1.5h19.5a1.5,1.5,0,0,0,1.5-1.5Z"></path>
-	</symbol>
 	<symbol id="folder-open-icon" viewBox="0 0 24 24" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M20.25,9.75v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V3.75a1.5,1.5,0,0,0-1.5-1.5H2.25a1.5,1.5,0,0,0-1.5,1.5v16.3a1.7,1.7,0,0,0,3.336.438l2.351-9.657A1.5,1.5,0,0,1,7.879,9.75H21.75A1.5,1.5,0,0,1,23.2,11.636l-2.2,9A1.5,1.5,0,0,1,19.55,21.75H2.447"></path>
+	</symbol>
+	<symbol id="folder-closed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M23.25,6.75a1.5,1.5,0,0,0-1.5-1.5H10.5L8.7,2.85a1.5,1.5,0,0,0-1.2-.6H2.25a1.5,1.5,0,0,0-1.5,1.5v16.5a1.5,1.5,0,0,0,1.5,1.5h19.5a1.5,1.5,0,0,0,1.5-1.5Z"></path>
 	</symbol>
 	<symbol id="folder_add" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M8.25 18.75L2.447 18.75"></path><path d="M20.25,8.25v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V2.25A1.5,1.5,0,0,0,6.75.75H2.25a1.5,1.5,0,0,0-1.5,1.5v14.8a1.7,1.7,0,0,0,3.336.438L6.437,9.334A1.5,1.5,0,0,1,7.879,8.25H21.75A1.5,1.5,0,0,1,23.2,10.136"></path><path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z"></path><path d="M17.25 15L17.25 19.5"></path><path d="M15 17.25L19.5 17.25"></path>
 	</symbol>
-	<symbol id="folder_link" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+	<symbol id="folder-link-open-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M8.25 18.75L2.447 18.75"></path><path d="M20.25,8.25v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V2.25A1.5,1.5,0,0,0,6.75.75H2.25a1.5,1.5,0,0,0-1.5,1.5v14.8a1.7,1.7,0,0,0,3.336.438L6.437,9.334A1.5,1.5,0,0,1,7.879,8.25H21.75A1.5,1.5,0,0,1,23.2,10.136"></path><path d="M17.265,19.382a2.282,2.282,0,0,1-.639,1.92l-1.292,1.292a2.416,2.416,0,0,1-3.415-3.414l1.292-1.292a2.276,2.276,0,0,1,1.878-.644"></path><path d="M19.388,17.258a2.282,2.282,0,0,0,1.921-.639L22.6,15.327a2.416,2.416,0,0,0-3.414-3.414L17.9,13.205a2.272,2.272,0,0,0-.644,1.878"></path><path d="M15.01 19.503L19.51 15.003"></path>
+	</symbol>
+	<symbol id="folder-link-closed-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<path d="M23.25,9.75v0,-2a1.5,1.5,0,0,0-1.5-1.5H10.5L8.7,2.85a1.5,1.5,0,0,0-1.2-.6H2.25a1.5,1.5,0,0,0-1.5,1.5v16.5a1.5,1.5,0,0,0,1.5,1.5h6.5"></path>
+		<path d="M17.265,19.382a2.282,2.282,0,0,1-.639,1.92l-1.292,1.292a2.416,2.416,0,0,1-3.415-3.414l1.292-1.292a2.276,2.276,0,0,1,1.878-.644"></path>
+		<path d="M19.388,17.258a2.282,2.282,0,0,0,1.921-.639L22.6,15.327a2.416,2.416,0,0,0-3.414-3.414L17.9,13.205a2.272,2.272,0,0,0-.644,1.878"></path>
+		<path d="M15.01 19.503L19.51 15.003"></path>
 	</symbol>
 	<symbol id="folder_star" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M8.25 18.75L2.447 18.75"></path><path d="M20.25,8.25v-3a1.5,1.5,0,0,0-1.5-1.5H8.25V2.25A1.5,1.5,0,0,0,6.75.75H2.25a1.5,1.5,0,0,0-1.5,1.5v14.8a1.7,1.7,0,0,0,3.336.438L6.437,9.334A1.5,1.5,0,0,1,7.879,8.25H21.75A1.5,1.5,0,0,1,23.2,10.136"></path><path d="M17.947,11.68,19.488,15h3a.735.735,0,0,1,.518,1.283l-2.6,2.563,1.442,3.313a.786.786,0,0,1-1.119.982L17.24,21.183l-3.487,1.961a.786.786,0,0,1-1.119-.982l1.443-3.313-2.6-2.563A.734.734,0,0,1,11.988,15h3l1.544-3.323A.8.8,0,0,1,17.947,11.68Z"></path>
