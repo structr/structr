@@ -93,11 +93,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 				// mount
 				if (mountTarget != null) {
 
-					logger.info("Mounting {} to {}..", mountTarget, folderPath);
-
-					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
-
-					new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
+					doMount(folder, uuid, mountTarget, folderPath, scanInterval, watchContents);
 				}
 
 			} else {
@@ -112,17 +108,41 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				} else if (!root.equals(mountTarget)) {
 
-					logger.info("Mounting {} to {}..", mountTarget, folderPath);
-
-					watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
-
-					new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
+					doMount(folder, uuid, mountTarget, folderPath, scanInterval, watchContents);
 
 				} else {
 
 					info.setScanInterval(scanInterval);
 				}
 			}
+		}
+	}
+
+	public void doMount(final Folder folder, final String uuid, final String mountTarget, final String folderPath, final Integer scanInterval, final boolean watchContents) {
+
+		logger.info("Mounting {} to {}..", mountTarget, folderPath);
+
+		watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
+
+		final FolderInfo info = watchedRoots.get(uuid);
+
+		// upon creation, set the last scanned date correctly to prevent early scanning
+		final Long lastScanDate  = folder.getProperty(StructrApp.key(Folder.class, "mountLastScanned"));
+		if (lastScanDate != null) {
+			info.setLastScanned(lastScanDate);
+		} else {
+			info.setLastScanned(0);
+		}
+
+		if (info.shouldScan()) {
+
+			info.setLastScanned(System.currentTimeMillis());
+
+			new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
+
+		} else {
+
+			logger.info("Not scanning {} - scan interval is not yet elapsed.", folderPath);
 		}
 	}
 
@@ -185,18 +205,18 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 					if (root != null) {
 
-							for (final WatchEvent event : key.pollEvents()) {
+						for (final WatchEvent event : key.pollEvents()) {
 
-								final Kind kind = event.kind();
+							final Kind kind = event.kind();
 
-								if (OVERFLOW.equals(kind)) {
-									continue;
-								}
-
-								addToQueue(eventQueue, new WatchEventItem(root, (Path)key.watchable(), event));
+							if (OVERFLOW.equals(kind)) {
+								continue;
 							}
 
-							key.reset();
+							addToQueue(eventQueue, new WatchEventItem(root, (Path)key.watchable(), event));
+						}
+
+						key.reset();
 
 					} else {
 
