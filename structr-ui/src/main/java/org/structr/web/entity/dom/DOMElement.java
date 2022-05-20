@@ -926,6 +926,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					lazyRendering = true;
 				}
 
+				// disable lazy rendering in deployment mode
+				if (EditMode.DEPLOYMENT.equals(editMode)) {
+					lazyRendering = false;
+				}
+
 				// only render children if we are not in a shared component scenario, not in deployment mode and it's not rendered lazily
 				if (!lazyRendering && (thisElement.getSharedComponent() == null || !EditMode.DEPLOYMENT.equals(editMode))) {
 
