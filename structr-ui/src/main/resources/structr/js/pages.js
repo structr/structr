@@ -1391,7 +1391,6 @@ let _Pages = {
 		}
 	},
 	leftSlideoutClosedCallback: (wasOpen) => {
-		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabLeftKey);
 
@@ -1399,7 +1398,6 @@ let _Pages = {
 		}
 	},
 	rightSlideoutClosedCallback: (wasOpen) => {
-		console.log(wasOpen);
 		if (wasOpen) {
 			LSWrapper.removeItem(_Pages.activeTabRightKey);
 
@@ -1926,7 +1924,7 @@ let _Pages = {
 						_Pages.previews.activePreviewHighlightElementId = highlightElementId;
 					}
 
-					Command.get(pageId, 'id,name,path,site', function (pageObj) {
+					Command.get(pageId, 'id,name,path,site', (pageObj) => {
 
 						_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
@@ -2313,7 +2311,7 @@ let _Pages = {
 			let subFolderEl = Structr.createSingleDOMElementFromHTML(`
 				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
-						${_Icons.getSvgIcon('folder-icon', 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+						${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
 					</div>
 				</div>
 			`);
@@ -2337,7 +2335,7 @@ let _Pages = {
 						node.remove();
 					}
 
-					_Icons.updateSvgIconInElement(nodeContainer, 'folder-open-icon', 'folder-icon');
+					_Icons.updateSvgIconInElement(nodeContainer, 'folder-open-icon', 'folder-closed-icon');
 				}
 
 				return false;
@@ -2355,7 +2353,7 @@ let _Pages = {
 
 			Command.get(folder.id, 'id,name,hasParent,files,folders', (node) => {
 
-				_Icons.updateSvgIconInElement(folderEl, 'folder-icon', 'folder-open-icon');
+				_Icons.updateSvgIconInElement(folderEl, 'folder-closed-icon', 'folder-open-icon');
 
 				for (let subFolder of node.folders) {
 					_Pages.linkableDialog.appendFolder(entityToLinkTo, folderEl, subFolder);

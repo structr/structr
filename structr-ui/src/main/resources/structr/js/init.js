@@ -624,7 +624,6 @@ let Structr = {
 
 		dialogCancelButton.off('click').on('click', function(e) {
 			e.stopPropagation();
-
 			Structr.dialogCancelBaseAction();
 
 			if (callbackCancel) {
@@ -2563,11 +2562,29 @@ let _TreeHelper = {
 			}
 		};
 
-		let replaceFolderIcon = (nodeId, from, to) => {
+
+
+		let setSvgFolderIcon = (nodeId, newStateIsOpen) => {
 			let node = $(tree).jstree().get_node(nodeId);
 
 			let anchor = document.getElementById(node.a_attr.id);
 			if (anchor) {
+
+				let from = 'folder-closed-icon';
+				let to   = 'folder-open-icon';
+
+				let currentIcon = _Icons.getSvgIconFromSvgElement(anchor);
+				if (currentIcon === 'folder-link-open-icon' || currentIcon === 'folder-link-closed-icon') {
+					from = 'folder-link-closed-icon';
+					to   = 'folder-link-open-icon';
+				}
+
+				if (newStateIsOpen === false) {
+					let tmp = to;
+					to = from;
+					from = tmp;
+				}
+
 				_Icons.updateSvgIconInElement(anchor, from, to);
 			}
 		};
@@ -2578,7 +2595,7 @@ let _TreeHelper = {
 
 				let svgIcon = getSvgIconFromNode(data.node);
 				if (svgIcon) {
-					replaceFolderIcon(data.node.id, 'folder-icon', 'folder-open-icon');
+					setSvgFolderIcon(data.node.id, true);
 				}
 			}
 
@@ -2590,7 +2607,7 @@ let _TreeHelper = {
 			if (data.node.id !== 'root') {
 				let svgIcon = getSvgIconFromNode(data.node);
 				if (svgIcon) {
-					replaceFolderIcon(data.node.id, 'folder-open-icon', 'folder-icon');
+					setSvgFolderIcon(data.node.id, false);
 				}
 			}
 		});

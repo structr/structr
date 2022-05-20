@@ -166,6 +166,17 @@ let _Icons = {
 		return true;
 	},
 
+	getSvgIconFromSvgElement: (element) => {
+
+		let use = element.querySelector(`use[*|href]`);
+
+		if (!use) {
+			return false;
+		}
+
+		return use.getAttribute('xlink:href').slice(1);
+	},
+
 	hasSvgIcon: (element, icon) => {
 
 		let use = element.querySelector(`use[*|href="#${icon}"]`);
@@ -397,6 +408,9 @@ let _Icons = {
 		}
 
 		return _Icons.getSvgIcon(result);
+	},
+	getFolderIconSVG: (d) => {
+		return (d.isMounted) ? 'folder-link-closed-icon' : 'folder-closed-icon'
 	},
 
 	getIconForEdition: (edition) => {

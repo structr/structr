@@ -1915,6 +1915,9 @@ let _Crud = {
 						if (id) {
 							let checked = $(this).prop('checked');
 							_Crud.crudUpdate(id, key, checked, undefined, () => {
+
+								_Crud.crudRefresh(id, key, !checked);
+
 								if (key === 'visibleToPublicUsers' || key === 'visibleToAuthenticatedUsers') {
 									StructrModel.updateKey(id, key, checked);
 									_Entities.updateNewAccessControlIconInElement(StructrModel.obj(id), Structr.node(id));

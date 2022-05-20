@@ -2543,14 +2543,19 @@ let _Entities = {
 			} catch (e) {}
 		}
 	},
-	isExpanded: (element) => {
-		let b = $(element).children('.expand_icon_svg').first();
-		if (!b) {
-			return false;
-		}
-		return b.hasClass(_Icons.expandedClass);
+	isExpanded: (el) => {
+		let icon = _Entities.getIconFromElement(el);
+		return icon.hasClass(_Icons.expandedClass);
 	},
-	ensureExpanded: function(element, callback, force = false) {
+	getIconFromElement: (el) => {
+
+		if (el.hasClass('node-container')) {
+			return el.children('.expand_icon_svg').first();
+		} else {
+			return el.children('.node-container').children('.expand_icon_svg').first();
+		}
+	},
+	ensureExpanded: (element, callback, force = false) => {
 		if (!element) {
 			return;
 		}
@@ -2568,14 +2573,11 @@ let _Entities = {
 		} else {
 			Command.children(id, callback);
 
-			if (el.hasClass('node-container')) {
-				el.children('.expand_icon_svg').first().removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
-			} else {
-				el.children('.node-container').children('.expand_icon_svg').first().removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
-			}
+			let icon = _Entities.getIconFromElement(el);
+			icon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 		}
 	},
-	expandAll: function(ids, lastId) {
+	expandAll: (ids, lastId) => {
 		if (!ids || ids.length === 0) {
 			return;
 		}
@@ -2589,7 +2591,7 @@ let _Entities = {
 				_Entities.highlightElement(el);
 			} else if (!el && id === lastId) {
 				// if node is not present, delay and retry
-				window.setTimeout(function() {
+				window.setTimeout(() => {
 					let nodeEl = Structr.node(id);
 					if (nodeEl) {
 						_Entities.deselectAllElements();
@@ -2598,13 +2600,9 @@ let _Entities = {
 				}, 500);
 			}
 
-			_Entities.ensureExpanded(el, function(childNodes) {
+			_Entities.ensureExpanded(el, (childNodes) => {
 				if (childNodes && childNodes.length) {
-					let childNode = childNodes[0];
-					let i = ids.indexOf(childNode.id);
-					if (i > 1) {
-						ids.slice(i - 1, i);
-					}
+					ids = ids.filter(id => id !== childNodes[0].id);
 					_Entities.expandAll(ids, lastId);
 				}
 			});

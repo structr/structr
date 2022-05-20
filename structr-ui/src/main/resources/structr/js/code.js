@@ -690,8 +690,8 @@ let _Code = {
 						id: 'root',
 						text: 'Types',
 						children: [
-							{ id: 'custom-',     text: 'Custom',       children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-icon', 16, 24) } },
-							{ id: 'builtin-',    text: 'Built-In',     children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-icon', 16, 24) } },
+							{ id: 'custom-',     text: 'Custom',       children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) } },
+							{ id: 'builtin-',    text: 'Built-In',     children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) } },
 							{ id: 'workingsets', text: 'Working Sets', children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder_star', 16, 24) } }
 						],
 						icon: _Icons.jstree_fake_icon,
@@ -783,7 +783,7 @@ let _Code = {
 							data: {
 								type:    entity.type,
 								name:    entity.name,
-								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-icon'), 16, 24)
+								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24)
 							}
 						});
 

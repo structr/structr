@@ -668,7 +668,7 @@ let _Files = {
 					text:  d.name || '[unnamed]',
 					children: d.foldersCount > 0,
 					icon: _Icons.jstree_fake_icon,
-					data: { svgIcon: _Icons.getSvgIcon('folder-icon', 16, 24) },
+					data: { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
 					path: d.path
 				};
 			});
@@ -681,7 +681,7 @@ let _Files = {
 		if (!id) {
 			Command.list('Folder', true, _Files.folderPageSize, _Files.folderPage, 'name', 'asc', _Files.defaultFolderAttributes, displayFunction);
 		} else {
-			Command.query('Folder', _Files.folderPageSize, _Files.folderPage, 'name', 'asc', {parent: id}, displayFunction, true, 'public', _Files.defaultFolderAttributes);
+			Command.query('Folder', _Files.folderPageSize, _Files.folderPage, 'name', 'asc', { parent: id }, displayFunction, true, 'public', _Files.defaultFolderAttributes);
 		}
 	},
 	setWorkingDirectory: (id) => {
@@ -749,7 +749,7 @@ let _Files = {
 			mountDialogButton?.removeAttribute('disabled');
 		}
 	},
-	displayFolderContents: function(id, parentId, nodePath, parents) {
+	displayFolderContents: (id, parentId, nodePath, parents) => {
 
 		fastRemoveAllChildren(_Files.folderContents[0]);
 
@@ -786,7 +786,7 @@ let _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			_Files.folderContents.append('<div class="folder-path truncate">' + _Icons.getSvgIcon('favorite-star') + ' Favorite Files</div>');
+			_Files.folderContents.append(`<div class="folder-path truncate">${_Icons.getSvgIcon('favorite-star')} Favorite Files</div>`);
 
 			if (_Files.isViewModeActive('list')) {
 
@@ -851,23 +851,23 @@ let _Files = {
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
 
 			} else if (_Files.isViewModeActive('tiles')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 			} else if (_Files.isViewModeActive('img')) {
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 			}
 		}
 	},
-	insertBreadCrumbNavigation: function(parents, nodePath, id) {
+	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
 		if (parents) {
 
@@ -963,7 +963,7 @@ let _Files = {
 			if (d.isFolder) {
 
 				row.append(`
-					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon((d.isMounted) ? 'folder-share' : 'folder-icon', 16, 16)}</td>
+					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 16)}</td>
 					<td>
 						<div id="id_${d.id}" class="node folder flex items-center justify-between">
 							<b class="name_ leading-8 truncate">${name}</b>
@@ -1010,7 +1010,7 @@ let _Files = {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node folder">
-						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon((d.isMounted) ? 'folder-share' : 'folder-icon', 48, 48)}</div>
+						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 48, 48)}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -1837,7 +1837,7 @@ let _Files = {
 					</button>
 			
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
-						${_Icons.getSvgIcon('folder_link', 16, 16, ['mr-2'])}
+						${_Icons.getSvgIcon('folder-link-open-icon', 16, 16, ['mr-2'])}
 						Mount Folder
 					</button>
 				</div>
