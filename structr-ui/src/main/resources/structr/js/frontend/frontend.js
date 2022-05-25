@@ -282,9 +282,10 @@ export class Frontend {
 			}
 
 			// restore focus on selected element after partial reload
+			// (but only if input field was actually reloaded!)
 			if (this.focusId && this.focusTarget && this.focusName) {
 
-			    let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			    let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
 			    if (restoreFocus) {
 
 				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
@@ -460,6 +461,8 @@ export class Frontend {
 
 			} else if (id && id.length === 32) {
 
+				this.fireEvent('start', { target: target, data: data, event: event });
+
 				// server-side
 				// store event type in htmlEvent property
 				data.htmlEvent = event.type;
@@ -499,9 +502,9 @@ export class Frontend {
 		let reloadTarget = data.structrReloadTarget;
 
 		if (!selector) {
-		    console.log('Selector not found: ' + selector);
-        	console.log(target);
-        	console.log(data);
+			console.log('Selector not found: ' + selector);
+			console.log(target);
+			console.log(data);
         	return;
 		}
 

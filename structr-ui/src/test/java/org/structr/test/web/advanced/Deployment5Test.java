@@ -392,4 +392,51 @@ public class Deployment5Test extends DeploymentTestBase {
 		// test
 		compare(calculateHash(), true);
 	}
+
+	@Test
+	public void test54DelayedRenderingDeploymentRoundtrip() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			app.create(User.class,
+					new NodeAttribute<>(StructrApp.key(Principal.class,     "name"), "admin"),
+					new NodeAttribute<>(StructrApp.key(Principal.class, "password"), "admin"),
+					new NodeAttribute<>(StructrApp.key(Principal.class,  "isAdmin"),    true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			// create page with visibility false/true
+			final Page page       = Page.createNewPage(securityContext,   "test54");
+			final Html html       = createElement(page, page, "html");
+			final Head head       = createElement(page, html, "head");
+			final DOMNode title   = createElement(page, head, "title", "test54");
+			final Body body       = createElement(page, html, "body");
+			final Div div1        = createElement(page, head, "div");
+			final Div div11       = createElement(page, div1, "div");
+
+			// this one will be set to delayed rendering
+			final Div testDiv     = createElement(page, div1, "div");
+			final Div div111      = createElement(page, div11, "div", "content 1");
+			final Div div121      = createElement(page, div11, "div", "content 2");
+
+			testDiv.setProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"), "visible");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
 }

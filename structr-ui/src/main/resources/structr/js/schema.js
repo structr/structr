@@ -4735,7 +4735,7 @@ let _Schema = {
 						</div>
 					`;
 
-					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-icon';
+					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
 					let $newLi = $(`<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
 
 					printClassTree($newLi, classTree[classname]);
