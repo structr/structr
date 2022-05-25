@@ -18,16 +18,11 @@
  */
 package org.structr.web.datasource;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.RequestWrapper;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpRequest;
+import org.apache.http.impl.client.RequestWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -37,7 +32,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.exception.IllegalPathException;
@@ -45,13 +43,13 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * List data source equivalent to a rest resource.
@@ -100,14 +98,14 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
-		Request request = securityContext.getRequest();
+		HttpServletRequest request = securityContext.getRequest();
 		if (request == null) {
 			request = renderContext.getRequest();
 		}
 
 		// initialize variables
 		// mimic HTTP request
-		final Request wrappedRequest = new RequestWrapper(request) {
+		final HttpServletRequest wrappedRequest = new RequestWrapper(request) {
 
 			@Override
 			public Enumeration<String> getParameterNames() {
@@ -155,7 +153,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		};
 
 		// store original request
-		final Request origRequest = securityContext.getRequest();
+		final HttpServletRequest origRequest = securityContext.getRequest();
 
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);

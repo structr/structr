@@ -50,7 +50,7 @@ public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
             final SecurityContext securityContext = ctx.getSecurityContext();
             if (securityContext != null) {
 
-                final Response response = securityContext.getResponse();
+                final HttpServletResponse response = securityContext.getResponse();
                 if (response != null) {
 
                     response.setHeader(name, null);

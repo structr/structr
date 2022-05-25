@@ -30,7 +30,7 @@ import org.structr.rest.service.HttpService;
  */
 public class RewriteRule extends org.tuckey.web.filters.urlrewrite.extend.RewriteRule {
 
-	public void checkConfig(final Request request, final Response response) {
+	public void checkConfig(final HttpServletRequest request, final HttpServletResponse response) {
 
 		boolean forceHttps = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
 

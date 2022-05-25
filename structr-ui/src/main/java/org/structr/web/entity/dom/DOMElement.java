@@ -1243,7 +1243,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						}
 
 						// realization: all dynamic parameters must be stored on the reload target!
-						final Request request = renderContext.getRequest();
+						final HttpServletRequest request = renderContext.getRequest();
 						if (request != null) {
 
 							final Map<String, String[]> parameters = request.getParameterMap();

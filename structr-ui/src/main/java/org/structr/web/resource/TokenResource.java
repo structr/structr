@@ -136,7 +136,7 @@ public class TokenResource extends LoginResource {
         RestMethodResult returnedMethodResult = new RestMethodResult(200);
         returnedMethodResult.addContent(tokenMap);
 
-        final Response response = securityContext.getResponse();
+        final HttpServletResponse response = securityContext.getResponse();
 
         if (response != null) {
             final int tokenMaxAge = Settings.JWTExpirationTimeout.getValue();

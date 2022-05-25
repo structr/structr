@@ -72,7 +72,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
 	// non-static fields
-	private ServletFileUpload uploader = null;
 	private File filesDir = null;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -95,17 +94,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final DiskFileItemFactory fileFactory = new DiskFileItemFactory();
-			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
-
 			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
 			if (!filesDir.exists()) {
 
 				filesDir.mkdir();
 			}
-
-			fileFactory.setRepository(filesDir);
-			uploader = new ServletFileUpload(fileFactory);
 
 			tx.success();
 
@@ -625,7 +618,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @param response
 	 * @throws ServletException
 	 */
-	private void initRequest(final Request request, final HttpServletResponse response) throws ServletException {
+	private void initRequest(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
 		try {
 

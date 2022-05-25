@@ -29,15 +29,9 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.DispatcherType;
-import jakarta.servlet.RequestDispatcher;
-import jakarta.servlet.ServletContext;
+
+import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.ServletInputStream;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -1865,7 +1859,7 @@ public class UiScriptingTest extends StructrUiTest {
 		return buf.toString();
 	}
 
-	public class RequestMockUp implements Request {
+	public class RequestMockUp implements HttpServletRequest {
 
 		@Override
 		public String getAuthType() {
@@ -1998,8 +1992,8 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public boolean authenticate(Response response) throws IOException, ServletException {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		public boolean authenticate(HttpServletResponse httpServletResponse) throws IOException, ServletException {
+			return false;
 		}
 
 		@Override
@@ -2043,8 +2037,8 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public void setCharacterEncoding(String env) throws UnsupportedEncodingException {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		public void setCharacterEncoding(String s) throws UnsupportedEncodingException {
+
 		}
 
 		@Override
@@ -2068,8 +2062,8 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 
 		@Override
-		public String getParameter(String name) {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+		public String getParameter(String s) {
+			return null;
 		}
 
 		@Override
@@ -2213,7 +2207,7 @@ public class UiScriptingTest extends StructrUiTest {
 		}
 	}
 
-	public class ResponseMockUp implements Response {
+	public class ResponseMockUp implements HttpServletResponse {
 
 		@Override
 		public void addCookie(Cookie cookie) {

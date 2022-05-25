@@ -51,7 +51,7 @@ public class SetCookieFunction extends UiAdvancedFunction {
 
 			if (securityContext != null) {
 
-				final Response response = securityContext.getResponse();
+				final HttpServletResponse response = securityContext.getResponse();
 				if (response != null) {
 
 					try {

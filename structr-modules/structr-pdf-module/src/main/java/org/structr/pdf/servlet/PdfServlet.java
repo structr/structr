@@ -107,7 +107,7 @@ public class PdfServlet extends HtmlServlet {
 	}
 
 	@Override
-	protected void renderAsyncOutput(Request request, Response response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
+	protected void renderAsyncOutput(HttpServletRequest request, HttpServletResponse response, App app, RenderContext renderContext, DOMNode rootElement, final long requestStartTime) throws IOException {
 
 		final AsyncContext async = request.startAsync();
 		final ServletOutputStream out = async.getResponse().getOutputStream();
@@ -139,7 +139,7 @@ public class PdfServlet extends HtmlServlet {
 
 					try {
 
-						response.sendError(Response.SC_INTERNAL_SERVER_ERROR);
+						response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
 						finished.set(true);
 
 					} catch (IOException ex) {
@@ -215,7 +215,7 @@ public class PdfServlet extends HtmlServlet {
 	}
 
 	@Override
-	protected void writeOutputStream(Response response, StringRenderBuffer buffer) throws IOException {
+	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
 		response.getOutputStream().close();

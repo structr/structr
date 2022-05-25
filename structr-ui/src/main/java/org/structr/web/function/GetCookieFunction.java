@@ -52,7 +52,7 @@ public class GetCookieFunction extends UiAdvancedFunction {
 
 			if (securityContext != null) {
 
-				final Request request = securityContext.getRequest();
+				final HttpServletRequest request = securityContext.getRequest();
 				if (request != null) {
 
 					Cookie[] cookies = request.getCookies();

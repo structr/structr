@@ -24,6 +24,8 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -51,7 +53,7 @@ public class FlowServlet extends JsonRestServlet {
 	private static final Logger logger = LoggerFactory.getLogger(FlowServlet.class);
 
 	@Override
-	protected void doGetOrHead(final Request request, final Response response, final boolean returnContent) throws ServletException, IOException {
+	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
@@ -107,7 +109,7 @@ public class FlowServlet extends JsonRestServlet {
 						processResult(securityContext, request, response, result, depth, false);
 					}
 
-					response.setStatus(Response.SC_OK);
+					response.setStatus(HttpServletResponse.SC_OK);
 
 				} else {
 
@@ -127,7 +129,7 @@ public class FlowServlet extends JsonRestServlet {
 			logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 			logger.warn(" => Error thrown: ", t);
 
-			writeJsonError(response, Response.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
 
 		} finally {
 
@@ -145,7 +147,7 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final Response response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws FrameworkException, IOException {
 
 		final App app                          = StructrApp.getInstance(securityContext);
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
@@ -173,12 +175,12 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void doDelete(final Request request, final Response response) throws ServletException, IOException {
+	protected void doDelete(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		throw new UnsupportedOperationException("DELETE is not supported by the FlowServlet");
 	}
 
 	@Override
-	protected void doPost(final Request request, Response response) throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		ResultStream result             = null;
@@ -234,7 +236,7 @@ public class FlowServlet extends JsonRestServlet {
 
 					processResult(securityContext, request, response, result, depth, false);
 
-					response.setStatus(Response.SC_OK);
+					response.setStatus(HttpServletResponse.SC_OK);
 
 				} else {
 
@@ -254,7 +256,7 @@ public class FlowServlet extends JsonRestServlet {
 			logger.warn("Exception in POST (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
 			logger.warn(" => Error thrown: ", t);
 
-			int statusCode = Response.SC_INTERNAL_SERVER_ERROR;
+			int statusCode = HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
 
 			if (t instanceof AssertException) {
 				statusCode = ((AssertException)t).getStatus();
@@ -277,11 +279,11 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void doPut(final Request request, final Response response) throws ServletException, IOException {
+	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		throw new UnsupportedOperationException("PUT is not supported by the FlowServlet");
 	}
 
-	protected void doPatch(Request request, Response response) throws ServletException, IOException {
+	protected void doPatch(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		throw new UnsupportedOperationException("PATCH is not supported by the FlowServlet");
 	}
 

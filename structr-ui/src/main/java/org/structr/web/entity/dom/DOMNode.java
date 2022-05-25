@@ -2035,7 +2035,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public void setSessionAttribute(final SecurityContext securityContext, final String key, final Object value) {
 
-		final Request request = securityContext.getRequest();
+		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);
@@ -2048,7 +2048,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public void removeSessionAttribute(final SecurityContext securityContext, final String key) {
 
-		final Request request = securityContext.getRequest();
+		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);
@@ -2061,7 +2061,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 	default public Object getSessionAttribute(final SecurityContext securityContext, final String key) {
 
-		final Request request = securityContext.getRequest();
+		final HttpServletRequest request = securityContext.getRequest();
 		if (request != null) {
 
 			final HttpSession session = request.getSession(false);

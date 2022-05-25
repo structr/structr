@@ -21,6 +21,8 @@ package org.structr.web.servlet;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
@@ -195,12 +197,12 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 	}
 
 	@Override
-	protected void doPost(final Request request, final HttpServletResponse response) throws ServletException, IOException {
+	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 		doGet(request, response);
 	}
 
 	@Override
-	protected void doOptions(final Request request, final HttpServletResponse response) {
+	protected void doOptions(final HttpServletRequest request, final HttpServletResponse response) {
 
 		if (Settings.ProxyServletMode.getValue().equals("disabled")) {
 

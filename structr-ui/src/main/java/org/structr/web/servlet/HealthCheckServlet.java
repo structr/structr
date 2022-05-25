@@ -31,6 +31,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -64,7 +66,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	protected int statusCode                 = -1;
 
 	@Override
-	protected void doGet(final Request request, final Response response) throws ServletException, IOException {
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
 			final Authenticator auth = getConfig().getAuthenticator();
@@ -82,10 +84,10 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
 
-						response.setStatus(Response.SC_SERVICE_UNAVAILABLE);
+						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 					} else {
 
-						response.setStatus(Response.SC_OK);
+						response.setStatus(HttpServletResponse.SC_OK);
 					}
 
 					return;
@@ -94,7 +96,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 				final Set<String> wl = getWhitelistAddresses();
 				if (!wl.contains(remoteAddress)) {
 
-					response.setStatus(Response.SC_OK);
+					response.setStatus(HttpServletResponse.SC_OK);
 					return;
 				}
 			}
@@ -210,11 +212,11 @@ public class HealthCheckServlet extends AbstractDataServlet {
 								}
 							}
 
-							statusCode = Response.SC_OK;
+							statusCode = HttpServletResponse.SC_OK;
 
 						} else {
 
-							statusCode = Response.SC_SERVICE_UNAVAILABLE;
+							statusCode = HttpServletResponse.SC_SERVICE_UNAVAILABLE;
 
 							data.put("status", "fail");
 						}
