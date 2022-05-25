@@ -20,7 +20,8 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequest;
@@ -36,15 +37,17 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.ResourceHelper;
+import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
+import java.util.*;
 import java.util.regex.Pattern;
 
 
@@ -94,48 +97,7 @@ public class WrappedRestCommand extends AbstractCommand {
 		final String url                     = webSocketData.getNodeDataStringValue("url");
 
 		// mimic HTTP request
-		final HttpServletRequest wrappedRequest = new RequestWrapper(socket.getRequest()) {
-
-			@Override
-			public Enumeration<String> getParameterNames() {
-				return new IteratorEnumeration(getParameterMap().keySet().iterator());
-			}
-
-			@Override
-			public String getParameter(String key) {
-				String[] p = getParameterMap().get(key);
-				return p != null ? p[0] : null;
-			}
-
-			@Override
-			public Map<String, String[]> getParameterMap() {
-				String[] parts = StringUtils.split(getQueryString(), "&");
-				Map<String, String[]> parameterMap = new HashMap();
-				for (String p : parts) {
-					String[] kv = StringUtils.split(p, "=");
-					if (kv.length > 1) {
-						parameterMap.put(kv[0], new String[]{kv[1]});
-					}
-				}
-				return parameterMap;
-			}
-
-			@Override
-			public String getQueryString() {
-				return StringUtils.substringAfter(url, "?");
-			}
-
-			@Override
-			public String getPathInfo() {
-				return StringUtils.substringBefore(url, "?");
-			}
-
-			@Override
-			public StringBuffer getRequestURL() {
-				return new StringBuffer(url);
-			}
-		};
-
+		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);
 
 		Resource resource;
 		final StaticValue fakePropertyView = new StaticValue(PropertyView.Public);
@@ -183,4 +145,5 @@ public class WrappedRestCommand extends AbstractCommand {
 	public String getCommand() {
 		return "WRAPPED_REST";
 	}
+
 }

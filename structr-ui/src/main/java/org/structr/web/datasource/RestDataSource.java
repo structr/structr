@@ -18,7 +18,8 @@
  */
 package org.structr.web.datasource;
 
-import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.*;
+import jakarta.servlet.http.*;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpRequest;
@@ -44,10 +45,15 @@ import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.security.Principal;
 import java.util.*;
 import java.util.regex.Pattern;
 
@@ -105,52 +111,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		// initialize variables
 		// mimic HTTP request
-		final HttpServletRequest wrappedRequest = new RequestWrapper(request) {
-
-			@Override
-			public Enumeration<String> getParameterNames() {
-				return new IteratorEnumeration(getParameterMap().keySet().iterator());
-			}
-
-			@Override
-			public String getParameter(final String key) {
-				String[] p = getParameterMap().get(key);
-				return p != null ? p[0] : null;
-			}
-
-			@Override
-			public String[] getParameterValues(final String key) {
-				return getParameterMap().get(key);
-			}
-
-			@Override
-			public Map<String, String[]> getParameterMap() {
-				String[] parts = StringUtils.split(getQueryString(), "&");
-				Map<String, String[]> parameterMap = new HashMap();
-				for (String p : parts) {
-					String[] kv = StringUtils.split(p, "=");
-					if (kv.length > 1) {
-						parameterMap.put(kv[0], new String[]{kv[1]});
-					}
-				}
-				return parameterMap;
-			}
-
-			@Override
-			public String getQueryString() {
-				return StringUtils.substringAfter(restQuery, "?");
-			}
-
-			@Override
-			public String getPathInfo() {
-				return StringUtils.substringBefore(restQuery, "?");
-			}
-
-			@Override
-			public StringBuffer getRequestURL() {
-				return new StringBuffer(restQuery);
-			}
-		};
+		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request, restQuery);
 
 		// store original request
 		final HttpServletRequest origRequest = securityContext.getRequest();
@@ -238,7 +199,5 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			return get();
 		}
 	}
-
-
 
 }
