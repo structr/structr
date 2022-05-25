@@ -293,7 +293,9 @@ public abstract class StructrOAuthClient {
 				logger.info("Trying to get authorization code from request {}", request);
 			}
 
-			final OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			// TODO: FIX OAuth for Jetty11
+			//final OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(request);
+			final OAuthAuthzResponse oar = OAuthAuthzResponse.oauthCodeAuthzResponse(null);
 			final String code            = oar.getCode();
 
 			if (isVerboseLoggingEnabled()) {

@@ -198,6 +198,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		/* TODO: Fix for Jetty11
 		initRequest(request, response);
 
 		SecurityContext securityContext = null;
@@ -404,6 +405,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				UiAuthenticator.writeInternalServerError(response);
 			}
 		}
+
+		 */
 	}
 
 	/**

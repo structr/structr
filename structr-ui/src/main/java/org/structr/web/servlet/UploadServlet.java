@@ -102,6 +102,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		/* TODO: Fix for Jetty11
 		try {
 
 			assertInitialized();
@@ -401,11 +402,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				logger.error("Could not write to response", ex);
 			}
 		}
+
+		 */
 	}
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
+		/* TODO: Fix for Jetty11
 		try {
 
 			assertInitialized();
@@ -514,6 +518,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+
+		 */
 	}
 
 	@Override
@@ -606,7 +612,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		if (jsonInput == null) {
 
-			if (org.tuckey.web.filters.urlrewrite.utils.StringUtils.isBlank(input)) {
+			if (StringUtils.isBlank(input)) {
 
 				try (final Tx tx = app.tx()) {
 

@@ -18,11 +18,11 @@
  */
 package org.structr.rest.service;
 
+import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.DispatcherType;
 import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
 import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
 import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
@@ -43,7 +43,6 @@ import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
 import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.JarResource;
@@ -61,7 +60,6 @@ import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
 import org.structr.schema.SchemaService;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
 import java.io.File;
 import java.io.IOException;
@@ -360,11 +358,10 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (enableRewriteFilter) {
 
-			/* TODO: Migrate to jakarta based solution. Disabled until resolved.
-			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-			 */
+			//final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
+			//rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
+			//servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+
 		}
 
 		contexts.addHandler(servletContext);

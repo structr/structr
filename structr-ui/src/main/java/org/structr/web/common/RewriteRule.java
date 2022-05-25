@@ -28,8 +28,9 @@ import org.structr.rest.service.HttpService;
  * Custom rewrite rule to transport the "force https" config setting
  * into the rewrite engine to evaluate.
  */
-public class RewriteRule extends org.tuckey.web.filters.urlrewrite.extend.RewriteRule {
+public class RewriteRule {
 
+	// TODO: Delete once Jetty11 migration is done
 	public void checkConfig(final HttpServletRequest request, final HttpServletResponse response) {
 
 		boolean forceHttps = Settings.getSettingOrMaintenanceSetting(Settings.ForceHttps).getValue();
