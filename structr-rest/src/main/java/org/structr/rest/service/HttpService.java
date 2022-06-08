@@ -878,13 +878,16 @@ public class HttpService implements RunnableService, StatsCallback {
 											cfg.initializeFromSettings(servletName, resourceProviders);
 										}
 
+										final ServletHolder servletHolder = new ServletHolder(servlet);
+										((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
+
 										if (servletPath.endsWith("*")) {
 
-											servlets.put(servletPath, new ServletHolder(servlet));
+											servlets.put(servletPath, servletHolder);
 
 										} else {
 
-											servlets.put(servletPath + "/*", new ServletHolder(servlet));
+											servlets.put(servletPath + "/*", servletHolder);
 										}
 
 										// callback for statistics

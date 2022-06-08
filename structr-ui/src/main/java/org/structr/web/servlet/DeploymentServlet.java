@@ -18,13 +18,16 @@
  */
 package org.structr.web.servlet;
 
+import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -79,6 +82,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	}
 
 	//~--- methods --------------------------------------------------------
+	@Override
+	public void configureServletHolder(final ServletHolder servletHolder) {
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
+	}
+
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
@@ -198,7 +207,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		/* TODO: Fix for Jetty11
 		initRequest(request, response);
 
 		SecurityContext securityContext = null;
@@ -207,7 +215,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			if (!ServletFileUpload.isMultipartContent(request)) {
+			if (request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
@@ -255,12 +263,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Settings.DeploymentMaxFileSize.getValue());
-			uploader.setSizeMax(MEGABYTE * Settings.DeploymentMaxRequestSize.getValue());
-
 			response.setContentType("text/html");
 
-			final FileItemIterator fileItemsIterator   = uploader.getItemIterator(request);
 			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
 			final String filePath                      = directoryPath + ".zip";
 			final File file                            = new File(filePath);
@@ -270,14 +274,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String mode               = null;
 			boolean rebuildAllIndexes = false;
 
-			while (fileItemsIterator.hasNext()) {
+			for (Part p : request.getParts()) {
 
-				final FileItemStream item = fileItemsIterator.next();
 
-				if (item.isFormField()) {
+				for (String fieldName : p.getHeaderNames()) {
 
-					final String fieldName = item.getFieldName();
-					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
+					final String fieldValue = p.getHeader(fieldName);
 
 					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
 
@@ -297,19 +299,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					} else if (FILE_PARAMETER.equals(fieldName)) {
 
-						try (final InputStream is = item.openStream()) {
+						try (final InputStream is = p.getInputStream()) {
 
 							Files.write(file.toPath(), IOUtils.toByteArray(is));
-							fileName = item.getName();
+							fileName = p.getName();
 						}
-					}
-
-				} else {
-
-					try (final InputStream is = item.openStream()) {
-
-						Files.write(file.toPath(), IOUtils.toByteArray(is));
-						fileName = item.getName();
 					}
 				}
 			}
@@ -406,7 +400,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 		}
 
-		 */
 	}
 
 	/**

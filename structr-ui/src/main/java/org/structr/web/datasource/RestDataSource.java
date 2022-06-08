@@ -18,12 +18,7 @@
  */
 package org.structr.web.datasource;
 
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import org.apache.commons.collections.iterators.IteratorEnumeration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequest;
-import org.apache.http.impl.client.RequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -50,11 +45,9 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.*;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 /**

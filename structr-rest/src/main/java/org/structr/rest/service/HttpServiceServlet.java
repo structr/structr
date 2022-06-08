@@ -19,6 +19,7 @@
 package org.structr.rest.service;
 
 import jakarta.servlet.Servlet;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.structr.api.service.Feature;
 import org.structr.rest.common.StatsCallback;
 
@@ -31,5 +32,5 @@ public interface HttpServiceServlet extends Servlet, Feature {
 
 	public StructrHttpServiceConfig getConfig();
 	public void registerStatsCallback(final StatsCallback stats);
-
+	default public void configureServletHolder(final ServletHolder servletHolder) {}
 }

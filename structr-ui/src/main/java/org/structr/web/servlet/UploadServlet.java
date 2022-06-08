@@ -28,8 +28,10 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -86,6 +88,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	}
 
 	@Override
+	public void configureServletHolder(final ServletHolder servletHolder) {
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
+	}
+
+	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
 	}
@@ -102,7 +110,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	@Override
 	protected void doPost(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		/* TODO: Fix for Jetty11
 		try {
 
 			assertInitialized();
@@ -125,7 +132,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try {
 
-			if (!ServletFileUpload.isMultipartContent(request)) {
+			if (request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
@@ -201,23 +208,16 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			}
 
-			uploader.setFileSizeMax((long) MEGABYTE * Settings.UploadMaxFileSize.getValue());
-			uploader.setSizeMax((long) MEGABYTE * Settings.UploadMaxRequestSize.getValue());
-
 			response.setContentType("text/html");
 
-			final FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
 			final Map<String, Object> params         = new HashMap<>();
 			String uuid                              = null;
 
-			while (fileItemsIterator.hasNext()) {
+			for (Part p : request.getParts()) {
 
-				final FileItemStream item = fileItemsIterator.next();
+				for (String fieldName : p.getHeaderNames()) {
 
-				if (item.isFormField()) {
-
-					final String fieldName = item.getFieldName();
-					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
+					final String fieldValue = p.getHeader(fieldName);
 
 					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
 
@@ -244,111 +244,109 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 							params.put(fieldName, fieldValue);
 						}
 					}
+				}
 
-				} else {
+				final String contentType = p.getContentType();
+				boolean isImage = (contentType != null && contentType.startsWith("image"));
+				boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-					final String contentType = item.getContentType();
-					boolean isImage = (contentType != null && contentType.startsWith("image"));
-					boolean isVideo = (contentType != null && contentType.startsWith("video"));
+				// Override type from path info
+				if (params.containsKey(NodeInterface.type.jsonName())) {
+					type = (String) params.get(NodeInterface.type.jsonName());
+				}
 
-					// Override type from path info
-					if (params.containsKey(NodeInterface.type.jsonName())) {
-						type = (String) params.get(NodeInterface.type.jsonName());
-					}
+				Class cls = null;
+				if (type != null) {
 
-					Class cls = null;
-					if (type != null) {
+					cls = SchemaHelper.getEntityClassForRawType(type);
 
-						cls = SchemaHelper.getEntityClassForRawType(type);
+				}
 
-					}
+				if (cls == null) {
 
-					if (cls == null) {
+					if (isImage) {
 
-						if (isImage) {
+						cls = SchemaHelper.getEntityClassForRawType("Image");
 
-							cls = SchemaHelper.getEntityClassForRawType("Image");
+					} else if (isVideo) {
 
-						} else if (isVideo) {
+						cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+						if (cls == null) {
 
-							cls = SchemaHelper.getEntityClassForRawType("VideoFile");
-							if (cls == null) {
-
-								logger.warn("Unable to create entity of type VideoFile, class is not defined.");
-							}
-
-						} else {
-
-							cls = SchemaHelper.getEntityClassForRawType("File");
-						}
-					}
-
-					if (cls != null) {
-						type = cls.getSimpleName();
-					}
-
-					final String name = item.getName().replaceAll("\\\\", "/");
-					File newFile      = null;
-					boolean retry     = true;
-
-					while (retry) {
-
-						retry = false;
-
-						final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-						Folder uploadFolder                         = null;
-
-						// If a path attribute was sent, create all folders on the fly.
-						if (path != null) {
-
-							uploadFolder = getOrCreateFolderPath(securityContext, path);
-
-						} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
-
-							uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
-
+							logger.warn("Unable to create entity of type VideoFile, class is not defined.");
 						}
 
-						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+					} else {
 
-							try (final InputStream is = item.openStream()) {
+						cls = SchemaHelper.getEntityClassForRawType("File");
+					}
+				}
 
-								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
-								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+				if (cls != null) {
+					type = cls.getSimpleName();
+				}
 
-								final PropertyMap changedProperties = new PropertyMap();
+				final String name = p.getName().replaceAll("\\\\", "/");
+				File newFile      = null;
+				boolean retry     = true;
 
-								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+				while (retry) {
 
-								// Update type as it could have changed
-								changedProperties.put(AbstractNode.type, type);
+					retry = false;
 
-								newFile.unlockSystemPropertiesOnce();
-								newFile.setProperties(securityContext, changedProperties, true);
+					final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+					Folder uploadFolder                         = null;
 
-								uuid = newFile.getUuid();
+					// If a path attribute was sent, create all folders on the fly.
+					if (path != null) {
 
-							} catch (IOException ex) {
-								logger.warn("Could not store file: {}", ex.getMessage());
-							}
+						uploadFolder = getOrCreateFolderPath(securityContext, path);
 
-							tx.success();
+					} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
-						} catch (RetryException rex) {
-							retry = true;
+						uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+
+					}
+
+					try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+
+						try (final InputStream is = p.getInputStream()) {
+
+							newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+							AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+
+							final PropertyMap changedProperties = new PropertyMap();
+
+							changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
+
+							// Update type as it could have changed
+							changedProperties.put(AbstractNode.type, type);
+
+							newFile.unlockSystemPropertiesOnce();
+							newFile.setProperties(securityContext, changedProperties, true);
+
+							uuid = newFile.getUuid();
+
+						} catch (IOException ex) {
+							logger.warn("Could not store file: {}", ex.getMessage());
 						}
+
+						tx.success();
+
+					} catch (RetryException rex) {
+						retry = true;
 					}
+				}
 
-					// since the transaction can be repeated, we need to make sure that
-					// only the actual existing file creates a UUID output
-					if (newFile != null) {
+				// since the transaction can be repeated, we need to make sure that
+				// only the actual existing file creates a UUID output
+				if (newFile != null) {
 
-						// upload trigger
-						newFile.notifyUploadCompletion();
+					// upload trigger
+					newFile.notifyUploadCompletion();
 
-						// store uuid
-						uuid = newFile.getUuid();
-					}
+					// store uuid
+					uuid = newFile.getUuid();
 				}
 			}
 
@@ -403,13 +401,11 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			}
 		}
 
-		 */
 	}
 
 	@Override
 	protected void doPut(final HttpServletRequest request, final HttpServletResponse response) throws ServletException {
 
-		/* TODO: Fix for Jetty11
 		try {
 
 			assertInitialized();
@@ -464,14 +460,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				return;
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
-			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
-
-			FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
-
-			while (fileItemsIterator.hasNext()) {
-
-				final FileItemStream fileItem = fileItemsIterator.next();
+			for (Part p : request.getParts()) {
 
 				try {
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
@@ -488,7 +477,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						final File file = (File) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
-							try (final InputStream is = fileItem.openStream()) {
+							try (final InputStream is = p.getInputStream()) {
 
 								FileHelper.writeToFile(file, is);
 								file.increaseVersion();
@@ -513,13 +502,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			tx.success();
 
-		} catch (FrameworkException | IOException | FileUploadException t) {
+		} catch (FrameworkException | IOException  t) {
 
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
 
-		 */
 	}
 
 	@Override
