@@ -5,7 +5,7 @@
 <urlrewrite>
 
 	<!-- execute a method in Structr context to access the "force https" setting -->
-	<class-rule class="org.structr.web.common.RewriteRule" method="checkConfig" />
+	<class-rule class="org.structr.web.common. RewriteRule" method="checkConfig" />
 
 	<!--check for the presence of the structr.force.https request attribute that
 	    is set by the custom rewrite rule defined by the class-rule above -->

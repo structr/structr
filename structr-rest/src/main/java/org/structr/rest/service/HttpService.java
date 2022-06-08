@@ -37,6 +37,7 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -358,10 +359,12 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (enableRewriteFilter) {
 
-			//final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			//rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			//servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+			final RewriteHandler rewriteHandler = new RewriteHandler();
 
+			//TODO: Translate urlrewrite rules for Jetty11
+
+			server.setHandler(rewriteHandler);
+			rewriteHandler.setHandler(contexts);
 		}
 
 		contexts.addHandler(servletContext);

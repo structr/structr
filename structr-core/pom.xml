@@ -181,6 +181,11 @@
 			<artifactId>jetty-alpn-java-server</artifactId>
 			<version>11.0.9</version>
 		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-rewrite</artifactId>
+			<version>11.0.9</version>
+		</dependency>
 	</dependencies>
 
 	<build>
