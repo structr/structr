@@ -1019,7 +1019,7 @@ let _Schema = {
 				});
 			}
 
-			let apiTab = $('#openapi-options', _Code.codeContents);
+			let apiTab = $('#openapi-options', tabContent);
 
 			$('#tags-select', apiTab).select2({
 				tags: true,

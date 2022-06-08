@@ -449,9 +449,9 @@ let _Crud = {
 				_Crud.refreshList(type);
 			});
 
-			document.querySelector('#delete' + type).addEventListener('click', () => {
+			document.querySelector('#delete' + type).addEventListener('click', async () => {
 
-				let answer = Structr.confirmationPromiseNonBlockUI(`
+				let answer = await Structr.confirmationPromiseNonBlockUI(`
 					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
 					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
 					<p>Depending on the amount of objects this can take a while.</p>

@@ -297,7 +297,7 @@ function getDateTimePickerFormat(rawFormat) {
 function getElementDisplayName(entity) {
 	if (!entity.name) {
 		if (entity.tag === 'option' && entity._html_value) {
-			return (entity.tag + '[value="' + entity._html_value + '"]');
+			return (entity.tag + '[value="' + escapeForHtmlAttributes(entity._html_value) + '"]');
 		}
 		return (entity.tag ? entity.tag : '[' + entity.type + ']');
 	}
