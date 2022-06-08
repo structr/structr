@@ -362,6 +362,13 @@ public class HttpService implements RunnableService, StatsCallback {
 			final RewriteHandler rewriteHandler = new RewriteHandler();
 
 			//TODO: Translate urlrewrite rules for Jetty11
+			
+			// Enable https redirect handler
+			if (forceHttps) {
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				server.setHandler(securedHandler);
+			}
 
 			server.setHandler(rewriteHandler);
 			rewriteHandler.setHandler(contexts);
