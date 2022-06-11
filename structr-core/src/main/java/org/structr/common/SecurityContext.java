@@ -191,7 +191,6 @@ public class SecurityContext {
 			} catch (Throwable ignore) {
 			}
 		}
-
 	}
 
 	private void initializeQueryRanges(final HttpServletRequest request) {
@@ -244,7 +243,6 @@ public class SecurityContext {
 									}
 								}
 							}
-
 						}
 					}
 				}
@@ -266,7 +264,6 @@ public class SecurityContext {
 		flags &= ~flag;
 
 		resourceFlags.put(name, flags);
-
 	}
 
 	public static SecurityContext getSuperUserInstance(HttpServletRequest request) {
@@ -303,11 +300,8 @@ public class SecurityContext {
 
 					it.remove();
 				}
-
 			}
-
 		}
-
 	}
 
 	public HttpSession getSession() {
@@ -341,6 +335,7 @@ public class SecurityContext {
 	}
 
 	public void setCachedUser(final Principal user) {
+
 		this.cachedUser     = user;
 		this.cachedUserId   = user.getUuid();
 		this.cachedUserName = user.getName();
@@ -362,13 +357,11 @@ public class SecurityContext {
 			}
 
 			return cachedUser;
-
 		}
 
 		if (authenticator == null) {
 
 			return null;
-
 		}
 
 		if (authenticator.hasExaminedRequest()) {
@@ -378,7 +371,6 @@ public class SecurityContext {
 			// Otherwise, the cachedUser would have been != null
 			// and we would not land here.
 			return null;
-
 		}
 
 		try {
@@ -390,21 +382,17 @@ public class SecurityContext {
 				cachedUserName = cachedUser.getName();
 			}
 
-
 		} catch (Throwable t) {
 
 			logger.warn("No user found");
-
 		}
 
 		return cachedUser;
-
 	}
 
 	public AccessMode getAccessMode() {
 
 		return accessMode;
-
 	}
 
 	public boolean hasParameter(final String name) {
@@ -449,19 +437,18 @@ public class SecurityContext {
 		if (flagObject != null) {
 
 			flags = flagObject;
+
 		} else {
 
 			logger.debug("No resource flag set for {}", resource);
 		}
 
 		return flags;
-
 	}
 
 	public static boolean hasFlag(String resourceSignature, long flag) {
 
 		return (getResourceFlags(resourceSignature) & flag) == flag;
-
 	}
 
 	public boolean isSuperUser() {
@@ -469,7 +456,6 @@ public class SecurityContext {
 		Principal user = getUser(false);
 
 		return ((user != null) && (user instanceof SuperUser || user.isAdmin()));
-
 	}
 
 	public boolean isSuperUserSecurityContext () {
@@ -536,7 +522,6 @@ public class SecurityContext {
 		if (isVisibleInFrontend(node)) {
 
 			return true;
-
 		}
 
 		// no node, nothing to see here..
@@ -603,7 +588,6 @@ public class SecurityContext {
 
 				return true;
 			}
-
 		}
 
 		// Public nodes are visible to non-auth users only
@@ -622,7 +606,6 @@ public class SecurityContext {
 		}
 
 		return node.isGranted(Permission.read, this);
-
 	}
 
 	public void setRequest(HttpServletRequest request) {
@@ -647,7 +630,6 @@ public class SecurityContext {
 		flags |= flag;
 
 		resourceFlags.put(name, flags);
-
 	}
 
 	public void setAttribute(final String key, final Object value) {
@@ -655,7 +637,6 @@ public class SecurityContext {
 		if (value != null) {
 			attrs.put(key, value);
 		}
-
 	}
 
 	public void setAccessMode(final AccessMode accessMode) {
@@ -675,7 +656,6 @@ public class SecurityContext {
 		for (final String prop : properties) {
 			customView.add(prop);
 		}
-
 	}
 
 	public void setCustomView(final Set<String> properties) {
@@ -728,7 +708,6 @@ public class SecurityContext {
 				userHasLocaleString = true;
 				locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
 			}
-
 		}
 
 		if (request != null) {
@@ -750,20 +729,16 @@ public class SecurityContext {
 							final String cookieLocaleString = c.getValue();
 							locale = Locale.forLanguageTag(cookieLocaleString.replaceAll("_", "-"));
 						}
-
 					}
-
 				}
-
 			}
 
 			// Priority 1: URL parameter locale
-			String requestedLocaleString = request.getParameter("_" + LOCALE_KEY);
+			String requestedLocaleString = request.getParameter(RequestKeywords.Locale.keyword());
 			if (StringUtils.isNotBlank(requestedLocaleString)) {
 
 				locale = Locale.forLanguageTag(requestedLocaleString.replaceAll("_", "-"));
 			}
-
 		}
 
 		return locale;
@@ -780,9 +755,7 @@ public class SecurityContext {
 			} else {
 
 				return request.getRequestURI();
-
 			}
-
 		}
 
 		return "[No request available]";
@@ -978,7 +951,6 @@ public class SecurityContext {
 		public Principal getUser(final boolean tryLogin) {
 
 			return new SuperUser();
-
 		}
 
 		@Override
@@ -1011,7 +983,6 @@ public class SecurityContext {
 		public boolean isVisible(AccessControllable node) {
 
 			return true;
-
 		}
 
 		@Override
