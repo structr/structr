@@ -4,7 +4,7 @@
   daily
   rotate 30
   dateext
-  dateformat .%Y-%m-%d
+  dateformat .%Y-%m-%d-%s
   size 10M
   compress
   delaycompress
