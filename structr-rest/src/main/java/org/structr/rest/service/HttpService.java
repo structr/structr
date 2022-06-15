@@ -37,7 +37,10 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
+import org.eclipse.jetty.rewrite.handler.RegexRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.RewritePatternRule;
+import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -71,6 +74,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.regex.Matcher;
 
 ;
 
@@ -262,7 +266,22 @@ public class HttpService implements RunnableService, StatsCallback {
 		server = new Server(httpPort);
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		contexts.addHandler(new DefaultHandler());
+		if (enableRewriteFilter) {
+
+			final RewriteHandler rewriteHandler = new RewriteHandler();
+
+			//TODO: Translate urlrewrite rules for Jetty11
+			rewriteHandler.setRewriteRequestURI(true);
+			rewriteHandler.addRule(new RewriteRegexRule("^((?!/structr).)*$", "/structr/html$1"));
+			contexts.addHandler(rewriteHandler);
+
+			// Enable https redirect handler
+			if (forceHttps) {
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				contexts.addHandler(securedHandler);
+			}
+		}
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
@@ -357,23 +376,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.getSessionHandler().setMaxInactiveInterval(-1);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
-		if (enableRewriteFilter) {
-
-			final RewriteHandler rewriteHandler = new RewriteHandler();
-
-			//TODO: Translate urlrewrite rules for Jetty11
-			
-			// Enable https redirect handler
-			if (forceHttps) {
-
-				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
-				server.setHandler(securedHandler);
-			}
-
-			server.setHandler(rewriteHandler);
-			rewriteHandler.setHandler(contexts);
-		}
-
 		contexts.addHandler(servletContext);
 
 		// enable request logging
@@ -394,13 +396,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			final String request_format = "%t \"%r\" %s %{ms}T";
 			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
 			server.setRequestLog(requestLog);
-
-			final HandlerCollection handlers = new HandlerCollection();
-			handlers.setHandlers(new Handler[]{contexts});
-			server.setHandler(handlers);
-		} else {
-
-			server.setHandler(contexts);
 		}
 
 		final List<ContextHandler> resourceHandler = collectResourceHandlers();
@@ -426,6 +421,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		contexts.addHandler(servletContext);
+		server.setHandler(contexts);
 
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSendServerVersion(false);
@@ -548,6 +544,8 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
+
+		contexts.addHandler(new DefaultHandler());
 
 		setupMaintenanceServer(mainteanceModeActive);
 
