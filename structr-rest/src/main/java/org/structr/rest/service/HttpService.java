@@ -264,22 +264,24 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		server = new Server(httpPort);
+
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
+		final RewriteHandler rewriteHandler = new RewriteHandler();
 
 		if (enableRewriteFilter) {
 
-			final RewriteHandler rewriteHandler = new RewriteHandler();
-
 			//TODO: Translate urlrewrite rules for Jetty11
 			rewriteHandler.setRewriteRequestURI(true);
-			rewriteHandler.addRule(new RewriteRegexRule("^((?!/structr).)*$", "/structr/html$1"));
-			contexts.addHandler(rewriteHandler);
+			rewriteHandler.addRule(new RewriteRegexRule("^((?!/structr/).)*$", "/structr/html$1"));
+			rewriteHandler.setHandler(contexts);
+			server.setHandler(rewriteHandler);
 
 			// Enable https redirect handler
 			if (forceHttps) {
 
 				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
-				contexts.addHandler(securedHandler);
+				securedHandler.setHandler(rewriteHandler);
+				server.setHandler(securedHandler);
 			}
 		}
 
@@ -421,7 +423,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		contexts.addHandler(servletContext);
-		server.setHandler(contexts);
 
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSendServerVersion(false);
