@@ -1663,6 +1663,7 @@ let Structr = {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
+		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.global.settings.showResourceAccessGrantWarningPopupsKey);
 		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
@@ -1933,54 +1934,57 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				let builder = new MessageBuilder().title(`REST Access to '${data.uri}' denied`).warning(data.message).requiresConfirmation().allowConfirmAll();
+				if (showResourceAccessGrantPopups) {
 
-				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+					let builder = new MessageBuilder().title(`REST Access to '${data.uri}' denied`).warning(data.message).requiresConfirmation().allowConfirmAll();
 
-					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
-					let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+					builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
 
-					let additionalData = {};
+						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
 
-					if (data.validUser === true) {
-						additionalData.visibleToAuthenticatedUsers = true;
-					} else {
-						additionalData.visibleToPublicUsers = true;
-					}
+						let additionalData = {};
 
-					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+						if (data.validUser === true) {
+							additionalData.visibleToAuthenticatedUsers = true;
+						} else {
+							additionalData.visibleToPublicUsers = true;
+						}
 
-					let resourceAccessKey = 'resource-access';
+						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
 
-					let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
-					if (!grantPagerConfig) {
-						grantPagerConfig = {
-							id: resourceAccessKey,
-							type: resourceAccessKey,
-							page: 1,
-							pageSize: 25,
-							sort: "signature",
-							order: "asc"
+						let resourceAccessKey = 'resource-access';
+
+						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
+						if (!grantPagerConfig) {
+							grantPagerConfig = {
+								id: resourceAccessKey,
+								type: resourceAccessKey,
+								page: 1,
+								pageSize: 25,
+								sort: "signature",
+								order: "asc"
+							};
+						} else {
+							grantPagerConfig = JSON.parse(grantPagerConfig);
+						}
+						grantPagerConfig.filters = {
+							flags: false,
+							signature: data.signature
 						};
-					} else {
-						grantPagerConfig = JSON.parse(grantPagerConfig);
-					}
-					grantPagerConfig.filters = {
-						flags: false,
-						signature: data.signature
-					};
 
-					LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
-					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
-						_Security.selectTab(resourceAccessKey);
-					} else {
-						LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
-						window.location.href = '#security';
-					}
-				}, 'Dismiss');
+						if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+							_Security.selectTab(resourceAccessKey);
+						} else {
+							LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
+							window.location.href = '#security';
+						}
+					}, 'Dismiss');
 
-				builder.show();
+					builder.show();
+				}
 
 				break;
 
@@ -3051,6 +3055,12 @@ let UISettings = {
 			showScriptingErrorPopupsKey: {
 				text: 'Show popups for scripting errors',
 				storageKey: 'showScriptinErrorPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
+			showResourceAccessGrantWarningPopupsKey: {
+				text: 'Show popups for resource access grant warnings',
+				storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
 				defaultValue: true,
 				type: 'checkbox'
 			},
