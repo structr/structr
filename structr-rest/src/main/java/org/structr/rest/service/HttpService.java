@@ -407,7 +407,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		if (enableRewriteFilter) {
 
-			//TODO: Translate urlrewrite rules for Jetty11
 			final RewriteHandler rewriteHandler = new RewriteHandler();
 			rewriteHandler.setRewriteRequestURI(true);
 			rewriteHandler.addRule(new RewriteRegexRule("^((?!\\/structr\\/).*)$", "/structr/html$1"));
