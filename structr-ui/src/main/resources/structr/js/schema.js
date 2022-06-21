@@ -4810,13 +4810,14 @@ let _Schema = {
 
 						let nodeId = delIcon.closest('li').dataset['id'];
 						if (nodeId) {
-							let confirm = Structr.confirmationPromiseNonBlockUI(`
-							<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
-							<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-						`);
+							let confirm = await Structr.confirmationPromiseNonBlockUI(`
+								<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
+								<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+							`);
 
 							if (confirm === true) {
 								$.unblockUI({fadeOut: 25});
+
 								await _Schema.deleteNode(nodeId);
 							}
 						}
