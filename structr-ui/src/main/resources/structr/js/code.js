@@ -3114,7 +3114,7 @@ let _Code = {
 					<div style="width: 200px">
 						<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 						<select id="tags-select" data-property="tags" multiple="multiple">
-							${config.element.tags.map(tag => `<option selected>${tag}</option>`).join()}
+							${config.element.tags ? config.element.tags.map(tag => `<option selected>${tag}</option>`).join() : ''}
 							${config.availableTags.filter(tag => (!config.element.tags || !config.element.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join()}
 						</select>
 					</div>
