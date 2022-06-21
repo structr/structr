@@ -79,6 +79,7 @@ import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
 import org.structr.web.common.ClosingFileOutputStream;
@@ -380,6 +381,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 					tx.success();
 				}
+			}
+
+			// call onUpload callback
+			try {
+
+				thisFile.invokeMethod(thisFile.getSecurityContext(), "onUpload", null, false, new EvaluationHints());
+
+			} catch (FrameworkException fex) {
+
+				final Logger logger = LoggerFactory.getLogger(File.class);
+				logger.warn("Exception occurred in onUpload handler of {}: {}", thisFile, fex.getMessage());
 			}
 
 			// indexing can be controlled for each file separately

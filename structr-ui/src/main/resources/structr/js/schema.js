@@ -974,7 +974,7 @@ let _Schema = {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
-			if (!entity.isBuiltinType || entity.extendsClass) {
+			if (false === entity.isBuiltinType) {
 
 				let classSelect = $('.extends-class-select', tabContent);
 
@@ -1034,7 +1034,7 @@ let _Schema = {
 					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent[0], entity);
 					let allow       = true;
 					if (doValidate) {
-						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent[0]);
+						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent[0], entity);
 					}
 					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
 
@@ -1274,15 +1274,19 @@ let _Schema = {
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
 			return _Code.collectDataFromContainer(tabContent, entity);
 		},
-		validateBasicTypeInfo: (typeInfo, container) => {
+		validateBasicTypeInfo: (typeInfo, container, entity) => {
 
 			let allow = true;
 
-			// check type name against regex
-			let match = typeInfo.name.match(/^[A-Z][a-zA-Z0-9_]*$/);
-			if (match === null) {
-				allow = false;
-				blinkRed(container.querySelector('[name="name"]'));
+			// builtin types do not transfer their name
+			if (false === entity.isBuiltinType) {
+
+				// check type name against regex
+				let match = typeInfo.name.match(/^[A-Z][a-zA-Z0-9_]*$/);
+				if (match === null) {
+					allow = false;
+					blinkRed(container.querySelector('[name="name"]'));
+				}
 			}
 
 			return allow;
@@ -5356,12 +5360,14 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					${config.type.isBuiltinType ? `<input class="disabled" disabled value="${config.type.name}" class="flex-grow">` : `<input data-property="name" value="${config.type.name}" class="flex-grow">`}
+					${(true === config.type.isBuiltinType) ? `<input class="disabled" disabled value="${config.type.name}" class="flex-grow">` : `<input data-property="name" value="${config.type.name}" class="flex-grow">`}
 					
-					${(!config.type.isBuiltinType || config.type.extendsClass) ? `
+					${(config.type.extendsClass || false === config.type.isBuiltinType) ? `
 						<div class="extends-type">
-							extends <select class="extends-class-select" data-property="extendsClass"></select>
-							${(config.type.extendsClass) ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
+							extends
+							${(true === config.type.isBuiltinType) ? `<select disabled><option>${config.type.extendsClass.name}</option></select>` : '<select class="extends-class-select" data-property="extendsClass"></select>' }
+
+							${config.type.extendsClass ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
 						</div>
 					` : ''}
 				</div>
