@@ -4740,7 +4740,11 @@ let _Schema = {
 					`;
 
 					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
-					let $newLi = $(`<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
+					let $newLi = $(`
+						<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">
+							${classname}${icons}
+						</li>
+					`).appendTo($newUl);
 
 					printClassTree($newLi, classTree[classname]);
 				}
@@ -4786,6 +4790,41 @@ let _Schema = {
 			}
 		}
 
+		let eventsInitialized = false;
+		let initEvents = (force = false) => {
+			if (eventsInitialized === false || force === true) {
+				eventsInitialized = true;
+
+				for (let editIcon of document.querySelectorAll('#inheritance-tree .edit-type-icon')) {
+					editIcon.addEventListener('click', () => {
+						let nodeId = editIcon.closest('li').dataset['id'];
+						if (nodeId) {
+							_Schema.openEditDialog(nodeId);
+						}
+					});
+				}
+
+				for (let delIcon of document.querySelectorAll('#inheritance-tree .delete-type-icon')) {
+
+					delIcon.addEventListener('click', async () => {
+
+						let nodeId = delIcon.closest('li').dataset['id'];
+						if (nodeId) {
+							let confirm = Structr.confirmationPromiseNonBlockUI(`
+							<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
+							<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+						`);
+
+							if (confirm === true) {
+								$.unblockUI({fadeOut: 25});
+								await _Schema.deleteNode(nodeId);
+							}
+						}
+					});
+				}
+			}
+		};
+
 		$.jstree.destroy();
 		printClassTree(_Schema.inheritanceTree, classTree);
 		_Schema.inheritanceTree.jstree({
@@ -4799,28 +4838,15 @@ let _Schema = {
 			plugins: ["search"]
 		}).on('ready.jstree', (e, data) => {
 
-			$('#inheritance-tree .edit-type-icon').on('click', function(e) {
-				let nodeId = $(e.target).closest('li').data('id');
-				if (nodeId) {
-					_Schema.openEditDialog(nodeId);
-				}
-			});
+			initEvents();
 
-			$('#inheritance-tree .delete-type-icon').on('click', function(e) {
-				let nodeId = $(e.target).closest('li').data('id');
-				if (nodeId) {
-					Structr.confirmation(
-						`<h3>Delete schema node '${$(e.target).closest('a').text()}'?</h3><p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>`,
-						async () => {
-							$.unblockUI({
-								fadeOut: 25
-							});
-							await _Schema.deleteNode(nodeId);
-						}
-					);
-				}
-			});
+		}).on('search.jstree', (e, data) => {
 
+			initEvents(true);
+
+		}).on('clear_search.jstree', (e, data) => {
+
+			initEvents(true);
 
 		}).on('changed.jstree', function(e, data) {
 
