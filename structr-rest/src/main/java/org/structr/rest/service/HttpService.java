@@ -266,24 +266,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		server = new Server(httpPort);
 
 		final ContextHandlerCollection contexts = new ContextHandlerCollection();
-		final RewriteHandler rewriteHandler = new RewriteHandler();
-
-		if (enableRewriteFilter) {
-
-			//TODO: Translate urlrewrite rules for Jetty11
-			rewriteHandler.setRewriteRequestURI(true);
-			rewriteHandler.addRule(new RewriteRegexRule("^((?!/structr/).)*$", "/structr/html$1"));
-			rewriteHandler.setHandler(contexts);
-			server.setHandler(rewriteHandler);
-
-			// Enable https redirect handler
-			if (forceHttps) {
-
-				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
-				securedHandler.setHandler(rewriteHandler);
-				server.setHandler(securedHandler);
-			}
-		}
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
@@ -378,8 +360,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.getSessionHandler().setMaxInactiveInterval(-1);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
-		contexts.addHandler(servletContext);
-
 		// enable request logging
 		if (logRequests) {
 
@@ -422,7 +402,26 @@ public class HttpService implements RunnableService, StatsCallback {
 			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
 		}
 
+		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);
+
+		if (enableRewriteFilter) {
+
+			//TODO: Translate urlrewrite rules for Jetty11
+			final RewriteHandler rewriteHandler = new RewriteHandler();
+			rewriteHandler.setRewriteRequestURI(true);
+			rewriteHandler.addRule(new RewriteRegexRule("^((?!\\/structr\\/).*)$", "/structr/html$1"));
+			rewriteHandler.setHandler(contexts);
+			server.setHandler(rewriteHandler);
+
+			// Enable https redirect handler
+			if (forceHttps) {
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				securedHandler.setHandler(rewriteHandler);
+				server.setHandler(securedHandler);
+			}
+		}
 
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSendServerVersion(false);
@@ -545,8 +544,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		server.setStopTimeout(1000);
 		server.setStopAtShutdown(true);
-
-		contexts.addHandler(new DefaultHandler());
 
 		setupMaintenanceServer(mainteanceModeActive);
 
