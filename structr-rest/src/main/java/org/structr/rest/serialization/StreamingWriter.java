@@ -132,102 +132,102 @@ public abstract class StreamingWriter {
 
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
 
-			configureWriter(rootWriter);
+		configureWriter(rootWriter);
 
-			// result fields in alphabetical order
-			final Set<Integer> visitedObjects = new LinkedHashSet<>();
-			final String queryTime            = result.getQueryTime();
-			final Integer page                = result.getPage();
-			final Integer pageSize            = result.getPageSize();
-			final int softLimit               = securityContext.getSoftLimit(pageSize);
-			long actualResultCount            = 0L;
+		// result fields in alphabetical order
+		final Set<Integer> visitedObjects = new LinkedHashSet<>();
+		final String queryTime            = result.getQueryTime();
+		final Integer page                = result.getPage();
+		final Integer pageSize            = result.getPageSize();
+		final int softLimit               = securityContext.getSoftLimit(pageSize);
+		long actualResultCount            = 0L;
 
-			// make pageSize available to nested serializers
-			rootWriter.setPageSize(pageSize);
+		// make pageSize available to nested serializers
+		rootWriter.setPageSize(pageSize);
 
-			rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
-			rootWriter.beginObject();
+		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
+		rootWriter.beginObject();
 
-			if (result != null) {
+		if (result != null) {
 
-				rootWriter.name(resultKeyName);
+			rootWriter.name(resultKeyName);
 
-				actualResultCount = root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
+			actualResultCount = root.serializeRoot(rootWriter, result, propertyView.get(securityContext), 0, visitedObjects);
 
-				rootWriter.flush();
+			rootWriter.flush();
+		}
+
+		if (includeMetadata) {
+
+			long t1         = System.nanoTime(); // time delta for serialization
+			int resultCount = -1;
+			int pageCount   = -1;
+
+			if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+
+				if (page != null) {
+
+					rootWriter.name("page").value(page);
+				}
+
+				rootWriter.name("page_size").value(pageSize);
 			}
 
-			if (includeMetadata) {
+			if (queryTime != null) {
+				rootWriter.name("query_time").value(queryTime);
+			}
 
-				long t1         = System.nanoTime(); // time delta for serialization
-				int resultCount = -1;
-				int pageCount   = -1;
+			if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
 
-				if (pageSize != null && !pageSize.equals(Integer.MAX_VALUE)) {
+				rootWriter.name("info").beginObject();
+				rootWriter.name("message").value("Result size limited");
+				rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
+				rootWriter.name("result_size").value(actualResultCount);
+				rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
+				rootWriter.endObject();
+			}
 
-					if (page != null) {
+			// in the future more conditions could be added to show different warnings
+			final boolean hasWarnings = (skippedDeletedObjects > 0);
 
-						rootWriter.name("page").value(page);
-					}
+			if (hasWarnings) {
 
-					rootWriter.name("page_size").value(pageSize);
-				}
+				rootWriter.name("warnings").beginArray();
 
-				if (queryTime != null) {
-					rootWriter.name("query_time").value(queryTime);
-				}
-
-				if (actualResultCount == Settings.ResultCountSoftLimit.getValue()) {
-
-					rootWriter.name("info").beginObject();
-					rootWriter.name("message").value("Result size limited");
-					rootWriter.name("limit").value(Settings.ResultCountSoftLimit.getValue());
-					rootWriter.name("result_size").value(actualResultCount);
-					rootWriter.name("hint").value("Use pageSize parameter to avoid automatic response size limit");
+				if (skippedDeletedObjects > 0) {
+					rootWriter.beginObject();
+					rootWriter.name("token").value("SKIPPED_OBJECTS");
+					rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
+					rootWriter.name("skipped").value(skippedDeletedObjects);
 					rootWriter.endObject();
 				}
 
-				// in the future more conditions could be added to show different warnings
-				final boolean hasWarnings = (skippedDeletedObjects > 0);
-
-				if (hasWarnings) {
-
-					rootWriter.name("warnings").beginArray();
-
-					if (skippedDeletedObjects > 0) {
-						rootWriter.beginObject();
-						rootWriter.name("token").value("SKIPPED_OBJECTS");
-						rootWriter.name("message").value("Skipped serializing " + skippedDeletedObjects + " object(s) because they were deleted between the creation and the serialization of the result. The result_count will differ from the number of returned results");
-						rootWriter.name("skipped").value(skippedDeletedObjects);
-						rootWriter.endObject();
-					}
-
-					rootWriter.endArray();
-				}
-
-				// make output available immediately
-				rootWriter.flush();
-
-				try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
-
-					final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
-
-					resultCount = result.calculateTotalResultCount(watcher, countLimit);
-					pageCount   = result.calculatePageCount(watcher, countLimit);
-				}
-
-				if (resultCount >= 0 && pageCount >= 0) {
-
-					rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
-					rootWriter.name("page_count").value(pageCount);
-					rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
-
-				}
-
-				if (renderSerializationTime) {
-					rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
-				}
+				rootWriter.endArray();
 			}
+
+			// make output available immediately
+			rootWriter.flush();
+
+			try (final JsonProgressWatcher watcher = new JsonProgressWatcher(rootWriter, 5000L)) {
+
+				final int countLimit = securityContext.forceResultCount() ? Integer.MAX_VALUE : softLimit;
+
+				resultCount = result.calculateTotalResultCount(watcher, countLimit);
+				pageCount   = result.calculatePageCount(watcher, countLimit);
+			}
+
+			if (resultCount >= 0 && pageCount >= 0) {
+
+				rootWriter.name("result_count").value(overriddenResultCount != null ? overriddenResultCount : resultCount);
+				rootWriter.name("page_count").value(pageCount);
+				rootWriter.name("result_count_time").value(decimalFormat.format((System.nanoTime() - t1) / 1000000000.0));
+
+			}
+
+			if (renderSerializationTime) {
+				rootWriter.name("serialization_time").value(decimalFormat.format((System.nanoTime() - t0) / 1000000000.0));
+			}
+		}
 
 		// finished
 		rootWriter.endObject();
