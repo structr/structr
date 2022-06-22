@@ -64,7 +64,7 @@ public class LogoutCommand extends AbstractCommand {
 					SessionHelper.invalidateSession(sessionId);
 				}
 
-				AuthHelper.sendLogoutNotification(user);
+				AuthHelper.sendLogoutNotification(user, getWebSocket().getRequest());
 
 				getWebSocket().setAuthenticated(null, null);
 

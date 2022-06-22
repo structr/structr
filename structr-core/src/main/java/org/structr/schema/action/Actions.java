@@ -20,6 +20,7 @@ package org.structr.schema.action;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -133,10 +134,14 @@ public class Actions {
 
 	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		return callAsSuperUser(key, parameters, null);
+	}
+
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request) throws FrameworkException, UnlicensedScriptException {
+
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance(request);
 
 		return callWithSecurityContext(key, superUserContext, parameters);
-
 	}
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {

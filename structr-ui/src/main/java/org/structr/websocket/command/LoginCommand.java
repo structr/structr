@@ -130,7 +130,7 @@ public class LoginCommand extends AbstractCommand {
 
 							} else {
 
-								AuthHelper.sendLoginNotification(user);
+								AuthHelper.sendLoginNotification(user, getWebSocket().getRequest());
 
 								// store token in response data
 								webSocketData.getNodeData().clear();
