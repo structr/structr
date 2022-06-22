@@ -409,7 +409,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			final RewriteHandler rewriteHandler = new RewriteHandler();
 			rewriteHandler.setRewriteRequestURI(true);
-			rewriteHandler.addRule(new RewriteRegexRule("^((?!\\/structr\\/).*)$", "/structr/html$1"));
+			rewriteHandler.addRule(new RewriteRegexRule("^(\\/(?!structr$|structr\\/.*).*)", "/structr/html$1"));
 			rewriteHandler.setHandler(contexts);
 			server.setHandler(rewriteHandler);
 
