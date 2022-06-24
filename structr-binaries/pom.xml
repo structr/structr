@@ -204,6 +204,7 @@
 							<name>structr/structr:python-${project.version}</name>
 							<registry>docker.io</registry>
 							<build>
+								<skip>${skipPythonDocker}</skip>
 								<contextDir>${project.basedir}</contextDir>
 								<dockerFile>Dockerfile-Python</dockerFile>
 								<args>
