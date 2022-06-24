@@ -12,11 +12,6 @@
 		<version>4.2-SNAPSHOT</version>
 	</parent>
 
-	<properties>
-		<docker.name>structr/structr</docker.name>
-		<docker.STRUCTR_VERSION>${project.version}</docker.STRUCTR_VERSION>
-	</properties>
-
 	<build>
 		<plugins>
 			<plugin>
@@ -138,15 +133,15 @@
 									</mapper>
 								</data>
 
-								<!--								<data>-->
-								<!--									<src>${basedir}/src/main/deb/systemd</src>-->
-								<!--									<type>directory</type>-->
-								<!--									<mapper>-->
-								<!--										<type>perm</type>-->
-								<!--										<prefix>/lib/systemd/system/</prefix>-->
-								<!--										<filemode>755</filemode>-->
-								<!--									</mapper>-->
-								<!--								</data>-->
+<!--								<data>-->
+<!--									<src>${basedir}/src/main/deb/systemd</src>-->
+<!--									<type>directory</type>-->
+<!--									<mapper>-->
+<!--										<type>perm</type>-->
+<!--										<prefix>/lib/systemd/system/</prefix>-->
+<!--										<filemode>755</filemode>-->
+<!--									</mapper>-->
+<!--								</data>-->
 
 								<data>
 									<src>${basedir}/src/main/deb/logrotate.d</src>
@@ -230,7 +225,7 @@
 						<goals>
 							<goal>build</goal>
 							<goal>push</goal>
-						</goals
+						</goals>
 					</execution>
 				</executions>
 			</plugin>
