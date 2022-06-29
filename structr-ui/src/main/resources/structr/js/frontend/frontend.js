@@ -255,55 +255,89 @@ export class Frontend {
 		    let id   = data.structrId;
 
 		    if (!id || id.length !== 32) {
-			console.log('Container with selector ' + selector + ' has no data-id attribute, will not be reloaded.');
-			continue;
-		    }
 
-		    let base   = '/structr/html/' + id;
-		    let params = this.encodeRequestParameters(data, parameters);
-		    let uri    = base + params;
+				//console.log('Container with selector ' + selector + ' has no data-structr-id attribute, trying resolution by CSS selector...');
+				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
 
-		    fetch(uri, {
+				//console.log(match[0], match[1], match[2]);
+
+				// Try to find element by selector
+				let attrKey, attrVal;
+				if (match[0] && match[0].startsWith('#')) {
+					attrKey = '_html_id';
+					attrVal = match[0].substring(1);
+				} else if (match[0] && match[0].startsWith('.')) {
+					attrKey = '_html_class';
+					attrVal = match[0].substring(1).replaceAll('.', ' ');
+				}
+
+				fetch('/structr/rest/DOMElement?' + attrKey + '=' + attrVal, {
+					method: 'GET',
+					credentials: 'same-origin'
+				}).then(response => {
+					//console.log('Found element by ' + attrKey + ' attribute', response);
+					return response.json();
+				}).then(data => {
+					if (data.result && data.result[0]) {
+						let id = data.result[0].id;
+						this.replacePartial(container, id, element, data, parameters, dontRebind);
+					}
+				});
+
+		    } else {
+				this.replacePartial(container, id, element, data, parameters, dontRebind);
+			}
+
+		}
+	}
+
+	replacePartial(container, id, element, data, parameters, dontRebind) {
+
+		let base   = '/structr/html/' + id;
+		let params = this.encodeRequestParameters(data, parameters);
+		let uri    = base + params;
+
+		fetch(uri, {
 			method: 'GET',
 			credentials: 'same-origin'
-		    }).then(response => {
+		}).then(response => {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
-		    }).then(html => {
+		}).then(html => {
 			let content = document.createElement('div');
 			if (content) {
-			    content.insertAdjacentHTML('afterbegin', html);
-			    if (content && content.children && content.children.length) {
-				container.replaceWith(content.children[0]);
-			    } else {
-				container.replaceWith('');
-			    }
-			    container.dispatchEvent(new Event('structr-reload'));
+				content.insertAdjacentHTML('afterbegin', html);
+				if (content && content.children && content.children.length) {
+					container.replaceWith(content.children[0]);
+				} else {
+					container.replaceWith('');
+				}
+				container.dispatchEvent(new Event('structr-reload'));
 			}
 
 			// restore focus on selected element after partial reload
 			// (but only if input field was actually reloaded!)
 			if (this.focusId && this.focusTarget && this.focusName) {
 
-			    let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
-			    if (restoreFocus) {
+				let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+				if (restoreFocus) {
 
-				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
-			    }
+					if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+					if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+				}
 			}
 
 			if (!dontRebind) {
-			    this.bindEvents();
+				this.bindEvents();
 			}
 
 			// fire reloaded event
 			this.fireEvent('reloaded', { target: element, data: parameters });
 
-		    }).catch(e => {
+		}).catch(e => {
 			this.handleError(element, e, {});
-		    });
-		}
+		});
+
 	}
 
 	loadPartial(uri, container) {
