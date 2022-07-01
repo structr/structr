@@ -1300,7 +1300,7 @@ let Structr = {
 
 					Structr.edition = envInfo.edition;
 
-					_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
+					_Dashboard.tabs['about-structr'].checkLicenseEnd(envInfo, $('.structr-version'), {
 						offsetX: -300,
 						helpElementCss: {
 							color: "black",
