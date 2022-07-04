@@ -1355,6 +1355,10 @@ public class SchemaHelper {
 					formatModificationCallback(src, schemaNode, name, actionList);
 					break;
 
+				case "afterModification":
+					formatAfterModificationCallback(src, schemaNode, name, actionList);
+					break;
+
 				case "afterDeletion":
 					formatDeletionCallback(src, schemaNode, name, actionList);
 					break;
@@ -1426,6 +1430,27 @@ public class SchemaHelper {
 
 			//src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 			action.getSource(src, "this", "arg0", true);
+		}
+
+		src.end();
+	}
+
+	public static void formatAfterModificationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
+
+		for (final ActionEntry action : actionList) {
+
+			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			action.getSource(src, "this", "arg0", false);
 		}
 
 		src.end();

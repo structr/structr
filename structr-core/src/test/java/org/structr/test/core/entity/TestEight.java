@@ -67,7 +67,7 @@ public class TestEight extends AbstractNode {
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext1) {
+	public void afterModification(SecurityContext securityContext1) throws FrameworkException {
 
 		this.afterModificationTimestamp = System.currentTimeMillis();
 	}

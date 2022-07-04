@@ -130,7 +130,7 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	}
 
 	@Override
-	public void afterModification(final SecurityContext securityContext) {
+	public void afterModification(final SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override

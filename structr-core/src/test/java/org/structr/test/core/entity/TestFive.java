@@ -84,7 +84,7 @@ public class TestFive extends AbstractNode {
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
 
 		final App app = StructrApp.getInstance(securityContext);
 		try (final Tx tx = app.tx()) {

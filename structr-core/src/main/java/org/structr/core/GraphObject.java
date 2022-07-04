@@ -463,7 +463,7 @@ public interface GraphObject extends CodeSource {
 	 *
 	 * @param securityContext the context in which the modification took place
 	 */
-	public void afterModification(final SecurityContext securityContext);
+	public void afterModification(final SecurityContext securityContext) throws FrameworkException;
 
 	/**
 	 * Called when an entity was successfully deleted. Please note that this method
