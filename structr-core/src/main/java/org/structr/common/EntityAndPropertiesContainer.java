@@ -280,7 +280,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

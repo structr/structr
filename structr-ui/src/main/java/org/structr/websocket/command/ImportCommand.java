@@ -18,12 +18,21 @@
  */
 package org.structr.websocket.command;
 
+import java.io.BufferedOutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.web.common.RenderContext;
+import org.structr.web.common.StringRenderBuffer;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
+import org.structr.web.entity.dom.Template;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.websocket.StructrWebSocket;
@@ -52,10 +61,12 @@ public class ImportCommand extends AbstractCommand {
 		final boolean authVisible             = webSocketData.getNodeDataBooleanValue("authVisible");
 		final boolean includeInExport         = webSocketData.getNodeDataBooleanValue("includeInExport");
 		final boolean processDeploymentInfo   = webSocketData.getNodeDataBooleanValue("processDeploymentInfo");
+		final boolean withTemplate            = webSocketData.getNodeDataBooleanValue("withTemplate");
+		final String templateName             = webSocketData.getNodeDataStringValue("templateName");
 
 		try {
 
-			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport, false);
+			final Importer pageImporter = new Importer(securityContext, code, address, name, publicVisible, authVisible, includeInExport, false, withTemplate);
 
 			if (processDeploymentInfo) {
 
@@ -77,6 +88,36 @@ public class ImportCommand extends AbstractCommand {
 
 				if (pageId != null) {
 
+					if (withTemplate) {
+
+						final App app = StructrApp.getInstance(securityContext);
+
+						final Page newPage = (Page) app.get(Page.class, pageId);
+
+						final RenderContext ctx = new RenderContext(securityContext);
+						final StringRenderBuffer buffer = new StringRenderBuffer();
+						ctx.setBuffer(buffer);
+
+						// render
+						newPage.render(ctx, 0);
+
+						final String renderedContent = buffer.getBuffer().toString();
+						logger.info("Rendered content of page " + pageId + ": " + renderedContent);
+
+						final Template template = (Template) app.create(Template.class, templateName != null ? templateName : "Main Page Template");
+						template.setContent(renderedContent);
+						template.setContentType("text/html");
+
+						for (final DOMNode node : newPage.getChildren()) {
+							newPage.removeChild(node);
+							app.delete(node);
+						}
+
+						newPage.appendChild(template);
+
+					}
+
+
 					resultData.put("id", pageId);
 					getWebSocket().send(MessageBuilder.status().code(200).message("Successfully created page " + name).data(resultData).build(), true);
 
@@ -91,6 +132,8 @@ public class ImportCommand extends AbstractCommand {
 			logger.warn("Error while importing content", fex);
 			getWebSocket().send(MessageBuilder.status().code(fex.getStatus()).message(fex.getMessage()).build(), true);
 
+		} catch (Throwable t) {
+			logger.error(t.getMessage());
 		}
 
 	}

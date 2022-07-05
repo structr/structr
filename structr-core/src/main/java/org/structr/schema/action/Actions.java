@@ -20,6 +20,7 @@ package org.structr.schema.action;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +55,7 @@ public class Actions {
 		Create("onCreation","SecurityContext securityContext, ErrorBuffer errorBuffer", "securityContext, errorBuffer", "onCreate", SecurityContext.class, ErrorBuffer.class),
 		AfterCreate("afterCreation","SecurityContext securityContext", "securityContext", "afterCreate", SecurityContext.class),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave", SecurityContext.class, ErrorBuffer.class, ModificationQueue.class),
+		AfterSave("afterModification", "SecurityContext securityContext", "securityContext", "afterSave", SecurityContext.class),
 		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties", "onDelete", SecurityContext.class, ErrorBuffer.class, PropertyMap.class),
 		Custom("", "", "", "custom"),
 		Java("", "", "", "java");
@@ -133,10 +135,14 @@ public class Actions {
 
 	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {
 
-		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+		return callAsSuperUser(key, parameters, null);
+	}
+
+	public static Object callAsSuperUser(final String key, final Map<String, Object> parameters, final HttpServletRequest request) throws FrameworkException, UnlicensedScriptException {
+
+		final SecurityContext superUserContext = SecurityContext.getSuperUserInstance(request);
 
 		return callWithSecurityContext(key, superUserContext, parameters);
-
 	}
 
 	public static Object callWithSecurityContext(final String key, final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException, UnlicensedScriptException {

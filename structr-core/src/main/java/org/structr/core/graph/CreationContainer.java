@@ -182,7 +182,7 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

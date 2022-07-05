@@ -24,7 +24,7 @@ let _Entities = {
 	selectedObjectIdKey: 'structrSelectedObjectId_' + location.port,
 	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
-	pencilEditBlacklist: ['html', 'body', 'head', 'title', 'script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
+	pencilEditBlacklist: ['html', 'body', 'head', 'title', ' script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
 	collectionPropertiesResultCount: {},
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
@@ -385,36 +385,55 @@ let _Entities = {
 
 		let customPropertiesPresent = false;
 
+		const getAndAppendInput = (id) => {
+			Command.get(id, 'type,name,_html_name,_html_id,_html_value', (inputData) => {
+
+				customPropertiesPresent = true;
+				updatePropertyInput.removeClass('required');
+				updatePropertyInput.closest('.event-options').addClass('hidden');
+
+				let html = _Entities.templates.multipleInputsRow({ id: id });
+				document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
+				[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = inputData.name;
+				[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = inputData._html_name;
+				[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = inputData._html_id;
+
+				if (inputData.type === 'Input') {
+					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = inputData._html_value;
+				} else {
+					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
+				}
+
+				[...document.querySelectorAll('.custom-properties-container .multiple-input-remove-button')].pop().addEventListener('click', (e) => {
+					const el = e.target.closest('.multiple-input-remove-button');
+					const id = el.dataset.structrId;
+					Command.setProperty(id, 'actionElement', null, false, () => {
+						const row = el.closest('.multiple-properties');
+						row.parentNode?.removeChild(row);
+					});
+				});
+
+			});
+		};
+
 		Command.get(entity.id, 'inputs', (actionElementData) => {
 
 			for (const input of actionElementData.inputs) {
-
 				customPropertiesPresent = true;
-
-				Command.get(input.id, 'type,name,_html_name,_html_id,_html_value', (inputData) => {
-
-					let html = _Entities.templates.multipleInputsRow({ id: input.id });
-					document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = inputData.name;
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = inputData._html_name;
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = inputData._html_id;
-
-					if (inputData.type === 'Input') {
-						[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = inputData._html_value;
-					} else {
-						[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
-					}
-				});
+				getAndAppendInput(input.id);
 			}
 
 			if (customPropertiesPresent) {
 				updatePropertyInput.removeClass('required');
+				updatePropertyInput.closest('.event-options').addClass('hidden');
 			}
 
 		}, 'html');
 
 		const createInput = (elementType) => {
 			const initialName = elementType + ' of ' + entity.tag + ' ' + entity.id.substring(0,6);
+			updatePropertyInput.removeClass('required');
+			updatePropertyInput.closest('.event-options').addClass('hidden');
 
 			Command.create({type: elementType, tag: elementType.toLowerCase(), name: initialName, _html_type: 'text', actionElement: entity.id, pageId: entity.pageId }, (data) => {
 
@@ -437,7 +456,6 @@ let _Entities = {
 		let addPropertyInputButton  = $('.add-property-input-button');
 		if (addPropertyInputButton) {
 			addPropertyInputButton.on('click', (e) => {
-				updatePropertyInput.removeClass('required');
 				createInput('Input');
 			});
 		}
@@ -445,9 +463,43 @@ let _Entities = {
 		let addPropertySelectButton = $('.add-property-select-button');
 		if (addPropertySelectButton) {
 			addPropertySelectButton.on('click', (e) => {
-				updatePropertyInput.removeClass('required');
 				createInput('Select');
 			});
+		}
+
+		let linkExistingElementDropzone = $('#link-existing-element-dropzone');
+		if (linkExistingElementDropzone) {
+
+			linkExistingElementDropzone.droppable({
+				drop: function(e, el) {
+					e.preventDefault();
+					e.stopPropagation();
+
+					let sourceEl = $(el.draggable);
+					let sourceId = Structr.getId(sourceEl);
+
+					if (!sourceId) {
+						return false;
+					}
+
+					let obj = StructrModel.obj(sourceId);
+
+					if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+						return false;
+					}
+
+					// Link to this action element
+					Command.setProperty(sourceId, 'actionElement', entity.id, false, () => {
+
+						updatePropertyInput.removeClass('required');
+						updatePropertyInput.closest('.event-options').addClass('hidden');
+						getAndAppendInput(sourceId);
+
+						_Elements.dropBlocked = false;
+					});
+				}
+			});
+
 		}
 
 		let saveButton = $('#save-event-mapping-button');
@@ -625,7 +677,6 @@ let _Entities = {
 						if (updateTarget && (updateProperty || customPropertiesPresent)) {
 							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "update" }', $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
 
 							if (customPropertiesPresent) {
@@ -648,6 +699,9 @@ let _Entities = {
 									}
 
 								}
+
+							} else if (updateProperty) {
+								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
 							}
 
 						} else {
@@ -2953,10 +3007,19 @@ let _Entities = {
 					<div class="hidden event-options options-reload-target">
 
 						<div class="hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
+
+						<div class="hidden hidden event-options options-properties options-update-change options-update-click">
+							<div id="link-existing-element-dropzone" class="element-dropzone">
+								<div class="info-icon h-16 flex items-center justify-center">
+									<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
+									<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop existing element here to add
+								</div>
+							</div>						
+						</div>
 			
 						<div class="hidden event-options options-properties options-update-change options-update-click">
-							<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create input</button>
-							<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Create select</button>
+							<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new input</button>
+							<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new select</button>
 						</div>
 					</div>
 				</div>
@@ -3002,7 +3065,7 @@ let _Entities = {
 		multipleInputsRow: config => `
 			<div class="event-options options-properties options-update-change options-update-click multiple-properties">
 			
-				<div class="grid grid-cols-4 gap-8 hidden event-options options-reload-target mb-4">
+				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
 					<div class="option-tile flat">
 						<input type="text" class="multiple-input-name-input" placeholder="Name of input element" data-structr-id="${config.id}">
 					</div>
@@ -3014,6 +3077,9 @@ let _Entities = {
 					</div>
 					<div class="option-tile flat">
 						<input type="text" class="multiple-input-value-input" placeholder="Value expression" data-structr-id="${config.id}">
+					</div>
+					<div class="option-tile flat">
+						<i class="block mt-4 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
 					</div>
 				</div>
 

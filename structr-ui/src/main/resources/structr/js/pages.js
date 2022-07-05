@@ -166,7 +166,7 @@ let _Pages = {
 			_Pages.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
 				if (params.isOpenAction) {
-					_Pages.palette.reload();
+					_Pages.designTools.reload();
 				}
 				_Pages.resize();
 			}, _Pages.rightSlideoutClosedCallback);
@@ -610,7 +610,7 @@ let _Pages = {
 			pxLeft = 0;
 		}
 		if (!openRightSlideout) {
-            pxRight = 0;
+			pxRight = 0;
 		}
 
 		let leftPos  = pxLeft  ? pxLeft  : (openLeftSlideout  ? openLeftSlideout.getBoundingClientRect().right  : 0);
@@ -1539,7 +1539,7 @@ let _Pages = {
 								input.value = '';
 								delete input.dataset[localizationIdKey];
 								delete input.dataset[previousValueKey];
-                            });
+							});
 						}
 					});
 
@@ -1566,18 +1566,18 @@ let _Pages = {
 							} else {
 
 								Command.create({
-									type: 'Localization',
-									name: res.key,
-									domain: res.domain || null,
-									locale: res.locale,
-									localizedName: newValue
-								},
-								function(createdLocalization) {
-									input.dataset[localizationIdKey] = createdLocalization.id;
-									input.dataset[previousValueKey]  = newValue;
-									row.classList.add('has-value');
-									blinkGreen(input);
-								});
+										type: 'Localization',
+										name: res.key,
+										domain: res.domain || null,
+										locale: res.locale,
+										localizedName: newValue
+									},
+									function(createdLocalization) {
+										input.dataset[localizationIdKey] = createdLocalization.id;
+										input.dataset[previousValueKey]  = newValue;
+										row.classList.add('has-value');
+										blinkGreen(input);
+									});
 							}
 						}
 					});
@@ -1674,6 +1674,7 @@ let _Pages = {
 	previews: {
 		loadPreviewTimer : undefined,
 		previewElement: undefined,
+		selectedElementOrigSource: null,
 		activePreviewPageId: null,
 		activePreviewHighlightElementId: null,
 
@@ -1690,28 +1691,112 @@ let _Pages = {
 
 		previewIframeLoaded: function (iframe, highlightElementId) {
 
+			let designToolsActive = false;
+			if (LSWrapper.getItem(_Pages.activeTabRightKey) === 'paletteTab') {
+				// Design tools are open
+				designToolsActive = true;
+			}
+
+			let doc = $(iframe.contentDocument || iframe.contentWindow.document);
+
 			try {
-				var doc = $(iframe.contentDocument || iframe.contentWindow.document);
-				var head = doc.find('head');
+				let head = doc.find('head');
 				if (head) {
-					head.append('<style media="screen" type="text/css">'
-							+ '* { z-index: 0}\n'
-							+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
-							+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
-							+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
-							+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
-							+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
-							+ '.link-hover { border: 1px solid #00c; }\n'
-							//+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
-							/**
-							 * Fix for bug in Chrome preventing the modal dialog background
-							 * from being displayed if a page is shown in the preview which has the
-							 * transform3d rule activated.
-							 */
-							+ '.navbar-fixed-top { -webkit-transform: none ! important; }'
-							+ '</style>');
+					head.append('<style media="screen">\n'
+						+ '* { z-index: 0}\n'
+						+ '.nodeHover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+						+ '.structr-content-container { min-height: .25em; min-width: .25em; }\n'
+						+ '.structr-element-container-active:hover { -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px #888; box-shadow: 0 0 5px #888; }\n'
+						+ '.structr-element-container-selected { -moz-box-shadow: 0 0 8px #860; -webkit-box-shadow: 0 0 8px #860; box-shadow: 0 0 8px #860; }\n'
+						+ '.structr-element-container-selected:hover { -moz-box-shadow: 0 0 10px #750; -webkit-box-shadow: 0 0 10px #750; box-shadow: 0 0 10px #750; }\n'
+						+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
+						+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
+						+ '.link-hover { border: 1px solid #00c; }\n'
+						//+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
+						/**
+						 * Fix for bug in Chrome preventing the modal dialog background
+						 * from being displayed if a page is shown in the preview which has the
+						 * transform3d rule activated.
+						 */
+						+ '.navbar-fixed-top { -webkit-transform: none ! important; }\n'
+						+ '</style>\n');
+
+					if (designToolsActive) {
+
+						const mouseOverHandler = (e) => {
+							let tagName     = e.target.tagName;
+							let idString    = e.target.id;
+							let classString = e.target.className;
+							let el = e.target;
+							el.classList.add('design-tools-hover');
+
+							// if (!document.getElementById('design-tools-area').classList.contains('locked')) {
+							// 	document.getElementById('design-tools-hover-tag-name-input').value = tagName;
+							// 	document.getElementById('design-tools-hover-id-input').value       = idString;
+							// 	document.getElementById('design-tools-hover-class-input').value    = classString;
+							// }
+
+						};
+
+						const mouseOutHandler = (e) => {
+							let tagName     = e.target.tagName;
+							let idString    = e.target.id;
+							let classString = e.target.className;
+							let el = e.target;
+							el.classList.remove('design-tools-hover');
+							// document.getElementById('design-tools-hover-tag-name-input').value = tagName;
+							// document.getElementById('design-tools-hover-id-input').value       = idString;
+							// document.getElementById('design-tools-hover-class-input').value    = classString;
+						};
+
+						head.append('<style media="screen">\n'
+							+ '*.design-tools-hover { -moz-box-shadow: 0 0 8px #72a132; -webkit-box-shadow: 0 0 8px #72a132; box-shadow: 0 0 8px #72a132; }\n'
+							+ '*.design-tools-locked { -moz-box-shadow: 0 0 8px #595 ; -webkit-box-shadow: 0 0 8px #595; box-shadow: 0 0 8px #595; }\n'
+							+ '</style>\n');
+
+						for (let el of doc[0].querySelectorAll('*')) {
+							// el.addEventListener('mouseenter', (e) => {
+							// 	console.log('Mouseenter:', e.target);
+							// 	document.getElementById('design-tools-hover-selector-input').value = e.target;
+							// });
+							el.addEventListener('mouseover', mouseOverHandler);
+							el.addEventListener('mouseout', mouseOutHandler);
+
+							el.addEventListener('click', (e) => {
+								e.preventDefault();
+								e.stopPropagation();
+								//document.getElementById('design-tools-area').classList.add('locked');
+								for (let otherEl of doc[0].querySelectorAll('*')) {
+									otherEl.classList.remove('design-tools-hover');
+									otherEl.classList.remove('design-tools-locked');
+									//otherEl.removeEventListener('mouseover', mouseOverHandler);
+									//otherEl.removeEventListener('mouseout', mouseOutHandler);
+								}
+								el.classList.add('design-tools-locked');
+
+								// remove design-tool specific classes
+								let html = el.outerHTML.replaceAll(/ ?design-tools-locked/g, '').replaceAll(' class=""', '');
+
+								_Pages.designTools.selectedElementOrigSource = html;
+								_Pages.designTools.sourceEditor.setValue(html);
+								//_Pages.designTools.sourceEditor.getAction().run();
+								_Pages.designTools.sourceEditor.getAction('editor.action.formatDocument').run();
+								_Pages.designTools.selectedElement = el;
+								_Pages.designTools.selectedElementSelector = TopLevelObject.DOMPresentationUtils.cssPath(el);
+
+								let childTemplateNameInput = document.getElementById('design-tools-template-name-input');
+								let tagString   = el.tagName[0].toUpperCase() + el.tagName.toLowerCase().slice(1) + ' Element';
+								let idString    = el.id ? ('#' + el.id) : '';
+								let classString = Array.from(el.classList).filter(c => c !== 'design-tools-locked').map(t => t.length > 1 ? '.' + t : null).join(' ');
+								childTemplateNameInput.value = tagString + ((el.id || classString) ? ' (' : '')
+										+ idString + ((el.id && classString) ? ' ' : '')
+										+ classString
+									+ ((el.id || classString) ? ')' : '');
+
+							});
+						}
+					}
+
 				}
 
 				_Pages.previews.findDroppablesInIframe(doc, highlightElementId).each(function(i, element) {
@@ -1776,7 +1861,7 @@ let _Pages = {
 					}
 				});
 
-			} catch (e) {}
+			} catch (e) { console.log('Error:', e)}
 
 			_Pages.previews.activateComments(doc);
 		},
@@ -2039,6 +2124,324 @@ let _Pages = {
 		},
 	},
 
+	designTools: {
+		sourceEditor: null,
+		selectedElement: null,
+		reload: () => {
+			//console.log('Design tools opened');
+
+			let html = `
+				<div class="inner">
+					<div class="mr-12" id="design-tools-area">
+						
+						<h3>Import from page</h3>
+						<div class="w-full mb-4">
+							<label class="block mb-2" for="design-tools-url-input">Enter URL of example page to preview</label>
+							<input class="w-full rounded-r" style="margin-left: -1px" type="text" id="design-tools-url-input">
+						</div>
+						<div class="w-full mb-4">
+							<label class="block mb-2" for="design-tools-url-history-select">URL history</label>
+							<select id="design-tools-url-history-select" class=""><option></option></optin></select>
+						</div>
+						<div class="w-full mb-4">
+							<label class="block mb-2" for="design-tools-page-name-input">Page name</label>
+							<input id="design-tools-page-name-input" class="w-full" type="text">
+						</div>
+						<div class="w-full mb-4">
+							<label class="block mb-2" for="design-tools-page-template-name-input">Page template name</label>
+							<input id="design-tools-page-template-name-input" class="w-full" type="text">
+						</div>
+						<div class="w-full mb-8">
+							<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-page-button">Create new page</button>
+						</div>
+						
+						<h3>Select element</h3>
+						<p>Hover over elements in the preview page. Click to select and lock an element.</p>
+						<div class="grid grid-cols-6 gap-4">
+							<!--
+							<div class="col-span-3 mr-4">
+								<label class="block mb-2" for="design-tools-url-input">Tag name</label>
+								<input id="design-tools-hover-tag-name-input" class="w-full" type="text">
+							</div>
+							<div class="col-span-3">
+								<label class="block mb-2" for="design-tools-url-input">ID</label>
+								<input id="design-tools-hover-id-input" class="w-full" type="text">
+							</div>
+							<div class="col-span-6">
+								<label class="block mb-2" for="design-tools-url-input">CSS Classes</label>
+								<input id="design-tools-hover-class-input"class="w-full" type="text">
+							</div>
+							-->
+							<div class="col-span-6 h-80 mb-4" id="design-tool-source-editor-area">
+								<label class="block mb-2" for="design-tools-source-code">Source code</label>
+								<!--textarea id="design-tool-source-textarea" class="w-full h-40"></textarea-->
+							</div>
+							<div class="col-span-6">
+								<label class="block mb-2" for="design-tools-template-name-input">Template name</label>
+								<input id="design-tools-template-name-input" class="w-full" type="text">
+							</div>
+							<div class="col-span-3">
+								<label class="" for="design-tools-create-as-dom-tree">Create as DOM tree</label>
+							</div>
+							<div class="col-span-3">
+								<input id="design-tools-create-as-dom-tree" class="" type="checkbox">
+							</div>
+							<div class="col-span-3">
+								<label class="" for="design-tools-remove-siblings">Remove similar siblings (for repeater)</label>
+							</div>
+							<div class="col-span-3">
+								<input id="design-tools-remove-siblings" class="" type="checkbox">
+							</div>
+							<div class="cols-span-6">
+								<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-child-template">Create sub node</button>
+							</div>
+
+						</div>
+						
+
+					</div>
+				</div>
+			`;
+
+			let designTools = document.getElementById('palette');
+			fastRemoveAllChildren(designTools);
+			designTools.insertAdjacentHTML('afterbegin', html);
+
+			let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
+			let pageNameInput         = document.getElementById('design-tools-page-name-input');
+			let urlInput              = document.getElementById('design-tools-url-input');
+
+
+			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
+
+				Command.importPageAsTemplate(urlInput.value, pageNameInput.value, pageTemplateNameInput.value, (newPage) => {
+					console.log('Page imported as template', newPage);
+
+					//Command.setProperty(newPage.children[0].id)
+
+				});
+
+				// Command.create({ type: 'Page', name: pageNameInput.value }, (newPage) => {
+				//
+				// 	//console.log('New page created', newPage);
+				// 	let previewIframe = document.querySelector('.previewBox iframe');
+				// 	let html = previewIframe.contentDocument.documentElement.outerHTML.replaceAll(/ ?design-tools-locked/g, '').replaceAll(' class=""', '');
+				// 	//console.log(previewIframe.contentDocument); return;
+				// 	let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
+				//
+				// 	fetch(urlInput.value)
+				// 		.then(response => response.text())
+				// 		.then(html => {
+				//
+				// 			Command.create({
+				// 				type: 'Template',
+				// 				name: pageTemplateNameInput.value,
+				// 				content: html,
+				// 				contentType: 'text/html'
+				// 			}, (newTemplate) => {
+				// 				console.log('New template created', newTemplate);
+				// 				Command.appendChild(newTemplate.id, newPage.id);
+				// 			});
+				//
+				// 		});
+				// });
+			});
+
+			const createChildTemplates = (obj, parentTemplateContent) => {
+
+				//console.log('Root of createChildTemplates with obj', obj);
+
+				for (let child of obj.children) {
+
+					//console.log('Testing child', child);
+
+					if (child.type === 'Template') {
+
+						Command.get(child.id, 'id,type,name,content,children', (template) => {
+							//console.log('Template found', childObj.content);
+
+							// Match template content with source code of currently selected element
+							// let selectedElementSource = _Pages.designTools.selectedElementOrigSource.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+							// let templateContent = template.content.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+							let selectedElementSource = _Pages.designTools.selectedElementOrigSource.replace(/[.*+?^#%${}()|[\]\\]/g, '\\$&');
+							let templateContent = template.content; //.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+							//let regex = new RegExp(RegExp.escape(selectedElementSource));
+							let regex = new RegExp(selectedElementSource);
+							let matches = regex.test(templateContent);
+							let el = _Pages.designTools.selectedElement;
+
+							let childTemplateNameInput = document.getElementById('design-tools-template-name-input');
+							let newChildTemplateName   = childTemplateNameInput.value;
+
+							//let tmpDoc      = document.implementation.createHTMLDocument();
+							//let tmpEl       = tmpDoc.createElement('html');
+							//tmpEl.innerHTML = selectedElementSource;
+
+							let templateTmpDoc      = document.implementation.createHTMLDocument();
+							let templateTmpEl       = templateTmpDoc.createElement('html');
+							templateTmpEl.innerHTML = templateContent;
+
+							console.log(parentTemplateContent);
+							console.log(templateContent);
+
+							// TODO: Bei der Suche in Child-Elementen muss der relative Pfad berücksichtigt werden.
+							// Das Matching muss von der Stelle aus gemacht werden, wo das ${include_child()} im Parent-Template steht.
+							// Oder es muss der Reverse CSS Path immer mit class (und id) aufgelöst werden ...
+
+							//console.log(templateTmpEl);
+
+							let selectedEl = templateTmpEl.querySelector(_Pages.designTools.selectedElementSelector); //.replace('html > body > ', ''));
+							//console.log(_Pages.designTools.selectedElementSelector);
+							//console.log(selectedEl); return;
+
+
+
+							//console.log(templateTmpEl); return;
+
+							if (selectedEl) {
+
+								selectedEl.outerHTML = '${include_child(\'' + newChildTemplateName + '\')}';
+
+								console.log('Match!');
+
+								// If it matches, replace by ${include_child(...)} expression
+
+								//Command.setProperty(template.id, 'content', templateContent.replace(regex, '${include_child(\'' + newChildTemplateName + '\')}\n'));
+
+								let newHTML = templateContent.startsWith('<!DOCTYPE') ? '<!DOCTYPE html>\n' + templateTmpEl.outerHTML : templateTmpEl.querySelector('html > body').innerHTML;
+
+								Command.setProperty(template.id, 'content', newHTML);
+
+								let newTemplateContent = _Pages.designTools.sourceEditor.getValue();
+
+								Command.create({
+									type: 'Template',
+									name: newChildTemplateName,
+									content: newTemplateContent,
+									contentType: 'text/html'
+								}, (newTemplate) => {
+									//console.log('New template created', newTemplate);
+									Command.appendChild(newTemplate.id, template.id);
+								});
+
+							} else {
+								console.log('No match, step down to', template);
+								createChildTemplates(template, templateContent);
+							}
+						});
+
+					}
+				}
+
+
+			};
+
+			document.getElementById('design-tools-create-child-template').addEventListener('click', (e) => {
+				// To create a new template, we must figure out which is the parent template first
+				// Get currently selected page and iterate through the templates to find the corresponding HTML
+				let activePageId = _Pages.previews.activePreviewPageId;
+				Command.get(activePageId, 'id,type,name,children', (pageObj) => {
+					createChildTemplates(pageObj);
+				});
+			});
+
+			const updateUrlHistorySelect = () => {
+				let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
+				fastRemoveAllChildren(urlHistorySelectEl);
+				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option></option>');
+				for (let urlHistoryEntry of (LSWrapper.getItem('design-tools-url-history') || []).reverse()) {
+					urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option>' + urlHistoryEntry + '</option>');
+				}
+			}
+
+			const loadPreviewPage = (url) => {
+				let previewIframe;
+				if (!_Pages.previews.isPreviewActive()) {
+					_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
+					previewIframe = document.querySelector('.previewBox iframe');
+					_Pages.showTabsMenu();
+					previewIframe.onload = () => {
+						_Pages.previews.previewIframeLoaded(previewIframe);
+					};
+				}
+				_Pages.hideAllFunctionBarTabs();
+				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
+				document.querySelector('a[href="#pages:preview"]').click();
+
+				fetch('/structr/proxy?url=' + url)
+					.then(response => response.text())
+					.then(html => {
+						let previewIframe = document.querySelector('.previewBox iframe');
+						previewIframe.addEventListener('load', (e) => {
+
+							let pageName;
+							let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
+							if (pageHref) {
+								let hrefParts = pageHref.split('/');
+								pageName = hrefParts[hrefParts.length-2];
+							}
+							pageNameInput.value = pageName;
+
+							let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
+							pageTemplateNameInput.value = pageTitle;
+						});
+
+						previewIframe.srcdoc = html;
+					});
+			}
+
+			let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
+			urlHistorySelectEl.addEventListener('change', (e) => {
+				let url = e.target.value;
+				urlInput.value = url;
+				loadPreviewPage(url);
+			});
+
+			updateUrlHistorySelect();
+
+			urlInput.addEventListener('keyup', (e) => {
+				let inputElement = e.target;
+				switch (e.key) {
+					case 'Enter':
+
+						let history = LSWrapper.getItem('design-tools-url-history');
+						if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
+							LSWrapper.setItem('design-tools-url-history', (LSWrapper.getItem('design-tools-url-history') || []).concat(inputElement.value));
+						}
+						updateUrlHistorySelect();
+
+						loadPreviewPage(inputElement.value);
+
+						break;
+					default:
+						return;
+				}
+			});
+
+			let sourceEditorTextElement = document.getElementById('design-tool-source-textarea');
+			let sourceEditorConfig = {
+				//value: 'test',
+				language: 'text/html',
+				lint: true,
+				autocomplete: true,
+				autoIndent: 'full',
+				automaticLayout: true,
+				//changeFn: (editor, entity) => { },
+				isAutoscriptEnv: true,
+				//saveFn: saveFunction,
+				//saveFnText: 'SAVE TEXT FÜRS CONTEXT MENU IIRC'
+			};
+
+			let sourceEditorArea = document.getElementById('design-tool-source-editor-area');
+			//let sourceEditor = _Editors.getMonacoEditor({ id: 'dummy-id'}, 'id', $(sourceEditorArea), sourceEditorConfig);
+
+			_Pages.designTools.sourceEditor = monaco.editor.create(sourceEditorArea, sourceEditorConfig);
+
+		}
+	},
+
 	palette: {
 		reload: () => {
 
@@ -2081,8 +2484,8 @@ let _Pages = {
 				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
 
 				_Pages.componentsSlideout.append(`
-					<div id="newComponentDropzone">
-						<div class="new-component-info h-16 flex items-center justify-center">
+					<div id="newComponentDropzone" class="element-dropzone">
+						<div class="info-icon h-16 flex items-center justify-center">
 							<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
 							<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop element here to create a new shared component
 						</div>
@@ -2152,13 +2555,13 @@ let _Pages = {
 				let btn = $('#delete-all-unattached-nodes');
 				btn.on('click', function() {
 					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
-							function() {
-								Command.deleteUnattachedNodes();
-								$.unblockUI({
-									fadeOut: 25
-								});
-								Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						function() {
+							Command.deleteUnattachedNodes();
+							$.unblockUI({
+								fadeOut: 25
 							});
+							Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						});
 				});
 
 				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
@@ -2512,12 +2915,19 @@ let _Pages = {
 			</div>
 			
 			<div class="slideout-activator right" id="paletteTab">
-				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
-					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
-						<path d="M19.629,19.224l-6.89,3.759a1.5,1.5,0,0,1-1.437,0l-6.89-3.759a1.5,1.5,0,0,1-.762-1.07L1.061,2.621A1.5,1.5,0,0,1,2.541.875H21.5a1.5,1.5,0,0,1,1.479,1.746L20.39,18.154A1.494,1.494,0,0,1,19.629,19.224Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M17.27 5.375L6.77 5.375 7.52 9.875 16.52 9.875 15.77 15.875 12.02 18.125 8.27 15.875" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-					</g>
-				</svg>
-				<br>HTML Palette</div>
+				<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">  
+					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><g>
+						<rect x="0.75" y="0.75" width="22.5" height="22.5" rx="1.5" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
+						<rect x="4.25" y="4.25" width="9.5" height="9.5" rx="0.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
+						<rect x="13.25" y="16.25" width="6.5" height="3.5" rx="0.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
+						<line x1="4.25" y1="19.75" x2="7.75" y2="19.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
+						<line x1="4.25" y1="16.75" x2="9.25" y2="16.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
+						<line x1="4.47" y1="4.47" x2="13.53" y2="13.53" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
+						<line x1="13.53" y1="4.47" x2="4.47" y2="13.53" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
+						<line x1="19.75" y1="13.25" x2="19.75" y2="4.5" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
+					  </g></g></svg>
+				<br>Design Tools
+			</div>
 			
 			<div id="palette" class="slideOut slideOutRight">
 				<div id="paletteArea"></div>
@@ -2678,3 +3088,199 @@ let _Pages = {
 		`,
 	}
 };
+
+function findDiff(str1, str2){
+	let diff= "";
+	str2.split('').forEach(function(val, i){
+		if (val != str1.charAt(i))
+			diff += val ;
+	});
+	return diff;
+}
+
+// polyfill for RegExp.escape
+if (!RegExp.escape) {
+	RegExp.escape = function(s) {
+		return String(s).replace(/[\\^$*+?.()|[\]{}]/g, '\\$&');
+	};
+}
+
+var TopLevelObject = {}
+TopLevelObject.DOMNodePathStep = function(value, optimized)
+{
+	this.value = value;
+	this.optimized = optimized || false;
+}
+TopLevelObject.DOMNodePathStep.prototype = {
+	/**
+	 * @override
+	 * @return {string}
+	 */
+	toString: function()
+	{
+		return this.value;
+	}
+}
+TopLevelObject.DOMPresentationUtils = {}
+
+TopLevelObject.DOMPresentationUtils.cssPath = function(node, optimized)
+{
+	if (node.nodeType !== Node.ELEMENT_NODE)
+		return "";
+	var steps = [];
+	var contextNode = node;
+	while (contextNode) {
+		var step = TopLevelObject.DOMPresentationUtils._cssPathStep(contextNode, !!optimized, contextNode === node);
+		if (!step)
+			break; // Error - bail out early.
+		steps.push(step);
+		if (step.optimized)
+			break;
+		contextNode = contextNode.parentNode;
+	}
+	steps.reverse();
+	return steps.join(" > ");
+}
+
+TopLevelObject.DOMPresentationUtils._cssPathStep = function(node, optimized, isTargetNode)
+{
+	if (node.nodeType !== Node.ELEMENT_NODE)
+		return null;
+	var id = node.getAttribute("id");
+	if (optimized) {
+		if (id)
+			return new TopLevelObject.DOMNodePathStep(idSelector(id), true);
+		var nodeNameLower = node.nodeName.toLowerCase();
+		if (nodeNameLower === "body" || nodeNameLower === "head" || nodeNameLower === "html")
+			return new TopLevelObject.DOMNodePathStep(node.tagName.toLowerCase(), true);
+	}
+	var nodeName = node.tagName.toLowerCase();
+	if (id)
+		return new TopLevelObject.DOMNodePathStep(nodeName + idSelector(id), true);
+	var parent = node.parentNode;
+	if (!parent || parent.nodeType === Node.DOCUMENT_NODE)
+		return new TopLevelObject.DOMNodePathStep(nodeName, true);
+	/**
+	 * @param {!TopLevelObject.DOMNode} node
+	 * @return {!Array.<string>}
+	 */
+	function prefixedElementClassNames(node)
+	{
+		var classAttribute = node.getAttribute("class");
+		if (!classAttribute)
+			return [];
+		return classAttribute.split(/\s+/g).filter(Boolean).map(function(name) {
+			// The prefix is required to store "__proto__" in a object-based map.
+			return "$" + name;
+		});
+	}
+	/**
+	 * @param {string} id
+	 * @return {string}
+	 */
+	function idSelector(id)
+	{
+		return "#" + escapeIdentifierIfNeeded(id);
+	}
+	/**
+	 * @param {string} ident
+	 * @return {string}
+	 */
+	function escapeIdentifierIfNeeded(ident)
+	{
+		if (isCSSIdentifier(ident))
+			return ident;
+		var shouldEscapeFirst = /^(?:[0-9]|-[0-9-]?)/.test(ident);
+		var lastIndex = ident.length - 1;
+		return ident.replace(/./g, function(c, i) {
+			return ((shouldEscapeFirst && i === 0) || !isCSSIdentChar(c)) ? escapeAsciiChar(c, i === lastIndex) : c;
+		});
+	}
+	/**
+	 * @param {string} c
+	 * @param {boolean} isLast
+	 * @return {string}
+	 */
+	function escapeAsciiChar(c, isLast)
+	{
+		return "\\" + toHexByte(c) + (isLast ? "" : " ");
+	}
+	/**
+	 * @param {string} c
+	 */
+	function toHexByte(c)
+	{
+		var hexByte = c.charCodeAt(0).toString(16);
+		if (hexByte.length === 1)
+			hexByte = "0" + hexByte;
+		return hexByte;
+	}
+	/**
+	 * @param {string} c
+	 * @return {boolean}
+	 */
+	function isCSSIdentChar(c)
+	{
+		if (/[a-zA-Z0-9_-]/.test(c))
+			return true;
+		return c.charCodeAt(0) >= 0xA0;
+	}
+	/**
+	 * @param {string} value
+	 * @return {boolean}
+	 */
+	function isCSSIdentifier(value)
+	{
+		return /^-?[a-zA-Z_][a-zA-Z0-9_-]*$/.test(value);
+	}
+	var prefixedOwnClassNamesArray = prefixedElementClassNames(node);
+	var needsClassNames = false;
+	var needsNthChild = false;
+	var ownIndex = -1;
+	var elementIndex = -1;
+	var siblings = parent.children;
+	for (var i = 0; (ownIndex === -1 || !needsNthChild) && i < siblings.length; ++i) {
+	var sibling = siblings[i];
+	if (sibling.nodeType !== Node.ELEMENT_NODE)
+		continue;
+	elementIndex += 1;
+	if (sibling === node) {
+		ownIndex = elementIndex;
+		continue;
+	}
+	if (needsNthChild)
+		continue;
+	if (sibling.tagName.toLowerCase() !== nodeName)
+		continue;
+	needsClassNames = true;
+	var ownClassNames = prefixedOwnClassNamesArray.values();
+	var ownClassNameCount = 0;
+	for (var name in ownClassNames)
+		++ownClassNameCount;
+	if (ownClassNameCount === 0) {
+		needsNthChild = true;
+		continue;
+	}
+	var siblingClassNamesArray = prefixedElementClassNames(sibling);
+	for (var j = 0; j < siblingClassNamesArray.length; ++j) {
+		var siblingClass = siblingClassNamesArray[j];
+		if (!ownClassNames.hasOwnProperty(siblingClass))
+			continue;
+		delete ownClassNames[siblingClass];
+		if (!-ownClassNameCount) {
+			needsNthChild = true;
+			break;
+		}
+	}
+}
+	var result = nodeName;
+	if (isTargetNode && nodeName.toLowerCase() === "input" && node.getAttribute("type") && !node.getAttribute("id") && !node.getAttribute("class"))
+		result += "[type=\"" + node.getAttribute("type") + "\"]";
+	if (needsNthChild) {
+		result += ":nth-child(" + (ownIndex + 1) + ")";
+	} else if (needsClassNames) {
+		for (var prefixedName in prefixedOwnClassNamesArray.values())
+			result += "." + escapeIdentifierIfNeeded(prefixedName.substr(1));
+	}
+	return new TopLevelObject.DOMNodePathStep(result, false);
+}

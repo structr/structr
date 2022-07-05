@@ -262,7 +262,7 @@ public class AuthHelper {
 
 			if (user.addSessionId(sessionId)) {
 
-				AuthHelper.sendLoginNotification(user);
+				AuthHelper.sendLoginNotification(user, request);
 
 			} else {
 
@@ -289,31 +289,31 @@ public class AuthHelper {
 
 		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
 
-		AuthHelper.sendLogoutNotification(user);
+		AuthHelper.sendLogoutNotification(user, request);
 	}
 
-	public static void sendLoginNotification (final Principal user) throws FrameworkException {
+	public static void sendLoginNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
 
 		try {
 
 			final Map<String, Object> params = new HashMap<>();
 			params.put("user", user);
 
-			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params);
+			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGIN, params, request);
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
 		}
 	}
 
-	public static void sendLogoutNotification (final Principal user) throws FrameworkException {
+	public static void sendLogoutNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {
 
 		try {
 
 			final Map<String, Object> params = new HashMap<>();
 			params.put("user", user);
 
-			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params);
+			Actions.callAsSuperUser(Actions.NOTIFICATION_LOGOUT, params, request);
 
 		} catch (UnlicensedScriptException ex) {
 				ex.log(logger);

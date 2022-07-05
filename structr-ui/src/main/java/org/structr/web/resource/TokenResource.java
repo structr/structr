@@ -35,7 +35,6 @@ import java.util.Map;
 
 public class TokenResource extends LoginResource {
 
-
     @Override
     public String getErrorMessage() {
         return JWTHelper.TOKEN_ERROR_MSG;
@@ -53,6 +52,7 @@ public class TokenResource extends LoginResource {
 
     @Override
     protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+
         Principal user = null;
 
         user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
@@ -78,7 +78,7 @@ public class TokenResource extends LoginResource {
 
                 if (sendLoginNotification) {
 
-                    AuthHelper.sendLoginNotification(user);
+                    AuthHelper.sendLoginNotification(user, securityContext.getRequest());
                 }
 
                 return doLogin(securityContext, user);
