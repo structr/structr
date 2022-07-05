@@ -18,7 +18,6 @@
  */
 package org.structr.web.entity;
 
-import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import java.io.BufferedReader;
@@ -32,6 +31,8 @@ import java.io.Reader;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -438,7 +439,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			boolean versionChanged = false;
 			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
 
-				if (getUuid().equals(modState.getUuid())) {
+				if (thisFile.getUuid().equals(modState.getUuid())) {
 
 					versionChanged = versionChanged ||
 							modState.getRemovedProperties().containsKey(versionKey) ||
@@ -498,7 +499,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 						String encoding = "UTF-8";
 
-						final String cType = getContentType();
+						final String cType = thisFile.getContentType();
 						if (cType != null) {
 
 							final String charset = StringUtils.substringAfterLast(cType, "charset=").trim().toUpperCase();
@@ -783,7 +784,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		int separator[]           = new int[10];
 		int separatorLength       = 0;
 
-		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(getInputStream(), "utf-8"))) {
+		try (final BufferedReader reader = new BufferedReader(new InputStreamReader(thisFile.getInputStream(), "utf-8"))) {
 
 			int[] buf = new int[10010];
 
@@ -895,7 +896,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
 
-				Files.move(previousFile, newFile);
+				Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
 
 			} catch (IOException ioex) {
 				logger.error(ExceptionUtils.getStackTrace(ioex));
