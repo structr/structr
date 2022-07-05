@@ -374,9 +374,9 @@ let _Crud = {
 		});
 	},
 	messageTimeout: undefined,
-	showLoadingMessageAfterDelay: function (message, delay) {
+	showLoadingMessageAfterDelay: (message, delay) => {
 
-		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')} ${message} - please stand by`, delay);
+		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
 
 	},
 	showMessageAfterDelay: (message, delay) => {
