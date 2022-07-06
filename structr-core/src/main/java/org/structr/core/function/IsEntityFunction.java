@@ -22,6 +22,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
 
 public class IsEntityFunction extends CoreFunction {
@@ -45,7 +46,7 @@ public class IsEntityFunction extends CoreFunction {
 
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
-			return (sources[0] instanceof GraphObject);
+			return (sources[0] instanceof GraphObject) && !(sources[0] instanceof SuperUser);
 
 		} catch (ArgumentNullException pe) {
 

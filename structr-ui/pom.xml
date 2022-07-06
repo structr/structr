@@ -281,7 +281,7 @@
 		<dependency>
 			<groupId>com.google.javascript</groupId>
 			<artifactId>closure-compiler</artifactId>
-			<version>v20180101</version>
+			<version>v20220601</version>
 		</dependency>
 		<dependency>
 			<groupId>net.openhft</groupId>

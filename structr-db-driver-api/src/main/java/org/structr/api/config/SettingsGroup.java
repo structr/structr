@@ -71,9 +71,6 @@ public class SettingsGroup {
 		final Tag container = tabContainer.block("div").css("tab-content").id(key);
 
 		render(container);
-
-		// stop floating
-		container.block("div").attr(new Attr("style", "clear: both;"));
 	}
 
 	public void render(final Tag parent) {
