@@ -115,6 +115,8 @@ public interface User extends Principal {
 
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
 		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");
+
+		user.addViewProperty(PropertyView.Ui, "lastLoginDate");
 	}}
 
 	String getLocalStorage();
