@@ -931,7 +931,7 @@ let _Entities = {
 				if (queryType.propertyName === 'flow' && entity[queryType.propertyName]) {
 
 					el.querySelector('button.' + queryType.propertyName).click();
-					flowSelector.value = entity[queryType.propertyName];
+					flowSelector.value = entity[queryType.propertyName].id;
 
 				} else if (entity[queryType.propertyName] && entity[queryType.propertyName].trim() !== "") {
 
