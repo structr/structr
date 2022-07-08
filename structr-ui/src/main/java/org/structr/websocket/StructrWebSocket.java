@@ -84,7 +84,6 @@ public class StructrWebSocket implements WebSocketListener {
 		this.syncController = syncController;
 		this.gson           = gson;
 		this.authenticator  = authenticator;
-
 	}
 
 	public void setRequest(final HttpServletRequest request) {
@@ -405,7 +404,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final String uuid = file.getProperty(GraphObject.id);
 
-		uploads.put(uuid, new FileUploadHandler(file, true));
+		uploads.put(uuid, new FileUploadHandler(file, securityContext, true));
 	}
 
 	public void removeFileUploadHandler(final String uuid) {
@@ -423,7 +422,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (file != null) {
 
-				newHandler = new FileUploadHandler(file, false);
+				newHandler = new FileUploadHandler(file, securityContext, false);
 
 				//uploads.put(uuid, newHandler);
 			}

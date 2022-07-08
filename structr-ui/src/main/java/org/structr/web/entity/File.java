@@ -156,7 +156,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
 		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
-		type.overrideMethod("callOnUploadHandler",         false, File.class.getName() + ".callOnUploadHandler(this);");
+		type.overrideMethod("callOnUploadHandler",         false, File.class.getName() + ".callOnUploadHandler(this, arg0);");
 		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
@@ -277,7 +277,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	boolean isTemplate();
 
 	void notifyUploadCompletion();
-	void callOnUploadHandler();
+	void callOnUploadHandler(final SecurityContext ctx);
 	void increaseVersion() throws FrameworkException;
 	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
 
@@ -401,11 +401,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		}
 	}
 
-	static void callOnUploadHandler(final File thisFile) {
+	static void callOnUploadHandler(final File thisFile, final SecurityContext ctx) {
 
-		try {
+		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-			thisFile.invokeMethod(thisFile.getSecurityContext(), "onUpload", Collections.emptyMap(), false, new EvaluationHints());
+			thisFile.invokeMethod(ctx, "onUpload", Collections.emptyMap(), false, new EvaluationHints());
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
