@@ -356,6 +356,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						// upload trigger
 						newFile.notifyUploadCompletion();
 
+						newFile.callOnUploadHandler();
+
 						// store uuid
 						uuid = newFile.getUuid();
 					}

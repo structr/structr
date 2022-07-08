@@ -119,6 +119,8 @@ public class FileUploadHandler {
 
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
+
+				file.callOnUploadHandler();
 			}
 
 		} catch (IOException e) {
