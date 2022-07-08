@@ -405,14 +405,12 @@ public class StructrWebSocket implements WebSocketListener {
 
 		final String uuid = file.getProperty(GraphObject.id);
 
-		uploads.put(uuid, new FileUploadHandler(file));
-
+		uploads.put(uuid, new FileUploadHandler(file, true));
 	}
 
 	public void removeFileUploadHandler(final String uuid) {
 
 		uploads.remove(uuid);
-
 	}
 
 	private FileUploadHandler handleExistingFile(final String uuid) {
@@ -425,7 +423,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 			if (file != null) {
 
-				newHandler = new FileUploadHandler(file);
+				newHandler = new FileUploadHandler(file, false);
 
 				//uploads.put(uuid, newHandler);
 			}
@@ -433,11 +431,9 @@ public class StructrWebSocket implements WebSocketListener {
 		} catch (FrameworkException ex) {
 
 			logger.warn("File not found with id " + uuid, ex);
-
 		}
 
 		return newHandler;
-
 	}
 
 	public void handleFileChunk(final String uuid, final int sequenceNumber, final int chunkSize, final byte[] data, final int chunks) throws IOException {
@@ -452,9 +448,7 @@ public class StructrWebSocket implements WebSocketListener {
 		if (upload != null) {
 
 			upload.handleChunk(sequenceNumber, chunkSize, data, chunks);
-
 		}
-
 	}
 
 	private void authenticate(final String sessionId, final boolean isPing) {
@@ -492,9 +486,7 @@ public class StructrWebSocket implements WebSocketListener {
 			} catch (FrameworkException ex) {
 				logger.warn("FXE", ex);
 			}
-
 		}
-
 	}
 
 	public static void addCommand(final Class command) {
@@ -508,64 +500,53 @@ public class StructrWebSocket implements WebSocketListener {
 		} catch (Throwable t) {
 
 			logger.error("Unable to add command {}", command.getName());
-
 		}
-
 	}
 
 	public Session getSession() {
 
 		return session;
-
 	}
 
 	public HttpServletRequest getRequest() {
 
 		return request;
-
 	}
 
 	public Principal getCurrentUser() {
 
 		return (securityContext == null ? null : securityContext.getUser(false));
-
 	}
 
 	public SecurityContext getSecurityContext() {
 
 		return securityContext;
-
 	}
 
 	public String getPagePath() {
 
 		return pagePath;
-
 	}
 
 	public boolean isAuthenticated() {
 
 		final Principal user = getCurrentUser();
 		return (!timedOut && user != null && isPrivilegedUser(user));
-
 	}
 
 	public boolean isPrivilegedUser(Principal user) {
 
 		return (user != null && user.isAdmin());
-
 	}
 
 	public Authenticator getAuthenticator() {
 
 		return authenticator;
-
 	}
 
 	public void invalidateConsole() {
 
 		this.console = null;
-
 	}
 
 	public Console getConsole(final ConsoleMode mode) {
@@ -608,6 +589,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 	@Override
 	public void onWebSocketError(final Throwable t) {
-		logger.debug("Error in StructrWebSocket occured", t);
+		logger.debug("Error in StructrWebSocket occurred", t);
 	}
 }

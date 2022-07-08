@@ -28,22 +28,20 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.File;
 
-/**
- *
- *
- */
 public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
-	private File file                  = null;
+	private File file                      = null;
 	private FileChannel privateFileChannel = null;
 	private Long size                      = 0L;
+	private boolean isCreation             = false;
 
-	public FileUploadHandler(final File file) {
+	public FileUploadHandler(final File file, final boolean isCreation) {
 
-		this.size = file.getSize();
-		this.file = file;
+		this.size       = file.getSize();
+		this.file       = file;
+		this.isCreation = isCreation;
 
 		if (this.size == null) {
 
@@ -120,7 +118,10 @@ public class FileUploadHandler {
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
 
-				file.callOnUploadHandler();
+				if (this.isCreation == true) {
+
+					file.callOnUploadHandler();
+				}
 			}
 
 		} catch (IOException e) {
