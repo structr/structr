@@ -2859,15 +2859,15 @@ let _Pages = {
 						<div class="dropdown-menu-container">
 						
 							<div class="flex flex-col divide-x-0 divide-y">
-								<a id="create_page" title="Create Page" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Page
 								</a>
 								
-								<a id="import_page" title="Import Template" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('file_add', 16, 16, 'mr-2')} Import Page
 								</a>
 								
-								<!--a id="add_template" title="Add Template" class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('magic_wand')} Add Template
 								</a-->
 							</div>

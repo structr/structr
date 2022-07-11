@@ -262,6 +262,7 @@ public class AuthHelper {
 
 			if (user.addSessionId(sessionId)) {
 
+				AuthHelper.updateLastLoginDate(user);
 				AuthHelper.sendLoginNotification(user, request);
 
 			} else {
@@ -290,6 +291,20 @@ public class AuthHelper {
 		RuntimeEventLog.logout("Logout", Map.of("id", user.getUuid(), "name", user.getName()));
 
 		AuthHelper.sendLogoutNotification(user, request);
+	}
+
+	public static void updateLastLoginDate(final Principal user) throws FrameworkException {
+
+		try {
+
+			final PropertyKey<Date> lastLoginDateKey = StructrApp.key(Principal.class, "lastLoginDate");
+
+			user.setProperty(lastLoginDateKey, new Date());
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Exception while updating last login date", fex);
+		}
 	}
 
 	public static void sendLoginNotification (final Principal user, final HttpServletRequest request) throws FrameworkException {

@@ -86,6 +86,9 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.addPropertySetter("passwordAttempts", Integer.class);
 		principal.addPropertyGetter("passwordAttempts", Integer.class);
 
+		principal.addDateProperty("lastLoginDate");
+		principal.addPropertySetter("lastLoginDate", Date.class);
+		principal.addPropertyGetter("lastLoginDate", Date.class);
 
 		// Two Factor Authentication
 		principal.addStringProperty("twoFactorSecret");
@@ -142,7 +145,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		principal.overrideMethod("addRefreshToken",                 false, "return " + Principal.class.getName() + ".addRefreshToken(this, arg0);");
 
 		principal.overrideMethod("removeSessionId",                 false, Principal.class.getName() + ".removeSessionId(this, arg0);");
-		principal.overrideMethod("removeRefreshToken",                 false, Principal.class.getName() + ".removeRefreshToken(this, arg0);");
+		principal.overrideMethod("removeRefreshToken",              false, Principal.class.getName() + ".removeRefreshToken(this, arg0);");
 
 		principal.overrideMethod("onAuthenticate",                  false, "");
 

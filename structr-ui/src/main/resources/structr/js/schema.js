@@ -3502,28 +3502,19 @@ let _Schema = {
 
 			let addedMethodsCounter = 1;
 
-			let getRawNewMethod = (name) => {
-				return {
-					name: _Schema.methods.getFirstFreeMethodName(name),
-					id: 'new' + (addedMethodsCounter++)
-				};
-			};
+			for (let addMethodButton of el[0].querySelectorAll('.add-method-button')) {
 
-			el[0].querySelector('.add-action-button').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''), entity);
-			});
+				addMethodButton.addEventListener('click', () => {
 
-			el[0].querySelector('.add-onCreate-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'), entity);
-			});
+					let prefix           = addMethodButton.dataset['prefix'] || '';
+					let baseMethodConfig = {
+						name: _Schema.methods.getFirstFreeMethodName(prefix),
+						id: 'new' + (addedMethodsCounter++)
+					};
 
-			el[0].querySelector('.add-afterCreate-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'), entity);
-			});
-
-			el[0].querySelector('.add-onSave-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'), entity);
-			});
+					_Schema.methods.appendNewMethod(fakeTbody, baseMethodConfig, entity);
+				});
+			}
 
 			Structr.activateCommentsInElement(el[0], { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
 		},
@@ -5702,24 +5693,27 @@ let _Schema = {
 				</button>
 				<div class="dropdown-menu-container">
 					<div class="flex flex-col divide-x-0 divide-y">
-						<a class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+						<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
 						</a>
-						<a class="add-onCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
 						</a>
-						<a class="add-afterCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
+						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
 						</a>
-						<a class="add-onSave-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
+						</a>
+						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
 					</div>
 				</div>
 			</div>
 		`,
 		addMethodDropdown: config => `
-			<button class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
+			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
 				${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
 			</button>
 		`,
