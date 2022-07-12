@@ -136,6 +136,7 @@ public class Importer {
 	private URL originalUrl;
 	private String address;
 	private String code;
+	private String tableChildElement;
 
 	private Map<String, Linkable> alreadyDownloaded = new HashMap<>();
 
@@ -233,14 +234,7 @@ public class Importer {
 
 		if (StringUtils.isNotBlank(code)) {
 
-			if (!isDeployment) {
-
-				// do we need this?
-				if (name != null) {
-					logger.info("##### Start parsing code for page {} #####", name);
-				}
-
-			} else {
+			if (isDeployment) {
 
 				// a trailing slash to all void/self-closing tags so the XML parser can parse it correctly
 				code = code.replaceAll("<(area|base|br|col(?!group)|command|embed|hr|img|input|keygen|link|meta|param|source|track|wbr)([^>]*)>", "<$1$2/>");
@@ -265,7 +259,33 @@ public class Importer {
 
 				} else {
 
-					parsedDocument = Jsoup.parseBodyFragment(code);
+					final Matcher matcher = Pattern.compile("^\\s*<(thead|tbody|caption|colgroup|th|tr|tfoot).*", Pattern.CASE_INSENSITIVE).matcher(code);
+
+					if (matcher.matches()) {
+
+						// if outermost tag is a table element so use <table> as context element
+						parsedDocument      = Document.createShell("");
+						final Element body  = parsedDocument.body();
+						final Element table = body.appendElement("table");
+
+						final List<Node> nodeList = Parser.parseFragment(code, table, "");
+						final Node[] nodes        = nodeList.toArray(new Node[nodeList.size()]);
+
+						for (int i = nodes.length - 1; i > 0; i--) {
+							nodes[i].remove();
+						}
+
+						for (Node node : nodes) {
+							table.appendChild(node);
+						}
+
+						tableChildElement = matcher.group(1);
+
+					} else {
+
+						parsedDocument = Jsoup.parseBodyFragment(code);
+					}
+
 				}
 
 			} else {
@@ -413,6 +433,10 @@ public class Importer {
 
 	public Map<DOMNode, PropertyMap> getDeferredNodesAndTheirProperties() {
 		return this.deferredNodesAndTheirProperties;
+	}
+
+	public String getTableChildElement() {
+		return tableChildElement;
 	}
 
 	public void retainHullOnly() {
