@@ -981,9 +981,9 @@ let _Entities = {
 			_Editors.resizeVisibleEditors();
 		}
 	},
-	editEmptyDiv: function(entity) {
+	editEmptyDiv: (entity) => {
 
-		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', function () {}, function () {}, ['popup-dialog-with-editor']);
+		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', () => {}, () => {}, ['popup-dialog-with-editor']);
 		dialog.append('<div class="editor h-full"></div>');
 		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
@@ -1021,7 +1021,7 @@ let _Entities = {
 					saveAndClose.classList.remove('disabled');
 				}
 			},
-			saveFn: (editor, entity) => {
+			saveFn: (editor, entity, close = false) => {
 
 				let text1 = initialText || '';
 				let text2 = editor.getValue();
@@ -1030,24 +1030,27 @@ let _Entities = {
 					return;
 				}
 
-				Command.patch(entity.id, text1, text2, function () {
+				Command.patch(entity.id, text1, text2, () => {
 
 					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					saveButton.disabled = true;
-					saveButton.classList.add('disabled')
+					dialogSaveButton.disabled = true;
+					dialogSaveButton.classList.add('disabled')
 
-					Command.getProperty(entity.id, 'content', function (newText) {
+					Command.getProperty(entity.id, 'content', (newText) => {
 						initialText = newText;
 					});
 				});
-				Command.saveNode(`<div data-structr-hash="${entity.id}">${editor.getValue()}</div>`, entity.id, function() {
+				Command.saveNode(`<div data-structr-hash="${entity.id}">${editor.getValue()}</div>`, entity.id, () => {
+
 					Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 					if (_Entities.isExpanded(Structr.node(entity.id))) {
 						$('.expand_icon_svg', Structr.node(entity.id)).click().click();
 					}
 
-					dialogCancelButton.click();
+					if (close === true) {
+						dialogCancelButton.click();
+					}
 				});
 			}
 		};
@@ -1056,18 +1059,16 @@ let _Entities = {
 
 		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
 
-		Structr.resize();
+		dialogSaveButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+
+			emptyDivMonacoConfig.saveFn(editor, entity);
+		});
 
 		saveAndClose.addEventListener('click', (e) => {
 			e.stopPropagation();
 
-			emptyDivMonacoConfig.saveFn(editor, entity);
-
-			setTimeout(function() {
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				dialogCancelButton.click();
-			}, 500);
+			emptyDivMonacoConfig.saveFn(editor, entity, true);
 		});
 
 		Structr.resize();
