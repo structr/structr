@@ -229,6 +229,14 @@ public class ActionContext {
 		return getContextStore().getHeaders();
 	}
 
+	public void setValidateCertificates(final boolean validate) {
+		getContextStore().setValidateCertificates(validate);
+	}
+
+	public boolean isValidateCertificates() {
+		return getContextStore().isValidateCertificates();
+	}
+
 	public AdvancedMailContainer getAdvancedMailContainer() {
 		return getContextStore().getAdvancedMailContainer();
 	}

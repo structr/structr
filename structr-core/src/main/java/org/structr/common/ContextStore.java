@@ -47,6 +47,7 @@ public class ContextStore {
 	protected String sortKey                            = null;
 	protected int queryRangeStart                       = -1;
 	protected int queryRangeEnd                         = -1;
+	protected boolean validateCertificates              = true;
 
 	public ContextStore () {
 	}
@@ -78,6 +79,14 @@ public class ContextStore {
 		return headers;
 	}
 
+	// --- Headers ---
+	public void setValidateCertificates(final boolean validate) {
+		validateCertificates = validate;
+	}
+
+	public boolean isValidateCertificates() {
+		return validateCertificates;
+	}
 
 	// --- Constants ---
 	public Object getConstant(final String name) {
