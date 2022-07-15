@@ -64,7 +64,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 				charset = sources[3].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset);
+			final Map<String, String> responseData = HttpHelper.post(uri, body, null, null, ctx.getHeaders(), charset, ctx.isValidateCertificates());
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");

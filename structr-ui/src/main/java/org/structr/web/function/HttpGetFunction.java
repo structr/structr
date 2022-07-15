@@ -101,7 +101,7 @@ public class HttpGetFunction extends UiAdvancedFunction {
 				//long t0 = System.currentTimeMillis();
 				if ("text/html".equals(contentType)) {
 
-					final Document doc = Jsoup.parse(HttpHelper.get(address, charset, ctx.getHeaders()));
+					final Document doc = Jsoup.parse(HttpHelper.get(address, charset, ctx.getHeaders(), ctx.isValidateCertificates()));
 
 					if (sources.length > 2) {
 
