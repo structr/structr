@@ -84,6 +84,7 @@ import org.structr.schema.compiler.RemoveClassesWithUnknownSymbols;
 import org.structr.schema.compiler.RemoveDuplicateClasses;
 import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
 import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
+import org.structr.schema.compiler.RemoveFileSetPropertiesMethodWithoutParameters;
 import org.structr.schema.export.StructrSchema;
 
 /**
@@ -110,6 +111,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveDuplicateClasses());
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
 		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
+		migrationHandlers.add(new RemoveFileSetPropertiesMethodWithoutParameters());
 	}
 
 	@Override

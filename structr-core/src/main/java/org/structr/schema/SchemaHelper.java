@@ -1099,6 +1099,7 @@ public class SchemaHelper {
 
 	public static void extractMethods(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, final Map<String, List<ActionEntry>> actions) throws FrameworkException {
 
+		final App app                             = StructrApp.getInstance();
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
@@ -1110,7 +1111,6 @@ public class SchemaHelper {
 				if (entity instanceof AbstractSchemaNode) {
 
 					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
-					final App app                       = StructrApp.getInstance();
 					final String methodName             = rawActionName.substring(3);
 
 					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
