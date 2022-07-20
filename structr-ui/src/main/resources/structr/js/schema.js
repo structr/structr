@@ -348,7 +348,7 @@ let _Schema = {
 		dialogMeta.hide();
 		Command.get(id, null, (entity) => {
 
-			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
+			let title = (entity.type === "SchemaRelationshipNode") ? `(:${_Schema.nodeData[entity.sourceId].name})-[:${entity.relationshipType}]-&gt;(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
 				_Schema.currentNodeDialogId = null;
@@ -1004,6 +1004,9 @@ let _Schema = {
 						updateChangeStatus();
 					});
 				});
+			}
+
+			if (entity?.extendsClass?.id) {
 
 				tabContent[0].querySelector('.edit-parent-type')?.addEventListener('click', async () => {
 
