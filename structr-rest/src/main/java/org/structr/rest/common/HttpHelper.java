@@ -18,7 +18,9 @@
  */
 package org.structr.rest.common;
 
+import java.awt.*;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
@@ -260,22 +262,22 @@ public class HttpHelper {
 			return IOUtils.toByteArray(getAsStream(address, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers));
 
 		} catch (final Throwable t) {
-			logger.error("Error while dowloading binary data from " + address, t);
-			throw new FrameworkException(422, "Unable to fetch binary data from address " + address + ": " + t.getMessage(), t);
+			logger.error("Error while downloading binary data from " + address, t);
+			throw new FrameworkException(422, "Error while downloading binary data from " + address + ": " + t.getMessage(), t);
 		}
 	}
 
-	public static Map<String, String> head(final String address, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> head(final String address, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return head(address, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, String> head(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> head(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return head(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, String> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> head(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		final Map<String, String> responseHeaders = new HashMap<>();
 
@@ -297,17 +299,18 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 
 			logger.error("Unable to get headers from address {}, {}", new Object[] { address, t.getMessage() });
+			throw new FrameworkException(422, "Unable to get headers from address " + address + ": " + t.getMessage(), t);
 		}
 
 		return responseHeaders;
 	}
 
-	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		return patch(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
-	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> patch(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		final Map<String, String> responseData = new HashMap<>();
 
@@ -346,38 +349,39 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+			logger.error("Unable to issue PATCH request to address {}, {}", new Object[] { address, t.getMessage() });
+			throw new FrameworkException(422, "Unable to issue PATCH request to address " + address + ": " + t.getMessage(), t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody) {
+	public static Map<String, String> post(final String address, final String requestBody)	throws FrameworkException {
 
 		return post(address, requestBody, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates)	throws FrameworkException {
 
 		return post(address, requestBody, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates)	throws FrameworkException {
 
 		return post(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> post(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates)	throws FrameworkException {
 
 		return post(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates)	throws FrameworkException {
 
 		return post(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates);
 	}
 
-	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> post(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		final Map<String, String> responseData = new HashMap<>();
 
@@ -406,33 +410,34 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+			logger.error("Unable to issue POST request to address {}, {}", new Object[] { address, t.getMessage() });
+			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getMessage(), t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody) {
+	public static Map<String, String> put(final String address, final String requestBody) throws FrameworkException {
 		return put(address, requestBody, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 		return put(address, requestBody, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 		return put(address, requestBody, username, password, null, null, null, null, headers, charset, validateCertificates);
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> put(final String address, final String requestBody, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 		return put(address, requestBody, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 		return put(address, requestBody, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, "UTF-8", validateCertificates);
 	}
 
-	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) {
+	public static Map<String, String> put(final String address, final String requestBody, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final String charset, final boolean validateCertificates) throws FrameworkException {
 
 		final Map<String, String> responseData = new HashMap<>();
 
@@ -461,28 +466,29 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to fetch content from address {}, {}", new Object[] { address, t.getMessage() });
+			logger.error("Unable to issue PUT request to address {}, {}", new Object[] { address, t.getMessage() });
+			throw new FrameworkException(422, "Unable to issue PUT request to address " + address + ": " + t.getMessage(), t);
 		}
 
 		return responseData;
 	}
 
-	public static Map<String, String> delete(final String address) {
+	public static Map<String, String> delete(final String address) throws FrameworkException {
 
 		return delete(address, null, null, null, null, Collections.EMPTY_MAP, true);
 	}
 
-	public static Map<String, String> delete(final String address, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> delete(final String address, final String username, final String password, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return delete(address, username, password, null, null, null, null, headers, validateCertificates);
 	}
 
-	public static Map<String, String> delete(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> delete(final String address, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		return delete(address, null, null, proxyUrl, proxyUsername, proxyPassword, cookie, headers, validateCertificates);
 	}
 
-	public static Map<String, String> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) {
+	public static Map<String, String> delete(final String address, final String username, final String password, final String proxyUrl, final String proxyUsername, final String proxyPassword, final String cookie, final Map<String, String> headers, final boolean validateCertificates) throws FrameworkException {
 
 		final Map<String, String> responseData = new HashMap<>();
 
@@ -510,6 +516,7 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 
 			logger.error("Unable to issue DELETE command to address {}, {}", new Object[] { address, t.getMessage() });
+			throw new FrameworkException(422, "Unable to issue DELETE command to address " + address + ": " + t.getMessage(), t);
 		}
 
 		return responseData;
@@ -541,7 +548,6 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 
 			logger.error("Unable to get content stream from address {}, {}", new Object[] { address, t.getMessage() });
-
 		}
 
 		return null;
