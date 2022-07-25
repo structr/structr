@@ -32,6 +32,7 @@ import org.structr.api.service.RunnableService;
 import org.structr.api.service.ServiceDependency;
 import org.structr.api.service.ServiceResult;
 import org.structr.api.service.StructrServices;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.Services;
@@ -115,10 +116,12 @@ public class CronService extends Thread implements RunnableService {
 
 									} else {
 
-										try (final Tx tx = StructrApp.getInstance().tx()) {
+										SecurityContext superUserSecurityContext = SecurityContext.getSuperUserInstance();
+
+										try (final Tx tx = StructrApp.getInstance(superUserSecurityContext).tx()) {
 
 											// check for schema method with the given name
-											Actions.callAsSuperUser(taskClassName, Collections.EMPTY_MAP);
+											Actions.callWithSecurityContext(taskClassName, superUserSecurityContext, Collections.EMPTY_MAP);
 
 											tx.success();
 										}
