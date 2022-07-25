@@ -168,7 +168,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 					} else {
 
 						// probably an error case where migration to predicates was forgotten
-						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "'. If a single parameter is given, it must be of type Map, UUID or Advanced Find Predicate! Maybe a missing migration of advanced find to predicates? Returning null.");
+						throw new FrameworkException(422, getReplacement() + ": Invalid parameter '" + uuid + "', returning null. If a single parameter is given, it must be of type Map, UUID or Advanced Find predicate. Maybe a missing migration of Advanced Find to predicates?");
 					}
 				}
 			}

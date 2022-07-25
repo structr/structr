@@ -40,6 +40,7 @@ let _Schema = {
 	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
 	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
+	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
 	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
@@ -57,6 +58,8 @@ let _Schema = {
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
 			Structr.mainContainer.innerHTML = _Schema.templates.main();
+			Structr.activateCommentsInElement(Structr.mainContainer);
+
 			_Schema.inheritanceSlideout     = $('#inheritance-tree');
 			_Schema.inheritanceTree         = $('#inheritance-tree-container');
 			_Schema.ui.canvas               = $('#schema-graph');
@@ -348,7 +351,7 @@ let _Schema = {
 		dialogMeta.hide();
 		Command.get(id, null, (entity) => {
 
-			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
+			let title = (entity.type === "SchemaRelationshipNode") ? `(:${_Schema.nodeData[entity.sourceId].name})-[:${entity.relationshipType}]-&gt;(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
 				_Schema.currentNodeDialogId = null;
@@ -1004,6 +1007,9 @@ let _Schema = {
 						updateChangeStatus();
 					});
 				});
+			}
+
+			if (entity?.extendsClass?.id) {
 
 				tabContent[0].querySelector('.edit-parent-type')?.addEventListener('click', async () => {
 
@@ -4684,6 +4690,10 @@ let _Schema = {
 		let classnameToId   = {};
 		let schemaNodesById = {};
 
+		let searchInheritanceTypesInput = document.querySelector('#search-types');
+		let showBuiltinTypesCheckbox    = document.querySelector('#show-builtin-types');
+		let showBuiltinTypes            = showBuiltinTypesCheckbox.checked;
+
 		let insertClassInClassTree = (classObj, tree) => {
 			let classes = Object.keys(tree);
 
@@ -4712,7 +4722,8 @@ let _Schema = {
 
 		let printClassTree = ($elem, classTree) => {
 
-			let classes = Object.keys(classTree).sort();
+			let requiredTypes = 0;
+			let classes       = Object.keys(classTree).sort();
 
 			if (classes.length > 0) {
 
@@ -4730,19 +4741,31 @@ let _Schema = {
 						</div>
 					`;
 
-					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
-					let $newLi = $(`
-						<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">
-							${classname}${icons}
-						</li>
-					`).appendTo($newUl);
+					let $newLi               = $(`<li data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
+					let requiredSubTypeCount = printClassTree($newLi, classTree[classname]);
+					let iconId               = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
 
-					printClassTree($newLi, classTree[classname]);
+					let data = {
+						opened: true,
+						hidden: (showBuiltinTypes === false && isCustomType === false && requiredSubTypeCount === 0),
+						icon: _Icons.jstree_fake_icon,
+						svgIcon: _Icons.getSvgIcon(iconId, 16, 24),
+						requiredIfBuiltinTypesHidden: (isCustomType || requiredSubTypeCount > 0),
+						subs: requiredSubTypeCount
+					};
+
+					if (isCustomType || requiredSubTypeCount > 0) {
+						requiredTypes++;
+					}
+
+					$newLi[0].dataset['jstree'] = JSON.stringify(data);
 				}
 			}
+
+			return requiredTypes;
 		};
 
-		let getParentClassName = function (str) {
+		let getParentClassName = (str) => {
 			if (str.slice(-1) === '>') {
 				let res = str.match("([^<]*)<([^>]*)>");
 				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
@@ -4783,10 +4806,13 @@ let _Schema = {
 
 		let eventsInitialized = false;
 		let initEvents = (force = false) => {
+
 			if (eventsInitialized === false || force === true) {
+
 				eventsInitialized = true;
 
 				for (let editIcon of document.querySelectorAll('#inheritance-tree .edit-type-icon')) {
+
 					editIcon.addEventListener('click', () => {
 						let nodeId = editIcon.closest('li').dataset['id'];
 						if (nodeId) {
@@ -4817,49 +4843,61 @@ let _Schema = {
 			}
 		};
 
-		$.jstree.destroy();
-		printClassTree(_Schema.inheritanceTree, classTree);
-		_Schema.inheritanceTree.jstree({
-			core: {
-				animation: 0,
-				multiple: false,
-				themes: {
-					dots: false
+		let initJsTree = () => {
+
+			eventsInitialized = false;
+
+			$.jstree.destroy();
+			printClassTree(_Schema.inheritanceTree, classTree);
+			_Schema.inheritanceTree.jstree({
+				core: {
+					animation: 0,
+					multiple: false,
+					themes: {
+						dots: false
+					}
+				},
+				plugins: ["search"]
+			}).on('ready.jstree', (e, data) => {
+
+				initEvents();
+
+				// in case we are switching builtin type visibility, react to search input
+				if (searchInheritanceTypesInput.value) {
+					searchInheritanceTypesInput.dispatchEvent(new Event('keyup'));
 				}
-			},
-			plugins: ["search"]
-		}).on('ready.jstree', (e, data) => {
 
-			initEvents();
+			}).on('search.jstree', (e, data) => {
 
-		}).on('search.jstree', (e, data) => {
+				initEvents(true);
 
-			initEvents(true);
+			}).on('clear_search.jstree', (e, data) => {
 
-		}).on('clear_search.jstree', (e, data) => {
+				initEvents(true);
 
-			initEvents(true);
+			}).on('changed.jstree', function(e, data) {
 
-		}).on('changed.jstree', function(e, data) {
-
-			if (data.node) {
-				let $node = $('#id_' + data.node.data.id);
-				if ($node.length > 0) {
-					$('.selected').removeClass('selected');
-					$node.addClass('selected');
-					_Schema.ui.selectedNodes = [$node];
+				if (data.node) {
+					let $node = $('#id_' + data.node.data.id);
+					if ($node.length > 0) {
+						$('.selected').removeClass('selected');
+						$node.addClass('selected');
+						_Schema.ui.selectedNodes = [$node];
+					}
 				}
-			}
-		});
+			});
 
-		_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
+			_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
 
-		_Schema.inheritanceTree.jstree(true).refresh();
+			_Schema.inheritanceTree.jstree(true).refresh();
+		};
+		initJsTree();
 
 		let searchTimeout;
-		$('#search-classes').keyup((e) => {
+		searchInheritanceTypesInput?.addEventListener('keyup', (e) => {
 			if (e.which === 27) {
-				$('#search-classes').val('');
+
+				searchInheritanceTypesInput.value = '';
 				_Schema.inheritanceTree.jstree(true).clear_search();
 
 			} else {
@@ -4868,10 +4906,18 @@ let _Schema = {
 				}
 
 				searchTimeout = setTimeout(() => {
-					let query = $('#search-classes').val();
+					let query = searchInheritanceTypesInput.value;
 					_Schema.inheritanceTree.jstree(true).search(query, true, true);
 				}, 250);
 			}
+		});
+
+		showBuiltinTypesCheckbox.addEventListener('change', (e) => {
+			showBuiltinTypes = showBuiltinTypesCheckbox.checked;
+
+			LSWrapper.setItem(_Schema.showBuiltinTypesInInheritanceTreeKey, showBuiltinTypes);
+
+			initJsTree();
 		});
 	},
 	overlapsExistingNodes: (position) => {
@@ -5179,11 +5225,14 @@ let _Schema = {
 				<svg viewBox="0 0 28 28" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><path d="M22.5,11.25A5.24,5.24,0,0,0,19.45,6.5,2.954,2.954,0,0,0,16.5,3c-.063,0-.122.015-.185.019a5.237,5.237,0,0,0-8.63,0C7.622,3.015,7.563,3,7.5,3A2.954,2.954,0,0,0,4.55,6.5a5.239,5.239,0,0,0,1.106,9.885A4.082,4.082,0,0,0,12,17.782a4.082,4.082,0,0,0,6.344-1.4A5.248,5.248,0,0,0,22.5,11.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 8.25L12 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15q4.5,0,4.5-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,12A3.543,3.543,0,0,1,8.25,8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
 				</svg>
-				Inheri-<br>tance
+				Inheri&shy;tance
 			</div>
 			
 			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="inheritance-search">Search: <input type="text" id="search-classes" autocomplete="off"></div>
+				<div class="flex items-center justify-between my-2">
+					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
+					<label class="mr-4" data-comment="Built-in types will still be shown if they are ancestors of custom types."><input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>Show built-in types</label>
+				</div>
 				<div id="inheritance-tree-container" class="ver-scrollable hidden"></div>
 			</div>
 			

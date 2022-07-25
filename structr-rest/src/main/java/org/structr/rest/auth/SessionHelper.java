@@ -128,6 +128,13 @@ public class SessionHelper {
 
 			logger.warn("Error while removing sessionId " + sessionId + " from all principals", fex);
 		}
+
+		// also remove short session id if the current session id is the long session id
+		final String shortSessionId = getShortSessionId(sessionId);
+		if (!sessionId.equals(shortSessionId)) {
+
+			clearSession(shortSessionId);
+		}
 	}
 
 	/**
