@@ -28,25 +28,21 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class MetricsServlet extends AbstractDataServlet {
-	private final io.prometheus.client.exporter.MetricsServlet servlet;
+	private final io.prometheus.client.servlet.jakarta.exporter.MetricsServlet servlet;
 
 	public MetricsServlet() {
-		servlet = new io.prometheus.client.exporter.MetricsServlet();
+		servlet = new io.prometheus.client.servlet.jakarta.exporter.MetricsServlet();
 		DefaultExports.initialize();
 	}
 
 	@Override
 	public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
-		/* TODO: Find jakarta compatible solution. Disabled until resolved.
 		servlet.service(req, res);
-		 */
 	}
 
 	@Override
 	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		/* TODO: Find jakarta compatible solution. Disabled until resolved.
 		servlet.service(req, resp);
-		 */
 	}
 
 	@Override
