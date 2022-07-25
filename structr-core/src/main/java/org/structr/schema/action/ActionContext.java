@@ -470,7 +470,7 @@ public class ActionContext {
 						default:
 
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
-							if (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, ".")) {
+							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
 								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
 								if (type != null) {
