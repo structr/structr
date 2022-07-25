@@ -345,31 +345,35 @@ input.dataKey_ {
 }
 
 #newComponentDropzone {
-	border: .15rem dashed lightgray;
-	border-radius: .25rem;
-	color: lightgray;
 	margin: 1rem;
 }
 
-#newComponentDropzone.allow-drop {
+.element-dropzone {
+	border: .15rem dashed lightgray;
+	border-radius: .25rem;
+	color: lightgray;
+	margin-bottom: 1rem;
+}
+
+.element-dropzone.allow-drop {
 	color: black;
 }
 
-#newComponentDropzone .new-component-info .sprite {
+.element-dropzone .info-icon .sprite {
 	min-width: 16px;
 }
 
-#newComponentDropzone .new-component-info .active {
+.element-dropzone .info-icon .active {
 	visibility: hidden;
 	display: none;
 }
 
-#newComponentDropzone.allow-drop .new-component-info .inactive {
+.element-dropzone.allow-drop .info-icon .inactive {
 	visibility: hidden;
 	display: none;
 }
 
-#newComponentDropzone.allow-drop .new-component-info .active {
+.element-dropzone.allow-drop .info-icon .active {
 	visibility: visible;
 	display: inline-block;
 }

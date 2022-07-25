@@ -56,7 +56,7 @@ public class HttpDeleteFunction extends UiAdvancedFunction {
 				contentType = sources[2].toString();
 			}
 
-			final Map<String, String> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders());
+			final Map<String, String> responseData = HttpHelper.delete(uri, null, null, ctx.getHeaders(), ctx.isValidateCertificates());
 
 			final int statusCode = Integer.parseInt(responseData.get("status"));
 			responseData.remove("status");

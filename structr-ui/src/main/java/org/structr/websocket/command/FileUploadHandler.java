@@ -24,26 +24,27 @@ import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.web.entity.File;
 
-/**
- *
- *
- */
 public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
-	private File file                  = null;
-	private FileChannel privateFileChannel = null;
-	private Long size                      = 0L;
+	private File file                       = null;
+	private FileChannel privateFileChannel  = null;
+	private Long size                       = 0L;
+	private boolean isCreation              = false;
+	private SecurityContext securityContext = null;
 
-	public FileUploadHandler(final File file) {
+	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size = file.getSize();
-		this.file = file;
+		this.size            = file.getSize();
+		this.file            = file;
+		this.isCreation      = isCreation;
+		this.securityContext = securityContext;
 
 		if (this.size == null) {
 
@@ -119,6 +120,11 @@ public class FileUploadHandler {
 
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
+
+				if (this.isCreation == true) {
+
+					file.callOnUploadHandler(this.securityContext);
+				}
 			}
 
 		} catch (IOException e) {

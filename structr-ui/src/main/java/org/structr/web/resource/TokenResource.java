@@ -57,15 +57,16 @@ public class TokenResource extends LoginResource {
 
         user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
 
-        boolean sendLoginNotification = true;
+        boolean isFromRefreshToken = false;
 
         if (user == null) {
+
             String refreshToken = getRefreshToken();
 
             if (refreshToken != null) {
 
                 user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
-                sendLoginNotification = false;
+                isFromRefreshToken = true;
 
             }
         }
@@ -76,8 +77,9 @@ public class TokenResource extends LoginResource {
 
             if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-                if (sendLoginNotification) {
+                if (isFromRefreshToken == false) {
 
+                    AuthHelper.updateLastLoginDate(user);
                     AuthHelper.sendLoginNotification(user, securityContext.getRequest());
                 }
 

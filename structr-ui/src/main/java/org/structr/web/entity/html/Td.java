@@ -38,6 +38,7 @@ public interface Td extends DOMElement {
 
 		type.addStringProperty("_html_colspan", PropertyView.Html);
 		type.addStringProperty("_html_rowspan", PropertyView.Html);
+		type.addStringProperty("_html_headers", PropertyView.Html);
 
 		type.overrideMethod("getHtmlAttributes", false, DOMElement.GET_HTML_ATTRIBUTES_CALL);
 	}}

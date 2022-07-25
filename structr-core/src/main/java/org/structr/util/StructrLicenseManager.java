@@ -791,7 +791,6 @@ public class StructrLicenseManager implements LicenseManager {
 		});
 
 		return buf.toString();
-
 	}
 
 	private boolean checkVolumeLicense(final Map<String, String> properties, final String serversString) {
@@ -930,6 +929,9 @@ public class StructrLicenseManager implements LicenseManager {
 	// ----- nested classes ------
 	public static class CreateLicenseCommand extends NodeServiceCommand implements MaintenanceCommand {
 
+		private String licenseContent = "";
+		private boolean success = true;
+
 		@Override
 		public void execute(final Map<String, Object> attributes) throws FrameworkException {
 
@@ -952,12 +954,22 @@ public class StructrLicenseManager implements LicenseManager {
 
 			if (name == null || start == null || end == null || edition == null || modules == null || hostId == null || keystore == null || password == null) {
 
+				success = false;
 				logger.warn("Cannot create license file, missing parameter. Parameters are: name, start, end, edition, modules, machine, keystore, password, outFile (optional).");
 
 			} else {
 
 				StructrLicenseManager.create(name, start, end, edition, modules, hostId, servers, users, keystore, password, outFile);
 				logger.info("Successfully created license file {}.", outFile);
+
+				try {
+
+					licenseContent = Files.readString(Paths.get(outFile));
+
+				} catch (IOException ioex) {
+
+					success = false;
+				}
 			}
 		}
 
@@ -969,6 +981,24 @@ public class StructrLicenseManager implements LicenseManager {
 		@Override
 		public boolean requiresFlushingOfCaches() {
 			return false;
+		}
+
+		@Override
+		public Object getCommandResult() {
+
+			final Map<String, Object> result = new HashMap<>();
+			result.put("success", success);
+
+			if (success) {
+
+				result.put("license", licenseContent);
+
+			} else {
+
+				result.put("error", "Unable to create license");
+			}
+
+			return result;
 		}
 	}
 

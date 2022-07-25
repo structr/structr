@@ -177,7 +177,7 @@ public class ProxyServlet extends AbstractServletBase implements HttpServiceServ
 				proxyPassword = user.getProperty(proxyPasswordKey);
 			}
 
-			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
+			content = HttpHelper.get(address, charset, authUsername, authPassword, proxyUrl, proxyUsername, proxyPassword, cookie, Collections.EMPTY_MAP, true).replace("<head>", "<head>\n  <base href=\"" + url + "\">");
 
 
 		} catch (Throwable t) {

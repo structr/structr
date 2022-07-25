@@ -2188,7 +2188,7 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
+		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , selection.obj.nodeData.svgIcon, selection.source, false);
 
 		_Code.codeContents.append(_Code.templates.methods({ identifier: selection }));
 

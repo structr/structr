@@ -29,6 +29,9 @@
 	<symbol id="circle_plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
 		<path d="M12 7.5L12 16.5"></path><path d="M7.5 12L16.5 12"></path><path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z"></path>
 	</symbol>
+	<symbol id="cursor" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M3.465,4.285,9.776,19.612A.75.75,0,0,0,11,19.856l3.447-3.447,3.712,3.713a.752.752,0,0,0,1.061,0l1.06-1.061a.75.75,0,0,0,0-1.061l-3.712-3.712,3.447-3.447a.75.75,0,0,0-.245-1.224L4.444,3.306A.75.75,0,0,0,3.465,4.285Z"></path>
+	</symbol>
 	<symbol id="kebab_icon" viewBox="0 0 24 24" fill="currentColor" stroke="none" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M8.750 3.250 A3.250 3.250 0 1 0 15.250 3.250 A3.250 3.250 0 1 0 8.750 3.250 Z"></path><path d="M8.750 12.000 A3.250 3.250 0 1 0 15.250 12.000 A3.250 3.250 0 1 0 8.750 12.000 Z"></path><path d="M8.750 20.750 A3.250 3.250 0 1 0 15.250 20.750 A3.250 3.250 0 1 0 8.750 20.750 Z"></path>
 	</symbol>

@@ -1383,7 +1383,7 @@ let _Files = {
 		dialogSaveButton   = $('#saveFile', dialogBtn);
 		saveAndClose       = $('#saveAndClose', dialogBtn);
 
-		element.append('<div class="editor h-full"></div><div id="template-preview"><textarea readonly></textarea></div>');
+		element.append('<div class="editor h-full overflow-hidden"></div><div id="template-preview"><textarea readonly></textarea></div>');
 
 		let urlForFileAndPreview = Structr.viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 		let fileResponse         = await fetch(urlForFileAndPreview);
