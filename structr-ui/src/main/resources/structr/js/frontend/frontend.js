@@ -286,7 +286,7 @@ export class Frontend {
 			let data = container.dataset;
 			let id   = data.structrId;
 
-		    if (!id || id.length !== 32) {
+			if (!id || id.length !== 32) {
 
 				//console.log('Container with selector ' + selector + ' has no data-structr-id attribute, trying resolution by CSS selector...');
 				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
@@ -316,7 +316,7 @@ export class Frontend {
 					}
 				});
 
-		    } else {
+			} else {
 				this.replacePartial(container, id, element, data, parameters, dontRebind);
 			}
 
@@ -347,32 +347,16 @@ export class Frontend {
 				container.dispatchEvent(new Event('structr-reload'));
 			}
 
-			let base   = '/structr/html/' + id;
-			let params = this.encodeRequestParameters(data, parameters);
-			let uri    = base + params;
+			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			if (restoreFocus) {
 
-				let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
-				if (restoreFocus) {
-
-					if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-					if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
-				}
+				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
 			}
 
 			if (!dontRebind) {
 				this.bindEvents();
 			}
-
-				let content = document.createElement('div');
-				if (content) {
-					content.insertAdjacentHTML('afterbegin', html);
-					if (content && content.children && content.children.length) {
-					container.replaceWith(content.children[0]);
-					} else {
-					container.replaceWith('');
-					}
-					container.dispatchEvent(new Event('structr-reload'));
-				}
 
 		}).catch(e => {
 			this.handleError(element, e, {});
