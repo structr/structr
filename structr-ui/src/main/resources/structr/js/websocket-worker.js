@@ -129,6 +129,7 @@ let reconnect = (data) => {
 };
 
 let stopReconnect = () => {
+
 	clearInterval(reconnectIntervalId);
 	reconnectIntervalId = undefined;
 };
@@ -146,5 +147,6 @@ let startPing = (e) => {
 };
 
 let stopPing = () => {
+
 	clearInterval(pingInterval);
 };
