@@ -4538,6 +4538,18 @@ table.props td.__value {
 	margin-top: 2rem;
 	margin-bottom: 2rem;
 }
+.w-4 {
+	width: 1rem;
+}
+.w-8 {
+	width: 2rem;
+}
+.w-16 {
+	width: 4rem;
+}
+.w-24 {
+	width: 6rem;
+}
 .w-40 {
 	width: 10rem;
 }

@@ -422,13 +422,6 @@ let _Localization = {
 				_Localization.textfieldChangeAction($(event.target), localization, 'localizedName');
 			});
 
-		$('.___description', $row)
-			.val(localization.description)
-			.data('oldValue', localization.description)
-			.on('blur', (event) => {
-				_Localization.textfieldChangeAction($(event.target), localization, 'description');
-			});
-
 		$('.___visibleToPublicUsers', $row)
 			.prop('checked', (localization.visibleToPublicUsers === true))
 			.attr('disabled', null)
@@ -454,41 +447,44 @@ let _Localization = {
 
 			let key    = _Localization.localizationDetailKey.val();
 			let domain = _Localization.localizationDetailDomain.val();
+			let answer = await Structr.confirmationPromiseNonBlockUI(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
 
-			Structr.confirmation(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`,
-				() => {
-					_Localization.deleteSingleLocalization(localization.id).then((success) => {
-						if (success) {
+			if (answer === true) {
 
-							$row.remove();
+				let success = await _Localization.deleteSingleLocalization(localization.id);
+				if (success === true) {
 
-							if ($('tr', _Localization.localizationsDetailList).length === 0) {
-								_Localization.keyAndDomainPager.refresh();
-								_Localization.localizationDetailContainer.style.display = 'none';
-							}
+					$row.remove();
 
-							$.unblockUI({
-								fadeOut: 25
-							});
+					if ($('tr', _Localization.localizationsDetailList).length === 0) {
+						_Localization.keyAndDomainPager.refresh();
+						_Localization.localizationDetailContainer.style.display = 'none';
+					}
 
-						} else {
-							blinkRed($row);
-						}
+					$.unblockUI({
+						fadeOut: 25
 					});
+
+				} else {
+					blinkRed($row);
 				}
-			);
+			}
 		});
 	},
 	textfieldChangeAction: ($el, localization, attr) => {
+
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.val();
+
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, $el);
 		}
 	},
 	checkboxChangeAction: ($el, localization, attr) => {
+
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.prop('checked');
+
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, $el, $el.parent());
 		}
@@ -541,10 +537,13 @@ let _Localization = {
 		let $tr       = $('tr:last', _Localization.localizationsDetailList);
 		let trElement = $tr[0];
 
-		trElement.querySelector('td.actions .remove-localization').addEventListener('click', (event) => {
+		let removeRow = (event) => {
 			event.preventDefault();
 			trElement.remove();
-		});
+		};
+
+		let removeButton = trElement.querySelector('td.actions .remove-localization');
+		removeButton.addEventListener('click', removeRow);
 
 		trElement.querySelector('td.actions .save-localization').addEventListener('click', async (event) => {
 
@@ -556,7 +555,6 @@ let _Localization = {
 					name:                        _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
 					locale:                      $('.___locale', $tr).val().trim(),
 					localizedName:               $('.___localizedName', $tr).val(),
-					description:                 $('.___description', $tr).val(),
 					visibleToPublicUsers:        $('.___visibleToPublicUsers', $tr).prop('checked'),
 					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked')
 				};
@@ -576,6 +574,9 @@ let _Localization = {
 					let data = await response.json();
 
 					newData.id = data.result[0];
+
+					removeButton.removeEventListener('click', removeRow);
+
 					_Localization.fillLocalizationRow($tr, newData);
 
 				} else {
@@ -663,13 +664,12 @@ let _Localization = {
 					</div>
 					<table id="localization-detail-table" class="props">
 						<thead><tr>
-							<th>Locale</th>
+							<th class="w-40">Locale</th>
 							<th>Translation</th>
-							<th>Description</th>
-							<th style="width: 80px;">ID</th>
-							<th>Public</th>
-							<th>Auth. Vis.</th>
-							<th></th>
+							<th class="w-16">ID</th>
+							<th class="w-24">Public</th>
+							<th class="w-24">Auth. Vis.</th>
+							<th class="w-24"></th>
 						</tr></thead>
 						<tbody></tbody>
 					</table>
@@ -710,9 +710,6 @@ let _Localization = {
 				</td>
 				<td>
 					<textarea class="___localizedName" cols="40"></textarea>
-				</td>
-				<td>
-					<textarea class="___description" cols="40"></textarea>
 				</td>
 				<td>
 					<span class="abbr-ellipsis abbr-80 id"></span>

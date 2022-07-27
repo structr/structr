@@ -509,10 +509,13 @@ let Structr = {
 		});
 	},
 	doLogout: (text) => {
+
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
+
 		if (Command.logout(StructrWS.user)) {
+
 			Cookies.remove('JSESSIONID');
 			StructrWS.sessionId = '';
 			Structr.renewSessionId();
@@ -521,6 +524,7 @@ let Structr = {
 			Structr.login(text);
 			return true;
 		}
+
 		StructrWS.close();
 		return false;
 	},

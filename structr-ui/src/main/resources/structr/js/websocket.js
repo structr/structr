@@ -31,6 +31,7 @@ let StructrWS = {
 	init: () => {
 
 		StructrWS.wsWorker.addEventListener('message', (e) => {
+
 			switch(e.data.type) {
 				case 'onopen': {
 					StructrWS.onopen(e.data);
@@ -48,19 +49,15 @@ let StructrWS = {
 					StructrWS.ping();
 					break;
 				}
-				case 'test': {
-					console.log('test');
-					break;
-				}
 			}
 		});
 
 		StructrWS.connect();
 	},
 	getWSConnectionInfo: () => {
-		let isEnc = (window.location.protocol === 'https:');
-		let host = document.location.host;
 
+		let isEnc   = (window.location.protocol === 'https:');
+		let host    = document.location.host;
 		let message = {
 			wsUrl: 'ws' + (isEnc ? 's' : '') + '://' + host + Structr.wsRoot,
 			wsClass: (('WebSocket' in window) === true) ? 'WebSocket' : (('MozWebSocket' in window) ? 'MozWebSocket' : false)
@@ -98,8 +95,8 @@ let StructrWS = {
 		if (wsInfo === false) {
 			return;
 		}
-		let message = Object.assign({ type: 'reconnect' }, wsInfo);
 
+		let message = Object.assign({ type: 'reconnect' }, wsInfo);
 
 		StructrWS.wsWorker.postMessage(message);
 	},
@@ -153,7 +150,7 @@ let StructrWS = {
 			Structr.moveUIOffscreen();
 
 			Structr.reconnectDialog();
-			StructrWS.reconnect({source: 'onclose'});
+			StructrWS.reconnect({ source: 'onclose' });
 
 		}, 100);
 	},
