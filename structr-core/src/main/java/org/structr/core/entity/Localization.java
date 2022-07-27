@@ -38,7 +38,6 @@ public interface Localization extends NodeInterface {
 		type.setCategory("core");
 
 		type.addStringProperty("localizedName", PropertyView.Public, PropertyView.Ui).setIndexed(true);
-		type.addStringProperty("description",   PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("domain",        PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("locale",        PropertyView.Public, PropertyView.Ui).setRequired(true).setIndexed(true);
 		type.addBooleanProperty("imported",     PropertyView.Public, PropertyView.Ui).setIndexed(true);
