@@ -86,8 +86,6 @@ let _Dashboard = {
 			dashboardUiConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportPrefixKey);
 			dashboardUiConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportAppendTimestampKey, true);
 			dashboardUiConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipDataExportAppendTimestamp, true);
-			dashboardUiConfig.dataImportRebuildIndexes     = LSWrapper.getItem(_Dashboard.tabs['deployment'].dataImportRebuildIndexes, true);
-			dashboardUiConfig.zipDataImportRebuildIndexes  = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipDataImportRebuildIndexes, true);
 
 			Structr.mainContainer.innerHTML = _Dashboard.templates.main(dashboardUiConfig);
 			Structr.functionBar.innerHTML   = _Dashboard.templates.functions();
@@ -305,8 +303,6 @@ let _Dashboard = {
 			zipDataExportPrefixKey:          'zipDataExportPrefix' + location.port,
 			zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
 			zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + location.port,
-			dataImportRebuildIndexes:        'dataImportRebuildIndexes' + location.port,
-			zipDataImportRebuildIndexes:     'zipDataImportRebuildIndexes' + location.port,
 
 			onShow: async () => {},
 			onHide: async () => {},
@@ -531,11 +527,6 @@ let _Dashboard = {
 				formData.append('downloadUrl', downloadUrl);
 				formData.append('mode', 'data');
 
-				let rebuildAllIndexes = document.getElementById('zip-data-import-rebuild-indexes').checked;
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipDataImportRebuildIndexes, rebuildAllIndexes);
-
-				formData.append('rebuildAllIndexes', rebuildAllIndexes);
-
 				let response = await fetch(Structr.deployRoot, {
 					method: 'POST',
 					body: formData
@@ -570,11 +561,6 @@ let _Dashboard = {
 				formData.append('redirectUrl', window.location.pathname);
 				formData.append('mode', 'data');
 
-				let rebuildAllIndexes = document.getElementById('zip-data-import-rebuild-indexes').checked;
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipDataImportRebuildIndexes, rebuildAllIndexes);
-
-				formData.append('rebuildAllIndexes', rebuildAllIndexes);
-
 				let response = await fetch(Structr.deployRoot, {
 					method: 'POST',
 					body: formData
@@ -597,12 +583,8 @@ let _Dashboard = {
 				};
 
 				if (mode === 'import') {
+
 					data['source'] = location;
-
-					let rebuildAllIndexes = document.getElementById('data-import-rebuild-indexes').checked;
-					LSWrapper.setItem(_Dashboard.tabs['deployment'].dataImportRebuildIndexes, rebuildAllIndexes);
-
-					data['rebuildAllIndexes'] = rebuildAllIndexes;
 
 				} else if (mode === 'export') {
 
@@ -1072,7 +1054,6 @@ let _Dashboard = {
 								<h3>Data import from server directory</h3>
 								<div>
 									<input type="text" id="data-import-source-input" placeholder="Local directory path for data import">
-									<label class="checkbox-label"><input type="checkbox" id="data-import-rebuild-indexes" ${(config.dataImportRebuildIndexes ? 'checked' : '')}> Rebuild all indexes after data import</label>
 									<button class="action" id="do-data-import">Import data from server directory</button>
 								</div>
 							</div>
@@ -1095,7 +1076,6 @@ let _Dashboard = {
 								<div>
 									<input type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
 									<input type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<label class="checkbox-label"><input type="checkbox" id="zip-data-import-rebuild-indexes" ${(config.zipDataImportRebuildIndexes ? 'checked' : '')}> Rebuild all indexes after data import</label>
 									<button id="do-data-import-from-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
 								</div>
 							</div>
