@@ -379,26 +379,41 @@ let Structr = {
 
 	moveUIOffscreen: () => {
 
-		fastRemoveAllChildren(Structr.functionBarOffscreen);
-		Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+		// only move UI offscreen if there is UI to move offscreen
+		if (Structr.functionBar.children.length > 0) {
 
-		fastRemoveAllChildren(Structr.mainContainerOffscreen);
-		Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+			fastRemoveAllChildren(Structr.functionBarOffscreen);
+			Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+		}
+
+		if (Structr.mainContainer.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.mainContainerOffscreen);
+			Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+		}
+
 	},
 	moveOffscreenUIOnscreen: () => {
 
-		if (Structr.mainContainerOffscreen.children.length > 0 && Structr.functionBarOffscreen.children.length > 0) {
+		let movedBack = false;
+
+		if (Structr.functionBarOffscreen.children.length > 0) {
 
 			fastRemoveAllChildren(Structr.functionBar);
 			Structr.functionBar.append(...Structr.functionBarOffscreen.children);
 
+			movedBack = true;
+		}
+
+		if (Structr.mainContainerOffscreen.children.length > 0) {
+
 			fastRemoveAllChildren(Structr.mainContainer);
 			Structr.mainContainer.append(...Structr.mainContainerOffscreen.children);
 
-			return true;
+			movedBack = true;
 		}
 
-		return false;
+		return movedBack;
 	},
 	init: () => {
 		$('#errorText').empty();

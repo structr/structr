@@ -26,13 +26,12 @@ let StructrWS = {
 	userId: undefined,
 	me: undefined,
 
-	reconnectIntervalId: undefined,
-
 	init: () => {
 
 		StructrWS.wsWorker.addEventListener('message', (e) => {
 
 			switch(e.data.type) {
+
 				case 'onopen': {
 					StructrWS.onopen(e.data);
 					break;
@@ -89,7 +88,7 @@ let StructrWS = {
 			StructrWS.wsWorker.postMessage(message);
 		}
 	},
-	reconnect: (source) => {
+	reconnect: (data) => {
 
 		let wsInfo = StructrWS.getWSConnectionInfo();
 		if (wsInfo === false) {
@@ -176,12 +175,18 @@ let StructrWS = {
 			StructrWS.isAdmin = data.data.isAdmin;
 
 			if (!sessionValid) {
+
 				Structr.clearMain();
 				Structr.login(msg);
+
 			} else if (!StructrWS.user || StructrWS.user !== data.data.username || loginBox.is(':visible')) {
+
 				if (StructrWS.skipNext100Code === true) {
+
 					StructrWS.skipNext100Code = false;
+
 				} else {
+
 					Structr.updateUsername(data.data.username);
 					loginBox.hide();
 					Structr.clearLoginForm();
@@ -607,10 +612,12 @@ let StructrWS = {
 		}
 
 		try {
+
 			StructrWS.wsWorker.postMessage({
 				type: 'server',
 				message: t
 			});
+
 		} catch (exception) {
 			// console.log('Error in send(): ' + exception);
 		}

@@ -64,22 +64,26 @@ let connect = (data) => {
 			// closed websocket
 
 			if (websocket) {
-				websocket.onopen = undefined;
-				websocket.onclose = undefined;
+				websocket.onopen    = undefined;
+				websocket.onclose   = undefined;
 				websocket.onmessage = undefined;
-				websocket = undefined;
+				websocket           = undefined;
 			}
 
 			if ('WebSocket' === wsClass) {
 
 				try {
+
 					websocket = new WebSocket(wsUrl, 'structr');
+
 				} catch (e) {}
 
 			} else if ('MozWebSocket' === wsClass) {
 
 				try {
+
 					websocket = new MozWebSocket(wsUrl, 'structr');
+
 				} catch (e) {}
 
 				return false;
@@ -90,7 +94,7 @@ let connect = (data) => {
 			};
 
 			websocket.onclose = (event) => {
-				reconnect(data);
+				self.postMessage({ type: 'onclose' });
 			};
 
 			websocket.onmessage = (message) => {
@@ -121,15 +125,13 @@ let reconnect = (data) => {
 
 		// keep setInterval in worker to prevent background throttling
 		reconnectIntervalId = setInterval(() => {
+
 			connect(data);
 		}, 1000);
-
-		connect(data);
 	}
 };
 
 let stopReconnect = () => {
-
 	clearInterval(reconnectIntervalId);
 	reconnectIntervalId = undefined;
 };
@@ -142,6 +144,7 @@ let startPing = (e) => {
 
 	// keep setInterval in worker to prevent background throttling
 	pingInterval = setInterval(() => {
+
 		self.postMessage({ type: 'ping' });
 	}, 1000);
 };
