@@ -38,6 +38,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -399,7 +400,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			} else {
 
-				logger.error("Exception while processing upload request", t);
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else {
+					logger.error("Exception while processing upload request", t);
+				}
+
 				content = errorPage(t);
 
 				// set response status to 500

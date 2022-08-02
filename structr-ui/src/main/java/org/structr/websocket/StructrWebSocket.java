@@ -474,7 +474,7 @@ public class StructrWebSocket implements WebSocketListener {
 						SessionHelper.clearSession(sessionId);
 						SessionHelper.invalidateSession(sessionId);
 
-						AuthHelper.sendLogoutNotification(user, securityContext.getRequest());
+						AuthHelper.sendLogoutNotification(user, (securityContext != null) ? securityContext.getRequest() : null);
 
 						invalidateConsole();
 
