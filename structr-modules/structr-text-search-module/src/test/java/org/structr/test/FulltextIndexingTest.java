@@ -238,7 +238,7 @@ public class FulltextIndexingTest extends StructrUiTest {
 	}
 
 	private void delay() {
-		delay(5000);
+		delay(10000);
 	}
 
 	private void delay(final long time) {
