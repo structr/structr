@@ -1018,8 +1018,9 @@ let _Files = {
 
 			} else {
 
-				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
-				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${filePath}">` : fileIcon;
+				let thumbnailProperty  = (tilesModeActive ? 'tnSmall' : 'tnMid');
+				let thumbnailImagePath = d[thumbnailProperty]?.path ?? filePath;
+				let iconOrThumbnail    = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${thumbnailImagePath}">` : fileIcon;
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
