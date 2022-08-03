@@ -34,7 +34,6 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
-import org.bson.conversions.Bson;
 
 public abstract class PolyglotWrapper {
 
@@ -86,7 +85,7 @@ public abstract class PolyglotWrapper {
 			final Value jsDateValue = context.eval("js", "new Date()");
 			jsDateValue.invokeMember("setTime", ((Date)obj).getTime());
 			return jsDateValue;
-			
+
 		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
 
 			// Try to rewrap objects from foreign contexts

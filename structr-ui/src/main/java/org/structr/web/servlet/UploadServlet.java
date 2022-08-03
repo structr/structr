@@ -25,13 +25,13 @@ import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.MultipartConfigElement;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -389,7 +389,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			} else {
 
-				logger.error("Exception while processing upload request", t);
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else {
+					logger.error("Exception while processing upload request", t);
+				}
+
 				content = errorPage(t);
 
 				// set response status to 500

@@ -155,7 +155,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		// find localization with key, domain and language only
 		if (value == null) { value = getLocalizedNameFromDatabase(requestedKey, finalDomain, lang); }
 
-		// find localization with key, domain and language only
+		// find localization with key, NO domain and language only
 		if (value == null && !finalDomain.equals("")) { value = getLocalizedNameFromDatabase(requestedKey, "", lang); }
 
 		// prevent further fallback lookups and also caching in fallback mode
@@ -230,7 +230,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		// find localization with key, domain and language only
 		if (result == null) { result = getLocalizationFromDatabase(requestedKey, finalDomain, lang); }
 
-		// find localization with key, domain and language only
+		// find localization with key, NO domain and language only
 		if (result == null && !finalDomain.equals("")) { result = getLocalizationFromDatabase(requestedKey, "", lang); }
 
 		String value = requestedKey;
