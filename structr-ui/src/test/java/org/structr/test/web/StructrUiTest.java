@@ -22,6 +22,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.io.File;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
@@ -616,8 +617,36 @@ public abstract class StructrUiTest {
 			return Integer.parseInt(System.getProperty("httpPort"));
 		};
 
-		// return
-		return 8875 + new Random().nextInt(1000);
+		// use locked file to store last used port
+		final String fileName = "/tmp/structr.test.port.lock";
+		final int max         = 65500;
+		final int min         = 8875;
+		int port              = min;
+
+
+		try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
+
+			raf.getChannel().lock();
+
+			if (raf.length() > 0) {
+
+				port = raf.readInt();
+			}
+
+			port++;
+
+			if (port > max) {
+				port = min;
+			}
+
+			raf.setLength(0);
+			raf.writeInt(port);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return port;
 	}
 
 	protected String getRandomTenantIdentifier() {

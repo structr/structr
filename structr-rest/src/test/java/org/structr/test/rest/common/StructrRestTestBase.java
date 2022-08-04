@@ -21,13 +21,13 @@ package org.structr.test.rest.common;
 
 import com.jayway.restassured.RestAssured;
 import java.io.File;
+import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matcher;
@@ -213,8 +213,36 @@ public abstract class StructrRestTestBase {
 			return Integer.parseInt(System.getProperty("httpPort"));
 		};
 
-		// return
-		return 8875 + new Random().nextInt(1000);
+		// use locked file to store last used port
+		final String fileName = "/tmp/structr.test.port.lock";
+		final int max         = 65500;
+		final int min         = 8875;
+		int port              = min;
+
+
+		try (final RandomAccessFile raf = new RandomAccessFile(fileName, "rws")) {
+
+			raf.getChannel().lock();
+
+			if (raf.length() > 0) {
+
+				port = raf.readInt();
+			}
+
+			port++;
+
+			if (port > max) {
+				port = min;
+			}
+
+			raf.setLength(0);
+			raf.writeInt(port);
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+
+		return port;
 	}
 
 	protected String getRandomTenantIdentifier() {
