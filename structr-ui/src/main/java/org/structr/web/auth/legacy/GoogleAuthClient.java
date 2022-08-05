@@ -16,58 +16,48 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.auth;
+package org.structr.web.auth.legacy;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.apache.commons.lang3.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 
 /**
  *
  *
  */
-public class FacebookAuthClient extends StructrOAuthClient {
-
-	public FacebookAuthClient() {}
+public class GoogleAuthClient extends StructrOAuthClient {
 
 	@Override
 	public String getProviderName () {
-		return "facebook";
+		return "google";
 	}
 
 	@Override
-	public String getScope() {
-		return Settings.OAuthFacebookScope.getValue();
+	protected String getScope() {
+		return Settings.OAuthGoogleScope.getValue();
 	}
 
 	@Override
 	public String getUserResourceUri() {
-		return Settings.OAuthFacebookUserDetailsUri.getValue();
+		return Settings.OAuthGoogleUserDetailsUri.getValue();
 	}
 
 	@Override
 	public String getReturnUri() {
-		return Settings.OAuthFacebookReturnUri.getValue();
+		return Settings.OAuthGoogleReturnUri.getValue();
 	}
 
 	@Override
 	public String getErrorUri() {
-		return Settings.OAuthFacebookErrorUri.getValue();
-	}
-
-	@Override
-	public String getCredential(final HttpServletRequest request) {
-		return StringUtils.replace(getValue(request, "email"), "\u0040", "@");
+		return Settings.OAuthGoogleErrorUri.getValue();
 	}
 
 	@Override
 	protected String getAccessTokenLocationKey() {
-		return Settings.OAuthFacebookAccessTokenLocation.getKey();
+		return Settings.OAuthGoogleAccessTokenLocation.getKey();
 	}
 
 	@Override
 	protected String getAccessTokenLocation() {
-		return Settings.OAuthFacebookAccessTokenLocation.getValue("query");
+		return Settings.OAuthGoogleAccessTokenLocation.getValue("query");
 	}
 }

@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.auth;
+package org.structr.web.auth.legacy;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
@@ -270,7 +270,7 @@ public abstract class StructrOAuthClient {
 				return GoogleAuthClient.class;
 
 			case "auth0":
-				return Auth0AuthClient.class;
+				return Auth0LegacyAuthClient.class;
 		}
 
 		// no provider found, ignore?

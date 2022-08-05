@@ -489,7 +489,7 @@ public class UiAuthenticator implements Authenticator {
 
 		if (name.equals("auth0")) {
 
-			OAuth2Client oAuth2Client = new Auth0OAuth2Client();
+			OAuth2Client oAuth2Client = new Auth0AuthClient();
 			if ("login".equals(action)) {
 
 				try {
@@ -497,6 +497,8 @@ public class UiAuthenticator implements Authenticator {
 					final String state = NodeServiceCommand.getNextUuid();
 					stateParameters.put(state, request.getParameterMap());
 					response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
+
+					return null;
 				} catch (Exception ex) {
 
 					logger.error("Could not send redirect to authorization server.", ex);
@@ -507,6 +509,7 @@ public class UiAuthenticator implements Authenticator {
 
 					// TODO: Fix logout
 					//response.sendRedirect(oAuth2Client.getEndUserLogoutRequestUri());
+
 					return null;
 
 				} catch (Exception ex) {

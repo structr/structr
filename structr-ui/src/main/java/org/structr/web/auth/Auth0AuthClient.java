@@ -18,88 +18,115 @@
  */
 package org.structr.web.auth;
 
-import org.apache.commons.lang3.StringUtils;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import com.github.scribejava.core.builder.api.DefaultApi20;
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import com.github.scribejava.core.model.OAuthRequest;
+import com.github.scribejava.core.model.Response;
+import com.github.scribejava.core.model.Verb;
+import com.github.scribejava.core.oauth.OAuth20Service;
+import com.google.gson.Gson;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+import org.structr.core.app.StructrApp;
 
-/**
- *
- *
- */
-public class Auth0AuthClient extends StructrOAuthClient {
+import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
 
-	public Auth0AuthClient() {}
+public class Auth0AuthClient implements OAuth2Client{
 
-	@Override
-	public String getProviderName () {
-		return "auth0";
-	}
+    private static final Logger logger = LoggerFactory.getLogger(Auth0AuthClient.class);
 
-	@Override
-	public String getScope() {
-		return "openid profile email";
-	}
+    private final static String authServer = "auth0";
 
-	@Override
-	public String getUserResourceUri() {
-		return Settings.OAuthAuth0UserDetailsUri.getValue();
-	}
+    private final String authLocation      = Settings.getOrCreateStringSetting("oauth", authServer, "authorization_location").getValue("");
+    private final String tokenLocation     = Settings.getOrCreateStringSetting("oauth", authServer, "token_location").getValue("");
+    private final String clientId          = Settings.getOrCreateStringSetting("oauth", authServer, "client_id").getValue("");
+    private final String clientSecret      = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue("");
+    private final String redirectUri       = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue("");
+    private final String returnUri         = Settings.getOrCreateStringSetting("oauth", authServer, "return_uri").getValue("");
+    private final String errorUri          = Settings.getOrCreateStringSetting("oauth", authServer, "error_uri").getValue("");
+    private final String userDetailsURI    = Settings.getOrCreateStringSetting("oauth", authServer, "user_details_resource_uri").getValue("");
+    private final OAuth20Service service;
 
-	@Override
-	public String getReturnUri() {
-		return Settings.OAuthAuth0ReturnUri.getValue();
-	}
+    public Auth0AuthClient() {
+        service = new ServiceBuilder(clientId)
+                .apiSecret(clientSecret)
+                .callback(redirectUri)
+                .defaultScope("openid profile email")
+                .build(new DefaultApi20() {
 
-	@Override
-	public String getErrorUri() {
-		return Settings.OAuthAuth0ErrorUri.getValue();
-	}
+                    @Override
+                    public String getAccessTokenEndpoint() {
+                        return tokenLocation;
+                    }
 
-	@Override
-	public void initializeUser(final Principal user) throws FrameworkException {
+                    @Override
+                    protected String getAuthorizationBaseUrl() {
+                        return authLocation;
+                    }
+                });
+    }
 
-		// initialize user from user response
-		if (userInfo != null) {
+    @Override
+    public String getAuthorizationURL(final String state) {
+        return service.getAuthorizationUrl(state);
+    }
 
-			String name = (String) userInfo.get("nickname");
+    @Override
+    public OAuth2AccessToken getAccessToken(String authorizationReplyCode) {
 
-			// fallback 1
-			if (StringUtils.isBlank(name)) {
-				name = (String) userInfo.get("name");
-			}
+        try {
 
-			// fallback 2
-			if (StringUtils.isBlank(name)) {
-				name = (String) userInfo.get("email");
-			}
+            return service.getAccessToken(authorizationReplyCode);
+        } catch (IOException | InterruptedException | ExecutionException e) {
 
-			user.setProperty(Principal.name, name);
-		}
-	}
+            logger.error("Could not get accessToken", e);
+        }
 
-	@Override
-	public String getLogoutUri () {
-		return Settings.OAuthAuth0LogoutLocation.getValue();
-	}
+        return null;
+    }
 
-	@Override
-	public String getLogoutReturnUri () {
-		return Settings.OAuthAuth0LogoutReturnUri.getValue();
-	}
+    @Override
+    public String getClientCredentials(final OAuth2AccessToken accessToken) {
+        final OAuthRequest request = new OAuthRequest(Verb.GET, userDetailsURI);
 
-	@Override
-	public String getLogouReturnUriParameterKey () {
-		return Settings.OAuthAuth0LogoutReturnLocationParameterKey.getValue();
-	}
+        service.signRequest(accessToken, request);
 
-	@Override
-	protected String getAccessTokenLocationKey() {
-		return Settings.OAuthAuth0AccessTokenLocation.getKey();
-	}
+        try (Response response = service.execute(request)) {
 
-	@Override
-	protected String getAccessTokenLocation() {
-		return Settings.OAuthAuth0AccessTokenLocation.getValue("query");
-	}
+            final String rawResponse = response.getBody();
+
+            Gson gson = new Gson();
+            Map<String, Object> params = gson.fromJson(rawResponse, Map.class);
+
+            if (params.get(getCredentialKey()) != null) {
+
+                return params.get(getCredentialKey()).toString();
+            }
+
+            return null;
+        } catch (IOException | InterruptedException | ExecutionException e) {
+
+            logger.error("Could not get perform client credential request", e);
+        }
+
+        return null;
+    }
+
+    @Override
+    public String getReturnURI() {
+        return returnUri;
+    }
+
+    @Override
+    public String getErrorURI() {
+        return errorUri;
+    }
+
+
+
+
 }
