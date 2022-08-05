@@ -47,7 +47,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -310,7 +309,7 @@ public class ActionContext {
 					} else if (data instanceof Class) {
 
 						// static method?
-						Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods((Class) data, Export.class);
+						final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType((Class) data);
 						if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
 
 							hints.reportExistingKey(key);

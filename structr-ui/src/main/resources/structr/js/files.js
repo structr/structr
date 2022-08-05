@@ -1019,11 +1019,12 @@ let _Files = {
 			} else {
 
 				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
-				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${filePath}">` : fileIcon;
+				let displayImagePath  = (d.isThumbnail) ? filePath : (d[thumbnailProperty]?.path ?? filePath);
+				let iconOrThumbnail   = d.isImage ? `<img class="tn" src="${displayImagePath}">` : fileIcon;
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
-						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl('')}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
+						<div class="file-icon"><a href="${filePath}" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						${progressIndicator}
 						<div class="icons-container flex items-center"></div>

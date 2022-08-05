@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -38,7 +37,6 @@ import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
-import java.awt.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -76,6 +74,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
+
 		} else {
 
 			// Check cache for already initialized executables
@@ -89,7 +88,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			// Lookup method, if it's not in cache
-			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
 			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
 				Method method = methods.get(key);
 
@@ -196,14 +195,17 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
+
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+
 		} else {
 
 			if (node != null) {
 
-				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+				return StructrApp.getConfiguration().getExportedMethodsForType(node.getClass()).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+
 			} else {
 
 				return false;

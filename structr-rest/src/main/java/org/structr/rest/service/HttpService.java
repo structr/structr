@@ -37,9 +37,7 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
-import org.eclipse.jetty.rewrite.handler.RegexRule;
 import org.eclipse.jetty.rewrite.handler.RewriteHandler;
-import org.eclipse.jetty.rewrite.handler.RewritePatternRule;
 import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.*;
@@ -74,7 +72,6 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.regex.Matcher;
 
 ;
 
@@ -124,6 +121,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
+		Exception exception = null;
 		int maxAttempts = 3;
 
 		while (maxAttempts-- > 0) {
@@ -137,11 +135,18 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 
 				maxAttempts = 0;
+				exception = null;
 
 			} catch (Exception e) {
-				logger.warn("Error, retrying {} more times after 500ms - Caught: {} ", maxAttempts, e.getMessage());
-				Thread.sleep(500);
+				logger.warn("Error, retrying {} more times after 10s - Caught: {} ", maxAttempts, e.getMessage());
+				Thread.sleep(10000);
+				exception = e;
 			}
+		}
+
+		// if exception is set, don't continue and throw it
+		if (exception != null) {
+			throw exception;
 		}
 
 		try {
