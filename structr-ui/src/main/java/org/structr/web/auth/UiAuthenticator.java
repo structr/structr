@@ -487,158 +487,168 @@ public class UiAuthenticator implements Authenticator {
 		final String name   = uriParts[1];
 		final String action = uriParts[2];
 
+		OAuth2Client oAuth2Client = null;
+
 		if (name.equals("auth0")) {
 
-			OAuth2Client oAuth2Client = new Auth0AuthClient();
-			if ("login".equals(action)) {
+			oAuth2Client = new Auth0AuthClient();
+		}
 
-				try {
+		if (oAuth2Client == null) {
 
-					final String state = NodeServiceCommand.getNextUuid();
-					stateParameters.put(state, request.getParameterMap());
-					response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
+			logger.error("Could not initialze oAuth2Client for provider {}", name);
+			return null;
+		}
 
-					return null;
-				} catch (Exception ex) {
-
-					logger.error("Could not send redirect to authorization server.", ex);
-				}
-			} else if ("logout".equals(action)) {
-
-				try {
-
-					// TODO: Fix logout
-					//response.sendRedirect(oAuth2Client.getEndUserLogoutRequestUri());
-
-					return null;
-
-				} catch (Exception ex) {
-
-					logger.error("Could not send redirect to logout endpoint", ex);
-				}
-			} else if ("auth".equals(action)) {
-
-				final String[] codes = request.getParameterMap().get("code");
-				final String code = codes != null && codes.length == 1 ? codes[0] : null;
-				final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
-
-				final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code);
-				if (accessToken != null) {
-
-					logger.debug("Got access token {}", accessToken);
-
-					String value = oAuth2Client.getClientCredentials(accessToken);
-
-					logger.debug("Got credential value: {}", value);
-
-					if (value != null) {
-
-						final PropertyKey credentialKey = StructrApp.key(User.class, "eMail");
-
-						logger.debug("Fetching user with {} {}", credentialKey, value);
-
-						// first try: literal, unchanged value from oauth provider
-						Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
-						if (user == null) {
-
-							// since e-mail addresses are stored in lower case, we need
-							// to search for users with lower-case e-mail address value..
-							logger.debug("2nd try: fetching user with lowercase {} {}", credentialKey, value.toLowerCase());
-
-							// second try: lowercase value
-							user = AuthHelper.getPrincipalForCredential(credentialKey, value.toLowerCase());
-						}
-
-						if (user == null) {
-
-							if (Settings.RestUserAutocreate.getValue()) {
-
-								logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
-
-								user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
-
-								// let oauth implementation augment user info
-								// TODO: Fix initializeUser
-								//oauthServer.initializeUser(user);
-
-								RuntimeEventLog.registration("OAuth user created", Map.of("id", user.getUuid(), "name", user.getName()));
-
-							} else {
-
-								logger.debug("No user found, but jsonrestservlet.user.autocreate is false, so I'm not allowed to create a new user for {} {}.", credentialKey, value);
-							}
-						}
-
-						if (user != null) {
-
-							logger.debug("Logging in user {}", user);
-
-							AuthHelper.doLogin(request, user);
-							HtmlServlet.setNoCacheHeaders(response);
-
-							// TODO: Fix onLogin
-							//oauthServer.invokeOnLoginMethod(user);
-
-							logger.debug("HttpServletResponse status: {}", response.getStatus());
-
-							try {
-
-								// get the original request state and add the parameters to the redirect page
-								final String originalRequestState = request.getParameter("state");
-								Map<String, String[]> originalRequestParameters = stateParameters.get(originalRequestState);
-								stateParameters.remove(originalRequestState);
-
-								URIBuilder uriBuilder = new URIBuilder();
-								if (originalRequestParameters != null) {
-									for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-										for (String parameterEntry : entry.getValue()) {
-											uriBuilder.addParameter(entry.getKey(), parameterEntry);
-										}
-									}
-								}
-
-								final String configuredReturnUri = oAuth2Client.getReturnURI();
-								if (StringUtils.startsWith(configuredReturnUri, "http")) {
-
-									URI redirectUri = new URI(configuredReturnUri);
-									uriBuilder.setHost(redirectUri.getHost());
-									uriBuilder.setPath(redirectUri.getPath());
-									uriBuilder.setPort(redirectUri.getPort());
-									uriBuilder.setScheme(redirectUri.getScheme());
-
-								} else {
-									uriBuilder.setPath(configuredReturnUri);
-								}
-
-								response.resetBuffer();
-								response.setHeader("Location", Settings.applicationRootPath.getValue() + uriBuilder.build().toString());
-								response.setStatus(HttpServletResponse.SC_FOUND);
-								response.flushBuffer();
-
-							} catch (IOException | URISyntaxException ex) {
-
-								logger.error("Could not redirect", ex);
-							}
-
-							return user;
-
-						} else {
-
-							logger.debug("Still no valid user found, no oauth authentication possible.");
-						}
-					}
-				}
-			}
+		if ("login".equals(action)) {
 
 			try {
 
-				response.sendRedirect(oAuth2Client.getErrorURI());
+				final String state = NodeServiceCommand.getNextUuid();
+				stateParameters.put(state, request.getParameterMap());
+				response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
 
-			} catch (IOException ex) {
+				return null;
+			} catch (Exception ex) {
 
-				logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
+				logger.error("Could not send redirect to authorization server.", ex);
+			}
+		} else if ("logout".equals(action)) {
+
+			try {
+
+				// TODO: Fix logout
+				//response.sendRedirect(oAuth2Client.getEndUserLogoutRequestUri());
+
+				return null;
+
+			} catch (Exception ex) {
+
+				logger.error("Could not send redirect to logout endpoint", ex);
+			}
+		} else if ("auth".equals(action)) {
+
+			final String[] codes = request.getParameterMap().get("code");
+			final String code = codes != null && codes.length == 1 ? codes[0] : null;
+			final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
+
+			final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code);
+			if (accessToken != null) {
+
+				logger.debug("Got access token {}", accessToken);
+
+				String value = oAuth2Client.getClientCredentials(accessToken);
+
+				logger.debug("Got credential value: {}", value);
+
+				if (value != null) {
+
+					final PropertyKey credentialKey = StructrApp.key(User.class, "eMail");
+
+					logger.debug("Fetching user with {} {}", credentialKey, value);
+
+					// first try: literal, unchanged value from oauth provider
+					Principal user = AuthHelper.getPrincipalForCredential(credentialKey, value);
+					if (user == null) {
+
+						// since e-mail addresses are stored in lower case, we need
+						// to search for users with lower-case e-mail address value..
+						logger.debug("2nd try: fetching user with lowercase {} {}", credentialKey, value.toLowerCase());
+
+						// second try: lowercase value
+						user = AuthHelper.getPrincipalForCredential(credentialKey, value.toLowerCase());
+					}
+
+					if (user == null) {
+
+						if (Settings.RestUserAutocreate.getValue()) {
+
+							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
+
+							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+
+							// let oauth implementation augment user info
+							// TODO: Fix initializeUser
+							//oauthServer.initializeUser(user);
+
+							RuntimeEventLog.registration("OAuth user created", Map.of("id", user.getUuid(), "name", user.getName()));
+
+						} else {
+
+							logger.debug("No user found, but jsonrestservlet.user.autocreate is false, so I'm not allowed to create a new user for {} {}.", credentialKey, value);
+						}
+					}
+
+					if (user != null) {
+
+						logger.debug("Logging in user {}", user);
+
+						AuthHelper.doLogin(request, user);
+						HtmlServlet.setNoCacheHeaders(response);
+
+						// TODO: Fix onLogin
+						//oauthServer.invokeOnLoginMethod(user);
+
+						logger.debug("HttpServletResponse status: {}", response.getStatus());
+
+						try {
+
+							// get the original request state and add the parameters to the redirect page
+							final String originalRequestState = request.getParameter("state");
+							Map<String, String[]> originalRequestParameters = stateParameters.get(originalRequestState);
+							stateParameters.remove(originalRequestState);
+
+							URIBuilder uriBuilder = new URIBuilder();
+							if (originalRequestParameters != null) {
+								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+									for (String parameterEntry : entry.getValue()) {
+										uriBuilder.addParameter(entry.getKey(), parameterEntry);
+									}
+								}
+							}
+
+							final String configuredReturnUri = oAuth2Client.getReturnURI();
+							if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+								URI redirectUri = new URI(configuredReturnUri);
+								uriBuilder.setHost(redirectUri.getHost());
+								uriBuilder.setPath(redirectUri.getPath());
+								uriBuilder.setPort(redirectUri.getPort());
+								uriBuilder.setScheme(redirectUri.getScheme());
+
+							} else {
+								uriBuilder.setPath(configuredReturnUri);
+							}
+
+							response.resetBuffer();
+							response.setHeader("Location", Settings.applicationRootPath.getValue() + uriBuilder.build().toString());
+							response.setStatus(HttpServletResponse.SC_FOUND);
+							response.flushBuffer();
+
+						} catch (IOException | URISyntaxException ex) {
+
+							logger.error("Could not redirect", ex);
+						}
+
+						return user;
+
+					} else {
+
+						logger.debug("Still no valid user found, no oauth authentication possible.");
+					}
+				}
 			}
 		}
+
+		try {
+
+			response.sendRedirect(oAuth2Client.getErrorURI());
+
+		} catch (IOException ex) {
+
+			logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
+		}
+
 
 		return null;
 	}
