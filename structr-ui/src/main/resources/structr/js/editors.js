@@ -474,6 +474,22 @@ let _Editors = {
 
 		return monacoInstance;
 	},
+	isAutoFocusAllowed: () => {
+
+		// Only limitation currently: If we are in the code area and currently searching for something
+		return !(Structr.isModuleActive(_Code) && _Code.inSearchBox === true);
+
+	},
+	focusEditor: (editor) => {
+
+		let allowed = _Editors.isAutoFocusAllowed();
+
+		if (allowed) {
+			editor.focus();
+		}
+
+		return allowed;
+	},
 	defaultChangeHandler: (e, entity, propertyName, errorPropertyNameForLinting) => {
 
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
