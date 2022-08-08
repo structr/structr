@@ -1019,11 +1019,12 @@ let _Files = {
 			} else {
 
 				let thumbnailProperty = (tilesModeActive ? 'tnSmall' : 'tnMid');
-				let iconOrThumbnail   = d.isImage && !d.isThumbnail && d[thumbnailProperty] ? `<img class="tn" src="${filePath}">` : fileIcon;
+				let displayImagePath  = (d.isThumbnail) ? filePath : (d[thumbnailProperty]?.path ?? filePath);
+				let iconOrThumbnail   = d.isImage ? `<img class="tn" src="${displayImagePath}">` : fileIcon;
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
-						<div class="file-icon"><a href="${ `${Structr.getPrefixedRootUrl('')}${d.path}` }" target="_blank">${iconOrThumbnail}</a></div>
+						<div class="file-icon"><a href="${filePath}" target="_blank">${iconOrThumbnail}</a></div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						${progressIndicator}
 						<div class="icons-container flex items-center"></div>
@@ -1383,7 +1384,7 @@ let _Files = {
 		dialogSaveButton   = $('#saveFile', dialogBtn);
 		saveAndClose       = $('#saveAndClose', dialogBtn);
 
-		element.append('<div class="editor h-full"></div><div id="template-preview"><textarea readonly></textarea></div>');
+		element.append('<div class="editor h-full overflow-hidden"></div><div id="template-preview"><textarea readonly></textarea></div>');
 
 		let urlForFileAndPreview = Structr.viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
 		let fileResponse         = await fetch(urlForFileAndPreview);

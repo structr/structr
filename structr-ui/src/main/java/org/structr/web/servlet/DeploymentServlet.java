@@ -277,7 +277,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String downloadUrl        = null;
 			String fileName           = null;
 			String mode               = null;
-			boolean rebuildAllIndexes = false;
 
 			while (fileItemsIterator.hasNext()) {
 
@@ -295,10 +294,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
 
 						redirectUrl = fieldValue;
-
-					} else if (DeployDataCommand.REBUILDALLINDEXES_PARAMTER_NAME.equals(fieldName)) {
-
-						rebuildAllIndexes = fieldValue.equals("true");
 
 					} else if (MODE_PARAMETER.equals(fieldName)) {
 
@@ -359,7 +354,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					} else if ("data".equals(mode)) {
 
-						deployDataFile(file, fileName, directoryPath, securityContext, rebuildAllIndexes);
+						deployDataFile(file, fileName, directoryPath, securityContext);
 
 					} else {
 
@@ -573,7 +568,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext, final boolean rebuildAllIndexes) throws FrameworkException, IOException {
+	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -583,7 +578,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		attributes.put("mode", "import");
 		attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
-		attributes.put(DeployDataCommand.REBUILDALLINDEXES_PARAMTER_NAME, rebuildAllIndexes);
 
 		deployDataCommand.execute(attributes);
 

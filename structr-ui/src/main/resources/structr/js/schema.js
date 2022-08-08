@@ -40,6 +40,7 @@ let _Schema = {
 	schemaPositionsKey: 'structrSchemaPositions_' + location.port,
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
 	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
+	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
 	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
@@ -57,6 +58,8 @@ let _Schema = {
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
 			Structr.mainContainer.innerHTML = _Schema.templates.main();
+			Structr.activateCommentsInElement(Structr.mainContainer);
+
 			_Schema.inheritanceSlideout     = $('#inheritance-tree');
 			_Schema.inheritanceTree         = $('#inheritance-tree-container');
 			_Schema.ui.canvas               = $('#schema-graph');
@@ -348,7 +351,7 @@ let _Schema = {
 		dialogMeta.hide();
 		Command.get(id, null, (entity) => {
 
-			let title = (entity.type === "SchemaRelationshipNode") ? 'Edit schema relationship' : 'Edit schema node';
+			let title = (entity.type === "SchemaRelationshipNode") ? `(:${_Schema.nodeData[entity.sourceId].name})-[:${entity.relationshipType}]-&gt;(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
 				_Schema.currentNodeDialogId = null;
@@ -942,10 +945,6 @@ let _Schema = {
 					_Schema.nodes.appendWorkingSets(tabContent, entity);
 				});
 
-				_Entities.appendPropTab(entity, mainTabs, contentDiv, 'usage-search', 'Usage Search', targetView === 'usage-search', (tabContent, entity) => {
-					_Schema.nodes.appendUsageSearch(tabContent, entity);
-				});
-
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
 
@@ -1004,6 +1003,9 @@ let _Schema = {
 						updateChangeStatus();
 					});
 				});
+			}
+
+			if (entity?.extendsClass?.id) {
 
 				tabContent[0].querySelector('.edit-parent-type')?.addEventListener('click', async () => {
 
@@ -1124,131 +1126,6 @@ let _Schema = {
 				})
 			});
 
-		},
-		appendUsageSearch: (tabContent, entity) => {
-			tabContent.append(_Schema.templates.usageSearch({ type: entity }));
-
-			// usedIn property
-			if (entity.usedIn && entity.usedIn.length > 0) {
-
-				let usageTreeContainer = document.querySelector('#usage-tree');
-				let label              = document.querySelector('#usage-label');
-
-				// add help text
-				label.innerHTML = 'This type is used in the following pages, HTML elements and attributes. Please note that this table might not be complete since the information here is collected at runtime, when you browse through the pages of your application.';
-
-				let sorted = entity.usedIn.sort((a, b) => {
-
-					let p1 = a.path || a.page || a.type || a.id;
-					let p2 = b.path || b.page || b.type || b.id;
-
-					return p1 > p2 ? 1 : p1 < p2 ? -1 : 0;
-				});
-
-				let tree = { name: 'Usage', children: {} };
-
-				// append rows
-				for (let usage of sorted) {
-
-					let path = usage.path;
-
-					// The path is split into its parts to form the hierarchy, so if there is no
-					// path, we use the root term "Types" plus the type of the node.
-					if (!path) { path = 'Types/' + usage.type; } else { path = 'Pages/' + path; }
-
-					let parts   = path.split('/').filter(p => p.length > 0);
-					let current = tree;
-
-					for (let part of parts) {
-
-						if (!current.children[part]) {
-
-							current.children[part] = {
-								name: part,
-								children: {}
-							};
-						}
-
-						current = current.children[part];
-					}
-
-					current.data = usage;
-				}
-
-				let buildTree = function(root, rootElement) {
-
-					let listItem = document.createElement('li');
-					listItem.dataset.jstree = JSON.stringify({ icon: Structr.getPrefixedRootUrl('/structr/icon/folder.png') });
-					listItem.innerHTML = root.name;
-					rootElement.appendChild(listItem);
-
-					let list = document.createElement('ul');
-					listItem.appendChild(list);
-
-					if (root.data) {
-
-						for (let key in root.data.mapped) {
-
-							let value = root.data.mapped[key];
-							let item  = document.createElement('li');
-							item.dataset.jstree = JSON.stringify({ icon: 'fa fa-edit' });
-							item.dataset.id = root.data.id;
-							item.innerHTML = key + ': '+ value;
-
-							list.append(item);
-						}
-					}
-
-					for (let key in root.children) {
-						let child = root.children[key];
-						buildTree(child, list);
-					}
-				};
-
-				buildTree(tree, usageTreeContainer);
-
-				let usageTree = $('#usage-tree-container').jstree({
-					plugins: ["themes"],
-					core: {
-						animation: 0
-					}
-				});
-
-				usageTree.on('select_node.jstree', function(node, selected, event) {
-
-					let id = selected.node.data.id;
-
-					if (id) {
-
-						Command.get(id, 'id,type,name,content,ownerDocument,schemaNode', (obj) => {
-
-							switch (obj.type) {
-
-								case 'Content':
-								case 'Template':
-									_Elements.openEditContentDialog(obj);
-									break;
-								default:
-									_Entities.showProperties(obj);
-									break;
-							}
-						});
-
-					} else {
-
-						// not a leaf, toggle "opened" state
-						usageTree.jstree('toggle_node', selected.node);
-					}
-				});
-
-			} else {
-
-				let label = document.querySelector('#usage-label');
-				if (label) {
-
-					label.innerHTML = 'Browse through your application to populate the usage list for this type.';
-				}
-			}
 		},
 		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
 
@@ -2528,7 +2405,7 @@ let _Schema = {
 			let editorInfo = dialogMeta[0].querySelector('.editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
-			editor.focus();
+			_Editors.focusEditor(editor);
 		},
 		openCodeEditorForCypherProperty: (id, closeCallback) => {
 
@@ -2640,7 +2517,7 @@ let _Schema = {
 			let editorInfo = dialogMeta[0].querySelector('.editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
-			editor.focus();
+			_Editors.focusEditor(editor);
 		},
 		appendBuiltinProperties: (el, entity) => {
 
@@ -3502,28 +3379,19 @@ let _Schema = {
 
 			let addedMethodsCounter = 1;
 
-			let getRawNewMethod = (name) => {
-				return {
-					name: _Schema.methods.getFirstFreeMethodName(name),
-					id: 'new' + (addedMethodsCounter++)
-				};
-			};
+			for (let addMethodButton of el[0].querySelectorAll('.add-method-button')) {
 
-			el[0].querySelector('.add-action-button').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod(''), entity);
-			});
+				addMethodButton.addEventListener('click', () => {
 
-			el[0].querySelector('.add-onCreate-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onCreate'), entity);
-			});
+					let prefix           = addMethodButton.dataset['prefix'] || '';
+					let baseMethodConfig = {
+						name: _Schema.methods.getFirstFreeMethodName(prefix),
+						id: 'new' + (addedMethodsCounter++)
+					};
 
-			el[0].querySelector('.add-afterCreate-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('afterCreate'), entity);
-			});
-
-			el[0].querySelector('.add-onSave-button')?.addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTbody, getRawNewMethod('onSave'), entity);
-			});
+					_Schema.methods.appendNewMethod(fakeTbody, baseMethodConfig, entity);
+				});
+			}
 
 			Structr.activateCommentsInElement(el[0], { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
 		},
@@ -3707,7 +3575,7 @@ let _Schema = {
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
-			sourceEditor.focus();
+			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);
 
@@ -4693,6 +4561,10 @@ let _Schema = {
 		let classnameToId   = {};
 		let schemaNodesById = {};
 
+		let searchInheritanceTypesInput = document.querySelector('#search-types');
+		let showBuiltinTypesCheckbox    = document.querySelector('#show-builtin-types');
+		let showBuiltinTypes            = showBuiltinTypesCheckbox.checked;
+
 		let insertClassInClassTree = (classObj, tree) => {
 			let classes = Object.keys(tree);
 
@@ -4721,7 +4593,8 @@ let _Schema = {
 
 		let printClassTree = ($elem, classTree) => {
 
-			let classes = Object.keys(classTree).sort();
+			let requiredTypes = 0;
+			let classes       = Object.keys(classTree).sort();
 
 			if (classes.length > 0) {
 
@@ -4739,19 +4612,31 @@ let _Schema = {
 						</div>
 					`;
 
-					let iconId = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
-					let $newLi = $(`
-						<li data-jstree='${JSON.stringify({"opened":true, icon: _Icons.jstree_fake_icon, svgIcon: _Icons.getSvgIcon(iconId, 16, 24)})}' data-id="${classnameToId[classname]}">
-							${classname}${icons}
-						</li>
-					`).appendTo($newUl);
+					let $newLi               = $(`<li data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
+					let requiredSubTypeCount = printClassTree($newLi, classTree[classname]);
+					let iconId               = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
 
-					printClassTree($newLi, classTree[classname]);
+					let data = {
+						opened: true,
+						hidden: (showBuiltinTypes === false && isCustomType === false && requiredSubTypeCount === 0),
+						icon: _Icons.jstree_fake_icon,
+						svgIcon: _Icons.getSvgIcon(iconId, 16, 24),
+						requiredIfBuiltinTypesHidden: (isCustomType || requiredSubTypeCount > 0),
+						subs: requiredSubTypeCount
+					};
+
+					if (isCustomType || requiredSubTypeCount > 0) {
+						requiredTypes++;
+					}
+
+					$newLi[0].dataset['jstree'] = JSON.stringify(data);
 				}
 			}
+
+			return requiredTypes;
 		};
 
-		let getParentClassName = function (str) {
+		let getParentClassName = (str) => {
 			if (str.slice(-1) === '>') {
 				let res = str.match("([^<]*)<([^>]*)>");
 				return getParentClassName(res[1]) + "&lt;" + getParentClassName(res[2]) + "&gt;";
@@ -4792,10 +4677,13 @@ let _Schema = {
 
 		let eventsInitialized = false;
 		let initEvents = (force = false) => {
+
 			if (eventsInitialized === false || force === true) {
+
 				eventsInitialized = true;
 
 				for (let editIcon of document.querySelectorAll('#inheritance-tree .edit-type-icon')) {
+
 					editIcon.addEventListener('click', () => {
 						let nodeId = editIcon.closest('li').dataset['id'];
 						if (nodeId) {
@@ -4826,49 +4714,61 @@ let _Schema = {
 			}
 		};
 
-		$.jstree.destroy();
-		printClassTree(_Schema.inheritanceTree, classTree);
-		_Schema.inheritanceTree.jstree({
-			core: {
-				animation: 0,
-				multiple: false,
-				themes: {
-					dots: false
+		let initJsTree = () => {
+
+			eventsInitialized = false;
+
+			$.jstree.destroy();
+			printClassTree(_Schema.inheritanceTree, classTree);
+			_Schema.inheritanceTree.jstree({
+				core: {
+					animation: 0,
+					multiple: false,
+					themes: {
+						dots: false
+					}
+				},
+				plugins: ["search"]
+			}).on('ready.jstree', (e, data) => {
+
+				initEvents();
+
+				// in case we are switching builtin type visibility, react to search input
+				if (searchInheritanceTypesInput.value) {
+					searchInheritanceTypesInput.dispatchEvent(new Event('keyup'));
 				}
-			},
-			plugins: ["search"]
-		}).on('ready.jstree', (e, data) => {
 
-			initEvents();
+			}).on('search.jstree', (e, data) => {
 
-		}).on('search.jstree', (e, data) => {
+				initEvents(true);
 
-			initEvents(true);
+			}).on('clear_search.jstree', (e, data) => {
 
-		}).on('clear_search.jstree', (e, data) => {
+				initEvents(true);
 
-			initEvents(true);
+			}).on('changed.jstree', function(e, data) {
 
-		}).on('changed.jstree', function(e, data) {
-
-			if (data.node) {
-				let $node = $('#id_' + data.node.data.id);
-				if ($node.length > 0) {
-					$('.selected').removeClass('selected');
-					$node.addClass('selected');
-					_Schema.ui.selectedNodes = [$node];
+				if (data.node) {
+					let $node = $('#id_' + data.node.data.id);
+					if ($node.length > 0) {
+						$('.selected').removeClass('selected');
+						$node.addClass('selected');
+						_Schema.ui.selectedNodes = [$node];
+					}
 				}
-			}
-		});
+			});
 
-		_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
+			_TreeHelper.addSvgIconReplacementBehaviorToTree(_Schema.inheritanceTree);
 
-		_Schema.inheritanceTree.jstree(true).refresh();
+			_Schema.inheritanceTree.jstree(true).refresh();
+		};
+		initJsTree();
 
 		let searchTimeout;
-		$('#search-classes').keyup((e) => {
+		searchInheritanceTypesInput?.addEventListener('keyup', (e) => {
 			if (e.which === 27) {
-				$('#search-classes').val('');
+
+				searchInheritanceTypesInput.value = '';
 				_Schema.inheritanceTree.jstree(true).clear_search();
 
 			} else {
@@ -4877,10 +4777,18 @@ let _Schema = {
 				}
 
 				searchTimeout = setTimeout(() => {
-					let query = $('#search-classes').val();
+					let query = searchInheritanceTypesInput.value;
 					_Schema.inheritanceTree.jstree(true).search(query, true, true);
 				}, 250);
 			}
+		});
+
+		showBuiltinTypesCheckbox.addEventListener('change', (e) => {
+			showBuiltinTypes = showBuiltinTypesCheckbox.checked;
+
+			LSWrapper.setItem(_Schema.showBuiltinTypesInInheritanceTreeKey, showBuiltinTypes);
+
+			initJsTree();
 		});
 	},
 	overlapsExistingNodes: (position) => {
@@ -5183,19 +5091,22 @@ let _Schema = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
-			
+
 			<div class="slideout-activator left" id="inheritanceTab">
 				<svg viewBox="0 0 28 28" height="28" width="28" xmlns="http://www.w3.org/2000/svg">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><path d="M22.5,11.25A5.24,5.24,0,0,0,19.45,6.5,2.954,2.954,0,0,0,16.5,3c-.063,0-.122.015-.185.019a5.237,5.237,0,0,0-8.63,0C7.622,3.015,7.563,3,7.5,3A2.954,2.954,0,0,0,4.55,6.5a5.239,5.239,0,0,0,1.106,9.885A4.082,4.082,0,0,0,12,17.782a4.082,4.082,0,0,0,6.344-1.4A5.248,5.248,0,0,0,22.5,11.25Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12 8.25L12 23.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,15q4.5,0,4.5-4.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path><path d="M12,12A3.543,3.543,0,0,1,8.25,8.25" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path></g>
 				</svg>
-				Inheri-<br>tance
+				Inheri&shy;tance
 			</div>
-			
+
 			<div id="inheritance-tree" class="slideOut slideOutLeft">
-				<div class="inheritance-search">Search: <input type="text" id="search-classes" autocomplete="off"></div>
+				<div class="flex items-center justify-between my-2">
+					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
+					<label class="mr-4" data-comment="Built-in types will still be shown if they are ancestors of custom types."><input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>Show built-in types</label>
+				</div>
 				<div id="inheritance-tree-container" class="ver-scrollable hidden"></div>
 			</div>
-			
+
 			<div id="schema-container">
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
@@ -5215,21 +5126,21 @@ let _Schema = {
 							${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods
 						</button>
 					</div>
-			
+
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display
 						</button>
-			
+
 						<div class="dropdown-menu-container">
 							<div class="row">
 								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
 									${_Icons.getSvgIcon('eye-in-square', 16, 16, 'mr-2')} Type Visibility
 								</a>
 							</div>
-			
+
 							<div class="separator"></div>
-			
+
 							<div class="heading-row">
 								<h3>Display Options</h3>
 							</div>
@@ -5239,13 +5150,13 @@ let _Schema = {
 							<div class="row">
 								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
 							</div>
-			
+
 							<div class="separator"></div>
-			
+
 							<div class="heading-row">
 								<h3>Edge Style</h3>
 							</div>
-			
+
 							<div class="row">
 								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Flowchart'    ? 'active' : ''}"> Flowchart</a>
 							</div>
@@ -5258,27 +5169,27 @@ let _Schema = {
 							<div class="row">
 								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a>
 							</div>
-			
+
 							<div class="separator"></div>
-			
+
 							<div class="heading-row">
 								<h3>Saved Layouts</h3>
 							</div>
-			
+
 							<div class="row">
 								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
 								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
 								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
 								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
 							</div>
-			
+
 							<div class="row">
 								<input id="layout-name" placeholder="Enter name for layout">
 								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
 							</div>
-			
+
 							<div class="separator"></div>
-			
+
 							<div class="row">
 								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
 									${_Icons.getSvgIcon('reset-arrow', 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
@@ -5286,7 +5197,7 @@ let _Schema = {
 							</div>
 						</div>
 					</div>
-			
+
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
 
@@ -5295,33 +5206,33 @@ let _Schema = {
 								<h3>Create snapshot</h3>
 							</div>
 							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
-							
+
 							<div class="row">
 								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
 								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
 							</div>
-							
+
 							<div class="heading-row">
 								<h3>Available Snapshots</h3>
 							</div>
-							
+
 							<table class="props" id="snapshots">
-							
+
 							</table>
-							
+
 							<div class="separator"></div>
-							
+
 							<div class="row">
 								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
 							</div>
 						</div>
 					</div>
-			
+
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin
 						</button>
-						
+
 						<div class="dropdown-menu-container">
 							<div class="heading-row">
 								<h3>Indexing</h3>
@@ -5363,16 +5274,16 @@ let _Schema = {
 								</button>
 								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
 							</div>
-							
+
 							<div class="row flex items-center">
 								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 									${_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2 icon-red')} Clear Schema
 								</button>
 								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
 							</div>
-							
+
 							<div class="separator"></div>
-							
+
 							<div class="row">
 								<label class="block"><input type="checkbox" id="show-java-methods-in-schema-checkbox"> Show Java methods in SchemaNode</label>
 							</div>
@@ -5380,7 +5291,7 @@ let _Schema = {
 					</div>
 				</div>
 			</div>
-			
+
 			<div id="zoom-slider"></div>
 		`,
 		typeBasicTab: config => `
@@ -5388,7 +5299,7 @@ let _Schema = {
 				<div class="flex items-center gap-x-2 pt-4">
 
 					${(true === config.type.isBuiltinType) ? `<input class="disabled" disabled value="${config.type.name}" class="flex-grow">` : `<input data-property="name" value="${config.type.name}" class="flex-grow">`}
-					
+
 					${(config.type.extendsClass || false === config.type.isBuiltinType) ? `
 						<div class="extends-type">
 							extends
@@ -5398,7 +5309,7 @@ let _Schema = {
 						</div>
 					` : ''}
 				</div>
-				
+
 				<h3>Options</h3>
 				<div class="property-options-group">
 					<div>
@@ -5413,7 +5324,7 @@ let _Schema = {
 						</label>
 					</div>
 				</div>
-				
+
 				<h3>OpenAPI</h3>
 				<div class="property-options-group">
 					<div id="type-openapi">
@@ -5425,41 +5336,41 @@ let _Schema = {
 		relationshipBasicTab: config => `
 			<div class="schema-details">
 				<div id="relationship-options">
-			
+
 					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-center mb-4">
-		
+
 						<div class="text-right pb-2 truncate">
 							<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
 						</div>
-		
+
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
-		
+
 							<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								<option value="1">1</option>
 								<option value="*" selected>*</option>
 							</select>
-		
+
 							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 						</div>
-		
+
 						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
-		
+
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
-		
+
 							<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								<option value="1">1</option>
 								<option value="*" selected>*</option>
 							</select>
-		
+
 							<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
 						</div>
-		
+
 						<div class="text-left pb-2 truncate">
 							<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
 						</div>
-		
+
 						<div></div>
 						<div class="flex items-center">
 							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
@@ -5470,9 +5381,9 @@ let _Schema = {
 						</div>
 						<div></div>
 					</div>
-		
+
 					<div class="grid grid-cols-2 gap-x-4">
-		
+
 						<div id="cascading-options">
 							<h3>Cascading Delete</h3>
 							<p>Direction of automatic removal of related nodes when a node is deleted</p>
@@ -5486,10 +5397,10 @@ let _Schema = {
 									<option value="4">CONSTRAINT_BASED</option>
 								</select>
 							</div>
-		
+
 							<h3>Automatic Creation of Related Nodes</h3>
 							<p>Direction of automatic creation of related nodes when a node is created</p>
-		
+
 							<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								<option value="0">NONE</option>
 								<option value="1">SOURCE_TO_TARGET</option>
@@ -5497,9 +5408,9 @@ let _Schema = {
 								<option value="3">ALWAYS</option>
 							</select>
 						</div>
-		
+
 						<div id="propagation-options">
-		
+
 							<div>
 								<h3>Permission Resolution</h3>
 								<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5509,7 +5420,7 @@ let _Schema = {
 									<option value="Both">ALWAYS</option>
 								</select>
 							</div>
-		
+
 							<div class="mt-4">
 								<div id="propagation-table" class="flex">
 									<div class="selector">
@@ -5520,7 +5431,7 @@ let _Schema = {
 											<option value="Remove" selected>Remove</option>
 										</select>
 									</div>
-		
+
 									<div class="selector">
 										<p>Write</p>
 										<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5529,7 +5440,7 @@ let _Schema = {
 											<option value="Remove" selected>Remove</option>
 										</select>
 									</div>
-		
+
 									<div class="selector">
 										<p>Delete</p>
 										<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5538,7 +5449,7 @@ let _Schema = {
 											<option value="Remove" selected>Remove</option>
 										</select>
 									</div>
-		
+
 									<div class="selector">
 										<p>AccessControl</p>
 										<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -5549,7 +5460,7 @@ let _Schema = {
 									</div>
 								</div>
 							</div>
-		
+
 							<p class="mt-4">Hidden properties</p>
 							<textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask"></textarea>
 						</div>
@@ -5572,7 +5483,7 @@ let _Schema = {
 				<div id="methods-container-left">
 					<div id="methods-table-container"></div>
 				</div>
-			
+
 				<div id="methods-container-right" class="flex flex-col flex-grow">
 					<div id="methods-content" class="flex-grow">
 						<div class="editor h-full"></div>
@@ -5702,24 +5613,27 @@ let _Schema = {
 				</button>
 				<div class="dropdown-menu-container">
 					<div class="flex flex-col divide-x-0 divide-y">
-						<a class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+						<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
 						</a>
-						<a class="add-onCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
 						</a>
-						<a class="add-afterCreate-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
+						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
 						</a>
-						<a class="add-onSave-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
 							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
+						</a>
+						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
 					</div>
 				</div>
 			</div>
 		`,
 		addMethodDropdown: config => `
-			<button class="inline-flex items-center add-action-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
+			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
 				${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
 			</button>
 		`,
@@ -5792,7 +5706,7 @@ let _Schema = {
 				<td class="centered actions-col">
 					${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${_Icons.getSvgIcon('trashcan', 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
-			
+
 					<a href="/structr/rest/${config.type.name}/${config.view.name}" target="_blank">
 						${_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview (with pageSize=1)')}
 					</a>
@@ -5842,7 +5756,7 @@ let _Schema = {
 					<select id="type-groups" multiple="multiple"></select>
 					<span id="add-to-new-group"></span>
 				</div>
-				
+
 				${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
 
 			</div>
@@ -5852,7 +5766,7 @@ let _Schema = {
 				<div>
 					<label id="usage-label"></label>
 				</div>
-				
+
 				<div id="usage-tree-container">
 					<ul id="usage-tree"></ul>
 				</div>

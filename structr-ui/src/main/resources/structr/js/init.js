@@ -379,26 +379,48 @@ let Structr = {
 
 	moveUIOffscreen: () => {
 
-		fastRemoveAllChildren(Structr.functionBarOffscreen);
-		Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+		let movedOffscreen = false;
 
-		fastRemoveAllChildren(Structr.mainContainerOffscreen);
-		Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+		// only move UI offscreen if there is UI to move offscreen
+		if (Structr.functionBar.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.functionBarOffscreen);
+			Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+
+			movedOffscreen = true;
+		}
+
+		if (Structr.mainContainer.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.mainContainerOffscreen);
+			Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+
+			movedOffscreen = true;
+		}
+
+		return movedOffscreen;
 	},
 	moveOffscreenUIOnscreen: () => {
 
-		if (Structr.mainContainerOffscreen.children.length > 0 && Structr.functionBarOffscreen.children.length > 0) {
+		let movedBack = false;
+
+		if (Structr.functionBarOffscreen.children.length > 0) {
 
 			fastRemoveAllChildren(Structr.functionBar);
 			Structr.functionBar.append(...Structr.functionBarOffscreen.children);
 
+			movedBack = true;
+		}
+
+		if (Structr.mainContainerOffscreen.children.length > 0) {
+
 			fastRemoveAllChildren(Structr.mainContainer);
 			Structr.mainContainer.append(...Structr.mainContainerOffscreen.children);
 
-			return true;
+			movedBack = true;
 		}
 
-		return false;
+		return movedBack;
 	},
 	init: () => {
 		$('#errorText').empty();
@@ -509,10 +531,13 @@ let Structr = {
 		});
 	},
 	doLogout: (text) => {
+
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
+
 		if (Command.logout(StructrWS.user)) {
+
 			Cookies.remove('JSESSIONID');
 			StructrWS.sessionId = '';
 			Structr.renewSessionId();
@@ -521,6 +546,7 @@ let Structr = {
 			Structr.login(text);
 			return true;
 		}
+
 		StructrWS.close();
 		return false;
 	},

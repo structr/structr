@@ -85,7 +85,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InternalSystemPropertyToken;
 import org.structr.common.error.NullArgumentToken;
 import org.structr.common.error.ReadOnlyPropertyToken;
-import org.structr.common.event.RuntimeUsageLog;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
@@ -474,8 +473,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		if (key == null || key.dbName() == null) {
 			return null;
 		}
-
-		RuntimeUsageLog.log(this, key);
 
 		return key.getProperty(securityContext, this, applyConverter, predicate);
 	}

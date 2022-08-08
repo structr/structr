@@ -33,6 +33,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +144,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		// override setProperty methods, but don't call super first (we need the previous value)
 		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
-		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, arg2);");
+		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, arg2);")
+				// the following lines make the overridden setProperties method more explicit in regards to its parameters
+				.setReturnType("void")
+				.addParameter("arg0", SecurityContext.class.getName())
+				.addParameter("arg1", "java.util.Map<java.lang.String, java.lang.Object>")
+				.addParameter("arg2", "boolean")
+				.addException(FrameworkException.class.getName());
 
 		type.overrideMethod("onCreation",                  true,  File.class.getName() + ".onCreation(this, arg0, arg1);");
 		type.overrideMethod("onModification",              true,  File.class.getName() + ".onModification(this, arg0, arg1, arg2);");
@@ -155,6 +162,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
 		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
+		type.overrideMethod("callOnUploadHandler",         false, File.class.getName() + ".callOnUploadHandler(this, arg0);");
 		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
@@ -275,6 +283,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	boolean isTemplate();
 
 	void notifyUploadCompletion();
+	void callOnUploadHandler(final SecurityContext ctx);
 	void increaseVersion() throws FrameworkException;
 	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
 
@@ -384,17 +393,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 			}
 
-			// call onUpload callback
-			try {
-
-				thisFile.invokeMethod(thisFile.getSecurityContext(), "onUpload", null, false, new EvaluationHints());
-
-			} catch (FrameworkException fex) {
-
-				final Logger logger = LoggerFactory.getLogger(File.class);
-				logger.warn("Exception occurred in onUpload handler of {}: {}", thisFile, fex.getMessage());
-			}
-
 			// indexing can be controlled for each file separately
 			if (File.doIndexing(thisFile)) {
 
@@ -408,6 +406,22 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			logger.warn("Unable to index {}: {}", thisFile, fex.getMessage());
 		}
 	}
+
+	static void callOnUploadHandler(final File thisFile, final SecurityContext ctx) {
+
+		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
+
+			thisFile.invokeMethod(ctx, "onUpload", Collections.emptyMap(), false, new EvaluationHints());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			final Logger logger = LoggerFactory.getLogger(File.class);
+			logger.warn("Exception occurred in onUpload handler of {}: {}", thisFile, fex.getMessage());
+		}
+	}
+
 
 	static String getFormattedSize(final File thisFile) {
 		return FileUtils.byteCountToDisplaySize(thisFile.getSize());

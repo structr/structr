@@ -127,8 +127,12 @@ let _Elements = {
 			focus: 'href'
 		},
 		{
-			elements: ['td', 'th'],
-			attrs: ['colspan', 'rowspan', 'style']
+			elements: ['th'],
+			attrs: ['abbr', 'colspan', 'rowspan', 'headers', 'scope', 'style']
+		},
+		{
+			elements: ['td'],
+			attrs: ['colspan', 'rowspan', 'headers', 'style']
 		},
 		{
 			elements: ['label'],

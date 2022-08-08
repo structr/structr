@@ -26,12 +26,12 @@ let StructrWS = {
 	userId: undefined,
 	me: undefined,
 
-	reconnectIntervalId: undefined,
-
 	init: () => {
 
 		StructrWS.wsWorker.addEventListener('message', (e) => {
+
 			switch(e.data.type) {
+
 				case 'onopen': {
 					StructrWS.onopen(e.data);
 					break;
@@ -48,19 +48,15 @@ let StructrWS = {
 					StructrWS.ping();
 					break;
 				}
-				case 'test': {
-					console.log('test');
-					break;
-				}
 			}
 		});
 
 		StructrWS.connect();
 	},
 	getWSConnectionInfo: () => {
-		let isEnc = (window.location.protocol === 'https:');
-		let host = document.location.host;
 
+		let isEnc   = (window.location.protocol === 'https:');
+		let host    = document.location.host;
 		let message = {
 			wsUrl: 'ws' + (isEnc ? 's' : '') + '://' + host + Structr.wsRoot,
 			wsClass: (('WebSocket' in window) === true) ? 'WebSocket' : (('MozWebSocket' in window) ? 'MozWebSocket' : false)
@@ -92,14 +88,14 @@ let StructrWS = {
 			StructrWS.wsWorker.postMessage(message);
 		}
 	},
-	reconnect: (source) => {
+	reconnect: (data) => {
 
 		let wsInfo = StructrWS.getWSConnectionInfo();
 		if (wsInfo === false) {
 			return;
 		}
-		let message = Object.assign({ type: 'reconnect' }, wsInfo);
 
+		let message = Object.assign({ type: 'reconnect' }, wsInfo);
 
 		StructrWS.wsWorker.postMessage(message);
 	},
@@ -150,10 +146,14 @@ let StructrWS = {
 		// Delay reconnect dialog to prevent it popping up before page reload
 		window.setTimeout(() => {
 
-			Structr.moveUIOffscreen();
+			let movedOffscreen = Structr.moveUIOffscreen();
 
-			Structr.reconnectDialog();
-			StructrWS.reconnect({source: 'onclose'});
+			if (movedOffscreen) {
+				// we just moved the UI off-screen to be able to show the reconnect dialog.
+				// if we did not move the UI off-screen, we are already showing the reconnect dialog
+				Structr.reconnectDialog();
+			}
+			StructrWS.reconnect({ source: 'onclose' });
 
 		}, 100);
 	},
@@ -179,12 +179,18 @@ let StructrWS = {
 			StructrWS.isAdmin = data.data.isAdmin;
 
 			if (!sessionValid) {
+
 				Structr.clearMain();
 				Structr.login(msg);
+
 			} else if (!StructrWS.user || StructrWS.user !== data.data.username || loginBox.is(':visible')) {
+
 				if (StructrWS.skipNext100Code === true) {
+
 					StructrWS.skipNext100Code = false;
+
 				} else {
+
 					Structr.updateUsername(data.data.username);
 					loginBox.hide();
 					Structr.clearLoginForm();
@@ -610,10 +616,12 @@ let StructrWS = {
 		}
 
 		try {
+
 			StructrWS.wsWorker.postMessage({
 				type: 'server',
 				message: t
 			});
+
 		} catch (exception) {
 			// console.log('Error in send(): ' + exception);
 		}

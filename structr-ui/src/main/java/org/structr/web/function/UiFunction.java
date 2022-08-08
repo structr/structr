@@ -35,17 +35,17 @@ public abstract class UiFunction extends Function<Object, Object> {
 
 	protected String getFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws IOException, FrameworkException {
 
-		return HttpHelper.get(requestUrl, charset, username, password, ctx.getHeaders());
+		return HttpHelper.get(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
 	protected byte[] getBinaryFromUrl(final ActionContext ctx, final String requestUrl, final String charset, final String username, final String password) throws IOException, FrameworkException {
 
-		return HttpHelper.getBinary(requestUrl, charset, username, password, ctx.getHeaders());
+		return HttpHelper.getBinary(requestUrl, charset, username, password, ctx.getHeaders(), ctx.isValidateCertificates());
 	}
 
 	protected GraphObjectMap headFromUrl(final ActionContext ctx, final String requestUrl, final String username, final String password) throws IOException, FrameworkException {
 
-		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders());
+		final Map<String, String> headers = HttpHelper.head(requestUrl, password, username, ctx.getHeaders(), ctx.isValidateCertificates());
 
 		final GraphObjectMap map = new GraphObjectMap();
 

@@ -55,7 +55,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StartNode;
 import org.structr.core.property.StartNodes;
 import org.structr.core.property.StringProperty;
-import org.structr.core.property.UsageProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
@@ -104,7 +103,6 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
 	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
 	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
-	public static final Property<Object>             usedIn                = new UsageProperty("usedIn", SchemaProperty.class);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
 		name, declaringUuid, declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,

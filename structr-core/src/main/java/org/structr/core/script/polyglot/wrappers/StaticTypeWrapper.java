@@ -24,19 +24,13 @@ import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.graph.Tx;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -71,7 +65,7 @@ public class StaticTypeWrapper implements ProxyObject {
 			return cachedStaticExecutable;
 		}
 
-		Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(referencedClass, Export.class);
+		final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(referencedClass);
 		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
 
 			Method method = methods.get(key);

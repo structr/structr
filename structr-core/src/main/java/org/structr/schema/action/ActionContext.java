@@ -44,7 +44,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -229,6 +228,14 @@ public class ActionContext {
 		return getContextStore().getHeaders();
 	}
 
+	public void setValidateCertificates(final boolean validate) {
+		getContextStore().setValidateCertificates(validate);
+	}
+
+	public boolean isValidateCertificates() {
+		return getContextStore().isValidateCertificates();
+	}
+
 	public AdvancedMailContainer getAdvancedMailContainer() {
 		return getContextStore().getAdvancedMailContainer();
 	}
@@ -299,7 +306,7 @@ public class ActionContext {
 					} else if (data instanceof Class) {
 
 						// static method?
-						Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods((Class) data, Export.class);
+						final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType((Class) data);
 						if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
 
 							hints.reportExistingKey(key);
@@ -470,7 +477,7 @@ public class ActionContext {
 						default:
 
 							// Do the (slow) class check only if key value starts with uppercase character or could have a package path
-							if (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, ".")) {
+							if (StringUtils.isNotEmpty(key) && (Character.isUpperCase(key.charAt(0)) || StringUtils.contains(key, "."))) {
 
 								final Class type = StructrApp.getConfiguration().getNodeEntityClass(key);
 								if (type != null) {

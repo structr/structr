@@ -43,7 +43,8 @@ let _Code = {
 	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
-	
+	inSearchBox: false,
+
 	init: function() {
 
 		Structr.makePagesMenuDroppable();
@@ -97,15 +98,19 @@ let _Code = {
 	},
 	onload: () => {
 
-		Structr.functionBar.innerHTML = _Code.templates.functions();
+		Structr.functionBar.innerHTML   = _Code.templates.functions();
 		Structr.mainContainer.innerHTML = _Code.templates.main();
-
 
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
 			UISettings.showSettingsForCurrentModule();
 
-			$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
+			let codeSearchInput = document.querySelector('#tree-search-input');
+			_Code.inSearchBox = false;
+			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
+			codeSearchInput.addEventListener('blur',  () => { _Code.inSearchBox = false; });
+			codeSearchInput.addEventListener('input', _Code.debounce(_Code.doSearch, 300));
+
 			$('#tree-forward-button').on('click', _Code.pathLocationForward);
 			$('#tree-back-button').on('click', _Code.pathLocationBackward);
 			$('#cancel-search-button').on('click', _Code.cancelSearch);
@@ -117,7 +122,6 @@ let _Code = {
 					}
 				};
 			});
-
 
 			_Code.init();
 
@@ -149,9 +153,9 @@ let _Code = {
 			_Code.resize();
 			Structr.adaptUiToAvailableFeatures();
 		});
-
 	},
 	preloadAvailableTagsForEntities: async () => {
+
 		let schemaNodeTags   = await Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
 		let schemaMethodTags = await Command.queryPromise('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
 
@@ -1862,7 +1866,7 @@ let _Code = {
 			});
 			activateTab(lastOpenTab || 'source');
 
-			sourceEditor.focus();
+			_Editors.focusEditor(sourceEditor);
 		});
 	},
 	collectSchemaMethodParameters: () => {
@@ -2188,7 +2192,7 @@ let _Code = {
 			_Code.lastClickedPath = selection.source;
 		}
 
-		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , 'fa fa-code gray', selection.source, false);
+		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , selection.obj.nodeData.svgIcon, selection.source, false);
 
 		_Code.codeContents.append(_Code.templates.methods({ identifier: selection }));
 
@@ -2740,7 +2744,7 @@ let _Code = {
 		$('#tree-forward-button').prop('disabled', forwardDisabled);
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
-	doSearch: (e) => {
+	doSearch: () => {
 		let tree      = $('#code-tree').jstree(true);
 		let input     = $('#tree-search-input');
 		let text      = input.val();

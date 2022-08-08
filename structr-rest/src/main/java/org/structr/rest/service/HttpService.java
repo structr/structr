@@ -53,7 +53,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
@@ -133,6 +132,7 @@ public class HttpService implements RunnableService, StatsCallback {
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
+		Exception exception = null;
 		int maxAttempts = 3;
 
 		while (maxAttempts-- > 0) {
@@ -146,11 +146,18 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 
 				maxAttempts = 0;
+				exception = null;
 
 			} catch (Exception e) {
-				logger.warn("Error, retrying {} more times after 500ms - Caught: {} ", maxAttempts, e.getMessage());
-				Thread.sleep(500);
+				logger.warn("Error, retrying {} more times after 10s - Caught: {} ", maxAttempts, e.getMessage());
+				Thread.sleep(10000);
+				exception = e;
 			}
+		}
+
+		// if exception is set, don't continue and throw it
+		if (exception != null) {
+			throw exception;
 		}
 
 		try {

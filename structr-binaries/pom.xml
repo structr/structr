@@ -180,7 +180,45 @@
 			<plugin>
 				<groupId>io.fabric8</groupId>
 				<artifactId>docker-maven-plugin</artifactId>
-				<version>0.40.1</version>
+				<version>0.40.2</version>
+				<configuration>
+					<skip>${skipDocker}</skip>
+					<images>
+						<image>
+							<name>structr/structr:${project.version}</name>
+							<registry>https://index.docker.io/v1/</registry>
+							<build>
+								<contextDir>${project.basedir}</contextDir>
+								<args>
+									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+								</args>
+								<buildx>
+									<platforms>
+										<platform>linux/amd64</platform>
+										<platform>linux/arm64</platform>
+									</platforms>
+								</buildx>
+							</build>
+						</image>
+						<image>
+							<name>structr/structr:python-${project.version}</name>
+							<registry>https://index.docker.io/v1/</registry>
+							<build>
+								<skip>${skipPythonDocker}</skip>
+								<contextDir>${project.basedir}</contextDir>
+								<dockerFile>Dockerfile-Python</dockerFile>
+								<args>
+									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+								</args>
+								<buildx>
+									<platforms>
+										<platform>linux/amd64</platform>
+									</platforms>
+								</buildx>
+							</build>
+						</image>
+					</images>
+				</configuration>
 				<executions>
 					<execution>
 						<id>docker:build</id>
@@ -189,44 +227,7 @@
 							<goal>build</goal>
 							<goal>push</goal>
 						</goals>
-						<configuration>
-							<skip>${skipDocker}</skip>
-							<images>
-								<image>
-									<name>structr/structr:${project.version}</name>
-									<registry>docker.io</registry>
-									<build>
-										<contextDir>${project.basedir}</contextDir>
-										<args>
-											<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
-										</args>
-										<buildx>
-											<platforms>
-												<platform>linux/amd64</platform>
-												<platform>linux/arm64</platform>
-											</platforms>
-										</buildx>
-									</build>
-								</image>
-								<image>
-									<name>structr/structr:python-${project.version}</name>
-									<registry>docker.io</registry>
-									<build>
-										<skip>${skipPythonDocker}</skip>
-										<contextDir>${project.basedir}</contextDir>
-										<dockerFile>Dockerfile-Python</dockerFile>
-										<args>
-											<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
-										</args>
-										<buildx>
-											<platforms>
-												<platform>linux/amd64</platform>
-											</platforms>
-										</buildx>
-									</build>
-								</image>
-							</images>
-						</configuration>
+
 					</execution>
 				</executions>
 			</plugin>
