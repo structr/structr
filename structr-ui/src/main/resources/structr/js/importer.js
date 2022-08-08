@@ -1683,12 +1683,18 @@ let Importer = {
 					${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
 				</button>
 			
-				<div class="button-and-input">
-					<label for="cancel-all-queued-after-job-id">Cancel ALL <b>queued</b> jobs after this ID:</label>
+				<div class="button-and-input inline-flex items-center">
+
+					<label for="cancel-all-queued-after-job-id" class="mr-2">
+						Cancel ALL <b>queued</b> jobs after this ID:
+					</label>
+
 					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
-					<button id="cancel-all-queued-after" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						<i class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Cancel
+
+					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel
 					</button>
+
 				</div>
 			
 			</div>

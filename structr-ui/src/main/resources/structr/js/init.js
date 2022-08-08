@@ -2548,7 +2548,8 @@ Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {
-		let initedTree = $(tree).jstree({
+
+		let initializedTree = $(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
@@ -2560,7 +2561,7 @@ let _TreeHelper = {
 			}
 		});
 
-		_TreeHelper.addSvgIconReplacementBehaviorToTree(initedTree);
+		_TreeHelper.addSvgIconReplacementBehaviorToTree(initializedTree);
 	},
 	addSvgIconReplacementBehaviorToTree: (tree) => {
 

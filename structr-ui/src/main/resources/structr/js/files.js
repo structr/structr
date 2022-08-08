@@ -268,7 +268,6 @@ let _Files = {
 
 			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
 				elements.push({
-					// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(entity)) + '" ></i>',
 					name: 'Edit Minification',
 					clickHandler: function () {
 						_Minification.showMinificationDialog(entity);
@@ -1579,15 +1578,6 @@ let _Files = {
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
-	// appendMinificationDialogIcon: function(parent, file) {
-	//
-	// 	parent.append('<i title="Open minification dialog" class="minify_file_icon button ' + _Icons.getFullSpriteClass(_Icons.getMinificationIcon(file)) + '" />');
-	// 	$('.minify_file_icon', parent).on('click', function(e) {
-	// 		e.stopPropagation();
-	//
-	// 		_Minification.showMinificationDialog(file);
-	// 	});
-	// },
 	// appendCSVImportDialogIcon: function(parent, file) {
 	//
 	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
@@ -1604,17 +1594,6 @@ let _Files = {
 	// 		return false;
 	// 	});
 	// },
-//	appendRemoveFavoriteIcon: function (parent, file) {
-//
-//		parent.append('<i title="Remove from favorites" class="remove_favorite_icon button ' + _Icons.getFullSpriteClass(_Icons.star_delete_icon) + '" />');
-//		$('.remove_favorite_icon', parent).on('click', function(e) {
-//			e.stopPropagation();
-//
-//			Command.favorites('remove', file.id, function() {
-//				parent.remove();
-//			});
-//		});
-//	},
 	displaySearchResultsForURL: async (url, searchString) => {
 
 		let content = $('#folder-contents');
@@ -1822,7 +1801,7 @@ let _Files = {
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 			
-					<button class="action add_folder_icon button inline-flex items-center" id="add-folder-button">
+					<button class="action button inline-flex items-center" id="add-folder-button">
 						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
@@ -1832,7 +1811,7 @@ let _Files = {
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
 			
-					<button class="action add_file_icon button inline-flex items-center" id="add-file-button">
+					<button class="action button inline-flex items-center" id="add-file-button">
 						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>

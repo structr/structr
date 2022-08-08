@@ -533,11 +533,15 @@ let _VirtualTypes = {
 			</div>
 		`,
 		functions: config => `
-			<form id="create-virtual-type-form" autocomplete="off">
-				<input title="Enter a name for the virtual type" id="virtual-type-name-preselect" type="text" size="10" placeholder="Name" required>
-				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required>
+			<form id="create-virtual-type-form" autocomplete="off" class="inline-flex">
+
+				<input title="Enter a name for the virtual type" id="virtual-type-name-preselect" type="text" size="10" placeholder="Name" required class="mr-2">
+				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required class="mr-2">
 			
-				<button type="submit" form="create-virtual-type-form" class="btn action" id="create-virtual-type"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Type</button>
+				<button type="submit" form="create-virtual-type-form" class="btn action inline-flex items-center" id="create-virtual-type">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Virtual Type
+				</button>
+
 			</form>
 			
 			<div id="virtual-types-pager"></div>
