@@ -379,19 +379,26 @@ let Structr = {
 
 	moveUIOffscreen: () => {
 
+		let movedOffscreen = false;
+
 		// only move UI offscreen if there is UI to move offscreen
 		if (Structr.functionBar.children.length > 0) {
 
 			fastRemoveAllChildren(Structr.functionBarOffscreen);
 			Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+
+			movedOffscreen = true;
 		}
 
 		if (Structr.mainContainer.children.length > 0) {
 
 			fastRemoveAllChildren(Structr.mainContainerOffscreen);
 			Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+
+			movedOffscreen = true;
 		}
 
+		return movedOffscreen;
 	},
 	moveOffscreenUIOnscreen: () => {
 

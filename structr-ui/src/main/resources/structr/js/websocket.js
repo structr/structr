@@ -146,9 +146,13 @@ let StructrWS = {
 		// Delay reconnect dialog to prevent it popping up before page reload
 		window.setTimeout(() => {
 
-			Structr.moveUIOffscreen();
+			let movedOffscreen = Structr.moveUIOffscreen();
 
-			Structr.reconnectDialog();
+			if (movedOffscreen) {
+				// we just moved the UI off-screen to be able to show the reconnect dialog.
+				// if we did not move the UI off-screen, we are already showing the reconnect dialog
+				Structr.reconnectDialog();
+			}
 			StructrWS.reconnect({ source: 'onclose' });
 
 		}, 100);
