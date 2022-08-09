@@ -902,38 +902,38 @@ let Structr = {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
-	tempInfo: (text, autoclose) => {
-
-		window.clearTimeout(Structr.dialogTimeoutId);
-
-		if (text) {
-			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
-		}
-
-		if (autoclose) {
-			Structr.dialogTimeoutId = window.setTimeout(() => {
-				$.unblockUI({
-					fadeOut: 25
-				});
-			}, 3000);
-		}
-
-		$('#tempInfoBox .closeButton').on('click', function(e) {
-			e.stopPropagation();
-			window.clearTimeout(Structr.dialogTimeoutId);
-			$.unblockUI({
-				fadeOut: 25
-			});
-			dialogBtn.children(':not(.closeButton)').remove();
-
-			Structr.focusSearchField();
-		});
-
-		$.blockUI({
-			message: $('#tempInfoBox'),
-			css: Structr.defaultBlockUICss
-		});
-	},
+	// tempInfo: (text, autoclose) => {
+	//
+	// 	window.clearTimeout(Structr.dialogTimeoutId);
+	//
+	// 	if (text) {
+	// 		$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
+	// 	}
+	//
+	// 	if (autoclose) {
+	// 		Structr.dialogTimeoutId = window.setTimeout(() => {
+	// 			$.unblockUI({
+	// 				fadeOut: 25
+	// 			});
+	// 		}, 3000);
+	// 	}
+	//
+	// 	$('#tempInfoBox .closeButton').on('click', function(e) {
+	// 		e.stopPropagation();
+	// 		window.clearTimeout(Structr.dialogTimeoutId);
+	// 		$.unblockUI({
+	// 			fadeOut: 25
+	// 		});
+	// 		dialogBtn.children(':not(.closeButton)').remove();
+	//
+	// 		Structr.focusSearchField();
+	// 	});
+	//
+	// 	$.blockUI({
+	// 		message: $('#tempInfoBox'),
+	// 		css: Structr.defaultBlockUICss
+	// 	});
+	// },
 	reconnectDialog: () => {
 
 		let restoreDialogText = '';

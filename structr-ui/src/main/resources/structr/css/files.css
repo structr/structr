@@ -296,36 +296,6 @@
 	padding-left: .5rem;
 }
 
-/*
- * Action buttons
- */
-/*#files-action-buttons {*/
-/*	position: absolute;*/
-/*	left: 1rem;*/
-/*	top: 1rem;*/
-/*	width: 60rem;*/
-/*}*/
-
-/*
- * Search (similar to crud search box but different)
- */
-.searchBox {
-	position: relative;
-	z-index: 5;
-}
-
-.searchBox input.search {
-	width: 20rem;
-}
-
-i.clearSearchIcon {
-	display: none;
-	position: absolute;
-	top: .75rem;
-	right: .75rem;
-	cursor: pointer;
-}
-
 /**
  * Minification
  */

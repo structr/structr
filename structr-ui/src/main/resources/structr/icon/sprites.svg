@@ -367,6 +367,15 @@
 		<path stroke-linejoin="round" d="M8.99852 14.632C9.29078 13.2437 10.5155 12.25 11.9342 12.25H12.0658C13.4845 12.25 14.7092 13.2437 15.0015 14.632L16.1061 19.8791C16.3464 21.0203 15.9023 22.2168 14.823 22.6587C14.053 22.9739 13.0725 23.25 12 23.25C10.9275 23.25 9.94697 22.9739 9.17694 22.6587C8.09765 22.2168 7.6536 21.0203 7.89386 19.8791L8.99852 14.632Z"></path>
 	</symbol>
 
+	<symbol id="datetime-icon" viewBox="0 0 24 24" stroke-width="1.5">
+		<path d="M8.25,17.25h-6a1.5,1.5,0,0,1-1.5-1.5v-12a1.5,1.5,0,0,1,1.5-1.5h13.5a1.5,1.5,0,0,1,1.5,1.5v4.5" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+		<path d="M0.75 6.75L17.25 6.75" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+		<path d="M5.25 3.75L5.25 0.75" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+		<path d="M12.75 3.75L12.75 0.75" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+		<path d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+		<path d="M19.902 17.25L17.25 17.25 17.25 14.599" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
+	</symbol>
+
 	<!-- non-trivial color icons -->
 	<symbol id="warning-sign-icon-filled" viewBox="0.5 1.5 23 21.5" stroke="none" fill="none">
 		<path fill="#FFEF5E" d="M1.31102 20.479L11.123 2.56101C11.2092 2.40374 11.3361 2.27253 11.4904 2.18113C11.6447 2.08973 11.8207 2.0415 12 2.0415C12.1794 2.0415 12.3554 2.08973 12.5097 2.18113C12.664 2.27253 12.7909 2.40374 12.877 2.56101L22.689 20.479C22.7723 20.6313 22.8146 20.8026 22.8116 20.9762C22.8086 21.1497 22.7605 21.3195 22.6721 21.4688C22.5836 21.6181 22.4577 21.7418 22.307 21.8278C22.1562 21.9137 21.9856 21.959 21.812 21.959H2.18802C2.01446 21.959 1.84389 21.9137 1.69309 21.8278C1.5423 21.7418 1.41648 21.6181 1.32799 21.4688C1.23951 21.3195 1.19142 21.1497 1.18844 20.9762C1.18547 20.8026 1.22771 20.6313 1.31102 20.479V20.479Z"></path>

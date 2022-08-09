@@ -224,6 +224,9 @@ button.yesButton, button.noButton {
 .icon-grey {
 	color: var(--icon-stroke);
 }
+.icon-lightgrey {
+	color: var(--light-gray-delete-b3);
+}
 .icon-red {
 	color: var(--light-red);
 }
@@ -4189,8 +4192,8 @@ table.props td.key {
 	margin: 2px 0 2px 1px;
 }
 
-.props td i.remove,
-.resourceBox td i.remove {
+.props td .remove,
+.resourceBox td .remove {
 	position: absolute;
 	right: .75rem;
 	top: .75rem;
@@ -4269,6 +4272,26 @@ table.props td.__value {
 	display: flex;
 	align-items: center;
 	padding: 0.25rem;
+}
+
+/*
+ * Search Box in function bar
+ */
+.searchBox {
+	position: relative;
+	z-index: 5;
+}
+
+.searchBox input.search {
+	width: 20rem;
+}
+
+.clearSearchIcon {
+	display: none;
+	position: absolute;
+	top: .75rem;
+	right: .75rem;
+	cursor: pointer;
 }
 
 /**
