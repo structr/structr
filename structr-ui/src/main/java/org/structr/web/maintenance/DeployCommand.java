@@ -28,13 +28,11 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -123,6 +121,8 @@ import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
 import org.structr.web.maintenance.deploy.PageImporter;
 import org.structr.web.maintenance.deploy.TemplateImporter;
 import org.structr.websocket.command.CreateComponentCommand;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -519,6 +519,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templates           = Files.createDirectories(target.resolve("templates"));
 			final Path modules             = Files.createDirectories(target.resolve("modules"));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve("mail-templates"));
+
 			final Path grantsConf          = security.resolve("grants.json");
 			final Path filesConf           = target.resolve("files.json");
 			final Path sitesConf           = target.resolve("sites.json");
@@ -592,6 +593,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			}
 
+			// set group grants for created files
+			final String groupName = Settings.DeploymentFileGroupName.getValue("");
+			if (StringUtils.isNotBlank(groupName)) {
+				setFileGroupRecursivly(groupName, target);
+			}
+
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
 
@@ -603,6 +610,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
+
+
 
 			logger.info("Export to {} done. (Took {})", target.toString(), duration);
 
@@ -630,6 +639,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info(logText);
 			}
 		}
+	}
+
+	private void setFileGroupRecursivly(String groupName, Path target) throws IOException {
+
+		try {
+
+			UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+			GroupPrincipal group = lookupService.lookupPrincipalByGroupName(groupName);
+			Files.walkFileTree(target, new GroupAddFileVisitor(group));
+
+		} catch (Exception ex) {
+			logger.warn("can't set group {} for deployment export files: {}", groupName, ex.getMessage());
+		}
+
 	}
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
@@ -2468,6 +2491,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return 1;
 			}
 			return o1.compareTo(o2);
+		}
+	}
+
+	// File Visitor to set group ownership on files created by the deployment export.
+	public static class GroupAddFileVisitor extends SimpleFileVisitor<Path> {
+
+		GroupPrincipal group;
+		GroupAddFileVisitor(GroupPrincipal group) {
+			super();
+			this.group = group;
+		}
+
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+			try {
+				Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return CONTINUE;
+		}
+
+		@Override
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) {
+			try {
+				Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return CONTINUE;
 		}
 	}
 }

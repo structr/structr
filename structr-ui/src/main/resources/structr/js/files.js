@@ -1825,7 +1825,7 @@ let _Files = {
 			
 			<div class="searchBox module-dependend" data-structr-module="text-search">
 				<input id="files-search-box" class="search" name="search" placeholder="Search...">
-				<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+				${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,
 		mountDialog: config => `
