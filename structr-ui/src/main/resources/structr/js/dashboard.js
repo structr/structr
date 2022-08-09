@@ -870,18 +870,24 @@ let _Dashboard = {
 
 				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
 
-					// account for missing modules because of license
-					if (menuitem.style.display !== 'none') {
-						let n = document.createElement('div');
-						n.classList.add('menu-item');
-						n.textContent = menuitem.dataset.name;
-						n.dataset.name = menuitem.dataset.name;
-						subMenuConfigContainer.appendChild(n);
+					// only show menu items that are allowed in the current configuration
+					if (Structr.availableMenuItems.includes(menuitem.dataset.name)) {
+
+						// account for missing modules because of license
+						if (menuitem.style.display !== 'none') {
+							let n = document.createElement('div');
+							n.classList.add('menu-item');
+							n.textContent = menuitem.dataset.name;
+							n.dataset.name = menuitem.dataset.name;
+							subMenuConfigContainer.appendChild(n);
+						}
 					}
 				}
 
 				for (let mainMenuItem of userConfigMenu.main) {
-					mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+					if (Structr.availableMenuItems.includes(mainMenuItem)) {
+						mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+					}
 				}
 
 				$('#main-menu-entries-config, #sub-menu-entries-config').sortable({
@@ -939,11 +945,11 @@ let _Dashboard = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/dashboard.css">
-			
+
 			<div class="main-app-box" id="dashboard">
-			
+
 				<div class="tabs-contents">
-			
+
 					<div class="tab-content active" id="dashboard-about-me">
 						<table class="props">
 							<tr><td class="key">User Name</td><td>${config.meObj.name}</td></tr>
@@ -953,11 +959,11 @@ let _Dashboard = {
 							<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
 							<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
 						</table>
-			
+
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-about-structr">
-			
+
 						<table class="props">
 							<tr>
 								<td class="key">Version</td>
@@ -997,15 +1003,15 @@ let _Dashboard = {
 							</tr>
 						</table>
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-deployment">
-			
+
 						<div class="dashboard-grid-wrapper">
-			
+
 							<div class="dashboard-grid-row">
 								<h2>Application Import and Export</h2>
 							</div>
-			
+
 							<div>
 								<h3>Application import from server directory</h3>
 								<div>
@@ -1013,7 +1019,7 @@ let _Dashboard = {
 									<button class="action" id="do-app-import">Import app from server directory</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Application export to server directory</h3>
 								<div>
@@ -1021,7 +1027,7 @@ let _Dashboard = {
 									<button class="action" id="do-app-export">Export app to server directory</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Import application from URL or upload a ZIP file</h3>
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeploymentServlet</code> is not running.</span>')}
@@ -1031,7 +1037,7 @@ let _Dashboard = {
 									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Export application and download as ZIP file</h3>
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not running.</span>')}
@@ -1041,15 +1047,15 @@ let _Dashboard = {
 									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
 								</div>
 							</div>
-			
+
 							<div class="dashboard-grid-row">
 								<hr>
 							</div>
-			
+
 							<div class="dashboard-grid-row">
 								<h2>Data Import and Export</h2>
 							</div>
-			
+
 							<div>
 								<h3>Data import from server directory</h3>
 								<div>
@@ -1057,7 +1063,7 @@ let _Dashboard = {
 									<button class="action" id="do-data-import">Import data from server directory</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Data export to server directory</h3>
 								<div>
@@ -1069,7 +1075,7 @@ let _Dashboard = {
 									<button class="action" id="do-data-export">Export data to server directory</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Import data from URL or upload a ZIP file</h3>
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
@@ -1079,7 +1085,7 @@ let _Dashboard = {
 									<button id="do-data-import-from-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
 								</div>
 							</div>
-			
+
 							<div>
 								<h3>Export data and download as ZIP file</h3>
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download data as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
@@ -1095,15 +1101,15 @@ let _Dashboard = {
 							</div>
 						</div>
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-global-schema-methods">
-			
+
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-server-log">
-			
+
 						<div id="dashboard-server-log-controls">
-			
+
 							<label>Refresh Interval:</label>
 							<select id="dashboard-server-log-refresh-interval">
 								<option value="10000">10s</option>
@@ -1112,54 +1118,54 @@ let _Dashboard = {
 								<option value="1000">1s</option>
 								<option value="-1">manual</option>
 							</select>
-			
+
 							<span class="dashboard-spacer"></span>
-			
+
 							<label>Number of lines: </label>
 							<input id="dashboard-server-log-lines" type="number">
-			
+
 							<span class="dashboard-spacer"></span>
-			
+
 							<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
 							<button id="dashboard-server-log-copy" class="action">Copy</button>
-			
+
 							<span class="dashboard-spacer"></span>
-			
+
 							<span id="dashboard-server-log-feedback"></span>
 						</div>
-			
+
 						<textarea readonly="readonly"></textarea>
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-sysinfo">
-			
+
 					</div>
-			
+
 					<div class="tab-content" id="dashboard-ui-config">
-			
+
 						<div class="flex">
-			
+
 							<div class="flex flex-col mr-12">
-			
+
 								<div class="flex menu-order-container">
 									<div class="text-center font-bold w-40 p-4">Main Menu</div>
 									<div class="text-center font-bold w-40 p-4">Custom Menu (☰)</div>
 								</div>
-			
+
 								<div class="flex menu-order-container">
 									<div id="main-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
 									<div id="sub-menu-entries-config" class="connectedSortable menu-order-config-container"></div>
 								</div>
 							</div>
-			
+
 							<div class="flex flex-col mr-12">
-			
+
 								<div class="text-center font-bold p-4 w-full">Misc UI Settings</div>
-			
+
 								<div id="settings-container">
-			
+
 								</div>
-			
+
 								<div>
 									<button class="action" id="clear-local-storage-on-server">Reset <strong>all</strong> stored UI settings</button>
 								</div>
@@ -1185,15 +1191,15 @@ let _Dashboard = {
 								<option value="Transaction">Transactions</option>
 								<option value="SystemInfo">SystemInfo</option>
 							</select>
-			
+
 							<label class="mr-1">Number of events to show:</label>
 							<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
-			
+
 							<button id="refresh-event-log" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
 							</button>
 						</div>
-			
+
 						<table class="props">
 							<thead>
 								<tr>
@@ -1205,13 +1211,13 @@ let _Dashboard = {
 								</tr>
 							</thead>
 							<tbody id="event-log-container">
-			
+
 							</tbody>
 						</table>
 					</div>
-			
+
 				</div>
-			
+
 			</div>
 		`,
 		functions: config => `
