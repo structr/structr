@@ -91,7 +91,9 @@
 			<div id="menu" class="menu">
 				<ul>
 					<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
-						<i class="sprite sprite-hamburger_white"></i>
+
+						<span class="icon-white">☰</span>
+
 						<ul id="submenu">
 							<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
 							<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
@@ -169,9 +171,27 @@
 						<div id="two-factor-qr-info">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
 					</div>
 					<table>
-						<tr><td><label for="twoFactorTokenField">Two-Factor Code:</label></td><td><input id="twoFactorTokenField" type="hidden" name="twoFactorToken"><input id="twoFactorCodeField" type="text" name="twoFactorCode" required></td></tr>
-						<tr><td colspan="2" class="btn"><span id="errorText-two-factor"></span></td></tr>
-						<tr><td colspan="2" class="btn"><button id="loginButtonTFA" name="login"><i class="sprite sprite-key"></i> Login 2FA</button></td></tr>
+						<tr>
+							<td>
+								<label for="twoFactorTokenField">Two-Factor Code:</label>
+							</td>
+							<td>
+								<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
+								<input id="twoFactorCodeField" type="text" name="twoFactorCode" required>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" class="btn">
+								<span id="errorText-two-factor"></span>
+							</td>
+						</tr>
+						<tr>
+							<td colspan="2" class="btn">
+								<button id="loginButtonTFA" name="login" class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<svg width="16" height="16" class="mr-2"><use xlink:href="#visibility-lock-key"></use></svg> Login 2FA
+								</button>
+							</td>
+						</tr>
 					</table>
 				</div>
 			</form>

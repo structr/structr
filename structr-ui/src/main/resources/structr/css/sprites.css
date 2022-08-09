@@ -116,10 +116,6 @@
 	background-position: -148px -28px;
 }
 
-.sprite-briefcase {
-	background-position: -172px -28px;
-}
-
 .sprite-button {
 	background-position: -196px -28px;
 }
@@ -176,26 +172,6 @@
 	background-position: -148px -52px;
 }
 
-.sprite-database {
-	background-position: -172px -52px;
-}
-
-.sprite-database_add {
-	background-position: -196px -52px;
-}
-
-.sprite-database_error {
-	background-position: -220px -52px;
-}
-
-.sprite-database_gear {
-	background-position: -244px -52px;
-}
-
-.sprite-database_table {
-	background-position: -268px -52px;
-}
-
 .sprite-delete {
 	background-position: -292px -52px;
 }
@@ -204,24 +180,12 @@
 	background-position: -4px -76px;
 }
 
-.sprite-disconnect {
-	background-position: -28px -76px;
-}
-
-.sprite-disk {
-	background-position: -52px -76px;
-}
-
 .sprite-error {
 	background-position: -76px -76px;
 }
 
 .sprite-exclamation {
 	background-position: -100px -76px;
-}
-
-.sprite-eye {
-	background-position: -124px -76px;
 }
 
 .sprite-find {
@@ -236,20 +200,12 @@
 	background-position: -220px -76px;
 }
 
-.sprite-folder_connect {
-	background-position: -244px -76px;
-}
-
 .sprite-folder_database {
 	background-position: -268px -76px;
 }
 
 .sprite-folder_delete {
 	background-position: -292px -76px;
-}
-
-.sprite-folder_disconnect {
-	background-position: -4px -100px;
 }
 
 .sprite-folder_page_white {
@@ -300,12 +256,6 @@
 	background-position: -296px -100px;
 }
 
-.sprite-icon_microphone {
-	width: 20px;
-	height: 20px;
-	background-position: -4px -124px;
-}
-
 .sprite-image {
 	background-position: -32px -124px;
 }
@@ -316,10 +266,6 @@
 
 .sprite-key {
 	background-position: -176px -124px;
-}
-
-.sprite-key_add {
-	background-position: -200px -124px;
 }
 
 .sprite-layout {
@@ -388,10 +334,6 @@
 	background-position: -310px -148px;
 }
 
-.sprite-page_add {
-	background-position: -4px -172px;
-}
-
 .sprite-page_copy {
 	background-position: -28px -172px;
 }
@@ -406,10 +348,6 @@
 
 .sprite-page_white_acrobat {
 	background-position: -142px -172px;
-}
-
-.sprite-page_white_add {
-	background-position: -166px -172px;
 }
 
 .sprite-page_white_code {
@@ -478,10 +416,6 @@
 
 .sprite-star {
 	background-position: -210px -196px;
-}
-
-.sprite-star_delete {
-	background-position: -234px -196px;
 }
 
 .sprite-structr-logo {
@@ -558,22 +492,6 @@
 	width: 8px;
 	height: 8px;
 	background-position: -360px -90px;
-}
-
-.sprite-tumblr {
-	width: 30px;
-	height: 30px;
-	background-position: -376px -90px;
-}
-
-.sprite-tux {
-	background-position: -414px -90px;
-}
-
-.sprite-twitter {
-	width: 30px;
-	height: 30px;
-	background-position: -438px -90px;
 }
 
 .sprite-user {

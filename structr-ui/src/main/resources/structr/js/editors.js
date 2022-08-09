@@ -521,7 +521,7 @@ let _Editors = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText"><i class="${_Icons.getFullSpriteClass(_Icons.microphone_icon)}"></i></button>`);
+			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon('microphone-icon', 18, 18)}</button>`);
 
 			let speechToTextButton = buttonArea.querySelector('.speechToText');
 			let speechBtn          = $(speechToTextButton);

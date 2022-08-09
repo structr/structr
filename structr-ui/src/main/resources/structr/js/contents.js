@@ -952,19 +952,18 @@ let _Contents = {
 						${config.containerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
 					</select>
 			
-					<button class="action add_container_icon button" id="add-container-button">
-						<i title="Add Content Container" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
-						<span>Add Content Container</span>
+					<button class="action add_container_icon button inline-flex items-center" id="add-container-button">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Container</span>
 					</button>
+				</button>
 			
 					<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="content-item-type">
 						<option value="ContentItem">Content Item</option>
 						${config.itemTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
 					</select>
-			
-					<button class="action add_item_icon button" id="add-item-button">
-						<i title="Add Content Item" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
-						<span>Add Content Item</span>
+
+					<button class="action add_item_icon button inline-flex items-center" id="add-item-button">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Item</span>
 					</button>
 			
 				</div>

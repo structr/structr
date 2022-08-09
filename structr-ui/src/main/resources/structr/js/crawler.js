@@ -22,13 +22,12 @@ var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + location.port;
 var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + location.port;
 var link, path, elid, claz, pageFrame, frameDoc;
-var proxyUrl = Structr.getPrefixedRootUrl('/structr/proxy');
 
 $(document).ready(function() {
 	Structr.registerModule(_Crawler);
 });
 
-var _Crawler = {
+let _Crawler = {
 	_moduleName: 'crawler',
 	init: function() {
 		Structr.makePagesMenuDroppable();
@@ -43,6 +42,9 @@ var _Crawler = {
 		$('.column-resizer', crawlerMain).css({ left: left });
 
 		crawlerTree.css({width: left - 14 + 'px'});
+	},
+	getProxyUrl: () => {
+		return Structr.getPrefixedRootUrl('/structr/proxy');
 	},
 	onload: function() {
 
@@ -62,7 +64,7 @@ var _Crawler = {
 		_Crawler.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', crawlerMain), crawlerResizerLeftKey, 204, _Crawler.moveResizer);
 
-		$('#crawler-list-container').prepend(`<button class="add_site_icon button"><i title="Add Site" class="${_Icons.getFullSpriteClass(_Icons.add_site_icon)}" /> Add Site</button>`);
+		$('#crawler-list-container').prepend(`<button class="add_site_icon button flex items-center">${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Add Site</button>`);
 
 		Structr.mainContainer.querySelector('.add_site_icon')?.addEventListener('click', (e) => {
 
@@ -75,7 +77,7 @@ var _Crawler = {
 			});
 		});
 
-		$('#crawler-list-container').append(`<button class="add_page_icon button"><i title="Add Page" class="${_Icons.getFullSpriteClass(_Icons.add_page_icon)}" /> Add Page</button>`);
+		$('#crawler-list-container').append(`<button class="add_page_icon button flex items-center">${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Add Page</button>`);
 
 		Structr.mainContainer.querySelector('.add_page_icon')?.addEventListener('click', (e) => {
 
@@ -485,7 +487,7 @@ var _Crawler = {
 				</div>
 			`);
 
-			var url = proxyUrl;
+			var url = _Crawler.getProxyUrl();
 
 			if (sourcePage.url) {
 
@@ -952,6 +954,8 @@ var _Crawler = {
 			elid = $('#element-id');
 			claz = $('#element-class');
 
+			let proxyUrl = _Crawler.getProxyUrl();
+
 			if (frameSrc.substring(0, proxyUrl.length) !== proxyUrl) {
 				console.log('no proxy URL');
 			} else {
@@ -1036,6 +1040,7 @@ var _Crawler = {
 			if (pageFrame.length) {
 
 				var frameSrc = pageFrame[0].src;
+				let proxyUrl = _Crawler.getProxyUrl();
 				var url = decodeURIComponent(frameSrc.substring(frameSrc.indexOf(proxyUrl + '?url=') + 11));
 
 				_Crawler.addSourcePage(url, pageFrame.contents().find('title').text().trim(), pageFrame.data('site-id'));
@@ -1191,6 +1196,7 @@ var _Crawler = {
 		pageUrl.val(href);
 
 		var pageFrame = $('#page-frame');
+		let proxyUrl = _Crawler.getProxyUrl();
 		var url = proxyUrl + '?url=' + encodeURIComponent(href);
 		pageFrame[0].src = url;
 	}
