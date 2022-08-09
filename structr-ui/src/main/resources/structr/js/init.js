@@ -323,6 +323,7 @@ let Structr = {
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
+	availableMenuItems: [],
 	moduleAvailabilityCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
@@ -952,7 +953,7 @@ let Structr = {
 					<div>
 						Don't reload the page!
 					</div>
-					
+
 					${restoreDialogText}
 
 					<div class="flex items-center">
@@ -1337,7 +1338,9 @@ let Structr = {
 				}
 			}
 
-			Structr.activeModules = envInfo.modules;
+			Structr.activeModules      = envInfo.modules;
+			Structr.availableMenuItems = envInfo.availableMenuItems;
+
 			Structr.adaptUiToAvailableFeatures();
 
 			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
@@ -1382,10 +1385,19 @@ let Structr = {
 		// first move all elements from main menu to submenu
 		$('li[data-name]', menu).appendTo(submenu);
 
+		// then filter the items
+		$('li[data-name]', submenu).each((i, e) => {
+			let name = e.dataset.name;
+			if (!Structr.availableMenuItems.includes(name)) {
+				e.classList.add('hidden');
+			}
+		})
+
 		for (let entry of menuConfig.main) {
 			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
 		}
 
+		// what does this even do?
 		for (let entry of menuConfig.sub) {
 			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
 		}
@@ -2448,7 +2460,7 @@ let Structr = {
 					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
 				</table>
 			</div>
-			
+
 			<div class="flex-grow">
 				<h3>SVG Icons</h3>
 				<table>
@@ -2548,7 +2560,8 @@ Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {
-		let initedTree = $(tree).jstree({
+
+		let initializedTree = $(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
@@ -2560,7 +2573,7 @@ let _TreeHelper = {
 			}
 		});
 
-		_TreeHelper.addSvgIconReplacementBehaviorToTree(initedTree);
+		_TreeHelper.addSvgIconReplacementBehaviorToTree(initializedTree);
 	},
 	addSvgIconReplacementBehaviorToTree: (tree) => {
 

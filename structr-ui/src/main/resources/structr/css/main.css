@@ -215,6 +215,9 @@ button.yesButton, button.noButton {
 	align-items: center;
 }
 
+.stroke-currentcolor {
+	stroke: currentColor;
+}
 .icon-green {
 	color: var(--icon-color-dark-green);
 }
@@ -230,7 +233,13 @@ button.yesButton, button.noButton {
 .icon-yellow {
 	color: var(--light-yellow);
 }
+.icon-white {
+	color: var(--solid-white);
+}
 
+.fill-none {
+	fill: none;
+}
 .fill-green {
 	color: var(--icon-color-dark-green);
 }
@@ -2315,28 +2324,12 @@ table.push {
  * Speech Recognition
  */
 .speechToText {
-	opacity: 1.0;
-	/*position: absolute;*/
-	/*left: 12px;*/
-	/*top: 12px;*/
 	width: 28px;
 	height: 28px;
-	margin: 0;
-	padding: 0;
-}
-
-.speechToText i {
-	width: 20px;
-	height: 20px;
-	border: none;
-	margin: 0 0 0 -1px;
-	padding: 0;
 }
 
 .speechToText:hover {
 	opacity: .8;
-	margin: 0;
-	padding: 0;
 }
 
 .speechToText.active {
@@ -4579,6 +4572,9 @@ table.props td.__value {
 }
 .pb-2 {
 	padding-bottom: .5rem;
+}
+.p-0 {
+	padding: 0;
 }
 .p-1 {
 	padding: .25rem;

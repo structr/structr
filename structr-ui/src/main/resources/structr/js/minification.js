@@ -19,6 +19,7 @@
 let _Minification = {
 
 	showMinificationDialog: (file) => {
+
 		Structr.dialog('Minification', () => {}, () => {});
 
 		dialogText.append('<table id="minification-files" class="props"><thead><tr><th>Position</th><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody></tbody></table>');
@@ -33,12 +34,24 @@ let _Minification = {
 
 		dialogHead.empty();
 
-		dialogHead.append('<table id="minify-options" class="props">'
-				+ '<tr><td class="head">File</td><td><a href="' + file.path + '" target="_blank">' + file.name + '</a></td></tr>'
-				+ '<tr><td class="head">Size</td><td>' + file.size + '</td></tr>'
-				+ _Minification.getTypeSpecificRows(file)
-				+ '<tr><td class="action" colspan=2><button title="Manually trigger minification"><i class="' + _Icons.getFullSpriteClass(_Icons.minification_trigger_icon) + '" /> Manually trigger minification</button></td></tr>'
-				+ '</table>');
+		dialogHead.append(`
+			<table id="minify-options" class="props">
+				<tr>
+					<td class="head">File</td>
+					<td><a href="${file.path}" target="_blank">${file.name}</a></td>
+				</tr>
+				<tr>
+					<td class="head">Size</td>
+					<td>${file.size}</td>
+				</tr>
+				${_Minification.getTypeSpecificRows(file)}
+				<tr>
+					<td class="action" colspan=2>
+						<button class="inline-flex items-center">${_Icons.getSvgIcon('zipper-icon', 16, 16, 'mr-2')} Minify</button>
+					</td>
+				</tr>
+			</table>
+		`);
 
 		if (file.type === 'MinifiedCssFile') {
 

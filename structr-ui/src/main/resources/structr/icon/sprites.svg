@@ -246,13 +246,32 @@
 		<path d="M12,9.751C5.787,9.751.75,7.736.75,5.251S5.787.751,12,.751s11.25,2.014,11.25,4.5c0,1.316-1.413,2.5-3.667,3.324"></path><line x1="23.25" y1="10.479" x2="23.25" y2="5.251"></line><path d="M.75,5.251v6c0,1.96,3.134,3.627,7.506,4.244"></path><path d="M.75,11.251v6c0,2.174,3.856,3.988,8.982,4.408"></path><circle cx="17.25" cy="17.251" r="6"></circle><line x1="17.25" y1="20.251" x2="17.25" y2="14.251"></line><line x1="17.25" y1="14.251" x2="15" y2="16.501"></line><line x1="17.25" y1="14.251" x2="19.5" y2="16.501"></line>
 	</symbol>
 
-	<svg id="view-icon" viewBox="0 0 24 24">
+	<symbol id="view-icon" viewBox="0 0 24 24">
 		<defs><style>.a{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5px;}</style></defs>
 		<rect class="a" x="0.76" y="0.753" width="9" height="9" rx="1.5" ry="1.5"></rect><line class="a" x1="0.76" y1="3.753" x2="9.76" y2="3.753"></line><rect class="a" x="14.26" y="0.753" width="9" height="9" rx="1.5" ry="1.5"></rect><line class="a" x1="14.26" y1="3.753" x2="23.26" y2="3.753"></line><rect class="a" x="0.76" y="14.253" width="9" height="9" rx="1.5" ry="1.5"></rect><line class="a" x1="0.76" y1="17.253" x2="9.76" y2="17.253"></line><rect class="a" x="14.26" y="14.253" width="9" height="9" rx="1.5" ry="1.5"></rect><line class="a" x1="14.26" y1="17.253" x2="23.26" y2="17.253"></line>
-	</svg>
-	<svg id="circle-empty" viewBox="0 0 24 24">
-		<path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
-	</svg>
+	</symbol>
+	<symbol id="circle-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+		<path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z"></path>
+	</symbol>
+
+	<!-- overlay icons for bottom right corner -->
+	<symbol id="overlay-plus" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">
+		<!-- stroke on inner elements so we can change color independently by assigning a class to the <use> tag -->
+		<!-- every icon which has these paths should be overlayed with this icon so we are more flexible -->
+		<path stroke="currentColor" d="M11.250 17.250 A6.000 6.000 0 1 0 23.250 17.250 A6.000 6.000 0 1 0 11.250 17.250 Z"></path>
+		<path stroke="currentColor" d="M17.25 14.25L17.25 20.25"></path>
+		<path stroke="currentColor" d="M14.25 17.25L20.25 17.25"></path>
+	</symbol>
+
+	<symbol id="overlay-graph-linked" viewBox="0 0 24 24" >
+		<circle cx="13.5" cy="18" r="2.25" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5px"></circle>
+		<circle cx="21" cy="21" r="2.25" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5px"></circle>
+		<circle cx="21" cy="13.5" r="2.25" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5px"></circle>
+		<line x1="15.424" y1="16.845" x2="19.074" y2="14.655" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5px"></line>
+		<line x1="15.588" y1="18.835" x2="18.912" y2="20.165" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5px"></line>
+	</symbol>
+
+
 
 	<symbol id="browser-page" viewBox="0 0 24 24">
 		<line x1="8.75" y1="6.5" x2="8.75" y2="22" style="fill: none;stroke: #000000;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></line>
@@ -323,7 +342,6 @@
 		<path d="M14.251 8.25L5.251 8.25"></path>
 		<path d="M18.751,8.25A2.25,2.25,0,1,0,16.5,10.5,2.251,2.251,0,0,0,18.751,8.25Z"></path>
 	</symbol>
-	sliders-icon
 	<symbol id="tv-icon" viewBox="0 0 24 24">
 		<defs><style>.a{fill:none;stroke:#000000;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.5px;}</style></defs><title>tv-flat-screen</title><rect class="a" x="0.75" y="2.875" width="22.5" height="15" rx="1" ry="1"></rect><line class="a" x1="7.5" y1="21.625" x2="16.5" y2="21.625"></line><line class="a" x1="12" y1="17.875" x2="12" y2="21.625"></line>
 	</symbol>
@@ -331,7 +349,23 @@
 		<path d="M8.73 2.966L5.064 5.716 8.73 8.466"></path><path d="M17.897 2.966L21.564 5.716 17.897 8.466"></path><path d="M14.23 1.132L12.397 10.299"></path>
 	</symbol>
 
+	<symbol id="microphone-icon" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round">
+		<line x1="12" y1="19.5" x2="12" y2="23.25"></line>
+		<rect x="7.5" y="0.75" width="9" height="15.25" rx="4"></rect>
+		<path d="M4,9.75V12a7.5,7.5,0,0,0,7.5,7.5h1A7.5,7.5,0,0,0,20,12V9.75"></path>
+	</symbol>
 
+	<symbol id="zipper-icon" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+		<path stroke-linecap="round" stroke-linejoin="round" d="M12 20.4999C11.7239 20.4999 11.5 20.276 11.5 19.9999C11.5 19.7237 11.7239 19.4999 12 19.4999"></path>
+		<path stroke-linecap="round" stroke-linejoin="round" d="M12 20.4999C12.2762 20.4999 12.5 20.276 12.5 19.9999C12.5 19.7237 12.2762 19.4999 12 19.4999"></path>
+		<path stroke-linecap="round" d="M18 0.75C14.8 2.75 13.3333 9.25 13 12.25V12.3984"></path>
+		<path stroke-linecap="round" d="M14.1 2.49988H16.2344"></path>
+		<path stroke-linecap="round" d="M12.5 7L14.125 7"></path>
+		<path stroke-linecap="round" d="M6 0.75C9.2 2.75 10.6667 9.25 11 12.25V12.4023"></path>
+		<path stroke-linecap="round" d="M9 0.75H6.00001"></path>
+		<path stroke-linecap="round" d="M11 4.25037H8.79303"></path>
+		<path stroke-linejoin="round" d="M8.99852 14.632C9.29078 13.2437 10.5155 12.25 11.9342 12.25H12.0658C13.4845 12.25 14.7092 13.2437 15.0015 14.632L16.1061 19.8791C16.3464 21.0203 15.9023 22.2168 14.823 22.6587C14.053 22.9739 13.0725 23.25 12 23.25C10.9275 23.25 9.94697 22.9739 9.17694 22.6587C8.09765 22.2168 7.6536 21.0203 7.89386 19.8791L8.99852 14.632Z"></path>
+	</symbol>
 
 	<!-- non-trivial color icons -->
 	<symbol id="warning-sign-icon-filled" viewBox="0.5 1.5 23 21.5" stroke="none" fill="none">

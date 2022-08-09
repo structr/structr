@@ -114,6 +114,10 @@ public class VersionHelper {
 		return Settings.MenuEntries.getValue().split(",");
 	}
 
+	public static String[] getAvailableMenuItems() {
+		return Settings.AvailableMenuItems.getValue().split(",");
+	}
+
 	public static void updateModuleList () {
 
 		modules.clear();
