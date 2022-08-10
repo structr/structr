@@ -215,11 +215,17 @@ button.yesButton, button.noButton {
 	align-items: center;
 }
 
+.stroke-currentcolor {
+	stroke: currentColor;
+}
 .icon-green {
 	color: var(--icon-color-dark-green);
 }
 .icon-grey {
 	color: var(--icon-stroke);
+}
+.icon-lightgrey {
+	color: var(--light-gray-delete-b3);
 }
 .icon-red {
 	color: var(--light-red);
@@ -230,7 +236,13 @@ button.yesButton, button.noButton {
 .icon-yellow {
 	color: var(--light-yellow);
 }
+.icon-white {
+	color: var(--solid-white);
+}
 
+.fill-none {
+	fill: none;
+}
 .fill-green {
 	color: var(--icon-color-dark-green);
 }
@@ -2315,28 +2327,12 @@ table.push {
  * Speech Recognition
  */
 .speechToText {
-	opacity: 1.0;
-	/*position: absolute;*/
-	/*left: 12px;*/
-	/*top: 12px;*/
 	width: 28px;
 	height: 28px;
-	margin: 0;
-	padding: 0;
-}
-
-.speechToText i {
-	width: 20px;
-	height: 20px;
-	border: none;
-	margin: 0 0 0 -1px;
-	padding: 0;
 }
 
 .speechToText:hover {
 	opacity: .8;
-	margin: 0;
-	padding: 0;
 }
 
 .speechToText.active {
@@ -4196,8 +4192,8 @@ table.props td.key {
 	margin: 2px 0 2px 1px;
 }
 
-.props td i.remove,
-.resourceBox td i.remove {
+.props td .remove,
+.resourceBox td .remove {
 	position: absolute;
 	right: .75rem;
 	top: .75rem;
@@ -4276,6 +4272,26 @@ table.props td.__value {
 	display: flex;
 	align-items: center;
 	padding: 0.25rem;
+}
+
+/*
+ * Search Box in function bar
+ */
+.searchBox {
+	position: relative;
+	z-index: 5;
+}
+
+.searchBox input.search {
+	width: 20rem;
+}
+
+.clearSearchIcon {
+	display: none;
+	position: absolute;
+	top: .75rem;
+	right: .75rem;
+	cursor: pointer;
 }
 
 /**
@@ -4579,6 +4595,9 @@ table.props td.__value {
 }
 .pb-2 {
 	padding-bottom: .5rem;
+}
+.p-0 {
+	padding: 0;
 }
 .p-1 {
 	padding: .25rem;

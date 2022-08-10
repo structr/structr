@@ -930,7 +930,7 @@ let _Crud = {
 				let sortKey = key;
 				th.innerHTML = `
 					<a class="${((_Crud.sort[type] === key) ? 'column-sorted-active' : '')}" href="${_Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type])}#${type}">${key}</a>
-					<i title="Hide column ${key}" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
 				`;
 
 				if (_Crud.isCollection(key, type)) {
@@ -945,7 +945,7 @@ let _Crud = {
 					return false;
 				});
 
-				$('i', th).on('click', function(event) {
+				$('svg', th).on('click', function(event) {
 					event.preventDefault();
 					_Crud.toggleColumn(type, key);
 					return false;
@@ -1927,14 +1927,15 @@ let _Crud = {
 					});
 				}
 			} else if (propertyType === 'Date') {
-				cell.html(nvl(formatValue(value), '<i title="Show calendar" class="' + _Icons.getFullSpriteClass(_Icons.calendar_icon) + '" />'));
+				cell.html(nvl(formatValue(value), _Icons.getSvgIcon('datetime-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+
 				if (!readOnly) {
 					var format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
 					var dateTimePickerFormat = getDateTimePickerFormat(format);
 					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
-						var oldValue = self.text();
+						var oldValue = self.text().trim();
 						self.html('<input name="' + key + '" class="__value" type="text" size="40">');
 						var input = $('input', self);
 						input.val(oldValue);
@@ -2041,7 +2042,7 @@ let _Crud = {
 
 			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
-			cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
+			cell.append(_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 
 			$('.add', cell).on('click', function() {
 
@@ -2078,7 +2079,7 @@ let _Crud = {
 
 				if (simpleType) {
 
-					cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
+					cell.append(_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 					$('.add', cell).on('click', function() {
 						if (!dialogBox.is(':visible') || !isRel) {
 							_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
@@ -2100,7 +2101,8 @@ let _Crud = {
 		}
 
 		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
-			cell.prepend('<i title="Clear value" class="crud-clear-value ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" />');
+			cell.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer']), 'Clear value'));
+
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
 				_Crud.crudRemoveProperty(id, key);
@@ -2172,7 +2174,7 @@ let _Crud = {
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
-				nodeEl.append('<i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+				nodeEl.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']), 'Clear value'));
 			} else if (insertFakeInput) {
 				nodeEl.append('<input type="hidden" name="' + key + '" value="' + node.id + '" /></div>');
 			}
@@ -2382,7 +2384,12 @@ let _Crud = {
 		return displayName;
 	},
 	displaySearch: function(parentType, id, key, type, el, callbackOverride) {
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+		el.append(`
+			<div class="searchBox searchBoxDialog flex justify-end">
+				<input class="search" name="search" size="20" placeholder="Search">
+				${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+			</div>
+		`);
 		var searchBox = $('.searchBoxDialog', el);
 		var search = $('.search', searchBox);
 		window.setTimeout(function() {
@@ -3051,7 +3058,8 @@ let _Crud = {
 			</div>
 			
 			<div class="searchBox">
-				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search"><i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
+				${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,
 		typeButtons: config => `

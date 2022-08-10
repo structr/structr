@@ -252,10 +252,10 @@ let _Dialogs = {
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
 
 		// dialog logic here..
-		$('i#clear-ldap-group-dn').on('click', () => { _Dialogs.setNull(entity.id, 'distinguishedName', dnInput); });
-		$('i#clear-ldap-group-path').on('click', () => { _Dialogs.setNull(entity.id, 'path', pathInput); });
-		$('i#clear-ldap-group-filter').on('click', () => { _Dialogs.setNull(entity.id, 'filter', filterInput); });
-		$('i#clear-ldap-group-scope').on('click', () => { _Dialogs.setNull(entity.id, 'scope', scopeInput); });
+		$('.clear-ldap-group-dn', el).on('click', () => { _Dialogs.setNull(entity.id, 'distinguishedName', dnInput); });
+		$('.clear-ldap-group-path', el).on('click', () => { _Dialogs.setNull(entity.id, 'path', pathInput); });
+		$('.clear-ldap-group-filter', el).on('click', () => { _Dialogs.setNull(entity.id, 'filter', filterInput); });
+		$('.clear-ldap-group-scope', el).on('click', () => { _Dialogs.setNull(entity.id, 'scope', scopeInput); });
 
 		$('button#ldap-sync-button').on('click', async () => {
 
@@ -745,24 +745,24 @@ let _Dialogs = {
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
-					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-dn"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path">
-					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-path"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter">
-					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-filter"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope">
-					<i class="nullIcon sprite sprite-cross_small_grey" title="Clear value" id="clear-ldap-group-scope"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">

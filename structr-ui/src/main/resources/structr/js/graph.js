@@ -62,15 +62,14 @@ $(document).ready(function() {
 		LSWrapper.setItem(_Graph.displayTypeConfigKey, _Graph.getTypeVisibilityConfig());
 	});
 
-	$(document).on('click', '.remove-cypher-parameter', function() {
-		$(this).parent().remove();
-	});
+	// $(document).on('click', '.remove-cypher-parameter', function() {
+	// 	$(this).parent().remove();
+	// });
 });
 
-var _Graph = {
+let _Graph = {
 	_moduleName: 'graph',
 	displayTypeConfigKey: 'structrGraphDisplayTypes_' + location.port,
-	searchField: undefined,
 	init: function() {
 
 		// Colors created with http://paletton.com
@@ -286,11 +285,12 @@ var _Graph = {
 			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
 		});
 
-		$('.clearSearchIcon').on('click', function() {
-			var self = $(this);
-			self.hide();
-			$('.search[name=' + self.data('type') + ']').val('').focus();
-		});
+		for (let clearSearchIcon of document.querySelectorAll('.clearSearchIcon')) {
+			clearSearchIcon.addEventListener('click', (e) => {
+				let svg = e.target.closest('svg');
+				_Graph.clearSearch(svg.parentNode.querySelector('.search'));
+			});
+		}
 
 		$('#exec-rest').on('click', function() {
 			var query = $('.search[name=rest]').val();
@@ -301,20 +301,22 @@ var _Graph = {
 
 		$('#exec-cypher').on('click', function() {
 			var query = $('.search[name=cypher]').val();
-			var params = {};
-			var names = $.map($('[name="cyphername[]"]'), function(n) {
-				return $(n).val();
-			});
-			var values = $.map($('[name="cyphervalue[]"]'), function(v) {
-				return $(v).val();
-			});
-
-			for (var i = 0; i < names.length; i++) {
-				params[names[i]] = values[i];
-			}
+			// var params = {};
+			// var names = $.map($('[name="cyphername[]"]'), function(n) {
+			// 	return $(n).val();
+			// });
+			// var values = $.map($('[name="cyphervalue[]"]'), function(v) {
+			// 	return $(v).val();
+			// });
+			//
+			// for (var i = 0; i < names.length; i++) {
+			// 	params[names[i]] = values[i];
+			// }
 
 			if (query && query.length) {
-				_Graph.execQuery(query, 'cypher', JSON.stringify(params));
+				_Graph.execQuery(query, 'cypher'
+				//	, JSON.stringify(params)
+				);
 			}
 		});
 
@@ -384,49 +386,54 @@ var _Graph = {
 		});
 
 		_Graph.init();
-		_Graph.appendCypherParameter($('#cypher-params'));
+		// _Graph.appendCypherParameter($('#cypher-params'));
+		//
+		// $('#add-cypher-parameter').on('click', function() {
+		// 	_Graph.appendCypherParameter($('#cypher-params'));
+		// });
+		//
+		// $(document).on('click', '.remove-cypher-parameter', function() {
+		// 	$(this).parent().remove();
+		// });
 
-		$('#add-cypher-parameter').on('click', function() {
-			_Graph.appendCypherParameter($('#cypher-params'));
-		});
+		// _Graph.listSavedQueries();
 
-		$(document).on('click', '.remove-cypher-parameter', function() {
-			$(this).parent().remove();
-		});
+		let restQueryBox   = document.querySelector('.query-box.rest .search');
+		let cypherQueryBox = document.querySelector('.query-box.cypher .search');
+		restQueryBox.focus();
 
-		_Graph.clearSearch('rest');
-		_Graph.clearSearch('cypher');
-		_Graph.listSavedQueries();
+		let searchKeydownHandler = (e) => {
 
-		_Graph.searchField = $('.query-box .search');
-		_Graph.searchField.focus();
-		_Graph.searchField.keyup(function(e) {
-			var self = $(this);
-			var searchString = self.val();
-			var type = self.attr('name');
+			// keydown so Enter key is preventable
+
+			let searchString = e.target.value;
+			let type         = e.target.getAttribute('name');
 
 			if (searchString && searchString.length) {
-				_Graph.showClearSearchIcon(type);
+				e.target.parentNode.querySelector('.clearSearchIcon').style.display = 'block';
 			} else {
-				_Graph.clearSearch(type);
+				_Graph.clearSearch(e.target);
 			}
 
 			if (searchString && searchString.length && e.which === 13) {
-				if (!shiftKey) {
 
-					if (type === 'rest') {
-						e.stopPropagation();
-						e.preventDefault();
-					} else {
-						_Graph.searchField.attr('rows', searchString.split('\n').length);
-					}
+				e.stopPropagation();
+				e.preventDefault();
 
-					_Graph.execQuery(searchString, type);
-					return false;
-				}
+				_Graph.execQuery(searchString, type);
+				return false;
+
 			} else if (e.which === 27) {
-				_Graph.clearSearch(type);
+
+				_Graph.clearSearch(e.target);
 			}
+		};
+
+		restQueryBox.addEventListener('keydown', searchKeydownHandler);
+		cypherQueryBox.addEventListener('keydown', searchKeydownHandler);
+		cypherQueryBox.addEventListener('keyup', () => {
+			// keyup so we have the actual value
+			cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length + 1);
 		});
 
 		$(window).off('resize').resize(function() {
@@ -440,13 +447,13 @@ var _Graph = {
 		if (query && query.length) {
 			if (type === 'cypher') {
 				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
-				_Graph.saveQuery(query, 'cypher', params);
+				// _Graph.saveQuery(query, 'cypher', params);
 			} else {
 				Command.rest(query.replace(/(\r\n|\n|\r)/gm, ''), _Graph.processQueryResults);
-				_Graph.saveQuery(query, 'rest');
+				// _Graph.saveQuery(query, 'rest');
 			}
 
-			_Graph.listSavedQueries();
+			// _Graph.listSavedQueries();
 		}
 	},
 	processQueryResults: function (results) {
@@ -473,75 +480,75 @@ var _Graph = {
 		_Graph.updateRelationshipTypes();
 
 	},
-	saveQuery: function(query, type, params) {
-		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
-		var exists = false;
-		$.each(savedQueries, function(i, q) {
-			if (q.query === query && q.params === params) {
-				exists = true;
-			}
-		});
-		if (!exists) {
-			savedQueries.unshift({type: type, query: query, params: params});
-			LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
-		}
-	},
-	removeSavedQuery: function(i) {
-		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
-		savedQueries.splice(i, 1);
-		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
-		_Graph.listSavedQueries();
-	},
-	restoreSavedQuery: function(i, exec) {
-		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
-		var query = savedQueries[i];
-		$('.search[name=' + query.type + ']').val(query.query);
-		_Graph.showClearSearchIcon(query.type);
-		$('#cypher-params div.cypher-param').remove();
-		if (query.params && query.params.length) {
-			var parObj = JSON.parse(query.params);
-			$.each(Object.keys(parObj), function(i, key) {
-				_Graph.appendCypherParameter($('#cypher-params'), key, parObj[key]);
-			});
-		} else {
-			_Graph.appendCypherParameter($('#cypher-params'));
-		}
-		if (exec) {
-			_Graph.execQuery(query.query, query.type, query.params);
-		}
-	},
-	listSavedQueries: function() {
-		$('#saved-queries').empty();
+	// saveQuery: function(query, type, params) {
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var exists = false;
+	// 	$.each(savedQueries, function(i, q) {
+	// 		if (q.query === query && q.params === params) {
+	// 			exists = true;
+	// 		}
+	// 	});
+	// 	if (!exists) {
+	// 		savedQueries.unshift({type: type, query: query, params: params});
+	// 		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+	// 	}
+	// },
+	// removeSavedQuery: function(i) {
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	savedQueries.splice(i, 1);
+	// 	LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+	// 	_Graph.listSavedQueries();
+	// },
+	// restoreSavedQuery: function(i, exec) {
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var query = savedQueries[i];
+	//
+	// 	let element = document.querySelector('.search[name=' + query.type + ']');
+	// 	element.value = query.query;
+	// 	_Graph.showClearSearchIcon(element);
+	//
+	// 	$('#cypher-params div.cypher-param').remove();
+	// 	if (query.params && query.params.length) {
+	// 		var parObj = JSON.parse(query.params);
+	// 		$.each(Object.keys(parObj), function(i, key) {
+	// 			_Graph.appendCypherParameter($('#cypher-params'), key, parObj[key]);
+	// 		});
+	// 	} else {
+	// 		_Graph.appendCypherParameter($('#cypher-params'));
+	// 	}
+	// 	if (exec) {
+	// 		_Graph.execQuery(query.query, query.type, query.params);
+	// 	}
+	// },
+	// listSavedQueries: function() {
+	// 	$('#saved-queries').empty();
+	//
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	$.each(savedQueries, function(q, query) {
+	// 		if (query.type === 'cypher') {
+	// 			$('#saved-queries').append('<div class="saved-query cypher-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+	// 		} else {
+	// 			$('#saved-queries').append('<div class="saved-query rest-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_blue_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
+	// 		}
+	// 	});
+	//
+	// 	$('.saved-query').on('click', function() {
+	// 		_Graph.restoreSavedQuery($(this).index());
+	// 	});
+	//
+	// 	$('.replay').on('click', function() {
+	// 		_Graph.restoreSavedQuery($(this).parent().index(), true);
+	// 	});
+	//
+	// 	$('.remove-query').on('click', function() {
+	// 		_Graph.removeSavedQuery($(this).parent().index());
+	// 	});
+	// },
 
-		var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
-		$.each(savedQueries, function(q, query) {
-			if (query.type === 'cypher') {
-				$('#saved-queries').append('<div class="saved-query cypher-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-			} else {
-				$('#saved-queries').append('<div class="saved-query rest-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_blue_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-			}
-		});
-
-		$('.saved-query').on('click', function() {
-			_Graph.restoreSavedQuery($(this).index());
-		});
-
-		$('.replay').on('click', function() {
-			_Graph.restoreSavedQuery($(this).parent().index(), true);
-		});
-
-		$('.remove-query').on('click', function() {
-			_Graph.removeSavedQuery($(this).parent().index());
-		});
-	},
-
-	showClearSearchIcon: function(type) {
-		$('#clear-' + type).show();
-	},
-
-	clearSearch: function(type) {
-		$('#clear-' + type).hide();
-		$('.search[name=' + type + ']').val('').focus();
+	clearSearch: (element) => {
+		element.parentNode.querySelector('.clearSearchIcon').style.display = null;
+		element.value = '';
+		element.focus();
 	},
 
 	clearGraph: function() {
@@ -835,15 +842,15 @@ var _Graph = {
 		});
 	},
 
-	appendCypherParameter: function(el, key, value) {
-		el.append(`
-			<div class="cypher-param">
-				<i class="remove-cypher-parameter ${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i>
-				<input name="cyphername[]" type="text" placeholder="name" size="10" value="${(key || '')}">
-				<input name="cyphervalue[]" type="text" placeholder="value" size="10" value="${(value || '')}">
-			</div>
-		`);
-	},
+	// appendCypherParameter: function(el, key, value) {
+	// 	el.append(`
+	// 		<div class="cypher-param">
+	// 			<i class="remove-cypher-parameter ${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i>
+	// 			<input name="cyphername[]" type="text" placeholder="name" size="10" value="${(key || '')}">
+	// 			<input name="cyphervalue[]" type="text" placeholder="value" size="10" value="${(value || '')}">
+	// 		</div>
+	// 	`);
+	// },
 
 	onNodesAdded: function(){
 		_Graph.updateRelationshipTypes();
@@ -911,7 +918,7 @@ var _Graph = {
 			"<div class='tooltipArrowUp'></div>" +
 			"<div class='graphTooltip'>" +
 				"<div class='tooltipHeader'>" +
-					"<i class='closeTooltipBtn " + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + "'></i>" +
+					_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close') +
 					"<p class='tooltipTitle'>" + node.label + "</p>" +
 				"</div>" +
 				"<div class='tooltipContent' style='border-top: solid " + color[node.nodeType] + " 4px;'>" +
@@ -942,7 +949,7 @@ var _Graph = {
 			"<div class='graphTooltip'>" +
 				"<div class='tooltipHeader'>" +
 					"<p class='tooltipTitle'>" + edge.label + "</p>" +
-					"<i class='closeTooltipBtn " + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + "'></i>" +
+					_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close') +
 				"</div>" +
 				"<div class='tooltipBody'>" +
 					"<table class='tooltipTable'>" +
@@ -992,24 +999,24 @@ var _Graph = {
 		functions: config => `
 			<div class="query-box rest flex mr-4">
 				<div class="relative">
-					<input class="search" name="rest" size="39" placeholder="REST query">
-					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-rest" data-type="rest"></i>
+					<input class="search" name="rest" size="39" placeholder="REST query" autocomplete="off">
+					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear REST')}
 				</div>
 				<a class="icon" id="exec-rest">
 					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
-			
+
 			<div class="query-box cypher flex mr-4">
 				<div class="relative max-h-5">
 					<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
-					<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}" id="clear-cypher" data-type="cypher"></i>
+					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Cypher')}
 				</div>
 				<a class="icon" id="exec-cypher">
 					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
-			
+
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon('sliders-icon')} Display Settings

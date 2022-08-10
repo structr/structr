@@ -2405,7 +2405,7 @@ let _Schema = {
 			let editorInfo = dialogMeta[0].querySelector('.editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
-			editor.focus();
+			_Editors.focusEditor(editor);
 		},
 		openCodeEditorForCypherProperty: (id, closeCallback) => {
 
@@ -2517,7 +2517,7 @@ let _Schema = {
 			let editorInfo = dialogMeta[0].querySelector('.editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
-			editor.focus();
+			_Editors.focusEditor(editor);
 		},
 		appendBuiltinProperties: (el, entity) => {
 
@@ -3575,7 +3575,7 @@ let _Schema = {
 			};
 
 			let sourceEditor = _Editors.getMonacoEditor(methodData, 'source', document.querySelector('#methods-content .editor'), sourceMonacoConfig);
-			sourceEditor.focus();
+			_Editors.focusEditor(sourceEditor);
 
 			sourceMonacoConfig.changeFn(sourceEditor);
 

@@ -43,7 +43,8 @@ let _Code = {
 	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
-	
+	inSearchBox: false,
+
 	init: function() {
 
 		Structr.makePagesMenuDroppable();
@@ -97,15 +98,19 @@ let _Code = {
 	},
 	onload: () => {
 
-		Structr.functionBar.innerHTML = _Code.templates.functions();
+		Structr.functionBar.innerHTML   = _Code.templates.functions();
 		Structr.mainContainer.innerHTML = _Code.templates.main();
-
 
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
 			UISettings.showSettingsForCurrentModule();
 
-			$('#tree-search-input').on('input', _Code.debounce(_Code.doSearch, 300));
+			let codeSearchInput = document.querySelector('#tree-search-input');
+			_Code.inSearchBox = false;
+			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
+			codeSearchInput.addEventListener('blur',  () => { _Code.inSearchBox = false; });
+			codeSearchInput.addEventListener('input', _Code.debounce(_Code.doSearch, 300));
+
 			$('#tree-forward-button').on('click', _Code.pathLocationForward);
 			$('#tree-back-button').on('click', _Code.pathLocationBackward);
 			$('#cancel-search-button').on('click', _Code.cancelSearch);
@@ -117,7 +122,6 @@ let _Code = {
 					}
 				};
 			});
-
 
 			_Code.init();
 
@@ -149,9 +153,9 @@ let _Code = {
 			_Code.resize();
 			Structr.adaptUiToAvailableFeatures();
 		});
-
 	},
 	preloadAvailableTagsForEntities: async () => {
+
 		let schemaNodeTags   = await Command.queryPromise('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
 		let schemaMethodTags = await Command.queryPromise('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', null, false, null, 'tags');
 
@@ -1862,7 +1866,7 @@ let _Code = {
 			});
 			activateTab(lastOpenTab || 'source');
 
-			sourceEditor.focus();
+			_Editors.focusEditor(sourceEditor);
 		});
 	},
 	collectSchemaMethodParameters: () => {
@@ -2740,7 +2744,7 @@ let _Code = {
 		$('#tree-forward-button').prop('disabled', forwardDisabled);
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
-	doSearch: (e) => {
+	doSearch: () => {
 		let tree      = $('#code-tree').jstree(true);
 		let input     = $('#tree-search-input');
 		let text      = input.val();
@@ -2798,56 +2802,71 @@ let _Code = {
 	runGlobalSchemaMethod: (schemaMethod) => {
 
 		Structr.dialog('Run global schema method ' + schemaMethod.name, () => {}, () => {
-			$('#run-method').remove();
-			$('#clear-log').remove();
+			document.querySelector('#run-method')?.remove();
+			document.querySelector('#clear-log')?.remove();
 		}, ['run-global-schema-method-dialog']);
 
-		dialogBtn.prepend(`<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}<span>Run</span></button>`);
+		dialogBtn.prepend(`
+			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}
+				<span>Run</span>
+			</button>
+		`);
 		dialogBtn.append('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
-		let paramsOuterBox = $('<div id="params"><h3 class="heading-narrow">Parameters</h3></div>');
-		let paramsBox = $('<div></div>');
-		paramsOuterBox.append(paramsBox);
-		let addParamBtn = $('<i title="Add parameter" class="button ' + _Icons.getFullSpriteClass(_Icons.add_icon) + '"></i>');
-		paramsBox.append(addParamBtn);
-		dialog.append(paramsOuterBox);
+		let paramsOuterBox = Structr.createSingleDOMElementFromHTML(`
+			<div>
+				<div id="params">
+					<h3 class="heading-narrow">Parameters</h3>
+					<div>
+						${_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+					</div>
+				</div>
+				<h3>Method output</h3>
+				<pre id="log-output"></pre>
+			</div>
+		`);
+		dialog[0].appendChild(paramsOuterBox);
 
 		Structr.appendInfoTextToElement({
-			element: $('#params h3'),
+			element: paramsOuterBox.querySelector('h3'),
 			text: "Parameters can be accessed in the called method by using the <code>retrieve()</code> function.",
 			css: { marginLeft: "5px" },
 			helpElementCss: { fontSize: "12px" }
 		});
 
-		addParamBtn.on('click', () => {
+		let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
+		newParamTrigger.addEventListener('click', () => {
 
-			let newParam    = $('<div class="param flex items-center mb-1"><input class="param-name" placeholder="Parameter name"><span class="px-2">=</span><input class="param-value" placeholder="Parameter value"></div>');
-			let removeParam = $(_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2'])));
+			let newParam = Structr.createSingleDOMElementFromHTML(`
+				<div class="param flex items-center mb-1">
+					<input class="param-name" placeholder="Parameter name">
+					<span class="px-2">=</span>
+					<input class="param-value" placeholder="Parameter value">
+					${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+				</div>
+			`);
 
-			newParam.append(removeParam);
-			removeParam.on('click', () => {
+			newParam.querySelector('.remove-action').addEventListener('click', () => {
 				newParam.remove();
 			});
 
-			paramsBox.append(newParam);
+			newParamTrigger.parentNode.appendChild(newParam);
 		});
 
-		dialog.append('<h3>Method output</h3><pre id="log-output"></pre>');
-
-		$('#run-method').on('click', async () => {
+		document.querySelector('#run-method')?.addEventListener('click', async () => {
 
 			let logOutput = document.getElementById('log-output');
 
 			logOutput.textContent = 'Running method..\n';
 
 			let params = {};
-			$('#params .param').each(function (index, el) {
-				let name = $('.param-name', el).val();
-				let val  = $('.param-value', el).val();
+			for (let paramRow of paramsOuterBox.querySelectorAll('#params .param')) {
+				let name = paramRow.querySelector('.param-name').value;
 				if (name) {
-					params[name] = val;
+					params[name] = paramRow.querySelector('.param-value').value;
 				}
-			});
+			}
 
 			let response = await fetch(Structr.rootUrl + 'maintenance/globalSchemaMethods/' + schemaMethod.name, {
 				method: 'POST',
@@ -2855,12 +2874,11 @@ let _Code = {
 			});
 
 			let text = await response.text();
-			logOutput.textContent += text;
-			logOutput.textContent += 'Done.';
+			logOutput.textContent = text +	 'Done.';
 		});
 
-		$('#clear-log').on('click', function() {
-			$('#log-output').empty();
+		document.querySelector('#clear-log').addEventListener('click', () => {
+			document.querySelector('#log-output').textContent = '';
 		});
 	},
 	activatePropertyValueInput: (inputId, id, name) => {
@@ -3138,7 +3156,9 @@ let _Code = {
 			<div class="mt-4">
 			
 				<label class="font-semibold">Parameters</label>
-				<button id="add-parameter-button"><i class="${ _Icons.getFullSpriteClass(_Icons.add_icon)}"></i></button>
+				<button id="add-parameter-button">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green']), 'Add parameter')}
+				</button>
 			
 				<div>
 					<div class="method-parameter-grid">

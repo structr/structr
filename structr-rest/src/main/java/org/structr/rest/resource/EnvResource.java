@@ -64,12 +64,13 @@ public class EnvResource extends Resource {
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
 		final GraphObjectMap info                         = new GraphObjectMap();
 
-		info.setProperty(new GenericProperty("modules"),              VersionHelper.getModules());
-		info.setProperty(new GenericProperty("components"),           VersionHelper.getComponents());
-		info.setProperty(new StringProperty("classPath"),             VersionHelper.getClassPath());
-		info.setProperty(new StringProperty("instanceName"),          VersionHelper.getInstanceName());
-		info.setProperty(new StringProperty("instanceStage"),         VersionHelper.getInstanceStage());
-		info.setProperty(new ArrayProperty("mainMenu", String.class), VersionHelper.getMenuEntries());
+		info.setProperty(new GenericProperty("modules"),                        VersionHelper.getModules());
+		info.setProperty(new GenericProperty("components"),                     VersionHelper.getComponents());
+		info.setProperty(new StringProperty("classPath"),                       VersionHelper.getClassPath());
+		info.setProperty(new StringProperty("instanceName"),                    VersionHelper.getInstanceName());
+		info.setProperty(new StringProperty("instanceStage"),                   VersionHelper.getInstanceStage());
+		info.setProperty(new ArrayProperty("mainMenu", String.class),           VersionHelper.getMenuEntries());
+		info.setProperty(new ArrayProperty("availableMenuItems", String.class), VersionHelper.getAvailableMenuItems());
 
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager != null) {

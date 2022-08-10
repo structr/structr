@@ -27,7 +27,7 @@ let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 
 document.addEventListener("DOMContentLoaded", function() {
-    Structr.registerModule(_Flows);
+	Structr.registerModule(_Flows);
 });
 
 let _Flows = {
@@ -117,6 +117,7 @@ let _Flows = {
 		}
 
 		function deleteFlow(id) {
+
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
 				Structr.confirmation('Really delete flow ' + id + '?', () => {
 					persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
@@ -317,6 +318,8 @@ let _Flows = {
 			}
 		});
 
+		_TreeHelper.addSvgIconReplacementBehaviorToTree($(flowsTree));
+
 		Structr.unblockMenu(100);
 
 		_Flows.resize();
@@ -472,22 +475,22 @@ let _Flows = {
 
 			case '#':
 
-                let defaultEntries = [
-                    {
-                        id: 'root',
-                        text: 'Flows',
-                        children: true,
-                        icon: _Icons.jstree_fake_icon,
+				let defaultEntries = [
+					{
+						id: 'root',
+						text: 'Flows',
+						children: true,
+						icon: _Icons.jstree_fake_icon,
 						data: { type: "root", svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
-                        path: '/',
-                        state: {
-                            opened: true,
-                            selected: true
-                        }
+						path: '/',
+						state: {
+							opened: true,
+							selected: true
+						}
 					}
-                ];
+				];
 
-                callback(defaultEntries);
+				callback(defaultEntries);
 				break;
 
 			case 'root':
@@ -507,19 +510,20 @@ let _Flows = {
 	},
 	load: (id, callback) => {
 
-        let list = [];
+		let list = [];
 
 		let createFlowEntry = function(d) {
 
-            return {
-                id: d.id,
-                text: d.name ? d.name.split('.').pop() : '[unnamed]',
-                children: false,
-                icon: 'fa fa-circle-o blue',
-                data: {
-                    type: d.type
-                }
-            };
+			return {
+				id: d.id,
+				text: d.name ? d.name.split('.').pop() : '[unnamed]',
+				children: false,
+				icon: _Icons.jstree_fake_icon,
+				data: {
+					type: d.type,
+					svgIcon: _Icons.getSvgIcon('circle-empty', 16, 24, _Icons.getSvgIconClassesForColoredIcon(['icon-blue']))
+				}
+			};
 		};
 
 		let createFolder = function(path, list) {
@@ -533,13 +537,15 @@ let _Flows = {
 					listRoot = currentFolder[0].children;
 				} else {
 					let newFolder = {
-                        id: ('/' + traversedPath.join('/')),
-                        text: p,
-                        children: [],
-                        state: {
-                            opened: true,
-                        }
-                    };
+						id: ('/' + traversedPath.join('/')),
+						text: p,
+						icon: _Icons.jstree_fake_icon,
+						data: { svgIcon: _Icons.getSvgIcon('folder-open-icon', 16, 24) },
+						children: [],
+						state: {
+							opened: true,
+						}
+					};
 					listRoot.push(newFolder);
 					listRoot = newFolder.children;
 				}
@@ -555,41 +561,41 @@ let _Flows = {
 
 			for (const d of result) {
 				createFolder(d.effectiveName.split('.'), list);
-            }
+			}
 
-            $(flowsTree).jstree(true).sort(list, true);
+			$(flowsTree).jstree(true).sort(list, true);
 
 			callback(list);
 		};
 
-        let displayFunction = function(result) {
+		let displayFunction = function(result) {
 
-            for (const d of result) {
+			for (const d of result) {
 
-                const nameComponents = d.effectiveName.split('.');
+				const nameComponents = d.effectiveName.split('.');
 
-                if (nameComponents.length > 1) {
-                    // Multi-component names must be abstracted through folders/packages
-                    let folders = nameComponents;
-                    // Pop the method name from the end of the folder list
-                    folders.pop();
+				if (nameComponents.length > 1) {
+					// Multi-component names must be abstracted through folders/packages
+					let folders = nameComponents;
+					// Pop the method name from the end of the folder list
+					folders.pop();
 
-                    let folder = createFolder(folders, list);
-                    folder.push(createFlowEntry(d));
+					let folder = createFolder(folders, list);
+					folder.push(createFlowEntry(d));
 
-                } else {
-                    list.push(createFlowEntry(d));
-                }
-            }
+				} else {
+					list.push(createFlowEntry(d));
+				}
+			}
 
-            $(flowsTree).jstree(true).sort(list, true);
+			$(flowsTree).jstree(true).sort(list, true);
 
-            callback(list);
-        };
+			callback(list);
+		};
 
 		if (!id) {
 
-            Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
+			Command.list('FlowContainer', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName', displayFunction);
 			Command.list('FlowContainerPackage', false, methodPageSize, methodPage, 'name', 'asc', 'id,type,name,flowNodes,effectiveName,flows', displayFunctionPackage);
 
 		} else {
@@ -610,9 +616,9 @@ let _Flows = {
 		let entity       = detail.entity; // proxy object
 		let propertyName = detail.propertyName;
 
-        Structr.dialog("Edit " + flowNodeType, () => {}, () => {}, ['popup-dialog-with-editor']);
+		Structr.dialog("Edit " + flowNodeType, () => {}, () => {}, ['popup-dialog-with-editor']);
 
-        dialogText.append('<div class="editor h-full"></div>');
+		dialogText.append('<div class="editor h-full"></div>');
 		dialogBtn.append(`
 			<button id="editorSave" disabled="disabled" class="disabled">Save</button>
 			<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
@@ -660,7 +666,7 @@ let _Flows = {
 
 		let editor = _Editors.getMonacoEditor(entity, propertyName, dialogText[0].querySelector('.editor'), editorConfig);
 
-        Structr.resize();
+		Structr.resize();
 
 		saveAndClose.addEventListener('click', (e) => {
 			e.stopPropagation();
@@ -680,15 +686,15 @@ let _Flows = {
 			editorConfig.saveFn(editor, entity);
 		});
 
-        dialogCancelButton.on('click', function(e) {
-            dialogSaveButton.remove();
-            saveAndClose.remove();
-            return false;
-        });
+		dialogCancelButton.on('click', function(e) {
+			dialogSaveButton.remove();
+			saveAndClose.remove();
+			return false;
+		});
 
 		editor.focus();
 
-        window.setTimeout(() => {
+		window.setTimeout(() => {
 			_Editors.resizeVisibleEditors();
 
 			$('.closeButton', dialogBtn).blur();
@@ -709,15 +715,15 @@ let _Flows = {
 
 		flowId = id;
 		let rest = new Rest();
-        let persistence = new Persistence();
+		let persistence = new Persistence();
 
-        persistence.getNodesById(id, new FlowContainer()).then( r => {
-            document.title = "Flow - " + r[0].name;
+		persistence.getNodesById(id, new FlowContainer()).then( r => {
+			document.title = "Flow - " + r[0].name;
 
-            let rootElement = document.querySelector("#nodeEditor");
-            flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
+			let rootElement = document.querySelector("#nodeEditor");
+			flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
-            flowEditor.waitForInitialization().then( () => {
+			flowEditor.waitForInitialization().then( () => {
 
 				rest.post(Structr.rootUrl + 'FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
 
@@ -768,8 +774,8 @@ let _Flows = {
 						document.querySelector('.layout_icon').disabled = false;
 					});
 				});
-            });
-        });
+			});
+		});
 	},
 
 	templates: {
@@ -789,17 +795,17 @@ let _Flows = {
 		functions: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css">
 			
-			<div>
-				<input id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
+			<div class="inline-flex">
+
+				<input class="mr-2" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
 				
-				<button id="create-new-flow" class="action btn">
-					<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> Add
+				<button id="create-new-flow" class="action inline-flex items-center">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
 				</button>
-			
 			</div>
 			
-			<button class="delete_flow_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				<i title="Delete" class="${_Icons.getFullSpriteClass(_Icons.delete_icon)}"></i> Delete flow
+			<button class="delete_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
+				${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Delete flow
 			</button>
 			
 			<label class="mr-4">
@@ -813,16 +819,16 @@ let _Flows = {
 				</select>
 			</label>
 			
-			<button class="run_flow_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				<i title="Run" class="${_Icons.getFullSpriteClass(_Icons.exec_icon)}"></i> Run
+			<button class="run_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
+				${_Icons.getSvgIcon('run_button', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-2']))} Run
 			</button>
 			
-			<button class="reset_view_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				<i title="Reset view" class="${_Icons.getFullSpriteClass(_Icons.refresh_icon)}"></i> Reset view
+			<button class="reset_view_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon('reset-arrow', 16, 16, 'mr-2')} Reset view
 			</button>
 			
-			<button class="layout_icon button hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				<i title="Layout" class="${_Icons.getFullSpriteClass(_Icons.wand_icon)}"></i> Layout
+			<button class="layout_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
+				${_Icons.getSvgIcon('magic_wand', 16, 16, 'mr-2')} Layout
 			</button>
 		`,
 	}

@@ -21,6 +21,7 @@ package org.structr.schema.export;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
@@ -50,12 +51,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinitions.class);
 
-
 	private final Set<StructrRelationshipTypeDefinition> relationships = new TreeSet<>();
 	private final Set<StructrTypeDefinition> typeDefinitions           = new TreeSet<>();
 	private StructrSchemaDefinition root                               = null;
 
-	public static Set<String> openApiSerializedSchemaTypes = new TreeSet<String>();
+	public static ConcurrentSkipListSet<String> openApiSerializedSchemaTypes = new ConcurrentSkipListSet<>();
 
 	StructrTypeDefinitions(final StructrSchemaDefinition root) {
 		this.root = root;
@@ -161,6 +161,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	}
 
 	public Map<String, Object> serializeOpenAPI(final Map<String, Object> schemas, final String tag) {
+
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.putAll(this.serializeOpenAPIForTypes(typeDefinitions, schemas, tag, null));
@@ -189,7 +190,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		}
 
 		// now generate the response schemas for each type schema reference
-		// Single and Multiple ReesponseSchemas only differ in the 'result' key. It's either object or array.
+		// Single and Multiple ResponseSchemas only differ in the 'result' key. It's either object or array.
 		Iterator<Entry<String, Object>> iterator = schemas.entrySet().iterator();
 		Map<String, Object> additionalSchemas = new HashMap<>();
 		while (iterator.hasNext()) {

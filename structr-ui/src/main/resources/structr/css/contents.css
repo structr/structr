@@ -151,23 +151,3 @@
 #files-table .folder-up {
 	padding-left: .5rem;
 }
-
-
-/*
- * Search (similar to crud search box but different)
- */
-.searchBox {
-	z-index: 5;
-}
-
-.searchBox input.search {
-	width: 12rem;
-}
-
-i.clearSearchIcon {
-	display: none;
-	position: absolute;
-	top: .75rem;
-	right: .75rem;
-	cursor: pointer;
-}

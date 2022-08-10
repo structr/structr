@@ -474,6 +474,22 @@ let _Editors = {
 
 		return monacoInstance;
 	},
+	isAutoFocusAllowed: () => {
+
+		// Only limitation currently: If we are in the code area and currently searching for something
+		return !(Structr.isModuleActive(_Code) && _Code.inSearchBox === true);
+
+	},
+	focusEditor: (editor) => {
+
+		let allowed = _Editors.isAutoFocusAllowed();
+
+		if (allowed) {
+			editor.focus();
+		}
+
+		return allowed;
+	},
 	defaultChangeHandler: (e, entity, propertyName, errorPropertyNameForLinting) => {
 
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
@@ -505,7 +521,7 @@ let _Editors = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText"><i class="${_Icons.getFullSpriteClass(_Icons.microphone_icon)}"></i></button>`);
+			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon('microphone-icon', 18, 18)}</button>`);
 
 			let speechToTextButton = buttonArea.querySelector('.speechToText');
 			let speechBtn          = $(speechToTextButton);

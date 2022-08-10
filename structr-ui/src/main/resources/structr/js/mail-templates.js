@@ -475,11 +475,13 @@ let _MailTemplates = {
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/mail-templates.css">
 			
-			<form id="create-mail-template-form" autocomplete="off">
-				<input title="Enter a name to create a mail template" id="mail-template-name-preselect" type="text" size="30" placeholder="Name" required>
-				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)">
+			<form id="create-mail-template-form" autocomplete="off" class="inline-flex">
+				<input title="Enter a name to create a mail template" id="mail-template-name-preselect" type="text" size="30" placeholder="Name" required class="mr-2">
+				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)" class="mr-2">
 			
-				<button type="submit" form="create-mail-template-form" class="action btn" id="create-mail-template"><i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Mail Template</button>
+				<button type="submit" form="create-mail-template-form" class="action btn inline-flex items-center" id="create-mail-template">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Mail Template
+				</button>
 			</form>
 			
 			<div class="dropdown-menu dropdown-menu-large">
