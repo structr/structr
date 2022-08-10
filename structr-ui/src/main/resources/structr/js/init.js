@@ -2120,6 +2120,9 @@ let Structr = {
 										case 'Template':
 											_Elements.openEditContentDialog(obj);
 											break;
+										case 'File':
+											_Files.editFile(obj);
+											break;
 										default:
 											_Entities.showProperties(obj);
 											break;

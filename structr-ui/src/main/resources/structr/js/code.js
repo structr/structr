@@ -2914,6 +2914,8 @@ let _Code = {
 			}
 		} else if (entity.type === 'Content' || entity.type === 'Template') {
 			errorPropertyNameForLinting = 'content';
+		} else if (entity.type === 'File') {
+			errorPropertyNameForLinting = 'getInputStream';
 		}
 
 		return errorPropertyNameForLinting;
