@@ -26,9 +26,16 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.net.ConnectException;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.NetworkInterface;
+import java.net.ProtocolException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -864,6 +871,19 @@ public class StructrLicenseManager implements LicenseManager {
 
 	private byte[] sendAndReceive(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
 
+		if (address != null && address.toLowerCase().startsWith("http://")) {
+
+			return sendAndReceiveHttp(address, key, ivspec, data);
+
+		} else {
+
+			return sendAndReceiveBinary(address, key, ivspec, data);
+		}
+
+	}
+
+	private byte[] sendAndReceiveBinary(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+
 		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
 		final int retries             = 3;
 
@@ -890,12 +910,96 @@ public class StructrLicenseManager implements LicenseManager {
 
 				return result;
 
-			} catch (Throwable  t) {
+			} catch (ConnectException cex) {
 
-				logger.warn("Unable to verify volume license: {}, attempt {} of {}", t.getMessage(), (i+1), retries);
+				logger.warn("Unable to verify volume license: {}, attempt {} of {}", cex.getMessage(), (i+1), retries);
+
+				// wait some time..
+				try { Thread.sleep(1234 * i); } catch (Throwable t) {}
 
 				if ((i+1) == retries) {
-					throw new RuntimeException("No connection to license server");
+					throw new RuntimeException("no connection to license server");
+				}
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to verify volume license: {}, attempt {} of {}", ioex.getMessage(), (i+1), retries);
+
+				if ((i+1) == retries) {
+					throw new RuntimeException("verification failed");
+				}
+			}
+		}
+
+		return null;
+	}
+
+	private byte[] sendAndReceiveHttp(final String address, final byte[] key, final byte[] ivspec, final byte[] data) {
+
+		final int timeoutMilliseconds = Long.valueOf(TimeUnit.SECONDS.toMillis(Settings.LicenseValidationTimeout.getValue(10))).intValue();
+		final int retries             = 3;
+
+		// try to connect to the license server 3 times..
+		for (int i=0; i<retries; i++) {
+
+			try {
+
+				final URL url                  = URI.create(address).toURL();
+				final URLConnection connection = url.openConnection();
+				final HttpURLConnection http   = (HttpURLConnection)connection;
+
+				http.setDoInput(true);
+				http.setDoOutput(true);
+				http.setUseCaches(false);
+				http.setReadTimeout(timeoutMilliseconds);
+				http.setFollowRedirects(true);
+				http.setRequestMethod("POST");
+				http.setRequestProperty("Content-Type", "application/octet-stream");
+
+				http.connect();
+
+				// write data
+				http.getOutputStream().write(key);
+				http.getOutputStream().flush();
+				http.getOutputStream().write(ivspec);
+				http.getOutputStream().flush();
+				http.getOutputStream().write(data);
+				http.getOutputStream().flush();
+				http.getOutputStream().close();
+
+				// read response
+				final byte[] response = http.getInputStream().readNBytes(256);
+
+				http.getInputStream().close();
+				http.disconnect();
+
+				return response;
+
+			} catch (MalformedURLException | ProtocolException mex) {
+
+				// don't retry if the URL is invalid..
+				i = 3;
+
+				// log error
+				mex.printStackTrace();
+
+			} catch (ConnectException cex) {
+
+				logger.warn("Unable to verify volume license: {}, attempt {} of {}", cex.getMessage(), (i+1), retries);
+
+				// wait some time..
+				try { Thread.sleep(1234 * i); } catch (Throwable t) {}
+
+				if ((i+1) == retries) {
+					throw new RuntimeException("no connection to license server");
+				}
+
+			} catch (IOException ioex) {
+
+				logger.warn("Unable to verify volume license: {}, attempt {} of {}", ioex.getMessage(), (i+1), retries);
+
+				if ((i+1) == retries) {
+					throw new RuntimeException("verification failed");
 				}
 			}
 		}
