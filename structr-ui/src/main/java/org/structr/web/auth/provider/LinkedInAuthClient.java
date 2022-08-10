@@ -16,28 +16,26 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.auth;
+package org.structr.web.auth.provider;
 
+import com.github.scribejava.apis.LinkedInApi20;
+import com.github.scribejava.core.builder.ServiceBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.web.auth.AbstractOAuth2Client;
 
-import com.github.scribejava.core.model.OAuth2AccessToken;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
+public class LinkedInAuthClient extends AbstractOAuth2Client {
+	private static final Logger logger = LoggerFactory.getLogger(LinkedInAuthClient.class);
 
-public interface OAuth2Client {
-    String getAuthorizationURL(final String state);
-    OAuth2AccessToken getAccessToken(final String authorizationReplyCode);
+	private final static String authServer = "linkedin";
 
-    String getClientCredentials(final OAuth2AccessToken accessToken);
+	public LinkedInAuthClient() {
+		super(authServer);
 
-    String getReturnURI();
-
-    String getErrorURI();
-
-    void invokeOnLoginMethod(Principal user) throws FrameworkException;
-
-    String getCredentialKey();
-
-    void initializeAutoCreatedUser(Principal user);
-
-    String getLogoutURI();
+		service = new ServiceBuilder(clientId)
+				.apiSecret(clientSecret)
+				.callback(redirectUri)
+				.defaultScope("r_liteprofile r_emailaddress")
+				.build(LinkedInApi20.instance());
+	}
 }

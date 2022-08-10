@@ -56,6 +56,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
@@ -489,15 +490,26 @@ public class UiAuthenticator implements Authenticator {
 
 		OAuth2Client oAuth2Client = null;
 
-		if (name.equals("auth0")) {
 
-			oAuth2Client = new Auth0AuthClient();
-		}
-
-		if (oAuth2Client == null) {
-
-			logger.error("Could not initialze oAuth2Client for provider {}", name);
-			return null;
+		switch (name) {
+			case "auth0":
+				oAuth2Client = new Auth0AuthClient();
+				break;
+			case "facebook":
+				oAuth2Client = new FacebookAuthClient();
+				break;
+			case "github":
+				oAuth2Client = new GithubAuthClient();
+				break;
+			case "google":
+				oAuth2Client = new GoogleAuthClient();
+				break;
+			case "linkedin":
+				oAuth2Client = new LinkedInAuthClient();
+				break;
+			default:
+				logger.error("Could not initialze oAuth2Client for provider {}", name);
+				return null;
 		}
 
 		if ("login".equals(action)) {
@@ -517,8 +529,11 @@ public class UiAuthenticator implements Authenticator {
 
 			try {
 
-				// TODO: Fix logout
-				//response.sendRedirect(oAuth2Client.getEndUserLogoutRequestUri());
+				final String logoutURI = oAuth2Client.getLogoutURI();
+				if (logoutURI != null && logoutURI.length() > 0) {
+
+					response.sendRedirect(logoutURI);
+				}
 
 				return null;
 
@@ -568,8 +583,7 @@ public class UiAuthenticator implements Authenticator {
 							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 							// let oauth implementation augment user info
-							// TODO: Fix initializeUser
-							//oauthServer.initializeUser(user);
+							oAuth2Client.initializeAutoCreatedUser(user);
 
 							RuntimeEventLog.registration("OAuth user created", Map.of("id", user.getUuid(), "name", user.getName()));
 
@@ -586,8 +600,7 @@ public class UiAuthenticator implements Authenticator {
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
 
-						// TODO: Fix onLogin
-						//oauthServer.invokeOnLoginMethod(user);
+						oAuth2Client.invokeOnLoginMethod(user);
 
 						logger.debug("HttpServletResponse status: {}", response.getStatus());
 
