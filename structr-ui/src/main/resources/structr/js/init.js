@@ -18,7 +18,6 @@
  */
 var ignoreKeyUp;
 var dialog, dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
 
@@ -118,35 +117,20 @@ $(function() {
 
 	StructrWS.init();
 
-	// Reset keys in case of window switching
-	$(window).blur(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
-	});
-
-	$(window).focus(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
-	});
-
 	$(window).keyup(function(e) {
-		let k = e.which;
-		if (k === 16) {
-			shiftKey = false;
-		}
-		if (k === 18) {
-			altKey = false;
-		}
-		if (k === 17) {
-			ctrlKey = false;
-		}
-		if (k === 69) {
-			eKey = false;
-		}
 
-		if (e.keyCode === 27) {
+		// unwrap jquery event
+		let event   = e?.originalEvent ?? e;
+		let keyCode = event.keyCode;
+		let code    = event.code;
+
+		if (code === 'Escape' || code === 'Esc' || keyCode === 27) {
+
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
 				return false;
 			}
+
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				ignoreKeyUp = true;
 				let saveBeforeExit = confirm('Save changes?');
@@ -165,8 +149,11 @@ $(function() {
 						return false;
 					}, 1000);
 				}
+
 				return false;
+
 			} else if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+
 				dialogCancelButton.click();
 				ignoreKeyUp = false;
 				return false;
@@ -176,98 +163,92 @@ $(function() {
 	});
 
 	$(window).on('keydown', function(e) {
-		// This hack prevents FF from closing WS connections on ESC
-		if (e.keyCode === 27) {
-			e.preventDefault();
-		}
-		var k = e.which;
-		if (k === 16) {
-			shiftKey = true;
-		}
-		if (k === 18) {
-			altKey = true;
-		}
-		if (k === 17) {
-			ctrlKey = true;
-		}
-		if (k === 69) {
-			eKey = true;
-		}
 
-		let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+		// unwrap jquery event
+		let event   = e?.originalEvent ?? e;
+		let keyCode = event.keyCode;
+		let code    = event.code;
 
 		// ctrl-s / cmd-s
-		if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
-			e.preventDefault();
+		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			event.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();
 			}
 		}
+
 		// Ctrl-Alt-c
-		if (k === 67 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyC' || keyCode === 67) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			_Console.toggleConsole();
 		}
+
 		// Ctrl-Alt-f
-		if (k === 70 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			_Favorites.toggleFavorites();
 		}
+
 		// Ctrl-Alt-p
-		if (k === 80 && altKey && ctrlKey) {
-			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
+		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
 					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
-					alert('That does not look like a UUID! length != 32');
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
 				}
 			}
 		}
+
 		// Ctrl-Alt-m
-		if (k === 77 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
 			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, (obj) => {
 					_Elements.openEditContentDialog(obj);
 				});
 			} else {
-				alert('That does not look like a UUID! length != 32');
+				new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
 			}
 		}
+
 		// Ctrl-Alt-g
-		if (k === 71 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
 			if (uuid && uuid.length === 32) {
 				Command.get(uuid, null, (obj) => {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
-				alert('That does not look like a UUID! length != 32');
+				new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
 			}
 		}
+
 		// Ctrl-Alt-h
-		if (k === 72 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			if (Structr.isModuleActive(_Schema)) {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
+
 		// Ctrl-Alt-e
-		if (k === 69 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
 
-		// ctrl-u / cmd-u
-		if (k === 85 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
-			e.preventDefault();
+		// ctrl-u / cmd-u: show generated source in schema or code area
+		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+
+			event.preventDefault();
 
 			let elements = document.querySelectorAll('.generated-source');
 
@@ -286,7 +267,6 @@ $(function() {
 				}
 			}
 		}
-
 	});
 
 	$(window).on('resize', () => {

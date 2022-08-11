@@ -183,29 +183,13 @@ let _Code = {
 
 		if (Structr.isModuleActive(_Code)) {
 
-			// This hack prevents FF from closing WS connections on ESC
-			if (e.keyCode === 27) {
-				e.preventDefault();
-			}
-			var k = e.which;
-			if (k === 16) {
-				shiftKey = true;
-			}
-			if (k === 18) {
-				altKey = true;
-			}
-			if (k === 17) {
-				ctrlKey = true;
-			}
-			if (k === 69) {
-				eKey = true;
-			}
-
-			let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+			let event   = e?.originalEvent ?? e;
+			let keyCode = event.keyCode;
+			let code    = event.code;
 
 			// ctrl-s / cmd-s
-			if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
-				e.preventDefault();
+			if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+				event.preventDefault();
 				_Code.runCurrentEntitySaveAction();
 			}
 		}
