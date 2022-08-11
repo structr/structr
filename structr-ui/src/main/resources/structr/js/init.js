@@ -208,12 +208,14 @@ $(function() {
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, (obj) => {
-					_Elements.openEditContentDialog(obj);
-				});
-			} else {
-				new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+			if (uuid) {
+				if (uuid.length === 32) {
+					Command.get(uuid, null, (obj) => {
+						_Elements.openEditContentDialog(obj);
+					});
+				} else {
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+				}
 			}
 		}
 
@@ -221,12 +223,14 @@ $(function() {
 		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, (obj) => {
-					_Entities.showAccessControlDialog(obj);
-				});
-			} else {
-				new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+			if (uuid) {
+				if (uuid.length === 32) {
+					Command.get(uuid, null, (obj) => {
+						_Entities.showAccessControlDialog(obj);
+					});
+				} else {
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+				}
 			}
 		}
 
