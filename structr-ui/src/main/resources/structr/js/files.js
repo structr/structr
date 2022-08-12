@@ -1288,7 +1288,7 @@ let _Files = {
 			_Files.selectedElements = parent;
 		}
 
-		Structr.dialog('Edit files', function() {}, function() {}, ['popup-dialog-with-editor']);
+		Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
 
 		dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
@@ -1316,7 +1316,7 @@ let _Files = {
 
 		for (let uuid of filteredFileIds) {
 
-			Command.get(uuid, 'id,name,contentType,isTemplate', (entity) => {
+			Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
 
 				loadedEditors++;
 

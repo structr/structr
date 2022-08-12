@@ -64,6 +64,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
+import org.structr.common.event.RuntimeEventLog;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.GraphObject;
@@ -324,6 +325,12 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			// restore previous security context
 			thisFile.setSecurityContext(previousSecurityContext);
+
+			// acknowledge all events for this node when it is modified
+			final String uuid = thisFile.getUuid();
+			if (uuid != null) {
+				RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
+			}
 		}
 
 		thisFile.triggerMinificationIfNeeded(modificationQueue);

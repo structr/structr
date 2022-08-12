@@ -417,11 +417,13 @@ let _Graph = {
 
 			if (searchString && searchString.length && e.which === 13) {
 
-				e.stopPropagation();
-				e.preventDefault();
+				if (e.shiftKey === false) {
 
-				_Graph.execQuery(searchString, type);
-				return false;
+					e.stopPropagation();
+					e.preventDefault();
+					_Graph.execQuery(searchString, type);
+					return false;
+				}
 
 			} else if (e.which === 27) {
 
@@ -433,7 +435,7 @@ let _Graph = {
 		cypherQueryBox.addEventListener('keydown', searchKeydownHandler);
 		cypherQueryBox.addEventListener('keyup', () => {
 			// keyup so we have the actual value
-			cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length + 1);
+			cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length);
 		});
 
 		$(window).off('resize').resize(function() {

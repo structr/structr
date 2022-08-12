@@ -555,11 +555,13 @@ let _Console = new (function() {
 				prompt: prompt + '> ',
 				keydown: function(e) {
 
-					if (e.which === 9) {
+					let event = e.originalEvent;
+
+					if (event.key === 'Tab' || event.keyCode === 9) {
 
 						let term = _terminal;
 
-						if (shiftKey) {
+						if (event.shiftKey === true) {
 
 							switch (term.consoleMode) {
 
