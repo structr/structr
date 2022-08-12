@@ -163,17 +163,29 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				} else if (propKey instanceof EndNode || propKey instanceof StartNode) {
 
 					GraphObject graphObject = (GraphObject)node.getProperty(propKey);
-					return new GraphObjectWrapper<>(actionContext, graphObject);
+					if (graphObject != null) {
+
+						return new GraphObjectWrapper<>(actionContext, graphObject);
+					}
+
+					return null;
 				} else if (propKey instanceof EnumProperty) {
 
 					Object propValue = node.getProperty(propKey);
 					if (propValue != null && propValue instanceof Enum) {
+
 						return ((Enum)propValue).toString();
 					}
 					return propValue;
 				} else {
 
-					return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
+					Object prop = node.getProperty(propKey);
+					if (prop != null) {
+
+						return PolyglotWrapper.wrap(actionContext, prop);
+					}
+
+					return null;
 				}
 			}
 
