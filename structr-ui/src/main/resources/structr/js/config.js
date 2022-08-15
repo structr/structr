@@ -74,55 +74,71 @@ let _Search = {
 
     	if (!isLogin && !isWelcome) {
 
-    		let header = document.getElementById('header');
+			let searchUiHTML = Structr.createSingleDOMElementFromHTML(`
+				<div id="search-container">
+					<input id="search-box" placeholder="Search config...">
+					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				</div>
+			`);
 
-    		let searchContainer = document.createElement('div');
-    		searchContainer.id = 'search-container';
+			document.getElementById('header').appendChild(searchUiHTML);
 
-    		let searchBox = document.createElement('input');
-    		searchBox.id = 'search-box';
-    		searchBox.placeholder = 'Search config...';
-
-    		searchContainer.appendChild(searchBox);
-    		header.appendChild(searchContainer);
-
+			let searchBox       = searchUiHTML.querySelector('input#search-box');
+			let clearSearchIcon = searchUiHTML.querySelector('.clearSearchIcon');
     		let searchTimeout;
 
     		let lastSearch = window.localStorage.getItem(_Search.lsSearchStringKey);
     		if (lastSearch) {
     		    searchBox.value = lastSearch;
     		    _Search.doSearch(lastSearch);
+
+    		    clearSearchIcon.classList.add('block');
     		}
 
-    		searchBox.addEventListener('keyup', (x) => {
+    		let clearSearch = () => {
+				_Search.clearSearch();
+				searchBox.value = '';
+				window.localStorage.removeItem(_Search.lsSearchStringKey);
 
-    			if (x.keyCode === 27) {
+				clearSearchIcon.classList.remove('block');
+			};
 
-    				_Search.clearSearch();
-    				searchBox.value = '';
-                    window.localStorage.removeItem(_Search.lsSearchStringKey);
+			clearSearchIcon.addEventListener('click', () => {
+				clearSearch();
+			});
 
-    			} else {
+			searchBox.addEventListener('keyup', (e) => {
 
-    				window.clearTimeout(searchTimeout);
+				if (e.code === 'Escape' || e.keyCode === 27) {
 
-    				searchTimeout = window.setTimeout(() => {
-    					let q = searchBox.value;
+					clearSearch();
 
-    					if (q.length === 0) {
-    						_Search.clearSearch();
-                            window.localStorage.removeItem(_Search.lsSearchStringKey);
-    					} else if (q.length >= 2) {
-    						_Search.doSearch(searchBox.value);
-    						window.localStorage.setItem(_Search.lsSearchStringKey, searchBox.value);
-    					}
-    				}, 250);
-    			}
-    		});
+				} else {
 
-    		window.addEventListener("keydown",function (e) {
+					window.clearTimeout(searchTimeout);
+
+					searchTimeout = window.setTimeout(() => {
+
+						let q = searchBox.value;
+
+						if (q.length === 0) {
+
+							clearSearch();
+
+						} else if (q.length >= 2) {
+
+							_Search.doSearch(searchBox.value);
+							clearSearchIcon.classList.add('block');
+							window.localStorage.setItem(_Search.lsSearchStringKey, searchBox.value);
+						}
+					}, 250);
+				}
+			});
+
+    		document.addEventListener("keydown",function (e) {
+
     			// capture ctrl-f or meta-f (mac) to activate search
-    			if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
+				if ((e.code === 'KeyF' || e.keyCode === 70) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
     				e.preventDefault();
     				searchBox.focus();
     			}
@@ -291,7 +307,18 @@ const Structr = {
         }
 
 		return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
-    }
+    },
+	createSingleDOMElementFromHTML: (html) => {
+		let elements = Structr.createDOMElementsFromHTML(html);
+		return elements[0];
+	},
+	createDOMElementsFromHTML: (html) => {
+		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
+		let dummy = document.createElement('template');
+		dummy.innerHTML = html;
+
+		return dummy.content.children;
+	},
 }
 
 document.addEventListener('DOMContentLoaded', () => {
