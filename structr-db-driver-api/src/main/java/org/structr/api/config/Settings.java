@@ -400,37 +400,38 @@ public class Settings {
 	public static final Setting<String> EventSourceDefaultView       = new StringSetting(servletsGroup,  "hidden", "eventsourceservlet.defaultview",           "public");
 	public static final Setting<Integer> EventSourceOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "eventsourceservlet.outputdepth",	   1);
 
-	public static final Setting<String> HealthCheckServletPath       = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.path",                  "/structr/health");
+	public static final Setting<String> HealthCheckServletPath       = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.path",      "/structr/health");
 	public static final Setting<String> HealthCheckServletClass      = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.class",                 "org.structr.web.servlet.HealthCheckServlet");
 	public static final Setting<String> HealthCheckAuthenticator     = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
 	public static final Setting<String> HealthCheckResourceProvider  = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
 	public static final Setting<String> HealthCheckDefaultView       = new StringSetting(servletsGroup,  "hidden", "healthcheckservlet.defaultview",           "public");
 	public static final Setting<Integer> HealthCheckOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "healthcheckservlet.outputdepth",           1);
-	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist",              "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
+	public static final Setting<String> HealthCheckWhitelist         = new StringSetting(servletsGroup,  "HealthCheckServlet", "healthcheckservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/health.");
 
-	public static final Setting<String> HistogramServletPath       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.path",                  "/structr/histogram");
-	public static final Setting<String> HistogramServletClass      = new StringSetting(servletsGroup,  "hidden", "histogramservlet.class",                 "org.structr.web.servlet.HistogramServlet");
-	public static final Setting<String> HistogramAuthenticator     = new StringSetting(servletsGroup,  "hidden", "histogramservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> HistogramResourceProvider  = new StringSetting(servletsGroup,  "hidden", "histogramservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> HistogramDefaultView       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.defaultview",           "public");
-	public static final Setting<Integer> HistogramOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "histogramservlet.outputdepth",           1);
+	public static final Setting<String> HistogramServletPath       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.path",                "/structr/histogram");
+	public static final Setting<String> HistogramServletClass      = new StringSetting(servletsGroup,  "hidden", "histogramservlet.class",               "org.structr.web.servlet.HistogramServlet");
+	public static final Setting<String> HistogramAuthenticator     = new StringSetting(servletsGroup,  "hidden", "histogramservlet.authenticator",       "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> HistogramResourceProvider  = new StringSetting(servletsGroup,  "hidden", "histogramservlet.resourceprovider",    "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> HistogramDefaultView       = new StringSetting(servletsGroup,  "hidden", "histogramservlet.defaultview",         "public");
+	public static final Setting<Integer> HistogramOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "histogramservlet.outputdepth",         1);
 	public static final Setting<String> HistogramWhitelist         = new StringSetting(servletsGroup,  "HistogramServlet", "histogramservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the query histogram endpoint at /structr/histogram.");
 
-	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.path",                  "/structr/openapi/*");
-	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                 "org.structr.rest.servlet.OpenAPIServlet");
-	public static final Setting<String> OpenAPIAuthenticator     = new StringSetting(servletsGroup,  "hidden", "openapiservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",           "public");
-	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",           1);
-	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title", "Structr REST Server", "The main title of the OpenAPI server definition.");
+	public static final Setting<String> OpenAPIServletPath       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.path",                          "/structr/openapi/*");
+	public static final Setting<String> OpenAPIServletClass      = new StringSetting(servletsGroup,  "hidden", "openapiservlet.class",                         "org.structr.rest.servlet.OpenAPIServlet");
+	public static final Setting<String> OpenAPIAuthenticator     = new StringSetting(servletsGroup,  "hidden", "openapiservlet.authenticator",                 "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> OpenAPIResourceProvider  = new StringSetting(servletsGroup,  "hidden", "openapiservlet.resourceprovider",              "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> OpenAPIDefaultView       = new StringSetting(servletsGroup,  "hidden", "openapiservlet.defaultview",                   "public");
+	public static final Setting<Integer> OpenAPIOutputDepth      = new IntegerSetting(servletsGroup, "hidden", "openapiservlet.outputdepth",                   1);
+	public static final Setting<String> OpenAPIServerTitle       = new StringSetting(servletsGroup,  "OpenAPIServerTitle", "openapiservlet.server.title",      "Structr REST Server", "The main title of the OpenAPI server definition.");
 	public static final Setting<String> OpenAPIServerVersion     = new StringSetting(servletsGroup,  "OpenAPIServerVersion", "openapiservlet.server.version", "1.0.1", "The version number of the OpenAPI definition");
 
 	// Prometheus MetricsServlet
-	public static final Setting<String> MetricsServletPath              = new StringSetting(servletsGroup,  "hidden", "metricsservlet.path",                  "/structr/metrics");
-	public static final Setting<String> MetricsServletClass             = new StringSetting(servletsGroup,  "hidden", "metricsservlet.class",                 "org.structr.rest.servlet.MetricsServlet");
-	public static final Setting<String> MetricsServletAuthenticator     = new StringSetting(servletsGroup,  "hidden", "metricsservlet.authenticator",         "org.structr.web.auth.UiAuthenticator");
-	public static final Setting<String> MetricsServletResourceProvider  = new StringSetting(servletsGroup,  "hidden", "metricsservlet.resourceprovider",      "org.structr.web.common.UiResourceProvider");
-	public static final Setting<String> MetricsServletkDefaultView      = new StringSetting(servletsGroup,  "hidden", "metricsservlet.defaultview",           "public");
+	public static final Setting<String> MetricsServletPath              = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.path",      "/structr/metrics");
+	public static final Setting<String> MetricsServletClass             = new StringSetting(servletsGroup,  "hidden", "metricsservlet.class",             "org.structr.rest.servlet.MetricsServlet");
+	public static final Setting<String> MetricsServletAuthenticator     = new StringSetting(servletsGroup,  "hidden", "metricsservlet.authenticator",     "org.structr.web.auth.UiAuthenticator");
+	public static final Setting<String> MetricsServletResourceProvider  = new StringSetting(servletsGroup,  "hidden", "metricsservlet.resourceprovider",  "org.structr.web.common.UiResourceProvider");
+	public static final Setting<String> MetricsServletDefaultView       = new StringSetting(servletsGroup,  "hidden", "metricsservlet.defaultview",       "public");
+	public static final Setting<String> MetricsServletWhitelist         = new StringSetting(servletsGroup,  "MetricsServlet", "metricsservlet.whitelist", "127.0.0.1, localhost, ::1", "IP addresses in this list are allowed to access the health check endpoint at /structr/metrics.");
 
 	// cron settings
 	public static final Setting<String> CronTasks                   = new StringSetting(cronGroup,  "", "CronService.tasks", "", "List with cron task configurations");
