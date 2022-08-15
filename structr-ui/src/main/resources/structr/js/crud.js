@@ -2101,7 +2101,7 @@ let _Crud = {
 		}
 
 		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
-			cell.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer']), 'Clear value'));
+			cell.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
 
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
@@ -2174,7 +2174,7 @@ let _Crud = {
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
-				nodeEl.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']), 'Clear value'));
+				nodeEl.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])));
 			} else if (insertFakeInput) {
 				nodeEl.append('<input type="hidden" name="' + key + '" value="' + node.id + '" /></div>');
 			}
