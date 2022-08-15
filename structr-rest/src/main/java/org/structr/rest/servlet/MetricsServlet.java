@@ -18,6 +18,8 @@
  */
 package org.structr.rest.servlet;
 
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.servlet.ServletException;
@@ -28,9 +30,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class MetricsServlet extends AbstractDataServlet {
+
+	public static final Counter HTTP_REQUEST_COUNTER = Counter.build("structr_http_requests_total", "Total number of HTTP requests.").labelNames("method", "path", "status").create().register();
+	public static final Histogram HTTP_REQUEST_TIMER = Histogram.build("structr_http_request_duration_seconds", "Duration of HTTP requests.").labelNames("method", "path").exponentialBuckets(0.001, 10.0, 4).create().register();
+
 	private final io.prometheus.client.exporter.MetricsServlet servlet;
 
 	public MetricsServlet() {
+
 		servlet = new io.prometheus.client.exporter.MetricsServlet();
 		DefaultExports.initialize();
 	}
