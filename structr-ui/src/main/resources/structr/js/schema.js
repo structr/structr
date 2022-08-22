@@ -5115,7 +5115,7 @@ let _Schema = {
 			<div class="flex-grow">
 				<div class="inline-flex">
 
-					<input class="schema-input mr-2" id="type-name" type="text" size="10" placeholder="New type" autocomplete="off">
+					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type" autocomplete="off">
 
 					<button id="create-type" class="action inline-flex items-center">
 						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
