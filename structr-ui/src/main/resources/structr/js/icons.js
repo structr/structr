@@ -121,10 +121,7 @@ let _Icons = {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}">
-			<title>${title}</title>
-			<use xlink:href="#${id}"></use>
-		</svg>`;
+		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use xlink:href="#${id}"></use></svg>`;
 	},
 
 	updateSvgIconInElement: (element, from, to) => {

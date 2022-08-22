@@ -18,35 +18,86 @@
  */
 package org.structr.rest.servlet;
 
+import io.prometheus.client.Counter;
+import io.prometheus.client.Histogram;
 import io.prometheus.client.hotspot.DefaultExports;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 
 public class MetricsServlet extends AbstractDataServlet {
+
+	public static final Counter HTTP_REQUEST_COUNTER = Counter.build("structr_http_requests_total", "Total number of HTTP requests.").labelNames("method", "path", "status").create().register();
+	public static final Histogram HTTP_REQUEST_TIMER = Histogram.build("structr_http_request_duration_seconds", "Duration of HTTP requests.").labelNames("method", "path").exponentialBuckets(0.001, 10.0, 4).create().register();
+
+	private static final Logger logger = LoggerFactory.getLogger(MetricsServlet.class);
+
 	private final io.prometheus.client.exporter.MetricsServlet servlet;
 
+	protected final Set<String> whitelist    = new LinkedHashSet<>();
+	protected String previousWhitelist       = "";
+
 	public MetricsServlet() {
+
 		servlet = new io.prometheus.client.exporter.MetricsServlet();
 		DefaultExports.initialize();
 	}
 
 	@Override
-	public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
-		servlet.service(req, res);
-	}
+	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
-	@Override
-	protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-		servlet.service(req, resp);
+		final String remoteAddress = request.getRemoteAddr();
+		if (remoteAddress != null) {
+
+			final Set<String> wl = getWhitelistAddresses();
+			if (wl.contains(remoteAddress)) {
+
+				servlet.service(request, response);
+
+				return;
+			}
+		}
+
+		logger.warn("Access to metrics endpoint denied for remote address {}: not in whitelist. If you want to allow access, edit structr.conf and include {} in metricsservlet.whitelist.", remoteAddress, remoteAddress);
+
+		response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 	}
 
 	@Override
 	public String getModuleName() {
 		return "rest";
+	}
+
+	// ----- protected methods -----
+	protected synchronized Set<String> getWhitelistAddresses() {
+
+		final String whitelistSource = Settings.MetricsServletWhitelist.getValue();
+		if (!whitelistSource.equals(previousWhitelist)) {
+
+			whitelist.clear();
+
+			for (final String entry : whitelistSource.split(",")) {
+
+				final String trimmed = entry.trim();
+
+				if (StringUtils.isNotBlank(trimmed)) {
+
+					whitelist.add(trimmed);
+				}
+			}
+
+			// cache contents to detect changes
+			previousWhitelist = whitelistSource;
+		}
+
+		return whitelist;
 	}
 }

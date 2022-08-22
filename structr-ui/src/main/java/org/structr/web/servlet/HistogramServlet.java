@@ -48,7 +48,7 @@ public class HistogramServlet extends HealthCheckServlet {
 			final Set<String> wl = getWhitelistAddresses();
 			if (!wl.contains(remoteAddress)) {
 
-				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, add {} to histogramservlet.whitelist in structr.conf.", remoteAddress, remoteAddress);
+				logger.warn("Access to histogram endpoint denied for remote address {}: not in whitelist. If you want to allow access, edit structr.conf and includ {} in histogramservlet.whitelist.", remoteAddress, remoteAddress);
 
 				response.sendError(HttpServletResponse.SC_FORBIDDEN);
 

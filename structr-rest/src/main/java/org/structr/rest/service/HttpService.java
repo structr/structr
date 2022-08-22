@@ -83,6 +83,8 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.common.MetricsFilter;
+import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -432,6 +434,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			servletContext.addServlet(servletHolder, path);
 			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
+		}
+
+		// only add metrics filter if metrics servlet is enabled
+		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
+			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
 
 		contexts.addHandler(servletContext);
