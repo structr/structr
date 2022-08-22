@@ -432,16 +432,31 @@ let _Schema = {
 
 	},
 	bulkDialogsGeneral: {
+		closeWithoutSavingChangesQuestionOpen: false,
 		overrideDialogCancel: (mainTabs, additionalCallback) => {
+
 			dialogCancelButton.off('click').on('click', async () => {
 
-				let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?"));
+				if (_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen === false) {
 
-				if (okToNavigate) {
-					Structr.dialogCancelBaseAction();
+					let allowNavigation = true;
+					let hasChanges      = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs);
 
-					if (additionalCallback) {
-						additionalCallback();
+					if (hasChanges) {
+
+						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
+						allowNavigation = await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?")
+					}
+
+					_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
+
+					if (allowNavigation) {
+
+						Structr.dialogCancelBaseAction();
+
+						if (additionalCallback) {
+							additionalCallback();
+						}
 					}
 				}
 			});
