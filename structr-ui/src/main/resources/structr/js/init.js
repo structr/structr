@@ -3104,7 +3104,7 @@ let UISettings = {
 			inheritVisibilityFlagsKey: {
 				text: 'Inherit Visibility Flags (when creating new elements from the context menu)',
 				storageKey: 'inheritVisibilityFlags_' + location.port,
-				defaultValue: false,
+				defaultValue: true,
 				type: 'checkbox'
 			},
 			favorEditorForContentElementsKey: {
