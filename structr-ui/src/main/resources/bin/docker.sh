@@ -51,7 +51,7 @@ if [ -n "${NEW_GROUP_NAME}" ] && [ -z "${NEW_GROUP_ID}" ]; then
 elif [ -n "${NEW_GROUP_ID}" ] && [ -z "${NEW_GROUP_NAME}" ]; then
   echo "        Group id for deployment file permissions found, but no group name given. Please also add 'STRUCTR_deploymentservlet_filegroup_name' to the environment, that corresponds with the id of the hosts group with the same name."
   exit 1;
-else
+elif [ -n "${NEW_GROUP_ID}" ] && [ -n "${NEW_GROUP_NAME}" ]; then
   echo "        Adding new group to docker container: ${NEW_GROUP_NAME} with gid ${NEW_GROUP_ID}"
   groupadd -f --gid ${NEW_GROUP_ID} ${NEW_GROUP_NAME}
   USER=$(id -u -n)
