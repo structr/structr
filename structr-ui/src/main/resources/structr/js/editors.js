@@ -507,8 +507,24 @@ let _Editors = {
 			storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
 		}
 	},
-	getMonacoEditorModeForContent: function(content) {
-		return (content && content.trim().indexOf('{') === 0) ? 'javascript' : 'text';
+	getMonacoEditorModeForContent: (content) => {
+
+		let mode = 'text';
+
+		if (content) {
+
+			let trimmed = content.trim();
+
+			if (trimmed.startsWith('python{')) {
+				mode = 'python';
+			} else if (trimmed.startsWith('R{')) {
+				mode = 'r';
+			} else if (trimmed.startsWith('{')) {
+				mode = 'javascript';
+			}
+		}
+
+		return mode;
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
 		if (newLanguage === 'auto') {
