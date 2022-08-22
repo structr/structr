@@ -87,8 +87,7 @@ public abstract class ContextFactory {
 				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
-				.option("js.nashorn-compat", "true")
-				.option("js.ecmascript-version", "2021")
+				.option("js.ecmascript-version", "latest")
 				.build();
 
 		return updateBindings(context, "js", actionContext, entity);
