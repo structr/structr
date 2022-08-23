@@ -166,7 +166,7 @@ public class MaintenanceTest extends StructrTest {
 			// create test nodes
 			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
 			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
-			int labelCount                   = 7;
+			int labelCount                   = 5;
 
 			// one additional label
 			if (tenantIdentifier != null) {
@@ -186,7 +186,7 @@ public class MaintenanceTest extends StructrTest {
 					}
 					System.out.println();
 
-					assertEquals("Number of labels must be 7", labelCount,      labels.size());
+					assertEquals("Number of labels must be " + labelCount, labelCount,      labels.size());
 					assertTrue("Set of labels must contain AbstractNode",       labels.contains("AbstractNode"));
 					assertTrue("Set of labels must contain NodeInterface",      labels.contains("NodeInterface"));
 					assertTrue("Set of labels must contain AccessControllable", labels.contains("AccessControllable"));
