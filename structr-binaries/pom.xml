@@ -193,6 +193,7 @@
 									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
 								</args>
 								<buildx>
+									<builderName>multiarch</builderName>
 									<platforms>
 										<platform>linux/amd64</platform>
 										<platform>linux/arm64</platform>
@@ -211,6 +212,7 @@
 									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
 								</args>
 								<buildx>
+									<builderName>multiarch</builderName>
 									<platforms>
 										<platform>linux/amd64</platform>
 									</platforms>
