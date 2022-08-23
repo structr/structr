@@ -18,7 +18,6 @@
  */
 package org.structr.ldap;
 
-import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
@@ -64,9 +63,6 @@ public class LDAPService extends Thread implements SingletonService {
 	public LDAPService() {
 
 		super("Structr LDAP Service");
-
-		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(DefaultLdapCodecService.class)).setLevel(Level.WARN);
-		((ch.qos.logback.classic.Logger)LoggerFactory.getLogger(CodecFactoryUtil.class)).setLevel(Level.WARN);
 	}
 
 	// ----- public methods -----

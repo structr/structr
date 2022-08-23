@@ -33,10 +33,6 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>ch.qos.logback</groupId>
-			<artifactId>logback-classic</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
 		</dependency>
@@ -48,16 +44,6 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.jaitools</groupId>
-			<artifactId>jt-utils</artifactId>
-			<version>1.3.0</version>
-		</dependency>
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.10</version>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -93,11 +79,6 @@
 			<version>4.0.45</version>
 		</dependency>
 		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.28</version>
-		</dependency>
-		<dependency>
 			<groupId>com.graphql-java</groupId>
 			<artifactId>graphql-java</artifactId>
 			<version>12.0</version>
@@ -113,18 +94,20 @@
 			<artifactId>graal-sdk</artifactId>
 			<version>22.2.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.oracle.truffle/truffle-api -->
+		<!-- https://mvnrepository.com/artifact/com.oracle.truffle/truffle-api
 		<dependency>
 			<groupId>org.graalvm.truffle</groupId>
 			<artifactId>truffle-api</artifactId>
 			<version>22.2.0</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.graalvm.js/js -->
+		-->
+		<!-- https://mvnrepository.com/artifact/org.graalvm.js/js
 		<dependency>
 			<groupId>org.graalvm.js</groupId>
 			<artifactId>js</artifactId>
 			<version>22.2.0</version>
 		</dependency>
+		-->
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>

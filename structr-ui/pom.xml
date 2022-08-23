@@ -44,40 +44,12 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
 		</dependency>
-		<!--dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.core</groupId>
-					<artifactId>sis-utility</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.storage</groupId>
-					<artifactId>sis-netcdf</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.core</groupId>
-					<artifactId>sis-metadata</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.opengis</groupId>
-					<artifactId>geoapi</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.github.jai-imageio</groupId>
-					<artifactId>jai-imageio-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency-->
-<!--		<dependency>-->
-<!--			<groupId>org.apache.pdfbox</groupId>-->
-<!--			<artifactId>pdfbox</artifactId>-->
-<!--		</dependency>-->
+		<!--
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+		</dependency>
+		-->
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
@@ -120,11 +92,7 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.tukaani</groupId>
-			<artifactId>xz</artifactId>
-			<version>1.6</version>
-		</dependency>
+
 		<dependency>
 			<groupId>commons-fileupload</groupId>
 			<artifactId>commons-fileupload</artifactId>
@@ -370,11 +338,6 @@
 			<groupId>net.sourceforge.cssparser</groupId>
 			<artifactId>cssparser</artifactId>
 			<version>0.9.28</version>
-		</dependency>
-		<dependency>
-			<groupId>net.freeutils</groupId>
-			<artifactId>jcharset</artifactId>
-			<version>2.1</version>
 		</dependency>
 	</dependencies>
 	<build>
