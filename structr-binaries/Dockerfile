@@ -1,5 +1,4 @@
-FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22.1.0
-RUN gu install python
+FROM FROM alpine:latest as build
 ARG STRUCTR_VERSION
 ADD ./target/structr-$STRUCTR_VERSION-dist.zip /root/
 RUN apk update && apk add unzip && unzip -q /root/structr-$STRUCTR_VERSION-dist.zip -d /root && rm /root/structr-$STRUCTR_VERSION-dist.zip
