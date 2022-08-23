@@ -35,7 +35,6 @@ import java.util.Map;
 
 public class TokenResource extends LoginResource {
 
-
     @Override
     public String getErrorMessage() {
         return JWTHelper.TOKEN_ERROR_MSG;
@@ -53,19 +52,21 @@ public class TokenResource extends LoginResource {
 
     @Override
     protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+
         Principal user = null;
 
         user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
 
-        boolean sendLoginNotification = true;
+        boolean isFromRefreshToken = false;
 
         if (user == null) {
+
             String refreshToken = getRefreshToken();
 
             if (refreshToken != null) {
 
                 user = JWTHelper.getPrincipalForRefreshToken(refreshToken);
-                sendLoginNotification = false;
+                isFromRefreshToken = true;
 
             }
         }
@@ -76,9 +77,10 @@ public class TokenResource extends LoginResource {
 
             if (twoFactorAuthenticationSuccessOrNotNecessary) {
 
-                if (sendLoginNotification) {
+                if (isFromRefreshToken == false) {
 
-                    AuthHelper.sendLoginNotification(user);
+                    AuthHelper.updateLastLoginDate(user);
+                    AuthHelper.sendLoginNotification(user, securityContext.getRequest());
                 }
 
                 return doLogin(securityContext, user);
@@ -151,11 +153,10 @@ public class TokenResource extends LoginResource {
             refreshCookie.setHttpOnly(true);
             refreshCookie.setMaxAge(refreshMaxAge * 60);
 
-            if (Settings.ForceHttps.getValue()) {
+            if (Settings.ForceHttps.getValue() || securityContext.getRequest().isSecure()) {
 
                 tokenCookie.setSecure(true);
                 refreshCookie.setSecure(true);
-
             }
 
             response.addCookie(tokenCookie);

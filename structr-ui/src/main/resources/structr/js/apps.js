@@ -20,7 +20,7 @@ $(document).ready(function() {
 	Structr.registerModule(_Apps);
 });
 
-var _Apps = {
+let _Apps = {
 	_moduleName: 'apps',
 	appsContainer: undefined,
 	deployServletAvailable: true,
@@ -31,96 +31,113 @@ var _Apps = {
 
 		_Apps.init();
 
-		fetch('/structr/deploy').then((result) => {
+		fetch(Structr.getPrefixedRootUrl('/structr/deploy')).then((result) => {
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 
-			Structr.fetchHtmlTemplate('apps/apps', {hideInfo: _Apps.deployServletAvailable}, function(html) {
+			Structr.mainContainer.innerHTML = _Apps.templates.apps({ hideInfo: _Apps.deployServletAvailable });
 
-				main.append(html);
+			_Apps.appsContainer = Structr.mainContainer.querySelector('#apps');
 
-				_Apps.appsContainer = $('#apps', main);
+			_Apps.loadData();
 
-				_Apps.loadData();
-
-				$(window).off('resize');
-				$(window).on('resize', function() {
-					Structr.resize();
-				});
-
-				Structr.unblockMenu(100);
+			$(window).off('resize');
+			$(window).on('resize', function() {
+				Structr.resize();
 			});
+
+			Structr.unblockMenu(100);
 		});
 	},
-	loadData: function() {
+	loadData: async () => {
 
-		$.ajax({
-			url: 'https://structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position',
-			statusCode: {
-				200: function(result) {
-					result.result.forEach(function(category) {
-						_Apps.appendCategory(category);
-					});
+		let response = await fetch('https://structr.com/structr/rest/StructrApplicationCategory?' + Structr.getRequestParameterName('sort') + '=position');
+
+		if (response.ok) {
+			let data = await response.json();
+
+			for (let category of data.result) {
+				_Apps.appendCategory(category);
+			}
+		}
+	},
+	appendCategory: (category) => {
+
+		_Apps.appsContainer.insertAdjacentHTML('beforeend', _Apps.templates.category(category));
+
+		let container = $('#' + category.id);
+
+		category.apps.sort(function(a, b) {
+			if (a.position > b.position) return 1;
+			if (a.position < b.position) return -1;
+			return 0;
+		});
+
+		for (let app of category.apps) {
+			_Apps.appendTile(container, app);
+		}
+	},
+	appendTile: (container, app) => {
+
+		let tile = _Apps.templates.tile(app);
+
+		let $tile = $(tile);
+		container.append($tile);
+
+		let form = $tile.find('form');
+		if (form.length > 0) {
+			form[0].addEventListener('submit', (e) => {
+				e.preventDefault();
+
+				if (_Apps.deployServletAvailable) {
+
+					Structr.confirmation(
+						`<h3>Install "${app.name}"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>`,
+						() => {
+							$.unblockUI({ fadeOut: 25 });
+
+							LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
+							LSWrapper.save(() => {
+								form.submit();
+							});
+						}
+					);
+
+				} else {
+					_Apps.showDeploymentServletUnavailableMessage(app);
 				}
-			}
-		});
-	},
-	appendCategory: function(category) {
 
-		Structr.fetchHtmlTemplate('apps/category', category, function(html) {
-
-			_Apps.appsContainer.append(html);
-			var container = $('#' + category.id);
-
-			category.apps.sort(function(a, b) {
-				if (a.position > b.position) return 1;
-				if (a.position < b.position) return -1;
-				return 0;
+				return false;
 			});
-
-			category.apps.forEach(function(app) {
-
-				_Apps.appendTile(container, app);
-			});
-		});
-	},
-	appendTile: function(container, app) {
-
-		Structr.fetchHtmlTemplate('apps/tile', app, function(tile) {
-
-			let $tile = $(tile);
-			container.append($tile);
-
-			let form = $tile.find('form');
-			if (form.length > 0) {
-				form[0].addEventListener('submit', (e) => {
-					e.preventDefault();
-
-					if (_Apps.deployServletAvailable) {
-
-						Structr.confirmation(
-							'<h3>Install "' + app.name + '"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>',
-							function() {
-								$.unblockUI({ fadeOut: 25 });
-
-								LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
-								LSWrapper.save(function() {
-									form.submit();
-								});
-							}
-						);
-
-					} else {
-						_Apps.showDeploymentServletUnavailableMessage(app);
-					}
-
-					return false;
-				});
-			}
-		});
+		}
 	},
 	showDeploymentServletUnavailableMessage: function(app) {
 
-		new MessageBuilder().title('Unable to install "' + app.name + '"').warning('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.').requiresConfirmation().allowConfirmAll().show();
+		new MessageBuilder().title(`Unable to install "${app.name}"`).warning('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.').requiresConfirmation().allowConfirmAll().show();
+	},
+
+	templates: {
+		apps: config => `
+			<div class="main-app-box" id="apps"></div>
+		`,
+		category: config => `
+			<div class="app-category">
+				<h2>${config.name}</h2>
+				<p>${config.description}</p>
+				<div id="${config.id}"></div>
+			</div>
+		`,
+		tile: config => `
+			<div class="app-tile">
+				<h4>${config.name}</h4>
+				<p>${config.description}</p>
+				<form action="/structr/deploy" method="POST" enctype="multipart/form-data">
+					<input type="hidden" name="downloadUrl" value="${config.url}">
+					<input type="hidden" name="redirectUrl" value="${window.location.pathname}">
+					<input type="hidden" name="mode" value="import">
+					<button class="action" type="submit">Install</button>
+				</form>
+			</div>
+		`,
 	}
 };

@@ -25,9 +25,6 @@ import org.structr.api.util.html.InputField;
 import org.structr.api.util.html.SelectField;
 import org.structr.api.util.html.Tag;
 
-/**
- *
- */
 public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 	public static final String KEY_ACTIVE                  = "active";
@@ -47,8 +44,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 	public static final String INFO_TEXT_URL               = "If no URI scheme is entered, the default 'bolt://' scheme will be used.";
 	public static final String INFO_TEXT_DATABASENAME      = "Only available in Neo4j Enterprise &gt;= 4. Make sure database exists before using it.";
 
-	public DatabaseConnection() {
-	}
+	public DatabaseConnection() {}
 
 	public DatabaseConnection(final Map<String, Object> data) {
 		putAll(data);
@@ -114,8 +110,7 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		return Boolean.TRUE.equals(get(KEY_ACTIVE));
 	}
 
-
-	public void render(final Tag parent, final String configUrl) {
+	public void render(final Tag parent, final String adminBackendUrl) {
 
 		final boolean active     = isActive();
 		final String displayName = getDisplayName();
@@ -167,8 +162,8 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		final Tag buttons = div.block("p").css("buttons");
 
 		if (isActive()) {
-			buttons.block("a").css("align-left").attr(new Attr("href", "/structr")).text("Open Structr UI");
-			buttons.block("button").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
+			buttons.block("a").css("align-left").attr(new Attr("href", adminBackendUrl)).text("Open Structr UI");
+			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
 		} else {
 			buttons.block("button").attr(new Attr("type", "button")).text("Remove").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
 			buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
@@ -177,6 +172,5 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 		//buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));
 
 		div.block("div").id("status-" + name).css("warning warning-message hidden");
-
 	}
 }

@@ -50,8 +50,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
+import org.structr.common.error.DuplicateRelationshipToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.Ownership;
@@ -79,10 +81,6 @@ import org.structr.schema.SourceLine;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.Validator;
 
-/**
- *
- *
- */
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public static final String schemaRemoteAttributeNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
@@ -121,19 +119,25 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	public static final View defaultView = new View(SchemaRelationshipNode.class, PropertyView.Public,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
+		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
 
 	public static final View uiView = new View(SchemaRelationshipNode.class, PropertyView.Ui,
 		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
-		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask
+		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
 
 	public static final View exportView = new View(SchemaRelationshipNode.class, "export",
 		sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
 		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, permissionPropagation,
-		propertyMask
+		propertyMask, isPartOfBuiltInSchema
+	);
+
+	public static final View schemaView = new View(SchemaNode.class, "schema",
+		name, sourceId, targetId, sourceMultiplicity, targetMultiplicity, sourceNotion, targetNotion, relationshipType,
+		sourceJsonName, targetJsonName, extendsClass, cascadingDeleteFlag, autocreationFlag, previousSourceJsonName, previousTargetJsonName,
+		permissionPropagation, readPropagation, writePropagation, deletePropagation, accessControlPropagation, propertyMask, isPartOfBuiltInSchema
 	);
 
 	private final Set<String> dynamicViews = new LinkedHashSet<>();
@@ -179,6 +183,11 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		valid &= ValidationHelper.isValidStringNotBlank(this, relationshipType, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, sourceNode, errorBuffer);
 		valid &= ValidationHelper.isValidPropertyNotNull(this, targetNode, errorBuffer);
+
+		if (valid) {
+			// only if we are valid up to here, test for relationship uniqueness
+			valid &= isRelationshipDefinitionUnique(errorBuffer);
+		}
 
 		return valid;
 	}
@@ -736,6 +745,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 		return relType;
 	}
+
 	private String getNotion(final String _className, final String notionSource) {
 
 		final StringBuilder buf = new StringBuilder();
@@ -1202,6 +1212,32 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 			}
 		}
 
+	}
+
+	private boolean isRelationshipDefinitionUnique(final ErrorBuffer errorBuffer) {
+
+		boolean allow = true;
+
+		try {
+
+			final List<SchemaRelationshipNode> existingRelationships = StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class).and(relationshipType, this.getRelationshipType(), true).and(sourceNode, this.getSourceNode()).and(targetNode, this.getTargetNode()).getAsList();
+
+			for (final SchemaRelationshipNode exRel : existingRelationships) {
+				if (!exRel.getUuid().equals(this.getUuid())) {
+					allow = false;
+				}
+			}
+
+			if (!allow) {
+				errorBuffer.add(new SemanticErrorToken(this.getType(), relationshipType, "duplicate_relationship_definition", "Schema Relationship with same name between source and target node already exists. This is not allowed."));
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+		}
+
+		return allow;
 	}
 
 	// ----- public static methods -----

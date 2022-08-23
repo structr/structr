@@ -98,6 +98,8 @@ public class LoginCommand extends AbstractCommand {
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
 					tx.setSecurityContext(SecurityContext.getInstance(user, AccessMode.Backend));
+				} else {
+					getWebSocket().send(MessageBuilder.status().code(403).build(), false);
 				}
 
 				if (user != null) {
@@ -128,7 +130,8 @@ public class LoginCommand extends AbstractCommand {
 
 							} else {
 
-								AuthHelper.sendLoginNotification(user);
+								AuthHelper.updateLastLoginDate(user);
+								AuthHelper.sendLoginNotification(user, getWebSocket().getRequest());
 
 								// store token in response data
 								webSocketData.getNodeData().clear();

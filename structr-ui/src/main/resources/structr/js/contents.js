@@ -16,9 +16,6 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main;
-var selectedElements = [];
-
 $(document).ready(function() {
 	Structr.registerModule(_Contents);
 });
@@ -34,6 +31,7 @@ let _Contents = {
 	containerPage: 1,
 	currentContentContainerKey: 'structrCurrentContentContainer_' + location.port,
 	contentsResizerLeftKey: 'structrContentsResizerLeftKey_' + location.port,
+	// selectedElements: [],
 
 	init: function() {
 		Structr.makePagesMenuDroppable();
@@ -49,129 +47,122 @@ let _Contents = {
 
 		_Contents.contentTree.css({width: left - 14 + 'px'});
 	},
-	onload: function() {
+	onload: () => {
 
-		Structr.fetchHtmlTemplate('contents/contents', {}, async (html) => {
+		Structr.mainContainer.innerHTML = _Contents.templates.contents();
 
-			main[0].innerHTML = html;
+		_Contents.init();
 
-			_Contents.init();
+		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('contents'));
+		_Contents.contentsMain     = $('#contents-main');
+		_Contents.contentTree      = $('#contents-tree');
+		_Contents.contentsContents = $('#contents-contents');
 
-			_Contents.contentsMain     = $('#contents-main');
-			_Contents.contentTree      = $('#contents-tree');
-			_Contents.contentsContents = $('#contents-contents');
+		_Contents.moveResizer();
+		Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
 
-			_Contents.moveResizer();
-			Structr.initVerticalSlider($('.column-resizer', _Contents.contentsMain), _Contents.contentsResizerLeftKey, 204, _Contents.moveResizer);
+		let initFunctionBar = async () => {
 
 			let contentContainerTypes = await _Schema.getDerivedTypes('org.structr.dynamic.ContentContainer', []);
 			let contentItemTypes      = await _Schema.getDerivedTypes('org.structr.dynamic.ContentItem', []);
 
-			Structr.fetchHtmlTemplate('contents/functions', { containerTypes: contentContainerTypes, itemTypes: contentItemTypes }, async (html) => {
+			let functionBarHtml = _Contents.templates.functions({ containerTypes: contentContainerTypes, itemTypes: contentItemTypes });
+			Structr.functionBar.innerHTML = functionBarHtml;
 
-				Structr.functionBar.innerHTML = html;
+			UISettings.showSettingsForCurrentModule();
 
-				UISettings.showSettingsForCurrentModule();
+			let itemTypeSelect      = document.querySelector('select#content-item-type');
+			let addItemButton       = document.getElementById('add-item-button');
+			let containerTypeSelect = document.querySelector('select#content-container-type');
+			let addContainerButton  = document.getElementById('add-container-button');
 
-				let itemTypeSelect      = document.querySelector('select#content-item-type');
-				let addItemButton       = document.getElementById('add-item-button');
-				let containerTypeSelect = document.querySelector('select#content-container-type');
-				let addContainerButton  = document.getElementById('add-container-button');
-
-				addItemButton.addEventListener('click', () => {
-					let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
-					Command.create({ type: itemTypeSelect.value, size: 0, containers: containers }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
+			addItemButton.addEventListener('click', () => {
+				let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
+				Command.create({ type: itemTypeSelect.value, containers: containers }, (f) => {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
 				});
-
-				addContainerButton.addEventListener('click', () => {
-					let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
-					Command.create({ type: containerTypeSelect.value, parent: parent }, function(f) {
-						_Contents.appendItemOrContainerRow(f);
-						_Contents.refreshTree();
-					});
-				});
-
-				itemTypeSelect.addEventListener('change', () => {
-					addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
-				});
-
-				containerTypeSelect.addEventListener('change', () => {
-					addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
-				});
-
-				if (contentItemTypes.length === 0) {
-					Structr.appendInfoTextToElement({
-						text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
-						element: $(itemTypeSelect).parent(),
-						after: true,
-						css: { marginLeft: '-1rem', marginRight: '1rem' }
-					});
-				}
-
-				// if (contentContainerTypes.length === 0) {
-				// 	Structr.appendInfoTextToElement({
-				// 		text: "You need to create a custom type extending <b>org.structr.web.entity.<u>ContentContainer</u></b> to add ContentContainers",
-				// 		element: $(containerTypeSelect).parent(),
-				// 		after: true,
-				// 		css: { marginLeft: '-1rem', marginRight: '1rem' }
-				// 	});
-				// }
-
-				// _Contents.searchField = $('.search', $(functionBar));
-				// _Contents.searchField.focus();
-				//
-				// _Contents.searchField.keyup(function(e) {
-				//
-				// 	var searchString = $(this).val();
-				// 	if (searchString && searchString.length && e.keyCode === 13) {
-				//
-				// 		$('.clearSearchIcon').show().on('click', function() {
-				// 			_Contents.clearSearch();
-				// 		});
-				//
-				// 		_Contents.fulltextSearch(searchString);
-				//
-				// 	} else if (e.keyCode === 27 || searchString === '') {
-				// 		_Contents.clearSearch();
-				// 	}
-				// });
 			});
 
-			$.jstree.defaults.core.themes.dots      = false;
-			$.jstree.defaults.dnd.inside_pos        = 'last';
-			$.jstree.defaults.dnd.large_drop_target = true;
+			addContainerButton.addEventListener('click', () => {
+				let parent = (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : null);
+				Command.create({ type: containerTypeSelect.value, parent: parent }, (f) => {
+					_Contents.appendItemOrContainerRow(f);
+					_Contents.refreshTree();
+				});
+			});
 
-			_Contents.contentTree.on('ready.jstree', function() {
-				_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+			itemTypeSelect.addEventListener('change', () => {
+				addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
+			});
 
-				_Contents.loadAndSetWorkingDir(function() {
-					if (_Contents.currentContentContainer) {
-						_Contents.deepOpen(_Contents.currentContentContainer);
+			containerTypeSelect.addEventListener('change', () => {
+				addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
+			});
+
+			if (contentItemTypes.length === 0) {
+				Structr.appendInfoTextToElement({
+					text: "It is recommended to create a custom type extending <b>org.structr.web.entity.<u>ContentItem</u></b> to create ContentItems.<br><br>If only one type of ContentItem is required, custom attributes can be added to the type ContentItem in the schema.",
+					element: $(itemTypeSelect).parent(),
+					after: true,
+					css: {
+						marginLeft: '-1rem',
+						marginRight: '1rem'
 					}
 				});
+			}
+
+			// _Contents.searchField = $('.search', $(functionBar));
+			// _Contents.searchField.focus();
+			//
+			// _Contents.searchField.keyup(function(e) {
+			//
+			// 	var searchString = $(this).val();
+			// 	if (searchString && searchString.length && e.keyCode === 13) {
+			//
+			// 		$('.clearSearchIcon').show().on('click', function() {
+			// 			_Contents.clearSearch();
+			// 		});
+			//
+			// 		_Contents.fulltextSearch(searchString);
+			//
+			// 	} else if (e.keyCode === 27 || searchString === '') {
+			// 		_Contents.clearSearch();
+			// 	}
+			// });
+		};
+		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
+
+		$.jstree.defaults.core.themes.dots      = false;
+		$.jstree.defaults.dnd.inside_pos        = 'last';
+		$.jstree.defaults.dnd.large_drop_target = true;
+
+		_Contents.contentTree.on('ready.jstree', function() {
+			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+
+			_Contents.loadAndSetWorkingDir(function() {
+				if (_Contents.currentContentContainer) {
+					_Contents.deepOpen(_Contents.currentContentContainer);
+				}
 			});
+		});
 
-			_Contents.contentTree.on('select_node.jstree', function(evt, data) {
+		_Contents.contentTree.on('select_node.jstree', function(evt, data) {
 
-				_Contents.setWorkingDirectory(data.node.id);
-				_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
-			});
+			_Contents.setWorkingDirectory(data.node.id);
+			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
+		});
 
-			_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
+		_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-			$(window).off('resize').resize(function() {
-				_Contents.resize();
-			});
-
-			Structr.unblockMenu(100);
-
+		$(window).off('resize').resize(function() {
 			_Contents.resize();
 		});
+
+		Structr.unblockMenu(100);
+
+		_Contents.resize();
 	},
 	getContextMenuElements: function (div, entity) {
 
@@ -246,11 +237,12 @@ let _Contents = {
 
 			case '#':
 
-				var defaultEntries = [{
+				let defaultEntries = [{
 					id: 'root',
 					text: '/',
 					children: true,
-					icon: _Icons.structr_logo_small,
+					icon: _Icons.jstree_fake_icon,
+					data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
 					path: '/',
 					state: {
 						opened: true,
@@ -272,26 +264,26 @@ let _Contents = {
 		}
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#contents-main', main));
+		fastRemoveAllChildren(Structr.mainContainer);
 	},
-	fulltextSearch: function(searchString) {
+	fulltextSearch: (searchString) => {
+
 		_Contents.contentsContents.children().hide();
 
 		var url;
 		if (searchString.contains(' ')) {
-			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
+			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
 			searchString.split(' ').forEach(function(str, i) {
 				url = url + '&name=' + str;
 			});
 		} else {
-			url = rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
+			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
 		}
 
 		_Contents.displaySearchResultsForURL(url);
 	},
-	clearSearch: function() {
-		$('.search', main).val('');
+	clearSearch: () => {
+		Structr.mainContainer.querySelector('.search').value = '';
 		$('#search-results').remove();
 		_Contents.contentsContents.children().show();
 	},
@@ -309,11 +301,11 @@ let _Contents = {
 			filter = {parent: id};
 		}
 
-		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, function(folders) {
+		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, (folders) => {
 
 			let list = [];
 
-			folders.forEach(function(d) {
+			for (let d of folders) {
 				let childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
 				list.push({
 					id: d.id,
@@ -322,7 +314,7 @@ let _Contents = {
 					icon: 'fa fa-folder-o',
 					path: d.path
 				});
-			});
+			}
 
 			callback(list);
 
@@ -331,7 +323,7 @@ let _Contents = {
 		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 
 	},
-	setWorkingDirectory: function(id) {
+	setWorkingDirectory: (id) => {
 
 		if (id === 'root') {
 			_Contents.currentContentContainer = null;
@@ -341,47 +333,59 @@ let _Contents = {
 
 		LSWrapper.setItem(_Contents.currentContentContainerKey, _Contents.currentContentContainer);
 	},
-	displayContainerContents: function(id, parentId, nodePath, parents) {
+	displayContainerContents: (id, parentId, nodePath, parents) => {
 
 		fastRemoveAllChildren(_Contents.contentsContents[0]);
 
-		let handleChildren = function(children) {
+		let isRootFolder    = (id === 'root');
+		let parentIsRoot    = (parentId === '#');
+
+		let handleChildren = (children) => {
 			if (children && children.length) {
 				children.forEach(_Contents.appendItemOrContainerRow);
 			}
 		};
 
-		if (id === 'root') {
-			Command.list('ContentContainer', true, 1000, 1, 'position', 'asc', null, handleChildren);
-		} else {
-			Command.query('ContentContainer', 1000, 1, 'position', 'asc', {parent: id}, handleChildren, true, 'ui');
-		}
+		Command.query('ContentContainer', 1000, 1, 'position', 'asc', { parent: (isRootFolder ? null : id ) }, handleChildren, true, 'ui');
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
 		_Pager.page['ContentItem'] = 1;
-		_Pager.initFilters('contents-items', 'ContentItem', id === 'root' ? { containers: [] } : { containers: [id] });
+		let filterOptions = {
+			containers: [],
+		};
+		if (!isRootFolder) {
+			filterOptions.containers = [id];
+		}
+		_Pager.initFilters('contents-items', 'ContentItem', filterOptions);
 
-		let itemsPager = _Pager.addPager('contents-items', _Contents.contentsContents, false, 'ContentItem', 'ui', handleChildren);
+		let itemsPager = _Pager.addPager('contents-items', _Contents.contentsContents, false, 'ContentItem', 'ui', handleChildren, undefined, undefined, undefined, true);
 
-		itemsPager.cleanupFunction = function () {
+		itemsPager.cleanupFunction = () => {
 			let toRemove = $('.node.item', itemsPager.el).closest('tr');
 			toRemove.each(function(i, elem) {
 				fastRemoveAllChildren(elem);
 			});
 		};
 
-		itemsPager.pager.append('Filter: <input type="text" class="filter" data-attribute="name">');
-		itemsPager.pager.append('<input type="text" class="filter" data-attribute="parentId" value="' + ((parentId === '#') ? '' : id) + '" hidden>');
-		itemsPager.pager.append('<input type="checkbox" class="filter" data-attribute="hasParent" ' + ((parentId === '#') ? '' : 'checked') + ' hidden>');
+		itemsPager.appendFilterElements(`
+			<span class="mr-1">Filter:</span>
+			<input type="text" class="filter" data-attribute="name">
+			<input type="text" class="filter" data-attribute="containers" value="${(parentIsRoot ? '' : id)}" hidden>
+		`);
 		itemsPager.activateFilterElements();
+		itemsPager.setIsPaused(false);
+		itemsPager.refresh();
 
 		_Contents.insertBreadCrumbNavigation(parents, nodePath, id);
 
-		_Contents.contentsContents.append('<table id="files-table" class="stripe"><thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>'
-				+ '<tbody id="files-table-body">'
-				+ ((id !== 'root') ? '<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>' : '')
-				+ '</tbody></table>'
-		);
+		_Contents.contentsContents.append(`
+			<table id="files-table" class="stripe">
+				<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>
+				<tbody id="files-table-body">
+					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>` : '')}
+				</tbody>
+			</table>
+		`);
 
 		$('#parent-file-link').on('click', function(e) {
 
@@ -391,7 +395,7 @@ let _Contents = {
 		});
 
 	},
-	insertBreadCrumbNavigation: function(parents, nodePath, id) {
+	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
 		if (parents) {
 
@@ -406,9 +410,12 @@ let _Contents = {
 			parents = [].concat(parents).reverse().slice(1);
 
 			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
-			let path      = parents.map((parent, idx) => { return '<a class="breadcrumb-entry" data-folder-id="' + parent + '">' + pathNames[idx] + '/</a>'; }).join('') + pathNames.pop();
 
-			_Contents.contentsContents.append('<div class="folder-path truncate">' + path + '</div>');
+			_Contents.contentsContents.append(`
+				<div class="folder-path truncate">
+					${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}${pathNames.pop()}
+				</div>
+			`);
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -440,12 +447,12 @@ let _Contents = {
 		if (d.isContentContainer) {
 
 			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container"></div></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container flex items-center"></div></div></td>');
 
 		} else {
 
 			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container"></div></td>');
+			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container flex items-center"></div></td>');
 		}
 
 		row.append('<td>' + size + '</td>');
@@ -495,21 +502,6 @@ let _Contents = {
 		});
 
 		if (d.isContentContainer) {
-
-			// ********** Containers **********
-
-			// var newDelIcon = '<i title="Delete container \'' + d.name + '\'" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_icon) + '" />';
-			// if (delIcon && delIcon.length) {
-			// 	delIcon.replaceWith(newDelIcon);
-			// } else {
-			// 	div.append(newDelIcon);
-			// }
-			// div.children('.delete_icon').on('click', function(e) {
-			// 	e.stopPropagation();
-			// 	_Entities.deleteNode(this, d, true, function() {
-			// 		_Contents.refreshTree();
-			// 	});
-			// });
 
 			div.droppable({
 				accept: '.container, .item',
@@ -571,18 +563,21 @@ let _Contents = {
 				});
 			},
 			helper: function(event) {
-				var helperEl = $(this);
-				selectedElements = $('.node.selected');
-				if (selectedElements.length > 1) {
-					selectedElements.removeClass('selected');
-					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '">');
-				}
-				var hlp = helperEl.clone();
+				let helperEl = $(this);
+				// _Contents.selectedElements = $('.node.selected');
+				// if (_Contents.selectedElements.length > 1) {
+				// 	_Contents.selectedElements.removeClass('selected');
+				// 	return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
+				// }
+				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
 				return hlp;
 			}
 		});
 
+		if (!d.isContentContainer) {
+			_Contents.appendEditContentItemIcon(iconsContainer, d);
+		}
 		_Entities.appendContextMenuIcon(iconsContainer, d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.setMouseOver(div);
@@ -615,166 +610,163 @@ let _Contents = {
 
 			dialogBtn.append('<button id="saveItem" disabled="disabled" class="action disabled"> Save </button>');
 			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="action disabled"> Save and close</button>');
-			dialogBtn.append('<button id="refresh"> Refresh</button>');
+			dialogBtn.append('<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>');
 
 			dialogSaveButton = $('#saveItem', dialogBtn);
 			saveAndClose     = $('#saveAndClose', dialogBtn);
 			let refreshBtn   = $('#refresh', dialogBtn);
 
-			_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
+			_Entities.getSchemaProperties(entity.type, 'custom', (properties) => {
 
 				let props = Object.values(properties);
 
-				//_Contents.sortBySchemaOrder(entity.type, 'custom', properties, function(props) {
+				props.forEach(function(prop) {
 
-					props.forEach(function(prop) {
+					let isRelated    = 'relatedType' in prop;
+					let key          = prop.jsonName;
+					let isCollection = prop.isCollection || false;
+					let isReadOnly   = prop.isReadOnly   || false;
+					let isSystem     = prop.system       || false;
+					let oldVal       = entity[key];
 
-						let isRelated    = 'relatedType' in prop;
-						let key          = prop.jsonName;
-						let isCollection = prop.isCollection || false;
-						let isReadOnly   = prop.isReadOnly   || false;
-						let isSystem     = prop.system       || false;
-						let oldVal       = entity[key];
+					dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
+					let div = $('#prop-' + key);
 
-						dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
-						let div = $('#prop-' + key);
+					if (prop.type === 'Boolean') {
 
-						if (prop.type === 'Boolean') {
+						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
+						let checkbox = div.find('input[type="checkbox"].' + key + '_');
+						Command.getProperty(entity.id, key, function(val) {
+							if (val) {
+								checkbox.prop('checked', true);
+							}
+							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+								checkbox.on('change', function() {
+									var checked = checkbox.prop('checked');
+									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
+								});
+							} else {
+								checkbox.prop('disabled', 'disabled');
+								checkbox.addClass('readOnly');
+								checkbox.addClass('disabled');
+							}
+						});
 
-							div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
-							let checkbox = div.find('input[type="checkbox"].' + key + '_');
-							Command.getProperty(entity.id, key, function(val) {
-								if (val) {
-									checkbox.prop('checked', true);
-								}
-								if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
-									checkbox.on('change', function() {
-										var checked = checkbox.prop('checked');
-										_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
+					} else if (prop.type === 'Date' && !isReadOnly) {
+
+						div.append('<div class="value-container"></div>');
+						let valueInput = _Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
+
+						valueInput.on('change', function(e) {
+							if (e.keyCode !== 27) {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
+								});
+							}
+						});
+
+					} else if (isRelated) {
+
+						let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> </div>');
+						div.append(relatedNodesList);
+						$(relatedNodesList).children('.add').on('click', function() {
+							Structr.dialog('Add ' + prop.type, function() {
+							}, function() {
+								_Contents.editItem(item);
+							});
+							_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
+						});
+
+						if (entity[key]) {
+
+							let relatedNodes = $('.related-nodes', div);
+
+							if (!isCollection) {
+
+								let nodeId = entity[key].id || entity[key];
+
+								Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+
+									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+
+										$('.remove', nodeEl).on('click', function(e) {
+											e.preventDefault();
+											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
+												if (!newVal) {
+													blinkGreen(relatedNodes);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+													nodeEl.remove();
+												} else {
+													blinkRed(relatedNodes);
+												}
+											});
+											return false;
+										});
 									});
-								} else {
-									checkbox.prop('disabled', 'disabled');
-									checkbox.addClass('readOnly');
-									checkbox.addClass('disabled');
-								}
+								});
+
+							} else {
+
+								entity[key].forEach(function(obj) {
+
+									var nodeId = obj.id || obj;
+
+									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+
+										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+											$('.remove', nodeEl).on('click', function(e) {
+												e.preventDefault();
+												Command.removeFromCollection(entity.id, key, node.id, function() {
+													var nodeEl = $('._' + node.id, relatedNodes);
+													nodeEl.remove();
+													blinkGreen(relatedNodes);
+													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+												});
+												return false;
+											});
+										});
+									});
+								});
+							}
+						}
+
+					} else {
+
+						if (prop.contentType && prop.contentType === 'text/html') {
+							div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
+							let editArea = $('.edit-area', div);
+							editArea.trumbowyg({
+								//btns: ['strong', 'em', '|', 'insertImage'],
+								//autogrow: true
+							}).on('tbwchange', function() {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
+							}).on('tbwpaste', function() {
+								Command.get(entity.id, key, function(newEntity) {
+									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
+								});
 							});
 
-						} else if (prop.type === 'Date' && !isReadOnly) {
-
+						} else {
 							div.append('<div class="value-container"></div>');
-							_Entities.appendDatePicker($('.value-container', div), entity, key, prop.format || "yyyy-MM-dd'T'HH:mm:ssZ");
-							let valueInput = $('.value-container input', div);
-							valueInput.on('change', function(e) {
+							let valueContainer = $('.value-container', div);
+							let valueInput;
+
+							valueContainer.append(formatValueInputField(key, oldVal, false, prop.readOnly, prop.format === 'multi-line'));
+							valueInput = valueContainer.find('[name=' + key + ']');
+
+							valueInput.on('keyup', function(e) {
 								if (e.keyCode !== 27) {
 									Command.get(entity.id, key, function(newEntity) {
 										_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
 							});
-
-						} else if (isRelated) {
-
-							let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" /> </div>');
-							div.append(relatedNodesList);
-							$(relatedNodesList).children('.add').on('click', function() {
-								Structr.dialog('Add ' + prop.type, function() {
-								}, function() {
-									_Contents.editItem(item);
-								});
-								_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
-							});
-
-							if (entity[key]) {
-
-								let relatedNodes = $('.related-nodes', div);
-
-								if (!isCollection) {
-
-									let nodeId = entity[key].id || entity[key];
-
-									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
-
-										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
-
-											$('.remove', nodeEl).on('click', function(e) {
-												e.preventDefault();
-												_Entities.setProperty(entity.id, key, null, false, function(newVal) {
-													if (!newVal) {
-														blinkGreen(relatedNodes);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-														nodeEl.remove();
-													} else {
-														blinkRed(relatedNodes);
-													}
-												});
-												return false;
-											});
-										});
-									});
-
-								} else {
-
-									entity[key].forEach(function(obj) {
-
-										var nodeId = obj.id || obj;
-
-										Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
-
-											_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
-												$('.remove', nodeEl).on('click', function(e) {
-													e.preventDefault();
-													Command.removeFromCollection(entity.id, key, node.id, function() {
-														var nodeEl = $('._' + node.id, relatedNodes);
-														nodeEl.remove();
-														blinkGreen(relatedNodes);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
-													});
-													return false;
-												});
-											});
-										});
-									});
-								}
-							}
-
-						} else {
-
-							if (prop.contentType && prop.contentType === 'text/html') {
-								div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
-								let editArea = $('.edit-area', div);
-								editArea.trumbowyg({
-									//btns: ['strong', 'em', '|', 'insertImage'],
-									//autogrow: true
-								}).on('tbwchange', function() {
-									Command.get(entity.id, key, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-									});
-								}).on('tbwpaste', function() {
-									Command.get(entity.id, key, function(newEntity) {
-										_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
-									});
-								});
-
-							} else {
-								div.append('<div class="value-container"></div>');
-								let valueContainer = $('.value-container', div);
-								let valueInput;
-
-								valueContainer.append(formatValueInputField(key, oldVal, false, prop.readOnly, prop.format === 'multi-line'));
-								valueInput = valueContainer.find('[name=' + key + ']');
-
-								valueInput.on('keyup', function(e) {
-									if (e.keyCode !== 27) {
-										Command.get(entity.id, key, function(newEntity) {
-											_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
-										});
-									}
-								});
-							}
 						}
+					}
 
-					});
-				//});
+				});
 
 			}, true);
 
@@ -856,169 +848,132 @@ let _Contents = {
 
 		}, 'all');
 	},
-	sortBySchemaOrder: function(type, view, properties, callback) {
-
-		let url = rootUrl + '_schema/' + type + '/' + view;
-		$.ajax({
-			url: url,
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			statusCode: {
-				200: function(data) {
-
-					// no schema entry found?
-					if (!data || !data.result || data.result_count === 0) {
-
-						//
-
-					} else {
-
-						let sortedProperties = [];
-
-						data.result.forEach(function(prop) {
-							sortedProperties.push(prop.jsonName);
-						});
-
-						//console.log(sortedProperties, properties);
-
-						properties.sort(function(a, b) {
-							return sortedProperties.indexOf(a.name) - sortedProperties.indexOf(b.name);
-						});
-
-						//console.log(properties);
-					}
-
-					if (callback) {
-						callback(properties);
-					}
-				},
-				400: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				401: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				403: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				404: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				},
-				422: function(data) {
-					Structr.errorFromResponse(data.responseJSON, url);
-				}
-			},
-			error:function () {
-				console.log("ERROR: loading Schema " + type);
-			}
-		});
-	},
-	// appendEditFileIcon: function(parent, item) {
-	//
-	// 	var editIcon = $('.edit_file_icon', parent);
-	//
-	// 	if (!(editIcon && editIcon.length)) {
-	// 		parent.append('<i title="Edit ' + item.name + ' [' + item.id + ']" class="edit_file_icon button ' + _Icons.getFullSpriteClass(_Icons.edit_icon) + '" />');
-	// 	}
-	//
-	// 	$(parent.children('.edit_file_icon')).on('click', function(e) {
-	// 		e.stopPropagation();
-	//
-	// 		_Contents.editItem(item);
-	// 	});
-	// },
-	displaySearchResultsForURL: function(url) {
+	displaySearchResultsForURL: (url) => {
 
 		$('#search-results').remove();
 		_Contents.contentsContents.append('<div id="search-results"></div>');
 
 		let searchString = Structr.functionBar.querySelector('.search').value;
 		let container    = $('#search-results');
-		_Contents.contentsContents.on('scroll', function() {
+		_Contents.contentsContents.on('scroll', () => {
 			window.history.pushState('', '', '#contents');
 		});
 
-		$.ajax({
-			url: url,
-			statusCode: {
-				200: function(data) {
+		fetch(url).then(async response => {
 
-					if (!data.result || data.result.length === 0) {
-						container.append('<h1>No results for "' + searchString + '"</h1>');
-						container.append('<h2>Press ESC or click <a href="#contents" class="clear-results">here to clear</a> empty result list.</h2>');
-						$('.clear-results', container).on('click', function() {
-							_Contents.clearSearch();
-						});
-						return;
-					} else {
-						container.append('<h1>' + data.result.length + ' search results:</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><!--th>Size</th--></thead><tbody></tbody></table>');
-						data.result.forEach(function(d) {
-							var icon = _Contents.getIcon(d);
-							$('tbody', container).append('<tr><td><i class="fa ' + icon + '"></i> ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td><a href="#results' + d.id + '">' + d.name + '</a></td><!--td>' + d.size + '</td--></tr>');
+			let data = await response.json();
 
-						});
-					}
+			if (response.ok) {
 
-					// data.result.forEach(function(d) {
-					//
-					// 	$.ajax({
-					// 		url: rootUrl + 'contents/' + d.id + '/getSearchContext',
-					// 		contentType: 'application/json',
-					// 		method: 'POST',
-					// 		data: JSON.stringify({searchString: searchString, contextLength: 30}),
-					// 		statusCode: {
-					// 			200: function(data) {
-					//
-					// 				if (!data.result) return;
-					//
-					// 				//console.log(data.result);
-					//
-					// 				container.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
-					//
-					// 				var div = $('#results' + d.id);
-					// 				var icon = _Contents.getIcon(d);
-					// 				div.append('<h2><i class="fa ' + icon + '"></i> ' + d.name + '<i id="preview' + d.id + '" class="' + _Icons.getFullSpriteClass(_Icons.eye_icon) + '" style="margin-left: 6px;" title="' + d.extractedContent + '" /></h2>');
-					// 				div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
-					//
-					// 				$('.toggle-height', div).on('click', function() {
-					// 					var icon = $(this);
-					// 					div.toggleClass('collapsed');
-					// 					if (icon.hasClass('fa-expand')) {
-					// 						icon.removeClass('fa-expand');
-					// 						icon.addClass('fa-compress');
-					// 					} else {
-					// 						icon.removeClass('fa-compress');
-					// 						icon.addClass('fa-expand');
-					// 					}
-					//
-					// 				});
-					//
-					// 				$('.go-to-top', div).on('click', function() {
-					// 					content.scrollTop(0);
-					// 					window.history.pushState('', '', '#contents');
-					// 				});
-					//
-					// 				$.each(data.result.context, function(i, contextString) {
-					//
-					// 					searchString.split(/[\s,;]/).forEach(function(str) {
-					// 						contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
-					// 					});
-					//
-					// 					div.append('<div class="part">' + contextString + '</div>');
-					//
-					// 				});
-					//
-					// 				div.append('<div style="clear: both;"></div>');
-					// 			}
-					// 		}
-					// 	});
-					//
-					// });
+				if (!data.result || data.result.length === 0) {
+
+					container.append(`
+						<h1>No results for "${searchString}"</h1>
+						<h2>Press ESC or click <a href="#contents" class="clear-results">here to clear</a> empty result list.</h2>
+					`);
+
+					$('.clear-results', container).on('click', _Contents.clearSearch);
+
+				} else {
+
+					container.append(`
+						<h1>${data.result.length} search results:</h1>
+						
+						<table class="props">
+							<thead>
+								<th class="_type">Type</th>
+								<th>Name</th>
+								<!--th>Size</th-->
+							</thead>
+							<tbody>
+								${data.result.map(d => `
+									<tr>
+										<td><i class="fa ${_Contents.getIcon(d)}"></i> ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+										<td><a href="#results${d.id}">${d.name}</a></td>
+										<!--td>${d.size}</td-->
+									</tr>
+								`).join('')}
+							</tbody>
+						</table>
+					`);
 				}
 			}
 		});
 	},
-	getIcon: function(file) {
+	getIcon: (file) => {
 		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
+	},
+	appendEditContentItemIcon: (parent, d) => {
+
+		let iconClass = 'svg_edit_item_icon';
+
+		let icon = $('.' + iconClass, parent);
+		if (!(icon && icon.length)) {
+
+			icon = $(_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon([iconClass, 'node-action-icon'])));
+			parent.append(icon);
+
+			icon.on('click', (e) => {
+				e.stopPropagation();
+				_Contents.editItem(d);
+			});
+		}
+
+		return icon;
+	},
+
+	templates: {
+		contents: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/contents.css">
+			
+			<div class="tree-main" id="contents-main">
+				<div class="column-resizer"></div>
+			
+				<div class="tree-container" id="content-tree-container">
+					<div class="tree" id="contents-tree">
+			
+					</div>
+				</div>
+			
+				<div class="tree-contents-container" id="contents-contents-container">
+					<div class="tree-contents tree-contents-with-top-buttons" id="contents-contents">
+			
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<div id="contents-action-buttons" class="flex-grow">
+			
+				<div class="inline-flex">
+			
+					<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="content-container-type">
+						<option value="ContentContainer">Content Container</option>
+						${config.containerTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+					</select>
+			
+					<button class="action add_container_icon button inline-flex items-center" id="add-container-button">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Container</span>
+					</button>
+				</button>
+			
+					<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="content-item-type">
+						<option value="ContentItem">Content Item</option>
+						${config.itemTypes.map(type => `<option value="${type}">${type}</option>`).join('')}
+					</select>
+
+					<button class="action add_item_icon button inline-flex items-center" id="add-item-button">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Item</span>
+					</button>
+			
+				</div>
+			
+			</div>
+			
+			<!--div class="searchBox module-dependend" data-structr-module="text-search">
+				<input class="search" name="search" placeholder="Search...">
+				<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+			</div -->
+		`,
 	}
 };

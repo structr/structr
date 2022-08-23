@@ -18,32 +18,32 @@
  */
 function createNewEntry(e) {
 
-	var currentTab = $('div.tab-content:visible');
+	let currentTab = $('div.tab-content:visible');
 	if (currentTab) {
 
-		var name = window.prompt("Please enter a key for the new configuration entry.");
+		let name = window.prompt("Please enter a key for the new configuration entry.");
 		if (name && name.length) {
 
-			currentTab.append(
-				'<div class="form-group">' +
-				'<label>' + name + '</label>' +
-				'<input type="text" name="' + name + '"/>' +
-				'<input type="hidden" name="' + name + '._settings_group" value="' + $(currentTab).attr('id') + '" />' +
-				'</div>'
-				);
+			currentTab.append(`
+				<div class="form-group">
+					<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+					<input type="text" name="${name}">
+					<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
+				</div>
+			`);
 		}
 	}
 }
 
 function appendInfoTextToElement (text, el, css) {
 
-	var toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></span>');
+	let toggleElement = $(`<span>${_Icons.getSvgIcon('info-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
 	if (css) {
 		toggleElement.css(css);
 	}
-	var helpElement = $('<span class="context-help-text">' + text + '</span>');
+	let helpElement = $('<span class="context-help-text">' + text + '</span>');
 
-	toggleElement.on("mousemove", function(e) {
+	toggleElement.on("mousemove", (e) => {
 		helpElement.show();
 		helpElement.css({
 			left: e.clientX + 20,
@@ -51,11 +51,12 @@ function appendInfoTextToElement (text, el, css) {
 		});
 	});
 
-	toggleElement.on("mouseout", function(e) {
+	toggleElement.on("mouseout", (e) => {
 		helpElement.hide();
 	});
 
-	return el.append(toggleElement).append(helpElement);
+	el.appendChild(toggleElement[0]);
+	el.appendChild(helpElement[0]);
 }
 
 /* config search */
@@ -73,55 +74,71 @@ let _Search = {
 
     	if (!isLogin && !isWelcome) {
 
-    		let header = document.getElementById('header');
+			let searchUiHTML = Structr.createSingleDOMElementFromHTML(`
+				<div id="search-container">
+					<input id="search-box" placeholder="Search config...">
+					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				</div>
+			`);
 
-    		let searchContainer = document.createElement('div');
-    		searchContainer.id = 'search-container';
+			document.getElementById('header').appendChild(searchUiHTML);
 
-    		let searchBox = document.createElement('input');
-    		searchBox.id = 'search-box';
-    		searchBox.placeholder = 'Search config...';
-
-    		searchContainer.appendChild(searchBox);
-    		header.appendChild(searchContainer);
-
+			let searchBox       = searchUiHTML.querySelector('input#search-box');
+			let clearSearchIcon = searchUiHTML.querySelector('.clearSearchIcon');
     		let searchTimeout;
 
     		let lastSearch = window.localStorage.getItem(_Search.lsSearchStringKey);
     		if (lastSearch) {
     		    searchBox.value = lastSearch;
     		    _Search.doSearch(lastSearch);
+
+    		    clearSearchIcon.classList.add('block');
     		}
 
-    		searchBox.addEventListener('keyup', (x) => {
+    		let clearSearch = () => {
+				_Search.clearSearch();
+				searchBox.value = '';
+				window.localStorage.removeItem(_Search.lsSearchStringKey);
 
-    			if (x.keyCode === 27) {
+				clearSearchIcon.classList.remove('block');
+			};
 
-    				_Search.clearSearch();
-    				searchBox.value = '';
-                    window.localStorage.removeItem(_Search.lsSearchStringKey);
+			clearSearchIcon.addEventListener('click', () => {
+				clearSearch();
+			});
 
-    			} else {
+			searchBox.addEventListener('keyup', (e) => {
 
-    				window.clearTimeout(searchTimeout);
+				if (e.code === 'Escape' || e.keyCode === 27) {
 
-    				searchTimeout = window.setTimeout(() => {
-    					let q = searchBox.value;
+					clearSearch();
 
-    					if (q.length === 0) {
-    						_Search.clearSearch();
-                            window.localStorage.removeItem(_Search.lsSearchStringKey);
-    					} else if (q.length >= 2) {
-    						_Search.doSearch(searchBox.value);
-    						window.localStorage.setItem(_Search.lsSearchStringKey, searchBox.value);
-    					}
-    				}, 250);
-    			}
-    		});
+				} else {
 
-    		window.addEventListener("keydown",function (e) {
+					window.clearTimeout(searchTimeout);
+
+					searchTimeout = window.setTimeout(() => {
+
+						let q = searchBox.value;
+
+						if (q.length === 0) {
+
+							clearSearch();
+
+						} else if (q.length >= 2) {
+
+							_Search.doSearch(searchBox.value);
+							clearSearchIcon.classList.add('block');
+							window.localStorage.setItem(_Search.lsSearchStringKey, searchBox.value);
+						}
+					}, 250);
+				}
+			});
+
+    		document.addEventListener("keydown",function (e) {
+
     			// capture ctrl-f or meta-f (mac) to activate search
-    			if ((e.ctrlKey && e.keyCode === 70) || (e.metaKey && e.keyCode === 70)) {
+				if ((e.code === 'KeyF' || e.keyCode === 70) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
     				e.preventDefault();
     				searchBox.focus();
     			}
@@ -278,7 +295,35 @@ let _Search = {
 	}
 };
 
+const Structr = {
+    getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+        let prefix = [];
+        const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
+        let entry = pathEntries.shift();
+
+        while (entry !== 'structr' && entry !== undefined) {
+           prefix.push(entry);
+           entry = pathEntries.shift();
+        }
+
+		return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
+    },
+	createSingleDOMElementFromHTML: (html) => {
+		let elements = Structr.createDOMElementsFromHTML(html);
+		return elements[0];
+	},
+	createDOMElementsFromHTML: (html) => {
+		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
+		let dummy = document.createElement('template');
+		dummy.innerHTML = html;
+
+		return dummy.content.children;
+	},
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+
+	_Icons.preloadSVGIcons();
 
 	$('#new-entry-button').on('click', createNewEntry);
 
@@ -288,12 +333,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			let currentTab = $('#active_section').val();
 			let key        = resetButton.dataset['key'];
 
-			window.location.href = '/structr/config?reset=' + key + currentTab;
+			window.location.href = Structr.getPrefixedRootUrl('/structr/config') + '?reset=' + key + currentTab;
 		});
 	}
 
 	$('#reload-config-button').on('click', function() {
-		window.location.href = window.location.origin + window.location.pathname + "?reload" + $('#active_section').val();
+		window.location.href = Structr.getPrefixedRootUrl('/structr/config') + "?reload" + $('#active_section').val();
 	});
 
 	$('#configTabs a').on('click', function() {
@@ -317,51 +362,52 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	resizeFunction();
 
-	$('label.has-comment').each(function(idx, label) {
-		appendInfoTextToElement($(label).data("comment"), $(label), {
-			margin: '0 4px'
-		});
-	});
+	for (let label of document.querySelectorAll('label.has-comment')) {
+		appendInfoTextToElement(label.dataset['comment'], label);
+	}
 
 	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
-	$('a[href$=' + anchor + ']').click();
+	document.querySelector('a[href$=' + anchor + ']').click();
 
-	$("button.toggle-option").on('click', function() {
-
-		var button = $(this);
-		var target = $('#' + button.data('target'));
+	let toggleButtonClicked = (button) => {
+		let target = document.querySelector('#' + button.dataset['target']);
 		if (target) {
 
-			var value = button.data('value');
-			var list  = target.val();
-			var parts = list.split(" ");
+			let value = button.dataset['value'];
+			let list  = target.value;
+			let parts = list.split(" ");
 
 			// remove empty elements
-			parts.forEach(function(p, i) {
+			parts = parts.filter(p => (p.length >= 2));
 
-				if (p.length < 2) {
-					parts.splice(i, 1);
-				}
-			});
-			var pos = parts.indexOf(value);
+			let pos = parts.indexOf(value);
 			if (pos >= 0) {
 
 				parts.splice(pos, 1);
-				button.removeClass('active');
+				button.classList.remove('active');
 
 			} else {
 
 				parts.push(value);
-				button.addClass('active');
+				button.classList.add('active');
 			}
 
-			target.val(parts.filter(function(e) { return e && e.length; }).join(' '));
+			target.value = parts.filter(e => (e && e.length)).join(' ');
 		}
-	});
+	};
 
-	$('.new-connection.collapsed').on('click', function() {
-		$(this).removeClass('collapsed');
-	});
+	for (let button of document.querySelectorAll('button.toggle-option')) {
+
+		button.addEventListener('click', () => {
+			toggleButtonClicked(button);
+		});
+	}
+
+	for (let collapsed of document.querySelectorAll('.new-connection.collapsed')) {
+		collapsed.addEventListener('click', () => {
+			collapsed.classList.remove('collapsed');
+		});
+	}
 
 	_Search.init();
 });
@@ -420,32 +466,40 @@ function addConnection(button) {
 		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 	}
 
-	$.ajax({
-		type: 'post',
-		url: '/structr/config/add',
-		data: data,
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/add'), {
+		method: 'POST',
+		body: convertObjectToFormEncoded(data),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
 
+function convertObjectToFormEncoded (obj) {
+	return Object.entries(obj).map(([key, value]) => {
+		return key + '=' + encodeURIComponent(value);
+	}).join('&');
+}
+
 function deleteConnection(name) {
 
-	$.ajax({
-		type: 'post',
-		url: '/structr/config/' + name + '/delete',
-		data: {
-			'active_section': '#databases'
-		},
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response),
-			503: response => handleErrorResponse(name, response)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/delete', {
+		method: 'POST',
+		body: convertObjectToFormEncoded({'active_section': '#databases'}),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response);
 		}
 	});
 }
@@ -467,24 +521,26 @@ function saveConnection(name) {
 		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 	}
 
-	$.ajax({
-		type: 'post',
-		url: '/structr/config/' + name + '/use',
-		data: data,
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response),
-			503: response => handleErrorResponse(name, response)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/use', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(data),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response);
 		}
 	});
 }
 
-function reload(response) {
+function reload() {
 
 	_Config.hideNonBlockUILoadingMessage();
 
-	window.location.href = '/structr/config#databases';
+	window.location.href = Structr.getPrefixedRootUrl('/structr/config#databases');
 	window.location.reload(true);
 }
 
@@ -500,15 +556,17 @@ function connect(button, name) {
 
 	_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
 
-	$.ajax({
-		type: 'post',
-		url: '/structr/config/' + name + '/connect',
-		data: collectData(name),
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/connect', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(collectData(name)),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
@@ -525,24 +583,26 @@ function disconnect(button, name) {
 
 	_Config.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
 
-	$.ajax({
-		type: 'post',
-		url: '/structr/config/' + name + '/disconnect',
-		data: collectData(name),
-		statusCode: {
-			200: reload,
-			302: reload,
-			422: response => handleErrorResponse(name, response, button),
-			503: response => handleErrorResponse(name, response, button)
+	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/disconnect', {
+		method: 'POST',
+		body: convertObjectToFormEncoded(collectData(name)),
+		headers: {
+			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+		}
+	}).then(async response => {
+		if (response.ok || response.status === 302) {
+			reload();
+		} else {
+			handleErrorResponse(name, response, button);
 		}
 	});
 }
 
-function handleErrorResponse(name, response, button) {
+async function handleErrorResponse(name, response, button) {
 
 	_Config.hideNonBlockUILoadingMessage();
 
-	let json = response.responseJSON;
+	let json = await response.json();
 
 	if (!name) {
 		name = 'structr-new-connection';
@@ -587,20 +647,26 @@ function handleErrorResponse(name, response, button) {
 _Config = {
 	nonBlockUIBlockerId: 'non-block-ui-blocker',
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	showNonBlockUILoadingMessage: function(title, text) {
+	showNonBlockUILoadingMessage: (title, text) => {
 
 		let messageTitle = title || 'Executing Task';
 		let messageText  = text || 'Please wait until the operation has finished...';
 
 		let pageBlockerDiv = $(`<div id="${_Config.nonBlockUIBlockerId}"></div>`);
 		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
-		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
+		messageDiv.html(`
+			<div class="flex items-center justify-center">
+				${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b>
+			</div>
+			<br>
+			${messageText}
+		`);
 
 
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);
 	},
-	hideNonBlockUILoadingMessage: function() {
+	hideNonBlockUILoadingMessage: () => {
 		$('#' + _Config.nonBlockUIBlockerId).remove();
 		$('#' + _Config.nonBlockUIBlockerContentId).remove();
 	}

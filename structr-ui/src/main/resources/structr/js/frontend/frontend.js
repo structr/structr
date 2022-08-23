@@ -58,49 +58,80 @@ export class Frontend {
 		for (const key in data) {
 
 			let value = data[key];
-			if (!value) continue;
+			if (!value) {
+				continue;
+			}
 
-            let lastIndex = value.length - 1;
+			let lastIndex = value.length - 1;
 
-            // css(selector)
-            if (value.indexOf('css(') === 0 && value[lastIndex] === ')') {
+			if (value.indexOf('css(') === 0 && value[lastIndex] === ')') {
 
-                // resolve CSS selector
-                let selector = value.substring(4, lastIndex);
-                let element  = document.querySelector(selector);
+				// resolve CSS selector
+				let selector = value.substring(4, lastIndex);
+				let element  = document.querySelector(selector);
 
-                if (element) {
+				if (element) {
 
-                    resolved[key] = this.resolveValue(element);
-                }
+					resolved[key] = this.resolveValue(element);
+				}
 
-            } else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
+			 } else if (value.indexOf('name(') === 0 && value[lastIndex] === ')') {
 
-                let json = value.substring(5, lastIndex);
-                resolved[key] = JSON.parse(json);
+				// resolve input name in current page, support multiple elements with the same name
+				let name     = value.substring(5, lastIndex);
+				let elements = document.querySelectorAll(`input[name="${name}"]`);
+				let values   = [];
 
-            } else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+				elements.forEach(element => {
 
-                // data() refers to the dataset of the datatransfer object in a drag and drop
-                // event, maybe the name of the key needs some more thought..
-                let data = event.dataTransfer.getData('application/json');
-                resolved[key] = JSON.parse(data);
+					// special treatment for checkboxes / radio buttons
+					let value = this.resolveValue(element);
+					if (value === true) {
 
-            } else {
+						if (element.value) {
+							values.push(element.value);
+						} else {
+							values.push(true);
+						}
+					}
+				});
 
-                switch (key) {
+				console.log({ name: name, elements: elements, values: values });
 
-                    // do not resolve internal keys
-                    case 'structrId':
-                    case 'structrEvents':
-                    case 'structrReloadTarget':
-                        break;
+				switch (values.length) {
+					case 0: break;
+					case 1: resolved[key] = values[0]; break;
+					default: resolved[key] = values; break;
+				}
 
-                    default:
-                        // just copy the value
-                        resolved[key] = data[key];
-                }
-            }
+			} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
+
+				let json = value.substring(5, lastIndex);
+				resolved[key] = JSON.parse(json);
+
+			} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+
+				// data() refers to the dataset of the datatransfer object in a drag and drop
+				// event, maybe the name of the key needs some more thought..
+				let data = event.dataTransfer.getData('application/json');
+				resolved[key] = JSON.parse(data);
+
+			} else {
+
+				switch (key) {
+
+					// do not resolve internal keys
+					case 'structrId':
+					case 'structrEvents':
+					case 'structrReloadTarget':
+						break;
+
+					default:
+						// just copy the value
+						resolved[key] = data[key];
+						break;
+				}
+			}
 		}
 
 		return resolved;
@@ -108,7 +139,7 @@ export class Frontend {
 
 	resolveValue(element) {
 
-		if (element.nodeName === 'INPUT' && element.type === 'checkbox') {
+		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
 			// input[type="checkbox"]
 			return element.checked;
@@ -121,7 +152,7 @@ export class Frontend {
 		} else {
 
 			if (element.value.length) {
-				
+
 				// all other node types
 				return element.value;
 			}
@@ -203,9 +234,11 @@ export class Frontend {
 						element.classList.remove(css);
 					}, 1000);
 
-				} else if (reloadTarget === 'event') {
+				} else if (reloadTarget.indexOf('event:') === 0) {
 
-					element.dispatchEvent(new CustomEvent('structr-success', { detail: { result: parameters, status: status } }));
+					let event = reloadTarget.substring(6);
+
+					element.dispatchEvent(new CustomEvent(event, { detail: { result: parameters, status: status } }));
 
 				} else if (reloadTarget === 'none') {
 
@@ -228,7 +261,9 @@ export class Frontend {
 
 	handleError(element, error, status) {
 
-	    console.error({element, error, status});
+		console.log(error);
+
+		console.error({element, error, status});
 
 		if (element) {
 			this.resetValue(element);
@@ -242,64 +277,91 @@ export class Frontend {
 		let reloadTargets = document.querySelectorAll(selector);
 
 		if (!reloadTargets.length) {
-		    console.log('Container with selector ' + selector + ' not found.');
-		    return;
+			console.log('Container with selector ' + selector + ' not found.');
+			return;
 		}
 
-        for (let container of reloadTargets) {
+		for (let container of reloadTargets) {
 
-            let data = container.dataset;
-            let id   = data.structrId;
+			let data = container.dataset;
+			let id   = data.structrId;
 
-            if (!id && id.length !== 32) {
-                console.log('Container with selector ' + selector + ' has no data-id attribute, will not be reloaded.');
-                continue;
-            }
+			if (!id || id.length !== 32) {
 
-            let base   = '/structr/html/' + id;
-            let params = this.encodeRequestParameters(data, parameters);
-            let uri    = base + params;
+				//console.log('Container with selector ' + selector + ' has no data-structr-id attribute, trying resolution by CSS selector...');
+				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
 
-            fetch(uri, {
-                method: 'GET',
-                credentials: 'same-origin'
-            }).then(response => {
-                if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
-                return response.text();
-            }).then(html => {
-                let content = document.createElement('div');
-                if (content) {
-                    content.insertAdjacentHTML('afterbegin', html);
-                    if (content && content.children && content.children.length) {
-                        container.replaceWith(content.children[0]);
-                    } else {
-                        container.replaceWith('');
-                    }
-                    container.dispatchEvent(new Event('structr-reload'));
-                }
+				//console.log(match[0], match[1], match[2]);
 
-                // restore focus on selected element after partial reload
-                if (this.focusId && this.focusTarget && this.focusName) {
+				// Try to find element by selector
+				let attrKey, attrVal;
+				if (match[0] && match[0].startsWith('#')) {
+					attrKey = '_html_id';
+					attrVal = match[0].substring(1);
+				} else if (match[0] && match[0].startsWith('.')) {
+					attrKey = '_html_class';
+					attrVal = match[0].substring(1).replaceAll('.', ' ');
+				}
 
-                    let restoreFocus = document.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
-                    if (restoreFocus) {
+				fetch('/structr/rest/DOMElement?' + attrKey + '=' + attrVal, {
+					method: 'GET',
+					credentials: 'same-origin'
+				}).then(response => {
+					//console.log('Found element by ' + attrKey + ' attribute', response);
+					return response.json();
+				}).then(data => {
+					if (data.result && data.result[0]) {
+						let id = data.result[0].id;
+						this.replacePartial(container, id, element, data, parameters, dontRebind);
+					}
+				});
 
-                        if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
-                        if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
-                    }
-                }
+			} else {
+				this.replacePartial(container, id, element, data, parameters, dontRebind);
+			}
 
-                if (!dontRebind) {
-                    this.bindEvents();
-                }
+		}
+	}
 
-                // fire reloaded event
-                this.fireEvent('reloaded', { target: element, data: parameters });
+	replacePartial(container, id, element, data, parameters, dontRebind) {
 
-            }).catch(e => {
-                this.handleError(element, e, {});
-            });
-        }
+		let base   = '/structr/html/' + id;
+		let params = this.encodeRequestParameters(data, parameters);
+		let uri    = base + params;
+
+		fetch(uri, {
+			method: 'GET',
+			credentials: 'same-origin'
+		}).then(response => {
+			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
+			return response.text();
+		}).then(html => {
+			let content = document.createElement('div');
+			if (content) {
+				content.insertAdjacentHTML('afterbegin', html);
+				if (content && content.children && content.children.length) {
+					container.replaceWith(content.children[0]);
+				} else {
+					container.replaceWith('');
+				}
+				container.dispatchEvent(new Event('structr-reload'));
+			}
+
+			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
+			if (restoreFocus) {
+
+				if (restoreFocus.focus && typeof restoreFocus.focus === 'function') { restoreFocus.focus(); }
+				if (restoreFocus.select && typeof restoreFocus.select === 'function') { restoreFocus.select(); }
+			}
+
+			if (!dontRebind) {
+				this.bindEvents();
+			}
+
+		}).catch(e => {
+			this.handleError(element, e, {});
+		});
+
 	}
 
 	loadPartial(uri, container) {
@@ -404,25 +466,37 @@ export class Frontend {
 
 	handleGenericEvent(event) {
 
-		event.preventDefault();
-		event.stopPropagation();
+		// event handling defaults
+		let preventDefault  = true;
+		let stopPropagation = true;
 
-		let target = event.currentTarget;
-		let data   = target.dataset;
-		let id     = data.structrId;
-		let delay  = 0;
+		let target     = event.currentTarget;
+		let data       = target.dataset;
+		let id         = data.structrId;
+		let delay      = 0;
 
 		// adjust debounce delay if set
 		if (data && data.structrOptions) {
 			try {
+
 				let options = JSON.parse(data.structrOptions);
-				if (options && options.delay) {
-					delay = options.delay;
+				if (options) {
+
+					if (options.delay) {
+						delay = options.delay;
+					}
+
+					if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
+					if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 				}
 			} catch (e) {
-			    console.error(e);
+				console.error(e);
 			}
 		}
+
+		// allow element to override preventDefault and stopPropagation
+		if (preventDefault) { event.preventDefault(); }
+		if (stopPropagation) { event.stopPropagation(); }
 
 		if (this.timeout) {
 			window.clearTimeout(this.timeout);
@@ -445,21 +519,23 @@ export class Frontend {
 
 			} else if (id && id.length === 32) {
 
+				this.fireEvent('start', { target: target, data: data, event: event });
+
 				// server-side
-                // store event type in htmlEvent property
-                data.htmlEvent = event.type;
+				// store event type in htmlEvent property
+				data.htmlEvent = event.type;
 
-                fetch('/structr/rest/DOMElement/' + id + '/event', {
-                    body: JSON.stringify(this.resolveData(event, target)),
-                    method: 'post',
-                    credentials: 'same-origin'
-                })
+				fetch('/structr/rest/DOMElement/' + id + '/event', {
+					body: JSON.stringify(this.resolveData(event, target)),
+					method: 'post',
+					credentials: 'same-origin'
+				})
 
-                .then(response => {
-                    return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
-                })
-                .then(response => this.handleResult(target, response.json, response.status))
-                .catch(error   => this.handleError(target, error, {}));
+				.then(response => {
+					return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+				})
+				.then(response => this.handleResult(target, response.json, response.status))
+				.catch(error   => this.handleError(target, error, {}));
 			}
 
 		}, delay);
@@ -484,50 +560,50 @@ export class Frontend {
 		let reloadTarget = data.structrReloadTarget;
 
 		if (!selector) {
-		    console.log('Selector not found: ' + selector);
-        	console.log(target);
-        	console.log(data);
-        	return;
+			console.log('Selector not found: ' + selector);
+			console.log(target);
+			console.log(data);
+		 	return;
 		}
 
-        let parameters = {};
-        let parts      = selector.split(',');
-        let sortKey    = selector;
-        let orderKey   = 'descending';
+		let parameters = {};
+		let parts      = selector.split(',');
+		let sortKey    = selector;
+		let orderKey   = 'descending';
 
-        // parse optional order key (default is "descending")
-        if (parts.length > 1) {
+		// parse optional order key (default is "descending")
+		if (parts.length > 1) {
 
-            sortKey  = parts[0].trim();
-            orderKey = parts[1].trim();
-        }
+			sortKey  = parts[0].trim();
+			orderKey = parts[1].trim();
+		}
 
-        let resolved        = this.resolveData(event, target);
-        parameters[sortKey] = resolved[sortKey];
+		let resolved        = this.resolveData(event, target);
+		parameters[sortKey] = resolved[sortKey];
 
-        let reloadTargets = document.querySelectorAll(reloadTarget);
-        if (reloadTargets.length) {
+		let reloadTargets = document.querySelectorAll(reloadTarget);
+		if (reloadTargets.length) {
 
-            let sortContainer = reloadTargets[0];
-            let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
-            let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
+			let sortContainer = reloadTargets[0];
+			let sortValue     = sortContainer.getAttribute('data-request-' + sortKey);
+			let orderValue    = sortContainer.getAttribute('data-request-' + orderKey);
 
-            if (sortValue === resolved[sortKey]) {
+			if (sortValue === resolved[sortKey]) {
 
-                // The values need to be strings because we're
-                // parsing them from the request query string.
-                if (!orderValue || orderValue === 'false') {
+				// The values need to be strings because we're
+				// parsing them from the request query string.
+				if (!orderValue || orderValue === 'false') {
 
-                    parameters[orderKey] = 'true';
+					parameters[orderKey] = 'true';
 
-                } else {
+				} else {
 
-                    parameters[orderKey] = '';
-                }
-            }
-        }
+					parameters[orderKey] = '';
+				}
+			}
+		}
 
-        this.handleResult(target, { result: parameters }, 200);
+		this.handleResult(target, { result: parameters }, 200);
 	}
 
 	parseQueryString(query) {
@@ -535,20 +611,20 @@ export class Frontend {
 		let result = {};
 
 		if (query?.length <= 0) {
-		    return result;
+			return result;
 		}
 
-        for (let part of query.substring(1).split('&')) {
+		for (let part of query.substring(1).split('&')) {
 
-            let keyvalue = part.split('=');
-            let key      = keyvalue[0];
-            let value    = keyvalue[1];
+			let keyvalue = part.split('=');
+			let key      = keyvalue[0];
+			let value    = keyvalue[1];
 
-            if (key && value) {
+			if (key && value) {
 
-                result[key] = value;
-            }
-        }
+				result[key] = value;
+			}
+		}
 
 		return result;
 	}

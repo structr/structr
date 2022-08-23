@@ -21,9 +21,11 @@ package org.structr.web.auth;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -168,32 +170,38 @@ public class UiAuthenticator implements Authenticator {
 		final String origin = request.getHeader("Origin");
 		if (!StringUtils.isBlank(origin)) {
 
-			response.setHeader("Access-Control-Allow-Origin", origin);
+			final List<String> acceptedOrigins = Arrays.stream(Settings.AccessControlAcceptedOrigins.getValue().split(",")).map(String::trim).collect(Collectors.toList());
 
-			 // allow cross site resource sharing (read only)
-			final String maxAge = Settings.AccessControlMaxAge.getValue();
-			if (StringUtils.isNotBlank(maxAge)) {
-				response.setHeader("Access-Control-MaxAge", maxAge);
-			}
+			if (acceptedOrigins.contains(origin)) {
 
-			final String allowMethods = Settings.AccessControlAllowMethods.getValue();
-			if (StringUtils.isNotBlank(allowMethods)) {
-				response.setHeader("Access-Control-Allow-Methods", allowMethods);
-			}
+				response.setHeader("Access-Control-Allow-Origin", origin);
 
-			final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
-			if (StringUtils.isNotBlank(allowHeaders)) {
-				response.setHeader("Access-Control-Allow-Headers", allowHeaders);
-			}
+				 // allow cross site resource sharing (read only)
+				final String maxAge = Settings.AccessControlMaxAge.getValue();
+				if (StringUtils.isNotBlank(maxAge)) {
+					response.setHeader("Access-Control-MaxAge", maxAge);
+				}
 
-			final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
-			if (StringUtils.isNotBlank(allowCredentials)) {
-				response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
-			}
+				final String allowMethods = Settings.AccessControlAllowMethods.getValue();
+				if (StringUtils.isNotBlank(allowMethods)) {
+					response.setHeader("Access-Control-Allow-Methods", allowMethods);
+				}
 
-			final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
-			if (StringUtils.isNotBlank(exposeHeaders)) {
-				response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
+				final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
+				if (StringUtils.isNotBlank(allowHeaders)) {
+					response.setHeader("Access-Control-Allow-Headers", allowHeaders);
+				}
+
+				final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
+				if (StringUtils.isNotBlank(allowCredentials)) {
+					response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
+				}
+
+				final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
+				if (StringUtils.isNotBlank(exposeHeaders)) {
+					response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
+				}
+
 			}
 		 }
 
@@ -576,49 +584,43 @@ public class UiAuthenticator implements Authenticator {
 
 						logger.debug("Response status: {}", response.getStatus());
 
-						if (Settings.OAuthDelayedRedirect.getValue(false)) {
+						try {
 
-							// delayed redirect might be necessary in some environments
-							response.setStatus(HttpServletResponse.SC_FOUND);
-							response.setHeader("Location", oauthServer.getReturnUri());
+							// get the original request state and add the parameters to the redirect page
+							final String originalRequestState = request.getParameter("state");
+							Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
+							stateParamters.remove(originalRequestState);
 
-						} else {
-
-							try {
-
-								// get the original request state and add the parameters to the redirect page
-								final String originalRequestState = request.getParameter("state");
-								Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
-								stateParamters.remove(originalRequestState);
-
-								URIBuilder uriBuilder = new URIBuilder();
-								if (originalRequestParameters != null) {
-									for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
-										for (String parameterEntry : entry.getValue()) {
-											uriBuilder.addParameter(entry.getKey(), parameterEntry);
-										}
+							URIBuilder uriBuilder = new URIBuilder();
+							if (originalRequestParameters != null) {
+								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
+									for (String parameterEntry : entry.getValue()) {
+										uriBuilder.addParameter(entry.getKey(), parameterEntry);
 									}
 								}
-
-								final String configuredReturnUri = oauthServer.getReturnUri();
-								if (StringUtils.startsWith(configuredReturnUri, "http")) {
-
-									URI redirectUri = new URI(configuredReturnUri);
-									uriBuilder.setHost(redirectUri.getHost());
-									uriBuilder.setPath(redirectUri.getPath());
-									uriBuilder.setPort(redirectUri.getPort());
-									uriBuilder.setScheme(redirectUri.getScheme());
-
-								} else {
-									uriBuilder.setPath(configuredReturnUri);
-								}
-
-								response.sendRedirect(uriBuilder.build().toString());
-
-							} catch (IOException | URISyntaxException ex) {
-
-								logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 							}
+
+							final String configuredReturnUri = oauthServer.getReturnUri();
+							if (StringUtils.startsWith(configuredReturnUri, "http")) {
+
+								URI redirectUri = new URI(configuredReturnUri);
+								uriBuilder.setHost(redirectUri.getHost());
+								uriBuilder.setPath(redirectUri.getPath());
+								uriBuilder.setPort(redirectUri.getPort());
+								uriBuilder.setScheme(redirectUri.getScheme());
+
+							} else {
+								uriBuilder.setPath(configuredReturnUri);
+							}
+
+							response.resetBuffer();
+							response.setHeader("Location", Settings.applicationRootPath.getValue() + uriBuilder.build().toString());
+							response.setStatus(HttpServletResponse.SC_FOUND);
+							response.flushBuffer();
+
+						} catch (IOException | URISyntaxException ex) {
+
+							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
 						}
 
 						return user;

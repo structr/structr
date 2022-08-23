@@ -16,24 +16,20 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main, crawlerMain, crawlerTree, crawlerList;
+var crawlerMain, crawlerTree, crawlerList;
 var currentSite, currentPage;
 var sitePageSize = 10000, sitePage = 1;
 var currentSiteKey = 'structrCurrentSite_' + location.port;
 var crawlerResizerLeftKey = 'structrCrawlerResizerLeftKey_' + location.port;
 var link, path, elid, claz, pageFrame, frameDoc;
-var proxyUrl = '/structr/proxy';
 
 $(document).ready(function() {
 	Structr.registerModule(_Crawler);
 });
 
-var _Crawler = {
+let _Crawler = {
 	_moduleName: 'crawler',
 	init: function() {
-
-		main = $('#main');
-
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
@@ -47,16 +43,19 @@ var _Crawler = {
 
 		crawlerTree.css({width: left - 14 + 'px'});
 	},
+	getProxyUrl: () => {
+		return Structr.getPrefixedRootUrl('/structr/proxy');
+	},
 	onload: function() {
 
-		$.get(rootUrl + '/me/ui', function(data) {
+		$.get(Structr.rootUrl + 'me/ui', function(data) {
 			_Dashboard.meObj = data.result;
 			_Crawler.init();
 		});
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('crawler'));
 
-		main.append('<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>');
+		Structr.mainContainer.innerHTML = '<div class="tree-main" id="crawler-main"><div class="column-resizer"></div><div class="tree-container" id="crawler-tree-container"><div class="tree" id="crawler-tree"></div></div><div class="tree-contents-container" id="crawler-list-container"><div class="tree-contents tree-contents-with-top-buttons" id="crawler-list"></div></div>';
 		crawlerMain = $('#crawler-main');
 
 		crawlerTree = $('#crawler-tree');
@@ -65,25 +64,26 @@ var _Crawler = {
 		_Crawler.moveResizer();
 		Structr.initVerticalSlider($('.column-resizer', crawlerMain), crawlerResizerLeftKey, 204, _Crawler.moveResizer);
 
-		$('#crawler-list-container').prepend(`<button class="add_site_icon button"><i title="Add Site" class="${_Icons.getFullSpriteClass(_Icons.add_site_icon)}" /> Add Site</button>`);
+		$('#crawler-list-container').prepend(`<button class="add_site_icon button flex items-center">${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Add Site</button>`);
 
-		$('.add_site_icon', main).on('click', function(e) {
+		Structr.mainContainer.querySelector('.add_site_icon')?.addEventListener('click', (e) => {
+
 			e.stopPropagation();
-			Command.create({ type: 'SourceSite' }, function(site) {
+			Command.create({ type: 'SourceSite' }, (site) => {
 				_Crawler.refreshTree();
-				window.setTimeout(function() {
+				window.setTimeout(() => {
 					$('#' + site.id + '_anchor').click();
 				}, 250);
 			});
 		});
 
-		$('#crawler-list-container').append(`<button class="add_page_icon button"><i title="Add Page" class="${_Icons.getFullSpriteClass(_Icons.add_page_icon)}" /> Add Page</button>`);
+		$('#crawler-list-container').append(`<button class="add_page_icon button flex items-center">${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Add Page</button>`);
 
-		$('.add_page_icon', main).on('click', function(e) {
+		Structr.mainContainer.querySelector('.add_page_icon')?.addEventListener('click', (e) => {
 
 			e.stopPropagation();
 			if (currentSite) {
-				Command.create({ type: 'SourcePage', site: currentSite.id }, function(site) {
+				Command.create({ type: 'SourcePage', site: currentSite.id }, (site) => {
 					_Crawler.refreshTree();
 				});
 			}
@@ -175,8 +175,8 @@ var _Crawler = {
 		}
 	},
 	unload: function() {
-		fastRemoveAllChildren($('.searchBox', main));
-		fastRemoveAllChildren($('#crawler-main', main));
+		fastRemoveAllChildren(Structr.mainContainer);
+		fastRemoveAllChildren(Structr.functionBar);
 	},
 	loadAndSetWorkingDir: function(callback) {
 
@@ -487,7 +487,7 @@ var _Crawler = {
 				</div>
 			`);
 
-			var url = proxyUrl;
+			var url = _Crawler.getProxyUrl();
 
 			if (sourcePage.url) {
 
@@ -711,7 +711,7 @@ var _Crawler = {
 
 				propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
 
-				$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+				$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 					if (typeInfo && typeInfo.result) {
 
@@ -798,7 +798,7 @@ var _Crawler = {
 		var propertySelector   = row.find('.property-select');
 
 
-		$.get(rootUrl + 'SchemaNode?sort=name', function(data) {
+		$.get(Structr.rootUrl + 'SchemaNode?sort=name', function(data) {
 
 			if (data && data.result) {
 				data.result.forEach(function(r) {
@@ -819,7 +819,7 @@ var _Crawler = {
 
 			propertySelector.append('<option value="" disabled="disabled" selected="selected">Select target attribute..</option>');
 
-			$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+			$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 				if (typeInfo && typeInfo.result) {
 
@@ -893,44 +893,26 @@ var _Crawler = {
 		$('.extract', row).on('click', function(e) {
 			var btn = $(this);
 			var text = btn.text();
-			Structr.updateButtonWithAjaxLoaderAndText(btn, text);
+			Structr.updateButtonWithSpinnerAndText(btn, text);
 			e.preventDefault();
 
-			var url = '/structr/rest/SourcePattern/' + d.id + '/extract';
+			let url = Structr.rootUrl + 'SourcePattern/' + d.id + '/extract';
 
-			$.ajax({
-				url: url,
-				method: 'POST',
-				statusCode: {
-					200: function() {
-						var btn = $('.extract', row);
-						btn.removeClass('disabled').attr('disabled', null);
-						btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '" />');
-					},
-					400: function(data) {
-						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
-						//Structr.errorFromResponse(data.responseJSON, url);
-						btn.html(text);
-					},
-					401: function(data) {
-						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
-						btn.html(text);
-					},
-					403: function(data) {
-						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
-						btn.html(text);
-					},
-					404: function(data) {
-						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + data.responseJSON, true);
-						btn.html(text);
-					},
-					422: function(data) {
-						Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data.responseJSON), true);
-						btn.html(text);
-					}
+			fetch(url, {
+				method: 'POST'
+			}).then(async response => {
+
+				let data = await response.json();
+
+				if (response.ok) {
+					let btn = $('.extract', row);
+					btn.removeClass('disabled').attr('disabled', null);
+					btn.html(text + ' <i class="' + _Icons.getFullSpriteClass(_Icons.tick_icon) + '"></i>');
+				} else {
+					Structr.error('Unable to parse data with pattern ' + d.name + ': ' + JSON.stringify(data), true);
+					btn.html(text);
 				}
 
-			}).always(function() {
 				window.setTimeout(function() {
 					$('i', btn).fadeOut();
 					btn.removeClass('disabled').attr('disabled', null);
@@ -971,6 +953,8 @@ var _Crawler = {
 			path = $('#element-path');
 			elid = $('#element-id');
 			claz = $('#element-class');
+
+			let proxyUrl = _Crawler.getProxyUrl();
 
 			if (frameSrc.substring(0, proxyUrl.length) !== proxyUrl) {
 				console.log('no proxy URL');
@@ -1056,6 +1040,7 @@ var _Crawler = {
 			if (pageFrame.length) {
 
 				var frameSrc = pageFrame[0].src;
+				let proxyUrl = _Crawler.getProxyUrl();
 				var url = decodeURIComponent(frameSrc.substring(frameSrc.indexOf(proxyUrl + '?url=') + 11));
 
 				_Crawler.addSourcePage(url, pageFrame.contents().find('title').text().trim(), pageFrame.data('site-id'));
@@ -1068,19 +1053,16 @@ var _Crawler = {
 	},
 	addSourcePage: function(url, name, siteId) {
 
-		$.ajax({
-			type: 'POST',
-			url: '/structr/rest/SourcePage',
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify({
+		fetch(Structr.rootUrl + 'SourcePage', {
+			method: 'POST',
+			body: JSON.stringify({
 				url: url,
 				name: name,
 				site: siteId
-			}),
-			statusCode: {
-				201: function() {
-					document.location.reload();
-				}
+			})
+		}).then(async response => {
+			if (response.ok) {
+				document.location.reload();
 			}
 		});
 	},
@@ -1102,57 +1084,52 @@ var _Crawler = {
 		} else {
 
 			// try to find an existing pattern with the same selector
-			$.ajax({
-				type: 'GET',
-				url: '/structr/rest/SourcePattern/ui?sourcePage=' + sourcePageId,
-				contentType: 'application/json; charset=UTF-8',
-				statusCode: {
-					200: function(data) {
-						var existingPattern;
-						data.result.forEach(function(pattern) {
-							if (selector.indexOf(pattern.selector) > -1) {
-								existingPattern = pattern;
-							}
-						});
+			fetch(Structr.rootUrl + 'SourcePattern/ui?sourcePage=' + sourcePageId).then(async response => {
 
-						if (existingPattern) {
+				let data = await response.json();
 
-//							console.log('existingPattern');
-//							console.log(existingPattern.selector);
-//							console.log(selector);
-//							return;
-
-							_Crawler.addSubpattern(existingPattern.selector, selector, existingPattern.id, true, callback);
-						} else {
-							// create new pattern
-							var data = {};
-							if (sourcePageId)    data.sourcePage      = sourcePageId;
-							if (name)            data.name            = name;
-							if (selector)        data.selector        = selector;
-							if (elId)            data.elId            = elId;
-							if (elClass)         data.elClass         = elClass;
-							if (parentPatternId) data.parentPattern   = parentPatternId;
-
-							_Crawler.createSourcePattern(data, callback);
-						}
+				let existingPattern;
+				data.result.forEach(function(pattern) {
+					if (selector.indexOf(pattern.selector) > -1) {
+						existingPattern = pattern;
 					}
+				});
+
+				if (existingPattern) {
+
+					_Crawler.addSubpattern(existingPattern.selector, selector, existingPattern.id, true, callback);
+
+				} else {
+
+					// create new pattern
+					let newData = {};
+					if (sourcePageId)    newData.sourcePage      = sourcePageId;
+					if (name)            newData.name            = name;
+					if (selector)        newData.selector        = selector;
+					if (elId)            newData.elId            = elId;
+					if (elClass)         newData.elClass         = elClass;
+					if (parentPatternId) newData.parentPattern   = parentPatternId;
+
+					_Crawler.createSourcePattern(newData, callback);
 				}
 			});
+
 		}
 	},
-	createSourcePattern: function(data, callback) {
-		$.ajax({
-			type: 'POST',
-			url: '/structr/rest/SourcePattern',
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify(data),
-			statusCode: {
-				201: function(data) {
-					if (callback) callback(data);
-					return;
+	createSourcePattern: (data, callback) => {
+
+		fetch(Structr.rootUrl + 'SourcePattern', {
+			method: 'POST',
+			body: JSON.stringify(data)
+		}).then(async response => {
+			if (response.ok) {
+				let data = await response.json();
+				if (callback) {
+					callback(data);
 				}
 			}
 		});
+
 	},
 	addSubpattern: function(selector, fullselector, parentPatternId, reusePattern, callback) {
 		var childPath = fullselector.replace(selector, '').trim();
@@ -1172,16 +1149,16 @@ var _Crawler = {
 	},
 	updateSelector: function(patternId, selector, callback) {
 
-		$.ajax({
-			type: 'PUT',
-			url: '/structr/rest/SourcePattern/' + patternId,
-			contentType: 'application/json; charset=UTF-8',
-			data: JSON.stringify({
+		fetch(Structr.rootUrl + 'SourcePattern/' + patternId, {
+			method: 'PUT',
+			body: JSON.stringify({
 				selector: selector
-			}),
-			statusCode: {
-				200: function(data) {
-					if (callback) callback();
+			})
+		}).then(async response => {
+			if (response.ok) {
+				let data = await response.json();
+				if (callback) {
+					callback(data);
 				}
 			}
 		});
@@ -1219,6 +1196,7 @@ var _Crawler = {
 		pageUrl.val(href);
 
 		var pageFrame = $('#page-frame');
+		let proxyUrl = _Crawler.getProxyUrl();
 		var url = proxyUrl + '?url=' + encodeURIComponent(href);
 		pageFrame[0].src = url;
 	}

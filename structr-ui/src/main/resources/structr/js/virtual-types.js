@@ -38,71 +38,64 @@ let _VirtualTypes = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
 
-		Structr.fetchHtmlTemplate('virtual-types/main', {}, function (html) {
+		Structr.mainContainer.innerHTML = _VirtualTypes.templates.main();
+		Structr.functionBar.innerHTML   = _VirtualTypes.templates.functions();
 
-			main.append(html);
+		UISettings.showSettingsForCurrentModule();
 
-			Structr.fetchHtmlTemplate('virtual-types/functions', {}, function (html) {
+		document.querySelector('form#create-virtual-type-form').addEventListener('submit', async (e) => {
 
-				Structr.functionBar.innerHTML = html;
+			e.preventDefault();
 
-				UISettings.showSettingsForCurrentModule();
+			let name       = document.getElementById('virtual-type-name-preselect');
+			let sourceType = document.getElementById('virtual-type-source-type-preselect');
 
-				document.querySelector('form#create-virtual-type-form').addEventListener('submit', async (e) => {
-
-					e.preventDefault();
-
-					let name       = document.getElementById('virtual-type-name-preselect');
-					let sourceType = document.getElementById('virtual-type-source-type-preselect');
-
-					let response = await fetch(rootUrl + 'VirtualType', {
-						method: 'POST',
-						body: JSON.stringify({
-							name: name.value,
-							sourceType: sourceType.value
-						})
-					});
-
-					if (response.ok) {
-						let data = await response.json();
-
-						LSWrapper.setItem(_VirtualTypes.virtualTypeSelectedElementKey, data.result[0]);
-						_VirtualTypes.virtualTypesPager.refresh();
-
-					} else {
-						blinkRed(Structr.functionBar);
-					}
-				});
-
-				_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
-				_VirtualTypes.listVirtualTypes();
-
-				_VirtualTypes.virtualTypeDetail          = document.getElementById('virtual-type-detail');
-				_VirtualTypes.virtualTypeDetailTableRow  = $('#virtual-type-detail-table tbody tr');
-				_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
-
-				_VirtualTypes.virtualTypeDetail.querySelector('button.create').addEventListener('click', () => { _VirtualTypes.appendVirtualProperty(); });
-
-				_VirtualTypes.registerChangeListeners();
-
-				Structr.appendInfoTextToElement({
-					element: $('.resource-link'),
-					text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
-					css: { marginLeft: "5px" },
-					offsetX: -300,
-					offsetY: 10
-				});
-
-				_VirtualTypes.activateInfoTextsInColumnHeaders();
-
-				Structr.unblockMenu(100);
-
-				_VirtualTypes.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', main), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
-
-				_VirtualTypes.resize();
+			let response = await fetch(Structr.rootUrl + 'VirtualType', {
+				method: 'POST',
+				body: JSON.stringify({
+					name: name.value,
+					sourceType: sourceType.value
+				})
 			});
+
+			if (response.ok) {
+				let data = await response.json();
+
+				LSWrapper.setItem(_VirtualTypes.virtualTypeSelectedElementKey, data.result[0]);
+				_VirtualTypes.virtualTypesPager.refresh();
+
+			} else {
+				blinkRed(Structr.functionBar);
+			}
 		});
+
+		_VirtualTypes.virtualTypesList = $('#virtual-types-table tbody');
+		_VirtualTypes.listVirtualTypes();
+
+		_VirtualTypes.virtualTypeDetail          = document.getElementById('virtual-type-detail');
+		_VirtualTypes.virtualTypeDetailTableRow  = $('#virtual-type-detail-table tbody tr');
+		_VirtualTypes.virtualPropertiesTableBody = $('#virtual-properties-table tbody');
+
+		_VirtualTypes.virtualTypeDetail.querySelector('button.create').addEventListener('click', () => { _VirtualTypes.appendVirtualProperty(); });
+
+		_VirtualTypes.registerChangeListeners();
+
+		Structr.appendInfoTextToElement({
+			element: $('.resource-link'),
+			text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
+			css: { marginLeft: "5px" },
+			offsetX: -300,
+			offsetY: 10
+		});
+
+		_VirtualTypes.activateInfoTextsInColumnHeaders();
+
+		Structr.unblockMenu(100);
+
+		_VirtualTypes.moveResizer();
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
+
+		_VirtualTypes.resize();
 	},
 	showMain: () => {
 		document.getElementById('virtual-types-main').style.display = 'flex';
@@ -123,13 +116,14 @@ let _VirtualTypes = {
 			_VirtualTypes.virtualTypeDetail.style.display = 'none';
 		}
 	},
-	resize: function() {
+	resize: () => {
 		_VirtualTypes.moveResizer();
 		Structr.resize();
 	},
-	moveResizer: function(left) {
+	prevAnimFrameReqId_moveResizer: undefined,
+	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_VirtualTypes.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 340;
 			left = Math.max(340, Math.min(left, window.innerWidth - 340));
@@ -190,16 +184,18 @@ let _VirtualTypes = {
 
 		_Pager.initPager('virtual-types', 'VirtualType', 1, 25, 'name', 'asc');
 
-		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData);
+		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData, undefined, undefined, undefined, true);
 
 		_VirtualTypes.virtualTypesPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
-		_VirtualTypes.virtualTypesPager.pager.append(`
+		_VirtualTypes.virtualTypesPager.appendFilterElements(`
 			Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
 		`);
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
+		_VirtualTypes.virtualTypesPager.setIsPaused(false);
+		_VirtualTypes.virtualTypesPager.refresh();
 
 	},
 	processPagerData: (pagerData) => {
@@ -211,25 +207,23 @@ let _VirtualTypes = {
 
 		_VirtualTypes.showMain();
 
-		Structr.fetchHtmlTemplate('virtual-types/row.type', { virtualType: virtualType }, (html) => {
+		let mainHtml = _VirtualTypes.templates.typeRow({ virtualType: virtualType });
+		let row      = $(mainHtml);
+		_VirtualTypes.populateVirtualTypeRow(row, virtualType);
+		_VirtualTypes.virtualTypesList.append(row);
 
-			let row = $(html);
-			_VirtualTypes.populateVirtualTypeRow(row, virtualType);
-			_VirtualTypes.virtualTypesList.append(row);
-
-			row[0].addEventListener('click', () => {
-				_VirtualTypes.selectRow(row[0]);
-				_VirtualTypes.showVirtualTypeDetails(virtualType.id);
-			});
-
-			_Elements.enableContextMenuOnElement(row, virtualType);
-			_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
-
-			let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
-			if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {
-				row.click();
-			}
+		row[0].addEventListener('click', () => {
+			_VirtualTypes.selectRow(row[0]);
+			_VirtualTypes.showVirtualTypeDetails(virtualType.id);
 		});
+
+		_Elements.enableContextMenuOnElement(row, virtualType);
+		_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
+
+		let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
+		if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {
+			row.click();
+		}
 	},
 	populateVirtualTypeRow: function(row, virtualTypeData) {
 		$('.position', row).text(virtualTypeData.position !== null ? virtualTypeData.position : "");
@@ -261,10 +255,10 @@ let _VirtualTypes = {
 					Command.get(virtualType.id, 'id,properties', function(vt) {
 
 						let promises = vt.properties.map((vp) => {
-							return fetch(rootUrl + vp.id, { method: 'DELETE' });
+							return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
 						});
 
-						promises.push(fetch(rootUrl + vt.id, { method: 'DELETE' }))
+						promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
 
 						Promise.all(promises).then(() => {
 
@@ -334,7 +328,7 @@ let _VirtualTypes = {
 	},
 	updateResourceLink: function (virtualType) {
 		let resourceLink = _VirtualTypes.virtualTypeDetail.querySelector('.resource-link a');
-		resourceLink.setAttribute('href' , rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
+		resourceLink.setAttribute('href' , Structr.rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
 		resourceLink.textContent = '/' + virtualType.name;
 	},
 	listVirtualProperties: (properties) => {
@@ -351,75 +345,73 @@ let _VirtualTypes = {
 	},
 	appendVirtualProperty: (optionalProperty) => {
 
-		Structr.fetchHtmlTemplate('virtual-types/row.property', {}, (html) => {
+		let propertyRowHtml = _VirtualTypes.templates.propertyRow();
+		let row             = $(propertyRowHtml);
+		let removeButton    = $('.remove-virtual-property', row);
+		let saveButton      = $('.save-virtual-property', row);
 
-			let row          = $(html);
-			let removeButton = $('.remove-virtual-property', row);
-			let saveButton   = $('.save-virtual-property', row);
+		if (optionalProperty) {
 
-			if (optionalProperty) {
+			saveButton.remove();
 
-				saveButton.remove();
+			row.data('virtual-property-id', optionalProperty.id);
 
-				row.data('virtual-property-id', optionalProperty.id);
+			removeButton.on('click', () => {
+				_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
+			});
 
-				removeButton.on('click', () => {
-					_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
+			$('.property', row).each(function(idx, el) {
+				let $el = $(el);
+				let val = optionalProperty[$el.data('property')];
+
+				if ($el.attr('type') === 'checkbox') {
+					$el.prop('checked', (val === true));
+				} else {
+					$el.val(val);
+				}
+			});
+
+		} else {
+
+			saveButton.on('click', async () => {
+
+				let data         = _VirtualTypes.getVirtualObjectDataFromRow(row);
+				data.virtualType = _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id');
+
+				let response = await fetch(Structr.rootUrl + 'VirtualProperty', {
+					method: 'POST',
+					body: JSON.stringify(data),
 				});
 
-				$('.property', row).each(function(idx, el) {
-					let $el = $(el);
-					let val = optionalProperty[$el.data('property')];
+				if (response.ok) {
 
-					if ($el.attr('type') === 'checkbox') {
-						$el.prop('checked', (val === true));
-					} else {
-						$el.val(val);
-					}
-				});
+					blinkGreen($('td', row));
 
-			} else {
+					let data = await response.json();
 
-				saveButton.on('click', async () => {
+					row.data('virtual-property-id', data.result[0]);
 
-					let data         = _VirtualTypes.getVirtualObjectDataFromRow(row);
-					data.virtualType = _VirtualTypes.virtualTypeDetailTableRow.data('virtual-type-id');
+					saveButton.remove();
 
-					let response = await fetch(rootUrl + 'VirtualProperty', {
-						method: 'POST',
-						body: JSON.stringify(data),
+					removeButton.off('click').on('click', () => {
+						_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
 					});
 
-					if (response.ok) {
+				} else {
+					blinkRed($('td', row));
+				}
+			});
 
-						blinkGreen($('td', row));
+			removeButton.on('click', () => {
+				row.remove();
+			});
+		}
 
-						let data = await response.json();
-
-						row.data('virtual-property-id', data.result[0]);
-
-						saveButton.remove();
-
-						removeButton.off('click').on('click', () => {
-							_VirtualTypes.deleteVirtualProperty(row.data('virtual-property-id'), row);
-						});
-
-					} else {
-						blinkRed($('td', row));
-					}
-				});
-
-				removeButton.on('click', () => {
-					row.remove();
-				});
-			}
-
-			_VirtualTypes.virtualPropertiesTableBody.append(row);
-		});
+		_VirtualTypes.virtualPropertiesTableBody.append(row);
 	},
 	updateVirtualObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
 
-		let response = await fetch(rootUrl + type + '/' + id, {
+		let response = await fetch(Structr.rootUrl + type + '/' + id, {
 			method: 'PUT',
 			body: JSON.stringify(newData)
 		});
@@ -441,7 +433,7 @@ let _VirtualTypes = {
 
 		Structr.confirmation('<p>Do you really want to delete the virtual property?</p>', async () => {
 
-			let response = await fetch(rootUrl + 'VirtualProperty/' + id, {
+			let response = await fetch(Structr.rootUrl + 'VirtualProperty/' + id, {
 				method: 'DELETE'
 			});
 
@@ -463,5 +455,121 @@ let _VirtualTypes = {
 		}
 
 		row.classList.add('selected');
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/virtual-types.css">
+			
+			<div id="virtual-types-main">
+			
+				<div class="column-resizer column-resizer-left"></div>
+			
+				<div id="virtual-types-list-container">
+					<div id="virtual-types-list" class="resourceBox">
+						<table id="virtual-types-table">
+							<thead>
+								<tr>
+									<th class="narrow"><!--a class="sort" data-sort="position"-->Pos.<!--/a--></th>
+									<th><!--a class="sort" data-sort="name"-->Name<!--/a--></th>
+									<th><!--a class="sort" data-sort="sourceType"-->Source Type<!--/a--></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody>
+			
+							</tbody>
+						</table>
+					</div>
+				</div>
+			
+				<div id="virtual-type-detail" class="resourceBox" style="display: none;">
+					<div class="resource-link"><a target="_blank" href="">/</a></div>
+					<h2>Virtual Type</h2>
+					<table id="virtual-type-detail-table">
+						<thead><tr>
+							<th class="position" data-info-text="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
+							<th class="name" data-info-text="The name under which the virtual type can be queried via REST">Name</th>
+							<th class="sourceType" data-info-text="Specifies the source type of the type mapping">Source Type</th>
+							<th class="filterExpression" data-info-text="Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">Filter Expression</th>
+							<th>Visible To Public Users</th>
+							<th>Visible To Authenticated Users</th>
+						</tr></thead>
+						<tbody><tr>
+							<td><input class="property" data-property="position" size="4" /></td>
+							<td><input class="property" data-property="name" /></td>
+							<td><input class="property" data-property="sourceType" /></td>
+							<td><textarea class="property" data-property="filterExpression"></textarea></td>
+							<td><input class="property" type="checkbox" data-property="visibleToPublicUsers" /></td>
+							<td><input class="property" type="checkbox" data-property="visibleToAuthenticatedUsers" /></td>
+						</tr></tbody>
+					</table>
+					<div id="virtual-properties">
+						<h3>Virtual Properties</h3>
+						<table id="virtual-properties-table">
+							<thead>
+								<tr>
+									<th class="position" data-info-text="Specifies the position of the property in the output JSON document and the order in this interface">position</th>
+									<th class="sourceName" data-info-text="Specifies the property key of the source entity">sourceName</th>
+									<th class="targetName" data-info-text="The desired target property name. If left empty, the source property name is used">targetName</th>
+									<th class="inputFunction" data-info-text="An optional input transformation when writing to this virtual property. The input data is made available via the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">inputFunction</th>
+									<th class="outputFunction" data-info-text="An optional scripting expression that creates or transforms the output value for the current property. It can be either a constant value, or a function that transforms the input value, which is provided using the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">outputFunction</th>
+									<th>Visible To Public Users</th>
+									<th>Visible To Authenticated Users</th>
+									<th>Actions</th>
+								</tr>
+							</thead>
+							<tbody>
+			
+							</tbody>
+						</table>
+			
+						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Property
+						</button>
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<form id="create-virtual-type-form" autocomplete="off" class="inline-flex">
+
+				<input title="Enter a name for the virtual type" id="virtual-type-name-preselect" type="text" size="10" placeholder="Name" required class="mr-2">
+				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required class="mr-2">
+			
+				<button type="submit" form="create-virtual-type-form" class="btn action inline-flex items-center" id="create-virtual-type">
+					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Virtual Type
+				</button>
+
+			</form>
+			
+			<div id="virtual-types-pager"></div>
+		`,
+		propertyRow: config => `
+			<tr class="virtual-property">
+				<td><input class="property" data-property="position" size="4"></td>
+				<td><input class="property" data-property="sourceName"></td>
+				<td><input class="property" data-property="targetName"></td>
+				<td><textarea class="property" data-property="inputFunction" cols="40"></textarea></td>
+				<td><textarea class="property" data-property="outputFunction" cols="40"></textarea></td>
+				<td><input class="property" data-property="visibleToPublicUsers" type="checkbox" checked></td>
+				<td><input class="property" data-property="visibleToAuthenticatedUsers" type="checkbox" checked></td>
+				<td class="actions">
+					${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
+					${_Icons.getSvgIcon('trashcan',       20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+				</td>
+			</tr>
+		`,
+		typeRow: config => `
+			<tr id="virtual-type-${config.virtualType.id}" class="virtual-type-row">
+				<td class="position"></td>
+				<td class="name allow-break"></td>
+				<td class="sourceType"></td>
+				<td class="actions">
+					<div class="icons-container flex items-center justify-end"></div>
+				</td>
+			</tr>
+		`,
 	}
 };

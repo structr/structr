@@ -26,7 +26,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Export;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -75,6 +74,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
+
 		} else {
 
 			// Check cache for already initialized executables
@@ -88,7 +88,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 
 			// Lookup method, if it's not in cache
-			Map<String, Method> methods = StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class);
+			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
 			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
 				Method method = methods.get(key);
 
@@ -115,6 +115,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
 						}
 
+					} catch (IllegalArgumentException ex) {
+
+						throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
 					} catch (IllegalAccessException ex) {
 
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
@@ -160,17 +163,29 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				} else if (propKey instanceof EndNode || propKey instanceof StartNode) {
 
 					GraphObject graphObject = (GraphObject)node.getProperty(propKey);
-					return new GraphObjectWrapper<>(actionContext, graphObject);
+					if (graphObject != null) {
+
+						return new GraphObjectWrapper<>(actionContext, graphObject);
+					}
+
+					return null;
 				} else if (propKey instanceof EnumProperty) {
 
 					Object propValue = node.getProperty(propKey);
 					if (propValue != null && propValue instanceof Enum) {
+
 						return ((Enum)propValue).toString();
 					}
 					return propValue;
 				} else {
 
-					return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
+					Object prop = node.getProperty(propKey);
+					if (prop != null) {
+
+						return PolyglotWrapper.wrap(actionContext, prop);
+					}
+
+					return null;
 				}
 			}
 
@@ -192,14 +207,17 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public boolean hasMember(String key) {
+
 		if (getOriginalObject() instanceof GraphObjectMap) {
 
 			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+
 		} else {
 
 			if (node != null) {
 
-				return StructrApp.getConfiguration().getAnnotatedMethods(node.getClass(), Export.class).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+				return StructrApp.getConfiguration().getExportedMethodsForType(node.getClass()).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+
 			} else {
 
 				return false;

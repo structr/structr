@@ -26,9 +26,11 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.nio.charset.Charset;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.Stack;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -597,5 +599,90 @@ public class RenderContext extends ActionContext {
 	// ----- private methods -----
 	private void readConfigParameters () {
 		indentHtml = Settings.HtmlIndentation.getValue();
+	}
+
+	private static class LoggingMapFacade<S, T> implements Map<S, T> {
+
+		private Map<S, T> map = null;
+
+		public LoggingMapFacade(final Map<S, T> map) {
+			this.map = map;
+		}
+
+		private void log(final String name, final Object... params) {
+			System.out.println(map.hashCode() + ": " + name + ", " + StringUtils.join(params, ", "));
+		}
+
+		@Override
+		public int size() {
+			log("size");
+			return map.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			log("isEmpty");
+			return map.isEmpty();
+		}
+
+		@Override
+		public boolean containsKey(Object arg0) {
+			log("containsKey", arg0);
+			return map.containsKey(arg0);
+		}
+
+		@Override
+		public boolean containsValue(Object arg0) {
+			log("containsValue", arg0);
+			return map.containsValue(arg0);
+		}
+
+		@Override
+		public T get(Object arg0) {
+			log("get", arg0);
+			return map.get(arg0);
+		}
+
+		@Override
+		public T put(S arg0, T arg1) {
+			log("put", arg0, arg1);
+			return map.put(arg0, arg1);
+		}
+
+		@Override
+		public T remove(Object arg0) {
+			log("remove", arg0);
+			return map.remove(arg0);
+		}
+
+		@Override
+		public void putAll(Map<? extends S, ? extends T> arg0) {
+			log("putAll", arg0);
+			map.putAll(arg0);
+		}
+
+		@Override
+		public void clear() {
+			log("clear");
+			map.clear();
+		}
+
+		@Override
+		public Set<S> keySet() {
+			log("keySet");
+			return map.keySet();
+		}
+
+		@Override
+		public Collection<T> values() {
+			log("values");
+			return map.values();
+		}
+
+		@Override
+		public Set<Entry<S, T>> entrySet() {
+			log("entrySet");
+			return map.entrySet();
+		}
 	}
 }

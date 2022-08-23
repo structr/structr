@@ -53,7 +53,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.DefaultHandler;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.RequestLogHandler;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
@@ -84,6 +83,8 @@ import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
+import org.structr.rest.common.MetricsFilter;
+import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
 
@@ -109,7 +110,6 @@ public class HttpService implements RunnableService, StatsCallback {
 	private SslContextFactory.Server sslContextFactory = null;
 	private Server server                         = null;
 	private Server maintenanceServer              = null;
-	private int maxIdleTime                       = 30000;
 	private int requestHeaderSize                 = 8192;
 	private boolean httpsActive                   = false;
 
@@ -130,10 +130,11 @@ public class HttpService implements RunnableService, StatsCallback {
 	@Override
 	public void startService() throws Exception {
 
-		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), maxIdleTime, requestHeaderSize);
+		logger.info("Starting {} (host={}:{}, maxIdleTime={}, requestHeaderSize={})", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue(), Services.getGlobalSessionTimeout(), requestHeaderSize);
 		logger.info("Base path {}", Settings.getBasePath());
 		logger.info("{} started at http://{}:{}", Settings.ApplicationTitle.getValue(), Settings.ApplicationHost.getValue(), Settings.getSettingOrMaintenanceSetting(Settings.HttpPort).getValue());
 
+		Exception exception = null;
 		int maxAttempts = 3;
 
 		while (maxAttempts-- > 0) {
@@ -147,11 +148,18 @@ public class HttpService implements RunnableService, StatsCallback {
 				}
 
 				maxAttempts = 0;
+				exception = null;
 
 			} catch (Exception e) {
-				logger.warn("Error, retrying {} more times after 500ms - Caught: {} ", maxAttempts, e.getMessage());
-				Thread.sleep(500);
+				logger.warn("Error, retrying {} more times after 10s - Caught: {} ", maxAttempts, e.getMessage());
+				Thread.sleep(10000);
+				exception = e;
 			}
+		}
+
+		// if exception is set, don't continue and throw it
+		if (exception != null) {
+			throw exception;
 		}
 
 		try {
@@ -238,7 +246,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		// load configuration from properties file
-		maxIdleTime       = Services.parseInt(System.getProperty("maxIdleTime"), 30000);
 		requestHeaderSize = Services.parseInt(System.getProperty("requestHeaderSize"), 8192);
 
 		if (Settings.Async.getValue()) {
@@ -367,7 +374,8 @@ public class HttpService implements RunnableService, StatsCallback {
 		sessionCache.setRemoveUnloadableSessions(true);
 		sessionCache.setEvictionPolicy(60);
 
-		servletContext.getSessionHandler().setMaxInactiveInterval(maxIdleTime);
+		// make sessions "immortal" from the session handlers POV (we handle timeout)
+		servletContext.getSessionHandler().setMaxInactiveInterval(-1);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
 		if (enableRewriteFilter) {
@@ -426,6 +434,11 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			servletContext.addServlet(servletHolder, path);
 			JettyWebSocketServletContainerInitializer.configure(servletContext, null);
+		}
+
+		// only add metrics filter if metrics servlet is enabled
+		if (Settings.Servlets.getValue("").contains(MetricsServlet.class.getSimpleName())) {
+			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
 
 		contexts.addHandler(servletContext);
@@ -1002,7 +1015,10 @@ public class HttpService implements RunnableService, StatsCallback {
 				response.setHeader("Expires", null);
 
 				// redirect to setup wizard
-				response.sendRedirect("/structr/config");
+				response.resetBuffer();
+				response.setHeader("Location", Settings.applicationRootPath.getValue() + "/structr/config");
+				response.setStatus(HttpServletResponse.SC_FOUND);
+				response.flushBuffer();
 
 			} else {
 

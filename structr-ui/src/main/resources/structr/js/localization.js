@@ -48,88 +48,82 @@ let _Localization = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('localization'));
 
-		Structr.fetchHtmlTemplate('localization/main', {}, (html) => {
+		Structr.mainContainer.innerHTML = _Localization.templates.main();
+		Structr.functionBar.innerHTML   = _Localization.templates.functions();
 
-			main.append(html);
-
-			document.getElementById('add-new-translation').addEventListener('click', (event) => {
-				event.preventDefault();
-				_Localization.createNewLocalizationEntry();
-			});
-
-			Structr.fetchHtmlTemplate('localization/functions', {}, (fnBarHtml) => {
-
-				Structr.functionBar.innerHTML = fnBarHtml;
-
-				UISettings.showSettingsForCurrentModule();
-
-				let keyPreselect    = document.getElementById('localization-key-preselect');
-				let domainPreselect = document.getElementById('localization-domain-preselect');
-				let localePreselect = document.getElementById('localization-locale-preselect');
-
-				keyPreselect.addEventListener('keyup', (e) => {
-
-					if (e.code === 'Escape' || e.keyCode === 27) {
-						keyPreselect.value = '';
-						LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
-					}
-					return false;
-				});
-
-				domainPreselect.addEventListener('keyup', (e) => {
-
-					if (e.code === 'Escape' || e.keyCode === 27) {
-						domainPreselect.value = '';
-						LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
-					}
-					return false;
-				});
-
-				//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
-				domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
-				localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
-
-				document.getElementById('create-localization-form').addEventListener('submit', (e) => {
-					e.preventDefault();
-
-					_Localization.showMain();
-
-					let preselectData = {
-						name: keyPreselect.value,
-					};
-
-					if (domainPreselect.value.length > 0) {
-						preselectData.domain = domainPreselect.value;
-					}
-
-					let preselectLocalesString = localePreselect.value.trim();
-
-					LSWrapper.setItem(_Localization.localizationPreselectNameKey,   preselectData.name);
-					LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
-					LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
-
-					let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
-
-					_Localization.createNewLocalizationKey(preselectData, preselectLocales);
-				});
-
-				_Localization.keysAndDomainsList = $('#localization-table tbody');
-				_Localization.listKeysAndDomains();
-
-				_Localization.localizationDetailContainer  = document.getElementById('localization-detail-container');
-				_Localization.localizationDetailKey        = $('#localization-key');
-				_Localization.localizationDetailDomain     = $('#localization-domain');
-				_Localization.localizationDetailSaveButton = $('#localization-fields-save').on('click', _Localization.saveButtonAction);
-				_Localization.localizationsDetailList      = $('#localization-detail-table tbody');
-
-				Structr.unblockMenu(100);
-
-				_Localization.moveResizer();
-				Structr.initVerticalSlider($('.column-resizer', main), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
-
-				_Localization.resize();
-			});
+		document.getElementById('add-new-translation').addEventListener('click', (event) => {
+			event.preventDefault();
+			_Localization.createNewLocalizationEntry();
 		});
+
+
+		UISettings.showSettingsForCurrentModule();
+
+		let keyPreselect    = document.getElementById('localization-key-preselect');
+		let domainPreselect = document.getElementById('localization-domain-preselect');
+		let localePreselect = document.getElementById('localization-locale-preselect');
+
+		keyPreselect.addEventListener('keyup', (e) => {
+
+			if (e.code === 'Escape' || e.keyCode === 27) {
+				keyPreselect.value = '';
+				LSWrapper.setItem(_Localization.localizationPreselectNameKey, '');
+			}
+			return false;
+		});
+
+		domainPreselect.addEventListener('keyup', (e) => {
+
+			if (e.code === 'Escape' || e.keyCode === 27) {
+				domainPreselect.value = '';
+				LSWrapper.setItem(_Localization.localizationPreselectDomainKey, '');
+			}
+			return false;
+		});
+
+		//keyPreselect.value    = LSWrapper.getItem(_Localization.localizationPreselectNameKey) || '';
+		domainPreselect.value = LSWrapper.getItem(_Localization.localizationPreselectDomainKey) || '';
+		localePreselect.value = LSWrapper.getItem(_Localization.localizationPreselectLocaleKey) || 'en';
+
+		document.getElementById('create-localization-form').addEventListener('submit', (e) => {
+			e.preventDefault();
+
+			_Localization.showMain();
+
+			let preselectData = {
+				name: keyPreselect.value,
+			};
+
+			if (domainPreselect.value.length > 0) {
+				preselectData.domain = domainPreselect.value;
+			}
+
+			let preselectLocalesString = localePreselect.value.trim();
+
+			LSWrapper.setItem(_Localization.localizationPreselectNameKey,   preselectData.name);
+			LSWrapper.setItem(_Localization.localizationPreselectDomainKey, preselectData.domain);
+			LSWrapper.setItem(_Localization.localizationPreselectLocaleKey, preselectLocalesString);
+
+			let preselectLocales = preselectLocalesString.split(',').map((l) => l.trim());
+
+			_Localization.createNewLocalizationKey(preselectData, preselectLocales);
+		});
+
+		_Localization.keysAndDomainsList = $('#localization-table tbody');
+		_Localization.listKeysAndDomains();
+
+		_Localization.localizationDetailContainer  = document.getElementById('localization-detail-container');
+		_Localization.localizationDetailKey        = $('#localization-key');
+		_Localization.localizationDetailDomain     = $('#localization-domain');
+		_Localization.localizationDetailSaveButton = $('#localization-fields-save').on('click', _Localization.saveButtonAction);
+		_Localization.localizationsDetailList      = $('#localization-detail-table tbody');
+
+		Structr.unblockMenu(100);
+
+		_Localization.moveResizer();
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
+
+		_Localization.resize();
 	},
 	unload: function() { },
 	getContextMenuElements: function (div, keyAndDomainObject) {
@@ -172,9 +166,10 @@ let _Localization = {
 
 		return elements;
 	},
-	moveResizer: function(left) {
+	prevAnimFrameReqId_moveResizer: undefined,
+	moveResizer: (left) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Localization.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));
@@ -192,15 +187,17 @@ let _Localization = {
 
 		_Pager.initPager('localizations', 'Localization', 1, 25, 'name', 'asc');
 
-		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction);
+		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, undefined, true);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
-		_Localization.keyAndDomainPager.pager.append(`
+		_Localization.keyAndDomainPager.appendFilterElements(`
 			Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
-			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">`
-		);
+			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
+		`);
 		_Localization.keyAndDomainPager.activateFilterElements();
+		_Localization.keyAndDomainPager.setIsPaused(false);
+		_Localization.keyAndDomainPager.refresh();
 
 		let lastSelectedLocalizationElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 		if (!lastSelectedLocalizationElement) {
@@ -261,24 +258,22 @@ let _Localization = {
 		let combinedTypeForId     = _Localization.getCombinedTypeForId(keyAndDomainObject);
 		keyAndDomainObject.htmlId = combinedTypeForId;
 
-		Structr.fetchHtmlTemplate('localization/row.type', { localization: keyAndDomainObject }, (html) => {
+		let html = _Localization.templates.typeRow({ localization: keyAndDomainObject });
+		let row  = $(html);
+		_Localization.keysAndDomainsList.append(row);
 
-			let row = $(html);
-			_Localization.keysAndDomainsList.append(row);
-
-			row[0].addEventListener('click', () => {
-				_Localization.selectRow(row[0]);
-				_Localization.showLocalizationsForKeyAndDomainObject(keyAndDomainObject);
-			});
-
-			_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
-			_Entities.appendContextMenuIcon($('.icons-container', row), keyAndDomainObject, true);
-
-			let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
-			if (previouslySelectedElement && previouslySelectedElement.htmlId === row[0].id) {
-				row.click();
-			}
+		row[0].addEventListener('click', () => {
+			_Localization.selectRow(row[0]);
+			_Localization.showLocalizationsForKeyAndDomainObject(keyAndDomainObject);
 		});
+
+		_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
+		_Entities.appendContextMenuIcon($('.icons-container', row), keyAndDomainObject, true);
+
+		let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
+		if (previouslySelectedElement && previouslySelectedElement.htmlId === row[0].id) {
+			row.click();
+		}
 	},
 	getCombinedTypeForId: (keyAndDomainObject) => {
 		let key    = (keyAndDomainObject.name ? keyAndDomainObject.name : null);
@@ -297,7 +292,7 @@ let _Localization = {
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
-		let response = await fetch(rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(Structr.rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
@@ -336,14 +331,12 @@ let _Localization = {
 	},
 	appendLocalizationDetailListRow: (localization) => {
 
-		Structr.fetchHtmlTemplate('localization/empty-row', {}, (html) => {
+		let html = _Localization.templates.emptyRow();
+		_Localization.localizationsDetailList.append(html);
 
-			_Localization.localizationsDetailList.append(html);
+		let $tr = $('tr:last', _Localization.localizationsDetailList);
 
-			let $tr = $('tr:last', _Localization.localizationsDetailList);
-
-			_Localization.fillLocalizationRow($tr, localization);
-		});
+		_Localization.fillLocalizationRow($tr, localization);
 	},
 	clearLocalizationDetailsList: () => {
 		fastRemoveAllChildren(_Localization.localizationsDetailList[0]);
@@ -367,7 +360,7 @@ let _Localization = {
 					domain: curDomain
 				};
 
-				let response = await fetch(rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+				let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 				if (response.ok) {
 
@@ -383,7 +376,7 @@ let _Localization = {
 						}
 					}
 
-					let putResponse = await fetch(rootUrl + 'Localization/', {
+					let putResponse = await fetch(Structr.rootUrl + 'Localization/', {
 						method: 'PATCH',
 						body: JSON.stringify(patchData)
 					});
@@ -429,13 +422,6 @@ let _Localization = {
 				_Localization.textfieldChangeAction($(event.target), localization, 'localizedName');
 			});
 
-		$('.___description', $row)
-			.val(localization.description)
-			.data('oldValue', localization.description)
-			.on('blur', (event) => {
-				_Localization.textfieldChangeAction($(event.target), localization, 'description');
-			});
-
 		$('.___visibleToPublicUsers', $row)
 			.prop('checked', (localization.visibleToPublicUsers === true))
 			.attr('disabled', null)
@@ -461,41 +447,44 @@ let _Localization = {
 
 			let key    = _Localization.localizationDetailKey.val();
 			let domain = _Localization.localizationDetailDomain.val();
+			let answer = await Structr.confirmationPromiseNonBlockUI(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
 
-			Structr.confirmation(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`,
-				() => {
-					_Localization.deleteSingleLocalization(localization.id).then((success) => {
-						if (success) {
+			if (answer === true) {
 
-							$row.remove();
+				let success = await _Localization.deleteSingleLocalization(localization.id);
+				if (success === true) {
 
-							if ($('tr', _Localization.localizationsDetailList).length === 0) {
-								_Localization.keyAndDomainPager.refresh();
-								_Localization.localizationDetailContainer.style.display = 'none';
-							}
+					$row.remove();
 
-							$.unblockUI({
-								fadeOut: 25
-							});
+					if ($('tr', _Localization.localizationsDetailList).length === 0) {
+						_Localization.keyAndDomainPager.refresh();
+						_Localization.localizationDetailContainer.style.display = 'none';
+					}
 
-						} else {
-							blinkRed($row);
-						}
+					$.unblockUI({
+						fadeOut: 25
 					});
+
+				} else {
+					blinkRed($row);
 				}
-			);
+			}
 		});
 	},
 	textfieldChangeAction: ($el, localization, attr) => {
+
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.val();
+
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, $el);
 		}
 	},
 	checkboxChangeAction: ($el, localization, attr) => {
+
 		let oldValue = $el.data('oldValue');
 		let curValue = $el.prop('checked');
+
 		if (oldValue !== curValue) {
 			_Localization.updateLocalization(localization, attr, curValue, oldValue, $el, $el.parent());
 		}
@@ -505,7 +494,7 @@ let _Localization = {
 		let newData = {};
 		newData[attr] = curValue;
 
-		let response = await fetch(rootUrl + 'Localization/' + localization.id, {
+		let response = await fetch(Structr.rootUrl + 'Localization/' + localization.id, {
 			method: 'PUT',
 			body: JSON.stringify(newData),
 		});
@@ -532,7 +521,7 @@ let _Localization = {
 			preselectLocales.map((locale) => {
 				newData.locale = locale;
 
-				return fetch(rootUrl + 'Localization', {
+				return fetch(Structr.rootUrl + 'Localization', {
 					method: 'POST',
 					body: JSON.stringify(newData)
 				});
@@ -543,62 +532,65 @@ let _Localization = {
 	},
 	createNewLocalizationEntry: () => {
 
-		Structr.fetchHtmlTemplate('localization/empty-row', {}, (html) => {
+		let html = _Localization.templates.emptyRow();
+		_Localization.localizationsDetailList.append(html);
+		let $tr       = $('tr:last', _Localization.localizationsDetailList);
+		let trElement = $tr[0];
 
-			_Localization.localizationsDetailList.append(html);
-			let $tr       = $('tr:last', _Localization.localizationsDetailList);
-			let trElement = $tr[0];
+		let removeRow = (event) => {
+			event.preventDefault();
+			trElement.remove();
+		};
 
-			trElement.querySelector('td.actions .remove-localization').addEventListener('click', (event) => {
-				event.preventDefault();
-				trElement.remove();
-			});
+		let removeButton = trElement.querySelector('td.actions .remove-localization');
+		removeButton.addEventListener('click', removeRow);
 
-			trElement.querySelector('td.actions .save-localization').addEventListener('click', async (event) => {
+		trElement.querySelector('td.actions .save-localization').addEventListener('click', async (event) => {
 
-				event.preventDefault();
+			event.preventDefault();
 
-				if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
+			if (_Localization.isFieldNonEmpty(_Localization.localizationDetailKey)) {
 
-					let newData = {
-						name:                        _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
-						locale:                      $('.___locale', $tr).val().trim(),
-						localizedName:               $('.___localizedName', $tr).val(),
-						description:                 $('.___description', $tr).val(),
-						visibleToPublicUsers:        $('.___visibleToPublicUsers', $tr).prop('checked'),
-						visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked')
-					};
+				let newData = {
+					name:                        _Localization.localizationDetailKey.data('oldValue') || _Localization.localizationDetailKey.val().trim(),
+					locale:                      $('.___locale', $tr).val().trim(),
+					localizedName:               $('.___localizedName', $tr).val(),
+					visibleToPublicUsers:        $('.___visibleToPublicUsers', $tr).prop('checked'),
+					visibleToAuthenticatedUsers: $('.___visibleToAuthenticatedUsers', $tr).prop('checked')
+				};
 
-					newData.domain = _Localization.localizationDetailDomain.data('oldValue') || _Localization.localizationDetailDomain.val().trim();
-					if (newData.domain.trim() === "") {
-						newData.domain = null;
-					}
+				newData.domain = _Localization.localizationDetailDomain.data('oldValue') || _Localization.localizationDetailDomain.val().trim();
+				if (newData.domain.trim() === "") {
+					newData.domain = null;
+				}
 
-					let response = await fetch(rootUrl + 'Localization', {
-						method: 'POST',
-						body: JSON.stringify(newData),
-					});
+				let response = await fetch(Structr.rootUrl + 'Localization', {
+					method: 'POST',
+					body: JSON.stringify(newData),
+				});
 
-					if (response.ok) {
+				if (response.ok) {
 
-						let data = await response.json();
+					let data = await response.json();
 
-						newData.id = data.result[0];
-						_Localization.fillLocalizationRow($tr, newData);
+					newData.id = data.result[0];
 
-					} else {
-						blinkRed($('td', $tr));
-					}
+					removeButton.removeEventListener('click', removeRow);
+
+					_Localization.fillLocalizationRow($tr, newData);
 
 				} else {
-					_Localization.keyFieldErrorAction();
+					blinkRed($('td', $tr));
 				}
-			});
+
+			} else {
+				_Localization.keyFieldErrorAction();
+			}
 		});
 	},
 	deleteSingleLocalization: async (id) => {
 
-		let response = await fetch(rootUrl + id, {
+		let response = await fetch(Structr.rootUrl + id, {
 			method: 'DELETE',
 		});
 
@@ -606,7 +598,7 @@ let _Localization = {
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
-		let response = await fetch(rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
 
 		if (response.ok) {
 
@@ -623,5 +615,118 @@ let _Localization = {
 				_Localization.checkMainVisibility();
 			});
 		}
+	},
+
+	templates: {
+		main: config => `
+			<div id="localization-main">
+			
+				<div class="column-resizer column-resizer-left"></div>
+			
+				<div id="localization-list-container">
+					<div id="localization-list" class="resourceBox">
+						<table id="localization-table">
+			<!--				<thead><tr>-->
+			<!--					<th><a class="sort" data-sort="key">Key</a></th>-->
+			<!--					<th><a class="sort" data-sort="domain">Domain</a></th>-->
+			<!--					<th id="localization-list-th-actions" class="narrow">Actions</th>-->
+			<!--				</tr></thead>-->
+							<tbody></tbody>
+						</table>
+					</div>
+				</div>
+			
+				<div id="localization-detail-container" style="display: none;">
+			
+					<form id="localization-detail-form">
+			
+						<div class="form-row">
+							<div class="form-col">
+								<label for="localization-key">Key</label>
+								<input id="localization-key" type="text">
+							</div>
+							<div class="form-col">
+								<label for="localization-domain">Domain</label>
+								<input id="localization-domain" type="text">
+							</div>
+						</div>
+					</form>
+					<div>
+						<button id="localization-fields-save" title="Save" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+						</button>
+					</div>
+			
+					<div class="mt-8">
+						<button id="add-new-translation" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add translation
+						</button>
+					</div>
+					<table id="localization-detail-table" class="props">
+						<thead><tr>
+							<th class="w-40">Locale</th>
+							<th>Translation</th>
+							<th class="w-16">ID</th>
+							<th class="w-24">Public</th>
+							<th class="w-24">Auth. Vis.</th>
+							<th class="w-24"></th>
+						</tr></thead>
+						<tbody></tbody>
+					</table>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/localization.css">
+			
+			<form id="create-localization-form" autocomplete="off">
+				<div class="inline-flex gap-x-2">
+					<input title="Enter a key to create translations for" id="localization-key-preselect" type="text" size="30" placeholder="Key" name="key" required data-lpignore="true">
+					<input title="Enter a domain to create translations for" id="localization-domain-preselect" type="text" size="10" placeholder="Domain" name="domain">
+					<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
+				
+					<button type="submit" form="create-localization-form" class="action inline-flex items-center">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-white mr-2')} Create new localization key
+					</button>
+				</div>
+			</form>
+				
+				<div id="localization-pager"></div>
+		`,
+		typeRow: config => `
+			<tr class="localization-row key-domain-pair" id="${config.localization.htmlId}">
+				<td class="property allow-break" data-property="key">${config.localization.name}</td>
+				<td class="property" data-property="domain">${config.localization.domain || ''}</td>
+				<td class="actions">
+					<div class="icons-container flex items-center justify-end"></div>
+				</td>
+			</tr>
+		`,
+		emptyRow: config => `
+			<tr class="localization">
+				<td>
+					<input class="___locale">
+				</td>
+				<td>
+					<textarea class="___localizedName" cols="40"></textarea>
+				</td>
+				<td>
+					<span class="abbr-ellipsis abbr-80 id"></span>
+				</td>
+				<td>
+					<input class="___visibleToPublicUsers" type="checkbox" checked>
+				</td>
+				<td>
+					<input class="___visibleToAuthenticatedUsers" type="checkbox" checked>
+				</td>
+				<td class="actions text-center">
+					<div class="flex items-center justify-center">
+						${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
+						${_Icons.getSvgIcon('trashcan', 20, 20,       _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
+					</div>
+				</td>
+			</tr>
+		`,
 	}
 };

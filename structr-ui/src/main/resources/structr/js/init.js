@@ -16,12 +16,12 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var main;
 var ignoreKeyUp;
 var dialog, dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText, dialogHead, dialogCancelButton, dialogSaveButton, saveAndClose, loginBox, dialogCloseButton;
-var altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
 
 $(function() {
+
+	_Icons.preloadSVGIcons();
 
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
 	$.blockUI.defaults.overlayCSS.cursor         = 'default';
@@ -33,10 +33,13 @@ $(function() {
 		_Console.removeHeaderBlocker();
 	};
 
-	main                = $('#main');
-	Structr.header      = document.getElementById('header');
-	Structr.functionBar = document.getElementById('function-bar');
-	loginBox            = $('#login');
+	Structr.header        = document.getElementById('header');
+	Structr.mainContainer = document.getElementById('main');
+	Structr.functionBar   = document.getElementById('function-bar');
+	loginBox              = $('#login');
+
+	Structr.mainContainerOffscreen = document.createElement('div');
+	Structr.functionBarOffscreen   = document.createElement('div');
 
 	dialogBox           = $('#dialogBox');
 	dialog              = $('.dialogText', dialogBox);
@@ -49,23 +52,29 @@ $(function() {
 	dialogCancelButton  = $('.closeButton', dialogBox);
 	dialogSaveButton    = $('.save', dialogBox);
 
-	$('#loginButton').on('click', function(e) {
+	document.querySelector('#loginForm').addEventListener('submit', (e) => {
 		e.stopPropagation();
-		let username = $('#usernameField').val();
-		let password = $('#passwordField').val();
+		e.preventDefault();
+
+		let username = document.querySelector('#usernameField').value;
+		let password = document.querySelector('#passwordField').value;
+
 		Structr.doLogin(username, password);
 		return false;
 	});
 
-	$('#loginButtonTFA').on('click', function(e) {
+	document.querySelector('#two-factor-form').addEventListener('submit', (e) => {
 		e.stopPropagation();
-		var tfaToken = $('#twoFactorTokenField').val();
-		var tfaCode  = $('#twoFactorCodeField').val();
+		e.preventDefault();
+
+		let tfaToken = $('#twoFactorTokenField').val();
+		let tfaCode  = $('#twoFactorCodeField').val();
+
 		Structr.doTFALogin(tfaCode, tfaToken);
 		return false;
 	});
 
-	$('#logout_').on('click', function(e) {
+	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
 		Structr.doLogout();
 	});
@@ -106,37 +115,22 @@ $(function() {
 		$(target).removeClass('visible');
 	});
 
-	Structr.connect();
-
-	// Reset keys in case of window switching
-	$(window).blur(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
-	});
-
-	$(window).focus(function(e) {
-		altKey = false, ctrlKey = false, shiftKey = false, eKey = false;
-	});
+	StructrWS.init();
 
 	$(window).keyup(function(e) {
-		let k = e.which;
-		if (k === 16) {
-			shiftKey = false;
-		}
-		if (k === 18) {
-			altKey = false;
-		}
-		if (k === 17) {
-			ctrlKey = false;
-		}
-		if (k === 69) {
-			eKey = false;
-		}
 
-		if (e.keyCode === 27) {
+		// unwrap jquery event
+		let event   = e?.originalEvent ?? e;
+		let keyCode = event.keyCode;
+		let code    = event.code;
+
+		if (code === 'Escape' || code === 'Esc' || keyCode === 27) {
+
 			if (ignoreKeyUp) {
 				ignoreKeyUp = false;
 				return false;
 			}
+
 			if (dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				ignoreKeyUp = true;
 				let saveBeforeExit = confirm('Save changes?');
@@ -155,8 +149,11 @@ $(function() {
 						return false;
 					}, 1000);
 				}
+
 				return false;
+
 			} else if (dialogCancelButton.length && dialogCancelButton.is(':visible') && !dialogCancelButton.prop('disabled')) {
+
 				dialogCancelButton.click();
 				ignoreKeyUp = false;
 				return false;
@@ -166,145 +163,126 @@ $(function() {
 	});
 
 	$(window).on('keydown', function(e) {
-		// This hack prevents FF from closing WS connections on ESC
-		if (e.keyCode === 27) {
-			e.preventDefault();
-		}
-		var k = e.which;
-		if (k === 16) {
-			shiftKey = true;
-		}
-		if (k === 18) {
-			altKey = true;
-		}
-		if (k === 17) {
-			ctrlKey = true;
-		}
-		if (k === 69) {
-			eKey = true;
-		}
 
-		let cmdKey = (navigator.platform === 'MacIntel' && e.metaKey);
+		// unwrap jquery event
+		let event   = e?.originalEvent ?? e;
+		let keyCode = event.keyCode;
+		let code    = event.code;
 
 		// ctrl-s / cmd-s
-		if (k === 83 && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && cmdKey))) {
-			e.preventDefault();
+		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+			event.preventDefault();
 			if (dialogSaveButton && dialogSaveButton.length && dialogSaveButton.is(':visible') && !dialogSaveButton.prop('disabled')) {
 				dialogSaveButton.click();
 			}
 		}
+
 		// Ctrl-Alt-c
-		if (k === 67 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyC' || keyCode === 67) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			_Console.toggleConsole();
 		}
+
 		// Ctrl-Alt-f
-		if (k === 70 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyF' || keyCode === 70) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			_Favorites.toggleFavorites();
 		}
+
 		// Ctrl-Alt-p
-		if (k === 80 && altKey && ctrlKey) {
-			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the properties dialog');
+		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid) {
 				if (uuid.length === 32) {
 					Command.get(uuid, null, function (obj) {
 						_Entities.showProperties(obj);
 					});
 				} else {
-					alert('That does not look like a UUID! length != 32');
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
 				}
 			}
 		}
+
 		// Ctrl-Alt-m
-		if (k === 77 && altKey && ctrlKey) {
-			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, function(obj) {
-					_Elements.openEditContentDialog(obj);
-				});
-			} else {
-				alert('That does not look like a UUID! length != 32');
+		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
+			if (uuid) {
+				if (uuid.length === 32) {
+					Command.get(uuid, null, (obj) => {
+						_Elements.openEditContentDialog(obj);
+					});
+				} else {
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+				}
 			}
 		}
+
 		// Ctrl-Alt-g
-		if (k === 71 && altKey && ctrlKey) {
-			e.preventDefault();
-			var uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (uuid && uuid.length === 32) {
-				Command.get(uuid, null, function(obj) {
-					_Entities.showAccessControlDialog(obj);
-				});
-			} else {
-				alert('That does not look like a UUID! length != 32');
+		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
+			if (uuid) {
+				if (uuid.length === 32) {
+					Command.get(uuid, null, (obj) => {
+						_Entities.showAccessControlDialog(obj);
+					});
+				} else {
+					new MessageBuilder().warning('That does not look like a UUID! length != 32').show();
+				}
 			}
 		}
+
 		// Ctrl-Alt-h
-		if (k === 72 && altKey && ctrlKey) {
-			e.preventDefault();
-			if ("schema" === Structr.getActiveModuleName()) {
+		if ((code === 'KeyH' || keyCode === 72) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
+			if (Structr.isModuleActive(_Schema)) {
 				_Schema.hideSelectedSchemaTypes();
 			}
 		}
+
 		// Ctrl-Alt-e
-		if (k === 69 && altKey && ctrlKey) {
-			e.preventDefault();
+		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
+			event.preventDefault();
 			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialog).show();
 		}
 
-		// Ctrl-Alt-i
-		if (k === 73 && altKey && ctrlKey) {
-			e.preventDefault();
+		// ctrl-u / cmd-u: show generated source in schema or code area
+		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 
-			Structr.showAvailableIcons();
+			event.preventDefault();
+
+			let elements = document.querySelectorAll('.generated-source');
+
+			if (elements.length > 0) {
+
+				for (let el of elements) {
+
+					if (el.classList.contains('tab')) {
+						el.dispatchEvent(new Event('click'));
+					}
+					if (el.classList.contains('propTabContent')) {
+						el.style.display = 'block';
+					} else {
+						el.style.display = null;
+					}
+				}
+			}
 		}
 	});
 
-	$(window).on('resize', Structr.resize);
+	$(window).on('resize', () => {
+		Structr.resize();
+	});
 
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
 		e.preventDefault();
 
-		let menu = e.target.closest('.dropdown-menu');
+		Structr.handleDropdownClick(e);
 
-		if (menu) {
-
-			let template       = menu.dataset['template'];
-			let config         = JSON.parse(menu.dataset['config'] || '{}');
-			let callbackString = menu.dataset['callback'];
-			let container      = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
-
-			if (container) {
-
-				if (container.hasChildNodes() && (container.style.opacity === '0' || container.style.opacity === '')) {
-
-					container.style.opacity    = '1';
-					container.style.visibility = '';
-
-				} else if (container.hasChildNodes() && container.style.opacity === '1') {
-
-					container.style.opacity    = '0';
-					container.style.visibility = 'hidden';
-
-				} else if (!container.hasChildNodes()) {
-
-					Structr.fetchHtmlTemplate(template, config, function (html) {
-
-						container.insertAdjacentHTML('beforeend', html);
-						container.style.opacity    = '1';
-						container.style.visibility = '';
-
-						if (callbackString && callbackString.length) {
-							Structr.getActiveModule()[callbackString]();
-						}
-					});
-				}
-			}
-		}
 		return false;
 	});
 
@@ -315,17 +293,12 @@ $(function() {
 
 	window.addEventListener('click', (e) => {
 		e.stopPropagation();
-		const el = e.target;
-		const isButton = el.classList.contains('dropdown-select');
-		if (isButton) return false;
-		const menu           = el.closest('.dropdown-menu');
+
+		const menu           = e.target.closest('.dropdown-menu');
 		const menuContainer  = menu && menu.querySelector('.dropdown-menu-container');
-		if (!menuContainer) {
-			document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
-				container.style.opacity    = '0';
-				container.style.visibility = 'hidden';
-			});
-		}
+
+		Structr.hideOpenDropdownsExcept(menuContainer);
+
 		return false;
 	});
 });
@@ -334,6 +307,7 @@ let Structr = {
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
+	availableMenuItems: [],
 	moduleAvailabilityCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
@@ -365,6 +339,19 @@ let Structr = {
 		}
 		return Structr.diffMatchPatch;
 	},
+	getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+
+	    let prefix = [];
+	    const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
+	    let entry = pathEntries.shift();
+
+	    while (entry !== 'structr' && entry !== undefined) {
+			prefix.push(entry);
+			entry = pathEntries.shift();
+		}
+
+	    return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
+	},
 	getRequestParameterName: (key) => {
 
 		if (Structr.legacyRequestParameters === true) {
@@ -374,65 +361,63 @@ let Structr = {
 			return '_' + key;
 		}
 	},
-	templateCache: new AsyncObjectCache(function(templateName) {
 
-		Promise.resolve(
-			fetch('templates/' + templateName + '.html?t=' + (new Date().getTime()))
-		).then(function(response) {
-			if (response.ok) {
-				return response.text();
-			} else {
-				throw new Error('unable to fetch template ' + templateName);
-			}
-		}).then(function(templateHtml) {
-			Structr.templateCache.addObject(templateHtml, templateName);
-		}).catch(function(e) {
-			console.log(e.statusText, templateName, e);
-		});
-	}),
+	moveUIOffscreen: () => {
 
-	reconnect: function() {
-		Structr.stopPing();
-		Structr.stopReconnect();
-		StructrWS.reconnectIntervalId = window.setInterval(function() {
-			StructrWS.connect();
-		}, 1000);
-		StructrWS.connect();
-	},
-	stopReconnect: function() {
-		if (StructrWS.reconnectIntervalId) {
-			window.clearInterval(StructrWS.reconnectIntervalId);
-			StructrWS.reconnectIntervalId = undefined;
-			StructrWS.user = undefined;
+		let movedOffscreen = false;
+
+		// only move UI offscreen if there is UI to move offscreen
+		if (Structr.functionBar.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.functionBarOffscreen);
+			Structr.functionBarOffscreen.append(...Structr.functionBar.children);
+
+			movedOffscreen = true;
 		}
+
+		if (Structr.mainContainer.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.mainContainerOffscreen);
+			Structr.mainContainerOffscreen.append(...Structr.mainContainer.children);
+
+			movedOffscreen = true;
+		}
+
+		return movedOffscreen;
 	},
-	init: function() {
+	moveOffscreenUIOnscreen: () => {
+
+		let movedBack = false;
+
+		if (Structr.functionBarOffscreen.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.functionBar);
+			Structr.functionBar.append(...Structr.functionBarOffscreen.children);
+
+			movedBack = true;
+		}
+
+		if (Structr.mainContainerOffscreen.children.length > 0) {
+
+			fastRemoveAllChildren(Structr.mainContainer);
+			Structr.mainContainer.append(...Structr.mainContainerOffscreen.children);
+
+			movedBack = true;
+		}
+
+		return movedBack;
+	},
+	init: () => {
 		$('#errorText').empty();
-		Structr.ping();
-		Structr.startPing();
 	},
-	ping: function(callback) {
+	refreshUi: (isLogin = false) => {
 
-		if (StructrWS.ws.readyState !== 1) {
-			Structr.reconnect();
-		}
-
-		StructrWS.sessionId = Structr.getSessionId();
-
-		if (StructrWS.sessionId) {
-			Command.ping(callback);
-		} else {
-			Structr.renewSessionId(function() {
-				Command.ping(callback);
-			});
-		}
-	},
-	refreshUi: function(isLogin = false) {
 		Structr.showLoadingSpinner();
 
 		Structr.clearMain();
-		Structr.loadInitialModule(isLogin, function() {
-			Structr.startPing();
+		Structr.loadInitialModule(isLogin, () => {
+			StructrWS.startPing();
+
 			if (!dialogText.text().length) {
 				LSWrapper.removeItem(Structr.dialogDataKey);
 			} else {
@@ -441,54 +426,33 @@ let Structr = {
 					Structr.restoreDialog(dialogData);
 				}
 			}
+
 			Structr.hideLoadingSpinner();
 			_Console.initConsole();
 			document.querySelector('#header .logo').addEventListener('click', _Console.toggleConsole);
 			_Favorites.initFavorites();
 		});
 	},
-	updateUsername: function(name) {
+	updateUsername: (name) => {
 		if (name !== StructrWS.user) {
 			StructrWS.user = name;
 			$('#logout_').html('Logout <span class="username">' + name + '</span>');
 		}
 	},
-	startPing: function() {
-		Structr.stopPing();
-		if (!StructrWS.ping) {
-			StructrWS.ping = window.setInterval(function() {
-				Structr.ping();
-			}, 1000);
-		}
-	},
-	stopPing: function() {
-		if (StructrWS.ping) {
-			window.clearInterval(StructrWS.ping);
-			StructrWS.ping = undefined;
-		}
-	},
-	getSessionId: function() {
+	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
 	},
-	connect: function() {
-		StructrWS.sessionId = Structr.getSessionId();
-		if (!StructrWS.sessionId) {
-			Structr.renewSessionId(function() {
-				StructrWS.connect();
-			});
-		} else {
-			StructrWS.connect();
-		}
-	},
-	login: function(text) {
+	login: (text) => {
 
 		if (!loginBox.is(':visible')) {
 
 			_Favorites.logoutAction();
 			_Console.logoutAction();
 
-			fastRemoveAllChildren(main[0]);
+			fastRemoveAllChildren(Structr.mainContainer);
 			fastRemoveAllChildren(Structr.functionBar);
+			fastRemoveAllChildren(Structr.mainContainerOffscreen);
+			fastRemoveAllChildren(Structr.functionBarOffscreen);
 			_Elements.removeContextMenu();
 
 			$.blockUI({
@@ -506,7 +470,7 @@ let Structr = {
 			$('#errorText-two-factor').html(text);
 		}
 	},
-	clearLoginForm: function() {
+	clearLoginForm: () => {
 		loginBox.find('#usernameField').val('');
 		loginBox.find('#passwordField').val('');
 		loginBox.find('#errorText').empty();
@@ -519,7 +483,7 @@ let Structr = {
 		loginBox.find('#twoFactorTokenField').val('');
 		loginBox.find('#twoFactorCodeField').val('');
 	},
-	toggle2FALoginBox: function(data) {
+	toggle2FALoginBox: (data) => {
 
 		$('#errorText').html('');
 		$('#errorText-two-factor').html('');
@@ -535,27 +499,30 @@ let Structr = {
 		$('#twoFactorTokenField').val(data.token);
 		$('#twoFactorCodeField').val('').focus();
 	},
-	doLogin: function(username, password) {
-		Structr.renewSessionId(function() {
+	doLogin: (username, password) => {
+		Structr.renewSessionId(() => {
 			Command.login({
 				username: username,
 				password: password
 			});
 		});
 	},
-	doTFALogin: function(twoFactorCode, twoFacorToken) {
-		Structr.renewSessionId(function() {
+	doTFALogin: (twoFactorCode, twoFacorToken) => {
+		Structr.renewSessionId(() => {
 			Command.login({
 				twoFactorCode: twoFactorCode,
 				twoFactorToken: twoFacorToken
 			});
 		});
 	},
-	doLogout: function(text) {
+	doLogout: (text) => {
+
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
+
 		if (Command.logout(StructrWS.user)) {
+
 			Cookies.remove('JSESSIONID');
 			StructrWS.sessionId = '';
 			Structr.renewSessionId();
@@ -564,11 +531,14 @@ let Structr = {
 			Structr.login(text);
 			return true;
 		}
-		StructrWS.ws.close();
+
+		StructrWS.close();
 		return false;
 	},
-	renewSessionId: function(callback) {
-		$.get('/').always(function() {
+	renewSessionId: (callback) => {
+
+		fetch(Structr.getPrefixedRootUrl('/')).then(response => {
+
 			StructrWS.sessionId = Structr.getSessionId();
 
 			if (!StructrWS.sessionId && location.protocol === 'http:') {
@@ -586,9 +556,9 @@ let Structr = {
 			}
 		});
 	},
-	loadInitialModule: function(isLogin, callback) {
+	loadInitialModule: (isLogin, callback) => {
 
-		LSWrapper.restore(function() {
+		LSWrapper.restore(() => {
 
 			Structr.expanded = JSON.parse(LSWrapper.getItem(Structr.expandedIdsKey));
 
@@ -612,7 +582,7 @@ let Structr = {
 		Structr.mainModule = navState[0];
 		Structr.subModule  = navState.length > 1 ? navState[1] : null;
 	},
-	clearMain: function() {
+	clearMain: () => {
 		let newDroppables = new Array();
 		$.ui.ddmanager.droppables['default'].forEach(function(droppable, i) {
 			if (!droppable.element.attr('id') || droppable.element.attr('id') !== 'graph-canvas') {
@@ -622,48 +592,16 @@ let Structr = {
 		});
 		$.ui.ddmanager.droppables['default'] = newDroppables;
 
-		fastRemoveAllChildren(main[0]);
+		fastRemoveAllChildren(Structr.mainContainer);
 		fastRemoveAllChildren(Structr.functionBar);
+		fastRemoveAllChildren(Structr.mainContainerOffscreen);
+		fastRemoveAllChildren(Structr.functionBarOffscreen);
+
 		_Elements.removeContextMenu();
 	},
-	confirmation: function(text, yesCallback, noCallback) {
-		if (text) {
-			$('#confirmation .confirmationText').html(text);
-		}
-		let yesButton = $('#confirmation .yesButton');
-		let noButton  = $('#confirmation .noButton');
+	restoreDialog: (dialogData) => {
 
-		if (yesCallback) {
-			yesButton.on('click', function(e) {
-				e.stopPropagation();
-				yesCallback();
-				yesButton.off('click');
-				noButton.off('click');
-			});
-		}
-
-		noButton.on('click', function(e) {
-			e.stopPropagation();
-			$.unblockUI({
-				fadeOut: 25
-			});
-			if (noCallback) {
-				noCallback();
-			}
-			yesButton.off('click');
-			noButton.off('click');
-		});
-
-		$.blockUI({
-			fadeIn: 25,
-			fadeOut: 25,
-			message: $('#confirmation'),
-			css: Structr.defaultBlockUICss
-		});
-	},
-	restoreDialog: function(dialogData) {
-
-		window.setTimeout(function() {
+		window.setTimeout(() => {
 
 			Structr.blockUI(dialogData);
 			Structr.resize();
@@ -671,60 +609,61 @@ let Structr = {
 		}, 1000);
 
 	},
-	dialog: function(text, callbackOk, callbackCancel, customClasses) {
+	dialog: (text, callbackOk, callbackCancel, customClasses) => {
 
-		if (browser) {
+		dialogHead.empty();
+		dialogText.empty();
+		dialogMsg.empty();
+		dialogMeta.empty();
+		dialogBtn.empty();
 
-			dialogHead.empty();
-			dialogText.empty();
-			dialogMsg.empty();
-			dialogMeta.empty();
-			dialogBtn.empty();
-
-			dialogBox[0].classList = ["dialog"];
-			if (customClasses) {
-				for (let customClass of customClasses) {
-					dialogBox.addClass(customClass);
-				}
+		dialogBox[0].classList = ["dialog"];
+		if (customClasses) {
+			for (let customClass of customClasses) {
+				dialogBox.addClass(customClass);
 			}
-
-			dialogBtn.html('<button class="closeButton">Close</button>');
-			dialogCancelButton = $('.closeButton', dialogBox);
-
-			$('.speechToText', dialogBox).remove();
-
-			if (text) {
-				dialogTitle.html(text);
-			}
-
-			dialogCancelButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-				dialogText.empty();
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				dialogBtn.children(':not(.closeButton)').remove();
-
-				Structr.focusSearchField();
-
-				LSWrapper.removeItem(Structr.dialogDataKey);
-
-				if (callbackCancel) {
-					window.setTimeout(callbackCancel, 100);
-				}
-			});
-
-			let dimensions = Structr.getDialogDimensions(24, 24);
-			Structr.blockUI(dimensions);
-
-			Structr.resize();
-
-			dimensions.text = text;
-			LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
 		}
+
+		dialogBtn.html('<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
+		dialogCancelButton = $('.closeButton', dialogBox);
+
+		$('.speechToText', dialogBox).remove();
+
+		if (text) {
+			dialogTitle.html(text);
+		}
+
+		dialogCancelButton.off('click').on('click', function(e) {
+			e.stopPropagation();
+			Structr.dialogCancelBaseAction();
+
+			if (callbackCancel) {
+				window.setTimeout(callbackCancel, 100);
+			}
+		});
+
+		let dimensions = Structr.getDialogDimensions(24, 24);
+		Structr.blockUI(dimensions);
+
+		Structr.resize();
+
+		dimensions.text = text;
+		LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
+
 	},
-	focusSearchField: function() {
+	dialogCancelBaseAction: () => {
+		dialogText.empty();
+		$.unblockUI({
+			fadeOut: 25
+		});
+
+		dialogBtn.children(':not(.closeButton)').remove();
+
+		Structr.focusSearchField();
+
+		LSWrapper.removeItem(Structr.dialogDataKey);
+	},
+	focusSearchField: () => {
 		let activeModule = Structr.getActiveModule();
 		if (activeModule) {
 			let searchField = activeModule.searchField;
@@ -734,13 +673,13 @@ let Structr = {
 			}
 		}
 	},
-	getDialogDimensions: function(marginLeft, marginTop) {
+	getDialogDimensions: (marginLeft, marginTop) => {
 
-		var winW = $(window).width();
-		var winH = $(window).height();
+		let winW = $(window).width();
+		let winH = $(window).height();
 
-		var width = Math.min(900, winW - marginLeft);
-		var height = Math.min(600, winH - marginTop);
+		let width = Math.min(900, winW - marginLeft);
+		let height = Math.min(600, winH - marginTop);
 
 		return {
 			width: width,
@@ -750,7 +689,7 @@ let Structr = {
 		};
 
 	},
-	blockUI: function(dimensions) {
+	blockUI: (dimensions) => {
 
 		$.blockUI({
 			fadeIn: 25,
@@ -775,7 +714,7 @@ let Structr = {
 		});
 
 	},
-	setSize: function(w, h, dw, dh) {
+	setSize: (w, h, dw, dh) => {
 
 		let l = parseInt((w - dw) / 2);
 		let t = parseInt((h - dh) / 2);
@@ -783,7 +722,7 @@ let Structr = {
 		let horizontalOffset = 148;
 
 		// needs to be calculated like this because the elements in the dialogHead (tabs) are floated and thus the .height() method returns 0
-		var headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
+		let headerHeight = (dialogText.position().top + dialogText.scrollParent().scrollTop()) - dialogHead.position().top;
 
 		$('#dialogBox .dialogTextWrapper').css('width', 'calc(' + dw + 'px - 3rem)');
 		$('#dialogBox .dialogTextWrapper').css('height', dh - horizontalOffset - headerHeight);
@@ -799,7 +738,7 @@ let Structr = {
 			height: h - 84 + 'px'
 		});
 	},
-	resize: function(callback) {
+	resize: (callback) => {
 
 		Structr.isMax = LSWrapper.getItem(Structr.dialogMaximizedKey);
 
@@ -822,7 +761,7 @@ let Structr = {
 			callback();
 		}
 	},
-	maximize: function() {
+	maximize: () => {
 
 		// Calculate dimensions of dialog
 		if ($('.blockPage').length && !loginBox.is(':visible')) {
@@ -847,22 +786,20 @@ let Structr = {
 		let message = new MessageBuilder().error(text);
 		if (confirmationRequired) {
 			message.requiresConfirmation();
-		} else {
-			message.delayDuration(2000).fadeDuration(1000);
 		}
 		message.show();
 	},
-	errorFromResponse: function(response, url, additionalParameters) {
+	errorFromResponse: (response, url, additionalParameters) => {
 
-		var errorText = '';
+		let errorText = '';
 
 		if (response.errors && response.errors.length) {
 
-			var errorLines = [response.message];
+			let errorLines = [response.message];
 
-			response.errors.forEach(function(error) {
+			for (let error of response.errors) {
 
-				var errorMsg = (error.type ? error.type : '');
+				let errorMsg = (error.type ? error.type : '');
 				if (error.property) {
 					errorMsg += '.' + error.property;
 				}
@@ -877,7 +814,7 @@ let Structr = {
 				}
 
 				errorLines.push(errorMsg);
-			});
+			}
 
 			errorText = errorLines.join('<br>');
 
@@ -889,21 +826,21 @@ let Structr = {
 
 			errorText += response.code + '<br>';
 
-			Object.keys(response).forEach(function(key) {
+			for (let key in response) {
 				if (key !== 'code') {
 					errorText += '<b>' + key.capitalize() + '</b>: ' + response[key] + '<br>';
 				}
-			});
+			}
 		}
 
-		var message = new MessageBuilder().error(errorText);
+		let message = new MessageBuilder().error(errorText);
 
 		if (additionalParameters) {
 			if (additionalParameters.requiresConfirmation) {
 				message.requiresConfirmation();
 			}
 			if (additionalParameters.statusCode) {
-				var title = Structr.getErrorTextForStatusCode(additionalParameters.statusCode);
+				let title = Structr.getErrorTextForStatusCode(additionalParameters.statusCode);
 				if (title) {
 					message.title(title);
 				}
@@ -921,7 +858,7 @@ let Structr = {
 
 		message.show();
 	},
-	getErrorTextForStatusCode: function(statusCode) {
+	getErrorTextForStatusCode: (statusCode) => {
 		switch (statusCode) {
 			case 400: return 'Bad request';
 			case 401: return 'Authentication required';
@@ -940,7 +877,7 @@ let Structr = {
 		}
 		return icon;
 	},
-	updateButtonWithAjaxLoaderAndText: (btn, html) => {
+	updateButtonWithSpinnerAndText: (btn, html) => {
 		btn.attr('disabled', 'disabled').addClass('disabled').html(html + _Icons.getSvgIcon('waiting-spinner', 20, 20, 'ml-2'));
 	},
 	updateButtonWithSuccessIcon: (btn, html) => {
@@ -949,38 +886,38 @@ let Structr = {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
-	tempInfo: function(text, autoclose) {
-
-		window.clearTimeout(Structr.dialogTimeoutId);
-
-		if (text) {
-			$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
-		}
-
-		if (autoclose) {
-			Structr.dialogTimeoutId = window.setTimeout(() => {
-				$.unblockUI({
-					fadeOut: 25
-				});
-			}, 3000);
-		}
-
-		$('#tempInfoBox .closeButton').on('click', function(e) {
-			e.stopPropagation();
-			window.clearTimeout(Structr.dialogTimeoutId);
-			$.unblockUI({
-				fadeOut: 25
-			});
-			dialogBtn.children(':not(.closeButton)').remove();
-
-			Structr.focusSearchField();
-		});
-
-		$.blockUI({
-			message: $('#tempInfoBox'),
-			css: Structr.defaultBlockUICss
-		});
-	},
+	// tempInfo: (text, autoclose) => {
+	//
+	// 	window.clearTimeout(Structr.dialogTimeoutId);
+	//
+	// 	if (text) {
+	// 		$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
+	// 	}
+	//
+	// 	if (autoclose) {
+	// 		Structr.dialogTimeoutId = window.setTimeout(() => {
+	// 			$.unblockUI({
+	// 				fadeOut: 25
+	// 			});
+	// 		}, 3000);
+	// 	}
+	//
+	// 	$('#tempInfoBox .closeButton').on('click', function(e) {
+	// 		e.stopPropagation();
+	// 		window.clearTimeout(Structr.dialogTimeoutId);
+	// 		$.unblockUI({
+	// 			fadeOut: 25
+	// 		});
+	// 		dialogBtn.children(':not(.closeButton)').remove();
+	//
+	// 		Structr.focusSearchField();
+	// 	});
+	//
+	// 	$.blockUI({
+	// 		message: $('#tempInfoBox'),
+	// 		css: Structr.defaultBlockUICss
+	// 	});
+	// },
 	reconnectDialog: () => {
 
 		let restoreDialogText = '';
@@ -993,14 +930,14 @@ let Structr = {
 			<div id="tempErrorBox" class="dialog block">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
-						<i class="${_Icons.getFullSpriteClass(_Icons.error_icon)} mr-2"></i>
+						${_Icons.getSvgIcon('warning-sign-icon-filled', 16, 16, 'mr-2')}
 						<b>Connection lost or timed out.</b>
 					</div>
 
 					<div>
 						Don't reload the page!
 					</div>
-					
+
 					${restoreDialogText}
 
 					<div class="flex items-center">
@@ -1029,19 +966,19 @@ let Structr = {
 			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
 		}, ms || 0);
 	},
-	requestActivateModule: function(event, name) {
+	requestActivateModule: (event, name) => {
 		if (Structr.menuBlocked) {
 			return false;
 		}
 
 		event.stopPropagation();
-		if (Structr.getActiveModuleName() !== name || main.children().length === 0) {
+		if (Structr.getActiveModuleName() !== name || Structr.mainContainer.children.length === 0) {
 			return Structr.doActivateModule(name);
 		}
 
 		return true;
 	},
-	doActivateModule: function(name) {
+	doActivateModule: (name) => {
 		Structr.determineModule();
 
 		if (Structr.modules[name]) {
@@ -1069,7 +1006,7 @@ let Structr = {
 
 		return true;
 	},
-	activateMenuEntry: function(name) {
+	activateMenuEntry: (name) => {
 		Structr.blockMenu();
 		let menuEntry = $('#' + name + '_');
 		let li = menuEntry.parent();
@@ -1085,7 +1022,7 @@ let Structr = {
 			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
 		}
 	},
-	registerModule: function(module) {
+	registerModule: (module) => {
 		let name = module._moduleName;
 		if (!name || name.trim().length === 0) {
 			new MessageBuilder().error("Cannot register module without a name - ignoring attempt. To fix this error, please add the '_moduleName' variable to the module.").show();
@@ -1107,7 +1044,8 @@ let Structr = {
 	containsNodes: (element) => {
 		return (element && Structr.numberOfNodes(element) && Structr.numberOfNodes(element) > 0);
 	},
-	numberOfNodes: function(element, excludeId) {
+	numberOfNodes: (element, excludeId) => {
+
 		let childNodes = $(element).children('.node');
 
 		if (excludeId) {
@@ -1116,7 +1054,8 @@ let Structr = {
 
 		return childNodes.length;
 	},
-	findParent: function(parentId, componentId, pageId, defaultElement) {
+	findParent: (parentId, componentId, pageId, defaultElement) => {
+
 		let parent = Structr.node(parentId, null, componentId, pageId);
 
 		if (!parent) {
@@ -1125,14 +1064,22 @@ let Structr = {
 
 		return parent;
 	},
-	parent: function(id) {
+	parent: (id) => {
 		return Structr.node(id) && Structr.node(id).parent().closest('.node');
 	},
-	node: function(id, prefix) {
+	node: (id, prefix) => {
 		let p    = prefix || '#id_';
 		let node = $($(p + id)[0]);
 
 		return (node.length ? node : undefined);
+	},
+	nodeContainer: (id, prefix) => {
+		let node = Structr.node(id, prefix);
+		if (node) {
+			return node.children('.node-container');
+		}
+
+		return undefined;
 	},
 	entity: function(id, parentId) {
 		let entityElement = Structr.node(id, parentId);
@@ -1208,7 +1155,7 @@ let Structr = {
 
 		});
 	},
-	openSlideOut: function(triggerEl, slideoutElement, callback) {
+	openSlideOut: (triggerEl, slideoutElement, callback) => {
 
 		let storedRightSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerRigthKey);
 		let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
@@ -1216,15 +1163,16 @@ let Structr = {
 		let t = $(triggerEl);
 		t.addClass('active');
 		slideoutElement.width(rsw);
+
 		slideoutElement.animate({right: 0}, 100, function() {
 			if (typeof callback === 'function') {
 				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
+		});
 
 		slideoutElement.addClass('open');
 	},
-	openLeftSlideOut: function(triggerEl, slideoutElement, callback) {
+	openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
 
 		let storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerLeftKey);
 		let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
@@ -1234,24 +1182,28 @@ let Structr = {
 
 		slideoutElement.width(psw);
 
-		slideoutElement.animate({left: 0}, 100, function() {
+		slideoutElement.animate({ left: 0 }, 100, () => {
 			if (typeof callback === 'function') {
+
 				callback({isOpenAction: true});
 			}
-		}).zIndex(1);
+		});
 
 		slideoutElement.addClass('open');
 	},
-	closeSlideOuts: function(slideouts, callback) {
-		var wasOpen = false;
+	closeSlideOuts: (slideouts, callback) => {
 
-		slideouts.forEach(function(slideout) {
+		let wasOpen = false;
+
+		for (let slideout of slideouts) {
+
 			slideout.removeClass('open');
+
 			let left          = slideout.position().left;
 			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
-			if (left < $(window).width()) {
-			//if (Math.abs($(window).width() - left) >= 3) {
+			if ((window.innerWidth - left) > 1) {
+
 				wasOpen = true;
 				slideout.animate({ right: -slideoutWidth }, 100, function() {
 					if (typeof callback === 'function') {
@@ -1259,26 +1211,25 @@ let Structr = {
 					}
 				}).zIndex(2);
 				$('.slideout-activator.right.active').removeClass('active');
-
-				var openSlideoutCallback = slideout.data('closeCallback');
-				if (typeof openSlideoutCallback === 'function') {
-					openSlideoutCallback();
-				}
 			}
-		});
+		}
 
 		LSWrapper.removeItem(_Pages.activeTabRightKey);
 	},
-	closeLeftSlideOuts: function(slideouts, callback) {
+	closeLeftSlideOuts: (slideouts, callback) => {
+
 		let wasOpen = false;
 		let oldSlideoutWidth;
 
-		slideouts.forEach(function(slideout) {
+		for (let slideout of slideouts) {
+
 			slideout.removeClass('open');
+
 			let left          = slideout.position().left;
 			let slideoutWidth = slideout[0].getBoundingClientRect().width;
 
 			if (left > -1) {
+
 				wasOpen = true;
 				oldSlideoutWidth = slideoutWidth;
 				slideout.animate({ left: -slideoutWidth }, 100, function() {
@@ -1286,13 +1237,14 @@ let Structr = {
 						callback(wasOpen, -oldSlideoutWidth, 0);
 					}
 				}).zIndex(2);
+
 				$('.slideout-activator.left.active').removeClass('active');
 			}
-		});
+		}
 	},
-	updateVersionInfo: function(retryCount = 0, isLogin = false) {
+	updateVersionInfo: (retryCount = 0, isLogin = false) => {
 
-		fetch(rootUrl + '_env').then(function(response) {
+		fetch(Structr.rootUrl + '_env').then((response) => {
 
 			if (response.ok) {
 				return response.json();
@@ -1300,7 +1252,7 @@ let Structr = {
 				throw Error("Unable to read env resource data");
 			}
 
-		}).then(function(data) {
+		}).then((data) => {
 
 			let envInfo = data.result;
 			if (Array.isArray(envInfo)) {
@@ -1310,19 +1262,20 @@ let Structr = {
 			let dbInfoEl = $('#header .structr-instance-db');
 
 			if (envInfo.databaseService) {
+
 				let driverName = Structr.getDatabaseDriverNameForDatabaseServiceName(envInfo.databaseService);
-				let icon       = _Icons.database_icon;
-
-				if (envInfo.databaseService === 'MemoryDatabaseService') {
-					icon = _Icons.database_error_icon;
-				}
-
-				dbInfoEl.html('<span><i class="' + _Icons.getFullSpriteClass(icon) + '" title="' + driverName + '"></span>');
 
 				Structr.isInMemoryDatabase = (envInfo.databaseService === 'MemoryDatabaseService');
-				if (Structr.isInMemoryDatabase === true) {
-					Structr.isInMemoryDatabase = true;
-					Structr.appendInMemoryInfoToElement($('span', dbInfoEl), $('span i', dbInfoEl));
+
+				if (!Structr.isInMemoryDatabase) {
+
+					dbInfoEl.html(`<span>${_Icons.getSvgIcon('database-icon-color', 16, 16, [], driverName)}</span>`);
+
+				} else {
+
+					dbInfoEl.html('<span></span>');
+
+					Structr.appendInMemoryInfoToElement($('span', dbInfoEl));
 
 					if (isLogin) {
 						new MessageBuilder().warning(Structr.inMemoryWarningText).requiresConfirmation().show();
@@ -1339,49 +1292,39 @@ let Structr = {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
 
-
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 
-				let version     = ui.version;
 				let build       = ui.build;
 				let date        = ui.date;
-				let versionLink = 'https://structr.com/download';
-				let versionInfo = '<a target="_blank" href="' + versionLink + '">' + version + '</a>';
-				if (build && date) {
-					versionInfo += '<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/' + build + '">' + build + '</a><span> (' + date + ')</span>';
-				}
+				let versionInfo = `
+					<div>
+						<a target="_blank" href="https://structr.com/download">${ui.version}</a>
+						${(build && date) ? `<span> build </span><a target="_blank" href="https://github.com/structr/structr/commit/${build}">${build}</a><span> (${date})</span>` : ''}
+						${(envInfo.edition) ? _Icons.getSvgIcon(_Icons.getIconForEdition(envInfo.edition), 16,16,[], `Structr ${envInfo.edition} Edition`) : ''}
+					</div>
+				`;
+
+				$('.structr-version').html(versionInfo);
 
 				if (envInfo.edition) {
 
 					Structr.edition = envInfo.edition;
 
-					var tooltipText = 'Structr ' + envInfo.edition + ' Edition';
-					if (envInfo.licensee) {
-						tooltipText += '\nLicensed to: ' + envInfo.licensee;
-					} else {
-						tooltipText += '\nUnlicensed';
-					}
-
-					versionInfo += '<i title="' + tooltipText + '" class="edition-icon ' + _Icons.getFullSpriteClass(_Icons.getIconForEdition(envInfo.edition)) + '"></i>';
-
-					$('.structr-version').html(versionInfo);
-
-					_Dashboard.checkLicenseEnd(envInfo, $('.structr-version'), {
+					_Dashboard.tabs['about-structr'].checkLicenseEnd(envInfo, $('.structr-version'), {
 						offsetX: -300,
 						helpElementCss: {
 							color: "black",
-							fontSize: "8pt",
+							fontSize: "1rem",
 							lineHeight: "1.7em"
 						}
 					});
-
-				} else {
-					$('.structr-version').html(versionInfo);
 				}
 			}
 
-			Structr.activeModules = envInfo.modules;
+			Structr.activeModules      = envInfo.modules;
+			Structr.availableMenuItems = envInfo.availableMenuItems;
+
 			Structr.adaptUiToAvailableFeatures();
 
 			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
@@ -1415,7 +1358,7 @@ let Structr = {
 			}
 		});
 	},
-	updateMainMenu: function (menuConfig) {
+	updateMainMenu: (menuConfig) => {
 
 		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
 
@@ -1426,21 +1369,34 @@ let Structr = {
 		// first move all elements from main menu to submenu
 		$('li[data-name]', menu).appendTo(submenu);
 
-		menuConfig.main.forEach(function(entry) {
-			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
-		});
+		// then filter the items
+		$('li[data-name]', submenu).each((i, e) => {
+			let name = e.dataset.name;
+			if (!Structr.availableMenuItems.includes(name)) {
+				e.classList.add('hidden');
+			}
+		})
 
-		menuConfig.sub.forEach(function(entry) {
+		for (let entry of menuConfig.main) {
+			$('li[data-name="' + entry + '"]', menu).insertBefore(hamburger);
+		}
+
+		// what does this even do?
+		for (let entry of menuConfig.sub) {
 			$('#submenu li').last().after($('li[data-name="' + entry + '"]', menu));
-		});
+		}
 	},
-	inMemoryWarningText:"Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
-	appendInMemoryInfoToElement: function(el, optionalToggleElement) {
+	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
+	appendInMemoryInfoToElement: (el) => {
 
 		let config = {
 			element: el,
 			text: Structr.inMemoryWarningText,
-			customToggleIcon: _Icons.database_error_icon,
+			customToggleIcon: 'database-warning-sign-icon',
+			customToggleIconClasses: ['ml-2'],
+			width: 20,
+			height: 20,
+			noSpan: true,
 			helpElementCss: {
 				'border': '2px solid red',
 				'border-radius': '4px',
@@ -1450,13 +1406,9 @@ let Structr = {
 			}
 		};
 
-		if (optionalToggleElement) {
-			config.toggleElement = optionalToggleElement;
-		}
-
 		Structr.appendInfoTextToElement(config);
 	},
-	getDatabaseDriverNameForDatabaseServiceName: function (databaseServiceName) {
+	getDatabaseDriverNameForDatabaseServiceName: (databaseServiceName) => {
 		switch (databaseServiceName) {
 			case 'BoltDatabaseService':
 				return 'Bolt Database Driver';
@@ -1468,36 +1420,36 @@ let Structr = {
 
 		return 'Unknown database driver!';
 	},
-	clearVersionInfo: function() {
+	clearVersionInfo: () => {
 		$('.structr-version').html('');
 	},
-	getId: function(element) {
-		var id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
+	getId: (element) => {
+		let id = Structr.getIdFromPrefixIdString($(element).prop('id'), 'id_') || $(element).data('nodeId');
 		return id || undefined;
 	},
-	getIdFromPrefixIdString: function(idString, prefix) {
+	getIdFromPrefixIdString: (idString, prefix) => {
 		if (!idString || !idString.startsWith(prefix)) {
 			return false;
 		}
 		return idString.substring(prefix.length);
 	},
-	getComponentId: function(element) {
+	getComponentId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'componentId_') || undefined;
 	},
-	getUserId: function(element) {
+	getUserId: (element) => {
 		return element.data('userId');
 	},
-	getGroupId: function(element) {
+	getGroupId: (element) => {
 		return element.data('groupId');
 	},
-	getActiveElementId: function(element) {
+	getActiveElementId: (element) => {
 		return Structr.getIdFromPrefixIdString($(element).prop('id'), 'active_') || undefined;
 	},
-	adaptUiToAvailableFeatures: function() {
+	adaptUiToAvailableFeatures: () => {
 		Structr.adaptUiToAvailableModules();
 		Structr.adaptUiToEdition();
 	},
-	adaptUiToAvailableModules: function() {
+	adaptUiToAvailableModules: () => {
 		$('.module-dependend').each(function(idx, element) {
 			var el = $(element);
 			var module = el.data('structr-module');
@@ -1508,23 +1460,23 @@ let Structr = {
 			}
 		});
 	},
-	isModulePresent: function(moduleName) {
+	isModulePresent: (moduleName) => {
 		return Structr.activeModules[moduleName] !== undefined;
 	},
-	isModuleInformationAvailable: function() {
+	isModuleInformationAvailable: () => {
 		return (Object.keys(Structr.activeModules).length > 0);
 	},
-	performModuleDependendAction: function(action) {
+	performModuleDependendAction: (action) => {
 		if (Structr.isModuleInformationAvailable()) {
 			action();
 		} else {
 			Structr.registerActionAfterModuleInformationIsAvailable(action);
 		}
 	},
-	registerActionAfterModuleInformationIsAvailable: function(cb) {
+	registerActionAfterModuleInformationIsAvailable: (cb) => {
 		Structr.moduleAvailabilityCallbacks.push(cb);
 	},
-	adaptUiToEdition: function() {
+	adaptUiToEdition: () => {
 		$('.edition-dependend').each(function(idx, element) {
 			var el = $(element);
 
@@ -1535,7 +1487,7 @@ let Structr = {
 			}
 		});
 	},
-	isAvailableInEdition: function(requiredEdition) {
+	isAvailableInEdition: (requiredEdition) => {
 		switch(Structr.edition) {
 			case 'Enterprise':
 				return true;
@@ -1547,16 +1499,16 @@ let Structr = {
 				return ['Community'].indexOf(requiredEdition) !== -1;
 		};
 	},
-	updateMainHelpLink: function(newUrl) {
+	updateMainHelpLink: (newUrl) => {
 		$('#main-help a').attr('href', newUrl);
 	},
-	isButtonDisabled: function(button) {
+	isButtonDisabled: (button) => {
 		return $(button).data('disabled');
 	},
-	disableButton: function(btn) {
+	disableButton: (btn) => {
 		$(btn).addClass('disabled').attr('disabled', 'disabled');
 	},
-	enableButton: function(btn) {
+	enableButton: (btn) => {
 		$(btn).removeClass('disabled').removeAttr('disabled');
 	},
 	addExpandedNode: (id) => {
@@ -1567,7 +1519,6 @@ let Structr = {
 
 				Structr.getExpanded()[id] = true;
 				LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
-
 			}
 		}
 	},
@@ -1599,13 +1550,13 @@ let Structr = {
 		}
 		return Structr.expanded;
 	},
-	showAndHideInfoBoxMessage: function(msg, msgClass, delayTime, fadeTime) {
-		var newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
+	showAndHideInfoBoxMessage: (msg, msgClass, delayTime, fadeTime) => {
+		let newDiv = $('<div class="infoBox ' + msgClass + '"></div>');
 		newDiv.text(msg);
 		dialogMsg.html(newDiv);
 		$('.infoBox', dialogMsg).delay(delayTime).fadeOut(fadeTime);
 	},
-	initVerticalSlider: function(sliderEl, localstorageKey, minWidth, dragCallback, isRight) {
+	initVerticalSlider: (sliderEl, localstorageKey, minWidth, dragCallback, isRight) => {
 
 		if (typeof dragCallback !== 'function') {
 			console.error('dragCallback is not a function!');
@@ -1628,11 +1579,13 @@ let Structr = {
 
 	},
 	getSliderValueForDragCallback: (leftPos, minWidth, isRight) => {
+
 		let val = (isRight === true) ? Math.max(minWidth, window.innerWidth - leftPos) : Math.max(minWidth, leftPos);
 
 		// If there are two resizer elements, distance between resizers must always be larger than minWidth.
-		let leftResizer = document.querySelector('.column-resizer-left');
+		let leftResizer  = document.querySelector('.column-resizer-left');
 		let rightResizer = document.querySelector('.column-resizer-right');
+
 		if (isRight && !leftResizer.classList.contains('hidden')) {
 			let leftResizerLeft = leftResizer.getBoundingClientRect().left;
 			val = Math.min(val, window.innerWidth - leftResizerLeft - minWidth + leftResizer.getBoundingClientRect().width + 3);
@@ -1649,19 +1602,22 @@ let Structr = {
 		// console.log(isRight, leftResizer.classList.contains('hidden'), rightResizer.classList.contains('hidden'), val);
 		return val;
 	},
-	appendInfoTextToElement: function(config) {
+	appendInfoTextToElement: (config) => {
 
-		let element            = config.element;
+		let element            = $(config.element);
 		let appendToElement    = config.appendToElement || element;
 		let text               = config.text || 'No text supplied!';
 		let toggleElementCss   = config.css || {};
 		let toggleElementClass = config.class || undefined;
 		let elementCss         = config.elementCss || {};
 		let helpElementCss     = config.helpElementCss || {};
-		let customToggleIcon   = config.customToggleIcon || _Icons.information_icon;
+		let customToggleIcon   = config.customToggleIcon || 'info-icon';
+		let customToggleIconClasses = config.customToggleIconClasses || ['icon-blue'];
 		let insertAfter        = config.insertAfter || false;
 		let offsetX            = config.offsetX || 0;
 		let offsetY            = config.offsetY || 0;
+		let width              = config.width || 16;
+		let height             = config.height || 16;
 
 		let createdElements = [];
 
@@ -1669,7 +1625,12 @@ let Structr = {
 		let toggleElement = config.toggleElement;
 		if (!toggleElement) {
 			customToggleElement = false;
-			toggleElement = $('<span><i class="' + _Icons.getFullSpriteClass(customToggleIcon) + '"></span>');
+			toggleElement = $(`
+				${(config.noSpan) ? '' : '<span>'}
+					${_Icons.getSvgIcon(customToggleIcon, width, height, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
+				${(config.noSpan) ? '' : '</span>'}
+			`);
+
 			createdElements.push(toggleElement);
 		}
 
@@ -1690,8 +1651,8 @@ let Structr = {
 					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
 			}).on("mouseout", function(e) {
-			helpElement.hide();
-		});
+				helpElement.hide();
+			});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -1709,7 +1670,7 @@ let Structr = {
 
 		return createdElements;
 	},
-	refreshPositionsForCurrentlyActiveSortable: function() {
+	refreshPositionsForCurrentlyActiveSortable: () => {
 
 		if (Structr.currentlyActiveSortable) {
 
@@ -1720,10 +1681,12 @@ let Structr = {
 			}, 500);
 		}
 	},
-	handleGenericMessage: function(data) {
+	handleGenericMessage: (data) => {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
 		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
+		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.global.settings.showResourceAccessGrantWarningPopupsKey);
+		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
 
@@ -1739,8 +1702,8 @@ let Structr = {
 
 					let texts = {
 						BEGIN: 'Started importing CSV data',
-						CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' / ' + data.totalChunkNo,
-						END:   'Finished importing CSV data (Time: ' + data.duration + ')'
+						CHUNK: `Finished importing chunk ${data.currentChunkNo} / ${data.totalChunkNo}`,
+						END:   `Finished importing CSV data (Time: ${data.duration})`
 					};
 
 					new MessageBuilder().title(titles[data.subtype]).uniqueClass('csv-import-status').updatesText().requiresConfirmation().allowConfirmAll().className((data.subtype === 'END') ? 'success' : 'info').text(texts[data.subtype]).show();
@@ -1750,60 +1713,47 @@ let Structr = {
 			case "CSV_IMPORT_WARNING":
 
 				if (StructrWS.me.username === data.username) {
-					new MessageBuilder()
-						.title(data.title)
-						.warning(data.text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(data.title).warning(data.text).requiresConfirmation().allowConfirmAll().show();
 				}
 				break;
 
 			case "CSV_IMPORT_ERROR":
 
 				if (StructrWS.me.username === data.username) {
-					new MessageBuilder()
-						.title(data.title)
-						.error(data.text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(data.title).error(data.text).requiresConfirmation().allowConfirmAll().show();
 				}
 				break;
 
 			case "FILE_IMPORT_STATUS":
 
-				var fileImportTitles = {
-					QUEUED: 'Import added to queue',
-					BEGIN: 'Import started',
-					CHUNK: 'Import status',
-					END: 'Import finished',
+				let fileImportTitles = {
+					QUEUED:     'Import added to queue',
+					BEGIN:      'Import started',
+					CHUNK:      'Import status',
+					END:        'Import finished',
 					WAIT_ABORT: 'Import waiting to abort',
-					ABORTED: 'Import aborted',
+					ABORTED:    'Import aborted',
 					WAIT_PAUSE: 'Import waiting to pause',
-					PAUSED: 'Import paused',
-					RESUMED: 'Import resumed'
+					PAUSED:     'Import paused',
+					RESUMED:    'Import resumed'
 				};
 
-				var fileImportTexts = {
-					QUEUED: 'Import of <b>' + data.filename + '</b> will begin after currently running/queued job(s)',
-					BEGIN: 'Started importing data from <b>' + data.filename + '</b>',
-					CHUNK: 'Finished importing chunk ' + data.currentChunkNo + ' of <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-					END: 'Finished importing data from <b>' + data.filename + '</b><br>Objects created: ' + data.objectsCreated + '<br>Time: ' + data.duration + '<br>Objects/s: ' + data.objectsPerSecond,
-					WAIT_ABORT: 'The import of <b>' + data.filename + '</b> will be aborted after finishing the current chunk',
-					ABORTED: 'The import of <b>' + data.filename + '</b> has been aborted',
-					WAIT_PAUSE: 'The import of <b>' + data.filename + '</b> will be paused after finishing the current chunk',
-					PAUSED: 'The import of <b>' + data.filename + '</b> has been paused',
-					RESUMED: 'The import of <b>' + data.filename + '</b> has been resumed'
+				let fileImportTexts = {
+					QUEUED:     `Import of <b>${data.filename}</b> will begin after currently running/queued job(s)`,
+					BEGIN:      `Started importing data from <b>${data.filename}</b>`,
+					CHUNK:      `Finished importing chunk ${data.currentChunkNo} of <b>${data.filename}</b><br>Objects created: ${data.objectsCreated}<br>Time: ${data.duration}<br>Objects/s: ${data.objectsPerSecond}`,
+					END:        `Finished importing data from <b>${data.filename}</b><br>Objects created: ${data.objectsCreated}<br>Time: ${data.duration}<br>Objects/s: ${data.objectsPerSecond}`,
+					WAIT_ABORT: `The import of <b>${data.filename}</b> will be aborted after finishing the current chunk`,
+					ABORTED:    `The import of <b>${data.filename}</b> has been aborted`,
+					WAIT_PAUSE: `The import of <b>${data.filename}</b> will be paused after finishing the current chunk`,
+					PAUSED:     `The import of <b>${data.filename}</b> has been paused`,
+					RESUMED:    `The import of <b>${data.filename}</b> has been resumed`
 				};
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					var msg = new MessageBuilder()
-						.title(data.jobtype + ' ' + fileImportTitles[data.subtype])
-						.className((data.subtype === 'END') ? 'success' : 'info')
-						.text(fileImportTexts[data.subtype])
-						.uniqueClass(data.jobtype + '-import-status-' + data.filepath);
+					let msg = new MessageBuilder().title(`${data.jobtype} ${fileImportTitles[data.subtype]}`).className((data.subtype === 'END') ? 'success' : 'info')
+						.text(fileImportTexts[data.subtype]).uniqueClass(`${data.jobtype}-import-status-${data.filepath}`);
 
 					if (data.subtype !== 'QUEUED') {
 						msg.updatesText().requiresConfirmation().allowConfirmAll();
@@ -1821,17 +1771,12 @@ let Structr = {
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					var text = data.message;
+					let text = data.message;
 					if (data.message !== data.stringvalue) {
 						text += '<br>' + data.stringvalue;
 					}
 
-					new MessageBuilder()
-						.title("Exception while importing " + data.jobtype)
-						.error("File: " + data.filepath + "<br>" + text)
-						.requiresConfirmation()
-						.allowConfirmAll()
-						.show();
+					new MessageBuilder().title(`Exception while importing ${data.jobtype}`).error(`File: ${data.filepath}<br>${text}`).requiresConfirmation().allowConfirmAll().show();
 				}
 
 				if (Structr.isModuleActive(Importer)) {
@@ -1841,24 +1786,20 @@ let Structr = {
 
 			case "SCRIPT_JOB_STATUS":
 
-				var scriptJobTitles = {
+				let scriptJobTitles = {
 					QUEUED: 'Script added to queue',
-					BEGIN: 'Script started',
-					END: 'Script finished'
+					BEGIN:  'Script started',
+					END:    'Script finished'
 				};
-				var scriptJobTexts = {
-					QUEUED: 'Script job #' + data.jobId + ' will begin after currently running/queued job(s)',
-					BEGIN: 'Started script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')'),
-					END: 'Finished script job #' + data.jobId + ((data.jobName.length === 0) ? '' : ' (' + data.jobName + ')')
+				let scriptJobTexts = {
+					QUEUED: `Script job #${data.jobId} will begin after currently running/queued job(s)`,
+					BEGIN:  `Started script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`,
+					END:    `Finished script job #${data.jobId}${((data.jobName.length > 0) ? ` (${data.jobName})` : '')}`
 				};
 
 				if (showScheduledJobsNotifications && StructrWS.me.username === data.username) {
 
-					let msg = new MessageBuilder()
-						.title(scriptJobTitles[data.subtype])
-						.className((data.subtype === 'END') ? 'success' : 'info')
-						.text('<div>' + scriptJobTexts[data.subtype] + '</div>')
-						.uniqueClass(data.jobtype + '-' + data.subtype).appendsText();
+					let msg = new MessageBuilder().title(scriptJobTitles[data.subtype]).className((data.subtype === 'END') ? 'success' : 'info').text(`<div>${scriptJobTexts[data.subtype]}</div>`).uniqueClass(`${data.jobtype}-${data.subtype}`).appendsText();
 
 					if (data.subtype !== 'QUEUED') {
 						msg.requiresConfirmation().allowConfirmAll();
@@ -1873,10 +1814,10 @@ let Structr = {
 				break;
 
 			case 'DEPLOYMENT_IMPORT_STATUS':
-			case 'DEPLOYMENT_DATA_IMPORT_STATUS':
+			case 'DEPLOYMENT_DATA_IMPORT_STATUS': {
 
-				var type            = 'Deployment Import';
-				var messageCssClass = 'deployment-import';
+				let type            = 'Deployment Import';
+				let messageCssClass = 'deployment-import';
 
 				if (data.type === 'DEPLOYMENT_DATA_IMPORT_STATUS') {
 					type            = 'Data Deployment Import';
@@ -1885,32 +1826,34 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Importing from: <span class="deployment-source">' + data.source + '</span><br><br>'
-						+ 'Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>';
+					let text = `${type} started: ${new Date(data.start)}<br>
+						Importing from: <span class="deployment-source">${data.source}</span><br><br>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+					`;
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title(`${type} Progress`).uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(`${type} Progress`).uniqueClass(messageCssClass).info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>" + type + " finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration
-						+ "<br><br>Reload the page to see the new data.";
+					let text = `<br>${type} finished: ${new Date(data.end)}<br>
+						Total duration: ${data.duration}<br><br>
+						Reload the page to see the new data.`;
 
-					new MessageBuilder().title(type + " finished").uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', function() { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
+					new MessageBuilder().title(`${type} finished`).uniqueClass(messageCssClass).success(text).specialInteractionButton('Reload Page', () => { location.reload(); }, 'Ignore').appendsText().updatesButtons().show();
 
 				}
 				break;
+			}
 
 			case 'DEPLOYMENT_EXPORT_STATUS':
-			case 'DEPLOYMENT_DATA_EXPORT_STATUS':
+			case 'DEPLOYMENT_DATA_EXPORT_STATUS': {
 
-				var type            = 'Deployment Export';
-				var messageCssClass = 'deployment-export';
+				let type            = 'Deployment Export';
+				let messageCssClass = 'deployment-export';
 
 				if (data.type === 'DEPLOYMENT_DATA_EXPORT_STATUS') {
 					type            = 'Data Deployment Export';
@@ -1919,43 +1862,45 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = type + ' started: ' + new Date(data.start) + '<br>'
-						+ 'Exporting to: <span class="deployment-target">' + data.target + '</span><br><br>'
-						+ 'System performance may be affected during Export.<br><ol class="message-steps"></ol>';
+					let text = `${type} started: ${new Date(data.start)}<br>
+						Exporting to: <span class="deployment-target">${data.target}</span><br><br>
+						System performance may be affected during Export.<br><ol class="message-steps"></ol>
+					`;
 
 					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info('<li>' + data.message + '</li>').requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title(type + ' Progress').uniqueClass(messageCssClass).info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = '<br>'+ type + ' finished: ' + new Date(data.end)
-						+ '<br>Total duration: ' + data.duration;
+					let text = `<br>${type} finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title(type + ' finished').uniqueClass(messageCssClass).success(text).appendsText().requiresConfirmation().show();
 
 				}
 				break;
+			}
 
 			case "SCHEMA_ANALYZE_STATUS":
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Schema Analysis started: " + new Date(data.start) + "<br>"
-						+ "Please wait until the import process is finished. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+					let text = `Schema Analysis started: ${new Date(data.start)}<br>
+						Please wait until the import process is finished. This message will be updated during the process.<br>
+						<ol class="message-steps"></ol>
+					`;
 
-					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
+					new MessageBuilder().title('Schema Analysis progress').uniqueClass('schema-analysis').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Schema Analysis progress").uniqueClass('schema-analysis').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title('Schema Analysis progress').uniqueClass('schema-analysis').info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Schema Analysis finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration;
+					let text = `<br>Schema Analysis finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title("Schema Analysis finished").uniqueClass('schema-analysis').success(text).appendsText().requiresConfirmation().show();
 
@@ -1966,19 +1911,20 @@ let Structr = {
 
 				if (data.subtype === 'BEGIN') {
 
-					var text = "Process to retrieve a Let's Encrypt certificate via ACME started: " + new Date(data.start) + "<br>"
-						+ "This will take a couple of seconds. This message will be updated during the process.<br><ol class='message-steps'></ol>";
+					let text = `Process to retrieve a Let's Encrypt certificate via ACME started: ${new Date(data.start)}<br>
+						This will take a couple of seconds. This message will be updated during the process.<br>
+						<ol class='message-steps'></ol>
+					`;
 
 					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(text).requiresConfirmation().updatesText().show();
 
 				} else if (data.subtype === 'PROGRESS') {
 
-					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info("<li>" + data.message + "</li>").requiresConfirmation().appendsText('.message-steps').show();
+					new MessageBuilder().title("Certificate retrieval progress").uniqueClass('cert-retrieval').info(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
 
 				} else if (data.subtype === 'END') {
 
-					var text = "<br>Certificate retrieval process finished: " + new Date(data.end)
-						+ "<br>Total duration: " + data.duration;
+					let text = `<br>Certificate retrieval process finished: ${new Date(data.end)}<br>Total duration: ${data.duration}`;
 
 					new MessageBuilder().title("Certificate retrieval finished").uniqueClass('cert-retrieval').success(text).appendsText().requiresConfirmation().show();
 
@@ -1993,7 +1939,8 @@ let Structr = {
 
 				let enabled = data.enabled ? 'enabled' : 'disabled';
 
-				new MessageBuilder().title('Maintenance Mode ' + enabled).warning("Maintenance Mode has been " + enabled + ". Redirecting...").allowConfirmAll().show();
+				new MessageBuilder().title(`Maintenance Mode ${enabled}`).warning(`Maintenance Mode has been ${enabled}.<br><br> Redirecting...`).allowConfirmAll().show();
+
 				window.setTimeout(function() {
 					location.href = data.baseUrl + location.pathname + location.search;
 				}, 1500);
@@ -2009,54 +1956,57 @@ let Structr = {
 
 			case "RESOURCE_ACCESS":
 
-				let builder = new MessageBuilder().title('REST Access to \'' + data.uri + '\' denied').warning(data.message).requiresConfirmation().allowConfirmAll();
+				if (showResourceAccessGrantPopups) {
 
-				builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+					let builder = new MessageBuilder().title(`REST Access to '${data.uri}' denied`).warning(data.message).requiresConfirmation().allowConfirmAll();
 
-					let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
-					let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
+					builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
 
-					let additionalData = {};
+						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
+						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
 
-					if (data.validUser === true) {
-						additionalData.visibleToAuthenticatedUsers = true;
-					} else {
-						additionalData.visibleToPublicUsers = true;
-					}
+						let additionalData = {};
 
-					_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+						if (data.validUser === true) {
+							additionalData.visibleToAuthenticatedUsers = true;
+						} else {
+							additionalData.visibleToPublicUsers = true;
+						}
 
-					let resourceAccessKey = 'resource-access';
+						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
 
-					let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
-					if (!grantPagerConfig) {
-						grantPagerConfig = {
-							id: resourceAccessKey,
-							type: resourceAccessKey,
-							page: 1,
-							pageSize: 25,
-							sort: "signature",
-							order: "asc"
+						let resourceAccessKey = 'resource-access';
+
+						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
+						if (!grantPagerConfig) {
+							grantPagerConfig = {
+								id: resourceAccessKey,
+								type: resourceAccessKey,
+								page: 1,
+								pageSize: 25,
+								sort: "signature",
+								order: "asc"
+							};
+						} else {
+							grantPagerConfig = JSON.parse(grantPagerConfig);
+						}
+						grantPagerConfig.filters = {
+							flags: false,
+							signature: data.signature
 						};
-					} else {
-						grantPagerConfig = JSON.parse(grantPagerConfig);
-					}
-					grantPagerConfig.filters = {
-						flags: false,
-						signature: data.signature
-					};
 
-					LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
+						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
-					if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
-						_Security.selectTab(resourceAccessKey);
-					} else {
-						LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
-						window.location.href = '#security';
-					}
-				}, 'Dismiss');
+						if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+							_Security.selectTab(resourceAccessKey);
+						} else {
+							LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
+							window.location.href = '#security';
+						}
+					}, 'Dismiss');
 
-				builder.show();
+					builder.show();
+				}
 
 				break;
 
@@ -2065,8 +2015,6 @@ let Structr = {
 				if (showScriptingErrorPopups) {
 
 					if (data.nodeId && data.nodeType) {
-
-						let uniqueClass = 'n' + data.nodeId + data.nodeType + data.row + data.column;
 
 						Command.get(data.nodeId, 'id,type,name,content,ownerDocument,schemaNode', function (obj) {
 
@@ -2096,55 +2044,49 @@ let Structr = {
 										} else {
 											title = 'page "' + obj.ownerDocument.name  + '"';
 										}
-
 									}
 									break;
 							}
 
-							let location = '<table class="scripting-error-location">'
-								+ '<tr><th>Element:</th><td style="padding-left:8px;">' + data.nodeType + '[' + data.nodeId + ']</td></tr>'
-								+ '<tr><th>' + property + ':</th><td style="padding-left:8px;">' + name + '</td></tr>'
-								+ '<tr><th>Row:</th><td style="padding-left:8px;">' + data.row + '</td></tr>'
-								+ '<tr><th>Column:</th><td style="padding-left:8px;">' + data.column + '</td></tr>'
-								+ '</table>';
+							let location = `
+								<table class="scripting-error-location">
+									<tr>
+										<th>Element:</th>
+										<td class="pl-2">${data.nodeType}[${data.nodeId}]</td>
+									</tr>
+									<tr>
+										<th>${property}:</th>
+										<td class="pl-2">${name}</td>
+									</tr>
+									<tr>
+										<th>Row:</th>
+										<td class="pl-2">${data.row}</td>
+									</tr>
+									<tr>
+										<th>Column:</th>
+										<td class="pl-2">${data.column}</td>
+									</tr>
+								</table>
+								<br>
+								${data.message}
+							`;
 
-							let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true)
-								.title('Scripting error in ' + title)
-								.warning(location + '<br/>' + data.message)
-								.requiresConfirmation();
+							let builder = new MessageBuilder().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).warning(location).requiresConfirmation();
 
 							if (data.nodeType === 'SchemaMethod') {
 
-								let pathToOpen = '';
-
-								if (obj.schemaNode) {
-
-									pathToOpen = 'custom--' + obj.schemaNode.id + '-methods-' + obj.id;
-
-								} else {
-
-									pathToOpen = 'globals--' + obj.id;
-								}
+								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-methods-${obj.id}` : `globals--${obj.id}`;
 
 								builder.specialInteractionButton('Go to method', function(btn) {
 									window.location.href = '#code';
-									window.setTimeout(function() {
+									window.setTimeout(() => {
 										_Code.findAndOpenNode(pathToOpen, false);
 									}, 1000);
 								}, 'Dismiss');
 
 							} else if (data.nodeType === 'SchemaProperty') {
 
-								let pathToOpen = '';
-
-								if (obj.schemaNode) {
-
-									pathToOpen = 'custom--' + obj.schemaNode.id + '-properties-' + obj.id;
-
-								} else {
-
-									pathToOpen = 'globals--' + obj.id;
-								}
+								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-properties-${obj.id}` : `globals--${obj.id}`;
 
 								builder.specialInteractionButton('Go to property', function(btn) {
 									window.location.href = '#code';
@@ -2162,28 +2104,29 @@ let Structr = {
 										case 'Template':
 											_Elements.openEditContentDialog(obj);
 											break;
+										case 'File':
+											_Files.editFile(obj);
+											break;
 										default:
 											_Entities.showProperties(obj);
 											break;
 									}
 
-									{
-										// open and select element in tree
-										let structrId = obj.id;
-										_Entities.deselectAllElements();
+									// open and select element in tree
+									let structrId = obj.id;
+									_Entities.deselectAllElements();
 
-										if (!Structr.node(structrId)) {
-											_Pages.expandTreeNode(structrId);
-										} else {
-											var treeEl = Structr.node(structrId);
-											if (treeEl) {
-												_Entities.highlightElement(treeEl);
-											}
+									if (!Structr.node(structrId)) {
+										_Pages.expandTreeNode(structrId);
+									} else {
+										let treeEl = Structr.node(structrId);
+										if (treeEl) {
+											_Entities.highlightElement(treeEl);
 										}
-
-										LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
-
 									}
+
+									LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+
 								}, 'Dismiss');
 							}
 
@@ -2197,29 +2140,87 @@ let Structr = {
 				}
 				break;
 
+			case "DEPRECATION": {
+
+				if (showDeprecationWarningPopups) {
+
+					let uniqueClass = 'deprecation-warning-' + data.nodeId;
+
+					let builder = new MessageBuilder().uniqueClass(uniqueClass).incrementsUniqueCount(true).title(data.title).warning(data.message).requiresConfirmation();
+
+					if (data.subtype === 'EDIT_MODE_BINDING') {
+
+						if (data.nodeId) {
+
+							Command.get(data.nodeId, 'id,type,name,content,ownerDocument', (obj) => {
+
+								let title = '';
+
+								switch (obj.type) {
+
+									default:
+										if (obj.ownerDocument) {
+											if (obj.ownerDocument.type === 'ShadowDocument') {
+												title = 'Shared component';
+											} else {
+												title = 'Page "' + obj.ownerDocument.name + '"';
+											}
+										}
+										break;
+								}
+
+								if (title != '') {
+									builder.warning(data.message + '<br><br>Soure: ' + title);
+								}
+
+								builder.specialInteractionButton('Go to element in page tree', function (btn) {
+
+									// open and select element in tree
+									let structrId = obj.id;
+									_Entities.deselectAllElements();
+
+									if (!Structr.node(structrId)) {
+										_Pages.expandTreeNode(structrId);
+									} else {
+										let treeEl = Structr.node(structrId);
+										if (treeEl) {
+											_Entities.highlightElement(treeEl);
+										}
+									}
+
+									LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
+
+								}, 'Dismiss');
+
+								builder.allowConfirmAll().show();
+							});
+						} else {
+							builder.allowConfirmAll().show();
+						}
+					} else {
+						builder.allowConfirmAll().show();
+					}
+				}
+				break;
+			}
+
 			default: {
 
-				var text = "<p>No handler for generic message of type <b>" + data.type + "</b> defined - printing complete message data.</p>";
-				Object.keys(data).forEach(function(key) {
-					text += "<b>" + key + "</b>: " + data[key] + "<br>";
-				});
+				let text = `
+					<p>No handler for generic message of type <b>${data.type}</b> defined - printing complete message data.</p>
+					${Object.entries(data).map(([key, value]) => `<b>${key}</b>:${value}`).join('<br>')}
+				`;
 
 				new MessageBuilder().title("GENERIC_MESSAGE").warning(text).requiresConfirmation().show();
 
 			}
 		}
 	},
-	fetchHtmlTemplate: function(templateName, templateConfig, callback) {
+	activateCommentsInElement: (elem, defaults) => {
 
-		Structr.templateCache.registerCallback(templateName, templateName, function(templateHtml, cacheHit) {
-			let convertTemplateToLiteral = new Function('config', 'return `' + templateHtml + '`;');
-			let parameterizedTemplate = convertTemplateToLiteral(templateConfig);
-			callback(parameterizedTemplate, cacheHit);
-		});
-	},
-	activateCommentsInElement: function(elem, defaults) {
+		let elsWithComment = elem.querySelectorAll('[data-comment]') || [];
 
-		$('[data-comment]', elem).each(function(idx, el) {
+		for (let el of elsWithComment) {
 
 			let $el = $(el);
 
@@ -2238,15 +2239,15 @@ let Structr = {
 
 				let elCommentConfig = $el.data('commentConfig') || {};
 
-				// base config is overridden by the defaults parameter which is overriden by the element config
+				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
 				Structr.appendInfoTextToElement(infoConfig);
 			}
-		});
+		}
 
 	},
-	blockUiGeneric: function(html, timeout) {
-		Structr.loadingSpinnerTimeout = window.setTimeout(function() {
+	blockUiGeneric: (html, timeout) => {
+		Structr.loadingSpinnerTimeout = window.setTimeout(() => {
 
 			$.blockUI({
 				fadeIn: 0,
@@ -2257,7 +2258,7 @@ let Structr = {
 			});
 		}, timeout || 0);
 	},
-	unblockUiGeneric: function() {
+	unblockUiGeneric: () => {
 		window.clearTimeout(Structr.loadingSpinnerTimeout);
 		Structr.loadingSpinnerTimeout = undefined;
 
@@ -2287,7 +2288,7 @@ let Structr = {
 
 	nonBlockUIBlockerId: 'non-block-ui-blocker',
 	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	showNonBlockUILoadingMessage: function(title, text) {
+	showNonBlockUILoadingMessage: (title, text) => {
 
 		let messageTitle = title || 'Executing Task';
 		let messageText  = text || 'Please wait until the operation has finished...';
@@ -2299,11 +2300,88 @@ let Structr = {
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);
 	},
-	hideNonBlockUILoadingMessage: function() {
+	hideNonBlockUILoadingMessage: () => {
 		$('#' + Structr.nonBlockUIBlockerId).remove();
 		$('#' + Structr.nonBlockUIBlockerContentId).remove();
 	},
-	getDocumentationURLForTopic: function (topic) {
+
+	confirmation: (text, yesCallback, noCallback) => {
+		if (text) {
+			$('#confirmation .confirmationText').html(text);
+		}
+		let yesButton = $('#confirmation .yesButton');
+		let noButton  = $('#confirmation .noButton');
+
+		if (yesCallback) {
+			yesButton.on('click', function(e) {
+				e.stopPropagation();
+				yesCallback();
+				yesButton.off('click');
+				noButton.off('click');
+			});
+		}
+
+		noButton.on('click', function(e) {
+			e.stopPropagation();
+			$.unblockUI({
+				fadeOut: 25
+			});
+			if (noCallback) {
+				noCallback();
+			}
+			yesButton.off('click');
+			noButton.off('click');
+		});
+
+		$.blockUI({
+			fadeIn: 25,
+			fadeOut: 25,
+			message: $('#confirmation'),
+			css: Structr.defaultBlockUICss
+		});
+	},
+	confirmationPromiseNonBlockUI: (text) => {
+
+		return new Promise((resolve, reject) => {
+
+			let pageBlockerDiv = Structr.createSingleDOMElementFromHTML(`<div id="${Structr.nonBlockUIBlockerId}"></div>`);
+			let messageDiv     = Structr.createSingleDOMElementFromHTML(`<div id="${Structr.nonBlockUIBlockerContentId}"></div>`);
+
+			let el = document.getElementById('confirmation').cloneNode(true);
+			el.id = 'confirmation-new';
+			el.classList.remove('dialog');
+
+			el.querySelector('.confirmationText').innerHTML = text;
+
+			messageDiv.appendChild(el);
+
+			let yesButton = el.querySelector('.yesButton');
+			let noButton  = el.querySelector('.noButton');
+
+			yesButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				pageBlockerDiv.remove();
+				messageDiv.remove();
+
+				resolve(true);
+			});
+
+			noButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				pageBlockerDiv.remove();
+				messageDiv.remove();
+
+				resolve(false);
+			});
+
+			let body = document.querySelector('body');
+			body.appendChild(pageBlockerDiv);
+			body.appendChild(messageDiv);
+		});
+	},
+	getDocumentationURLForTopic: (topic) => {
 		switch (topic) {
 			case 'security':       return 'https://docs.structr.com/docs/security';
 			case 'schema-enum':    return 'https://docs.structr.com/docs/troubleshooting-guide#enum-property';
@@ -2324,27 +2402,28 @@ let Structr = {
 				return 'https://docs.structr.com/';
 		}
 	},
-	getShadowPage: function(callback) {
+	ensureShadowPageExists: () => {
 
-		if (_Pages.shadowPage) {
+		return new Promise((resolve, reject) => {
 
-			if (callback) {
-				callback();
-			}
+			if (_Pages.shadowPage) {
 
-		} else {
+				resolve(_Pages.shadowPage);
 
-			// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
-			Command.listComponents(1, 1, 'name', 'asc', function(result) {
-				Command.getByType('ShadowDocument', 1, 1, null, null, null, true, function(entities) {
-					_Pages.shadowPage = entities[0];
+			} else {
 
-					if (callback) {
-						callback();
-					}
+				// wrap getter for shadowdocument in listComponents so we're sure that shadow document has been created
+				Command.listComponents(1, 1, 'name', 'asc', (result) => {
+
+					Command.getByType('ShadowDocument', 1, 1, null, null, null, true, (entities) => {
+
+						_Pages.shadowPage = entities[0];
+
+						resolve(_Pages.shadowPage);
+					});
 				});
-			});
-		}
+			}
+		});
 	},
 	createSingleDOMElementFromHTML: (html) => {
 		let elements = Structr.createDOMElementsFromHTML(html);
@@ -2368,7 +2447,7 @@ let Structr = {
 					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
 				</table>
 			</div>
-			
+
 			<div class="flex-grow">
 				<h3>SVG Icons</h3>
 				<table>
@@ -2382,12 +2461,94 @@ let Structr = {
 	},
 	isVideo: (contentType) => {
 		return (contentType && contentType.indexOf('video') > -1);
+	},
+	handleDropdownClick: (e) => {
+
+		let menu = e.target.closest('.dropdown-menu');
+
+		if (menu) {
+
+			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+
+			if (container) {
+
+				let isVisible = (container.dataset['visible'] === 'true');
+
+				if (isVisible) {
+
+					Structr.hideDropdownContainer(container);
+
+				} else {
+
+					Structr.hideOpenDropdownsExcept(container);
+
+					container.dataset['visible'] = 'true';
+
+					container.style.display  = 'block';
+
+					let btn     = e.target.closest('.dropdown-select');
+					let btnRect = btn.getBoundingClientRect();
+					let containerRect = container.getBoundingClientRect();
+
+					if (btn.dataset['preferredPositionY'] === 'top') {
+
+						// position dropdown over activator button
+						container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
+					}
+
+					if (btn.dataset['preferredPositionX'] === 'left') {
+
+						// position dropdown left of button
+						container.style.right    = `calc(${window.innerWidth - btnRect.right}px + 2.5rem)`;
+					}
+
+					if (btn.dataset['wantsFixed'] === 'true') {
+						/*
+							this is important for the editor tools in a popup which need to break free from the popup dialog
+						*/
+						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+					}
+				}
+			}
+		}
+	},
+	hideOpenDropdownsExcept: (exception) => {
+
+		for (let container of document.querySelectorAll('.dropdown-menu-container')) {
+
+			if (container != exception) {
+				Structr.hideDropdownContainer(container);
+			}
+		}
+	},
+	hideDropdownContainer: (container) => {
+
+		container.dataset['visible'] = null;
+
+		container.style.display = 'none';
+		container.style.position = null;
+		container.style.bottom   = null;
+		container.style.top      = null;
+	},
+	requestAnimationFrameWrapper: (key, callback) => {
+		if (key) {
+			cancelAnimationFrame(key);
+		}
+
+		key = requestAnimationFrame(callback);
 	}
 };
 
+Structr.rootUrl     = Structr.getPrefixedRootUrl('/structr/rest/');
+Structr.csvRootUrl  = Structr.getPrefixedRootUrl('/structr/csv/');
+Structr.viewRootUrl = Structr.getPrefixedRootUrl('/');
+Structr.wsRoot      = Structr.getPrefixedRootUrl('/structr/ws');
+Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
+
 let _TreeHelper = {
-	initTree: function(tree, initFunction, stateKey) {
-		$(tree).jstree({
+	initTree: (tree, initFunction, stateKey) => {
+
+		let initializedTree = $(tree).jstree({
 			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
@@ -2397,6 +2558,92 @@ let _TreeHelper = {
 			state: {
 				key: stateKey
 			}
+		});
+
+		_TreeHelper.addSvgIconReplacementBehaviorToTree(initializedTree);
+	},
+	addSvgIconReplacementBehaviorToTree: (tree) => {
+
+		let getSvgIconFromNode = (node) => {
+			return node?.data?.svgIcon ?? node?.state?.svgIcon;
+		};
+
+		let replaceIconWithSvgIfPresent = (nodeId) => {
+
+			let node = $(tree).jstree().get_node(nodeId);
+
+			// recursively change children icons (if node is opened)
+			if (node.state.opened) {
+				node.children?.map(replaceIconWithSvgIfPresent);
+			}
+
+			let svgIcon = getSvgIconFromNode(node);
+			if (svgIcon) {
+
+				let anchor = document.getElementById(node.a_attr.id);
+				if (anchor) {
+					let icon = anchor.querySelector('.jstree-icon');
+					if (icon) {
+
+						icon.style     = null;
+						icon.innerHTML = svgIcon;
+					}
+				}
+			}
+		};
+
+
+
+		let setSvgFolderIcon = (nodeId, newStateIsOpen) => {
+			let node = $(tree).jstree().get_node(nodeId);
+
+			let anchor = document.getElementById(node.a_attr.id);
+			if (anchor) {
+
+				let from = 'folder-closed-icon';
+				let to   = 'folder-open-icon';
+
+				let currentIcon = _Icons.getSvgIconFromSvgElement(anchor);
+				if (currentIcon === 'folder-link-open-icon' || currentIcon === 'folder-link-closed-icon') {
+					from = 'folder-link-closed-icon';
+					to   = 'folder-link-open-icon';
+				}
+
+				if (newStateIsOpen === false) {
+					let tmp = to;
+					to = from;
+					from = tmp;
+				}
+
+				_Icons.updateSvgIconInElement(anchor, from, to);
+			}
+		};
+
+		tree.on('after_open.jstree', (event, data) => {
+
+			if (data.node.id !== 'root') {
+
+				let svgIcon = getSvgIconFromNode(data.node);
+				if (svgIcon) {
+					setSvgFolderIcon(data.node.id, true);
+				}
+			}
+
+			data.node.children?.map(replaceIconWithSvgIfPresent);
+		});
+
+		tree.on('after_close.jstree', (event, data) => {
+
+			if (data.node.id !== 'root') {
+				let svgIcon = getSvgIconFromNode(data.node);
+				if (svgIcon) {
+					setSvgFolderIcon(data.node.id, false);
+				}
+			}
+		});
+
+		tree.on('redraw.jstree', (event, data) => {
+			data.nodes?.map(replaceIconWithSvgIfPresent);
 		});
 	},
 	deepOpen: function(tree, element, parentElements, parentKey, selectedNodeId) {
@@ -2435,6 +2682,7 @@ let _TreeHelper = {
 
 			openRecursively(dirs);
 		}
+
 	},
 	refreshTree: function(tree, callback) {
 		$(tree).jstree('refresh');
@@ -2614,11 +2862,11 @@ function MessageBuilder () {
 
 	this.show = function() {
 
-		var uniqueMessageAlreadyPresented = false;
+		let uniqueMessageAlreadyPresented = false;
 
 		if (this.params.uniqueClass) {
 			// find existing one
-			var existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
+			let existingMsgBuilder = $('#info-area .message.' + this.params.uniqueClass).data('msgbuilder');
 			if (existingMsgBuilder) {
 
 				uniqueMessageAlreadyPresented = true;
@@ -2638,7 +2886,7 @@ function MessageBuilder () {
 
 					$('#info-area .message.' + this.params.uniqueClass + ' .title').html(this.params.title);
 
-					var selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
+					let selector = '#info-area .message.' + this.params.uniqueClass + ' .text';
 					if (this.params.appendSelector !== '') {
 						selector += ' ' + this.params.appendSelector;
 					}
@@ -2658,19 +2906,18 @@ function MessageBuilder () {
 
 			this.params.msgId = 'message_' + (Structr.msgCount++);
 
-			$('#info-area').append(
-				'<div class="' + this.params.classNames.join(' ') +  '" id="' + this.params.msgId + '">' +
-				(this.params.title ? '<h3 class="title">' + this.params.title + this.getUniqueCountElement() + '</h3>' : this.getUniqueCountElement()) +
-				'<div class="text">' + this.params.text + '</div>' +
-				(this.params.furtherText ? '<div class="furtherText">' + this.params.furtherText + '</div>' : '') +
-				'<div class="message-buttons">' + this.getButtonHtml() + '</div>' +
-				'</div>'
-			);
+			$('#info-area').append(`
+				<div class="${this.params.classNames.join(' ')}" id="${this.params.msgId}">
+					${(this.params.title ? `<h3 class="title">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
+					<div class="text">${this.params.text}</div>
+					${(this.params.furtherText ? `<div class="furtherText">${this.params.furtherText}</div>` : '')}
+					<div class="message-buttons">${this.getButtonHtml()}</div>
+				</div>
+			`);
 
 			$('#' + this.params.msgId).data('msgbuilder', this);
 
 			this.activateButtons(this, this);
-
 		}
 	};
 
@@ -2777,10 +3024,10 @@ let UISettings = {
 		if (moduleSettings) {
 
 			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
 					${_Icons.getSvgIcon('ui_configuration_settings')}
 				</button>
-				<div class="dropdown-menu-container" style="opacity: 0"></div>
+				<div class="dropdown-menu-container" style=display: none;"></div>
 			</div>`);
 
 			let container = dropdown.querySelector('.dropdown-menu-container');
@@ -2836,7 +3083,19 @@ let UISettings = {
 				storageKey: 'showScriptinErrorPopups' + location.port,
 				defaultValue: true,
 				type: 'checkbox'
-			}
+			},
+			showResourceAccessGrantWarningPopupsKey: {
+				text: 'Show popups for resource access grant warnings',
+				storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
+			showDeprecationWarningPopupsKey: {
+				text: 'Show popups for deprecation warnings',
+				storageKey: 'showDeprecationWarningPopups' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
 		}
 	},
 	pages: {
@@ -2845,7 +3104,7 @@ let UISettings = {
 			inheritVisibilityFlagsKey: {
 				text: 'Inherit Visibility Flags (when creating new elements from the context menu)',
 				storageKey: 'inheritVisibilityFlags_' + location.port,
-				defaultValue: false,
+				defaultValue: true,
 				type: 'checkbox'
 			},
 			favorEditorForContentElementsKey: {

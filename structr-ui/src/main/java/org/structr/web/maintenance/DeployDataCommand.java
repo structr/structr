@@ -53,7 +53,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.BulkRebuildIndexCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
@@ -84,15 +83,13 @@ public class DeployDataCommand extends DeployCommand {
 	private final static String DEPLOYMENT_DATA_IMPORT_STATUS   = "DEPLOYMENT_DATA_IMPORT_STATUS";
 	private final static String DEPLOYMENT_DATA_EXPORT_STATUS   = "DEPLOYMENT_DATA_EXPORT_STATUS";
 
-	public final static String DOINNERCALLBACKS_PARAMTER_NAME = "doInnerCallbacks";
-	public final static String DOOUTERCALLBACKS_PARAMTER_NAME = "doOuterCallbacks";
-	public final static String DOCASCADINGDELETE_PARAMTER_NAME = "doCascadingDelete";
-	public final static String REBUILDALLINDEXES_PARAMTER_NAME = "rebuildAllIndexes";
+	public final static String DO_INNER_CALLBACKS_PARAMETER_NAME  = "doInnerCallbacks";
+	public final static String DO_OUTER_CALLBACKS_PARAMETER_NAME  = "doOuterCallbacks";
+	public final static String DO_CASCADING_DELETE_PARAMETER_NAME = "doCascadingDelete";
 
 	private boolean doInnerCallbacks  = false;
 	private boolean doOuterCallbacks  = false;
 	private boolean doCascadingDelete = false;
-	private boolean rebuildAllIndexesAfterImport = false;
 
 	private boolean relationshipToFileTypeExists = false;
 
@@ -307,10 +304,9 @@ public class DeployDataCommand extends DeployCommand {
 				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
 
-			doInnerCallbacks             = parameters.get(DOINNERCALLBACKS_PARAMTER_NAME) == null  ? false : "true".equals(parameters.get(DOINNERCALLBACKS_PARAMTER_NAME).toString());
-			doOuterCallbacks             = parameters.get(DOOUTERCALLBACKS_PARAMTER_NAME) == null  ? false : "true".equals(parameters.get(DOOUTERCALLBACKS_PARAMTER_NAME).toString());
-			doCascadingDelete            = parameters.get(DOCASCADINGDELETE_PARAMTER_NAME) == null ? false : "true".equals(parameters.get(DOCASCADINGDELETE_PARAMTER_NAME).toString());
-			rebuildAllIndexesAfterImport = parameters.get(REBUILDALLINDEXES_PARAMTER_NAME) == null ? false : "true".equals(parameters.get(REBUILDALLINDEXES_PARAMTER_NAME).toString());
+			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) == null  ? false : "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
+			doOuterCallbacks  = parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME) == null  ? false : "true".equals(parameters.get(DO_OUTER_CALLBACKS_PARAMETER_NAME).toString());
+			doCascadingDelete = parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME) == null ? false : "true".equals(parameters.get(DO_CASCADING_DELETE_PARAMETER_NAME).toString());
 
 			doImportFromDirectory(source);
 
@@ -428,12 +424,6 @@ public class DeployDataCommand extends DeployCommand {
 
 		// apply post-deploy.conf
 		applyConfigurationFileIfExists(context, source.resolve("post-data-deploy.conf"), DEPLOYMENT_DATA_IMPORT_STATUS);
-
-		if (rebuildAllIndexesAfterImport) {
-
-			publishProgressMessage(DEPLOYMENT_DATA_IMPORT_STATUS, "Rebuilding all indexes after import (depending on the database size this might take a while)");
-			StructrApp.getInstance(context).command(BulkRebuildIndexCommand.class).execute(Collections.EMPTY_MAP);
-		}
 
 		if (!missingPrincipals.isEmpty()) {
 
@@ -681,14 +671,15 @@ public class DeployDataCommand extends DeployCommand {
 						}
 					}
 
-					entry.put("sourceId", rel.getSourceNodeId());
-					entry.put("targetId", rel.getTargetNodeId());
-
 					final PropertyContainer pc = rel.getPropertyContainer();
 
 					for (final String key : pc.getPropertyKeys()) {
 						putData(entry, key, pc.getProperty(key));
 					}
+
+					entry.put("sourceId", rel.getSourceNodeId());
+					entry.put("targetId", rel.getTargetNodeId());
+					entry.put("relType",  rel.getProperty("relType"));
 
 					addRelationshipToMap(rel.getClass().getSimpleName(), entry);
 
@@ -768,6 +759,11 @@ public class DeployDataCommand extends DeployCommand {
 
 						final PropertyContainer pc = r.getPropertyContainer();
 						pc.setProperties(entry);
+
+						// finally, add affected graph objects to index
+						r.addToIndex();
+						sourceNode.addToIndex();
+						targetNode.addToIndex();
 					}
 				}
 
@@ -854,6 +850,7 @@ public class DeployDataCommand extends DeployCommand {
 						final Class type      = ((typeName == null || defaultTypeName.equals(typeName)) ? defaultType : SchemaHelper.getEntityClassForRawType(typeName));
 
 						if (type == null) {
+
 							logger.warn("Skipping node {}. Type cannot be found: {}!", id, typeName);
 
 							missingTypesForImport.add(typeName);
@@ -874,6 +871,9 @@ public class DeployDataCommand extends DeployCommand {
 
 						final PropertyContainer pc = basicNode.getPropertyContainer();
 						pc.setProperties(entry);
+
+						// finally, add node to index
+						basicNode.addToIndex();
 					}
 
 					tx.success();
@@ -884,7 +884,7 @@ public class DeployDataCommand extends DeployCommand {
 				} catch (FrameworkException fex) {
 
 					logger.error("Unable to import nodes for type {}. Cause: {}", defaultTypeName, fex.toString());
-					publishWarningMessage("Unable to import relationships for type " + defaultTypeName, fex.toString());
+					publishWarningMessage("Unable to import nodes for type " + defaultTypeName, fex.toString());
 				}
 			}
 		}

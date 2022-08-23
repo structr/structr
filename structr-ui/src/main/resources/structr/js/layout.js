@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var _Layout = {
+let _Layout = {
 
 	timeout: -1,
 	leftOffset: 25,
@@ -27,7 +27,7 @@ var _Layout = {
 		_Layout.timeout = window.setInterval(function() {
 
 			_Layout.doForceLayout(nodes, rels, 0.01);
-			instance.repaintEverything();
+			_Schema.ui.jsPlumbInstance.repaintEverything();
 
 		}, 10);
 	},

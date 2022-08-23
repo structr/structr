@@ -101,7 +101,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	public void afterCreation(SecurityContext securityContext) {}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {}
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {}
 
 	@Override
 	public void afterDeletion(SecurityContext securityContext, PropertyMap properties) {}

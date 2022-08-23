@@ -58,9 +58,10 @@ public class SessionHelper {
 
 		try {
 
-			final long lastAccessed = session.getLastAccessedTime();
+			final long lastAccessed  = session.getLastAccessedTime();
+			final int sessionTimeout = Services.getGlobalSessionTimeout();
 
-			if (now > lastAccessed + Services.getGlobalSessionTimeout() * 1000) {
+			if (sessionTimeout > 0 && now > lastAccessed + sessionTimeout * 1000) {
 
 				logger.debug("Session {} timed out, last accessed at {}", new Object[]{session.getId(), Instant.ofEpochMilli(lastAccessed).toString()});
 				return true;
@@ -72,20 +73,11 @@ public class SessionHelper {
 
 			return true;
 		}
-
 	}
 
 	public static HttpSession getSessionBySessionId(final String sessionId) throws FrameworkException {
 
-		try {
-
-			return Services.getInstance().getService(HttpService.class, "default").getSessionCache().get(sessionId);
-
-		} catch (final Exception ex) {
-			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
-		}
-
-		return null;
+		return getSessionFromCache(sessionId);
 	}
 
 	public static void newSession(final HttpServletRequest request) {
@@ -125,8 +117,8 @@ public class SessionHelper {
 		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
 
 		try {
-			for (final Principal p : query.getAsList()) {
 
+			for (final Principal p : query.getAsList()) {
 				p.removeSessionId(sessionId);
 			}
 
@@ -135,6 +127,12 @@ public class SessionHelper {
 			logger.warn("Error while removing sessionId " + sessionId + " from all principals", fex);
 		}
 
+		// also remove short session id if the current session id is the long session id
+		final String shortSessionId = getShortSessionId(sessionId);
+		if (!sessionId.equals(shortSessionId)) {
+
+			clearSession(shortSessionId);
+		}
 	}
 
 	/**
@@ -151,20 +149,15 @@ public class SessionHelper {
 
 		if (sessionIds != null && sessionIds.length > 0) {
 
-			final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
+			final SessionCache sessionCache = getDefaultSessionCache();
 
 			for (final String sessionId : sessionIds) {
 
-				HttpSession session = null;
-				try {
-					session = sessionCache.get(sessionId);
-
-				} catch (Exception ex) {
-					logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
-				}
+				HttpSession session = getSessionFromCache(sessionCache, sessionId);
 
 				if (session == null || SessionHelper.isSessionTimedOut(session)) {
 					SessionHelper.clearSession(sessionId);
+					SessionHelper.invalidateSession(sessionId);
 				}
 			}
 		}
@@ -188,21 +181,10 @@ public class SessionHelper {
 
 			if (sessionIds != null && sessionIds.length > 0) {
 
-				final SessionCache sessionCache = Services.getInstance().getService(HttpService.class, "default").getSessionCache();
-
 				for (final String sessionId : sessionIds) {
 
-					HttpSession session = null;
-					try {
-						session = sessionCache.get(sessionId);
-
-					} catch (Exception ex) {
-						logger.warn("Unable to retrieve session " + sessionId + " from session cache:", ex);
-					}
-
-					if (session == null) {
-						SessionHelper.clearSession(sessionId);
-					}
+					SessionHelper.clearSession(sessionId);
+					SessionHelper.invalidateSession(sessionId);
 				}
 			}
 		}
@@ -225,9 +207,9 @@ public class SessionHelper {
 			tx.success();
 
 		} catch (final FrameworkException ex) {
+
 			logger.warn("Removing all session ids failed: {}", ex);
 		}
-
 	}
 
 	public static void invalidateSession(final String sessionId) {
@@ -235,7 +217,8 @@ public class SessionHelper {
 		if (sessionId != null) {
 
 			try {
-				Services.getInstance().getService(HttpService.class, "default").getSessionCache().delete(sessionId);
+
+				getDefaultSessionCache().delete(sessionId);
 
 			} catch (final Exception ex) {
 
@@ -246,126 +229,147 @@ public class SessionHelper {
 
 	public static Principal checkSessionAuthentication(final HttpServletRequest request) throws FrameworkException {
 
-			String requestedSessionId = request.getRequestedSessionId();
-			String sessionId          = null;
+		String requestedSessionId = request.getRequestedSessionId();
+		String sessionId          = null;
 
-			logger.debug("0. Requested session id: " + requestedSessionId + ", request says is valid? " + request.isRequestedSessionIdValid());
+		logger.debug("0. Requested session id: " + requestedSessionId + ", request says is valid? " + request.isRequestedSessionIdValid());
 
-			//HttpSession session       = request.getSession(false);
-			boolean isNotTimedOut      = false;
+		//HttpSession session       = request.getSession(false);
+		boolean isNotTimedOut      = false;
 
-			if (requestedSessionId == null) {
+		if (requestedSessionId == null) {
 
-				logger.debug("1b. Empty requested session id, creating a new one.");
+			logger.debug("1b. Empty requested session id, creating a new one.");
 
-				// No session id requested => create new session
+			// No session id requested => create new session
+			SessionHelper.newSession(request);
+
+			// Store info in request that session is new => saves us a lookup later
+			request.setAttribute(SESSION_IS_NEW, true);
+
+			// we just created a totally new session, there can't
+			// be a user with this session ID, so don't search.
+			return null;
+
+		} else {
+
+			requestedSessionId = getShortSessionId(requestedSessionId);
+
+			// Existing session id, check if we have an existing session
+			if (request.getSession(false) != null) {
+
+				logger.debug("1a. Requested session id without worker id suffix: " + requestedSessionId);
+
+				sessionId = request.getSession(false).getId();
+				logger.debug("2a. Current session id: " + sessionId);
+
+				if (sessionId.equals(requestedSessionId)) {
+
+					logger.debug("3a. Current session id equals requested session id");
+
+				} else {
+
+					logger.debug("3b. Current session id does not equal requested session id.");
+				}
+
+			} else {
+
+				logger.debug("2b. Current session is null.");
+
+				// Try to find session in session cache
+				if (getSessionBySessionId(requestedSessionId) == null) {
+
+					// Not found, create new
+					SessionHelper.newSession(request);
+					logger.debug("3a. Created new session");
+
+					// remove session ID without session
+					SessionHelper.clearSession(requestedSessionId);
+					logger.debug("4. Cleared unknown session " + requestedSessionId);
+
+					// we just created a totally new session, there can't
+					// be a user with this session ID, so don't search.
+					return null;
+
+				} else  {
+					logger.debug("3b. Session with requested id " + requestedSessionId + " found, continuing.");
+
+					sessionId = requestedSessionId;
+
+				}
+			}
+
+			if (SessionHelper.isSessionTimedOut(request.getSession(false))) {
+
+				isNotTimedOut = false;
+
+				// invalidate session
+				SessionHelper.invalidateSession(sessionId);
+
+				// remove invalid session ID
+				SessionHelper.clearSession(sessionId);
+
+				logger.debug("4a. Cleared timed-out session " + sessionId);
+
 				SessionHelper.newSession(request);
-
-				// Store info in request that session is new => saves us a lookup later
-				request.setAttribute(SESSION_IS_NEW, true);
-
 				// we just created a totally new session, there can't
 				// be a user with this session ID, so don't search.
 				return null;
 
 			} else {
 
-				requestedSessionId = getShortSessionId(requestedSessionId);
+				logger.debug("4b. Session " + sessionId + " is not timed-out.");
 
-				// Existing session id, check if we have an existing session
-				if (request.getSession(false) != null) {
+				isNotTimedOut = true;
+			}
+		}
 
-					logger.debug("1a. Requested session id without worker id suffix: " + requestedSessionId);
+		final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
 
-					sessionId = request.getSession(false).getId();
-					logger.debug("2a. Current session id: " + sessionId);
+		if (isNotTimedOut) {
 
-					if (sessionId.equals(requestedSessionId)) {
+			//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
+			return user;
 
-						logger.debug("3a. Current session id equals requested session id");
-					} else {
+		} else {
 
-						logger.debug("3b. Current session id does not equal requested session id.");
-					}
+			if (user != null) {
 
-				} else {
-
-					logger.debug("2b. Current session is null.");
-
-					// Try to find session in session cache
-					if (getSessionBySessionId(requestedSessionId) == null) {
-
-						// Not found, create new
-						SessionHelper.newSession(request);
-						logger.debug("3a. Created new session");
-
-						// remove session ID without session
-						SessionHelper.clearSession(requestedSessionId);
-						logger.debug("4. Cleared unknown session " + requestedSessionId);
-
-						// we just created a totally new session, there can't
-						// be a user with this session ID, so don't search.
-						return null;
-
-					} else  {
-						logger.debug("3b. Session with requested id " + requestedSessionId + " found, continuing.");
-
-						sessionId = requestedSessionId;
-
-					}
-
-				}
-
-				if (SessionHelper.isSessionTimedOut(request.getSession(false))) {
-
-					isNotTimedOut = false;
-
-					// invalidate session
-					SessionHelper.invalidateSession(sessionId);
-
-					// remove invalid session ID
-					SessionHelper.clearSession(sessionId);
-
-					logger.debug("4a. Cleared timed-out session " + sessionId);
-
-					SessionHelper.newSession(request);
-					// we just created a totally new session, there can't
-					// be a user with this session ID, so don't search.
-					return null;
-
-
-				} else {
-
-					logger.debug("4b. Session " + sessionId + " is not timed-out.");
-
-					isNotTimedOut = true;
-				}
+				//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
+				logger.debug("Logging out user {}", new Object[]{user});
+				AuthHelper.doLogout(request, user);
+				try { request.logout(); } catch (Throwable t) {}
 			}
 
-			final Principal user = AuthHelper.getPrincipalForSessionId(sessionId);
+			SessionHelper.newSession(request);
 
-			if (isNotTimedOut) {
-
-				//logger.debug("Valid session found: {}, last accessed {}, authenticated with user {}", new Object[]{session, session.getLastAccessedTime(), user});
-				return user;
-
-			} else {
-
-				if (user != null) {
-
-					//logger.info("Timed-out session: {}, last accessed {}, authenticated with user {}", new Object[]{session, (session != null ? session.getLastAccessedTime() : ""), user});
-					logger.debug("Logging out user {}", new Object[]{user});
-					AuthHelper.doLogout(request, user);
-					try { request.logout(); } catch (Throwable t) {}
-				}
-
-				SessionHelper.newSession(request);
-
-				return null;
-			}
+			return null;
+		}
 	}
 
 	public static String getShortSessionId(final String sessionId) {
 		return StringUtils.substringBeforeLast(sessionId, ".");
+	}
+
+	private static SessionCache getDefaultSessionCache() {
+		return Services.getInstance().getService(HttpService.class, "default").getSessionCache();
+	}
+
+	private static HttpSession getSessionFromCache(final String sessionId) {
+
+		return getSessionFromCache(getDefaultSessionCache(), sessionId);
+	}
+
+	private static HttpSession getSessionFromCache(final SessionCache sessionCache, final String sessionId) {
+
+		try {
+
+			return sessionCache.get(sessionId);
+
+		} catch (final Exception ex) {
+			logger.debug("Unable to retrieve session " + sessionId + " from session cache:", ex);
+		}
+
+		return null;
 	}
 }

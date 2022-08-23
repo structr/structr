@@ -133,6 +133,16 @@
 									</mapper>
 								</data>
 
+<!--								<data>-->
+<!--									<src>${basedir}/src/main/deb/systemd</src>-->
+<!--									<type>directory</type>-->
+<!--									<mapper>-->
+<!--										<type>perm</type>-->
+<!--										<prefix>/lib/systemd/system/</prefix>-->
+<!--										<filemode>755</filemode>-->
+<!--									</mapper>-->
+<!--								</data>-->
+
 								<data>
 									<src>${basedir}/src/main/deb/logrotate.d</src>
 									<type>directory</type>
@@ -168,17 +178,56 @@
 				</executions>
 			</plugin>
 			<plugin>
-				<groupId>com.spotify</groupId>
-				<artifactId>dockerfile-maven-plugin</artifactId>
-				<version>1.4.13</version>
+				<groupId>io.fabric8</groupId>
+				<artifactId>docker-maven-plugin</artifactId>
+				<version>0.40.2</version>
+				<configuration>
+					<skip>${skipDocker}</skip>
+					<images>
+						<image>
+							<name>structr/structr:${project.version}</name>
+							<registry>https://index.docker.io/v1/</registry>
+							<build>
+								<contextDir>${project.basedir}</contextDir>
+								<args>
+									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+								</args>
+								<buildx>
+									<platforms>
+										<platform>linux/amd64</platform>
+										<platform>linux/arm64</platform>
+									</platforms>
+								</buildx>
+							</build>
+						</image>
+						<image>
+							<name>structr/structr:python-${project.version}</name>
+							<registry>https://index.docker.io/v1/</registry>
+							<build>
+								<skip>${skipPythonDocker}</skip>
+								<contextDir>${project.basedir}</contextDir>
+								<dockerFile>Dockerfile-Python</dockerFile>
+								<args>
+									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
+								</args>
+								<buildx>
+									<platforms>
+										<platform>linux/amd64</platform>
+									</platforms>
+								</buildx>
+							</build>
+						</image>
+					</images>
+				</configuration>
 				<executions>
 					<execution>
-						<id>package</id>
+						<id>docker:build</id>
 						<phase>install</phase>
 						<goals>
 							<goal>build</goal>
 							<goal>push</goal>
 						</goals>
+
 					</execution>
 					<execution>
 						<id>tag-latest</id>
@@ -193,14 +242,6 @@
 						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<repository>structr/structr</repository>
-					<tag>${project.version}</tag>
-					<skip>${skipDocker}</skip>
-					<buildArgs>
-						<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
-					</buildArgs>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>

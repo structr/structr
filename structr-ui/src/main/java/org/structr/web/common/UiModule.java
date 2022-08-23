@@ -102,6 +102,7 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new RemoveResponseHeaderFunction());
 		Functions.put(licenseManager, new SetResponseCodeFunction());
 		Functions.put(licenseManager, new GetRequestHeaderFunction());
+		Functions.put(licenseManager, new ValidateCertificatesFunction());
 		Functions.put(licenseManager, new GetCookieFunction());
 		Functions.put(licenseManager, new SetCookieFunction());
 		Functions.put(licenseManager, new FromXmlFunction());
@@ -132,6 +133,8 @@ public class UiModule implements StructrModule {
 		Functions.put(licenseManager, new BroadcastEventFunction());
 
 		Functions.put(licenseManager, new GraphQLFunction());
+
+		Functions.put(licenseManager, new SystemInfoFunction());
 	}
 
 	@Override

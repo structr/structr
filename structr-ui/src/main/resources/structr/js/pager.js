@@ -113,11 +113,12 @@ let _Pager = {
 
 		return false;
 	},
-	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, prepend) {
+	addPager: function (id, el, rootOnly, type, view, callback, optionalTransportFunction, customView, prepend, startPaused) {
 
-		let pager = new Pager(id, el, rootOnly, type, view, callback, prepend);
+		let pager = new Pager(id, el, rootOnly, type, view, callback, prepend, startPaused);
 
-		pager.transportFunction = function() {
+		pager.transportFunction = () => {
+
 			let filterAttrs = pager.getNonEmptyFilterAttributes();
 
 			let isExactPager = false;
@@ -130,16 +131,21 @@ let _Pager = {
 				isExactPager = (inExactKeys.length === 0);
 			}
 
-			if (typeof optionalTransportFunction === "function") {
-				optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
-			} else {
+			if (!pager.isPaused()) {
 
-				// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
-				if (pager.type === 'Page') {
-					filterAttrs['!name'] = '__ShadowDocument__';
+				if (typeof optionalTransportFunction === "function") {
+
+					optionalTransportFunction(id, _Pager.pageSize[id], _Pager.page[id], filterAttrs, pager.internalCallback);
+
+				} else {
+
+					// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
+					if (pager.type === 'Page') {
+						filterAttrs['!name'] = '__ShadowDocument__';
+					}
+
+					Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 				}
-
-				Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
 			}
 		};
 
@@ -149,17 +155,19 @@ let _Pager = {
 	}
 };
 
-let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
+let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaused = false) {
 
-	var pagerObj = this;
+	let pagerObj = this;
 
 	// Parameters
-	this.el = el;
+	this.el       = $(el);
 	this.filterEl = undefined; // if set, use this as container for filters
 	this.rootOnly = rootOnly;
-	this.id = id;
-	this.type = type;
-	this.view = view;
+	this.id       = id;
+	this.type     = type;
+	this.view     = view;
+	this.paused   = startPaused;
+
 	if (!callback) {
 		this.callback = function(entities) {
 			for (let entity of entities) {
@@ -174,20 +182,28 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 		_Pager.pagerFilters[this.id] = {};
 	}
 
+	this.isPaused = () => {
+		return this.paused;
+	};
+
+	this.setIsPaused = (paused) => {
+		this.paused = paused;
+	}
+
 	this.internalCallback = function (result, count) {
 
 		_Pager.rawResultCount[pagerObj.id] = count;
 		_Pager.pageCount[pagerObj.id] = Math.max(1, Math.ceil(_Pager.rawResultCount[pagerObj.id] / _Pager.pageSize[pagerObj.id]));
-		pagerObj.pageCount.val(_Pager.pageCount[pagerObj.id]);
+		pagerObj.pageCount.value = _Pager.pageCount[pagerObj.id];
 
 		if (_Pager.page[pagerObj.id] < 1) {
 			_Pager.page[pagerObj.id] = 1;
-			pagerObj.pageNo.val(_Pager.page[pagerObj.id]);
+			pagerObj.pageNo.value = _Pager.page[pagerObj.id];
 		}
 
 		if (_Pager.page[pagerObj.id] > _Pager.pageCount[pagerObj.id]) {
 			_Pager.page[pagerObj.id] = _Pager.pageCount[pagerObj.id];
-			pagerObj.pageNo.val(_Pager.page[pagerObj.id]);
+			pagerObj.pageNo.value = _Pager.page[pagerObj.id];
 		}
 
 		pagerObj.updatePager(pagerObj.id, dialog.is(':visible') ? dialog : undefined);
@@ -199,21 +215,21 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 
 		_Pager.restorePagerData(this.id);
 
-		let pagerHtml = '<div class="pager pager' + this.id + '" style="clear: both">'
-			+ '<i class="pageLeft fa fa-angle-left"></i>'
-			+ '<span class="pageWrapper">'
-			+ '<input class="pageNo" value="' + _Pager.page[this.id] + '">'
-			+ '<span class="of">of</span>'
-			+ '<input readonly="readonly" class="readonly pageCount" type="text" size="2">'
-			+ '</span>'
-			+ '<i class="pageRight fa fa-angle-right"></i>'
-			+ ' Items: <select class="pageSize">'
-			+ '<option' + (_Pager.pageSize[this.id] === 5 ? ' selected' : '') + '>5</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 10 ? ' selected' : '') + '>10</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 25 ? ' selected' : '') + '>25</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 50 ? ' selected' : '') + '>50</option>'
-			+ '<option' + (_Pager.pageSize[this.id] === 100 ? ' selected' : '') + '>100</option>'
-			+ '</select></div>';
+		let pagerHtml = `
+			<div class="pager pager${this.id} flex items-center">
+				${_Icons.getSvgIcon('chevron-left', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageLeft', 'mr-1']))}
+				<span class="pageWrapper">
+					<input class="pageNo" value="${_Pager.page[this.id]}">
+					<span class="of">of</span>
+					<input readonly="readonly" class="readonly pageCount" type="text" size="2">
+				</span>
+				${_Icons.getSvgIcon('chevron-right', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageRight', 'ml-1']))}
+				<span class="ml-2 mr-1">Items:</span>
+				<select class="pageSize mr-4 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${[5, 10, 25, 50, 100].map((pageSize) => `<option${(_Pager.pageSize[this.id] === pageSize ? ' selected' : '')}>${pageSize}</option>`).join('')}
+				</select>
+			</div>
+		`;
 
 		if (prepend === true) {
 			this.el.prepend(pagerHtml);
@@ -221,24 +237,25 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			this.el.append(pagerHtml);
 		}
 
-		this.pager     = $('.pager' + this.id, this.el);
-		this.pageLeft  = $('.pageLeft', this.pager);
-		this.pageRight = $('.pageRight', this.pager);
-		this.pageNo    = $('.pageNo', this.pager);
-		this.pageSize  = $('.pageSize', this.pager);
-		this.pageCount = $('.pageCount', this.pager);
+		this.pager     = this.el[0].querySelector('.pager' + this.id);
+		this.pageLeft  = this.pager.querySelector('.pageLeft');
+		this.pageRight = this.pager.querySelector('.pageRight');
+		this.pageNo    = this.pager.querySelector('.pageNo');
+		this.pageSize  = this.pager.querySelector('.pageSize');
+		this.pageCount = this.pager.querySelector('.pageCount');
 
-		this.pageSize.on('change', function(e) {
-			_Pager.pageSize[pagerObj.id] = $(this).val();
-			_Pager.page[pagerObj.id] = 1;
+		this.pageSize.addEventListener('change', (e) => {
+			_Pager.pageSize[pagerObj.id] = this.pageSize.value;
+			_Pager.page[pagerObj.id]     = 1;
+
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
 		});
 
-		let limitPager = function(inputEl) {
-			let val = parseInt($(inputEl).val());
+		let limitPager = (inputEl) => {
+			let val = parseInt(inputEl.value);
 			if (val < 1 || val > _Pager.pageCount[pagerObj.id]) {
-				$(inputEl).val(_Pager.page[pagerObj.id]);
+				inputEl.value = _Pager.page[pagerObj.id];
 			} else {
 				_Pager.page[pagerObj.id] = val;
 			}
@@ -246,31 +263,31 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 			pagerObj.transportFunction();
 		};
 
-		this.pageNo.on('keypress', function(e) {
+		this.pageNo.addEventListener('keypress', (e) => {
 			if (e.keyCode === 13) {
-				limitPager(this);
+				limitPager(this.pageNo);
 			}
 		});
 
-		this.pageNo.on('change', function(e) {
-			if (e.target.classList.contains('disabled')) return;
-			limitPager(this);
+		this.pageNo.addEventListener('change', (e) => {
+			if (this.pageNo.classList.contains('disabled')) return;
+			limitPager(this.pageNo);
 		});
 
-		this.pageNo.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
-			e.target.select();
+		this.pageNo.addEventListener('click', (e) => {
+			if (this.pageNo.classList.contains('disabled')) return;
+			this.pageNo.select();
 		});
 
-		this.pageLeft.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+		this.pageLeft.addEventListener('click', (e) => {
+			if (this.pageLeft.classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]--;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
 		});
 
-		this.pageRight.on('click', function(e) {
-			if (e.target.classList.contains('disabled')) return;
+		this.pageRight.addEventListener('click', (e) => {
+			if (this.pageRight.classList.contains('disabled')) return;
 			_Pager.page[pagerObj.id]++;
 			pagerObj.updatePagerElements();
 			pagerObj.transportFunction();
@@ -285,21 +302,27 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 	this.updatePager = function() {
 
 		if (_Pager.page[this.id] === 1) {
-			this.pageLeft.attr('disabled', 'disabled').addClass('disabled');
+			this.pageLeft.disabled = true;
+			this.pageLeft.classList.add('disabled');
 		} else {
-			this.pageLeft.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageLeft.disabled = false;
+			this.pageLeft.classList.remove('disabled');
 		}
 
 		if (_Pager.pageCount[this.id] === 1 || (_Pager.page[this.id] === _Pager.pageCount[this.id])) {
-			this.pageRight.attr('disabled', 'disabled').addClass('disabled');
+			this.pageRight.disabled = true;
+			this.pageRight.classList.add('disabled');
 		} else {
-			this.pageRight.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageRight.disabled = false;
+			this.pageRight.classList.remove('disabled');
 		}
 
 		if (_Pager.pageCount[this.id] === 1) {
-			this.pageNo.attr('disabled', 'disabled').addClass('disabled');
+			this.pageNo.disabled = true;
+			this.pageNo.classList.add('disabled');
 		} else {
-			this.pageNo.removeAttr('disabled', 'disabled').removeClass('disabled');
+			this.pageNo.disabled = false;
+			this.pageNo.classList.remove('disabled');
 		}
 
 		_Pager.storePagerData(this.id, _Pager.pagerType[this.id], _Pager.page[this.id], _Pager.pageSize[this.id], _Pager.sortKey[this.id], _Pager.sortOrder[this.id], _Pager.pagerFilters[this.id]);
@@ -309,8 +332,8 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 	 * Gets called whenever a change has been made (i.e. button has been pressed)
 	 */
 	this.updatePagerElements = function () {
-		$('.pageNo',   this.pager).val(_Pager.page[this.id]);
-		$('.pageSize', this.pager).val(_Pager.pageSize[this.id]);
+		this.pageNo.value   = _Pager.page[this.id];
+		this.pageSize.value = _Pager.pageSize[this.id];
 
 		this.cleanupFunction();
 	};
@@ -329,6 +352,10 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend) {
 	 */
 	this.cleanupFunction = function () {
 		$('.node', pagerObj.el).remove();
+	};
+
+	this.appendFilterElements = (markup) => {
+		this.pager.insertAdjacentHTML('beforeend', markup);
 	};
 
 	/**

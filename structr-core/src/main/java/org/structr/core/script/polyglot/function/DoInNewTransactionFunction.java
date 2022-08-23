@@ -74,6 +74,7 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 						}
 
 						try {
+
 							innerContext.enter();
 
 							// Execute batch function until it returns anything but true
@@ -88,10 +89,11 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 
 									hasError = true;
 									exception = ex;
+
 									// Log if no error handler is given
 									if (unwrappedArgs.length < 2 || !(unwrappedArgs[1] instanceof PolyglotWrapper.FunctionWrapper)) {
 
-										Function.logException(logger, ex, "Error in transaction function: {}", new Object[]{ex.getMessage()});
+										Function.logException(logger, ex, "Error in doInNewTransaction(): {}", new Object[]{ ex.toString() });
 									}
 								}
 

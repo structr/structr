@@ -48,6 +48,11 @@ public class FindSortFunction extends AdvancedScriptingFunction {
 				case 1: sortKey        = sources[0].toString();
 			}
 
+			if (sortKey.contains(".")) {
+
+				return new SortPathPredicate(sortKey, sortDescending);
+			}
+
 			return new SortPredicate(sortKey, sortDescending);
 
 		} catch (final IllegalArgumentException e) {

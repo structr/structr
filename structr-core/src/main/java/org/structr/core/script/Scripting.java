@@ -35,7 +35,6 @@ import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.common.event.RuntimeUsageLog;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -71,81 +70,72 @@ public class Scripting {
 			return null;
 		}
 
-		try {
+		// don't parse empty values
+		if (StringUtils.isEmpty(rawValue.toString())) {
 
-			RuntimeUsageLog.enter(entity, methodName);
+			return "";
+		}
 
-			// don't parse empty values
-			if (StringUtils.isEmpty(rawValue.toString())) {
+		boolean valueWasNull = true;
+		String value;
 
-				return "";
-			}
+		if (rawValue instanceof String) {
 
-			boolean valueWasNull = true;
-			String value;
+			value = (String) rawValue;
 
-			if (rawValue instanceof String) {
+			// this is a very important check here, the ActionContext can be set to "raw" mode
+			if (!actionContext.returnRawValue()) {
 
-				value = (String) rawValue;
+				final List<Tuple> replacements = new LinkedList<>();
 
-				// this is a very important check here, the ActionContext can be set to "raw" mode
-				if (!actionContext.returnRawValue()) {
+				for (final String expression : extractScripts(value)) {
 
-					final List<Tuple> replacements = new LinkedList<>();
+					try {
 
-					for (final String expression : extractScripts(value)) {
+						final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
+						String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
 
-						try {
+						// non-null value?
+						valueWasNull &= extractedValue == null;
 
-							final Object extractedValue = evaluate(actionContext, entity, expression, methodName, 0, entity != null ? entity.getUuid() : null);
-							String partValue            = extractedValue != null ? formatToDefaultDateOrString(extractedValue) : "";
+						if (partValue != null) {
 
-							// non-null value?
-							valueWasNull &= extractedValue == null;
+							replacements.add(new Tuple(expression, partValue));
 
-							if (partValue != null) {
+						} else {
 
-								replacements.add(new Tuple(expression, partValue));
-
-							} else {
-
-								if (!value.equals(expression)) {
-									replacements.add(new Tuple(expression, ""));
-								}
+							if (!value.equals(expression)) {
+								replacements.add(new Tuple(expression, ""));
 							}
-
-						} catch (UnlicensedScriptException ex) {
-							ex.log(logger);
 						}
-					}
 
-					// apply replacements
-					for (final Tuple tuple : replacements) {
-
-						// only replace a single occurrence at a time!
-						value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
+					} catch (UnlicensedScriptException ex) {
+						ex.log(logger);
 					}
 				}
 
-			} else if (rawValue instanceof Boolean) {
+				// apply replacements
+				for (final Tuple tuple : replacements) {
 
-				value = Boolean.toString((Boolean) rawValue);
-
-			} else {
-
-				value = rawValue.toString();
+					// only replace a single occurrence at a time!
+					value = StringUtils.replaceOnce(value, tuple.key, tuple.value);
+				}
 			}
 
-			if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
-				return null;
-			}
+		} else if (rawValue instanceof Boolean) {
 
-			return value;
+			value = Boolean.toString((Boolean) rawValue);
 
-		} finally {
+		} else {
 
-			RuntimeUsageLog.leave(entity);
+			value = rawValue.toString();
 		}
+
+		if (returnNullValueForEmptyResult && valueWasNull && StringUtils.isBlank(value)) {
+			return null;
+		}
+
+		return value;
 	}
 
 	public static Object evaluate(final ActionContext actionContext, final GraphObject entity, final String input, final String methodName) throws FrameworkException, UnlicensedScriptException {
@@ -167,98 +157,91 @@ public class Scripting {
 			return null;
 		}
 
-		try {
+		boolean isScriptEngine = false;
+		String engine = "";
 
-			RuntimeUsageLog.enter(entity, methodName);
+		if (!isJavascript) {
 
-			boolean isScriptEngine = false;
-			String engine = "";
+			final Matcher matcher = ScriptEngineExpression.matcher(expression);
+			if (matcher.matches()) {
 
-			if (!isJavascript) {
+				engine = matcher.group(1);
+				source = matcher.group(2);
 
-				final Matcher matcher = ScriptEngineExpression.matcher(expression);
-				if (matcher.matches()) {
+				logger.debug("Scripting engine {} requested.", engine);
 
-					engine = matcher.group(1);
-					source = matcher.group(2);
+				isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
+				isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
+			}
+		}
 
-					logger.debug("Scripting engine {} requested.", engine);
+		actionContext.setJavaScriptContext(isJavascript);
 
-					isJavascript = StringUtils.isBlank(engine) || "JavaScript".equals(engine);
-					isScriptEngine = !isJavascript && StringUtils.isNotBlank(engine);
+		// temporarily disable notifications for scripted actions
+
+		boolean enableTransactionNotifications = false;
+
+		final SecurityContext securityContext = actionContext.getSecurityContext();
+		if (securityContext != null) {
+
+			enableTransactionNotifications = securityContext.doTransactionNotifications();
+
+			securityContext.setDoTransactionNotifications(false);
+		}
+
+		final Snippet snippet = new Snippet(methodName, source);
+		snippet.setCodeSource(codeSource);
+		snippet.setStartRow(startRow);
+
+		if (isScriptEngine) {
+
+			return evaluateScript(actionContext, entity, engine, snippet);
+
+		} else if (isJavascript) {
+
+			final Object result = evaluateJavascript(actionContext, entity, snippet);
+
+			if (enableTransactionNotifications && securityContext != null) {
+				securityContext.setDoTransactionNotifications(true);
+			}
+
+			return result;
+
+		} else {
+
+			try {
+
+				final EvaluationHints hints = new EvaluationHints();
+				Object extractedValue       = Functions.evaluate(actionContext, entity, snippet, hints);
+				final String value          = extractedValue != null ? extractedValue.toString() : "";
+				final String output         = actionContext.getOutput();
+
+				if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
+					extractedValue = output;
 				}
-			}
-
-			actionContext.setJavaScriptContext(isJavascript);
-
-			// temporarily disable notifications for scripted actions
-
-			boolean enableTransactionNotifications = false;
-
-			final SecurityContext securityContext = actionContext.getSecurityContext();
-			if (securityContext != null) {
-
-				enableTransactionNotifications = securityContext.doTransactionNotifications();
-
-				securityContext.setDoTransactionNotifications(false);
-			}
-
-			final Snippet snippet = new Snippet(methodName, source);
-			snippet.setCodeSource(codeSource);
-			snippet.setStartRow(startRow);
-
-			if (isScriptEngine) {
-
-				return evaluateScript(actionContext, entity, engine, snippet);
-
-			} else if (isJavascript) {
-
-				final Object result = evaluateJavascript(actionContext, entity, snippet);
 
 				if (enableTransactionNotifications && securityContext != null) {
 					securityContext.setDoTransactionNotifications(true);
 				}
 
-				return result;
+				/* disabled
+				hints.checkForErrorsAndThrowException((message, row, column) -> {
+					// report usage errors (missing keys etc.)
+					reportError(actionContext.getSecurityContext(), entity, message, row, column, snippet);
+				});
+				*/
 
-			} else {
+				return extractedValue;
 
-				try {
+			} catch (StructrScriptException t) {
 
-					final EvaluationHints hints = new EvaluationHints();
-					Object extractedValue = Functions.evaluate(actionContext, entity, snippet, hints);
-					final String value = extractedValue != null ? extractedValue.toString() : "";
-					final String output = actionContext.getOutput();
+				// This block reports syntax errors in StructrScript expressions
+				// StructrScript evaluation should not throw exceptions
 
-					if (StringUtils.isEmpty(value) && output != null && !output.isEmpty()) {
-						extractedValue = output;
-					}
-
-					if (enableTransactionNotifications && securityContext != null) {
-						securityContext.setDoTransactionNotifications(true);
-					}
-
-					hints.checkForErrorsAndThrowException((message, row, column) -> {
-						// report usage errors (missing keys etc.)
-						reportError(actionContext.getSecurityContext(), entity, message, row, column, snippet);
-					});
-
-					return extractedValue;
-
-				} catch (StructrScriptException t) {
-
-					// This block reports syntax errors in StructrScript expressions
-					// StructrScript evaluation should not throw exceptions
-
-					reportError(actionContext.getSecurityContext(), entity, t.getMessage(), t.getRow(), t.getColumn(), snippet);
-				}
-
-				return null;
+				reportError(actionContext.getSecurityContext(), entity, t.getMessage(), t.getRow(), t.getColumn(), snippet);
 			}
 
-		}  finally {
-
-			RuntimeUsageLog.leave(entity);
+			return null;
 		}
 	}
 

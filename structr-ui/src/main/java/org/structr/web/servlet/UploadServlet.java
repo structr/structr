@@ -38,6 +38,7 @@ import org.apache.commons.fileupload.FileUploadException;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
@@ -54,6 +55,7 @@ import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
@@ -355,6 +357,8 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						// upload trigger
 						newFile.notifyUploadCompletion();
 
+						newFile.callOnUploadHandler(securityContext);
+
 						// store uuid
 						uuid = newFile.getUuid();
 					}
@@ -366,21 +370,20 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 				if (appendUuidOnRedirect) {
 
-					response.sendRedirect(redirectUrl + uuid);
+					sendRedirectHeader(response, redirectUrl + (redirectUrl.endsWith("/") ? "" : "/") + uuid, false);	// user-provided, should be already prefixed
 
 				} else {
 
-					response.sendRedirect(redirectUrl);
+					sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 				}
 
 			} else {
 
 				// Just write out the uuids of the new files
-				if(uuid != null) {
+				if (uuid != null) {
 					response.getWriter().write(uuid);
 				}
 			}
-
 
 		} catch (Throwable t) {
 
@@ -397,7 +400,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			} else {
 
-				logger.error("Exception while processing upload request", t);
+				if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+					// ignore exceptions which (by jettys standards) should be handled less verbosely
+				} else {
+					logger.error("Exception while processing upload request", t);
+				}
+
 				content = errorPage(t);
 
 				// set response status to 500
@@ -548,23 +556,9 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			if (origin != null && corsHeaders != null && corsMethod != null) {
 
-				// check origin
-				// ...
-
-				// allow origin
-				response.addHeader("Access-Control-Allow-Origin", origin);
-
-				// check headers
-				// ...
-
-				// allow headers
-				response.addHeader("Access-Control-Allow-Headers", corsHeaders);
-
-				// check method
-				// ...
-
-				// allow method
-				response.addHeader("Access-Control-Allow-Methods", corsMethod);
+				final Authenticator auth = getConfig().getAuthenticator();
+				// Ensure CORS settings apply by letting the authenticator examine the request.
+				auth.initializeAndExamineRequest(request, response);
 
 			} else {
 

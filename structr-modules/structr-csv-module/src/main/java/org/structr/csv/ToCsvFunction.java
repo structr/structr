@@ -48,7 +48,7 @@ public class ToCsvFunction extends CsvFunction {
 
 	@Override
 	public String getSignature() {
-		return "nodes, propertiesOrView [, d, qc, rs, i, l, ld ]";
+		return "nodes, propertiesOrView [, delimiterChar, quoteChar, recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain ]";
 	}
 
 	@Override
@@ -73,50 +73,54 @@ public class ToCsvFunction extends CsvFunction {
 			String propertyView                     = null;
 			List<String> properties                 = null;
 
-			// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-			if (nodes.size() == 0) {
-				logger.warn("to_csv(): Can not create CSV if no nodes are given!");
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return "";
-			}
-
 			switch (sources.length) {
 				case 8: headerLocalizationDomain = (String)sources[7];
-				case 7: localizeHeader = (Boolean)sources[6];
-				case 6: includeHeader = (Boolean)sources[5];
-				case 5: recordSeparator = (String)sources[4];
-				case 4: quoteChar = (String)sources[3];
-				case 3: delimiterChar = (String)sources[2];
+				case 7: localizeHeader           = (Boolean)sources[6];
+				case 6: includeHeader            = (Boolean)sources[5];
+				case 5: recordSeparator          = (String)sources[4];
+				case 4: quoteChar                = (String)sources[3];
+				case 3: delimiterChar            = (String)sources[2];
 				case 2: {
+
 					if (sources[1] instanceof String) {
-						// view is given
+
 						propertyView = (String)sources[1];
 
 					} else if (sources[1] instanceof List) {
-						// named properties are given
+
 						properties = (List)sources[1];
 
-						// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
 						if (properties.size() == 0) {
-							logger.warn("to_csv(): Can not create CSV if list of properties is empty!");
-							logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+							logger.info("to_csv(): Unable to create CSV if list of properties is empty - returning empty CSV");
 							return "";
 						}
 
 					} else {
+
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
 						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
 					}
 				}
 			}
 
+			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
+			if (nodes.size() == 0 && propertyView != null) {
+
+				logger.info("to_csv(): Can not create CSV if no nodes are given - returning empty CSV");
+				return "";
+			}
+
 			try {
 
 				final StringWriter writer = new StringWriter();
+
 				writeCsv(nodes, writer, propertyView, properties, quoteChar.charAt(0), delimiterChar.charAt(0), recordSeparator, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale());
+
 				return writer.toString();
 
 			} catch (Throwable t) {
+
 				logger.warn("to_csv(): Exception occurred", t);
 				return "";
 			}
@@ -217,7 +221,6 @@ public class ToCsvFunction extends CsvFunction {
 			}
 
 			out.append(row).append(recordSeparator).flush();
-
 		}
 
 		for (final Object obj : list) {

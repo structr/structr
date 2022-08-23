@@ -186,14 +186,13 @@ let StructrModel = {
 				_Entities.ensureExpanded(element);
 			}
 
-			var parent = element.parent();
+			let parent = element.parent();
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				var ent = Structr.entityFromElement(parent);
-				_Entities.ensureExpanded(parent);
-				_Entities.appendExpandIcon(parent, ent, true, true);
+				let ent = Structr.entityFromElement(parent);
 
+				_Entities.appendExpandIcon($(parent.children('.node-container')), ent, true, true);
 			}
 		}
 	},
@@ -400,11 +399,9 @@ let StructrModel = {
 			// update HTML 'class' and 'id' attributes
 			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
 
-				let classIdAttrsEl = element.children('span').children('.class-id-attrs');
+				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
-
-					let classIdString = _Elements.classIdString(obj._html_id, obj._html_class);
-					classIdAttrsEl.replaceWith(classIdString);
+					classIdAttrsEl.replaceWith(_Elements.classIdString(obj._html_id, obj._html_class));
 				}
 			}
 
@@ -415,18 +412,24 @@ let StructrModel = {
 			}
 
 			// update icon
-			let icon = undefined;
+			let icon   = undefined;
+			let iconEl = element.children('.typeIcon');
 			if (element.hasClass('element')) {
 
 				icon = _Elements.getElementIcon(obj);
+
+				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('content')) {
 
 				icon = _Elements.getContentIcon(obj);
 
+				iconEl = element.children('.node-container').children('.typeIcon');
+
 			} else if (element.hasClass('file')) {
 
-				icon = _Icons.getFileIconClass(obj);
+				icon = _Icons.getFileIconSVG(obj);
+				// TODO: correctly update to: _Icons.getFileIconSVG(d)
 
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
@@ -442,7 +445,6 @@ let StructrModel = {
 				}
 			}
 
-			let iconEl = element.children('.typeIcon');
 			if (icon && iconEl.length) {
 				_Icons.updateSpriteClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
 			}
@@ -471,22 +473,15 @@ let StructrModel = {
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('span').children('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
-//						element.children('.content_').off('click').on('click', function(e) {
-//							e.stopPropagation();
-//							_Entities.makeNameEditable(element);
-//						});
+						element.children('.node-container').find('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
 
-						element.children('span').children('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
-						// element.children('b.name_').off('click').on('click', function(e) {
-						// 	e.stopPropagation();
-						// 	_Entities.makeNameEditable(element);
-						// });
+						element.children('.node-container').find('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+
 					} else {
-						element.children('span').children('.name_').html(escapeTags(obj.content));
+						element.children('.node-container').find('.name_').html(escapeTags(obj.content));
 					}
 				} else {
-					element.children('span').children('.name_').attr('title', displayName).html(displayName);
+					element.children('.node-container').find('.name_').attr('title', displayName).html(displayName);
 				}
 			}
 		}
@@ -733,12 +728,15 @@ StructrGroup.prototype.removeUser = function(userId) {
 	});
 
 	if (Structr.isModuleActive(_Security)) {
-		var groupEl = $('.groupid_' + this.id);
+		let groupEl = $('.groupid_' + this.id);
 		if (groupEl && groupEl.length) {
+
 			groupEl.children('.userid_' + userId).remove();
 
 			if (this.members.length === 0) {
-				_Entities.removeExpandIcon(groupEl);
+				for (let grpEl of groupEl) {
+					_Entities.removeExpandIcon($(grpEl));
+				}
 			}
 		}
 	}
@@ -828,7 +826,7 @@ function StructrElement(data) {
 }
 
 StructrElement.prototype.appendChild = function(el) {
-	var self = this;
+	let self = this;
 	self.children.push(el);
 };
 
@@ -837,7 +835,7 @@ StructrElement.prototype.setProperty = function(key, value, recursive, callback)
 };
 
 StructrElement.prototype.removeAttribute = function(key) {
-	var self = this;
+	let self = this;
 	delete self[key];
 };
 
@@ -849,7 +847,7 @@ StructrElement.prototype.remove = function() {
 
 	if (this.parent) {
 		// remove this element from its parent object in the model
-		var modelEntity = StructrModel.obj(this.parent.id);
+		let modelEntity = StructrModel.obj(this.parent.id);
 		if (modelEntity) {
 
 			modelEntity.children = modelEntity.children.filter(function(child) {
@@ -864,7 +862,7 @@ StructrElement.prototype.remove = function() {
 	}
 
 	if (Structr.isModuleActive(_Pages)) {
-		var element = Structr.node(this.id);
+		let element = Structr.node(this.id);
 		if (this.parent) {
 			var parent = Structr.node(this.parent.id);
 		}

@@ -18,6 +18,7 @@
  */
 package org.structr.rest.servlet;
 
+import java.io.IOException;
 import java.util.Arrays;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletResponse;
@@ -66,5 +67,26 @@ public abstract class AbstractServletBase extends HttpServlet {
 		if (!services.isInitialized()) {
 			throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, services.getUnavailableMessage());
 		}
+	}
+
+	protected void sendRedirectHeader(final HttpServletResponse response, final String location) throws IOException {
+
+		sendRedirectHeader(response, location, true);
+	}
+
+	protected void sendRedirectHeader(final HttpServletResponse response, final String location, final boolean addPrefix) throws IOException {
+
+		final String locationWithSlash     = ((location.startsWith("/") ? "" : "/") + location);
+		final String finalRedirectLocation = (addPrefix ? prefixLocation(locationWithSlash) : locationWithSlash);
+
+		response.resetBuffer();
+		response.setHeader("Location", finalRedirectLocation);
+		response.setStatus(HttpServletResponse.SC_FOUND);
+		response.flushBuffer();
+	}
+
+	public static String prefixLocation (final String location) {
+
+		return Settings.applicationRootPath.getValue() + ((location.startsWith("/") ? "" : "/") + location);
 	}
 }

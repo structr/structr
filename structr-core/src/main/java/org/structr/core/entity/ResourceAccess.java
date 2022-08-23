@@ -155,7 +155,7 @@ public class ResourceAccess extends AbstractNode {
 	}
 
 	@Override
-	public void afterModification(SecurityContext securityContext) {
+	public void afterModification(SecurityContext securityContext) throws FrameworkException {
 		grantCache.clear();
 	}
 

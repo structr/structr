@@ -233,6 +233,19 @@ function blink(element, color, bgColor) {
 	var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
 	var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
 
+	let hadNoForegroundStyle = (element[0].style.color === '');
+	let hadNoBackgroundStyle = (element[0].style.backgroundColor === '');
+
+	// otherwise hover states can mess with the restoration of the "previous" colors
+	let handleElementsWithoutDirectStyle = () => {
+		if (hadNoForegroundStyle) {
+			element[0].style.color = '';
+		}
+		if (hadNoBackgroundStyle) {
+			element[0].style.backgroundColor = '';
+		}
+	};
+
 	if (!fg) {
 		element.prop('data-fg-color', oldFg);
 	}
@@ -248,18 +261,18 @@ function blink(element, color, bgColor) {
 		}, 50, function() {
 			$(this).animate({
 				color: oldFg
-			}, 1000);
+			}, 1000, handleElementsWithoutDirectStyle);
 		});
 	} else {
 
 		element.animate({
 			color: color,
 			backgroundColor: bgColor
-		}, 50, function() {
-			$(this).animate({
+		}, 50, () => {
+			element.animate({
 				color: oldFg,
 				backgroundColor: oldBg
-			}, 1000);
+			}, 1000, handleElementsWithoutDirectStyle);
 		});
 	}
 }
@@ -284,7 +297,7 @@ function getDateTimePickerFormat(rawFormat) {
 function getElementDisplayName(entity) {
 	if (!entity.name) {
 		if (entity.tag === 'option' && entity._html_value) {
-			return (entity.tag + '[value="' + entity._html_value + '"]');
+			return (entity.tag + '[value="' + escapeForHtmlAttributes(entity._html_value) + '"]');
 		}
 		return (entity.tag ? entity.tag : '[' + entity.type + ']');
 	}
@@ -542,11 +555,13 @@ let _Console = new (function() {
 				prompt: prompt + '> ',
 				keydown: function(e) {
 
-					if (e.which === 9) {
+					let event = e.originalEvent;
+
+					if (event.key === 'Tab' || event.keyCode === 9) {
 
 						let term = _terminal;
 
-						if (shiftKey) {
+						if (event.shiftKey === true) {
 
 							switch (term.consoleMode) {
 
@@ -705,7 +720,7 @@ let _Favorites = new (function () {
 		_Favorites.menu      = document.querySelector('#favs-tabs > #fav-menu');
 		_Favorites.container = document.querySelector('#favs-tabs');
 
-		let response = await fetch(rootUrl + 'me/favorites/fav');
+		let response = await fetch(Structr.rootUrl + 'me/favorites/fav');
 
 		if (response.ok) {
 
@@ -780,7 +795,7 @@ let _Favorites = new (function () {
 						}
 					};
 
-					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', $('#editor-' + id), favoriteEditorMonacoConfig);
+					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', document.getElementById('editor-' + id), favoriteEditorMonacoConfig);
 
 					dialogSaveButton.addEventListener('click', (e) => {
 						e.preventDefault();
@@ -798,7 +813,7 @@ let _Favorites = new (function () {
 							e.preventDefault();
 							e.stopPropagation();
 
-							let deleteResponse = await fetch(rootUrl + favorite.relationshipId, { method: 'DELETE' });
+							let deleteResponse = await fetch(Structr.rootUrl + favorite.relationshipId, { method: 'DELETE' });
 
 							if (deleteResponse.ok) {
 

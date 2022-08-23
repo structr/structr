@@ -117,7 +117,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String TARGET_PATH_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String OBJECT_RESOLUTION_PROPERTIES        = "HtmlServlet.resolveProperties";
 	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME = "structr-encoded-render-state";
 
 	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
@@ -508,7 +507,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 							try {
 
-								writeOutputSteam (response, buffer);
+								writeOutputStream(response, buffer);
 
 							} catch (IOException ioex) {
 								logger.warn("", ioex);
@@ -529,6 +528,10 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			logger.error("Exception while processing request: {}", fex.getMessage());
 			UiAuthenticator.writeFrameworkException(response, fex);
+
+		} catch (EofException ex) {
+
+			// ignore EofException which (by jettys standards) should be handled less verbosely
 
 		} catch (IOException ioex) {
 
@@ -943,7 +946,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		});
 	}
 
-	protected void writeOutputSteam(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
+	protected void writeOutputStream(HttpServletResponse response, StringRenderBuffer buffer) throws IOException {
 
 		response.getOutputStream().write(buffer.getBuffer().toString().getBytes("utf-8"));
 		response.getOutputStream().flush();
@@ -1196,8 +1199,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPage                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
-		final String errorPage                       = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1239,17 +1240,22 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					tx.success();
 				}
 
-				// Redirect to target page
-				if (StringUtils.isNotBlank(targetPage)) {
-					sendRelativeRedirect(response, targetPage);
+				// Redirect to target path
+				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
+
+				if (StringUtils.isNotBlank(targetPath)) {
+					sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 				}
 
 				return true;
 
 			} else {
-				// Redirect to error page
-				if (StringUtils.isNotBlank(errorPage)) {
-					sendRelativeRedirect(response, errorPage);
+
+				// Redirect to error path
+				final String errorPath = filterMaliciousRedirects(request.getParameter(ERROR_PAGE_KEY));
+
+				if (StringUtils.isNotBlank(errorPath)) {
+					sendRedirectHeader(response, errorPath, false);	// user-provided, should be already prefixed
 				}
 
 				return true;
@@ -1280,7 +1286,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		}
 
 		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
-		final String targetPath                      = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
 
 		if (RESET_PASSWORD_PAGE.equals(path)) {
 
@@ -1328,9 +1333,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 			}
 
-			// Redirect to target page
+			// Redirect to target path
+			final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
+
 			if (StringUtils.isNotBlank(targetPath)) {
-				sendRelativeRedirect(response, targetPath);
+				sendRedirectHeader(response, targetPath, false);	// user-provided, should be already prefixed
 			}
 
 			return true;
@@ -1932,15 +1939,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 		return null;
 	}
-
-	private void sendRelativeRedirect (final HttpServletResponse response, final String location) throws IOException {
-
-		response.resetBuffer();
-		response.setHeader("Location", (location.startsWith("/") ? "" : "/") + location);
-		response.setStatus(302);
-		response.flushBuffer();
-	}
-
 	// ----- nested classes -----
 	private enum AuthState {
 		NoBasicAuth, MustAuthenticate, Authenticated

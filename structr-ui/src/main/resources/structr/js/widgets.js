@@ -74,215 +74,219 @@ let _Widgets = {
 		return elements;
 	},
 
-	reloadWidgets: function() {
+	reloadWidgets: () => {
 
-		_Pages.widgetsSlideout.find(':not(.slideout-activator)').remove();
+		fastRemoveAllChildren(_Pages.widgetsSlideout);
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
 			remoteCollapsed: LSWrapper.getItem(_Widgets.remoteWidgetsCollapsedKey, false)
 		};
 
-		Structr.fetchHtmlTemplate('widgets/slideout', templateConfig, function(html) {
+		_Pages.widgetsSlideout.append(_Widgets.templates.slideout(templateConfig));
 
-			_Pages.widgetsSlideout.append(html);
+		for (let toggleLink of _Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle')) {
 
-			_Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle').forEach(function(toggleLink) {
-
-				toggleLink.addEventListener('click', function(event) {
-					let tabGroup = event.target.closest('.tab-group');
-					tabGroup.classList.toggle('collapsed');
-					LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
-				});
+			toggleLink.addEventListener('click', function(event) {
+				let tabGroup = event.target.closest('.tab-group');
+				tabGroup.classList.toggle('collapsed');
+				LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
 			});
+		}
 
-			_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
+		_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
-			$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
+		$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
+			e.preventDefault();
+			Command.create({type: 'Widget'});
+		});
+
+		_Widgets.localWidgetsEl.droppable({
+			drop: function(e, ui) {
 				e.preventDefault();
-				Command.create({type: 'Widget'});
-			});
+				e.stopPropagation();
+				_Elements.dropBlocked = true;
+				var sourceId = Structr.getId($(ui.draggable));
+				var sourceWidget = StructrModel.obj(sourceId);
 
-			_Widgets.localWidgetsEl.droppable({
-				drop: function(e, ui) {
-					e.preventDefault();
-					e.stopPropagation();
-					_Elements.dropBlocked = true;
-					var sourceId = Structr.getId($(ui.draggable));
-					var sourceWidget = StructrModel.obj(sourceId);
+				if (sourceWidget && sourceWidget.isWidget) {
 
-					if (sourceWidget && sourceWidget.isWidget) {
-						if (sourceWidget.treePath) {
-							Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, function(entity) {
+					if (sourceWidget.treePath) {
+						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, (entity) => {
+							_Elements.dropBlocked = false;
+						});
+					}
+
+				} else if (sourceId) {
+
+					fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
+
+						if (response.ok) {
+
+							let text = await response.text();
+
+							Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', text, (entity) => {
 								_Elements.dropBlocked = false;
 							});
 						}
-					} else if (sourceId) {
-						$.ajax({
-							url: viewRootUrl + sourceId + '?edit=1',
-							contentType: 'text/html',
-							statusCode: {
-								200: function(data) {
-									Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', data, function(entity) {
-										_Elements.dropBlocked = false;
-									});
-								}
-							}
-						});
-					}
+					});
 				}
-			});
+			}
+		});
 
-			_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
-			var _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', function(entities) {
-				entities.forEach(function (entity) {
-					StructrModel.create(entity, null, false);
-					_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
-				});
-			});
+		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
+		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', (entities) => {
 
-			_wPager.pager.append('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" /></span>');
-			_wPager.activateFilterElements();
+			for (let entity of entities) {
+				StructrModel.create(entity, null, false);
+				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
+			}
+		}, undefined, undefined, undefined, true);
 
-			_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);
+		_wPager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
+		_wPager.activateFilterElements();
+		_wPager.setIsPaused(false);
+		_wPager.refresh();
 
-			_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
-			_Widgets.remoteWidgetFilterEl.keyup(function (e) {
-				if (e.keyCode === 27) {
-					$(this).val('');
-				}
+		_Widgets.remoteWidgetsEl = $('#remoteWidgets', _Pages.widgetsSlideout);
 
-				_Widgets.repaintRemoteWidgets();
-			});
+		_Widgets.remoteWidgetFilterEl = $('#remoteWidgetsFilter');
+		_Widgets.remoteWidgetFilterEl.keyup(function (e) {
+			if (e.keyCode === 27) {
+				$(this).val('');
+			}
 
-			document.querySelector('#edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+			_Widgets.repaintRemoteWidgets();
+		});
 
-			_Widgets.updateWidgetServerSelector(function() {
-				_Widgets.refreshRemoteWidgets();
-			});
+		document.querySelector('.edit-widget-servers').addEventListener('click', _Widgets.showWidgetServersDialog);
+
+		_Widgets.updateWidgetServerSelector(() => {
+			_Widgets.refreshRemoteWidgets();
 		});
 	},
-	getWidgetServerUrl: function() {
+	getWidgetServerUrl: () => {
 
 		if (_Widgets.widgetServerSelector) {
 			return _Widgets.widgetServerSelector.value;
 		}
 	},
-	getConfiguredWidgetServers: function (callback) {
+	getConfiguredWidgetServers: (callback) => {
 
-		Command.getApplicationConfigurationDataNodes(_Widgets.applicationConfigurationDataNodeKey, null, function(acdns) {
+		Command.getApplicationConfigurationDataNodes(_Widgets.applicationConfigurationDataNodeKey, null, (appConfigDataNodes) => {
 
-			acdns.push({id: '', name: 'default', content: _Widgets.defaultWidgetServerUrl, editable: false});
+			appConfigDataNodes.push({id: '', name: 'default', content: _Widgets.defaultWidgetServerUrl, editable: false});
 
-			callback(acdns);
+			callback(appConfigDataNodes);
 		});
-
 	},
-	showWidgetServersDialog: function() {
+	showWidgetServersDialog: () => {
 
-		Structr.fetchHtmlTemplate('widgets/servers-dialog', {}, function(html) {
+		Structr.dialog('Widget Servers');
+		dialogText.html(_Widgets.templates.serversDialog());
 
-			Structr.dialog('Widget Servers');
-			dialogText.html(html);
+		Structr.activateCommentsInElement(dialogText[0], { helpElementCss: { 'font-size': '13px'} });
 
-			Structr.activateCommentsInElement(dialogText, {helpElementCss: { 'font-size': '13px'}});
+		_Widgets.updateWidgetServersTable();
 
-			_Widgets.updateWidgetServersTable();
+		dialogText[0].querySelector('button#save-widget-server').addEventListener('click', () => {
+			let name = document.querySelector('#new-widget-server-name').value;
+			let url  = document.querySelector('#new-widget-server-url').value;
 
-			dialogText[0].querySelector('button#save-widget-server').addEventListener('click', function () {
-				let name = document.querySelector("#new-widget-server-name").value;
-				let url = document.querySelector("#new-widget-server-url").value;
-
-				Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, function(e) {
-					_Widgets.updateWidgetServersTable();
-					_Widgets.updateWidgetServerSelector();
-				});
+			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, () => {
+				_Widgets.updateWidgetServersTable();
+				_Widgets.updateWidgetServerSelector();
 			});
 		});
-
 	},
-	updateWidgetServersTable: function() {
+	updateWidgetServersTable: () => {
 
-		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
-			Structr.fetchHtmlTemplate('widgets/servers-table', {servers: serverConfigs}, function(html) {
+			let html = _Widgets.templates.serversTable({ servers: appConfigDataNodes });
+			let container = dialogText[0].querySelector('#widget-servers-container');
 
-				let tableContainer = dialogText[0].querySelector('#widget-servers-table-container');
+			container.innerHTML = html;
 
-				tableContainer.innerHTML = html;
+			for (let deleteIcon of container.querySelectorAll('.delete')) {
 
-				tableContainer.querySelectorAll('button.delete').forEach(function(deleteButton) {
-					deleteButton.addEventListener('click', function(e) {
-						let el = e.target;
-						let tr = el.closest('tr');
-						let acdnID = tr.dataset.acdnId;
+				deleteIcon.addEventListener('click', function(e) {
 
-						Structr.confirmation('Really delete Widget Server URL?', function() {
-							Command.deleteNode(acdnID, false, function() {
-								tr.remove();
+					let el     = e.target;
+					let acdnID = el.closest('div').dataset.acdnId;
 
-								let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
-								let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
+					Structr.confirmation('Really delete Widget Server URL?', () => {
+
+						Command.deleteNode(acdnID, false, function() {
+
+							let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
+							let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
+							if (needsRefresh) {
+								LSWrapper.removeItem(_Widgets.widgetServerKey);
+							}
+
+							_Widgets.updateWidgetServerSelector(() => {
 								if (needsRefresh) {
-									LSWrapper.removeItem(_Widgets.widgetServerKey);
+									_Widgets.refreshRemoteWidgets();
 								}
-
-								_Widgets.updateWidgetServerSelector(function() {
-									if (needsRefresh) {
-										_Widgets.refreshRemoteWidgets();
-									}
-								});
-
-								$.unblockUI({
-									fadeOut: 25
-								});
-
-								_Widgets.showWidgetServersDialog();
 							});
+
+							$.unblockUI({
+								fadeOut: 25
+							});
+
+							_Widgets.showWidgetServersDialog();
 						});
+					}, () => {
+						_Widgets.showWidgetServersDialog();
 					});
 				});
+			}
 
-				tableContainer.querySelectorAll('table input').forEach(function(input) {
-					input.addEventListener('change', function(e) {
-						let el = e.target;
-						let acdnID = el.closest('tr').dataset.acdnId;
-						let key = el.dataset.key;
-						console.log(acdnID, key, el.value);
+			for (let input of container.querySelectorAll('input')) {
 
-						Command.setProperty(acdnID, key, el.value, false, function(e) {
+				input.addEventListener('change', (e) => {
+					let el     = e.target;
+					let acdnID = el.closest('div').dataset.acdnId;
+					let key    = el.dataset.key;
 
-							blinkGreen($(el));
+					Command.setProperty(acdnID, key, el.value, false, () => {
 
-							_Widgets.updateWidgetServerSelector();
-						});
+						blinkGreen($(el));
+
+						_Widgets.updateWidgetServerSelector();
 					});
 				});
-			});
+			}
 		});
 	},
-	updateWidgetServerSelector: function(callback) {
+	updateWidgetServerSelector: (callback) => {
 
-		_Widgets.getConfiguredWidgetServers(function(serverConfigs) {
+		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
 			let templateConfig = {
-				servers: serverConfigs,
+				servers: appConfigDataNodes,
 				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
 			};
 
-			Structr.fetchHtmlTemplate('widgets/servers-selector', templateConfig, function(html) {
+			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
+
+			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parent) {
+
+				_Widgets.widgetServerSelector.replaceWith(newElement);
+
+			} else {
 
 				let selectorContainer = document.querySelector('#widget-server-selector-container');
+				selectorContainer.prepend(newElement);
+			}
 
-				selectorContainer.innerHTML = html;
+			_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
+			_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
 
-				_Widgets.widgetServerSelector = document.querySelector('#widget-server-selector');
-				_Widgets.widgetServerSelector.addEventListener('change', _Widgets.refreshRemoteWidgets);
-
-				if (typeof callback === 'function') {
-					callback();
-				}
-			});
+			if (typeof callback === 'function') {
+				callback();
+			}
 		});
 	},
 	refreshRemoteWidgets: function() {
@@ -316,7 +320,7 @@ let _Widgets = {
 			new MessageBuilder().warning().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
 		}
 	},
-	repaintRemoteWidgets: function () {
+	repaintRemoteWidgets: () => {
 
 		_Widgets.remoteWidgetFilterEl.show();
 		let search = _Widgets.remoteWidgetFilterEl.val();
@@ -326,43 +330,42 @@ let _Widgets = {
 
 			search = search.toLowerCase();
 
-			_Widgets.remoteWidgetData.forEach(function (obj) {
+			for (let obj of _Widgets.remoteWidgetData) {
 				if (obj.name.toLowerCase().indexOf(search) !== -1) {
 					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 				}
-			});
+			}
 
 		} else {
 
-			_Widgets.remoteWidgetData.forEach(function (obj) {
+			for (let obj of _Widgets.remoteWidgetData) {
 				_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
-			});
+			}
 		}
 
 		_Pages.resize();
 	},
-	getTreeParent: function(element, treePath, suffix) {
+	getTreeParent: (element, treePath, suffix) => {
 
-		var parent = element;
+		let parent = element;
 
 		if (treePath) {
 
-			var parts = treePath.split('/');
-			var num = parts.length;
-			var i = 0;
+			let parts = treePath.split('/');
+			let num = parts.length;
 
-			for (i = 0; i < num; i++) {
+			for (let i = 0; i < num; i++) {
 
 				var part = parts[i];
 				if (part) {
 
-					var lowerPart = part.toLowerCase().replace(/ /g, '');
-					var idString = lowerPart + suffix;
-					var newParent = $('#' + idString);
+					let lowerPart = part.toLowerCase().replace(/ /g, '');
+					let idString = lowerPart + suffix;
+					let newParent = $('#' + idString + '_folder');
 
 					if (newParent.length === 0) {
 						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
-						newParent = $('#' + idString);
+						newParent = $('#' + idString + '_folder');
 					}
 
 					parent = newParent;
@@ -371,12 +374,12 @@ let _Widgets = {
 
 		} else {
 
-			var idString = 'other' + suffix;
-			var newParent = $('#' + idString);
+			let idString = 'other' + suffix;
+			let newParent = $('#' + idString + '_folder');
 
 			if (newParent.length === 0) {
 				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
-				newParent = $('#' + idString);
+				newParent = $('#' + idString + '_folder');
 			}
 
 			parent = newParent;
@@ -384,41 +387,45 @@ let _Widgets = {
 
 		return parent;
 	},
-	appendFolderElement: function(parent, id, icon, name) {
+	appendFolderElement: (parent, id, icon, name) => {
 
 		let expanded = Structr.isExpanded(id);
 
 		parent.append(`
 			<div id="${id}_folder" class="widget node">
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-				<b title="${escapeForHtmlAttributes(name)}" class="name abbr-ellipsis abbr-70pc">${name}</b>
-				<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+				<div class="node-container flex items-center">
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<b title="${escapeForHtmlAttributes(name)}" class="name flex-grow">${name}</b>
+					<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+				</div>
 			</div>
-			`);
+		`);
 
 		let div = $('#' + id + '_folder');
 
-		_Widgets.appendVisualExpandIcon(div, id, name, true, false);
+		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, false);
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
-		var icon = _Icons.widget_icon;
-		var parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
-		var div = Structr.node(widget.id);
+		let icon   = _Icons.widget_icon;
+		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
+		let div    = Structr.node(widget.id);
 
 		if (!div) {
 
 			parent.append(`
 				<div id="id_${widget.id}" class="node widget">
-					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-					<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ abbr-ellipsis abbr-70pc">${widget.name}</b> <span class="id">${widget.id}</span>
-					<div class="icons-container"></div>
+					<div class="node-container flex items-center">
+						<i class="typeIcon typeIcon-nochildren ${_Icons.getFullSpriteClass(icon)}"></i>
+						<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow">${widget.name}</b>
+						<div class="icons-container flex items-center"></div>
+					</div>
 				</div>
 			`);
 			div = Structr.node(widget.id);
 		}
 
-		let iconsContainer = div.children('.icons-container');
+		let iconsContainer = div.children('.node-container').children('.icons-container');
 
 		div.draggable({
 			iframeFix: true,
@@ -439,13 +446,14 @@ let _Widgets = {
 			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
 			iconsContainer.append(eyeIcon);
 
-			eyeIcon.on('click', function() {
+			eyeIcon.on('click', () => {
 				_Widgets.editWidget(widget, false);
 			});
 
 		} else {
 
 			_Entities.appendContextMenuIcon(iconsContainer, widget);
+
 			_Elements.enableContextMenuOnElement(div, widget);
 		}
 
@@ -531,16 +539,17 @@ let _Widgets = {
 			changeFn: editorChangeHandler
 		};
 
-		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        $('#tabView-source .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
-		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', $('#tabView-config .editor', contentDiv),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
-		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   $('#tabView-description .editor', contentDiv), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
+		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        contentDiv[0].querySelector('#tabView-source .editor'),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
+		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', contentDiv[0].querySelector('#tabView-config .editor'),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
+		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   contentDiv[0].querySelector('#tabView-description .editor'), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
 
 		// allow editing of selectors property
 		_Schema.getTypeInfo(entity.type, (typeInfo) => {
 			_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
 		});
 
-		_Widgets.appendWidgetHelpText($('#tabView-help', contentDiv));
+		let html = _Widgets.templates.help();
+		$('#tabView-help', contentDiv).append(html);
 
 		if (allowEdit) {
 
@@ -604,18 +613,11 @@ let _Widgets = {
 
 		activateTab('source');
 	},
-	appendWidgetSelectorEditor: function (container, entity, allowEdit) {
-
-		Structr.fetchHtmlTemplate('widgets/edit-selectors', {}, function(html) {
-			container.append(html);
-		});
-	},
-	appendWidgetHelpText: function(container) {
-
-		Structr.fetchHtmlTemplate('widgets/help', {}, function(html) {
-			container.append(html);
-		});
-	},
+	// appendWidgetSelectorEditor: function (container, entity, allowEdit) {
+	//
+	// 	let html = _Widgets.templates.editSelectors();
+	// 	container.append(html);
+	// },
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
 		if (hasChildren) {
@@ -624,19 +626,19 @@ let _Widgets = {
 			let icon                = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
 			let expandIconClassName = 'expand_icon_svg';
 
-			typeIcon.css({
-				paddingRight: 0 + 'px'
-			}).after(`<i title="Expand ${name}" class="${expandIconClassName} ${icon}"></i>`);
+			typeIcon.before(`<i class="${expandIconClassName} ${icon}"></i>`);
 
 			let expandIcon = el.children('.' + expandIconClassName).first();
 
-			let expandClickHandler = function (e) {
+			let expandClickHandler = (e) => {
 				e.stopPropagation();
-				let body = $('#' + id);
-				body.toggleClass('hidden');
 
-				let collapsed = body.hasClass('hidden');
-				if (collapsed) {
+				let childNodes = el.parent().children('.node');
+
+				childNodes.toggleClass('hidden');
+
+				let isCollapsed = childNodes.hasClass('hidden');
+				if (isCollapsed) {
 					Structr.addExpandedNode(id);
 					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				} else {
@@ -650,12 +652,7 @@ let _Widgets = {
 			let button = $(el.children('.' + expandIconClassName).first());
 
 			if (button) {
-
 				button.on('click', expandClickHandler);
-
-				button.on('mousedown', function(e) {
-					e.stopPropagation();
-				});
 			}
 
 		} else {
@@ -844,7 +841,7 @@ let _Widgets = {
 	fetchLocalPageTemplateWidgets: async function() {
 
 		try {
-			let response = await fetch(rootUrl + 'Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
+			let response = await fetch(Structr.rootUrl + 'Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
 			if (response && response.ok) {
 
 				let json = await response.json();
@@ -855,14 +852,14 @@ let _Widgets = {
 
 		return [];
 	},
-	fetchAllPageTemplateWidgets: async function(callback) {
+	fetchAllPageTemplateWidgets: async () => {
 
 		let widgets = [];
 
 		let remotePageWidgets = await _Widgets.fetchRemotePageTemplateWidgets();
 		let localPageWidgets  = await _Widgets.fetchLocalPageTemplateWidgets();
 
-		callback(widgets.concat(remotePageWidgets).concat(localPageWidgets));
+		return widgets.concat(remotePageWidgets).concat(localPageWidgets);
 	},
 	fetchRemoteWidgets: async (url, fallbackUrl) => {
 
@@ -888,5 +885,178 @@ let _Widgets = {
 		} catch (e) {}
 
 		return [];
+	},
+
+	templates: {
+		slideout: config => `
+			${_Icons.getSvgIcon('circle_plus', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
+			
+			<div class="inner">
+
+				<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
+					<a href="javascript:void(0);" class="tab-group-toggle">
+						<h3 class="flex items-center">
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
+						</h3>
+					</a>
+			
+					<div class="tab-group-content">
+						<div id="widgets"></div>
+					</div>
+				</div>
+			
+				<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
+					<a href="javascript:void(0);" class="tab-group-toggle">
+						<h3 class="flex items-center">
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
+						</h3>
+					</a>
+			
+					<div class="tab-group-content">
+						<div class="flex items-center mb-4" id="widget-server-selector-container">
+							${_Icons.getSvgIcon('list-cog', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['edit-widget-servers', 'ml-1', 'mr-8'], 'Edit Widget Servers'))}
+			
+							<input placeholder="Filter..." size="10" id="remoteWidgetsFilter">
+						</div>
+			
+						<div id="remoteWidgets"></div>
+					</div>
+				</div>
+			</div>
+		`,
+		editSelectors: config => `
+			<h5>CSS selectors</h5>
+			<div id="selectors-container"></div>
+		`,
+		help: config => `
+			<h2>Source</h2>
+			<p>The source HTML code of the widget (enriched with structr expressions etc).</p>
+			<p>The easiest way to get this source is to build the functionality in a Structr page and then "exporting" the source of the page. This can be done by using the "edit=1" URL parameter. This way the structr-internal expressions and configuration attributes are output without being evaluated.</p>
+			<h4>Example</h4>
+			<ol>
+				<li>Create your widget in the page "myWidgetPage"</li>
+				<li>Go to http://localhost:8082/myWidgetPage?edit=1</li>
+				<li>View and copy the source code of that page</li>
+				<li>Paste it into the "Source" tab of the "Edit Widget" dialog</li>
+			</ol>
+			
+			<h2>Configuration</h2>
+			<p>You can create advanced widgets and make them configurable by inserting template expressions in the widget source and adding the expression into the configuration. Template expressions look like this "[configSwitch]" and can contain any characters (except the closing bracket). If a corresponding entry is found in the configuration, a dialog is displayed when adding the widget to a page.</p>
+			<p>Elements that look like template expressions are only treated as such if a corresponding entry is found in the configuration. This allows the use of square brackets in the widget source without it being interpreted as a template expression.</p>
+			<p>The configuration must be a valid JSON string (and is validated as such when trying to save the widget).</p>
+			<p>Have a look at the widget configuration of "configurable" widgets for more examples.</p>
+			
+			<h4>Basic example</h4>
+			<pre>
+			{
+				"configSwitch": {
+					"position": 2,
+					"default": "This is the default text"
+				},
+				"selectArray": {
+					"position": 3,
+					"type": "select",
+					"options": [
+						"choice_one",
+						"choice_two",
+						"choice_three"
+					],
+					"default": "choice_two"
+				},
+				"selectObject": {
+					"position": 1,
+					"type": "select",
+					"options": {
+						"choice_one": "First choice",
+						"choice_two": "Second choice",
+						"choice_three": "Third choice"
+					},
+					"default": "choice_two"
+				},
+				"processDeploymentInfo": true,
+			}</pre>
+			
+			<p>Reserved top-level words:</p>
+			<ul>
+				<li><b>processDeploymentInfo</b> (<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>
+			</ul>
+			<p>The supported attributes of the configuration elements are the following:</p>
+			<ul>
+				<li><b>title</b><br>The title which is displayed in the left column of the "Add Widget to Page" dialog. If this value does not exist, the name of the template expression itself is used.</li>
+				<li><b>placeholder</b> <i>(only applicable to type=input|textarea)</i><br>The placeholder text which is displayed when the field is empty. If this value does not exist, the <b>title</b> is used..</li>
+				<li><b>default</b><br>The default value for the element. For type=textarea|input this value is the prefilled. For type=select this value is preselected.</li>
+				<li><b>position</b> <br> The options will be sorted according to this numeric attribute. If omitted, the object will occur after the objects with a set position in the natural order of the keys.</li>
+				<li><b>help</b> <i>(optional)</i><br> The help text which will be displayed while hovering over the information icon.</li>
+				<li><b>type</b>
+					<ul><li><b>input</b>: A standard input field (<i>default if omitted</i>)</li><li><b>textarea</b>: A textarea with a customizable number of rows (default: 5)</li><li><b>select</b>: A select element</li></ul>
+				</li>
+				<li><b>options</b> <i>(only applicable to type=select)</i><br>This field supports two different type of data: Array (of strings) and Object (value=&gt;Label).<br>
+					If the data encountered is an Array, the elements are rendered as simple option elements. If it is an Object, the option elements will have the key of the object as their value and the value of the element will be displayed as the text.</li>
+				<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>
+				<li><b>rows</b> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</li>
+			</ul>
+			
+			<h2>Description</h2>
+			<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>
+			
+			<h2>Options</h2>
+			<p>The following options can be configured for a widget:</p>
+			<ul>
+				<li><b>Selectors</b><br>The selectors control into which elements a widget may be inserted. If a selector matches, the widget appears in the "Suggested widgets" context menu in the pages tree.</li>
+				<li><b>Is Page Template</b><br>Check this box if the widget is a page template. The widget can the be selected when creating a page.</li>
+			</ul>
+		`,
+		serversDialog: config => `
+			<div id="widget-server-config-dialog" class="dialog-padding">
+			
+				<h3>Configured Servers</h3>
+				<div id="widget-servers-container"></div>
+			
+				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{ "customToggleIcon": "warning-sign-icon-filled", "customToggleIconClasses": [], "helpElementCss": { "font-size": "14px"} }'>Add Server</h3>
+			
+				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
+			
+					<div class="bold">Name</div>
+					<div><input id="new-widget-server-name"></div>
+			
+					<div class="bold">
+						<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
+					</div>
+					<div>
+						<input id="new-widget-server-url">
+					</div>
+			
+					<div></div>
+					<div>
+						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon('checkmark_bold', 14, 14, ['icon-green', 'mr-2'])} Save
+						</button>
+					</div>
+				</div>
+			</div>
+		`,
+		serversSelector: config => `
+			<select id="widget-server-selector" class="w-40">
+				${config.servers.map(s => {
+					return `<option value="${s.content}" ${(s.content === config.selectedServerURL) ? 'selected' : ''}>${s.name}</option>`
+				}).join('')}
+			</select>
+		`,
+		serversTable: config => `
+			<div class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 20fr 70fr 10fr;">
+
+				<div class="bold">Name</div>
+				<div class="bold">URL</div>
+				<div class="bold text-center">Actions</div>
+
+				${config.servers.map((s) => {
+					return `
+						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="name" value="${s.name}">` : `${s.name}`}</div>
+						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="content" value="${s.content}">` : `${s.content}`}</div>
+						<div data-acdn-id="${s.id}" class="text-center">${s.editable !== false ? `${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Delete')}` : ''}</div>
+					`;
+				}).join('')}
+			</div>
+		`,
 	}
 };

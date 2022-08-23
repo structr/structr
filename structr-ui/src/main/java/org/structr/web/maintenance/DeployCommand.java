@@ -28,14 +28,11 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.GroupPrincipal;
+import java.nio.file.attribute.PosixFileAttributeView;
+import java.nio.file.attribute.UserPrincipalLookupService;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -75,7 +72,6 @@ import org.structr.core.entity.MailTemplate;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.Security;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
@@ -118,13 +114,15 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.web.entity.dom.Template;
-import org.structr.web.maintenance.deploy.ComponentImportVisitor;
+import org.structr.web.maintenance.deploy.ComponentImporter;
 import org.structr.web.maintenance.deploy.FileImportVisitor;
 import org.structr.web.maintenance.deploy.ImportFailureException;
 import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
-import org.structr.web.maintenance.deploy.PageImportVisitor;
-import org.structr.web.maintenance.deploy.TemplateImportVisitor;
+import org.structr.web.maintenance.deploy.PageImporter;
+import org.structr.web.maintenance.deploy.TemplateImporter;
 import org.structr.websocket.command.CreateComponentCommand;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -521,6 +519,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path templates           = Files.createDirectories(target.resolve("templates"));
 			final Path modules             = Files.createDirectories(target.resolve("modules"));
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve("mail-templates"));
+
 			final Path grantsConf          = security.resolve("grants.json");
 			final Path filesConf           = target.resolve("files.json");
 			final Path sitesConf           = target.resolve("sites.json");
@@ -594,6 +593,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			}
 
+			// set group grants for created files
+			final String groupName = Settings.DeploymentFileGroupName.getValue("");
+			if (StringUtils.isNotBlank(groupName)) {
+				setFileGroupRecursivly(groupName, target);
+			}
+
 			// config import order is "users, grants, pages, components, templates"
 			// data import order is "schema, files, templates, components, pages"
 
@@ -605,6 +610,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
+
+
 
 			logger.info("Export to {} done. (Took {})", target.toString(), duration);
 
@@ -632,6 +639,20 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				logger.info(logText);
 			}
 		}
+	}
+
+	private void setFileGroupRecursivly(String groupName, Path target) throws IOException {
+
+		try {
+
+			UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+			GroupPrincipal group = lookupService.lookupPrincipalByGroupName(groupName);
+			Files.walkFileTree(target, new GroupAddFileVisitor(group));
+
+		} catch (Exception ex) {
+			logger.warn("can't set group {} for deployment export files: {}", groupName, ex.getMessage());
+		}
+
 	}
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
@@ -689,7 +710,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(folder, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(folder.getPath(), properties);
+			String folderPath = folder.getPath();
+			config.put(folderPath, properties);
 		}
 
 		final List<Folder> folders = Iterables.toList(folder.getFolders());
@@ -737,7 +759,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		exportFileConfiguration(file, properties);
 
 		if (!properties.isEmpty()) {
-			config.put(file.getPath(), properties);
+			String filePath = file.getPath();
+			config.put(filePath, properties);
 		}
 	}
 
@@ -1933,7 +1956,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing templates");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing templates");
 
-					Files.walkFileTree(templates, new TemplateImportVisitor(templatesMetadata));
+					final TemplateImporter visitor = new TemplateImporter(templatesMetadata);
+					visitor.processFolderContentsSorted(templates);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing templates", ioex);
@@ -1951,16 +1975,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing shared components");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing shared components");
 
-					final ComponentImportVisitor visitor = new ComponentImportVisitor(componentsMetadata, relativeVisibility);
+					final ComponentImporter visitor = new ComponentImporter(componentsMetadata, relativeVisibility);
 					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
 
 					// first, only import the HULL for each shared component (the outermost element)
 					visitor.setHullMode(true);
-					Files.walkFileTree(components, visitor);
+					visitor.processFolderContentsSorted(components);
 
 					// then, when all of those are imported, import their children so we know they all exist
 					visitor.setHullMode(false);
-					Files.walkFileTree(components, visitor);
+					visitor.processFolderContentsSorted(components);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing shared components", ioex);
@@ -1975,10 +1999,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					logger.info("Importing pages");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing pages");
 
-					final PageImportVisitor visitor = new PageImportVisitor(pages, pagesMetadata, relativeVisibility);
+					final PageImporter visitor = new PageImporter(pages, pagesMetadata, relativeVisibility);
 					visitor.setDeferredNodesAndTheirProperties(deferredNodesAndTheirProperties);
 
-					Files.walkFileTree(pages, visitor);
+					visitor.processFolderContentsSorted(pages);
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing pages", ioex);
@@ -2467,6 +2491,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				return 1;
 			}
 			return o1.compareTo(o2);
+		}
+	}
+
+	// File Visitor to set group ownership on files created by the deployment export.
+	public static class GroupAddFileVisitor extends SimpleFileVisitor<Path> {
+
+		GroupPrincipal group;
+		GroupAddFileVisitor(GroupPrincipal group) {
+			super();
+			this.group = group;
+		}
+
+		@Override
+		public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+			try {
+				Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return CONTINUE;
+		}
+
+		@Override
+		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) {
+			try {
+				Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+			return CONTINUE;
 		}
 	}
 }

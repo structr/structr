@@ -1099,6 +1099,7 @@ public class SchemaHelper {
 
 	public static void extractMethods(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode entity, final Map<String, List<ActionEntry>> actions) throws FrameworkException {
 
+		final App app                             = StructrApp.getInstance();
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
 		for (final String rawActionName : getActions(propertyContainer)) {
@@ -1110,7 +1111,6 @@ public class SchemaHelper {
 				if (entity instanceof AbstractSchemaNode) {
 
 					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
-					final App app                       = StructrApp.getInstance();
 					final String methodName             = rawActionName.substring(3);
 
 					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
@@ -1355,6 +1355,10 @@ public class SchemaHelper {
 					formatModificationCallback(src, schemaNode, name, actionList);
 					break;
 
+				case "afterModification":
+					formatAfterModificationCallback(src, schemaNode, name, actionList);
+					break;
+
 				case "afterDeletion":
 					formatDeletionCallback(src, schemaNode, name, actionList);
 					break;
@@ -1426,6 +1430,27 @@ public class SchemaHelper {
 
 			//src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 			action.getSource(src, "this", "arg0", true);
+		}
+
+		src.end();
+	}
+
+	public static void formatAfterModificationCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
+
+		for (final ActionEntry action : actionList) {
+
+			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
+			action.getSource(src, "this", "arg0", false);
 		}
 
 		src.end();

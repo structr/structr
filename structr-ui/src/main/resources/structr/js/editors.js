@@ -33,7 +33,8 @@ let _Editors = {
 				instanceDisposables: [],
 				modelDisposables:    [],
 				decorations:         []
-			}
+			},
+			lastScriptErrorLookup: 0
 		}	*/
 	},
 	getContainerForIdAndProperty: (id, propertyName) => {
@@ -49,6 +50,23 @@ let _Editors = {
 		_Editors.editors[id][propertyName] = _Editors.editors[id]?.[propertyName] ?? {};
 
 		return _Editors.editors[id][propertyName].instance;
+	},
+	disposeAllUnattachedEditors: (exceptionIds = []) => {
+
+		for (let id in _Editors.editors) {
+
+			for (let propertyName in _Editors.editors[id]) {
+
+				if (exceptionIds.indexOf(id) === -1) {
+
+					let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+					let domNode   = container?.instance?.getDomNode();
+					if (domNode === null || domNode === undefined || domNode.offsetParent === null) {
+						_Editors.disposeEditor(id, propertyName);
+					}
+				}
+			}
+		}
 	},
 	disposeAllEditors: (exceptionIds = []) => {
 
@@ -96,8 +114,8 @@ let _Editors = {
 
 			let container = _Editors.getContainerForIdAndProperty(id, propertyName);
 
-			container?.instance.dispose();
-			container?.model.dispose();
+			container?.instance?.dispose();
+			container?.model?.dispose();
 
 			// dispose previous disposables
 			for (let disposable of container?.instanceDisposables ?? []) {
@@ -151,17 +169,32 @@ let _Editors = {
 	restoreViewStateFromLocalStorage: (id, propertyName) => {
 		return LSWrapper.getItem(_Editors.getStorageKeyForViewState(id, propertyName));
 	},
-	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName) => {
+	updateMonacoLintingDecorations: async (entity, propertyName, errorPropertyName, forceUpdate = false) => {
 
-		let storageContainer         = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
-		storageContainer.decorations = storageContainer?.decorations ?? [];
-		let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
-		storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+		// prevent script error lookup for new/unsaved methods
+		if (entity?.isNew === true) {
+			return;
+		}
+
+		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+
+		// prevent script error lookup for same editor in less than 5 seconds
+		let minTimeBetweenLookups = 5000;
+		let lastLookup = storageContainer.lastScriptErrorLookup ?? 0;
+		if (lastLookup + minTimeBetweenLookups < performance.now() || forceUpdate === true) {
+
+			storageContainer.lastScriptErrorLookup = performance.now();
+
+			// check linting updates for this element max every 10 seconds (unless forced)
+			storageContainer.decorations = storageContainer?.decorations ?? [];
+			let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
+			storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+		}
 	},
-	getScriptErrors: async function(entity, errorAttributeName) {
+	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
-		let response   = await fetch(rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
+		let response   = await fetch(Structr.rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
 
 		if (response.ok) {
 
@@ -224,9 +257,10 @@ let _Editors = {
 			return events;
 		}
 	},
+	prevAnimFrameReqId_resizeVisibleEditors: undefined,
 	resizeVisibleEditors: () => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_Editors.prevAnimFrameReqId_resizeVisibleEditors, () => {
 
 			for (let id in _Editors.editors) {
 
@@ -247,21 +281,10 @@ let _Editors = {
 	},
 	resizeEditor: (monacoEditor) => {
 
-		let domNode = monacoEditor.getDomNode();
+		// resize editor to minimal size...
+		monacoEditor.layout({ width: 1, height: 1 });
 
-		// first set to 0 to allow the parent box to auto-calc its height
-		domNode.style.height            = 0;
-		domNode.style.width             = 0;
-		domNode.firstChild.style.height = 0;
-		domNode.firstChild.style.width  = 0;
-
-		// domNode.style.overflow          = 'hidden';
-		domNode.style.height            = '100%';
-		domNode.style.width             = '100%';
-		domNode.firstChild.style.width  = '100%';
-		domNode.firstChild.style.height = '100%';
-
-		// let editor auto-layout
+		// ... so that editor auto-layout works
 		monacoEditor.layout();
 	},
 	setupMonacoAutoCompleteOnce: () => {
@@ -375,14 +398,11 @@ let _Editors = {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
+			readOnly: customConfig.readOnly
 		});
 
-		// dispose previously existing editors (with the exception of editors for this id - required for multiple editors per element, like function property)
-		if (customConfig.preventDisposeForIds) {
-			_Editors.disposeAllEditors(customConfig.preventDisposeForIds);
-		} else {
-			_Editors.disposeAllEditors([entity.id]);
-		}
+		// dispose previously existing editors
+		_Editors.disposeAllUnattachedEditors(customConfig.preventDisposeForIds);
 
 		// also delete a possible previous editor for this id and propertyName to start fresh
 		storageContainer?.instance?.dispose();
@@ -395,7 +415,7 @@ let _Editors = {
 			disposable.dispose();
 		}
 
-		let monacoInstance = monaco.editor.create(domElement.get(0), monacoConfig);
+		let monacoInstance = monaco.editor.create(domElement, monacoConfig);
 
 		storageContainer.instance            = monacoInstance;
 		storageContainer.instanceDisposables = [];
@@ -415,7 +435,7 @@ let _Editors = {
 
 			// onFocus handler
 			storageContainer.instanceDisposables.push(monacoInstance.onDidFocusEditorText((e) => {
-				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting);
+				_Editors.updateMonacoLintingDecorations(entity, propertyName, errorPropertyNameForLinting, true);
 			}));
 		}
 
@@ -454,6 +474,22 @@ let _Editors = {
 
 		return monacoInstance;
 	},
+	isAutoFocusAllowed: () => {
+
+		// Only limitation currently: If we are in the code area and currently searching for something
+		return !(Structr.isModuleActive(_Code) && _Code.inSearchBox === true);
+
+	},
+	focusEditor: (editor) => {
+
+		let allowed = _Editors.isAutoFocusAllowed();
+
+		if (allowed) {
+			editor.focus();
+		}
+
+		return allowed;
+	},
 	defaultChangeHandler: (e, entity, propertyName, errorPropertyNameForLinting) => {
 
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
@@ -471,8 +507,24 @@ let _Editors = {
 			storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
 		}
 	},
-	getMonacoEditorModeForContent: function(content) {
-		return (content && content.trim().indexOf('{') === 0) ? 'javascript' : 'text';
+	getMonacoEditorModeForContent: (content) => {
+
+		let mode = 'text';
+
+		if (content) {
+
+			let trimmed = content.trim();
+
+			if (trimmed.startsWith('python{')) {
+				mode = 'python';
+			} else if (trimmed.startsWith('R{')) {
+				mode = 'r';
+			} else if (trimmed.startsWith('{')) {
+				mode = 'javascript';
+			}
+		}
+
+		return mode;
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
 		if (newLanguage === 'auto') {
@@ -485,7 +537,7 @@ let _Editors = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText"><i class="${_Icons.getFullSpriteClass(_Icons.microphone_icon)}"></i></button>`);
+			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon('microphone-icon', 18, 18)}</button>`);
 
 			let speechToTextButton = buttonArea.querySelector('.speechToText');
 			let speechBtn          = $(speechToTextButton);
@@ -584,10 +636,33 @@ let _Editors = {
 			});
 		}
 	},
+	addEscapeKeyHandlersToPreventPopupClose: (editor) => {
+
+		let contextActions = {
+			suggestWidgetVisible:           () => { editor.trigger('keyboard', 'hideSuggestWidget'); },
+			findWidgetVisible:              () => { editor.trigger('keyboard', 'closeFindWidget'); },
+			referenceSearchVisible:         () => { editor.trigger('keyboard', 'closeReferenceSearch'); },
+			markersNavigationVisible:       () => { editor.trigger('keyboard', 'closeMarkersNavigation'); },
+			renameInputVisible:             () => { editor.trigger('keyboard', 'cancelRenameInput'); },
+			accessibilityHelpWidgetVisible: () => { editor.trigger('keyboard', 'closeAccessibilityHelp'); },
+			// command palette should also be here... if I could only find out the correct "context" name for this thing
+		};
+
+		for (let [context, action] of Object.entries(contextActions)) {
+
+			editor.addCommand(monaco.KeyCode.Escape, () => {
+
+				ignoreKeyUp = true;
+				action();
+
+			}, context);
+		}
+
+	},
 	getDefaultEditorOptionsForStorage: () => {
 		/**
 		 * This is almost identical to IEditorOptions (https://microsoft.github.io/monaco-editor/api/interfaces/monaco.editor.IStandaloneEditorConstructionOptions.html)
-		 * but adapated so we can seamlessly use it in our UI.
+		 * but adapted so we can seamlessly use it in our UI.
 		 *
 		 * The return value of this function must be transformed to be used with the editor
 		 */
@@ -595,7 +670,7 @@ let _Editors = {
 			// section identical to IEditorOptions
 			roundedSelection: true,
 			glyphMargin: true,
-			scrollBeyondLastLine: false,
+			scrollBeyondLastLine: true,
 			readOnly: false,
 			renderLineHighlight: 'all',
 			folding: true,
@@ -688,73 +763,115 @@ let _Editors = {
 	},
 	appendEditorOptionsElement: (element) => {
 
-		let dropdown = Structr.createSingleDOMElementFromHTML(`<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select">${_Icons.getSvgIcon('text-settings')}</button>
-				<div class="dropdown-menu-container" style="opacity: 0; visibility: hidden; ">
+		let dropdown = Structr.createSingleDOMElementFromHTML(`
+			<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="top" data-wants-fixed="true">
+					${_Icons.getSvgIcon('text-settings')}
+				</button>
+				
+				<div class="dropdown-menu-container" style="display: none;">
 					<div class="font-bold pt-4 pb-2">Global Editor Settings</div>
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Word Wrap</label>
-						<select name="wordWrap" class="min-w-48">
+						<select name="wordWrap" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<option>off</option>
 							<option>on</option>
 						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Wrapping Indent</label>
-						<select name="wrappingIndent" class="min-w-48"><option>none</option><option>same</option><option>indent</option><option>deepIndent</option></select>
+						<select name="wrappingIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>none</option>
+							<option>same</option>
+							<option>indent</option>
+							<option>deepIndent</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Indentation</label>
-						<select name="indentation" class="min-w-48"><option>tabs</option><option>spaces</option></select>
+						<select name="indentation" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>tabs</option>
+							<option>spaces</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Tab Size</label>
 						<input name="tabSize" type="number" min="1" value="8" style="width: 3rem;">
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Auto-Indent</label>
-						<select name="autoIndent" class="min-w-48"><option>advanced</option><option>none</option><option>full</option><option>brackets</option><option>keep</option></select>
+						<select name="autoIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>advanced</option>
+							<option>none</option>
+							<option>full</option>
+							<option>brackets</option>
+							<option>keep</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Theme</label>
-						<select name="theme" class="min-w-48">
+						<select name="theme" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							<option value="vs">Visual Studio</option>
 							<option value="vs-dark">Visual Studio Dark</option>
 							<option value="hc-black">High Contrast Dark</option>
 						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Line Highlight Rendering</label>
-						<select name="renderLineHighlight" class="min-w-48"><option>all</option><option>gutter</option><option>line</option><option>none</option></select>
+						<select name="renderLineHighlight" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>all</option>
+							<option>gutter</option>
+							<option>line</option>
+							<option>none</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="folding" type="checkbox"> Enable Code Folding</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
-						<select name="showFoldingControls" class="min-w-48"><option>always</option><option>mouseover</option></select>
+						<select name="showFoldingControls" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							<option>always</option>
+							<option>mouseover</option>
+						</select>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="renderWhitespace" type="checkbox"> Render Whitespace</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="roundedSelection" type="checkbox"> Rounded selection</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="mouseWheelZoom" type="checkbox"> Mouse Wheel Zoom</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="scrollBeyondLastLine" type="checkbox"> Scroll beyond last line</label>
 					</div>
+					
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="minimapEnabled" type="checkbox"> Show Mini Map</label>
 					</div>
+					
 					<div class="font-bold pt-4 pb-2">Global Editor Behaviour Settings</div>
+					
 					<div class="editor-setting flex items-center p-1">
-						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. The are only lost after a page reload or navigation event."><input name="restoreModels" type="checkbox"> Restore text models</label>
+						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. They are only lost after a page reload or navigation event.<br><br>This may lead to confusing situations where the editor shows unsaved html/code and the html/code is not shown/run because it is not saved. Be aware of such situations!"><input name="restoreModels" type="checkbox"> Restore text models</label>
 					</div>
 				</div>
-			</div>`);
+			</div>
+		`);
 
 		let savedOptions = _Editors.getOurEditorOptionsForDOM();
 

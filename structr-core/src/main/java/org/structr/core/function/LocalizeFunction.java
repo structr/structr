@@ -131,6 +131,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 	public static String getLocalization (final Locale locale, final String requestedKey, final String requestedDomain) throws FrameworkException {
 
+		return getLocalization(locale, requestedKey, requestedDomain, false);
+	}
+
+	public static String getLocalization (final Locale locale, final String requestedKey, final String requestedDomain, final boolean isFallbackLookup) throws FrameworkException {
+
 		/*
 		OLD VERSION - stays like this
 		*/
@@ -150,26 +155,53 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		// find localization with key, domain and language only
 		if (value == null) { value = getLocalizedNameFromDatabase(requestedKey, finalDomain, lang); }
 
-		// find localization with key, domain and language only
+		// find localization with key, NO domain and language only
 		if (value == null && !finalDomain.equals("")) { value = getLocalizedNameFromDatabase(requestedKey, "", lang); }
 
-		// only cache if resolution was successful
-		if (value == null) {
+		// prevent further fallback lookups and also caching in fallback mode
+		if (!isFallbackLookup) {
 
-			value = requestedKey;
+			// only cache if resolution was successful
+			if (value != null) {
 
-			if (Settings.logMissingLocalizations.getValue()) {
-				logger.warn("Missing localization: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullLocale, requestedDomain);
+				cacheValue(cacheKey, value);
+
+			} else {
+
+				if (Settings.logMissingLocalizations.getValue()) {
+					logger.warn("Missing localization: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullLocale, requestedDomain);
+				}
+
+				// try fallback locale, if active ...
+				if (Settings.useFallbackLocale.getValue()) {
+
+					final Locale fallbackLocale     = Locale.forLanguageTag(Settings.fallbackLocale.getValue().trim().replaceAll("_", "-"));
+					final String fullFallbackLocale = fallbackLocale.toString();
+
+					// ... and fallback locale is not empty and is different from current locale
+					if (!fullFallbackLocale.equals("") && !fullLocale.equals(fullFallbackLocale)) {
+
+						final String fallbackValue = getLocalization(fallbackLocale, requestedKey, requestedDomain, true);
+
+						if (fallbackValue != null) {
+
+							value = fallbackValue;
+
+						} else if (Settings.logMissingLocalizations.getValue()) {
+
+							logger.warn("Fallback localization also missing: Key: '{}' Locale: '{}' Domain: '{}'", requestedKey, fullFallbackLocale, requestedDomain);
+						}
+					}
+				}
+
+				if (value == null) {
+
+					value = requestedKey;
+				}
 			}
-
-		} else {
-
-			cacheValue(cacheKey, value);
-
 		}
 
 		return value;
-
 	}
 
 	public static String getLocalization (final ActionContext ctx, final Object caller, final String requestedKey, final String requestedDomain) throws FrameworkException {
@@ -180,7 +212,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		if (AccessMode.Frontend.equals(ctx.getSecurityContext().getAccessMode())) {
 
 			return getLocalization(locale, requestedKey, requestedDomain);
-
 		}
 
 		// otherwise we do not use the cache so we retrieve the database object every time
@@ -199,7 +230,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		// find localization with key, domain and language only
 		if (result == null) { result = getLocalizationFromDatabase(requestedKey, finalDomain, lang); }
 
-		// find localization with key, domain and language only
+		// find localization with key, NO domain and language only
 		if (result == null && !finalDomain.equals("")) { result = getLocalizationFromDatabase(requestedKey, "", lang); }
 
 		String value = requestedKey;
@@ -207,7 +238,6 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		if (result != null) {
 
 			value = result.getProperty(StructrApp.key(Localization.class, "localizedName"));
-
 		}
 
 		ctx.getContextStore().addRequestedLocalization(caller, requestedKey, finalDomain, fullLocale, result);

@@ -327,19 +327,6 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		return gsonBuilder.create();
 	}
 
-	protected String coalesce(final String... sources) {
-
-		for (final String source : sources) {
-
-			if (source != null) {
-
-				return source;
-			}
-		}
-
-		return null;
-	}
-
 	// ----- nested classes -----
 	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
 

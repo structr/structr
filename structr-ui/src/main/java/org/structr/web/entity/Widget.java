@@ -115,8 +115,22 @@ public interface Widget extends NodeInterface {
 				importer.setIsDeployment(true);
 			}
 
-			importer.parse(true);
-			importer.createChildNodes(parent, page, true);
+			if (importer.parse(true)) {
+
+				importer.createChildNodes(parent, page, true);
+
+				final String tableChildElement = importer.getTableChildElement();
+				if (tableChildElement != null) {
+
+					for (final DOMNode child : parent.getAllChildNodes()) {
+						if (child.getType().toLowerCase().equals(tableChildElement)) {
+							parent.appendChild(child);
+						} else {
+							StructrApp.getInstance().delete(child);
+						}
+					}
+				}
+			}
 
 		} else {
 

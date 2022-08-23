@@ -4155,6 +4155,93 @@ public class ScriptingTest extends StructrTest {
 	}
 
 	@Test
+	public void testAdvancedFindWithRemotePropertySorting() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema = StructrSchema.createFromDatabase(app);
+			final JsonObjectType test  = schema.addType("Test");
+			final JsonObjectType test2  = schema.addType("Test2");
+			final JsonObjectType test3  = schema.addType("Test3");
+
+			test.relate(test2, "HAS_Test2", Cardinality.OneToOne, "test", "test2");
+			test2.relate(test3, "HAS_Test3", Cardinality.OneToOne, "test2", "test3");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+
+		final ActionContext ctx = new ActionContext(securityContext);
+		final Class testType    = StructrApp.getConfiguration().getNodeEntityClass("Test");
+		final Class test2Type    = StructrApp.getConfiguration().getNodeEntityClass("Test2");
+		final Class test3Type    = StructrApp.getConfiguration().getNodeEntityClass("Test3");
+
+		final PropertyKey test2_test = StructrApp.key(test2Type, "test");
+		final PropertyKey test3_test2 = StructrApp.key(test3Type, "test2");
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+
+			for (int i = 0; i < 10; i++) {
+
+				final NodeInterface test = app.create(testType,
+						new NodeAttribute<>(AbstractNode.name, "test1_" + i)
+				);
+
+				final NodeInterface test2 = app.create(test2Type,
+						new NodeAttribute<>(AbstractNode.name, "test2_" + i),
+						new NodeAttribute<>(test2_test, test)
+				);
+
+				final NodeInterface test3 = app.create(test3Type,
+						new NodeAttribute<>(AbstractNode.name, "test3_" + i),
+						new NodeAttribute<>(test3_test2, test2)
+				);
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+
+
+			List<GraphObject> result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', false)); }}", "testFindNewSyntax");
+
+			assertEquals("Advanced find() returns wrong result", 10, result.size());
+			assertEquals("Advanced find() sorted incorrectly", "test1_0", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("Advanced find() sorted incorrectly", "test1_1", result.get(1).getProperty(AbstractNode.name));
+			assertEquals("Advanced find() sorted incorrectly", "test2_0", ((NodeInterface)result.get(0).getProperty(StructrApp.key(testType, "test2"))).getProperty(AbstractNode.name));
+			assertEquals("Advanced find() sorted incorrectly", "test3_0", ((NodeInterface)((NodeInterface)result.get(0).getProperty(StructrApp.key(testType, "test2"))).getProperty(StructrApp.key(test2Type, "test3"))).getProperty(AbstractNode.name));
+
+			result = (List<GraphObject>) Scripting.evaluate(ctx, null, "${{ return $.find('Test', $.predicate.sort('test2.test3.name', true)); }}", "testFindNewSyntax");
+
+			assertEquals("Advanced find() sorted incorrectly", "test1_9", result.get(0).getProperty(AbstractNode.name));
+			assertEquals("Advanced find() sorted incorrectly", "test1_8", result.get(1).getProperty(AbstractNode.name));
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	@Test
 	public void testAdvancedFindRangeQueryLeak() {
 
 		// setup

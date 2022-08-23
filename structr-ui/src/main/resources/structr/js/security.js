@@ -42,46 +42,39 @@ let _Security = {
 
 		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
 
-		Structr.fetchHtmlTemplate('security/functions', {}, function (html) {
+		Structr.mainContainer.innerHTML = _Security.templates.main();
+		Structr.functionBar.innerHTML   = _Security.templates.functions();
 
-			Structr.functionBar.innerHTML = html;
+		UISettings.showSettingsForCurrentModule();
 
-			UISettings.showSettingsForCurrentModule();
+		_Security.userControls     = document.getElementById('users-controls');
+		_Security.userList         = document.getElementById('users-list');
+		_Security.groupControls    = document.getElementById('groups-controls');
+		_Security.groupList        = document.getElementById('groups-list');
+		_Security.resourceAccesses = $('#resourceAccesses');
 
-			Structr.fetchHtmlTemplate('security/main', {}, function (html) {
+		let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
-				main.append(html);
+		for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
 
-				_Security.userControls     = document.getElementById('users-controls');
-				_Security.userList         = document.getElementById('users-list');
-				_Security.groupControls    = document.getElementById('groups-controls');
-				_Security.groupList        = document.getElementById('groups-list');
-				_Security.resourceAccesses = $('#resourceAccesses');
+			tabLink.addEventListener('click', (e) => {
+				e.preventDefault();
 
-				let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
+				let urlHash = e.target.closest('a').getAttribute('href');
+				let subModule = urlHash.split(':')[1];
+				window.location.hash = urlHash;
 
-				for (let tabLink of document.querySelectorAll('#function-bar .tabs-menu li a')) {
-
-					tabLink.addEventListener('click', (e) => {
-						e.preventDefault();
-
-						let urlHash = e.target.closest('a').getAttribute('href');
-						let subModule = urlHash.split(':')[1];
-						window.location.hash = urlHash;
-
-						_Security.selectTab(subModule);
-					});
-
-					if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
-						tabLink.click();
-					}
-				}
-
-				Structr.unblockMenu(100);
+				_Security.selectTab(subModule);
 			});
-		});
+
+			if (tabLink.closest('a').getAttribute('href') === '#security:' + subModule) {
+				tabLink.click();
+			}
+		}
+
+		Structr.unblockMenu(100);
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		const isUser             = entity.isUser;
 		const isGroup            = entity.isGroup;
@@ -96,8 +89,8 @@ let _Security = {
 				let parentGroupId = Structr.getGroupId(parentGroupEl);
 				elements.push({
 					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
-					clickHandler: function () {
-						Command.removeFromCollection(parentGroupId, 'members', entity.id, function () {
+					clickHandler: () => {
+						Command.removeFromCollection(parentGroupId, 'members', entity.id, () => {
 							_UsersAndGroups.refreshGroups();
 						});
 						return false;
@@ -111,7 +104,7 @@ let _Security = {
 		if (isUser) {
 			elements.push({
 				name: 'Basic',
-				clickHandler: function () {
+				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
 					return false;
 				}
@@ -172,6 +165,124 @@ let _Security = {
 			$('#usersAndGroups').hide();
 			_ResourceAccessGrants.refreshResourceAccesses();
 		}
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/security.css">
+			
+			<div class="main-app-box" id="security">
+			
+				<div id="securityTabs" class="tabs-contents">
+			
+					<div id="usersAndGroups" class="tab-content">
+			
+						<div id="usersAndGroups-inner">
+							<div id="users">
+								<div id="users-controls"></div>
+								<div id="users-list"></div>
+							</div>
+			
+							<div id="groups">
+								<div id="groups-controls"></div>
+								<div id="groups-list"></div>
+							</div>
+						</div>
+			
+					</div>
+			
+					<div id="resourceAccess" class="tab-content">
+						<div id="resourceAccesses"></div>
+					</div>
+				</div>
+			</div>
+		`,
+		functions: config => `
+			<ul id="securityTabsMenu" class="tabs-menu flex-grow">
+			  <li><a href="#security:users-and-groups" id="usersAndGroups_"><span>Users and Groups</span></a></li>
+			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access Grants</span></a></li>
+			</ul>
+		`,
+		newGroupButton: config => `
+			<div class="flex items-center mb-8">
+			
+				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="group-type">
+					<option value="Group">Group</option>
+					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
+				</select>
+			
+				<button class="action add_group_icon inline-flex items-center" id="add-group-button">
+					${_Icons.getSvgIcon('group-add', 16, 16, 'mr-2')}
+					<span>Add Group</span>
+				</button>
+			</div>
+		`,
+		newUserButton: config => `
+			<div class="flex items-center mb-8">
+			
+				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="user-type">
+					<option value="User">User</option>
+					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
+				</select>
+			
+				<button class="action add_user_icon inline-flex items-center" id="add-user-button">
+					${_Icons.getSvgIcon('user-add', 16, 16, 'mr-2')}
+					<span>Add User</span>
+				</button>
+			</div>
+		`,
+		resourceAccess: config => `
+			<div class="flex items-center">
+				<div id="add-resource-access-grant" class="flex items-center">
+					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="mr-2">
+					<button class="action add_grant_icon button inline-flex items-center">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add Grant
+					</button>
+				</div>
+			
+				<div id="filter-resource-access-grants" class="flex items-center">
+					<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
+					<label class="ui-setting-checkbox inline-flex ml-4">
+						<input type="checkbox" id="show-grants-in-use" ${(Structr.isInMemoryDatabase ? 'disabled title="This feature can not be used when working on an in-memory database"' : 'class="filter" data-attribute="flags"')}> Show only grants in use
+					</label>
+				</div>
+			</div>
+			
+			<table id="resourceAccessesTable">
+				<thead>
+					<tr>
+						<th><div id="resourceAccessesPager"></div></th>
+						<th colspan="7" class="center br-1 bl-1" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is not able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read mutliple grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
+						<th colspan="7" class="center br-1" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
+						<th></th>
+						<th colspan="2" class="bl-1 br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
+						<th></th>
+					</tr>
+					<tr>
+						<th class="title-cell">Signature</th>
+						<th class="bl-1">GET</th>
+						<th>PUT</th>
+						<th>POST</th>
+						<th>DELETE</th>
+						<th>OPTIONS</th>
+						<th>HEAD</th>
+						<th class="br-1">PATCH</th>
+						<th>GET</th>
+						<th>PUT</th>
+						<th>POST</th>
+						<th>DELETE</th>
+						<th>OPTIONS</th>
+						<th>HEAD</th>
+						<th class="br-1">PATCH</th>
+						<th>Bitmask</th>
+						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToAuthenticatedUsers</th>
+						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToPublicUsers</th>
+						<th></th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		`
 	}
 };
 
@@ -184,48 +295,52 @@ let _UsersAndGroups = {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
-		Structr.fetchHtmlTemplate('security/button.user.new', { types: types }, function (html) {
+		let newUserHtml = _Security.templates.newUserButton({ types: types });
+		_Security.userList.innerHTML     = '';
+		_Security.userControls.innerHTML = newUserHtml;
 
-			_Security.userList.innerHTML     = '';
-			_Security.userControls.innerHTML = html;
+		let userTypeSelect = document.querySelector('select#user-type');
+		let addUserButton  = document.getElementById('add-user-button');
 
-			let userTypeSelect = document.querySelector('select#user-type');
-			let addUserButton  = document.getElementById('add-user-button');
-
-			addUserButton.addEventListener('click', (e) => {
-				Command.create({ type: userTypeSelect.value }, (user) => {
-					let userModelObj = StructrModel.create(user);
-					_UsersAndGroups.appendUserToUserList(userModelObj);
-				});
+		addUserButton.addEventListener('click', (e) => {
+			Command.create({ type: userTypeSelect.value }, (user) => {
+				let userModelObj = StructrModel.create(user);
+				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
 			});
-
-			userTypeSelect.addEventListener('change', () => {
-				addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
-			});
-
-			let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
-				for (let user of users) {
-					let userModelObj = StructrModel.create(user);
-					_UsersAndGroups.appendUserToUserList(userModelObj);
-				}
-			}, null, 'id,isUser,name,type,isAdmin');
-			userPager.cleanupFunction = function () {
-				_Security.userList.innerHTML = '';
-			};
-			userPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></th></div>');
-			userPager.activateFilterElements();
 		});
+
+		userTypeSelect.addEventListener('change', () => {
+			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
+		});
+
+		let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
+			for (let user of users) {
+				let userModelObj = StructrModel.create(user);
+				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
+			}
+		}, null, 'id,isUser,name,type,isAdmin', undefined, true);
+
+		userPager.cleanupFunction = function () {
+			fastRemoveAllChildren(_Security.userList);
+		};
+
+		userPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		userPager.activateFilterElements();
+		userPager.setIsPaused(false);
+		userPager.refresh();
 	},
-	createUserElement:function (user) {
+	createUserElement: (user) => {
 
-		let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+		let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
 
-		let userElement = $('<div class="node user ' + _UsersAndGroups.userNodeClassPrefix + user.id + '">'
-				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(user) + '"></i>'
-				+ '<b title="' + displayName + '" class="name_ abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '<div class="icons-container"></div>'
-		);
-		userElement.data('userId', user.id);
+		let userElement = $(`
+			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
+				<div class="node-container flex items-center">
+					<i class="typeIcon typeIcon-nochildren ${_UsersAndGroups.getIconForPrincipal(user)}"></i><b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
+					<div class="icons-container flex items-center"></div>
+				</div>
+			</div>
+		`);
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -239,9 +354,10 @@ let _UsersAndGroups = {
 				((principal.isAdmin === true) ? _Icons.user_red_icon : ((principal.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon))
 		);
 	},
+	prevAnimFrameReqId_updateUserElementAfterModelChange: undefined,
 	updateUserElementAfterModelChange: (user) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateUserElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
@@ -249,7 +365,7 @@ let _UsersAndGroups = {
 
 				let icon = userEl.querySelector('.typeIcon');
 				if (icon) {
-					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(user));
+					icon.setAttribute('class', 'typeIcon typeIcon-nochildren ' + _UsersAndGroups.getIconForPrincipal(user));
 				}
 
 				let userName = userEl.querySelector('.name_');
@@ -262,13 +378,13 @@ let _UsersAndGroups = {
 			}
 		});
 	},
-	appendUserToUserList: function (user) {
+	appendUserToElement: (targetElement, user) => {
 
 		let userDiv = _UsersAndGroups.createUserElement(user);
 
-		_Security.userList.appendChild(userDiv[0]);
+		targetElement.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon(userDiv.children('.icons-container'), user);
+		_Entities.appendContextMenuIcon($('.icons-container', userDiv), user);
 		_Elements.enableContextMenuOnElement(userDiv, user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
@@ -310,12 +426,12 @@ let _UsersAndGroups = {
 			}
 		}
 	},
-	appendMemberToGroup: function (member, group, groupEl) {
+	appendMemberToGroup: (member, group, groupEl) => {
 
 		let groupId    = group.id;
 		let isExpanded = Structr.isExpanded(groupId);
 
-		_Entities.appendExpandIcon(groupEl, group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
+		_Entities.appendExpandIcon(groupEl.children('.node-container'), group, true, isExpanded, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupEl); } );
 
 		if (!isExpanded) {
 			return;
@@ -331,14 +447,8 @@ let _UsersAndGroups = {
 				if (!memberAlreadyListed) {
 
 					let modelObj = StructrModel.obj(member.id);
-					let userDiv = _UsersAndGroups.createUserElement(modelObj ? modelObj : member);
 
-					$(grpEl).append(userDiv);
-					userDiv.removeClass('disabled');
-
-					_Entities.appendContextMenuIcon(userDiv, member);
-					_Elements.enableContextMenuOnElement(userDiv, member);
-					_UsersAndGroups.setMouseOver(userDiv, member.id, prefix);
+					_UsersAndGroups.appendUserToElement(grpEl, (modelObj ? modelObj : member));
 				}
 			});
 
@@ -349,27 +459,11 @@ let _UsersAndGroups = {
 
 			if (!alreadyShownInMembers && !alreadyShownInParents) {
 
-				let groupDiv = _UsersAndGroups.createGroupElement(member);
-
-				groupEl.append(groupDiv);
-
-				groupDiv.removeClass('disabled');
-
-				_Entities.appendContextMenuIcon(groupDiv, member);
-				_Elements.enableContextMenuOnElement(groupDiv, member);
-				_UsersAndGroups.setMouseOver(groupDiv, member.id, prefix);
-
-				if (member.members === null) {
-					Command.get(member.id, null, function (fetchedGroup) {
-						_UsersAndGroups.appendMembersToGroup(fetchedGroup.members, member, groupDiv);
-					});
-				} else if (member.members && member.members.length) {
-					_UsersAndGroups.appendMembersToGroup(member.members, member, groupDiv);
-				}
+				_UsersAndGroups.appendGroupToElement(groupEl, member);
 			}
 		}
 	},
-	isGroupAlreadyShown: function(group, groupEl) {
+	isGroupAlreadyShown: (group, groupEl) => {
 		if (groupEl.length === 0) {
 			return false;
 		}
@@ -384,47 +478,51 @@ let _UsersAndGroups = {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
 
-		Structr.fetchHtmlTemplate('security/button.group.new', { types: types }, function (html) {
+		let newGroupHtml = _Security.templates.newGroupButton({ types: types });
+		_Security.groupList.innerHTML     = '';
+		_Security.groupControls.innerHTML = newGroupHtml;
 
-			_Security.groupList.innerHTML     = '';
-			_Security.groupControls.innerHTML = html;
+		let groupTypeSelect = document.querySelector('select#group-type');
+		let addGroupButton  = document.getElementById('add-group-button');
 
-			let groupTypeSelect = document.querySelector('select#group-type');
-			let addGroupButton  = document.getElementById('add-group-button');
-
-			addGroupButton.addEventListener('click', (e) => {
-				Command.create({ type: groupTypeSelect.value }, (group) => {
-					let groupModelObj = StructrModel.create(group);
-					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
-				});
+		addGroupButton.addEventListener('click', (e) => {
+			Command.create({ type: groupTypeSelect.value }, (group) => {
+				let groupModelObj = StructrModel.create(group);
+				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			});
-
-			groupTypeSelect.addEventListener('change', () => {
-				addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
-			});
-
-			let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
-				for (let group of groups) {
-					let groupModelObj = StructrModel.create(group);
-					_UsersAndGroups.appendGroupElement($(_Security.groupList), groupModelObj);
-				}
-			});
-			groupPager.cleanupFunction = function () {
-				_Security.groupList.innerHTML = '';
-			};
-			groupPager.pager.append('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
-			groupPager.activateFilterElements();
 		});
+
+		groupTypeSelect.addEventListener('change', () => {
+			addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
+		});
+
+		let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
+			for (let group of groups) {
+				let groupModelObj = StructrModel.create(group);
+				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
+			}
+		}, undefined, undefined, undefined, true);
+
+		groupPager.cleanupFunction = () => {
+			fastRemoveAllChildren(_Security.groupList);
+		};
+		groupPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		groupPager.activateFilterElements();
+		groupPager.setIsPaused(false);
+		groupPager.refresh();
 	},
 	createGroupElement: function (group) {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
-		let groupElement = $('<div class="node group ' + _UsersAndGroups.groupNodeClassPrefix + group.id + '">'
-				+ '<i class="typeIcon ' + _UsersAndGroups.getIconForPrincipal(group) + '"></i>'
-				+ '<b title="' + displayName + '" class="name_  abbr-ellipsis abbr-75pc" data-input-class="max-w-75">' + displayName + '</b>'
-				+ '<div class="icons-container"></div>'
-		);
-		groupElement.data('groupId', group.id);
+
+		let groupElement = $(`
+			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
+				<div class="node-container flex items-center">
+					<i class="typeIcon ${(group.members.length > 0 ? 'typeIcon-nochildren ' : '')}${_UsersAndGroups.getIconForPrincipal(group)}"></i><b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					<div class="icons-container flex items-center"></div>
+				</div>
+			</div>
+		`);
 
 		groupElement.droppable({
 			accept: '.user, .group',
@@ -462,20 +560,25 @@ let _UsersAndGroups = {
 
 		return groupElement;
 	},
+	prevAnimFrameReqId_updateGroupElementAfterModelChange: undefined,
 	updateGroupElementAfterModelChange: (group) => {
 
-		requestAnimationFrame(() => {
+		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateGroupElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
+			for (let groupEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
 
-				let icon = userEl.querySelector('.typeIcon');
+				let icon = groupEl.querySelector('.typeIcon');
 				if (icon) {
-					icon.setAttribute('class', 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group));
+					let newClassString = 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group);
+					if (group.members.length == 0) {
+						newClassString += ' typeIcon-nochildren';
+					}
+					icon.setAttribute('class', newClassString);
 				}
 
-				let groupName = userEl.querySelector('.name_');
+				let groupName = groupEl.querySelector('.name_');
 				if (groupName) {
 					let displayName = ((group.name) ? group.name : '[unnamed]');
 
@@ -485,20 +588,25 @@ let _UsersAndGroups = {
 			}
 		});
 	},
-	appendGroupElement: function(element, group) {
+	appendGroupToElement: (targetElement, group) => {
 
 		let hasChildren = group.members && group.members.length;
 		let groupDiv    = _UsersAndGroups.createGroupElement(group);
-		element.append(groupDiv);
+		targetElement.append(groupDiv);
 
-		_Entities.appendExpandIcon(groupDiv, group, hasChildren, Structr.isExpanded(group.id), (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); } );
-		_Entities.appendContextMenuIcon(groupDiv.children('.icons-container'), group);
+		let appendMembersFn = (members) => {
+			_UsersAndGroups.appendMembersToGroup(members, group, groupDiv);
+		};
+
+		_Entities.appendExpandIcon(groupDiv.children('.node-container'), group, hasChildren, Structr.isExpanded(group.id), appendMembersFn);
+
+		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container'), group);
 		_Elements.enableContextMenuOnElement(groupDiv, group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
 		if (hasChildren && Structr.isExpanded(group.id)) {
 			// do not directly use group.members (it does not contain all necessary information)
-			Command.children(group.id, (members) => { _UsersAndGroups.appendMembersToGroup(members, group, groupDiv); });
+			Command.children(group.id, appendMembersFn);
 		}
 
 		let dblclickHandler = (e) => {
@@ -515,7 +623,7 @@ let _UsersAndGroups = {
 	},
 	setMouseOver: function (node, id, prefix) {
 
-		node.children('b.name_').off('click').on('click', function(e) {
+		node.children('.node-container').children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
 				blinkGreen(el);
@@ -556,7 +664,7 @@ let _UsersAndGroups = {
 
 let _ResourceAccessGrants = {
 
-	refreshResourceAccesses: function() {
+	refreshResourceAccesses: () => {
 
 		if (Structr.isInMemoryDatabase === undefined) {
 			window.setTimeout(() => {
@@ -566,39 +674,37 @@ let _ResourceAccessGrants = {
 
 		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
 
-		_Security.resourceAccesses.empty();
+		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
+		_Security.resourceAccesses.html(resourceAccessHtml);
 
-		Structr.fetchHtmlTemplate('security/resource-access', { showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) }, function (html) {
+		Structr.activateCommentsInElement(_Security.resourceAccesses[0]);
 
-			_Security.resourceAccesses.append(html);
+		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', undefined, true);
 
-			Structr.activateCommentsInElement(_Security.resourceAccesses);
+		raPager.cleanupFunction = () => {
+			$('#resourceAccessesTable tbody tr').remove();
+		};
 
-			let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees');
+		raPager.activateFilterElements(_Security.resourceAccesses);
+		raPager.setIsPaused(false);
+		raPager.refresh();
 
-			raPager.cleanupFunction = function () {
-				$('#resourceAccessesTable tbody tr').remove();
-			};
+		$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+			_ResourceAccessGrants.addResourceGrant(e);
+		});
 
-			raPager.activateFilterElements(_Security.resourceAccesses);
-
-			$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
+		$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+			if (e.keyCode === 13) {
 				_ResourceAccessGrants.addResourceGrant(e);
-			});
-
-			$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
-				if (e.keyCode === 13) {
-					_ResourceAccessGrants.addResourceGrant(e);
-				}
-			});
+			}
 		});
 	},
-	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+	customPagerTransportFunction: (type, pageSize, page, filterAttrs, callback) => {
 
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
-			filterString = 'WHERE ' + presentFilters.map(function(key) {
+			filterString = 'WHERE ' + presentFilters.map((key) => {
 				if (key === 'flags') {
 					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
 				} else {
@@ -635,14 +741,14 @@ let _ResourceAccessGrants = {
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
-		let reEnableInput = function () {
+		let reEnableInput = () => {
 			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
 		let sig = inp.val();
 		if (sig) {
-			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, function() {
+			_ResourceAccessGrants.createResourceAccessGrant(sig, 0, () => {
 				reEnableInput();
 				inp.val('');
 			});
@@ -652,7 +758,7 @@ let _ResourceAccessGrants = {
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
-	createResourceAccessGrant: function(signature, flags, callback, additionalData) {
+	createResourceAccessGrant: (signature, flags, callback, additionalData) => {
 		let grantData = {
 			type: 'ResourceAccess',
 			signature: signature,
@@ -696,7 +802,7 @@ let _ResourceAccessGrants = {
 
 		let flags = parseInt(resourceAccess.flags);
 
-		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b class="name_">${resourceAccess.signature}</b></td>`;
+		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b>${resourceAccess.signature}</b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
 
@@ -773,7 +879,8 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
 				element: $('.title-cell b', tr),
-				customToggleIcon: _Icons.error_icon,
+				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIconClasses: [],
 				css: {
 					float:'right',
 					marginRight: '5px'
@@ -785,8 +892,9 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: flagWarningTexts[key].join('<br><br>'),
 				element: $('input[data-key=' + key + ']', tr),
-				customToggleIcon: _Icons.error_icon,
-				css: {position:'absolute'},
+				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIconClasses: [],
+				css: { position: 'absolute' },
 				insertAfter: true
 			});
 		}
@@ -796,8 +904,9 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: _Icons.exclamation_icon,
-					css: {position:'absolute'},
+					customToggleIcon: 'error-sign-icon-filled',
+					customToggleIconClasses: ['icon-red'],
+					css: { position: 'absolute' },
 					insertAfter: true
 				});
 			}

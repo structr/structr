@@ -21,7 +21,7 @@ structr-ui/log4j.log
 structr-ui/logDb.dat
 structr-ui/src/test/javascript/screenshots
 structr-ui/structr-ui*.pid
-structr-ui/*.key
+structr-ui/*.key*
 **/logs
 *.diff
 **nb-configuration.xml
@@ -33,7 +33,6 @@ docs/screenshots
 *.DS_Store
 **nbactions.xml
 import-*.log
-license.key
 
 # IntelliJ specific ignores
 .idea
@@ -46,3 +45,4 @@ neo4j*/
 # Key files
 *.pem
 *.p12
+*license.key*

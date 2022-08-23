@@ -127,8 +127,12 @@ let _Elements = {
 			focus: 'href'
 		},
 		{
-			elements: ['td', 'th'],
-			attrs: ['colspan', 'rowspan', 'style']
+			elements: ['th'],
+			attrs: ['abbr', 'colspan', 'rowspan', 'headers', 'scope', 'style']
+		},
+		{
+			elements: ['td'],
+			attrs: ['colspan', 'rowspan', 'headers', 'style']
 		},
 		{
 			elements: ['label'],
@@ -164,6 +168,11 @@ let _Elements = {
 			elements: ['slot'],
 			attrs: ['name'],
 			focus: 'name'
+		},
+		{
+			elements: ['details'],
+			attrs: ['open'],
+			focus: 'class'
 		}
 	],
 	voidAttrs: ['br', 'hr', 'img', 'input', 'link', 'meta', 'area', 'base', 'col', 'embed', 'keygen', 'menuitem', 'param', 'track', 'wbr'],
@@ -313,14 +322,12 @@ let _Elements = {
 
 		let html = `
 			<div id="id_${id}" class="${elementClasses.join(' ')}">
-				<div class="node-selector"></div>
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-				<span class="abbr-ellipsis abbr-pages-tree">
-					<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>
-					${_Elements.classIdString(entity._html_id, entity._html_class)}
-				</span>
-				<span class="id">${entity.id}</span>
-				<div class="icons-container"></div>
+				<div class="node-container flex items-center">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<div class="icons-container flex items-center"></div>
+				</div>
 			</div>
 		`;
 
@@ -331,6 +338,7 @@ let _Elements = {
 		}
 
 		let div            = Structr.node(id);
+		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
 		if (!div) {
@@ -338,25 +346,29 @@ let _Elements = {
 		}
 
 		_Elements.enableContextMenuOnElement(div, entity);
-		_Entities.appendExpandIcon(div, entity, hasChildren);
+		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
 
-		if (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object') {
-
-			let linkIconElement = $(_Icons.getSvgIcon('chain-link', 16, 16, ['node-action-icon', 'icon-grey']));
-			iconsContainer.prepend(linkIconElement);
+		if (_Entities.isLinkableEntity(entity)) {
 
 			if (entity.linkableId) {
 
-				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate', (linkedEntity) => {
+				Command.get(entity.linkableId, 'id,type,name,isFile,isImage,isPage,isTemplate,path', (linkedEntity) => {
 
 					let linkableText = $(`<span class="linkable${(linkedEntity.isImage ? ' default-cursor' : '')}">${linkedEntity.name}</span>`);
 					iconsContainer.before(linkableText);
 
-					if (linkedEntity.isFile || linkedEntity.isImage) {
+					if (linkedEntity.isImage) {
+
+						linkableText.on('click', (e) => {
+							e.stopPropagation();
+							_Files.editImage(linkedEntity);
+						});
+
+					} else if (linkedEntity.isFile) {
 
 						linkableText.on('click', (e) => {
 							e.stopPropagation();
@@ -365,103 +377,6 @@ let _Elements = {
 					}
 				});
 			}
-
-			linkIconElement.on('click', function(e) {
-				e.stopPropagation();
-
-				Structr.dialog('Link to Resource (Page, File or Image)', () => { return true; }, () => { return true; });
-
-				dialog.empty();
-				dialogMsg.empty();
-
-				if (entity.tag !== 'img') {
-
-					dialog.append('<p>Click on a Page, File or Image to establish a hyperlink to this &lt;' + entity.tag + '&gt; element.</p>');
-					dialog.append('<h3>Pages</h3><div class="linkBox" id="pagesToLink"></div>');
-
-					let pagesToLink = $('#pagesToLink');
-
-					_Pager.initPager('pages-to-link', 'Page', 1, 25);
-					let pagesPager = _Pager.addPager('pages-to-link', pagesToLink, true, 'Page', null, function(pages) {
-
-						for (let page of pages) {
-
-							if (page.type !== 'ShadowDocument') {
-
-								pagesToLink.append('<div class="node page ' + page.id + '_"><i class="' + _Icons.getFullSpriteClass(_Icons.page_icon) + '" /><b title="' + escapeForHtmlAttributes(page.name) + '" class="name_ abbr-ellipsis abbr-120">' + page.name + '</b></div>');
-
-								let div = $('.' + page.id + '_', pagesToLink);
-
-								_Elements.handleLinkableElement(div, entity, page);
-							}
-						}
-					});
-
-					let pagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
-					pagesPager.pager.append(pagesPagerFilters);
-					pagesPager.activateFilterElements();
-
-					dialog.append('<h3>Files</h3><div class="linkBox" id="foldersToLink"></div><div class="linkBox" id="filesToLink"></div>');
-
-					let filesToLink   = $('#filesToLink');
-					let foldersToLink = $('#foldersToLink');
-
-					_Pager.initPager('folders-to-link', 'Folder', 1, 25);
-					_Pager.forceAddFilters('folders-to-link', 'Folder', { hasParent: false });
-					let linkFolderPager = _Pager.addPager('folders-to-link', foldersToLink, true, 'Folder', 'ui', function(folders) {
-
-						for (let folder of folders) {
-							_Elements.appendFolder(entity, foldersToLink, folder);
-						}
-					}, null, 'id,name,hasParent');
-
-					let folderPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name" /></span>');
-					linkFolderPager.pager.append(folderPagerFilters);
-					linkFolderPager.activateFilterElements();
-
-					_Pager.initPager('files-to-link', 'File', 1, 25);
-					let linkFilesPager = _Pager.addPager('files-to-link', filesToLink, true, 'File', 'ui', function(files) {
-
-						for (let file of files) {
-
-							filesToLink.append('<div class="node file ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-									+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-120">' + file.name + '</b></div>');
-
-							let div = $('.' + file.id + '_', filesToLink);
-
-							_Elements.handleLinkableElement(div, entity, file);
-						}
-					}, null, 'id,name,contentType,linkingElementsIds,path');
-
-					let filesPagerFilters = $('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" /><label><input type="checkbox"  class="filter" data-attribute="hasParent" /> Include subdirectories</label></span>');
-					linkFilesPager.pager.append(filesPagerFilters);
-					linkFilesPager.activateFilterElements();
-				}
-
-				if (entity.tag === 'img' || entity.tag === 'link' || entity.tag === 'a') {
-
-					dialog.append('<h3>Images</h3><div class="linkBox" id="imagesToLink"></div>');
-
-					let imagesToLink = $('#imagesToLink');
-
-					_Pager.initPager('images-to-link', 'Image', 1, 25);
-					let imagesPager = _Pager.addPager('images-to-link', imagesToLink, false, 'Image', 'ui', function(images) {
-
-						for (let image of images) {
-
-							imagesToLink.append('<div class="node file ' + image.id + '_" title="' + escapeForHtmlAttributes(image.path) + '">' + _Icons.getImageOrIcon(image) + '<b class="name_ abbr-ellipsis abbr-120">' + image.name + '</b></div>');
-
-							let div = $('.' + image.id + '_', imagesToLink);
-
-							_Elements.handleLinkableElement(div, entity, image);
-						}
-					}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall');
-
-					let imagesPagerFilters = $('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"/></span>');
-					imagesPager.pager.append(imagesPagerFilters);
-					imagesPager.activateFilterElements();
-				}
-			});
 		}
 
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
@@ -479,111 +394,17 @@ let _Elements = {
 			let isElementBeingEditedCurrently = (_Pages.centerPane.dataset['elementId'] === selectedObjectId);
 
 			if (!isElementBeingEditedCurrently) {
-				div.click();
+				div.children('.node-container').click();
 			} else {
 				_Entities.selectElement(div[0], entity);
 			}
 		}
 	},
-	classIdString: function(idString, classString) {
-		let classIdString = '<span class="class-id-attrs">' + (idString ? '<span class="_html_id_">#' + idString.replace(/\${.*}/g, '${…}') + '</span>' : '')
-				+ (classString ? '<span class="_html_class_">.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') + '</span>' : '') + '</span>';
-		return classIdString;
-	},
-	appendFolder: function(entityToLinkTo, folderEl, subFolder) {
+	classIdString: (idString, classString) => {
+		let htmlIdString    = (idString    ? '#' + idString.replace(/\${.*}/g, '${…}') : '');
+		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
 
-		folderEl.append((subFolder.hasParent ? '<div class="clear"></div>' : '') + '<div class="node folder ' + (subFolder.hasParent ? 'sub ' : '') + subFolder.id + '_"><i class="fa fa-folder"></i> '
-				+ '<b title="' + escapeForHtmlAttributes(subFolder.name) + '" class="name_ abbr-ellipsis abbr-200">' + subFolder.name + '</b></div>');
-
-		let subFolderEl = $('.' + subFolder.id + '_', folderEl);
-
-		subFolderEl.on('click', function(e) {
-			e.stopPropagation();
-			e.preventDefault();
-
-			if (!subFolderEl.children('.fa-folder-open').length) {
-
-				_Elements.expandFolder(entityToLinkTo, subFolder);
-
-			} else {
-				subFolderEl.children('.node').remove();
-				subFolderEl.children('.clear').remove();
-				subFolderEl.children('.fa-folder-open').removeClass('fa-folder-open').addClass('fa-folder');
-			}
-
-			return false;
-
-		}).hover(function() {
-			$(this).addClass('nodeHover');
-		}, function() {
-			$(this).removeClass('nodeHover');
-		});
-
-	},
-	expandFolder: function(entityToLinkTo, folder) {
-
-		Command.get(folder.id, 'id,name,hasParent,files,folders', function(node) {
-
-			let folderEl = $('.' + node.id + '_');
-			folderEl.children('.fa-folder').removeClass('fa-folder').addClass('fa-folder-open');
-
-			for (let subFolder of node.folders) {
-				_Elements.appendFolder(entityToLinkTo, folderEl, subFolder);
-			}
-
-			for (let f of node.files) {
-
-				Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', function(file) {
-
-					$('.' + node.id + '_').append('<div class="clear"></div><div class="node file sub ' + file.id + '_"><i class="fa ' + _Icons.getFileIconClass(file) + '"></i> '
-							+ '<b title="' + escapeForHtmlAttributes(file.path) + '" class="name_ abbr-ellipsis abbr-200">' + file.name + '</b></div>');
-
-					let div = $('.' + file.id + '_');
-
-					_Elements.handleLinkableElement(div, entityToLinkTo, file);
-				});
-			}
-		});
-	},
-	handleLinkableElement: function(div, entityToLinkTo, linkableObject) {
-
-		if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
-			div.addClass('nodeActive');
-		}
-
-		div.on('click', function(event) {
-
-			event.stopPropagation();
-
-			if (div.hasClass('nodeActive')) {
-
-				Command.setProperty(entityToLinkTo.id, 'linkableId', null);
-
-			} else {
-
-				let attrName = (entityToLinkTo.type === 'Link') ? '_html_href' : '_html_src';
-
-				Command.getProperty(entityToLinkTo.id, attrName, function(val) {
-					if (!val || val === '') {
-						Command.setProperty(entityToLinkTo.id, attrName, '${link.path}', null);
-					}
-				});
-
-				Command.link(entityToLinkTo.id, linkableObject.id);
-			}
-
-			_Entities.reloadChildren(entityToLinkTo.parent.id);
-
-			$('#dialogBox .dialogText').empty();
-
-			$.unblockUI({
-				fadeOut: 25
-			});
-		}).hover(function() {
-			$(this).addClass('nodeHover');
-		}, function() {
-			$(this).removeClass('nodeHover');
-		});
+		return `<span class="class-id-attrs">${htmlIdString}${htmlClassString}</span>`;
 	},
 	enableContextMenuOnElement: function(div, entity) {
 
@@ -984,11 +805,12 @@ let _Elements = {
 		let icon = _Elements.getContentIcon(entity);
 		let html = `
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
-				<div class="node-selector"></div>
-				<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
-				<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
-				<span class="id">${entity.id}</span>
-				<div class="icons-container"></div>
+				<div class="node-container flex items-center">
+					<div class="node-selector"></div>
+					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
+					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
+					<div class="icons-container flex items-center"></div>
+				</div>
 			</div>`;
 
 
@@ -999,6 +821,7 @@ let _Elements = {
 		}
 
 		let div            = Structr.node(entity.id);
+		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
@@ -1006,16 +829,16 @@ let _Elements = {
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;
-			_Entities.appendExpandIcon(div, entity, hasChildren);
+			_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 		}
 
 		if (entity.hidden === true) {
 			div.addClass('is-hidden');
 		}
 
-		_Elements.enableContextMenuOnElement(div, entity);
+		_Elements.enableContextMenuOnElement(nodeContainer, entity);
 
-		_Pages.registerDetailClickHandler(div, entity);
+		_Pages.registerDetailClickHandler(nodeContainer, entity);
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
@@ -1040,15 +863,13 @@ let _Elements = {
 
 		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
 	},
-	openEditContentDialog: function(entity) {
+	openEditContentDialog: (entity) => {
 
 		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {}, ['popup-dialog-with-editor']);
 
 		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
 		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
 		dialog.append('<div class="editor h-full"></div>');
-
-		let contentBox = $('.editor', dialog);
 
 		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
 		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
@@ -1098,14 +919,14 @@ let _Elements = {
 						saveAndClose.disabled = true;
 						saveAndClose.classList.add('disabled');
 
-						Command.getProperty(entity.id, 'content', function (newText) {
+						Command.getProperty(entity.id, 'content', (newText) => {
 							initialText = newText;
 						});
 					});
 				}
 			};
 
-			let editor = _Editors.getMonacoEditor(entity, 'source', $(contentBox), openEditDialogMonacoConfig);
+			let editor = _Editors.getMonacoEditor(entity, 'source', dialog[0].querySelector('.editor'), openEditDialogMonacoConfig);
 
 			Structr.resize();
 
@@ -1144,16 +965,13 @@ let _Elements = {
 			previewsContainer.removeChild(contentEditorContainer);
 		}
 
-		Structr.fetchHtmlTemplate('pages/content-editor', {}, (html) => {
+		previewsContainer.insertAdjacentHTML('afterbegin', _Pages.templates.contentEditor());
 
-			previewsContainer.insertAdjacentHTML('afterbegin', html);
+		contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
 
-			contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
-
-			Command.get(entity.id, 'content,contentType', (data) => {
-				entity.contentType = data.contentType;
-				_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
-			});
+		Command.get(entity.id, 'content,contentType', (data) => {
+			entity.contentType = data.contentType;
+			_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
 		});
 	},
 	editContentInCentralEditor: function (entity, initialText, element) {
@@ -1211,7 +1029,7 @@ let _Elements = {
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, 'content', $(contentBox), centralEditorMonacoConfig);
+		let editor = _Editors.getMonacoEditor(entity, 'content', contentBox, centralEditorMonacoConfig);
 
 		let editorInfo = infoArea.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);

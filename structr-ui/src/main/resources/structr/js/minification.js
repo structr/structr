@@ -16,53 +16,70 @@
  * You should have received a copy of the GNU Affero General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var _Minification = {
+let _Minification = {
 
-	showMinificationDialog: function (file) {
-		Structr.dialog('Minification', function() { }, function() { });
+	showMinificationDialog: (file) => {
+
+		Structr.dialog('Minification', () => {}, () => {});
 
 		dialogText.append('<table id="minification-files" class="props"><thead><tr><th>Position</th><th>Filename</th><th>Size</th><th>Actions</th></tr></thead><tbody></tbody></table>');
 		dialogText.append('<div id="minification-source-search"></div>');
 
-		var $minificationSourceSearch = $('#minification-source-search', dialogText);
-		_Minification.displaySearch(file.type, file.id, "minificationSources", "AbstractFile", $minificationSourceSearch);
+		_Minification.displaySearch(file.type, file.id, "minificationSources", "AbstractFile", $('#minification-source-search', dialogText));
 
 		_Minification.reloadHeadAndFiles(file.id);
 	},
 
-	updateHead: function (file) {
+	updateHead: (file) => {
 
 		dialogHead.empty();
 
-		dialogHead.append('<table id="minify-options" class="props">'
-				+ '<tr><td class="head">File</td><td><a href="' + file.path + '" target="_blank">' + file.name + '</a></td></tr>'
-				+ '<tr><td class="head">Size</td><td>' + file.size + '</td></tr>'
-				+ _Minification.getTypeSpecificRows(file)
-				+ '<tr><td class="action" colspan=2><button title="Manually trigger minification"><i class="' + _Icons.getFullSpriteClass(_Icons.minification_trigger_icon) + '" /> Manually trigger minification</button></td></tr>'
-				+ '</table>');
+		dialogHead.append(`
+			<table id="minify-options" class="props">
+				<tr>
+					<td class="head">File</td>
+					<td><a href="${file.path}" target="_blank">${file.name}</a></td>
+				</tr>
+				<tr>
+					<td class="head">Size</td>
+					<td>${file.size}</td>
+				</tr>
+				${_Minification.getTypeSpecificRows(file)}
+				<tr>
+					<td class="action" colspan=2>
+						<button class="inline-flex items-center">${_Icons.getSvgIcon('zipper-icon', 16, 16, 'mr-2')} Minify</button>
+					</td>
+				</tr>
+			</table>
+		`);
 
 		if (file.type === 'MinifiedCssFile') {
+
 			$('.lineBreak', dialogHead).on('blur', function () {
-				var $el = $(this);
-				var oldVal = parseInt($el.data('before'));
-				var newVal = parseInt($el.val());
+				let $el = $(this);
+				let oldVal = parseInt($el.data('before'));
+				let newVal = parseInt($el.val());
 
 				if (oldVal !== newVal) {
-					Command.setProperties(file.id, { lineBreak: newVal }, function (f) {
+					Command.setProperties(file.id, { lineBreak: newVal }, (f) => {
+
 						$el.val(newVal).data('before', newVal);
 
 						_Minification.reloadHeadAndFiles(file.id);
 					});
 				}
 			});
+
 		} else {
+
 			$('.optimizationLevel', dialogHead).val(file.optimizationLevel).on('change', function () {
-				var $el = $(this);
-				var oldVal = $el.data('before');
-				var newVal = $el.val();
+				let $el = $(this);
+				let oldVal = $el.data('before');
+				let newVal = $el.val();
 
 				if (oldVal !== newVal) {
-					Command.setProperties(file.id, { optimizationLevel: newVal }, function (f) {
+					Command.setProperties(file.id, { optimizationLevel: newVal }, (f) => {
+
 						$el.val(newVal).data('before', newVal);
 
 						_Minification.reloadHeadAndFiles(file.id);
@@ -71,28 +88,24 @@ var _Minification = {
 			});
 		}
 
-		$('td.action button', dialogHead).on('click', function() {
-			_Minification.minifyFile(file.id, function () {
-				_Minification.reloadHeadAndFiles(file.id);
-			});
+		$('td.action button', dialogHead).on('click', async () => {
+			await _Minification.minifyFile(file.id);
 		});
 
 	},
+	minifyFile: async (fileId) => {
 
-	minifyFile: function (fileId, callback) {
-		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + fileId + '/minify',
-			type: 'POST',
-			success: function () {
-				if (typeof callback === 'function') {
-					callback();
-				}
-			}
+		await fetch(Structr.rootUrl + 'AbstractMinifiedFile/' + fileId + '/minify', {
+			method: 'POST'
 		});
-	},
 
-	reloadHeadAndFiles: function (fileId) {
-		Command.get(fileId, 'id,type,path,size,name,minificationSources,lineBreak,optimizationLevel,errors,warnings', function (f) {
+		_Minification.reloadHeadAndFiles(fileId);
+
+	},
+	reloadHeadAndFiles: (fileId) => {
+
+		Command.get(fileId, 'id,type,path,size,name,minificationSources,lineBreak,optimizationLevel,errors,warnings', (f) => {
+
 			_Minification.updateHead(f);
 
 			$('#minification-files tbody', dialogText).empty();
@@ -102,55 +115,53 @@ var _Minification = {
 			_Files.resize();
 		});
 	},
-	getTypeSpecificRows: function (file) {
+	getTypeSpecificRows: (file) => {
 		return (file.type === 'MinifiedCssFile') ? _Minification.getCssSpecificRows(file) : _Minification.getJavaScriptSpecificRows(file);
 	},
-	getCssSpecificRows: function (file) {
+	getCssSpecificRows: (file) => {
 		return '<tr><td class="head">LineBreak</td><td><input class="lineBreak" data-target="lineBreak" data-before="' + file.lineBreak + '" value="' + file.lineBreak + '"></td></tr>';
 	},
-	getJavaScriptSpecificRows: function (file) {
+	getJavaScriptSpecificRows: (file) => {
 		return '<tr><td class="head">Optimization Level</td><td><select class="optimizationLevel" data-target="optimizationLevel" data-before="' + file.optimizationLevel + '"><option>WHITESPACE_ONLY</option><option>SIMPLE_OPTIMIZATIONS</option><option>ADVANCED_OPTIMIZATIONS</option></select></td></tr>'
 			+ '<tr><td class="head">Errors</td><td class="minification-scrollable-cell"><div class="scrollable-cell-content">' + (file.errors ? file.errors.replaceAll('\n', '<br>') : '') + '</div></td></tr>'
 			+ '<tr><td class="head">Warnings</td><td class="minification-scrollable-cell"><div class="scrollable-cell-content">' + (file.warnings ? file.warnings.replaceAll('\n', '<br>') : '') + '</div></td></tr>';
 	},
-	printMinificationSourcesTable: function (file) {
+	printMinificationSourcesTable: (file) => {
 
 		var $minificationTable = $('#minification-files tbody', dialogText);
 		var maxPos = -1;
 
-		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc',
-			success: function (data) {
-				var files = {};
-				file.minificationSources.forEach(function (f) {
+		fetch(Structr.rootUrl + 'AbstractMinifiedFile/' + file.id + '/out/all?relType=MINIFICATION&' + Structr.getRequestParameterName('sort') + '=position&' + Structr.getRequestParameterName('order') + '=asc').then(async response => {
+
+			if (response.ok) {
+
+				let data = await response.json();
+
+				let files = {};
+				for (let f of file.minificationSources) {
 					files[f.id] = f;
-				});
+				}
 
 				data.result.sort(function (a, b) {
 					return (a.position === b.position) ? 0 : (a.position < b.position) ? -1 : 1;
 				});
 
-				data.result.forEach(function (rel) {
-					var f = files[rel.targetId];
+				for (let rel of data.result) {
+					let f = files[rel.targetId];
 					if (rel.relType === 'MINIFICATION') {
 						maxPos = Math.max(maxPos, rel.position);
 						$minificationTable.append('<tr data-position=' + rel.position + '><td>' + rel.position + '</td><td>' + f.name + '</td><td>' + f.size + '</td><td><i title="Remove" data-rel-id="' + rel.id + '" class="remove-minification-source ' + _Icons.getFullSpriteClass(_Icons.cross_icon) + '" /></td></tr>');
 					}
-				});
+				}
 
-				$('.remove-minification-source', $minificationTable).on('click', function () {
-					var relId = $(this).data('relId');
-					$.ajax({
-						url: rootUrl + relId,
-						type: 'DELETE',
-						dataType: 'json',
-						contentType: 'application/json; charset=utf-8',
-						success: function() {
-							_Minification.minifyFile(file.id, function () {
-								_Minification.reloadHeadAndFiles(file.id);
-							});
-						}
+				$('.remove-minification-source', $minificationTable).on('click', async (e) => {
+					let relId = e.target.dataset['relId'];
+
+					await fetch(Structr.rootUrl + relId, {
+						method: 'DELETE'
 					});
+
+					await _Minification.minifyFile(file.id);
 				});
 
 				$minificationTable.sortable({
@@ -161,41 +172,41 @@ var _Minification = {
 						});
 						return ui;
 					},
-					update: function (e, ui) {
-						var oldPos = ui.item.data('position');
-						var newPos = ui.item.next().data('position');
+					update: async (e, ui) => {
+
+						let oldPos = ui.item.data('position');
+						let newPos = ui.item.next().data('position');
+
 						if (undefined === newPos) {
 							newPos = maxPos;
 						}
 
-						_Minification.moveMinificationSource(file.id, oldPos, newPos, function () {
-							_Minification.minifyFile(file.id, function () {
-								_Minification.reloadHeadAndFiles(file.id);
-							});
-						});
+						await _Minification.moveMinificationSource(file.id, oldPos, newPos);
+						await _Minification.minifyFile(file.id);
 					}
 				});
 			}
 		});
-
 	},
-	moveMinificationSource: function (fileId, from, to, callback) {
-		$.ajax({
-			url: rootUrl + 'AbstractMinifiedFile/' + fileId + '/moveMinificationSource',
-			type: 'POST',
-			data: JSON.stringify({from: from, to: to}),
-			success: function () {
-				if (typeof callback === 'function') {
-					callback();
-				}
-			}
+	moveMinificationSource: async (fileId, from, to) => {
+		let response = await fetch(Structr.rootUrl + 'AbstractMinifiedFile/' + fileId + '/moveMinificationSource', {
+			method: 'POST',
+			body: JSON.stringify({
+				from: from,
+				to: to
+			})
 		});
+
+		return response.ok;
 	},
 
-	displaySearch: function(parentType, id, key, type, el) {
+	displaySearch: (parentType, id, key, type, el) => {
+
 		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		var searchBox = $('.searchBoxDialog', el);
-		var search = $('.search', searchBox);
+
+		let searchBox = $('.searchBoxDialog', el);
+		let search    = $('.search', searchBox);
+
 		window.setTimeout(function() {
 			search.focus();
 		}, 250);
@@ -214,13 +225,10 @@ var _Minification = {
 					}
 				});
 
-				_Crud.search(searchString, el, type, function(e, node) {
+				_Crud.search(searchString, el, type, async (e, node) => {
 					e.preventDefault();
-					_Minification.addRelatedObject(parentType, id, key, node, function() {
-						_Minification.minifyFile(id, function () {
-							_Minification.reloadHeadAndFiles(id);
-						});
-					});
+					await _Minification.addRelatedObject(parentType, id, key, node);
+					await _Minification.minifyFile(id);
 					return false;
 				}, 1000, [id]);
 
@@ -241,25 +249,27 @@ var _Minification = {
 		});
 	},
 
-	addRelatedObject: function(type, id, key, relatedObj, callback) {
-		var url = rootUrl + type + '/' + id + '/' + key + '/ui';
-		$.ajax({
-			url: url,
-			type: 'GET',
-			dataType: 'json',
-			contentType: 'application/json; charset=utf-8',
-			success: function(data) {
-				var objects = _Crud.extractIds(data.result);
+	addRelatedObject: async (type, id, key, relatedObj) => {
+
+		return new Promise(async (resolve, reject) => {
+
+			let response = await fetch(Structr.rootUrl + type + '/' + id + '/' + key + '/ui');
+
+			if (response.ok) {
+
+				let data = await response.json();
+
+				let objects = _Crud.extractIds(data.result);
+
 				if (!isIn(relatedObj.id, objects)) {
-					objects.push({'id': relatedObj.id});
+					objects.push({
+						id: relatedObj.id
+					});
 				}
 				let body = {};
 				body[key] = objects;
-				_Crud.crudUpdateObj(id, JSON.stringify(body), function() {
-					if (callback) {
-						callback();
-					}
-				});
+
+				_Crud.crudUpdateObj(id, JSON.stringify(body), resolve);
 			}
 		});
 	}

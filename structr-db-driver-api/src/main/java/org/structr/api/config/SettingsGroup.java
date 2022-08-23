@@ -18,6 +18,7 @@
  */
 package org.structr.api.config;
 
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -70,9 +71,6 @@ public class SettingsGroup {
 		final Tag container = tabContainer.block("div").css("tab-content").id(key);
 
 		render(container);
-
-		// stop floating
-		container.block("div").attr(new Attr("style", "clear: both;"));
 	}
 
 	public void render(final Tag parent) {
@@ -132,10 +130,7 @@ public class SettingsGroup {
 				groupContainer.block("h1").text("Custom");
 			}
 
-			for (final Setting setting : otherSettings) {
-
-				setting.render(groupContainer);
-			}
+			otherSettings.stream().sorted(Comparator.comparing(Setting::getKey)).forEach((Setting setting) -> setting.render(groupContainer));
 		}
 	}
 }

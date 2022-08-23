@@ -62,9 +62,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 	private static final Logger logger                = LoggerFactory.getLogger(ConfigServlet.class);
 	private static final Set<String> sessions         = new HashSet<>();
-	private static final String MainUrl               = "/structr/";
-	private static final String ConfigUrl             = "/structr/config";
 	private static final String TITLE                 = "Structr Configuration Editor";
+
+	private static final String ConfigServletLocation = "/structr/config";
+	private static final String AdminBackendLocation  = "/structr/";
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
@@ -96,7 +97,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.loadConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				response.sendRedirect(ConfigUrl);
+				sendRedirectHeader(response, ConfigServletLocation);
 
 			} else if (request.getParameter("reset") != null) {
 
@@ -125,7 +126,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
 				// redirect
-				response.sendRedirect(ConfigUrl);
+				sendRedirectHeader(response, ConfigServletLocation);
 
 			} else if (request.getParameter("start") != null) {
 
@@ -147,7 +148,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("stop") != null) {
 
@@ -157,7 +158,7 @@ public class ConfigServlet extends AbstractServletBase {
 					Services.getInstance().shutdownService(serviceName);
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("restart") != null) {
 
@@ -185,7 +186,7 @@ public class ConfigServlet extends AbstractServletBase {
 					}).start();
 				}
 
-				response.sendRedirect(ConfigUrl + "#services");
+				sendRedirectHeader(response, ConfigServletLocation + "#services");
 
 			} else if (request.getParameter("finish") != null) {
 
@@ -193,7 +194,7 @@ public class ConfigServlet extends AbstractServletBase {
 				Settings.SetupWizardCompleted.setValue(true);
 				Settings.storeConfiguration(Settings.ConfigFileName);
 
-				response.sendRedirect(MainUrl);
+				sendRedirectHeader(response, AdminBackendLocation);
 
 			} else if (request.getParameter("useDefault") != null) {
 
@@ -226,7 +227,7 @@ public class ConfigServlet extends AbstractServletBase {
 				// make session valid
 				authenticateSession(request);
 
-				response.sendRedirect(ConfigUrl + "#databases");
+				sendRedirectHeader(response, ConfigServletLocation + "#databases");
 
 			} else if (request.getParameter("setMaintenance") != null) {
 
@@ -243,7 +244,7 @@ public class ConfigServlet extends AbstractServletBase {
 					msgData.put("baseUrl",                           baseUrl);
 					TransactionCommand.simpleBroadcastGenericMessage(msgData, Predicate.all());
 
-					response.sendRedirect(baseUrl + ConfigUrl + "#maintenance");
+					sendRedirectHeader(response, ConfigServletLocation + "#maintenance");
 				}
 
 			} else {
@@ -467,7 +468,7 @@ public class ConfigServlet extends AbstractServletBase {
 			Settings.storeConfiguration(Settings.ConfigFileName);
 		}
 
-		response.sendRedirect(ConfigUrl + redirectTarget);
+		sendRedirectHeader(response, ConfigServletLocation + redirectTarget);
 	}
 
 	// ----- private methods -----
@@ -482,7 +483,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag menu           = tabs.block("ul").css("tabs-menu");
 
 		// configure form
-		form.attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
+		form.attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
 
 		if (firstStart) {
 			welcomeTab(menu, tabs);
@@ -530,7 +531,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 					if (running) {
 
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?restart=" + serviceClassName + "';")).text("Restart");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?restart=" + serviceClassName + "';")).text("Restart");
 
 						if ("HttpService.default".equals(serviceClassName)) {
 
@@ -538,7 +539,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 						} else {
 
-							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?stop=" + serviceClassName + "';")).text("Stop");
+							row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?stop=" + serviceClassName + "';")).text("Stop");
 						}
 
 						row.block("td");
@@ -547,13 +548,10 @@ public class ConfigServlet extends AbstractServletBase {
 
 						row.block("td");
 						row.block("td");
-						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + ConfigUrl + "?start=" + serviceClassName + "';")).text("Start");
+						row.block("td").block("button").attr(new Type("button"), new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?start=" + serviceClassName + "';")).text("Start");
 					}
 				}
 			}
-
-			// stop floating
-			container.block("div").attr(new Style("clear: both;"));
 
 			// maintenance tab
 			final boolean maintenanceModeActive = Settings.MaintenanceModeEnabled.getValue(false);
@@ -582,15 +580,12 @@ public class ConfigServlet extends AbstractServletBase {
 				button.text("Enable");
 			}
 
-			// stop floating
-			mContainer.block("div").attr(new Style("clear: both;"));
-
 			// buttons
 			final Tag buttons = form.block("div").css("buttons");
 
-			buttons.block("button").attr(new Type("button")).id("new-entry-button").text("Add entry");
-			buttons.block("button").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
-			buttons.empty("input").css("default-action").attr(new Type("submit"), new Value("Save to structr.conf"));
+			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Type("button")).id("new-entry-button").text("Add entry");
+			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Type("button")).id("reload-config-button").text("Reload configuration file");
+			buttons.block("button").css("action").attr(new Type("submit")).text("Save to structr.conf");
 		}
 
 		// update active section so we can restore it when redirecting
@@ -608,18 +603,17 @@ public class ConfigServlet extends AbstractServletBase {
 		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("xlink:href", "#structr-logo"));
 		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super-user</b> password which can be found in your structr.conf.");
 
-		final Tag form     = loginBox.block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"));
+		final Tag form     = loginBox.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
 		final Tag table    = form.block("table");
 		final Tag row1     = table.block("tr");
 
 		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"));
+		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"), new Attr("required", "required"));
 
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
-		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login"));
-
-		button.block("i").css("sprite sprite-key");
+		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login")).css("inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green");
+		button.block("svg").attr(new Attr("width", 16), new Attr("height", 16)).css("mr-2").block("use").attr(new Attr("xlink:href", "#visibility-lock-key"));
 		button.block("span").text(" Login");
 
 		cell13.empty("input").attr(new Type("hidden"), new Name("action"), new Value("login"));
@@ -632,17 +626,17 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag head = doc.block("head");
 
+		final String applicationRootPath = Settings.applicationRootPath.getValue();
+
 		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));
 		head.empty("meta").attr(new Name("viewport"), new Attr("content", "width=1024, user-scalable=yes"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/lib/jquery-ui-1.10.3.custom.min.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/main.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/sprites.css"));
-		head.empty("link").attr(new Rel("stylesheet"), new Href("/structr/css/config.css"));
-		head.empty("link").attr(new Rel("icon"), new Href("favicon.ico"), new Type("image/x-icon"));
-		head.block("script").attr(new Src("/structr/js/lib/jquery-3.3.1.min.js"));
-		head.block("script").attr(new Src("/structr/js/icons.js"));
-		head.block("script").attr(new Src("/structr/js/config.js"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/main.css"));
+		head.empty("link").attr(new Rel("stylesheet"), new Href(applicationRootPath + "/structr/css/config.css"));
+		head.empty("link").attr(new Rel("icon"), new Href(applicationRootPath + "/favicon.ico"), new Type("image/x-icon"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/lib/jquery-3.3.1.min.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/icons.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
@@ -652,34 +646,11 @@ public class ConfigServlet extends AbstractServletBase {
 
 		if (isAuthenticated(request)) {
 
-			final Tag form = links.block("li").block("form").attr(new Attr("action", ConfigUrl), new Attr("method", "post"), new Style("display: none")).id("logout-form");
+			final Tag form = links.block("li").block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"), new Style("display: none")).id("logout-form");
 
 			form.empty("input").attr(new Type("hidden"), new Name("action"), new Value("logout"));
 			links.block("a").text("Logout").attr(new Style("cursor: pointer"), new OnClick("$('#logout-form').submit();"));
 		}
-
-		body.text("<svg style=\"display: none\">" +
-				"<symbol id=\"structr-logo\" viewBox=\"0 0 345.12 92.83\" stroke=\"currentColor\" fill=\"currentColor\">" +
-				"<g id=\"Ebene_2\" data-name=\"Ebene 2\"><g id=\"Ebene_1-2\" data-name=\"Ebene 1\"><path d=\"M15,33.71a4,4,0,0,0-4,4v4.87c0,1.63,0,4,3.62,5.88l19.75,11c10.25,5.25,11,9.5,11,14v7.12c0,10.25-8.37,12.25-12.87,12.25H1.62A1.25,1.25,0,0,1,.37,91.58V84.46a1.26,1.26,0,0,1,1.25-1.25H30.37a3.92,3.92,0,0,0,4-3.88V75.08c0-1.62,0-4.5-3.5-6L11,58.21C.75,53.58,0,48.08,0,44.21V35.33c0-7.62,6.37-11.25,12.75-11.25H41.12a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M71.75,32.83V79.08a4.08,4.08,0,0,0,4.12,4.13H88.75A1.25,1.25,0,0,1,90,84.46v7.12a1.26,1.26,0,0,1-1.25,1.25H73.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.73,1.73,0,0,1,1.25-1.75L70.5.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.26,1.26,0,0,1-1.25,1.25Z\"/><path d=\"M119,34.33a3,3,0,0,0-2.75,3l-.13,54.25a1.25,1.25,0,0,1-1.25,1.25H106a1.25,1.25,0,0,1-1.25-1.25l-.13-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M181.62,83.21a4.17,4.17,0,0,0,4.13-4.13V25.33A1.25,1.25,0,0,1,187,24.08h8.87a1.26,1.26,0,0,1,1.25,1.25V79.08c0,6.88-5,13.75-13.75,13.75H161c-8.75,0-13.75-6.87-13.75-13.75V25.33a1.25,1.25,0,0,1,1.25-1.25h8.75a1.26,1.26,0,0,1,1.25,1.25V79.08a4.16,4.16,0,0,0,4.12,4.13Z\"/><path d=\"M245.62,92.83H227a13.66,13.66,0,0,1-13.63-13.62V37.71A13.41,13.41,0,0,1,227,24.08h27.62a1.26,1.26,0,0,1,1.25,1.25v7.13a1.25,1.25,0,0,1-1.25,1.25h-26a4,4,0,0,0-4,4V79.33a3.82,3.82,0,0,0,3.88,3.88h26.12a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M279.74,32.83V79.08a4.08,4.08,0,0,0,4.13,4.13h12.87A1.25,1.25,0,0,1,298,84.46v7.12a1.25,1.25,0,0,1-1.25,1.25H281.87a13.5,13.5,0,0,1-13.5-13.5V4.58a1.72,1.72,0,0,1,1.25-1.75L278.49.08c1-.37,1.25.63,1.25,1.25V23.21h15.5a1.25,1.25,0,0,1,1.25,1.25v7.12a1.25,1.25,0,0,1-1.25,1.25Z\"/><path d=\"M327,34.33a3.05,3.05,0,0,0-2.75,3l-.12,54.25a1.26,1.26,0,0,1-1.25,1.25H314a1.25,1.25,0,0,1-1.25-1.25l-.12-53.75c0-6.87,5-13.75,13.75-13.75h17.5a1.26,1.26,0,0,1,1.25,1.25v7.75a1.26,1.26,0,0,1-1.25,1.25Z\"/></g></g>" +
-				"</symbol>" +
-				"<symbol id=\"interface_delete_circle\" viewBox=\"0 0 10 10\"  stroke=\"currentColor\" fill=\"currentColor\">" +
-				"<g><path d=\"M5,0a5,5,0,1,0,5,5A5.006,5.006,0,0,0,5,0ZM7.28,6.22A.75.75,0,1,1,6.22,7.28L5,6.061,3.78,7.28A.75.75,0,0,1,2.72,6.22L3.939,5,2.72,3.78A.75.75,0,0,1,3.78,2.72L5,3.939,6.22,2.72A.75.75,0,0,1,7.28,3.78L6.061,5Z\" stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"0\"></path></g>" +
-				"</symbol>" +
-				"<symbol id=\"waiting-spinner\" viewBox=\"0 0 50 50\" style=\"fill: var(--structr-green)\">\n" +
-				"<g transform=\"rotate  (0 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.9166666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (30 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.8333333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (60 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.75s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate (90 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.6666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(120 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5833333333333334s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(150 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.5s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(180 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.4166666666666667s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(210 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.3333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(240 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.25s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(270 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.16666666666666666s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(300 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"-0.08333333333333333s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"<g transform=\"rotate(330 25 25)\"><rect x=\"22\" y=\"0\" rx=\"3\" ry=\"6\" width=\"6\" height=\"12\"><animate attributeName=\"opacity\" values=\"1;0\" keyTimes=\"0;1\" dur=\"1s\" begin=\"0s\" repeatCount=\"indefinite\"></animate></rect></g>\n" +
-				"</symbol>" +
-				"</svg>");
 
 		return body;
 	}
@@ -758,7 +729,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 			} else {
 
-				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='/structr/config#databases'; $('#databasesMenu').click();"));
+				body.block("p").css("steps").block("button").attr(new Type("button")).text("Configure a database connection").attr(new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "#databases'; $('#databasesMenu').click();"));
 			}
 
 		}
@@ -786,7 +757,7 @@ public class ConfigServlet extends AbstractServletBase {
 			leftDiv.block("p").text("Configure Structr to connect to a running database.");
 
 			final Tag rightDiv = div.block("div").css("inline-block");
-			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + ConfigUrl + "?finish';"));
+			rightDiv.block("button").attr(new Type("button")).text("Start in demo mode").attr(new OnClick("window.location.href='" + prefixLocation(ConfigServletLocation) + "?finish';"));
 			rightDiv.block("p").text("Start Structr in demo mode. Please note that in this mode any data will be lost when stopping the server.");
 
 		} else {
@@ -801,11 +772,8 @@ public class ConfigServlet extends AbstractServletBase {
 		// database connections
 		for (final DatabaseConnection connection : connections) {
 
-			connection.render(body, ConfigUrl);
+			connection.render(body, prefixLocation(AdminBackendLocation));
 		}
-
-		// new connection form should appear below existing connections
-		//body.block("div").attr(new Attr("style", "clear: both;"));
 
 		//body.block("h2").text("Add connection");
 
@@ -847,10 +815,12 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
-		buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+		buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
+		buttons.block("button").css("action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
+
+		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("xlink:href", "#circle_plus"));
 	}
 
 	private Tag header(final Tag container, final String title) {
@@ -859,9 +829,6 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag main      = div.block("div").css("config-group");
 
 		main.block("h1").text(title);
-
-		// stop floating
-		container.block("div").attr(new Style("clear: both;"));
 
 		return main;
 	}

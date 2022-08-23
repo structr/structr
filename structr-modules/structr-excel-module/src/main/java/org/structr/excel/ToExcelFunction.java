@@ -59,7 +59,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	@Override
 	public String getSignature() {
-		return "nodes, propertiesOrView [, ih, lh, ld, ml, om ]";
+		return "nodes, propertiesOrView [, includeHeader, localizeHeader, headerLocalizationDomain, maxCellLength, overflowMode ]";
 	}
 
 	@Override
@@ -88,55 +88,54 @@ public class ToExcelFunction extends Function<Object, Object> {
 			String propertyView                     = null;
 			List<String> properties                 = null;
 
-			// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
-			if (nodes.size() == 0) {
-				logger.warn("to_excel(): Can not create Excel if no nodes are given!");
-				logParameterError(caller, sources, ctx.isJavaScriptContext());
-				return "";
-			}
-
 			switch (sources.length) {
-				case 7: overflowMode = sources[6].toString();
-				case 6: maxCellLength = Math.min(maxCellLength, (Integer)sources[5]);
+				case 7: overflowMode             = sources[6].toString();
+				case 6: maxCellLength            = Math.min(maxCellLength, (Integer)sources[5]);
 				case 5: headerLocalizationDomain = sources[4].toString();
-				case 4: localizeHeader = (Boolean)sources[3];
-				case 3: includeHeader = (Boolean)sources[2];
+				case 4: localizeHeader           = (Boolean)sources[3];
+				case 3: includeHeader            = (Boolean)sources[2];
 				case 2: {
 
-					if (sources[1] instanceof CharSequence) {
-						// view is given
-						propertyView = sources[1].toString();
+					if (sources[1] instanceof String) {
+
+						propertyView = (String)sources[1];
 
 					} else if (sources[1] instanceof List) {
-						// named properties are given
-						properties = new ArrayList<>();
 
-						for (CharSequence prop : ((List<CharSequence>)sources[1])) {
-							properties.add(prop.toString());
-						}
+						properties = (List)sources[1];
 
-						// we are using size() instead of isEmpty() because NativeArray.isEmpty() always returns true
 						if (properties.size() == 0) {
-							logger.warn("to_excel(): Can not create Excel if list of properties is empty!");
-							logParameterError(caller, sources, ctx.isJavaScriptContext());
+
+							logger.info("to_excel(): Unable to create Excel if list of properties is empty - returning empty Excel");
 							return "";
 						}
 
 					} else {
+
 						logParameterError(caller, sources, ctx.isJavaScriptContext());
 						return "ERROR: Second parameter must be a collection of property names or a single property view!".concat(usage(ctx.isJavaScriptContext()));
 					}
 				}
 			}
 
+			// if we are using a propertyView, we need extract the property names from the first object which can not work without objects
+			if (nodes.size() == 0 && propertyView != null) {
+
+				logger.info("to_excel(): Unable to create Excel if no nodes are given - returning empty Excel");
+				return "";
+			}
+
 			try {
 
-				final Workbook wb = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
-				final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				wb.write(baos);
-				return baos.toString("ISO-8859-1");
+				final Workbook workbook                  = writeExcel(nodes, propertyView, properties, includeHeader, localizeHeader, headerLocalizationDomain, ctx.getLocale(), maxCellLength, overflowMode);
+				final ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+
+				workbook.write(outputStream);
+
+				return outputStream.toString("ISO-8859-1");
 
 			} catch (Throwable t) {
+
 				logger.warn("to_excel(): Exception occurred", t);
 				return "";
 			}
@@ -160,21 +159,21 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 	public Workbook writeExcel(final List list, final String propertyView, final List<String> properties, final boolean includeHeader, final boolean localizeHeader, final String headerLocalizationDomain, final Locale locale, final Integer maxCellLength, final String overflowMode) throws IOException {
 
-		final Workbook workbook = new XSSFWorkbook();
+		final Workbook workbook      = new XSSFWorkbook();
 		final CreationHelper factory = workbook.getCreationHelper();
-		final XSSFSheet sheet = (XSSFSheet) workbook.createSheet();
-		final Drawing drawing = sheet.createDrawingPatriarch();
+		final XSSFSheet sheet        = (XSSFSheet) workbook.createSheet();
+		final Drawing drawing        = sheet.createDrawingPatriarch();
 
-		int rowCount = 0;
+		int rowCount  = 0;
 		int cellCount = 0;
 
 		XSSFRow currentRow = null;
-		XSSFCell cell = null;
+		XSSFCell cell      = null;
 
 		if (includeHeader) {
 
-			currentRow = (XSSFRow)sheet.createRow(rowCount++);
-			cellCount = 0;
+			currentRow = sheet.createRow(rowCount++);
+			cellCount  = 0;
 
 			if (propertyView != null) {
 
@@ -184,7 +183,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 					for (PropertyKey key : ((GraphObject)obj).getPropertyKeys(propertyView)) {
 
-						cell = (XSSFCell)currentRow.createCell(cellCount++);
+						cell = currentRow.createCell(cellCount++);
 
 						String value = key.dbName();
 						if (localizeHeader) {
@@ -199,7 +198,8 @@ public class ToExcelFunction extends Function<Object, Object> {
 					}
 
 				} else {
-					cell = (XSSFCell)currentRow.createCell(cellCount++);
+
+					cell = currentRow.createCell(cellCount++);
 					cell.setCellValue("Error: Object is not of type GraphObject, can not determine properties of view for header row");
 				}
 
@@ -207,7 +207,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 				for (final String colName : properties) {
 
-					cell = (XSSFCell)currentRow.createCell(cellCount++);
+					cell = currentRow.createCell(cellCount++);
 					String value = colName;
 					if (localizeHeader) {
 						try {
@@ -224,7 +224,7 @@ public class ToExcelFunction extends Function<Object, Object> {
 
 		for (final Object obj : list) {
 
-			currentRow = (XSSFRow)sheet.createRow(rowCount++);
+			currentRow = sheet.createRow(rowCount++);
 			cellCount = 0;
 
 			if (propertyView != null) {
@@ -234,14 +234,13 @@ public class ToExcelFunction extends Function<Object, Object> {
 					for (PropertyKey key : ((GraphObject)obj).getPropertyKeys(propertyView)) {
 
 						final Object value = ((GraphObject)obj).getProperty(key);
-
-						cell = (XSSFCell)currentRow.createCell(cellCount++);
+						cell               = currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
 
 				} else {
-					cell = (XSSFCell)currentRow.createCell(cellCount++);
+					cell = currentRow.createCell(cellCount++);
 					cell.setCellValue("Error: Object is not of type GraphObject, can not determine properties of object");
 				}
 
@@ -252,8 +251,9 @@ public class ToExcelFunction extends Function<Object, Object> {
 					final Map convertedMap = ((GraphObjectMap)obj).toMap();
 
 					for (final String colName : properties) {
+
 						final Object value = convertedMap.get(colName);
-						cell = (XSSFCell)currentRow.createCell(cellCount++);
+						cell               = currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
@@ -263,9 +263,10 @@ public class ToExcelFunction extends Function<Object, Object> {
 					final GraphObject graphObj = (GraphObject)obj;
 
 					for (final String colName : properties) {
+
 						final PropertyKey key = StructrApp.key(obj.getClass(), colName);
-						final Object value = graphObj.getProperty(key);
-						cell = (XSSFCell)currentRow.createCell(cellCount++);
+						final Object value    = graphObj.getProperty(key);
+						cell                  = currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}
@@ -275,8 +276,9 @@ public class ToExcelFunction extends Function<Object, Object> {
 					final Map map = (Map)obj;
 
 					for (final String colName : properties) {
+
 						final Object value = map.get(colName);
-						cell = (XSSFCell)currentRow.createCell(cellCount++);
+						cell               = currentRow.createCell(cellCount++);
 
 						writeToCell(factory, drawing, cell, value, maxCellLength, overflowMode);
 					}

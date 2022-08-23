@@ -23,7 +23,12 @@
 	height: calc(100vh - 8rem);
 }
 
-#schema-graph.hide-inheritance-arrwows .dashed-inheritance-relationship {
+#schema-graph.hide-inheritance-arrows .dashed-inheritance-relationship {
+	display: none;
+}
+
+#schema-graph.hide-relationship-labels .rel-type,
+#schema-graph.hide-relationship-labels .multiplicity {
 	display: none;
 }
 
@@ -232,14 +237,17 @@
 	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 }
 
-#schema-graph .label .icon {
-	margin: -3px 2px;
+#schema-graph .label svg {
 	display: none;
-	cursor: pointer;
+}
+#schema-graph .label:hover svg {
+	display: inline-block;
 }
 
-#schema-graph .node {
-
+#schema-graph .icons-container {
+	position: absolute;
+	right: .25rem;
+	top: .5rem;
 }
 
 #schema-graph .node h2 {
@@ -463,12 +471,6 @@
 	color: var(--structr-green);
 }
 
-.inheritance-search {
-	margin-left: 1rem;
-	margin-top: 0.5rem;
-	margin-bottom: 0.5rem;
-}
-
 #inheritance-tree.slideOut {
 	display: flex;
 	flex-direction: column;
@@ -496,9 +498,4 @@
 
 div#inheritance-tree-container {
 	margin-left: 0.5rem;
-}
-
-#methods-container .editor-settings-popup .dropdown-menu-container {
-	margin: 0 0 0 -5rem;
-	bottom: 3rem;
 }

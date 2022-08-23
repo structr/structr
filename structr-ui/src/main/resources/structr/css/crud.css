@@ -52,15 +52,6 @@
 	margin: 0 1rem .75rem .5rem;
 }
 
-#crudTypesFilterToggle:hover,
-#crudTypesFilterToggle.active,
-#crud-recent-types li .remove-recent-type:hover {
-	filter: alpha(opacity=60);
-	-khtml-opacity: 0.6;
-	-moz-opacity: 0.6;
-	opacity: 0.6;
-}
-
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
 	margin: 0;
@@ -270,18 +261,6 @@ input.readonly {
 	color: var(--gray-333);
 }
 
-#crud-buttons {
-	/*margin-bottom: 5px;*/
-	display: inline-block;
-}
-
-#crud-buttons .exact-type-checkbox {
-	/*vertical-align: initial;*/
-}
-#crud-buttons .exact-type-checkbox-label {
-	/*font-size: 8pt;*/
-}
-
 #query-info {
 	position: absolute;
 	bottom: .75rem;
@@ -385,15 +364,6 @@ input.readonly {
 /*
 * Search
 */
-.searchBox {
-	position: relative;
-	z-index: 5;
-}
-
-.searchBox input.search {
-	width: 20rem;
-}
-
 .searchResults {
 	height: 100%;
 	overflow-y: auto;
@@ -415,14 +385,6 @@ input.readonly {
 
 .searchResults .node {
 	margin: 0 4px 4px 0;
-}
-
-i.clearSearchIcon {
-	display: none;
-	position: absolute;
-	top: .75rem;
-	right: .75rem;
-	cursor: pointer;
 }
 
 img.loader {

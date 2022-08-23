@@ -30,11 +30,6 @@
 	/*border-bottom: 1px solid var(--gray-ccc);*/
 }
 
-#code-contents h3 {
-	/*font-size: 12pt;*/
-	margin: 8px 0 8px 0;
-}
-
 #code-contents h4 {
 	margin: 0.25rem 0 0.5rem;
 	display: inline-block;
@@ -50,25 +45,14 @@
 
 #code-contents .action-button {
 	position: relative;
-	background-color: var(--solid-white);
 	color: var(--gray-444);
 	margin: 0 12px 12px 0;
-	border: 1px solid var(--gray-ddd);
 	height: inherit;
 	box-sizing: content-box;
 }
 
 #code-contents .action-button .action-button-icon {
 	text-align: center;
-}
-
-#code-contents .property-options-group {
-	margin: 0 0 1rem 0;
-}
-
-#code-contents .property-options-group span,
-#code-contents .property-options-group i {
-	vertical-align: middle;
 }
 
 #code-context .code-favorite {
@@ -191,11 +175,6 @@ ul#usage-tree {
 
 #tabView-source .property-code {
 	width: 100%;
-}
-
-#code-contents .editor-settings-popup .dropdown-menu-container {
-	margin: 0 0 0 -5rem;
-	bottom: 4rem;
 }
 
 h2.has-changes::after {

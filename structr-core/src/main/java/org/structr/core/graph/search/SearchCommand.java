@@ -84,7 +84,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	}
 
 	private final SearchAttributeGroup rootGroup = new SearchAttributeGroup(Occurrence.REQUIRED);
-	private DefaultSortOrder sortOrder           = new DefaultSortOrder();
+	private SortOrder sortOrder                  = new DefaultSortOrder();
 	private QueryContext queryContext            = new QueryContext();
 	private SearchAttributeGroup currentGroup    = rootGroup;
 	private Comparator comparator                = null;
@@ -238,6 +238,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		} else {
 
+			if (!sortOrder.isEmpty()) {
+
+				final List<T> finalResult = new LinkedList<>(Iterables.toList(indexHits));
+				Collections.sort(finalResult, sortOrder);
+				return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
+			}
 			// no filtering
 			return new PagingIterable(description, indexHits, pageSize, page, queryContext.getSkipped());
 		}
@@ -364,11 +370,10 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	@Override
 	public org.structr.core.app.Query<T> sort(final SortOrder sortOrder) {
 
-		this.doNotSort  = false;
+		if (sortOrder != null) {
 
-		// type cast
-		if (sortOrder instanceof DefaultSortOrder) {
-			this.sortOrder = (DefaultSortOrder)sortOrder;
+			this.doNotSort = false;
+			this.sortOrder = sortOrder;
 		}
 
 		return this;
@@ -379,7 +384,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 		this.doNotSort  = false;
 
-		sortOrder.addElement(sortKey, sortDescending);
+		if (sortOrder instanceof DefaultSortOrder) {
+			((DefaultSortOrder)sortOrder).addElement(sortKey, sortDescending);
+		}
 
 		return this;
 	}

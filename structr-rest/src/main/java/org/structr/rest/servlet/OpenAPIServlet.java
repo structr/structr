@@ -27,19 +27,24 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
+import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrSchemaDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
@@ -67,7 +72,6 @@ import org.structr.schema.openapi.result.OpenAPIWriteResponseSchema;
 import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
 
 /**
@@ -75,42 +79,47 @@ import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
  */
 public class OpenAPIServlet extends AbstractDataServlet {
 
+	private final Logger logger = LoggerFactory.getLogger(OpenAPIServlet.class);
 	private final Gson gson = new GsonBuilder().setPrettyPrinting().setDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ").create();
+
+	private SecurityContext securityContext;
 
 	@Override
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		String tag = getTagFromURLPath(request);
 
-
-		final String requestOrigin = request.getHeader("origin");
-
-		if (requestOrigin != null) {
-
-			String allowOrigin = Settings.OpenAPIAllowOrigin.getValue();
-
-			if (StringUtils.equals(allowOrigin, "")) {
-				allowOrigin = requestOrigin;
-			}
-
-			response.addHeader("Access-Control-Allow-Origin", allowOrigin);
+		// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
+		if ("schema".equals(tag)) {
+			tag = null;
 		}
 
+		request.setCharacterEncoding("UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		response.setContentType("application/json");
 
-		if (StringUtils.isEmpty(tag)) {
+		try {
 
-			response.sendRedirect("/structr/openapi/schema.json");
+			assertInitialized();
 
-		} else {
+			Authenticator authenticator = null;
 
-			// "schema" is the placeholder for "everything", all other values are used as a filter (sorry)
-			if ("schema".equals(tag)) {
-				tag = null;
+			// isolate request authentication in a transaction
+			// Ensure CORS settings apply by letting the authenticator examine the request.
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+				authenticator = getConfig().getAuthenticator();
+				securityContext = authenticator.initializeAndExamineRequest(request, response);
+				tx.success();
 			}
 
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json");
+			// isolate resource authentication
+			final App app = StructrApp.getInstance(securityContext);
+			try (final Tx tx = app.tx()) {
+
+				authenticator.checkResourceAccess(securityContext, request, "_openapi", "");
+
+				tx.success();
+			}
 
 			try (final Writer writer = response.getWriter()) {
 
@@ -125,6 +134,11 @@ public class OpenAPIServlet extends AbstractDataServlet {
 			} catch (FrameworkException fex) {
 				fex.printStackTrace();
 			}
+
+		} catch (FrameworkException frameworkException) {
+
+			// set status
+			response.setStatus(frameworkException.getStatus());
 		}
 	}
 

@@ -146,7 +146,7 @@ public class UploadServletTest extends StructrUiTest {
 
 			final File file               = app.nodeQuery(File.class).getFirst();
 			final Folder uploadFolder     = app.nodeQuery(Folder.class).getFirst();
-			final String expectedLocation = RestAssured.baseURI + "/nonexisting-url/" + file.getUuid();
+			final String expectedLocation = "/nonexisting-url/" + file.getUuid();
 
 			assertEquals("Location header of file upload response is not correct", expectedLocation,    locationHeader);
 			assertEquals("Name of uploaded file does not match actual name",       "test.txt",          file.getName());
@@ -266,8 +266,8 @@ public class UploadServletTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final File file               = app.nodeQuery(File.class).getFirst();
-			final String expectedLocation = RestAssured.baseURI + "/nonexisting-url/";
-			final Folder uploadFolder = app.nodeQuery(Folder.class).getFirst();
+			final String expectedLocation = "/nonexisting-url/";
+			final Folder uploadFolder     = app.nodeQuery(Folder.class).getFirst();
 
 			assertEquals("Location header of file upload response is not correct", expectedLocation,    locationHeader);
 			assertEquals("Name of uploaded file does not match actual name",       "test.txt",          file.getName());

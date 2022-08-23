@@ -17,6 +17,16 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Icons = {
+
+	preloadSVGIcons: () => {
+		// this should be super fast because we inserted a preload rule to the index.html
+		fetch('icon/sprites.svg').then(response => {
+			return response.text();
+		}).then(svgPreload => {
+			document.body.insertAdjacentHTML('afterbegin', svgPreload);
+		});
+	},
+
 	application_form_add: 'icon/application_form_add.png',
 	add_icon: 'icon/add.png',
 	delete_icon: 'icon/delete.png',
@@ -29,15 +39,10 @@ let _Icons = {
 	expanded_icon: 'icon/tree_arrow_down.png',
 	link_icon: 'icon/link.png',
 	key_icon: 'icon/key.png',
-	key_add_icon: 'icon/key_add.png',
 	cross_icon: 'icon/cross.png',
 	tick_icon: 'icon/tick.png',
 	grey_cross_icon: 'icon/cross_small_grey.png',
 	page_white_stack_icon: 'icon/page_white_stack.png',
-	eye_icon: 'icon/eye.png',
-	database_icon: 'icon/database.png',
-	database_table_icon: 'icon/database_table.png',
-	database_add_icon: 'icon/database_add.png',
 	database_gear_icon: 'icon/database_gear.png',
 	view_detail_icon: 'icon/application_view_detail.png',
 	calendar_icon: 'icon/calendar.png',
@@ -74,8 +79,6 @@ let _Icons = {
 	toggle_icon: 'icon/arrow_switch.png',
 	widget_icon: 'icon/layout.png',
 	folder_icon: 'icon/folder.png',
-	add_folder_icon: 'icon/folder_add.png',
-	delete_folder_icon: 'icon/folder_delete.png',
 	add_widget_icon: 'icon/layout_add.png',
 	content_icon: 'icon/page_white.png',
 	active_content_icon: 'icon/page_yellow.png',
@@ -88,43 +91,20 @@ let _Icons = {
 	repeater_icon: 'icon/bricks.png',
 	brick_icon: 'icon/brick.png',
 	comp_icon: 'icon/brick_yellow.png',
-	microphone_icon: 'icon/icon_microphone.png',
-	add_file_icon: 'icon/page_white_add.png',
-	add_site_icon: 'icon/page_white_add.png',
-	add_page_icon: 'icon/page_add.png',
-	// ajax_loader_1: 'img/ajax-loader.gif',
-	// ajax_loader_2: 'img/al.gif',
-	structr_logo_small: 'icon/structr_icon_16x16.png',
-	minification_dialog_js_icon: 'icon/script_lightning.png',
-	minification_dialog_css_icon: 'icon/script_palette.png',
-	minification_trigger_icon: 'icon/briefcase.png',
 	search_icon: 'icon/zoom.png',
 	star_icon: 'icon/star.png',
-	star_delete_icon: 'icon/star_delete.png',
 	image_icon: 'icon/image.png',
 	arrow_up_down: 'icon/arrow_up_down.png',
-	floppy_icon: 'icon/disk.png',
 	book_icon: 'icon/book_open.png',
-	edition_community_icon: 'icon/tux.png',
-	edition_basic_icon: 'icon/medal_bronze_2.png',
-	edition_small_business_icon: 'icon/medal_silver_2.png',
-	edition_enterprise_icon: 'icon/medal_gold_2.png',
 	import_icon: 'icon/table_lightning.png',
-	hamburger_icon: 'icon/hamburger_white.png',
 	connect_icon: 'icon/connect.png',
-	disconnect_icon: 'icon/disconnect.png',
-	folder_connect_icon: 'icon/folder_connect.png',
-	folder_disconnect_icon: 'icon/folder_disconnect.png',
-	database_error_icon: 'icon/database_error.png',
 	package_icon: 'icon/package.png',
 	report_icon: 'icon/report.png',
-	find_icon: 'icon/find.png',
-	world_icon: 'icon/world.png',
-	clock_icon: 'icon/clock.png',
-	folder_star_icon: 'icon/folder_star.png',
 
 	collapsedClass: 'svg-collapsed',
 	expandedClass: 'svg-expanded',
+
+	jstree_fake_icon: 'this-is-empty',
 
 	getSvgIcon: (id, width = 16, height = 16, optionalClasses, title = '') => {
 
@@ -141,31 +121,55 @@ let _Icons = {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}">
-			<title>${title}</title>
-			<use xlink:href="#${id}"></use>
-		</svg>`;
+		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use xlink:href="#${id}"></use></svg>`;
+	},
+
+	updateSvgIconInElement: (element, from, to) => {
+
+		let use = element.querySelector(`use[*|href="#${from}"]`);
+
+		if (!use) {
+			return false;
+		}
+
+		use.setAttribute('xlink:href', '#' + to);
+		return true;
+	},
+
+	getSvgIconFromSvgElement: (element) => {
+
+		let use = element.querySelector(`use[*|href]`);
+
+		if (!use) {
+			return false;
+		}
+
+		return use.getAttribute('xlink:href').slice(1);
+	},
+
+	hasSvgIcon: (element, icon) => {
+
+		let use = element.querySelector(`use[*|href="#${icon}"]`);
+
+		return (use !== null);
 	},
 
 	getSvgIconClassesForColoredIcon: (customClasses = []) => {
-		return [...customClasses].concat(['opacity-60', 'hover:opacity-100']).concat('cursor-pointer');
+		return [...customClasses].concat(['opacity-80', 'hover:opacity-100', 'cursor-pointer']);
 	},
 
 	getSvgIconClassesNonColorIcon: (customClasses = []) => {
-		return [...customClasses].concat(['icon-inactive', 'hover:icon-active']).concat('cursor-pointer');
+		return [...customClasses].concat(['icon-inactive', 'hover:icon-active', 'cursor-pointer']);
 	},
 
-	getFullSpriteClass: function (key) {
+	getFullSpriteClass: (key) => {
 
 		return 'sprite ' + _Icons.getSpriteClassOnly(key);
 	},
 
-	updateSpriteClassTo: function (el, newSpriteClass) {
-		el.classList.forEach(function(cls) {
-			if (cls.indexOf('sprite-') === 0) {
-				el.classList.remove(cls);
-			}
-		});
+	updateSpriteClassTo: (el, newSpriteClass) => {
+
+		el.classList.remove(...[...el.classList].filter((c) => c.startsWith('sprite-')));
 		el.classList.add(newSpriteClass);
 	},
 	getSpriteClassOnly: function (key) {
@@ -183,15 +187,10 @@ let _Icons = {
 			case _Icons.expanded_icon:                return 'sprite-tree_arrow_down';
 			case _Icons.link_icon:                    return 'sprite-link';
 			case _Icons.key_icon:                     return 'sprite-key';
-			case _Icons.key_add_icon:                 return 'sprite-key_add';
 			case _Icons.cross_icon:                   return 'sprite-cross';
 			case _Icons.tick_icon:                    return 'sprite-tick';
 			case _Icons.grey_cross_icon:              return 'sprite-cross_small_grey';
 			case _Icons.page_white_stack_icon:        return 'sprite-page_white_stack';
-			case _Icons.eye_icon:                     return 'sprite-eye';
-			case _Icons.database_icon:                return 'sprite-database';
-			case _Icons.database_table_icon:          return 'sprite-database_table';
-			case _Icons.database_add_icon:            return 'sprite-database_add';
 			case _Icons.view_detail_icon:             return 'sprite-application_view_detail';
 			case _Icons.calendar_icon:                return 'sprite-calendar';
 			case _Icons.add_grey_icon:                return 'sprite-add_grey';
@@ -227,7 +226,6 @@ let _Icons = {
 			case _Icons.toggle_icon:                  return 'sprite-arrow_switch';
 			case _Icons.widget_icon:                  return 'sprite-layout';
 			case _Icons.folder_icon:                  return 'sprite-folder';
-			case _Icons.add_folder_icon:              return 'sprite-folder_add';
 			case _Icons.add_widget_icon:              return 'sprite-layout_add';
 			case _Icons.content_icon:                 return 'sprite-page_white';
 			case _Icons.active_content_icon:          return 'sprite-page_yellow';
@@ -239,92 +237,57 @@ let _Icons = {
 			case _Icons.repeater_icon:                return 'sprite-bricks';
 			case _Icons.brick_icon:                   return 'sprite-brick';
 			case _Icons.comp_icon:                    return 'sprite-brick_yellow';
-			case _Icons.microphone_icon:              return 'sprite-icon_microphone';
-			case _Icons.add_file_icon:                return 'sprite-page_white_add';
-			case _Icons.add_site_icon:                return 'sprite-page_white_add';
-			case _Icons.add_page_icon:                return 'sprite-page_add';
-			case _Icons.structr_logo_small:           return 'sprite-structr_icon_16x16';
-			case _Icons.minification_dialog_js_icon:  return 'sprite-script_lightning';
-			case _Icons.minification_dialog_css_icon: return 'sprite-script_palette';
-			case _Icons.minification_trigger_icon:    return 'sprite-briefcase';
 			case _Icons.search_icon:                  return 'sprite-zoom';
 			case _Icons.star_icon:                    return 'sprite-star';
-			case _Icons.star_delete_icon:             return 'sprite-star_delete';
 			case _Icons.image_icon:                   return 'sprite-image';
 			case _Icons.arrow_up_down:                return 'sprite-arrow_up_down';
-			case _Icons.floppy_icon:                  return 'sprite-disk';
 			case _Icons.book_icon:                    return 'sprite-book_open';
-			case _Icons.edition_community_icon:       return 'sprite-tux';
-			case _Icons.edition_basic_icon:           return 'sprite-medal_bronze_2';
-			case _Icons.edition_small_business_icon:  return 'sprite-medal_silver_2';
-			case _Icons.edition_enterprise_icon:      return 'sprite-medal_gold_2';
 			case _Icons.import_icon:                  return 'sprite-table_lightning';
-			case _Icons.hamburger_icon:               return 'sprite-hamburger_white';
 			case _Icons.connect_icon:                 return 'sprite-connect';
-			case _Icons.disconnect_icon:              return 'sprite-disconnect';
-			case _Icons.folder_connect_icon:          return 'sprite-folder_connect';
-			case _Icons.folder_disconnect_icon:       return 'sprite-folder_disconnect';
-			case _Icons.database_error_icon:          return 'sprite-database_error';
 			case _Icons.package_icon:                 return 'sprite-package';
 			case _Icons.report_icon:                  return 'sprite-report';
-			case _Icons.find_icon:                    return 'sprite-find';
-			case _Icons.world_icon:                   return 'sprite-world';
-			case _Icons.clock_icon:                   return 'sprite-clock';
-			case _Icons.folder_star_icon:             return 'sprite-folder_star';
-			case _Icons.delete_folder_icon:           return 'sprite-folder_delete';
 
 			default:                                  return 'sprite-error';
 		}
 
 	},
-	getImageOrIcon: function(image) {
-		return (image.contentType && image.contentType.startsWith('image/svg') ? _Icons.getImageMarkup(image.path) : (image.tnSmall ? _Icons.getImageMarkup(image.tnSmall.path) : '<i class="icon sprite sprite-image" />'));
+	getImageOrIcon: (image) => {
+		if (image.contentType && image.contentType.startsWith('image/svg')) {
+			return _Icons.getImageMarkup(image.path);
+		}
+
+		if (image.tnSmall) {
+			return _Icons.getImageMarkup(image.tnSmall.path);
+		}
+
+		return _Icons.getSvgIcon('file-image');
 	},
 	getImageMarkup: function (path) {
 		return '<img class="icon" src="' + path + '">';
 	},
-	getMinificationIcon: function(file) {
-		switch(file.type) {
-			case 'MinifiedCssFile':
-				return _Icons.minification_dialog_css_icon;
-			case 'MinifiedJavaScriptFile':
-				return _Icons.minification_dialog_js_icon;
-			default:
-				return _Icons.error_icon;
-		}
-	},
-	getFileIconClass: function(file) {
+	getFileIconSVG: (file) => {
 
-		var fileName = file.name;
-		var contentType = file.contentType;
-
-		var result = 'fa-file-o';
+		// let fileName    = file.name;
+		let contentType = file.contentType;
+		let result      = 'file-empty';
 
 		if (contentType) {
 
 			switch (contentType) {
 
-				case 'text/plain':
-					result = 'fa-file-text-o';
-					break;
-
 				case 'application/pdf':
 				case 'application/postscript':
-					result = 'fa-file-pdf-o';
+					result = 'file-pdf';
 					break;
 
 				case 'application/x-pem-key':
 				case 'application/pkix-cert+pem':
 				case 'application/x-iwork-keynote-sffkey':
-					result = 'fa-key';
-					break;
-
-				case 'application/x-trash':
-					result = 'fa-trash-o';
+					result = 'file-certificate';
 					break;
 
 				case 'application/octet-stream':
-					result = 'fa-terminal';
+					result = 'file-terminal';
 					break;
 
 				case 'application/x-shellscript':
@@ -332,75 +295,71 @@ let _Icons = {
 				case 'application/xml':
 				case 'text/html':
 				case 'text/xml':
-					result = 'fa-file-code-o';
+					result = 'file-code';
 					break;
 
 				case 'application/java-archive':
 				case 'application/zip':
 				case 'application/rar':
 				case 'application/x-bzip':
-					result = 'fa-file-archive-o';
+					result = 'file-archive';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 				case 'application/vnd.oasis.opendocument.text':
 				case 'application/msword':
-					result = 'fa-file-word-o';
+					result = 'file-word';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 				case 'application/vnd.oasis.opendocument.spreadsheet':
 				case 'application/vnd.ms-excel':
-					result = 'fa-file-excel-o';
+					result = 'file-excel';
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
-					result = 'fa-file-powerpoint-o';
-					break;
-
-				case 'image/jpeg':
-					result = 'fa-picture-o';
-					break;
-
 				case 'application/vnd.oasis.opendocument.chart':
-					result = 'fa-line-chart';
+					result = 'file-presentation';
 					break;
 
 				default:
 					if (contentType.startsWith('image/')) {
-						result = 'fa-file-image-o';
+						result = 'file-image';
 					} else if (contentType.startsWith('text/')) {
-						result = 'fa-file-text-o';
+						result = 'file-text';
 					}
 			}
 
-			if (fileName && fileName.contains('.')) {
-
-				var fileExtensionPosition = fileName.lastIndexOf('.') + 1;
-				var fileExtension = fileName.substring(fileExtensionPosition);
-
-				// add file extension css class to control colors
-				result = fileExtension + ' ' + result;
-			}
+			// if (fileName && fileName.contains('.')) {
+			//
+			// 	let fileExtensionPosition = fileName.lastIndexOf('.') + 1;
+			// 	let fileExtension = fileName.substring(fileExtensionPosition);
+			//
+			// 	// add file extension css class to control colors
+			// 	result = fileExtension + ' ' + result;
+			// }
 		}
 
-		return result;
+		return _Icons.getSvgIcon(result);
+	},
+	getFolderIconSVG: (d) => {
+		return (d.isMounted) ? 'folder-link-closed-icon' : 'folder-closed-icon'
 	},
 
-	getIconForEdition: function (edition) {
+	getIconForEdition: (edition) => {
 		switch (edition) {
 			case 'Enterprise':
-				return _Icons.edition_enterprise_icon;
+				return 'edition-enterprise';
 
 			case 'Small Business':
-				return _Icons.edition_small_business_icon;
+				return 'edition-small-business';
 
 			case 'Basic':
-				return _Icons.edition_basic_icon;
+				return 'edition-basic';
 
 			case 'Community':
 			default:
-				return _Icons.edition_community_icon;
+				return 'edition-community';
 		}
 	},
 

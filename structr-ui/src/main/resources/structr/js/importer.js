@@ -23,8 +23,8 @@ $(document).ready(function() {
 	$(document).on('click', '.import-job-action', function (e) {
 		e.preventDefault();
 
-		var mode = $(this).data('action');
-		var jobId = $(this).data('jobId');
+		let mode  = $(this).data('action');
+		let jobId = $(this).data('jobId');
 
 		Command.fileImport(mode, jobId, Importer.updateJobTable);
 
@@ -33,7 +33,7 @@ $(document).ready(function() {
 
 });
 
-var Importer = {
+let Importer = {
 	_moduleName: 'importer',
 	appDataXMLKey: 'xml-import-config',
 	appDataCSVKey: 'csv-import-config',
@@ -51,43 +51,36 @@ var Importer = {
 	resize: function() {
 	},
 	onload: function() {
+
 		Importer.init();
 
-		Structr.fetchHtmlTemplate('importer/main', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
+		Structr.mainContainer.innerHTML = Importer.templates.main();
+		Structr.functionBar.innerHTML   = Importer.templates.functions();
 
-			main.append(html);
+		UISettings.showSettingsForCurrentModule();
 
-			Structr.fetchHtmlTemplate('importer/functions', { refreshIcon: _Icons.getHtmlForIcon(_Icons.refresh_icon) }, function(html) {
-
-				Structr.functionBar.innerHTML = html;
-
-				UISettings.showSettingsForCurrentModule();
-
-				$('#importer-main .refresh').click(function () {
-					Importer.updateJobTable();
-				});
-
-				$('#cancel-all-queued-after').click(function () {
-
-					let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
-
-					if (isNaN(jobId)) {
-						new MessageBuilder().warning("Unable to parse job id").show();
-					} else {
-						Command.fileImport('cancelAllAfter', jobId, () => {
-
-							$('#cancel-all-queued-after-job-id').val('');
-							Importer.updateJobTable();
-						});
-					}
-				});
-
-				Importer.updateJobTable();
-
-				Structr.unblockMenu(100);
-			});
+		$('#importer-main .refresh').click(function () {
+			Importer.updateJobTable();
 		});
 
+		$('#cancel-all-queued-after').click(function () {
+
+			let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
+
+			if (isNaN(jobId)) {
+				new MessageBuilder().warning("Unable to parse job id").show();
+			} else {
+				Command.fileImport('cancelAllAfter', jobId, () => {
+
+					$('#cancel-all-queued-after-job-id').val('');
+					Importer.updateJobTable();
+				});
+			}
+		});
+
+		Importer.updateJobTable();
+
+		Structr.unblockMenu(100);
 	},
 	unload: function() {
 		Importer.schemaTypeCachePopulated = false;
@@ -337,172 +330,165 @@ var Importer = {
 
 		Importer.initializeButtons(true, false, false, true);
 
-		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'csv'}, function(html) {
+		let html = Importer.templates.dialogConfigurations({type: 'csv'});
+		dialogMeta.append(html);
 
-			dialogMeta.append(html);
-
-			var importConfigSelector = $('#load-csv-config-selector');
-			importConfigSelector.on('change', function () {
-				Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
-			});
+		var importConfigSelector = $('#load-csv-config-selector');
+		importConfigSelector.on('change', function () {
 			Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
+		});
+		Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
 
-			Importer.updateConfigSelector(importConfigSelector, 'csv');
+		Importer.updateConfigSelector(importConfigSelector, 'csv');
 
-			$('#load-csv-config-button').on('click', function() {
+		$('#load-csv-config-button').on('click', function() {
 
-				Importer.loadImportConfiguration(importConfigSelector, function(data) {
+			Importer.loadImportConfiguration(importConfigSelector, function(data) {
 
-					if (data && data.content) {
+				if (data && data.content) {
 
-						var config = JSON.parse(data.content).config;
+					var config = JSON.parse(data.content).config;
 
-						if (!config.version) {
-							// initial version, no reversal needed
+					if (!config.version) {
+						// initial version, no reversal needed
 
-						} else if (config.version === 2) {
+					} else if (config.version === 2) {
 
-							var reversedTransforms = {};
-							Object.keys(config.transforms).forEach(function(k) {
-								reversedTransforms[config.mappings[k]] = config.transforms[k];
-							});
-
-							config.transforms = reversedTransforms;
-
-							// New version - reverse mappings/transforms so we can display them
-							var reversedMappings = {};
-
-							Object.keys(config.mappings).forEach(function(k) {
-								reversedMappings[config.mappings[k]] = k;
-							});
-
-							config.mappings = reversedMappings;
-						}
-
-						$('#delimiter').val(config.delimiter);
-						$('#quote-char').val(config.quoteChar);
-						$('#record-separator').val(config.recordSeparator);
-						$('#commit-interval').val(config.commitInterval);
-						$('#rfc4180-mode').prop('checked', config.rfc4180Mode === true);
-						$('#strict-quotes').prop('checked', config.strictQuotes === true);
-						$('#ignore-invalid').prop('checked', config.ignoreInvalid === true);
-						$('#distinct').prop('checked', config.distinct === true);
-						$('#range').val(config.range);
-
-						let importType = config.importType || "node";
-
-						let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
-							return t.name === config.targetType;
+						var reversedTransforms = {};
+						Object.keys(config.transforms).forEach(function(k) {
+							reversedTransforms[config.mappings[k]] = config.transforms[k];
 						});
-						if (importType !== 'graph') {
 
-							if (typeInfo.length > 0) {
+						config.transforms = reversedTransforms;
 
-								Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
+						// New version - reverse mappings/transforms so we can display them
+						var reversedMappings = {};
 
-							} else {
+						Object.keys(config.mappings).forEach(function(k) {
+							reversedMappings[config.mappings[k]] = k;
+						});
 
-								new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
-								Importer.customTypesOnly = true;
-
-							}
-						}
-
-						// update storage datastructure before triggering events..
-						if (importType === 'graph') {
-							mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
-						}
-
-						$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
-
-						$('#target-type-select').val(config.targetType).trigger('change', [config]);
+						config.mappings = reversedMappings;
 					}
+
+					$('#delimiter').val(config.delimiter);
+					$('#quote-char').val(config.quoteChar);
+					$('#record-separator').val(config.recordSeparator);
+					$('#commit-interval').val(config.commitInterval);
+					$('#rfc4180-mode').prop('checked', config.rfc4180Mode === true);
+					$('#strict-quotes').prop('checked', config.strictQuotes === true);
+					$('#ignore-invalid').prop('checked', config.ignoreInvalid === true);
+					$('#distinct').prop('checked', config.distinct === true);
+					$('#range').val(config.range);
+
+					let importType = config.importType || "node";
+
+					let typeInfo = Importer.schemaTypeCache[importType + 'Types'].filter((t) => {
+						return t.name === config.targetType;
+					});
+					if (importType !== 'graph') {
+
+						if (typeInfo.length > 0) {
+
+							Importer.customTypesOnly = !typeInfo[0].isBuiltinType;
+
+						} else {
+
+							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
+							Importer.customTypesOnly = true;
+
+						}
+					}
+
+					// update storage datastructure before triggering events..
+					if (importType === 'graph') {
+						mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
+					}
+
+					$('input[name=import-type][value=' + importType + ']').prop('checked', 'checked').trigger('change');
+
+					$('#target-type-select').val(config.targetType).trigger('change', [config]);
+				}
+			});
+		});
+
+		$('#update-csv-config-button').on('click', function() {
+
+			var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+
+			if (configInfo.errors.length > 0) {
+
+				configInfo.errors.forEach(function(e) {
+					new MessageBuilder().title(e.title).error(e.message).show();
 				});
-			});
 
-			$('#update-csv-config-button').on('click', function() {
+			} else {
 
-				var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+				Importer.updateImportConfiguration(importConfigSelector, configInfo);
+			}
+		});
 
-				if (configInfo.errors.length > 0) {
+		$('#save-csv-config-button').on('click', function() {
 
-					configInfo.errors.forEach(function(e) {
-						new MessageBuilder().title(e.title).error(e.message).show();
-					});
+			var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
-				} else {
+			if (configInfo.errors.length > 0) {
 
-					Importer.updateImportConfiguration(importConfigSelector, configInfo);
-				}
-			});
+				configInfo.errors.forEach(function(e) {
+					new MessageBuilder().title(e.title).error(e.message).show();
+				});
 
-			$('#save-csv-config-button').on('click', function() {
+			} else {
 
-				var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+				Importer.saveImportConfiguration(importConfigSelector, 'csv', configInfo);
+			}
+		});
 
-				if (configInfo.errors.length > 0) {
+		$('#delete-csv-config-button').on('click', function() {
+			Importer.deleteImportConfiguration(importConfigSelector, 'csv');
+		});
 
-					configInfo.errors.forEach(function(e) {
-						new MessageBuilder().title(e.title).error(e.message).show();
-					});
+		// load first lines to display a sample of the data
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
 
-				} else {
+			if (data && data.result) {
 
-					Importer.saveImportConfiguration(importConfigSelector, 'csv', configInfo);
-				}
-			});
+				let results   = Papa.parse(data.result.lines);
+				let delim     = results.meta.delimiter;
+				let qc        = data.result.lines.substring(0,1);
+				let html      = Importer.templates.dialogCSV({ data: data, delim: delim, qc: qc, importType: "node" });
+				let container = $(html);
+				dialog.append(container);
 
-			$('#delete-csv-config-button').on('click', function() {
-				Importer.deleteImportConfiguration(importConfigSelector, 'csv');
-			});
+				Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 
-			// load first lines to display a sample of the data
-			$.post(rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
+				$('input[name=import-type]').off('change').on('change', function() {
 
-				if (data && data.result) {
-
-					var results = Papa.parse(data.result.lines);
-					var delim   = results.meta.delimiter;
-					var qc      = data.result.lines.substring(0,1);
-
-					Structr.fetchHtmlTemplate('importer/dialog.csv', { data: data, delim: delim, qc: qc, importType: "node" }, function(html) {
-
-						var container = $(html);
-						dialog.append(container);
-
-						Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
-
-						$('input[name=import-type]').off('change').on('change', function() {
-
-							// call self on change
-							Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
-						});
-					});
-				}
-			});
+					// call self on change
+					Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
+				});
+			}
 		});
 	},
 	formatImportTypeSelectorDialog: function(file, mixedMappingConfig) {
 
 		let importType = $('input[name=import-type]:checked').val();
+		let html       = Importer.templates['dialogTargetTypeSelect_' + importType]();
 
-		Structr.fetchHtmlTemplate('importer/dialog.target.type.select.' + importType, { }, function(html) {
+		$('#import-dialog-type-container').empty();
+		$('#import-dialog-type-container').append(html);
 
-			$('#import-dialog-type-container').empty();
-			$('#import-dialog-type-container').append(html);
+		switch (importType) {
 
-			switch (importType) {
+			case 'node':
+			case 'rel':
+				Importer.formatNodeOrRelImportDialog(file);
+				break;
 
-				case 'node':
-				case 'rel':
-					Importer.formatNodeOrRelImportDialog(file);
-					break;
-
-				case 'graph':
-					Importer.formatMixedImportDialog(file, mixedMappingConfig);
-					break;
-			}
-		});
+			case 'graph':
+				Importer.formatMixedImportDialog(file, mixedMappingConfig);
+				break;
+		}
 	},
 	formatNodeOrRelImportDialog: function(file) {
 
@@ -536,7 +522,7 @@ var Importer = {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			$.get(rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+			$.get(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 				if (data && data.result) {
 
@@ -614,7 +600,7 @@ var Importer = {
 		// clear current mapping list
 		propertySelector.empty();
 
-		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
 
 			delimiter: $('#delimiter').val(),
 			quoteChar: $('#quote-char').val(),
@@ -659,7 +645,7 @@ var Importer = {
 
 						} else {
 
-							$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+							$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
 						}
 					});
 				});
@@ -755,7 +741,7 @@ var Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -850,203 +836,201 @@ var Importer = {
 
 		Importer.initializeButtons(true, true, true, true, true);
 
-		Structr.fetchHtmlTemplate('importer/dialog.configurations', {type: 'xml'}, function(html) {
+		let html = Importer.templates.dialogConfigurations({type: 'xml'});
+		dialogMeta.append(html);
 
-			dialogMeta.append(html);
-
-			var importConfigSelector = $('#load-xml-config-selector');
-			importConfigSelector.on('change', function () {
-				Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
-			});
+		var importConfigSelector = $('#load-xml-config-selector');
+		importConfigSelector.on('change', function () {
 			Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
+		});
+		Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
 
-			Importer.updateConfigSelector(importConfigSelector, 'xml');
+		Importer.updateConfigSelector(importConfigSelector, 'xml');
 
-			$('#load-xml-config-button').on('click', function() {
+		$('#load-xml-config-button').on('click', function() {
 
-				Importer.loadImportConfiguration(importConfigSelector, function(data) {
+			Importer.loadImportConfiguration(importConfigSelector, function(data) {
 
-					if (data && data.content) {
+				if (data && data.content) {
 
-						var config = JSON.parse(data.content);
+					var config = JSON.parse(data.content);
 
-						Object.keys(config).forEach(function(k) {
-							configuration[k] = config[k];
+					Object.keys(config).forEach(function(k) {
+						configuration[k] = config[k];
 
-							switch (configuration[k].action) {
-								case 'createNode':
-									Importer.updateStructureSelector('', k, configuration[k].type);
-									break;
+						switch (configuration[k].action) {
+							case 'createNode':
+								Importer.updateStructureSelector('', k, configuration[k].type);
+								break;
 
-								case 'setProperty':
-									Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
-									break;
+							case 'setProperty':
+								Importer.updateStructureSelectorForSetProperty('', k, configuration[k].propertyName);
+								break;
 
-								default:
-									console.log("Unknown action: ", configuration[k].action);
-							}
-						});
-					}
-				});
-			});
-
-			dialog.append('<div id="xml-import"></div>');
-
-			$('#cancel-button').on('click', function() {
-				// close dialog
-				$.unblockUI({
-					fadeOut: 25
-				});
-				Importer.unload();
-			});
-
-			$('#next-element').on('click', function() {
-				var elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
-				if (elem && elem.get(0)) {
-					elem.get(0).scrollIntoView(false);
-					elem.click();
+							default:
+								console.log("Unknown action: ", configuration[k].action);
+						}
+					});
 				}
 			});
+		});
 
-			$('#prev-element').on('click', function() {
-				var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
-				if (elem && elem.get(0)) {
-					elem.get(0).scrollIntoView(false);
-					elem.click();
-				}
+		dialog.append('<div id="xml-import"></div>');
+
+		$('#cancel-button').on('click', function() {
+			// close dialog
+			$.unblockUI({
+				fadeOut: 25
 			});
+			Importer.unload();
+		});
 
-			$('#start-import').off('click').on('click', function() {
+		$('#next-element').on('click', function() {
+			var elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
+			if (elem && elem.get(0)) {
+				elem.get(0).scrollIntoView(false);
+				elem.click();
+			}
+		});
 
-				$.post(rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
-			});
+		$('#prev-element').on('click', function() {
+			var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
+			if (elem && elem.get(0)) {
+				elem.get(0).scrollIntoView(false);
+				elem.click();
+			}
+		});
 
-			$('#save-xml-config-button').on('click', function() {
-				Importer.saveImportConfiguration(importConfigSelector, 'xml', configuration);
-			});
+		$('#start-import').off('click').on('click', function() {
 
-			$('#update-xml-config-button').on('click', function() {
-				Importer.updateImportConfiguration(importConfigSelector, configuration);
-			});
+			$.post(Structr.rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
+		});
 
-			$('#delete-xml-config-button').on('click', function() {
-				Importer.deleteImportConfiguration(importConfigSelector, 'xml');
-			});
+		$('#save-xml-config-button').on('click', function() {
+			Importer.saveImportConfiguration(importConfigSelector, 'xml', configuration);
+		});
 
-			var container = $('#xml-import');
+		$('#update-xml-config-button').on('click', function() {
+			Importer.updateImportConfiguration(importConfigSelector, configuration);
+		});
 
-			container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
-			container.append('<div style="clear: both;"></div>');
+		$('#delete-xml-config-button').on('click', function() {
+			Importer.deleteImportConfiguration(importConfigSelector, 'xml');
+		});
 
-			var xmlConfig = $('#xml-config');
+		var container = $('#xml-import');
 
-			xmlConfig.append(
-				'<p class="hint">' +
-				'Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />' +
-				'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
-				'</p>');
+		container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
+		container.append('<div style="clear: both;"></div>');
 
-			$.post(rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
+		var xmlConfig = $('#xml-config');
 
-				if (data && data.result) {
+		xmlConfig.append(
+			'<p class="hint">' +
+			'Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />' +
+			'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
+			'</p>');
 
-					var structure  = JSON.parse(data.result);
-					var attributes = {};
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
 
-					function buildTree(htmlElement, parentKey, treeElement, path, level) {
+			if (data && data.result) {
 
-						Object.keys(treeElement).forEach(function(key) {
+				var structure  = JSON.parse(data.result);
+				var attributes = {};
 
-							// store attributes
-							if (key === '::attributes') {
-								if (!attributes[parentKey]) {
-									attributes[parentKey] = {};
-								}
-								var map = attributes[parentKey];
-								treeElement[key].forEach(function(attr) {
-									map[attr] = 1;
-								});
-								return;
+				function buildTree(htmlElement, parentKey, treeElement, path, level) {
+
+					Object.keys(treeElement).forEach(function(key) {
+
+						// store attributes
+						if (key === '::attributes') {
+							if (!attributes[parentKey]) {
+								attributes[parentKey] = {};
 							}
+							var map = attributes[parentKey];
+							treeElement[key].forEach(function(attr) {
+								map[attr] = 1;
+							});
+							return;
+						}
 
 
-							var hasChildren = Object.keys(treeElement[key]).length > 1;
-							var localPath   = path + '/' + key;
+						var hasChildren = Object.keys(treeElement[key]).length > 1;
+						var localPath   = path + '/' + key;
 
-							htmlElement.append(
-								'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
-								' class="xml-mapping" ' +
-								' style="padding-left: ' + (level * 30) + 'px;">' +
-								_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
-								'&nbsp;&nbsp;' + key + '</td></tr>'
-							);
+						htmlElement.append(
+							'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
+							' class="xml-mapping" ' +
+							' style="padding-left: ' + (level * 30) + 'px;">' +
+							_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
+							'&nbsp;&nbsp;' + key + '</td></tr>'
+						);
 
-							$('td[data-name="' + localPath + '"]').on('click', function() {
+						$('td[data-name="' + localPath + '"]').on('click', function() {
 
-								$('td.xml-mapping').removeClass('selected');
-								$(this).addClass('selected');
+							$('td.xml-mapping').removeClass('selected');
+							$(this).addClass('selected');
 
-								xmlConfig.empty();
-								xmlConfig.append('<h2>&nbsp;</h2>');
-								xmlConfig.append('<div id="config"></div>');
+							xmlConfig.empty();
+							xmlConfig.append('<h2>&nbsp;</h2>');
+							xmlConfig.append('<div id="config"></div>');
 
-								var config = $('#config');
-								config.append('<label>Select action:</label>');
-								config.append('<select id="action-select" class="xml-config-select"></select>');
+							var config = $('#config');
+							config.append('<label>Select action:</label>');
+							config.append('<select id="action-select" class="xml-config-select"></select>');
 
-								var action = $('#action-select');
-								action.append('<option value="">Skip</option>');
-								action.append('<option value="ignore">Ignore branch</option>');
-								action.append('<option value="createNode">Create node</option>');
-								action.append('<option value="setProperty">Set property</option>');
+							var action = $('#action-select');
+							action.append('<option value="">Skip</option>');
+							action.append('<option value="ignore">Ignore branch</option>');
+							action.append('<option value="createNode">Create node</option>');
+							action.append('<option value="setProperty">Set property</option>');
 
-								config.append('<div id="options"></div>');
-								var options = $('#options');
+							config.append('<div id="options"></div>');
+							var options = $('#options');
 
-								action.on('change', function() {
+							action.on('change', function() {
 
-									// remove dialog options
-									$('#options').empty();
+								// remove dialog options
+								$('#options').empty();
 
-									switch ($(this).val()) {
-										case "createNode":
-											Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
-											break;
-										case "setProperty":
-											Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
-											break;
-										case "ignore":
-											// reset configuration
-											configuration[localPath] = { action: 'ignore' };
-											Importer.updateStructureSelector(localPath);
-											break;
+								switch ($(this).val()) {
+									case "createNode":
+										Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
+										break;
+									case "setProperty":
+										Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
+										break;
+									case "ignore":
+										// reset configuration
+										configuration[localPath] = { action: 'ignore' };
+										Importer.updateStructureSelector(localPath);
+										break;
 
-										default:
-											configuration[localPath] = {};
-											Importer.updateStructureSelector(localPath);
-											break;
-									}
-								});
-
-								// activate elements for existing configuration
-								var typeConfig = configuration[localPath];
-								if (typeConfig && typeConfig.action) {
-
-									$('#action-select').val(typeConfig.action).trigger('change');
+									default:
+										configuration[localPath] = {};
+										Importer.updateStructureSelector(localPath);
+										break;
 								}
 							});
 
-							var value = treeElement[key];
-							if (value) {
+							// activate elements for existing configuration
+							var typeConfig = configuration[localPath];
+							if (typeConfig && typeConfig.action) {
 
-								buildTree(htmlElement, key, value, localPath, level + 1);
+								$('#action-select').val(typeConfig.action).trigger('change');
 							}
 						});
-					}
 
-					buildTree($('#structure'), '', structure, '', 0);
+						var value = treeElement[key];
+						if (value) {
+
+							buildTree(htmlElement, key, value, localPath, level + 1);
+						}
+					});
 				}
-			});
+
+				buildTree($('#structure'), '', structure, '', 0);
+			}
 		});
 	},
 	hasRoot: function(configuration) {
@@ -1114,7 +1098,7 @@ var Importer = {
 		var propertySelector = $('#property-select');
 		var typeConfig       = configuration[path];
 
-		$.get(rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		$.get(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
 
 			if (data && data.result) {
 
@@ -1321,7 +1305,7 @@ var Importer = {
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
-		$.get(rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -1438,7 +1422,7 @@ var Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 		// collect CSV headers to use
-		$.post(rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
+		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
 
 			delimiter: $('#delimiter').val(),
 			quoteChar: $('#quote-char').val(),
@@ -1535,7 +1519,7 @@ var Importer = {
 
 						configInfo.config.mixedMappings = mixedMappingConfig.mappedTypes;
 
-						$.post(rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+						$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
 					}
 				})
 			}
@@ -1555,7 +1539,7 @@ var Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -1611,70 +1595,293 @@ var Importer = {
 	},
 	displayMixedMappingConfiguration: function(mixedMapping) {
 
-		var availableProperties = $('#available-properties');
-		var mappedTypes         = $('#types-container');
-		var options             = '<option>Add relationship</option>';
+		let availableProperties = $('#available-properties');
+		let mappedTypes         = $('#types-container');
+		let options             = '<option>Add relationship</option>';
 
 		availableProperties.empty();
 		mappedTypes.empty();
 
-		Object.keys(mixedMapping.availableProperties).forEach(key => {
+		for (let key of Object.keys(mixedMapping.availableProperties)) {
 
 			let property = mixedMapping.availableProperties[key];
 
 			if (property.matched === false) {
 				availableProperties.append('<span>' + property.name + '</span>');
 			}
-		});
+		}
 
-		Object.keys(mixedMapping.mappedTypes).forEach(key => {
+		for (let key of Object.keys(mixedMapping.mappedTypes)) {
 
 			options += '<option>' + key + '</option>';
-		});
+		}
 
-		Object.keys(mixedMapping.mappedTypes).forEach(key => {
+		for (let key of Object.keys(mixedMapping.mappedTypes)) {
 
 			let mappedType = mixedMapping.mappedTypes[key];
 
-			Structr.fetchHtmlTemplate('importer/snippet.type.container', { type: mappedType.name, id: mappedType.name }, function(html) {
+			let html = Importer.templates.snippetTypeContainer({ type: mappedType.name, id: mappedType.name });
+			mappedTypes.append(html);
 
-				mappedTypes.append(html);
+			let propertyContainer     = $('#matching-properties-' + mappedType.name);
+			let relationshipContainer = $('#relationships-' + mappedType.name);
 
-				var propertyContainer     = $('#matching-properties-' + mappedType.name);
-				var relationshipContainer = $('#relationships-' + mappedType.name);
+			for (let propertyName of Object.keys(mappedType.properties)) {
 
-				Object.keys(mappedType.properties).forEach(propertyName => {
+				let html = Importer.templates.snippetMappingRow({ name: propertyName });
+				propertyContainer.append(html);
+			}
 
-					Structr.fetchHtmlTemplate('importer/snippet.mapping.row', { name: propertyName }, function(html) {
+			for (let propertyName of mappedType.relationships) {
 
-						propertyContainer.append(html);
-					});
-				});
+				let html = Importer.templates.snippetMappingRow({ name: propertyName });
+				relationshipContainer.append(html);
+			}
 
-				mappedType.relationships.forEach(propertyName => {
-
-					Structr.fetchHtmlTemplate('importer/snippet.mapping.row', { name: propertyName }, function(html) {
-
-						relationshipContainer.append(html);
-					});
-				});
-
-				$('#remove-button-' + mappedType.name).off('click').on('click', function(e) {
-					Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
-				});
-
-				var addRelationshipContainer = $('#add-relationship-' + mappedType.name);
-
-				addRelationshipContainer.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
-
-				$('#' + mappedType.name + '-related-to').off('change').on('change', function(e) {
-
-					mappedType.relationships.push($(this).val());
-					Importer.displayMixedMappingConfiguration(mixedMapping);
-				});
-
+			$('#remove-button-' + mappedType.name).off('click').on('click', function(e) {
+				Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
 			});
 
-		});
+			let addRelationshipContainer = $('#add-relationship-' + mappedType.name);
+
+			addRelationshipContainer.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
+
+			$('#' + mappedType.name + '-related-to').off('change').on('change', function(e) {
+
+				mappedType.relationships.push($(this).val());
+				Importer.displayMixedMappingConfiguration(mixedMapping);
+			});
+		}
+	},
+
+	templates: {
+		main: config => `
+			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
+			<link rel="stylesheet" type="text/css" media="screen" href="css/importer.css">
+			
+			<div id="importer-main" class="resourceBox full-height-box">
+				<table id="importer-jobs-table">
+					<thead><tr>
+						<th>Job ID</th>
+						<th>Job Type</th>
+						<th>User</th>
+						<th>File UUID</th>
+						<th>File path</th>
+						<th>File size</th>
+						<th>Processed Chunks</th>
+						<th>Status</th>
+						<th>Action</th>
+					</tr></thead>
+					<tbody></tbody>
+				</table>
+			</div>
+		`,
+		functions: config => `
+			<div class="flex flex-grow">
+			
+				<button class="refresh flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+				</button>
+			
+				<div class="button-and-input inline-flex items-center">
+
+					<label for="cancel-all-queued-after-job-id" class="mr-2">
+						Cancel ALL <b>queued</b> jobs after this ID:
+					</label>
+
+					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
+
+					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel
+					</button>
+
+				</div>
+			
+			</div>
+		`,
+		dialogConfigurations: config => `
+			<div id="${config.type}-configurations">
+				<select id="load-${config.type}-config-selector"></select>
+				<button id="update-${config.type}-config-button">Update</button>
+				<button id="load-${config.type}-config-button">Load</button>
+				<button id="delete-${config.type}-config-button">Delete</button>
+				<input id="${config.type}-config-name-input" type="text" placeholder="Enter name for configuration" />
+				<button id="save-${config.type}-config-button">Save</button>
+			</div>
+		`,
+		dialogCSV: config => `
+			<div>
+				<div id="sample">
+					<h3>Data Sample</h3>
+					<pre class="csv-preview">${config.data.result.lines}</pre>
+				</div>
+				<h3>Import Options</h3>
+				<table id="csv-import">
+					<tbody>
+						<tr id="options-row1">
+							<td valign="top">
+								<label>Delimiter:</label>
+								<select id="delimiter" class="import-option">
+									<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
+									<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
+									<option ${(config.delim === '|' ? 'selected' : '')}>|</option>
+								</select>
+							</td>
+							<td valign="top">
+								<label>Quote character:</label>
+								<select id="quote-char" class="import-option">
+									<option ${(config.qc === '' ? 'selected' : '')}></option>
+									<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
+									<option ${(config.qc === '\'' ? 'selected' : '')}>\'</option>
+								</select>
+							</td>
+							<td valign="top">
+								<label>Record separator:</label>
+								<select id="record-separator" class="import-option">
+									<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
+									<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
+									<option ${(config.data.result.separator === 'CR+LF' ? 'selected' : '')}>CR+LF</option>
+								</select>
+							</td>
+							<td valign="top">
+								<label>Commit interval:</label>
+								<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
+							</td>
+						</tr>
+						<tr id="options-row2">
+							<td valign="top">
+								<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
+								<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship<br>
+								<label></label><input type="radio" name="import-type" value="graph" ${(config.importType === 'graph' ? 'checked' : '')}> Mixed
+							</td>
+							<td valign="top">
+								<input type="checkbox" id="rfc4180-mode" /><label for="rfc4180-mode">RFC4180 mode</label><br>
+								<input type="checkbox" id="strict-quotes" /><label for="strict-quotes">Strict quotes</label><br>
+								<input type="checkbox" id="ignore-invalid" /><label for="ignore-invalid">Ignore invalid lines</label><br>
+								<input type="checkbox" id="distinct" /><label for="distinct">Skip duplicates</label>
+							</td>
+							<td colspan="2" valign="top">
+								<label for="range">Line range:</label>
+								<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<div id="import-dialog-type-container"></div>
+			</div>
+		`,
+		dialogTargetTypeSelect_graph: config => `
+			<h3>Add target types and properties</h3>
+			<select id="target-type-select" name="targetType">
+				<option value="" disabled="disabled" selected="selected">Add target type..</option>
+			</select>
+			<span><input type="checkbox" id="target-type-custom-only"><label for="target-type-custom-only">Only show custom types</label></span>
+			<h3>Available properties</h3>
+			<div id="available-properties"></div>
+			<h3 id="type-mapping-title">Type Mapping</h3>
+			<div id="types-container"></div>
+		`,
+		dialogTargetTypeSelect_node: config => `
+			<h3>Select target type</h3>
+			<select id="target-type-select" name="targetType">
+				<option value="" disabled="disabled" selected="selected">Select target type..</option>
+			</select>
+			<span><input type="checkbox" id="target-type-custom-only"><label for="target-type-custom-only">Only show custom types</label></span>
+			<div id="property-select"></div>
+		`,
+		dialogTargetTypeSelect_rel: config => `
+			<h3>Select target type</h3>
+			<select id="target-type-select" name="targetType">
+				<option value="" disabled="disabled" selected="selected">Select target type..</option>
+			</select>
+			<div id="property-select"></div>
+		`,
+		snippetMappingRow: config => `
+			<p>${config.name}</p>
+		`,
+		snippetTypeContainer: config => `
+			<div class="type-mapping" id="type-mapping-${config.id}">
+				<span class="pull-right"><i class="fa fa-remove" title="Remove this mapping" id="remove-button-${config.id}"></i></span>
+				<h3>${config.type}</h3>
+				<p class="divider">Mapped properties</p>
+				<div id="matching-properties-${config.type}"></div>
+				<p class="divider">Relationships</p>
+				<div id="relationships-${config.type}">
+				</div>
+				<div id="add-relationship-${config.type}">
+				</div>
+			</div>
+		`,
+		wizardCSV: config => `
+			<div>
+				<div id="sample">
+					<h3>Data Sample</h3>
+					<pre class="csv-preview">${config.data.result.lines}</pre>
+				</div>
+				<h3>Import Options</h3>
+				<table id="csv-import">
+					<tbody>
+						<tr id="options-row1">
+							<td>
+								<label for="delimiter">Delimiter:</label>
+								<select id="delimiter" class="import-option">
+									<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
+									<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
+									<option ${(config.delim === '|' ? 'selected' : '')}>|</option>
+								</select>
+							</td>
+							<td>
+								<label for="quote-char">Quote character:</label>
+								<select id="quote-char" class="import-option">
+									<option ${(config.qc === '' ? 'selected' : '')}></option>
+									<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
+									<option ${(config.qc === '\'' ? 'selected' : '')}>\'</option>
+								</select>
+							</td>
+							<td>
+								<label for="record-separator">Record separator:</label>
+								<select id="record-separator" class="import-option">
+									<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
+									<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
+									<option ${(config.data.result.separator === 'CR+LF' ? 'selected' : '')}>CR+LF</option>
+								</select>
+							</td>
+						</tr>
+						<tr id="options-row2">
+							<td>
+								<label for="commit-interval">Commit interval:</label>
+								<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
+							</td>
+							<td>
+								<input type="checkbox" id="strict-quotes" /><label for="strict-quotes">Strict Quotes</label><br>
+								<input type="checkbox" id="ignore-invalid" /><label for="ignore-invalid">Ignore invalid lines</label>
+							</td>
+							<td>
+								<label for="range">Line range:</label>
+								<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
+							</td>
+						</tr>
+						<tr id="options-row3">
+							<td>
+								<label for="import-type">Import type:</label><input type="radio" id="import-type" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
+								<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship
+							</td>
+							<td>
+								<label for="distinct">Skip duplicates:</label>
+								<input type="checkbox" id="distinct" /><br>
+							</td>
+							<td>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+				<h3>Select target type</h3>
+				<select id="target-type-select" name="targetType">
+					<option value="" disabled="disabled" selected="selected">Select target type..</option>
+				</select>
+				<span><input type="checkbox" id="target-type-custom-only" checked><label for="target-type-custom-only">Only show custom types</label></span>
+				<div id="property-select"></div>
+			</div>
+		`,
 	}
 };

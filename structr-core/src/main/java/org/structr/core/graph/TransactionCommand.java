@@ -436,6 +436,19 @@ public class TransactionCommand {
 		simpleBroadcast("GENERIC_MESSAGE", data, sessionIdPredicate);
 	}
 
+	public static void simpleBroadcastDeprecationWarning (final String deprecationSubType, final String title, final String text, final String uuid) {
+
+		final Map<String, Object> messageData = Map.of(
+				MaintenanceCommand.COMMAND_TYPE_KEY,    "DEPRECATION",
+				MaintenanceCommand.COMMAND_SUBTYPE_KEY, deprecationSubType,
+				MaintenanceCommand.COMMAND_TITLE_KEY,   title,
+				MaintenanceCommand.COMMAND_MESSAGE_KEY, text,
+				"nodeId", uuid
+		);
+
+		TransactionCommand.simpleBroadcastGenericMessage(messageData);
+	}
+
 	public static void simpleBroadcastException (final Exception ex, final Map<String, Object> data, final boolean printStackTrace) {
 
 		data.put("message", ex.getMessage());

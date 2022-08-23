@@ -24,18 +24,22 @@ class RefactoringHelper {
 
 	show() {
 
-		this.container.append('<p>'
-			+ 'This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes. '
-			+ 'Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields. '
-			+ '</p>');
+		this.container.append(`
+			<p>
+				This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes.
+				Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields.
+			</p>
+		`);
 		this.container.append('<div id="select-container" class="flex flex-row items-center justify-between"></div>');
 
-		var selectContainer = $('#select-container');
+		let selectContainer = $('#select-container');
 
-		selectContainer.append('<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>');
-		selectContainer.append('<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button" />');
-		selectContainer.append('<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick" />');
-		selectContainer.append('<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>');
+		selectContainer.append(`
+			<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>
+			<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button">
+			<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick">
+			<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>
+		`);
 
 		this.container.append('<div id="result-container"></div>');
 		this.container.append('<div><pre id="error-container"></pre></div>');
@@ -48,23 +52,21 @@ class RefactoringHelper {
 			}
 		}
 
-		$.ajax({
-			url: rootUrl + 'Page?hidden=false&' + Structr.getRequestParameterName('sort') + '=name',
-			method: 'get',
-			statusCode: {
-				200: response => {
-					let pageSelect = $('#page-input');
-					response.result.forEach(page => {
-						let selected = (page.id === selectedPageId  ? 'selected' : '');
-						pageSelect.append('<option ' + selected + ' value="' + page.id + '">' + page.name + '</option>');
-					});
-				}
+		fetch(Structr.rootUrl + 'Page?hidden=false&' + Structr.getRequestParameterName('sort') + '=name').then(async response => {
+
+			let data = await response.json();
+
+			let pageSelect = $('#page-input');
+
+			for (let page of data.result) {
+				let selected = (page.id === selectedPageId  ? 'selected' : '');
+				pageSelect.append('<option ' + selected + ' value="' + page.id + '">' + page.name + '</option>');
 			}
 		});
 
 		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
 
-		var loadFunction = this.debounce(this.loadResults, 300);
+		let loadFunction = this.debounce(this.loadResults, 300);
 
 		$('#property-input').on('keyup', loadFunction);
 		$('#empty-checkbox').on('click', loadFunction);
@@ -72,16 +74,16 @@ class RefactoringHelper {
 
 	loadResults() {
 
-		var pageSelector    = $('#page-input');
-		var typeSelector    = $('#selector-input');
-		var keysSelector    = $('#property-input');
-		var emptyCheckbox   = $('#empty-checkbox');
-		var resultContainer = $('#result-container');
-		var errorContainer  = $('#error-container');
+		let pageSelector    = $('#page-input');
+		let typeSelector    = $('#selector-input');
+		let keysSelector    = $('#property-input');
+		let emptyCheckbox   = $('#empty-checkbox');
+		let resultContainer = $('#result-container');
+		let errorContainer  = $('#error-container');
 
-		var typeQuery     = typeSelector.val().trim();
-		var properties    = keysSelector.val().trim();
-		var showEmptyRows = emptyCheckbox.is(':checked');
+		let typeQuery     = typeSelector.val().trim();
+		let properties    = keysSelector.val().trim();
+		let showEmptyRows = emptyCheckbox.is(':checked');
 
 		if (typeQuery && properties) {
 
@@ -90,114 +92,103 @@ class RefactoringHelper {
 			resultContainer.empty();
 			errorContainer.empty();
 
-			$.ajax({
-				url: rootUrl + typeQuery + '/all?pageId=' + pageSelector.val(),
-				method: 'get',
-				statusCode: {
-					200: (response) => {
+			fetch(Structr.rootUrl + typeQuery + '/all?pageId=' + pageSelector.val()).then(async response => {
 
-						if (response && response.result && response.result.length) {
+				let data = await response.json();
 
-							resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
-							var keyMap        = {};
-							var keyCandidates = [];
-							var table         = $('#result-table');
-							var header        = $('#header-row');
-							var list          = properties.split(',');
-							var keys          = [];
-							var i             = 0;
+				if (data && data.result && data.result.length) {
 
-							response.result.forEach(r => {
-								Object.keys(r).forEach(k => {
-									keyMap[k] = true;
+					resultContainer.append('<table class="refactoring-helper" id="result-table"><thead><tr id="header-row"></tr></thead></table>');
+					let keyMap        = {};
+					let keyCandidates = [];
+					let table         = $('#result-table');
+					let header        = $('#header-row');
+					let list          = properties.split(',');
+					let keys          = [];
+					let i             = 0;
+
+					for (let r of data.result) {
+						for (let k in r) {
+							keyMap[k] = true;
+						}
+					}
+
+					keyCandidates = Object.keys(keyMap);
+
+					for (let p of list) {
+
+						let name = p.trim();
+
+						if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
+							keys.push({ name: name, title: name });
+						}
+
+						if (keyCandidates.includes('_html_' + name)) {
+							keys.push({ name: '_html_' + name, title: 'HTML ' + name });
+						}
+
+						if (keyCandidates.includes('_custom_html_' + name)) {
+							keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
+						}
+
+						if (keyCandidates.includes('_custom_html_data-' + name)) {
+							keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
+						}
+					}
+
+					header.append('<th>Source</th>' + keys.map(k => '<th>' + k.title + '</th>'));
+
+					data.result.sort((a, b) => {
+						if (a.internalEntityContextPath < b.internalEntityContextPath) { return -1; }
+						if (a.internalEntityContextPath > b.internalEntityContextPath) { return 1; }
+						return 0;
+					});
+
+					for (let v of data.result) {
+
+						table.append('<tr id="row' + i + '"></tr>');
+
+						let hasValue = false;
+						let row      = $('#row' + i);
+						let src      = v.type;
+
+						if (v.internalEntityContextPath) {
+							src = v.internalEntityContextPath;
+						} else if (v.parent && v.parent.name) {
+							src = v.parent.name;
+						} else if (v.ownerDocument && v.ownerDocument.name) {
+							src = v.ownerDocument.name;
+						} else if (v.name) {
+							src = v.name;
+						}
+
+						row.append('<td>' + src + '</td>');
+
+						for (let k of keys) {
+							let id    = 'edit-' + v.id + '-' + k.name;
+							let value = '';
+
+							if (v[k.name] || v[k.name] === 0) {
+								value = v[k.name];
+								hasValue = true;
+							}
+
+							row.append('<td><input type="text" id="' + id + '" value="' + value + '"/></td>');
+							let input = $('#' + id);
+							input.on('blur', e => {
+								let val = $('#' + id).val();
+								Command.setProperty(v.id, k.name, val, false, () => {
+									blinkGreen(input);
 								});
-							});
-
-							keyCandidates = Object.keys(keyMap);
-
-							list.forEach(p => {
-
-								var name = p.trim();
-
-								if (keyCandidates.includes(name) && name !== 'id' && name !== 'type') {
-									keys.push({ name: name, title: name });
-								}
-
-								if (keyCandidates.includes('_html_' + name)) {
-									keys.push({ name: '_html_' + name, title: 'HTML ' + name });
-								}
-
-								if (keyCandidates.includes('_custom_html_' + name)) {
-									keys.push({ name: '_custom_html_' + name, title: 'HTML ' + name });
-								}
-
-								if (keyCandidates.includes('_custom_html_data-' + name)) {
-									keys.push({ name: '_custom_html_data-' + name, title: 'data-' + name });
-								}
-							});
-
-							header.append('<th>Source</th>');
-
-							keys.forEach(k => {
-								header.append('<th>' + k.title + '</th>');
-							});
-
-							response.result.sort((a, b) => {
-								if (a.internalEntityContextPath < b.internalEntityContextPath) { return -1; }
-								if (a.internalEntityContextPath > b.internalEntityContextPath) { return 1; }
-								return 0;
-							});
-
-							response.result.forEach(v => {
-
-								table.append('<tr id="row' + i + '"></tr>');
-
-								var hasValue = false;
-								var row      = $('#row' + i);
-								var src      = v.type;
-
-								if (v.internalEntityContextPath) {
-									src = v.internalEntityContextPath;
-								} else if (v.parent && v.parent.name) {
-									src = v.parent.name;
-								} else if (v.ownerDocument && v.ownerDocument.name) {
-									src = v.ownerDocument.name;
-								} else if (v.name) {
-									src = v.name;
-								}
-
-								row.append('<td>' + src + '</td>');
-
-								keys.forEach(k => {
-									var id    = 'edit-' + v.id + '-' + k.name;
-									var value = '';
-
-									if (v[k.name] || v[k.name] === 0) {
-										value = v[k.name];
-										hasValue = true;
-									}
-
-									row.append('<td><input type="text" id="' + id + '" value="' + value + '"/></td>');
-									var input = $('#' + id);
-									input.on('blur', e => {
-										var val = $('#' + id).val();
-										Command.setProperty(v.id, k.name, val, false, function() {
-											blinkGreen(input);
-										});
-									});
-								});
-
-								i++;
-
-								if (!hasValue && !showEmptyRows) {
-
-									row.remove();
-								}
 							});
 						}
-					},
-					422:(response) =>{
-						errorContainer.append(response.responseText);
+
+						i++;
+
+						if (!hasValue && !showEmptyRows) {
+
+							row.remove();
+						}
 					}
 				}
 			});
