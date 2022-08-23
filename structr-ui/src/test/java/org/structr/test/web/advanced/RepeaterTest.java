@@ -20,10 +20,7 @@ package org.structr.test.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
-import java.util.List;
 import org.hamcrest.Matchers;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -44,8 +41,13 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Option;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.Node;
+
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.testng.AssertJUnit.fail;
 
 /**
  *

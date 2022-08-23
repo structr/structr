@@ -20,7 +20,6 @@ package org.structr.core.script.polyglot.wrappers;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
-import org.slf4j.LoggerFactory;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 

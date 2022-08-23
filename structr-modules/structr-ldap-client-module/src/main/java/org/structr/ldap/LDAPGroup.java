@@ -18,7 +18,6 @@
  */
 package org.structr.ldap;
 
-import java.net.URI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -33,6 +32,8 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.SchemaService;
+
+import java.net.URI;
 
 /**
  */

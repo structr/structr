@@ -18,26 +18,9 @@
  */
 package org.structr.websocket;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParseException;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonPrimitive;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.gson.*;
 import graphql.language.Document;
 import graphql.parser.Parser;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.lang.reflect.Type;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -51,9 +34,18 @@ import org.structr.core.graphql.GraphQLRequest;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.rest.GraphObjectGSONAdapter;
 import org.structr.core.rest.JsonInputGSONAdapter;
-import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.lang.reflect.Type;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+
+import static org.structr.core.rest.JsonInputGSONAdapter.fromPrimitive;
 
 /**
  *

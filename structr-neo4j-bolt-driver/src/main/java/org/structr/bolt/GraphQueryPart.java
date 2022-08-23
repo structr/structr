@@ -18,10 +18,11 @@
  */
 package org.structr.bolt;
 
-import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.search.GraphQuery;
 import org.structr.api.search.Occurrence;
+
+import java.util.Set;
 
 /**
  */

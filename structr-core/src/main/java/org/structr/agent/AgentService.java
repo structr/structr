@@ -18,29 +18,18 @@
  */
 package org.structr.agent;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Queue;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.core.Services;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
+
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * The agent service main class.

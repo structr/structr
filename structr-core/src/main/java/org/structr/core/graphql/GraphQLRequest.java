@@ -18,18 +18,8 @@
  */
 package org.structr.core.graphql;
 
-import graphql.language.Document;
-import graphql.language.Field;
-import graphql.language.Node;
-import graphql.language.OperationDefinition;
-import graphql.language.Selection;
-import graphql.language.SelectionSet;
+import graphql.language.*;
 import graphql.parser.Parser;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -37,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+
+import java.util.*;
 
 /**
  * A GraphQL request that contains a list of query objects.

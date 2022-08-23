@@ -18,47 +18,15 @@
  */
 package org.structr.mail;
 
-import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.function.Functions;
-import org.structr.mail.function.MailAddAttachmentFunction;
-import org.structr.mail.function.MailAddBccFunction;
-import org.structr.mail.function.MailAddCcFunction;
-import org.structr.mail.function.MailAddHeaderFunction;
-import org.structr.mail.function.MailAddMimePartFunction;
-import org.structr.mail.function.MailAddReplyToFunction;
-import org.structr.mail.function.MailAddToFunction;
-import org.structr.mail.function.MailBeginFunction;
-import org.structr.mail.function.MailClearAttachmentsFunction;
-import org.structr.mail.function.MailClearBccFunction;
-import org.structr.mail.function.MailClearBounceAddressFunction;
-import org.structr.mail.function.MailClearCcFunction;
-import org.structr.mail.function.MailClearHeadersFunction;
-import org.structr.mail.function.MailClearInReplyTo;
-import org.structr.mail.function.MailClearMimePartsFunction;
-import org.structr.mail.function.MailClearReplyToFunction;
-import org.structr.mail.function.MailClearToFunction;
-import org.structr.mail.function.MailDecodeTextFunction;
-import org.structr.mail.function.MailEncodeTextFunction;
-import org.structr.mail.function.MailGetErrorFunction;
-import org.structr.mail.function.MailGetLastOutgoingMessageFunction;
-import org.structr.mail.function.MailHasErrorFunction;
-import org.structr.mail.function.MailRemoveHeaderFunction;
-import org.structr.mail.function.MailResetManualConfigFunction;
-import org.structr.mail.function.MailSaveOutgoingMessageFunction;
-import org.structr.mail.function.MailSelectConfigFunction;
-import org.structr.mail.function.MailSendFunction;
-import org.structr.mail.function.MailSetBounceAddressFunction;
-import org.structr.mail.function.MailSetFromFunction;
-import org.structr.mail.function.MailSetHtmlContentFunction;
-import org.structr.mail.function.MailSetInReplyTo;
-import org.structr.mail.function.MailSetManualConfigFunction;
-import org.structr.mail.function.MailSetSubjectFunction;
-import org.structr.mail.function.MailSetTextContentFunction;
+import org.structr.mail.function.*;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.util.Set;
 
 
 public class AdvancedMailModule implements StructrModule {

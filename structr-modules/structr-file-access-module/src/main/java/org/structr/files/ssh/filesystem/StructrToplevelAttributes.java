@@ -18,18 +18,8 @@
  */
 package org.structr.files.ssh.filesystem;
 
-import java.nio.file.attribute.DosFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
+import java.nio.file.attribute.*;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**

@@ -18,12 +18,13 @@
  */
 package org.structr.core.function;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class InheritingTypesFunction extends AdvancedScriptingFunction {
 

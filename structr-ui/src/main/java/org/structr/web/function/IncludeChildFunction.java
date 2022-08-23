@@ -18,8 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -31,6 +29,9 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Convenience method to render named child nodes.

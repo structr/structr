@@ -18,19 +18,6 @@
  */
 package org.structr.schema.action;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.slf4j.Logger;
@@ -54,6 +41,14 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  *

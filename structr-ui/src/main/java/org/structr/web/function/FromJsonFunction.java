@@ -22,12 +22,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class FromJsonFunction extends UiCommunityFunction {
 

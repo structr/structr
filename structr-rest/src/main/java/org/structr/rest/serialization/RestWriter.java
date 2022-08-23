@@ -18,9 +18,10 @@
  */
 package org.structr.rest.serialization;
 
-import java.io.IOException;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+
+import java.io.IOException;
 
 /**
  *

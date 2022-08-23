@@ -18,12 +18,13 @@
  */
 package org.structr.net.data.time;
 
+import org.structr.net.protocol.AbstractMessage;
+import org.structr.net.protocol.ProtocolEntity;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.UUID;
-import org.structr.net.protocol.AbstractMessage;
-import org.structr.net.protocol.ProtocolEntity;
 
 /**
  *

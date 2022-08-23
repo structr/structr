@@ -18,15 +18,16 @@
  */
 package org.structr.schema.export;
 
-import java.util.Map;
-import java.util.TreeMap;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonStringArrayProperty;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.schema.SchemaHelper.Type;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonStringArrayProperty;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  *

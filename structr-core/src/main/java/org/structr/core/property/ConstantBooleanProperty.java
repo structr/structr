@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -117,12 +116,6 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 	@Override
 	public SortType getSortType() {
 		return SortType.Default;
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return PropertyType.BOOLEAN;
 	}
 
 	// ----- OpenAPI -----

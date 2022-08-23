@@ -18,11 +18,6 @@
  */
 package org.structr.web.resource;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,12 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.PasswordChangeRequiredException;
-import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
+import org.structr.core.auth.exception.*;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
@@ -48,6 +38,12 @@ import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.FilterableResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Resource that handles user logins.

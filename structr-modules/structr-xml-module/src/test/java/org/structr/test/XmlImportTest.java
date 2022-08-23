@@ -23,12 +23,8 @@ import com.google.gson.GsonBuilder;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -40,6 +36,12 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

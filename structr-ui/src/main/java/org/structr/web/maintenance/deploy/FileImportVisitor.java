@@ -18,16 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +29,26 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
+import org.structr.web.entity.*;
 import org.structr.web.maintenance.DeployCommand;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.structr.core.graph.NodeInterface.name;
 
 /**
  *

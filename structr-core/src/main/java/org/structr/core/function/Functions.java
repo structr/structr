@@ -18,15 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.text.Normalizer;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -35,32 +26,15 @@ import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
-import org.structr.core.parser.AllExpression;
-import org.structr.core.parser.AnyExpression;
-import org.structr.core.parser.ArrayExpression;
-import org.structr.core.parser.BatchExpression;
-import org.structr.core.parser.CacheExpression;
-import org.structr.core.parser.ConstantExpression;
-import org.structr.core.parser.EachExpression;
-import org.structr.core.parser.Expression;
-import org.structr.core.parser.FilterExpression;
-import org.structr.core.parser.FunctionExpression;
-import org.structr.core.parser.FunctionValueExpression;
-import org.structr.core.parser.GroupExpression;
-import org.structr.core.parser.IfExpression;
-import org.structr.core.parser.IsExpression;
-import org.structr.core.parser.MapExpression;
-import org.structr.core.parser.NoneExpression;
-import org.structr.core.parser.NullExpression;
-import org.structr.core.parser.ReduceExpression;
-import org.structr.core.parser.RootExpression;
-import org.structr.core.parser.SliceExpression;
-import org.structr.core.parser.ValueExpression;
+import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.core.script.StructrScriptException;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+
+import java.text.Normalizer;
+import java.util.*;
 
 /**
  *

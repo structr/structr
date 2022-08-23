@@ -18,9 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.LinkedList;
-import java.util.List;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
@@ -35,6 +32,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.rest.exception.IllegalPathException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

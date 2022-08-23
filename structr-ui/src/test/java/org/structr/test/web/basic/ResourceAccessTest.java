@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -34,6 +33,8 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 

@@ -18,10 +18,11 @@
  */
 package org.structr.core.function.search;
 
-import java.util.List;
-import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.CoreFunction;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class FindOrFunction extends CoreFunction {
 

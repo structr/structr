@@ -18,10 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.service.LicenseManager;
@@ -39,6 +35,11 @@ import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *

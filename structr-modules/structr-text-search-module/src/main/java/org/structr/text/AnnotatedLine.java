@@ -18,8 +18,9 @@
  */
 package org.structr.text;
 
-import java.util.regex.Pattern;
 import org.tuckey.web.filters.urlrewrite.utils.StringUtils;
+
+import java.util.regex.Pattern;
 
 /**
  */

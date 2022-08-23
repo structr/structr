@@ -18,11 +18,12 @@
  */
 package org.structr.web.function;
 
-import javax.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import javax.servlet.http.HttpSession;
 
 public class SetSessionAttributeFunction extends UiAdvancedFunction {
 

@@ -18,10 +18,11 @@
  */
 package org.structr.agent;
 
+import org.structr.core.entity.Principal;
+
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.Delayed;
-import org.structr.core.entity.Principal;
 
 /**
  * A task that an {@link Agent} can operate on.

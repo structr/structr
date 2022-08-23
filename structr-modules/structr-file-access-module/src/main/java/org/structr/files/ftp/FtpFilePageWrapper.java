@@ -18,20 +18,12 @@
  */
 package org.structr.files.ftp;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Date;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
-import static org.structr.core.GraphObject.lastModifiedDate;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -42,6 +34,12 @@ import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
+
+import java.io.*;
+import java.util.Date;
+import java.util.List;
+
+import static org.structr.core.GraphObject.lastModifiedDate;
 
 /**
  *

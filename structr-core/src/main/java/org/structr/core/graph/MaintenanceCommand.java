@@ -18,12 +18,12 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Common base interface for commands that can be registered as a maintenance

@@ -18,11 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +33,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Abstract base class for all property types.
@@ -61,7 +61,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	protected boolean unique                               = false;
 	protected boolean notNull                              = false;
 	protected boolean dynamic                              = false;
-	protected boolean isCMISProperty                       = false;
 	protected boolean isPartOfBuiltInSchema                = false;
 	protected boolean cachingEnabled                       = false;
 	protected String dbName                                = null;
@@ -198,14 +197,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		passivelyIndexed();
 		this.indexedWhenEmpty = true;
-
-		return this;
-	}
-
-	@Override
-	public Property<T> cmis() {
-
-		this.isCMISProperty = true;
 
 		return this;
 	}
@@ -597,17 +588,6 @@ public abstract class Property<T> implements PropertyKey<T> {
 	@Override
 	public Comparator<GraphObject> sorted(final boolean descending) {
 		return new DefaultSortOrder(this, descending);
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return null;
-	}
-
-	@Override
-	public boolean isCMISProperty() {
-		return isCMISProperty;
 	}
 
     // ----- interface Comparable -----

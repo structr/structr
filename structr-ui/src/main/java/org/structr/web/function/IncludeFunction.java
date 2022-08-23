@@ -18,10 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.List;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
@@ -34,10 +30,16 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+import org.structr.util.FileUtils;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.util.List;
 
 /**
  * Convenience method to render named nodes. If more than one node is found, an error message is returned that informs the user that this is not allowed and can result in unexpected
@@ -201,7 +203,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 					try (final InputStream is = file.getInputStream()) {
 
-						final byte[] buffer = new byte[file.getSize().intValue()];
+						final byte[] buffer = new byte[FileUtils.getSize(file.getFileOnDisk()).intValue()];
 						IOUtils.read(is, buffer);
 						return StringUtils.toEncodedString(buffer, Charset.forName(charset));
 

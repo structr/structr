@@ -18,12 +18,13 @@
  */
 package org.structr.api.service;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.InputField;
 import org.structr.api.util.html.SelectField;
 import org.structr.api.util.html.Tag;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class DatabaseConnection extends LinkedHashMap<String, Object> {
 

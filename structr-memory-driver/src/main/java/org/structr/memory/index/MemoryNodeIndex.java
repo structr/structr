@@ -18,13 +18,14 @@
  */
 package org.structr.memory.index;
 
-import java.util.Set;
 import org.structr.api.graph.Node;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.memory.index.filter.MemoryLabelFilter;
+
+import java.util.Set;
 
 /**
  *

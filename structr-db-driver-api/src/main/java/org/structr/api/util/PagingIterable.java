@@ -18,9 +18,10 @@
  */
 package org.structr.api.util;
 
-import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Iterator;
 
 /**
  * An iterable that supports pagination and result counting.

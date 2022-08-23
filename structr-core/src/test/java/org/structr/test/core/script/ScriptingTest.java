@@ -19,11 +19,6 @@
 package org.structr.test.core.script;
 
 import com.google.gson.GsonBuilder;
-import java.net.URISyntaxException;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,14 +36,7 @@ import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
@@ -67,15 +55,18 @@ import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import org.structr.test.core.entity.TestFour;
-import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.*;
 import org.structr.test.core.entity.TestOne.Status;
-import org.structr.test.core.entity.TestSix;
-import org.structr.test.core.entity.TestThree;
-import org.structr.test.core.entity.TestTwo;
 import org.testng.Assert;
-import static org.testng.AssertJUnit.*;
 import org.testng.annotations.Test;
+
+import java.net.URISyntaxException;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
+import static org.testng.AssertJUnit.*;
 
 
 /**

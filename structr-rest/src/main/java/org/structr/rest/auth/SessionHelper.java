@@ -18,10 +18,6 @@
  */
 package org.structr.rest.auth;
 
-import java.time.Instant;
-import java.util.Date;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
@@ -36,6 +32,11 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.service.HttpService;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+import java.time.Instant;
+import java.util.Date;
 
 /**
  * Utility class for session handling

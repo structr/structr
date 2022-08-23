@@ -29,7 +29,7 @@ import org.structr.core.function.AdvancedScriptingFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
-import java.io.*;
+import java.io.IOException;
 
 public class PDFEncryptFunction extends AdvancedScriptingFunction {
 

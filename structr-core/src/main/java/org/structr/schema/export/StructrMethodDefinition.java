@@ -19,19 +19,6 @@
 package org.structr.schema.export;
 
 import com.google.gson.GsonBuilder;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +34,6 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
@@ -55,6 +41,11 @@ import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *

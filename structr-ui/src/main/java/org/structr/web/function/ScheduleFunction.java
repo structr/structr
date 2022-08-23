@@ -18,12 +18,13 @@
  */
 package org.structr.web.function;
 
-import java.util.Collections;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.importer.ScriptJob;
+
+import java.util.Collections;
 
 public class ScheduleFunction extends UiAdvancedFunction {
 

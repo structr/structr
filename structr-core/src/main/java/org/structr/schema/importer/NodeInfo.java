@@ -18,14 +18,11 @@
  */
 package org.structr.schema.importer;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
 
 /**
  *

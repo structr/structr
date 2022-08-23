@@ -18,14 +18,6 @@
  */
 package org.structr.core;
 
-import java.util.Date;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -33,7 +25,6 @@ import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.search.SortOrder;
-import org.structr.cmis.CMISInfo;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -42,24 +33,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.graph.CreationContainer;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.*;
 import org.structr.core.graph.search.DefaultSortOrder;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.FunctionProperty;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.core.property.TypeProperty;
-import org.structr.core.property.UuidProperty;
+import org.structr.core.property.*;
 import org.structr.schema.CodeSource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 
 /**
@@ -530,17 +512,6 @@ public interface GraphObject extends CodeSource {
 
 	public NodeInterface getSyncNode();
 	public RelationshipInterface getSyncRelationship();
-
-	// ----- CMIS support -----
-	/**
-	 * Returns information for CMIS support, may be null to signal that
-	 * this entity does not represent a supported CMIS type. Implementations
-	 * of this method can assume that all CMISInfo methods will be called
-	 * in a Neo4j transaction.
-	 *
-	 * @return a CMIS info object or null
-	 */
-	public CMISInfo getCMISInfo();
 
 	// ----- static methods -----
 	public static SortOrder sorted(final PropertyKey key, final boolean sortDescending) {

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;

@@ -18,29 +18,15 @@
  */
 package org.structr.common;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
-import org.structr.cmis.CMISInfo;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.ManyEndpoint;
-import org.structr.core.entity.ManyStartpoint;
-import org.structr.core.entity.OneEndpoint;
-import org.structr.core.entity.OneStartpoint;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Security;
-import org.structr.core.entity.Source;
-import org.structr.core.entity.Target;
+import org.structr.core.entity.*;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -48,6 +34,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A container that is used internally to combine a related node (determined
@@ -356,11 +347,6 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
-		throw new UnsupportedOperationException("Not supported by this container.");
-	}
-
-	@Override
-	public CMISInfo getCMISInfo() {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

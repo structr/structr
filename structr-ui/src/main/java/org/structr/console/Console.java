@@ -18,10 +18,7 @@
  */
 package org.structr.console;
 
-import java.io.IOException;
-import java.util.*;
 import org.apache.commons.lang3.StringUtils;
-import org.codehaus.plexus.util.cli.CommandLineUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -40,7 +37,11 @@ import org.structr.core.script.Scripting;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.util.CommandLineUtils;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.*;
 
 
 public class Console {

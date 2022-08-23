@@ -18,13 +18,14 @@
  */
 package org.structr.web.entity;
 
-import java.net.URI;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+
+import java.net.URI;
 
 /**
  * Base class for all content items.

@@ -18,7 +18,6 @@
  */
 package org.structr.test.console;
 
-import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -31,10 +30,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+
+import static org.testng.AssertJUnit.*;
 
 public class ConsoleTest extends StructrUiTest {
 

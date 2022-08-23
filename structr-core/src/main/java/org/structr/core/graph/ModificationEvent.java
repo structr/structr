@@ -18,12 +18,13 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Map;
 
 /**
  *

@@ -18,13 +18,14 @@
  */
 package org.structr.web.diff;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+
+import java.util.Map;
 
 /**
  *

@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
@@ -28,6 +26,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnumInfoFunction extends AdvancedScriptingFunction {
 

@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.io.StringWriter;
-import java.util.Arrays;
-import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
@@ -30,6 +27,10 @@ import org.structr.core.StaticValue;
 import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
+
+import java.io.StringWriter;
+import java.util.Arrays;
+import java.util.Map;
 
 public class ToJsonFunction extends UiCommunityFunction {
 

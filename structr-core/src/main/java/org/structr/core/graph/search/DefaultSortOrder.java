@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.search.SortType;
@@ -27,6 +25,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
+
+import java.util.LinkedList;
+import java.util.List;
 
 public class DefaultSortOrder implements SortOrder {
 

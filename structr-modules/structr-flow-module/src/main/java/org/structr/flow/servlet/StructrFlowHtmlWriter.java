@@ -22,13 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.html.Tag;
 import org.structr.api.util.html.attr.Href;
-import org.structr.api.util.html.attr.Onload;
 import org.structr.api.util.html.attr.Rel;
 import org.structr.api.util.html.attr.Src;
 import org.structr.api.util.html.attr.Type;
 import org.structr.common.SecurityContext;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.rest.serialization.RestWriter;
 import org.structr.rest.serialization.StructrJsonHtmlWriter;
 

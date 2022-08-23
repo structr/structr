@@ -18,17 +18,17 @@
  */
 package org.structr.memory.index.factory;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
-
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.NullPredicate;
-import org.structr.memory.index.predicate.ValuePredicate;
 import org.structr.memory.index.predicate.StringContainsPredicate;
+import org.structr.memory.index.predicate.ValuePredicate;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class KeywordQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 

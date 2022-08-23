@@ -18,8 +18,6 @@
  */
 package org.structr.feed.entity;
 
-import java.io.InputStream;
-import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonObjectType;
@@ -29,6 +27,9 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
+
+import java.io.InputStream;
+import java.net.URI;
 
 /**
  *

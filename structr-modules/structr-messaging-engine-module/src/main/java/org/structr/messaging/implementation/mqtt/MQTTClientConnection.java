@@ -18,16 +18,13 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.service.Service;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 
-import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 

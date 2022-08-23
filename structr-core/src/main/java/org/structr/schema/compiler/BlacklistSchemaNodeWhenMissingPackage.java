@@ -18,14 +18,15 @@
  */
 package org.structr.schema.compiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.schema.SchemaService;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  *

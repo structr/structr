@@ -20,13 +20,7 @@ package org.structr.test.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasEntry;
-import static org.hamcrest.Matchers.hasSize;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
@@ -51,12 +45,18 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.basic.FrontendTest;
 import org.structr.test.web.basic.ResourceAccessTest;
-import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
+import static org.structr.test.web.basic.ResourceAccessTest.createResourceAccess;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 public class AdvancedSchemaTest extends FrontendTest {
 

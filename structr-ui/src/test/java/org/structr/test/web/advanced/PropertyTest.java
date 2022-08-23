@@ -20,19 +20,21 @@ package org.structr.test.web.advanced;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Arrays;
-import java.util.Map;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
+
+import java.util.Arrays;
+import java.util.Map;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

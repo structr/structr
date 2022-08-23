@@ -21,12 +21,7 @@ package org.structr.javaparser.entity;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.javaparser.entity.relation.ClassMethods;
 import org.structr.javaparser.entity.relation.MethodsCallMethods;
 

@@ -18,10 +18,11 @@
  */
 package org.structr.rest;
 
+import org.structr.rest.resource.*;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.rest.resource.*;
 
 /**
  * A default resource provider implementation for structr.

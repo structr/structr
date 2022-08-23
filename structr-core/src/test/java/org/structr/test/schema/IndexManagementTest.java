@@ -20,29 +20,25 @@ package org.structr.test.schema;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
 import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonProperty;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
+import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.common.StructrTest;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

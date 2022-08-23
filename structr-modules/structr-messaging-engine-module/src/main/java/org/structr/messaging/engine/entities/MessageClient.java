@@ -18,9 +18,6 @@
  */
 package org.structr.messaging.engine.entities;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -36,6 +33,10 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 public interface MessageClient extends NodeInterface {
 

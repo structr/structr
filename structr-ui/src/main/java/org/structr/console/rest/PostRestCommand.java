@@ -19,10 +19,11 @@
 package org.structr.console.rest;
 
 import com.jayway.restassured.response.Response;
-import java.io.IOException;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.util.Writable;
+
+import java.io.IOException;
 
 /**
  *

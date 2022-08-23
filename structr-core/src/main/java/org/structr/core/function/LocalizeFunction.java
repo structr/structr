@@ -18,10 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.common.AccessMode;
@@ -34,6 +30,11 @@ import org.structr.core.entity.Localization;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class LocalizeFunction extends AdvancedScriptingFunction {
 

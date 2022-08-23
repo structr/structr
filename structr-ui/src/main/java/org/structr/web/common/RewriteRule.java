@@ -18,11 +18,12 @@
  */
 package org.structr.web.common;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.rest.service.HttpService;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Custom rewrite rule to transport the "force https" config setting

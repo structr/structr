@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot;
 
-import java.util.Map;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
@@ -28,6 +27,8 @@ import org.structr.core.function.Functions;
 import org.structr.core.script.polyglot.wrappers.FunctionWrapper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.Map;
 
 public class PredicateBinding implements ProxyObject {
 

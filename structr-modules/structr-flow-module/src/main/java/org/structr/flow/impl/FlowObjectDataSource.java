@@ -18,8 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -30,6 +28,9 @@ import org.structr.flow.api.KeyValue;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowKeyValueObjectInput;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

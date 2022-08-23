@@ -18,9 +18,10 @@
  */
 package org.structr.core.converter;
 
-import java.util.Date;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Date;
 
 /**
  * Converts a Long value to a Date and back.

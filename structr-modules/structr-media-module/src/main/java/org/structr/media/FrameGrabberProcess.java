@@ -18,9 +18,6 @@
  */
 package org.structr.media;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +30,10 @@ import org.structr.core.graph.Tx;
 import org.structr.util.AbstractProcess;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.Image;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 /**
  * A video converter process that calls a predefined script with a given

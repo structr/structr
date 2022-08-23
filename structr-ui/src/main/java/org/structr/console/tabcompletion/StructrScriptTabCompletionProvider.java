@@ -18,13 +18,10 @@
  */
 package org.structr.console.tabcompletion;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 import org.structr.common.SecurityContext;
 import org.structr.core.function.Functions;
+
+import java.util.*;
 
 /**
  *

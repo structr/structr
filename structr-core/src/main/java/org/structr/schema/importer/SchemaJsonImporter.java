@@ -18,13 +18,7 @@
  */
 package org.structr.schema.importer;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.util.Map;
-import org.apache.chemistry.opencmis.commons.impl.IOUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +31,15 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
+import org.structr.util.FileUtils;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * This class can handle Schema JSON documents
@@ -74,14 +77,15 @@ public class SchemaJsonImporter extends NodeServiceCommand implements Maintenanc
 
 				try (final InputStream is = new FileInputStream(fileName)) {
 
-					SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(is));
+
+					SchemaJsonImporter.importSchemaJson(FileUtils.readAllLines(is));
 				}
 
 			} else if (url != null) {
 
 				try (final InputStream is = new URL(url).openStream()) {
 
-					SchemaJsonImporter.importSchemaJson(IOUtils.readAllLines(is));
+					SchemaJsonImporter.importSchemaJson(FileUtils.readAllLines(is));
 				}
 
 			} else if (source != null) {

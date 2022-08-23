@@ -18,29 +18,19 @@
  */
 package org.structr.payment.impl.stripe;
 
-import org.structr.payment.impl.test.TestPaymentProvider;
 import com.stripe.Stripe;
-import com.stripe.exception.APIConnectionException;
-import com.stripe.exception.APIException;
-import com.stripe.exception.AuthenticationException;
-import com.stripe.exception.CardException;
-import com.stripe.exception.InvalidRequestException;
+import com.stripe.exception.*;
 import com.stripe.model.Charge;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
-import org.structr.payment.api.APIError;
-import org.structr.payment.api.BeginCheckoutResponse;
-import org.structr.payment.api.CheckoutState;
-import org.structr.payment.api.ConfirmCheckoutResponse;
-import org.structr.payment.api.Payment;
-import org.structr.payment.api.PaymentProvider;
-import org.structr.payment.api.PaymentState;
+import org.structr.payment.api.*;
+
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *

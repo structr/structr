@@ -18,20 +18,8 @@
  */
 package org.structr.files.ssh;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.Environment;
-import org.apache.sshd.server.ExitCallback;
-import org.apache.sshd.server.Signal;
-import org.apache.sshd.server.SignalListener;
+import org.apache.sshd.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -48,6 +36,11 @@ import org.structr.core.graph.Tx;
 import org.structr.util.Writable;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.User;
+
+import java.io.*;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

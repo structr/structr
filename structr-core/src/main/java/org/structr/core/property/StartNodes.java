@@ -18,11 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -47,6 +42,8 @@ import org.structr.core.notion.ObjectNotion;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+
+import java.util.*;
 
 /**
  * A property that defines a relationship with the given parameters between a node and a collection of other nodes.

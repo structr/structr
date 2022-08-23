@@ -18,8 +18,9 @@
  */
 package org.structr.api.service;
 
-import java.util.Map;
 import org.structr.api.DatabaseService;
+
+import java.util.Map;
 
 /**
  *

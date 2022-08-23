@@ -22,10 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.property.PropertyKey;
 import org.structr.core.datasources.GraphDataSource;
+import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
 

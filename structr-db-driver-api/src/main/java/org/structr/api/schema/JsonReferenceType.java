@@ -18,11 +18,12 @@
  */
 package org.structr.api.schema;
 
-import java.net.URI;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonSchema.Cascade;
+
+import java.net.URI;
 
 /**
  *

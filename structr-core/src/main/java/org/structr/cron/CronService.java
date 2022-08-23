@@ -18,20 +18,13 @@
  */
 package org.structr.cron;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -40,7 +33,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
-import org.structr.api.service.StopServiceForMaintenanceMode;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.concurrent.TimeUnit;
 
 /**
  * A service that keeps track of registered tasks and runs

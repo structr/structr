@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -28,6 +27,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
 
 public class GetOrNullFunction extends CoreFunction {
 

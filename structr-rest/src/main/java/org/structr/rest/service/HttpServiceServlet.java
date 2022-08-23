@@ -18,9 +18,10 @@
  */
 package org.structr.rest.service;
 
-import javax.servlet.Servlet;
 import org.structr.api.service.Feature;
 import org.structr.rest.common.StatsCallback;
+
+import javax.servlet.Servlet;
 
 /**
  *

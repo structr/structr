@@ -18,21 +18,6 @@
  */
 package org.structr.files.ssh.filesystem.path.graph;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.attribute.DosFileAttributes;
-import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -41,6 +26,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.attribute.*;
+import java.util.*;
 
 /**
  *

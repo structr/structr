@@ -18,7 +18,6 @@
  */
 package org.structr.web.schema.parser;
 
-import java.util.Map;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
@@ -29,6 +28,8 @@ import org.structr.schema.parser.PropertyDefinition;
 import org.structr.schema.parser.PropertySourceGenerator;
 import org.structr.web.entity.Image;
 import org.structr.web.property.ThumbnailProperty;
+
+import java.util.Map;
 
 /**
  *

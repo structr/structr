@@ -18,9 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Arrays;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -33,6 +30,10 @@ import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  *

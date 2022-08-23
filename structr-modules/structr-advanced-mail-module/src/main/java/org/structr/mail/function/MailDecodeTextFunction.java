@@ -18,11 +18,12 @@
  */
 package org.structr.mail.function;
 
-import java.io.UnsupportedEncodingException;
-import javax.mail.internet.MimeUtility;
 import org.structr.common.error.FrameworkException;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.schema.action.ActionContext;
+
+import javax.mail.internet.MimeUtility;
+import java.io.UnsupportedEncodingException;
 
 public class MailDecodeTextFunction extends AdvancedMailModuleFunction {
 

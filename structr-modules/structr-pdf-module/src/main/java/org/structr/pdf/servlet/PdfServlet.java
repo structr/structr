@@ -20,6 +20,7 @@ package org.structr.pdf.servlet;
 
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.EofException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.rest.common.StatsCallback;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.StringRenderBuffer;
@@ -47,8 +49,6 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.structr.rest.common.StatsCallback;
 
 public class PdfServlet extends HtmlServlet {
 

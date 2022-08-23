@@ -18,7 +18,6 @@
  */
 package org.structr.schema.parser;
 
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +26,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.EnumProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.Map;
 
 /**
  *

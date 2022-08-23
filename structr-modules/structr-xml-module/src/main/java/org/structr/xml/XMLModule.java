@@ -18,14 +18,15 @@
  */
 package org.structr.xml;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  *

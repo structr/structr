@@ -18,7 +18,6 @@
  */
 package org.structr.odf.entity;
 
-import java.net.URI;
 import org.odftoolkit.odfdom.doc.OdfDocument;
 import org.odftoolkit.odfdom.pkg.OdfPackage;
 import org.slf4j.Logger;
@@ -43,6 +42,8 @@ import org.structr.web.entity.Image;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.net.URI;
 
 /**
  * Base class for ODF exporter

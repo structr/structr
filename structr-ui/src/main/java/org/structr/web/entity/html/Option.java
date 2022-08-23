@@ -18,18 +18,13 @@
  */
 package org.structr.web.entity.html;
 
-import java.net.URI;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PropertyView;
-import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -37,11 +32,15 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.function.EqualFunction;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.script.Scripting;
+import org.structr.schema.SchemaService;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.net.URI;
+import java.util.List;
 
 public interface Option extends DOMElement {
 

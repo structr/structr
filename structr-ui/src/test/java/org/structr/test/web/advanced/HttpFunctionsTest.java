@@ -20,8 +20,6 @@ package org.structr.test.web.advanced;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -33,9 +31,13 @@ import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.Map;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 /**
  *

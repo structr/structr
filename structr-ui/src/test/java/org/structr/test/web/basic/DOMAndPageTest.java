@@ -18,22 +18,12 @@
  */
 package org.structr.test.web.basic;
 
-import org.structr.test.web.StructrUiTest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -47,27 +37,35 @@ import org.structr.core.graph.StructrTransaction;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.Page;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.Text;
-import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Content;
+import org.structr.web.entity.dom.DOMElement;
+import org.structr.web.entity.dom.DOMNode;
+import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Html;
 import org.structr.websocket.command.CreateComponentCommand;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.Text;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.*;
 
 
 public class DOMAndPageTest extends StructrUiTest {

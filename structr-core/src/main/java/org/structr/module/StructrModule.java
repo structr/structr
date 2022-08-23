@@ -19,13 +19,14 @@
 package org.structr.module;
 
 import com.google.gson.Gson;
-import java.nio.file.Path;
-import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.nio.file.Path;
+import java.util.Set;
 
 /**
  */

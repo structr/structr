@@ -19,7 +19,6 @@
 package org.structr.websocket.command;
 
 import com.drew.lang.Iterables;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +34,8 @@ import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.List;
 
 /**
  * Websocket command to a list of nodes by type.

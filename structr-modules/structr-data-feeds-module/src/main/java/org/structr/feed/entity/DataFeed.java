@@ -26,12 +26,6 @@ import com.rometools.rome.feed.synd.SyndFeed;
 import com.rometools.rome.io.FeedException;
 import com.rometools.rome.io.SyndFeedInput;
 import com.rometools.rome.io.XmlReader;
-import java.io.IOException;
-import java.io.Reader;
-import java.net.URI;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,6 +45,13 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.net.URI;
+import java.util.Date;
+import java.util.LinkedList;
+import java.util.List;
 
 
 

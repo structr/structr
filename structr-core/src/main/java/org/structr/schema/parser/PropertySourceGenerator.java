@@ -18,10 +18,6 @@
  */
 package org.structr.schema.parser;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
@@ -35,12 +31,15 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.StringProperty;
-import org.structr.schema.CodeSource;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

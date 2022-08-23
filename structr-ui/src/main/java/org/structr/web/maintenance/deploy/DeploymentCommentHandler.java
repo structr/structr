@@ -18,11 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -39,6 +34,8 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.CommentHandler;
 import org.structr.web.maintenance.DeployCommand;
+
+import java.util.*;
 
 /**
  *

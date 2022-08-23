@@ -18,14 +18,15 @@
  */
 package org.structr.common;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Delegate class that implements the permission handling functions for

@@ -18,16 +18,13 @@
  */
 package org.structr.memgraph;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.config.Settings;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
 
 /**
  *

@@ -31,8 +31,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
-import org.structr.flow.impl.rels.FlowNodeDataSource;
 import org.structr.flow.impl.rels.FlowNameDataSource;
+import org.structr.flow.impl.rels.FlowNodeDataSource;
 
 import java.util.HashMap;
 import java.util.Map;

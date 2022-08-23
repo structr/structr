@@ -18,23 +18,15 @@
  */
 package org.structr.rest.common;
 
-import java.io.Reader;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.xml.stream.XMLEventReader;
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
-import javax.xml.stream.events.Attribute;
-import javax.xml.stream.events.Characters;
-import javax.xml.stream.events.EndElement;
-import javax.xml.stream.events.StartElement;
-import javax.xml.stream.events.XMLEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import javax.xml.stream.events.*;
+import java.io.Reader;
+import java.util.*;
 
 /**
  *

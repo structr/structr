@@ -18,14 +18,6 @@
  */
 package org.structr.web.datasource;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import org.apache.commons.collections.iterators.IteratorEnumeration;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,7 +29,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.exception.IllegalPathException;
@@ -45,13 +40,15 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
+import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * List data source equivalent to a rest resource.

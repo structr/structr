@@ -18,11 +18,12 @@
  */
 package org.structr.api.util;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Utility class that parses a string-based range specification for

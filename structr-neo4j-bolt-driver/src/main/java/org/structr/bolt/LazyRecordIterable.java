@@ -18,8 +18,9 @@
  */
 package org.structr.bolt;
 
-import java.util.Iterator;
 import org.neo4j.driver.Record;
+
+import java.util.Iterator;
 
 public class LazyRecordIterable implements Iterable<Record> {
 

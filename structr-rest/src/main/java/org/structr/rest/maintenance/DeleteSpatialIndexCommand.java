@@ -18,9 +18,6 @@
  */
 package org.structr.rest.maintenance;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -33,6 +30,10 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 
 /**

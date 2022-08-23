@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
 import org.structr.api.graph.Direction;
 import org.structr.common.PropertyView;
 import org.structr.core.GraphObject;
@@ -32,6 +31,9 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to return the children of the given node.

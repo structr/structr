@@ -18,12 +18,6 @@
  */
 package org.structr.net.protocol;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.net.data.time.PseudoTime;
@@ -31,6 +25,13 @@ import org.structr.net.peer.Peer;
 import org.structr.net.peer.PeerInfo;
 import org.structr.net.repository.Repository;
 import org.structr.net.repository.RepositoryObject;
+
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *

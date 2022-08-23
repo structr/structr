@@ -18,8 +18,9 @@
  */
 package org.structr.common;
 
-import javax.activation.DataSource;
 import org.apache.commons.mail.EmailAttachment;
+
+import javax.activation.DataSource;
 
 public class DynamicMailAttachment extends EmailAttachment {
 

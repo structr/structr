@@ -18,9 +18,10 @@
  */
 package org.structr.memory.index.predicate;
 
-import java.util.Date;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+
+import java.util.Date;
 
 /**
  */

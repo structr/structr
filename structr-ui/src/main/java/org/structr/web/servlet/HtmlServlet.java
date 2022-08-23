@@ -18,36 +18,6 @@
  */
 package org.structr.web.servlet;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import java.util.TimeZone;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.servlet.AsyncContext;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -87,18 +57,35 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
+import org.structr.util.FileUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Linkable;
-import org.structr.web.entity.Site;
-import org.structr.web.entity.User;
+import org.structr.web.entity.*;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+
+import javax.servlet.AsyncContext;
+import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Main servlet for content rendering.
@@ -1619,7 +1606,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (StringUtils.isNotEmpty(range)) {
 
-						final long len = file.getSize();
+						final long len = FileUtils.getSize(file.getFileOnDisk());
 						long start     = 0;
 						long end       = len - 1;
 
@@ -1652,7 +1639,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					} else {
 
 						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(file.getSize()));
+							response.addHeader("Content-Length", Long.toString(FileUtils.getSize(file.getFileOnDisk())));
 						}
 
 						if (sendContent) {

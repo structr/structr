@@ -18,8 +18,9 @@
  */
 package org.structr.api.graph;
 
-import java.util.Map;
 import org.structr.api.NotInTransactionException;
+
+import java.util.Map;
 
 /**
  *

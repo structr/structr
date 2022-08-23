@@ -18,12 +18,13 @@
  */
 package org.structr.bolt;
 
-import java.util.function.Function;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.value.Uncoercible;
 import org.neo4j.driver.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Function;
 
 /**
  *

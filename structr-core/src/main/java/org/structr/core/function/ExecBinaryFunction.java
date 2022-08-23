@@ -18,6 +18,16 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Setting;
+import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.ArgumentCountException;
+import org.structr.common.error.ArgumentNullException;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Function;
+import org.structr.util.AbstractBinaryProcess;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -28,15 +38,6 @@ import java.nio.file.Paths;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import org.structr.api.config.Setting;
-import org.structr.api.config.Settings;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.ArgumentCountException;
-import org.structr.common.error.ArgumentNullException;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Function;
-import org.structr.util.AbstractBinaryProcess;
 
 public class ExecBinaryFunction extends AdvancedScriptingFunction {
 

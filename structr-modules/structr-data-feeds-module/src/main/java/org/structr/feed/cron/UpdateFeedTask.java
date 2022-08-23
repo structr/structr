@@ -18,14 +18,15 @@
  */
 package org.structr.feed.cron;
 
-import java.util.Collections;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AbstractTask;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.feed.entity.DataFeed;
+
+import java.util.Collections;
+import java.util.List;
 
 public class UpdateFeedTask<T extends DataFeed> extends AbstractTask<T> {
 

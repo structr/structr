@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Change the property key from the old to the new value on all nodes matching the type.

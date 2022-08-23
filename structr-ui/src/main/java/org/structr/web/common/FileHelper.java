@@ -18,15 +18,6 @@
  */
 package org.structr.web.common;
 
-import java.awt.image.BufferedImage;
-import java.io.*;
-import java.nio.ByteOrder;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-import javax.activation.MimetypesFileTypeMap;
-import javax.imageio.ImageIO;
 import net.openhft.hashing.Access;
 import net.openhft.hashing.LongHashFunction;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -61,7 +52,16 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.websocket.message.MessageBuilder;
+
+import javax.activation.MimetypesFileTypeMap;
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.*;
+import java.nio.ByteOrder;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * File utility class.

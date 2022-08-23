@@ -18,24 +18,21 @@
  */
 package org.structr.memory.index;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.search.QueryContext;
 import org.structr.api.index.DatabaseQuery;
+import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
 import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.predicate.Conjunction;
 import org.structr.memory.index.predicate.GroupPredicate;
 import org.structr.memory.index.predicate.NotPredicate;
+
+import java.util.*;
 
 /**
  */

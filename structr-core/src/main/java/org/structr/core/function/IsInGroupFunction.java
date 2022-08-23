@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -29,6 +27,9 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class IsInGroupFunction extends AdvancedScriptingFunction {
 

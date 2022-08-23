@@ -20,15 +20,14 @@ package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
-import org.testng.annotations.Test;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestOne;
+import org.testng.annotations.Test;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  *

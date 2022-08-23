@@ -18,12 +18,13 @@
  */
 package org.structr.core.property;
 
-import java.util.Map;
-import java.util.TreeMap;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * A read-only property that returns the concatenated values of two other properties.

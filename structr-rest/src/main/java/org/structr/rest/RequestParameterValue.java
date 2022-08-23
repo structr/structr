@@ -18,9 +18,10 @@
  */
 package org.structr.rest;
 
-import javax.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  *

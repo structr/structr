@@ -18,38 +18,15 @@
  */
 package org.structr.bolt;
 
-import org.structr.bolt.factory.GroupQueryFactory;
-import org.structr.bolt.factory.NotEmptyQueryFactory;
-import org.structr.bolt.factory.TypeQueryFactory;
-import org.structr.bolt.factory.RangeQueryFactory;
-import org.structr.bolt.factory.EmptyQueryFactory;
-import org.structr.bolt.factory.ComparisonQueryFactory;
-import org.structr.bolt.factory.RelationshipQueryFactory;
-import org.structr.bolt.factory.SpatialQueryFactory;
-import org.structr.bolt.factory.ArrayQueryFactory;
-import org.structr.bolt.factory.KeywordQueryFactory;
-import org.structr.bolt.factory.UuidQueryFactory;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.QueryFactory;
 import org.structr.api.search.*;
-import org.structr.bolt.converter.BooleanTypeConverter;
-import org.structr.bolt.converter.ByteTypeConverter;
-import org.structr.bolt.converter.DateTypeConverter;
-import org.structr.bolt.converter.DoubleTypeConverter;
-import org.structr.bolt.converter.FloatTypeConverter;
-import org.structr.bolt.converter.IntTypeConverter;
-import org.structr.bolt.converter.LongTypeConverter;
-import org.structr.bolt.converter.ShortTypeConverter;
-import org.structr.bolt.converter.StringTypeConverter;
-import org.structr.bolt.factory.GraphQueryFactory;
+import org.structr.bolt.converter.*;
+import org.structr.bolt.factory.*;
+
+import java.util.*;
 
 /**
  *

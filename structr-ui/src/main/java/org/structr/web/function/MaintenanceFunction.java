@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.Command;
@@ -35,6 +32,10 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class MaintenanceFunction extends UiAdvancedFunction {
 

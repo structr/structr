@@ -18,9 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-
 public class ImportPreconditionFailedException extends RuntimeException {
 
 	public ImportPreconditionFailedException(final String message) {

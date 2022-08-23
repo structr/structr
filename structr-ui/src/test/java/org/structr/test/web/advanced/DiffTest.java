@@ -18,13 +18,8 @@
  */
 package org.structr.test.web.advanced;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Node;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -36,11 +31,15 @@ import org.structr.web.diff.InvertibleModificationOperation;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Div;
 import org.structr.web.importer.Importer;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.NodeList;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Function;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

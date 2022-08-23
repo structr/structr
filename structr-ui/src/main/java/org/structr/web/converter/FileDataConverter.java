@@ -18,12 +18,7 @@
  */
 package org.structr.web.converter;
 
-import java.io.IOException;
-import net.sf.jmimemagic.Magic;
-import net.sf.jmimemagic.MagicException;
-import net.sf.jmimemagic.MagicMatch;
-import net.sf.jmimemagic.MagicMatchNotFoundException;
-import net.sf.jmimemagic.MagicParseException;
+import net.sf.jmimemagic.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +32,8 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.FileHelper.Base64URIData;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
+
+import java.io.IOException;
 
 //~--- classes ----------------------------------------------------------------
 

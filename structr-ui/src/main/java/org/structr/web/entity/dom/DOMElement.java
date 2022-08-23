@@ -20,18 +20,9 @@ package org.structr.web.entity.dom;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+import com.google.javascript.jscomp.jarjar.com.google.common.base.CaseFormat;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.renjin.repackaged.guava.base.CaseFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -70,20 +61,20 @@ import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
-
 import org.structr.web.entity.html.Input;
 import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
 import org.structr.web.servlet.HtmlServlet;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -283,7 +274,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
 		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
 
-		// CMISInfo
+		// W3C Element
 		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
 
 		// view configuration

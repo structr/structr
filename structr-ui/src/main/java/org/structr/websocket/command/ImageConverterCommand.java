@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.io.IOException;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
@@ -26,6 +25,8 @@ import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.IOException;
 
 /**
  * Websocket command for image conversion tasks.

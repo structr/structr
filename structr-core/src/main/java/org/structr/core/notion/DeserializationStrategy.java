@@ -18,10 +18,6 @@
  */
 package org.structr.core.notion;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -30,6 +26,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  * Defines a strategy for deserializing a {@link GraphObject} from an input

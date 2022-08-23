@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -29,6 +26,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Arrays;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class HasCssClassFunction extends UiAdvancedFunction {
 

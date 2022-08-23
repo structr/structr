@@ -24,13 +24,11 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
 import org.structr.flow.impl.rels.FlowActiveContainerConfiguration;
 import org.structr.flow.impl.rels.FlowContainerConfigurationFlow;
-import org.structr.flow.impl.rels.FlowContainerConfigurationPrincipal;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;

@@ -18,20 +18,15 @@
  */
 package org.structr.payment.impl.paypal;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.payment.api.APIError;
 import org.structr.payment.api.APIResponse;
 import org.structr.payment.api.CheckoutState;
 import urn.ebay.apis.eBLBaseComponents.AbstractResponseType;
 import urn.ebay.apis.eBLBaseComponents.AckCodeType;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.FAILURE;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.FAILUREWITHWARNING;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.PARTIALSUCCESS;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.SUCCESS;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.SUCCESSWITHWARNING;
-import static urn.ebay.apis.eBLBaseComponents.AckCodeType.WARNING;
 import urn.ebay.apis.eBLBaseComponents.ErrorType;
+
+import java.util.LinkedList;
+import java.util.List;
 
 
 public abstract class PayPalResponse implements APIResponse {

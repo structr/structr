@@ -18,9 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -31,6 +28,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 
 public class GetRelationshipTypesFunction extends AdvancedScriptingFunction {

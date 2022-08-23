@@ -18,15 +18,10 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -36,6 +31,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *
@@ -265,11 +265,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 
 	@Override
 	public RelationshipInterface getSyncRelationship() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
-	public CMISInfo getCMISInfo() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}
 

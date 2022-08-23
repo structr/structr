@@ -18,10 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -38,6 +34,11 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.PropertySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * A property that returns grouped properties from a set of {@link Reference} elements.

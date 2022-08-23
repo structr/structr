@@ -18,18 +18,12 @@
  */
 package org.structr.test.web.entity;
 
-import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import static org.structr.core.GraphObject.createdDate;
 import org.structr.core.entity.AbstractNode;
-import static org.structr.core.graph.NodeInterface.name;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+
+import java.util.Date;
 
 /**
  * A simple entity for the most basic tests.

@@ -24,20 +24,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.Link;
-import org.structr.web.entity.html.Script;
+import org.structr.web.entity.dom.*;
+import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import static org.testng.AssertJUnit.fail;
 
 public class Deployment0Test extends DeploymentTestBase {
 

@@ -18,8 +18,6 @@
  */
 package org.structr.geo;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ArgumentCountException;
@@ -27,6 +25,9 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class GetWFSDataFunction extends AbstractGeoserverFunction {
 

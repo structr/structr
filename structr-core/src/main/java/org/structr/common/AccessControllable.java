@@ -18,11 +18,12 @@
  */
 package org.structr.common;
 
-import java.util.Date;
-import java.util.Set;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.Security;
+
+import java.util.Date;
+import java.util.Set;
 
 /**
  * Interface to encapsulate query-able permissions. This interface exists

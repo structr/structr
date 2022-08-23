@@ -18,14 +18,6 @@
  */
 package org.structr.core.app;
 
-import java.io.IOException;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.agent.AgentService;
@@ -50,20 +42,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.CreateNodeCommand;
-import org.structr.core.graph.CreateRelationshipCommand;
-import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.graph.DeleteNodeCommand;
-import org.structr.core.graph.DeleteRelationshipCommand;
-import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.GenericProperty;
@@ -71,6 +50,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.module.StructrModule;
 import org.structr.schema.ConfigurationProvider;
+
+import java.io.IOException;
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.util.*;
 
 /**
  * Stateful facade for accessing the Structr core layer.

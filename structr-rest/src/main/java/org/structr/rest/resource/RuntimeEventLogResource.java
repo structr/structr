@@ -18,14 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.function.Consumer;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.AndPredicate;
 import org.structr.api.Predicate;
@@ -39,6 +31,11 @@ import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 /**
  *

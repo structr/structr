@@ -18,12 +18,6 @@
  */
 package org.structr.web.common;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -32,6 +26,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.property.CustomHtmlAttributeProperty;
+
+import java.util.*;
 
 /**
  */

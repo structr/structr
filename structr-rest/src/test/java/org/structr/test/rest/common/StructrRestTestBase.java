@@ -20,14 +20,6 @@ package org.structr.test.rest.common;
 
 
 import com.jayway.restassured.RestAssured;
-import java.io.File;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
-import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matcher;
@@ -49,11 +41,21 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+
+import java.io.File;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Base class for all structr tests.

@@ -18,8 +18,9 @@
  */
 package org.structr.core.auth.exception;
 
-import javax.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * Thrown when a protected resource is accessed. In the REST server, this

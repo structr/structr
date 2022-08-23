@@ -18,8 +18,6 @@
  */
 package org.structr.schema;
 
-import java.util.*;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -31,10 +29,14 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.notion.*;
+import org.structr.core.notion.DeserializationStrategy;
+import org.structr.core.notion.TypeAndPropertySetDeserializationStrategy;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 //~--- classes ----------------------------------------------------------------
 

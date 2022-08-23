@@ -18,6 +18,7 @@
  */
 package org.structr.flow.impl;
 
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
@@ -32,11 +33,9 @@ import org.structr.flow.impl.rels.FlowDataInputs;
 import org.structr.flow.impl.rels.FlowDecisionCondition;
 import org.structr.module.api.DeployableEntity;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.util.Iterables;
 
 /**
  *

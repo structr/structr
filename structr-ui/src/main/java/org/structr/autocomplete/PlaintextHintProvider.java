@@ -18,23 +18,20 @@
  */
 package org.structr.autocomplete;
 
-import java.util.Arrays;
-import java.util.Collections;
-import org.structr.core.function.ParseResult;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.function.Functions;
-import org.structr.core.parser.ConstantExpression;
-import org.structr.core.parser.Expression;
-import org.structr.core.parser.FunctionExpression;
-import org.structr.core.parser.RootExpression;
-import org.structr.core.parser.ValueExpression;
+import org.structr.core.function.ParseResult;
+import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

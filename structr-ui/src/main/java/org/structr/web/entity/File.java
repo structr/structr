@@ -20,27 +20,6 @@ package org.structr.web.entity;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.activation.DataSource;
-import javax.xml.stream.XMLStreamException;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,14 +32,7 @@ import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.cmis.CMISInfo;
-import org.structr.cmis.info.CMISDocumentInfo;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextStore;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -78,7 +50,6 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
-import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -93,11 +64,25 @@ import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
+import javax.activation.DataSource;
+import javax.xml.stream.XMLStreamException;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  *
  *
  */
-public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, Favoritable, DataSource {
 
 	static class Impl { static {
 
@@ -177,20 +162,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("setFavoriteContent",          false, File.class.getName() + ".setFavoriteContent(this, arg0);");
 		type.overrideMethod("getFavoriteContent",          false, "return " + File.class.getName() + ".getFavoriteContent(this);");
 		type.overrideMethod("getCurrentWorkingDir",        false, "return " + File.class.getName() + ".getCurrentWorkingDir(this);");
-
-		// CMIS support
-		type.overrideMethod("getCMISInfo",                 false, "return this;");
-		type.overrideMethod("getBaseTypeId",               false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
-		type.overrideMethod("getFolderInfo",               false, "return null;");
-		type.overrideMethod("getDocumentInfo",             false, "return this;");
-		type.overrideMethod("getItemInfo",                 false, "return null;");
-		type.overrideMethod("getRelationshipInfo",         false, "return null;");
-		type.overrideMethod("getPolicyInfo",               false, "return null;");
-		type.overrideMethod("getSecondaryInfo",            false, "return null;");
-		type.overrideMethod("getChangeToken",              false, "return null;");
-		type.overrideMethod("getParentId",                 false, "return getProperty(parentIdProperty);");
-		type.overrideMethod("getAllowableActions",         false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
-		type.overrideMethod("isImmutable",                 false, "return " + File.class.getName() + ".isImmutable(this);");
 
 		// overridden methods
 		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
@@ -431,7 +402,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 
 	static String getFormattedSize(final File thisFile) {
-		return FileUtils.byteCountToDisplaySize(thisFile.getSize());
+		try {
+
+			return FileUtils.byteCountToDisplaySize(Files.size(thisFile.getFileOnDisk().toPath()));
+		} catch (IOException ex) {
+
+			throw new RuntimeException(ex);
+		}
 	}
 
 	static void increaseVersion(final File thisFile) throws FrameworkException {
@@ -965,8 +942,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 	}
-
-	// ----- CMIS support -----
 	static boolean isImmutable(final File thisFile) {
 
 		final Principal _owner = thisFile.getOwnerNode();

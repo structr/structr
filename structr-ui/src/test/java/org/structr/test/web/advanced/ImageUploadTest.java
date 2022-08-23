@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.util.List;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -27,7 +25,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.Image;
+import org.testng.annotations.Test;
+
+import java.util.List;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -62,7 +65,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getSize());
+			assertEquals("File size of the image does not match",    Long.valueOf(1707), FileUtils.getSize(image.getFileOnDisk()));
 			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
 			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getHeight());
 			assertEquals("Content type of the image does not match", "image/png",          image.getContentType());
@@ -99,7 +102,7 @@ public class ImageUploadTest extends StructrUiTest {
 
 			final Image image = images.get(0);
 
-			assertEquals("File size of the image does not match",    Long.valueOf(1707),   image.getSize());
+			assertEquals("File size of the image does not match",    Long.valueOf(1707),   FileUtils.getSize(image.getFileOnDisk()));
 			assertEquals("Width of the image does not match",        Integer.valueOf(100), image.getWidth());
 			assertEquals("Height of the image does not match",       Integer.valueOf(59),  image.getHeight());
 			assertEquals("Content type of the image does not match", "image/jpeg",         image.getContentType());

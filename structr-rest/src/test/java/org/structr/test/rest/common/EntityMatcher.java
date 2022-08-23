@@ -18,17 +18,14 @@
  */
 package org.structr.test.rest.common;
 
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.structr.common.PropertyView;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *

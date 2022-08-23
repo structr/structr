@@ -18,15 +18,16 @@
  */
 package org.structr.web.entity;
 
-import java.net.URI;
 import org.structr.api.graph.Cardinality;
-import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.SchemaService;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
+import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.DOMElement;
+
+import java.net.URI;
 
 /**
  * This class represents elements which can have an outgoing link to a resource.

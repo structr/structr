@@ -18,10 +18,11 @@
  */
 package org.structr.test.web.files;
 
-import java.util.Random;
 import org.structr.api.config.Settings;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
+
+import java.util.Random;
 
 /**
  * Base class for all structr UI tests.

@@ -21,9 +21,10 @@ package org.structr.test.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.response.Response;
-import static org.hamcrest.Matchers.equalTo;
-import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertEquals;
 
 /**

@@ -18,9 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Date;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
@@ -37,6 +34,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.Date;
 
 /**
  *

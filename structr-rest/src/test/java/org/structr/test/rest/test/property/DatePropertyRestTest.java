@@ -23,10 +23,6 @@ import com.google.gson.GsonBuilder;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import static org.hamcrest.Matchers.*;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -36,8 +32,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
-import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
+
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 

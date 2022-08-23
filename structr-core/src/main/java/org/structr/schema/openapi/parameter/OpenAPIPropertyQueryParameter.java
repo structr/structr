@@ -18,8 +18,9 @@
  */
 package org.structr.schema.openapi.parameter;
 
-import java.util.TreeMap;
 import org.structr.core.property.PropertyKey;
+
+import java.util.TreeMap;
 
 public class OpenAPIPropertyQueryParameter extends TreeMap<String, Object> {
 

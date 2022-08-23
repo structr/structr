@@ -18,47 +18,10 @@
  */
 package org.structr.schema.export;
 
-import java.net.URI;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.cxf.common.util.UrlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonBooleanArrayProperty;
-import org.structr.api.schema.JsonBooleanProperty;
-import org.structr.api.schema.JsonDateArrayProperty;
-import org.structr.api.schema.JsonDateProperty;
-import org.structr.api.schema.JsonDynamicProperty;
-import org.structr.api.schema.JsonEnumProperty;
-import org.structr.api.schema.JsonFunctionProperty;
-import org.structr.api.schema.JsonGrant;
-import org.structr.api.schema.JsonIntegerArrayProperty;
-import org.structr.api.schema.JsonIntegerProperty;
-import org.structr.api.schema.JsonLongArrayProperty;
-import org.structr.api.schema.JsonLongProperty;
-import org.structr.api.schema.JsonMethod;
-import org.structr.api.schema.JsonNumberArrayProperty;
-import org.structr.api.schema.JsonNumberProperty;
-import org.structr.api.schema.JsonProperty;
-import org.structr.api.schema.JsonReferenceProperty;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonScriptProperty;
-import org.structr.api.schema.JsonStringArrayProperty;
-import org.structr.api.schema.JsonStringProperty;
-import org.structr.api.schema.JsonType;
+import org.structr.api.schema.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -66,27 +29,20 @@ import org.structr.common.Visitor;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.SchemaView;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.operation.OpenAPIDeleteMultipleOperation;
-import org.structr.schema.openapi.operation.OpenAPIDeleteSingleOperation;
-import org.structr.schema.openapi.operation.OpenAPIGetMultipleOperation;
-import org.structr.schema.openapi.operation.OpenAPIGetSingleOperation;
-import org.structr.schema.openapi.operation.OpenAPIPostOperation;
-import org.structr.schema.openapi.operation.OpenAPIPutSingleOperation;
+import org.structr.schema.openapi.operation.*;
 import org.structr.schema.openapi.parameter.OpenAPIPropertyQueryParameter;
+import org.structr.util.UrlUtils;
+
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * @param <T>
@@ -1697,7 +1653,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (queryString != null) {
 
 			final Map<String, String> params = UrlUtils.parseQueryString(queryString);
-			final String types               = params.get("typeparameters");
+			final String types               = params.get("typeParameters");
 
 			if (types != null) {
 

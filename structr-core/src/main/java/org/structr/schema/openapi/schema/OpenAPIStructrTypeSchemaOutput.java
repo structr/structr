@@ -18,20 +18,15 @@
  */
 package org.structr.schema.openapi.schema;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-
 import org.structr.common.PropertyView;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+
+import java.util.*;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 

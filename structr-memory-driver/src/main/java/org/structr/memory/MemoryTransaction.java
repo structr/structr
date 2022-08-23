@@ -18,16 +18,12 @@
  */
 package org.structr.memory;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 import org.structr.api.Transaction;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.Filter;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  */

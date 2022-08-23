@@ -18,9 +18,10 @@
  */
 package org.structr.memgraph;
 
-import java.util.Map;
 import org.structr.api.index.DatabaseQuery;
 import org.structr.api.search.QueryContext;
+
+import java.util.Map;
 
 /**
  */

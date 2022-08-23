@@ -21,8 +21,9 @@ package org.structr.rest.adapter;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonSerializationContext;
 import com.google.gson.JsonSerializer;
-import java.lang.reflect.Type;
 import org.structr.common.error.FrameworkException;
+
+import java.lang.reflect.Type;
 
 /**
  * Wrapper around the toJSON method of the exception class itself.

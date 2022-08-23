@@ -18,7 +18,6 @@
  */
 package org.structr.core;
 
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -26,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Map.Entry;
 
 //~--- classes ----------------------------------------------------------------
 

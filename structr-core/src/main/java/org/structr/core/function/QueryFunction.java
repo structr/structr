@@ -18,10 +18,6 @@
  */
 package org.structr.core.function;
 
-import org.structr.common.SecurityContext;
-import org.structr.core.app.Query;
-import org.structr.core.property.PropertyKey;
-
 /**
  * Interface to identify functions that execute database queries. This interface
  * allows built-in function evaluation to identify database query functions and

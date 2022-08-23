@@ -18,11 +18,12 @@
  */
 package org.structr.core.function;
 
-import java.util.Locale;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Locale;
 
 public class SetLocaleFunction extends CoreFunction {
 

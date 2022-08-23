@@ -18,9 +18,10 @@
  */
 package org.structr.common;
 
+import org.structr.api.config.Settings;
+
 import java.util.Set;
 import java.util.TreeSet;
-import org.structr.api.config.Settings;
 
 /**
  */

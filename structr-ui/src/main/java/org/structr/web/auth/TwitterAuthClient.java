@@ -18,7 +18,6 @@
  */
 package org.structr.web.auth;
 
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -32,6 +31,8 @@ import twitter4j.auth.AccessToken;
 import twitter4j.auth.RequestToken;
 import twitter4j.conf.Configuration;
 import twitter4j.conf.ConfigurationBuilder;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**
  * Twitter supports only OAuth 1.0a, therefore we need a completely different

@@ -18,9 +18,9 @@
  */
 package org.structr.common.error;
 
-import java.util.Locale;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import java.util.Locale;
 
 /**
  *

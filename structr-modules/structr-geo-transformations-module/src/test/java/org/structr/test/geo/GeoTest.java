@@ -27,9 +27,10 @@ import org.structr.core.app.App;
 import org.structr.geo.ImportGPXFunction;
 import org.structr.geo.LatLonToUTMFunction;
 import org.structr.geo.UTMToLatLonFunction;
+import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 /**
  *

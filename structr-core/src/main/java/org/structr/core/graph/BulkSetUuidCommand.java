@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -26,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+
+import java.util.Map;
 
 /**
  * Sets a new UUID on each graph object of the given type. For nodes, set type,

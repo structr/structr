@@ -18,8 +18,9 @@
  */
 package org.structr.common.error;
 
-import java.util.Date;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Date;
 
 /**
  * Indicates that a given date property value must lie in the future.

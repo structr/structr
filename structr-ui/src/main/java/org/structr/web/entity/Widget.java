@@ -18,10 +18,6 @@
  */
 package org.structr.web.entity;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.regex.Matcher;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.ConstantBooleanTrue;
@@ -38,6 +34,11 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.importer.Importer;
 import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  *

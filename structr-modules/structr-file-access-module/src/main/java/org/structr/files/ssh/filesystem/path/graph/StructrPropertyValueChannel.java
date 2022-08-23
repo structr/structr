@@ -18,6 +18,16 @@
  */
 package org.structr.files.ssh.filesystem.path.graph;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.converter.PropertyConverter;
+import org.structr.core.property.PropertyKey;
+import org.structr.files.ssh.filesystem.StructrPath;
+import org.structr.files.ssh.filesystem.StructrPath.HiddenFileEntry;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
@@ -28,15 +38,6 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.NoSuchFileException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.converter.PropertyConverter;
-import org.structr.core.property.PropertyKey;
-import org.structr.files.ssh.filesystem.StructrPath;
-import org.structr.files.ssh.filesystem.StructrPath.HiddenFileEntry;
 
 /**
  *

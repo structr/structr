@@ -18,13 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -40,6 +33,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.regex.Pattern;
 import org.eclipse.jetty.websocket.api.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,8 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.regex.Pattern;
 
 /**
  * Base class for all WebSocket commands in Structr.

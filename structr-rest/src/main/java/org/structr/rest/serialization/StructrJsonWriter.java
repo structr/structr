@@ -19,11 +19,12 @@
 package org.structr.rest.serialization;
 
 import com.google.gson.stream.JsonWriter;
-import java.io.IOException;
-import java.io.Writer;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+
+import java.io.IOException;
+import java.io.Writer;
 
 /**
  *

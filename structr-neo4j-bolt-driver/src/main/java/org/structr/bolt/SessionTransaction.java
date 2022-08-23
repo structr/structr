@@ -18,11 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicLong;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
@@ -37,6 +32,12 @@ import org.structr.api.ConstraintViolationException;
 import org.structr.api.DataFormatException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
+
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *

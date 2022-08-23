@@ -18,10 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.io.BufferedOutputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -38,6 +34,9 @@ import org.structr.web.maintenance.deploy.DeploymentCommentHandler;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ImportCommand extends AbstractCommand {
 

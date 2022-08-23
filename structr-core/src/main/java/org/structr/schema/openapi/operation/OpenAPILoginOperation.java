@@ -18,16 +18,13 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.schema.openapi.common.OpenAPIOneOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
-import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
-import org.structr.schema.openapi.schema.OpenAPIResultSchema;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class OpenAPILoginOperation extends LinkedHashMap<String, Object> {
 

@@ -18,26 +18,12 @@
  */
 package org.structr.xmpp;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.TimeUnit;
-import org.jivesoftware.smack.AbstractXMPPConnection;
-import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.*;
 import org.jivesoftware.smack.SmackException.NotConnectedException;
-import org.jivesoftware.smack.StanzaListener;
-import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.XMPPException.XMPPErrorException;
 import org.jivesoftware.smack.java7.Java7SmackInitializer;
-import org.jivesoftware.smack.packet.Bind;
-import org.jivesoftware.smack.packet.EmptyResultIQ;
-import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.*;
 import org.jivesoftware.smack.packet.Presence.Mode;
-import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.roster.packet.RosterPacket;
 import org.jivesoftware.smack.sm.predicates.ForEveryStanza;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
@@ -53,12 +39,12 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.xmpp.handler.BindTypeHandler;
-import org.structr.xmpp.handler.EmptyResultIQTypeHandler;
-import org.structr.xmpp.handler.MessageTypeHandler;
-import org.structr.xmpp.handler.PresenceTypeHandler;
-import org.structr.xmpp.handler.RosterPacketTypeHandler;
-import org.structr.xmpp.handler.TypeHandler;
+import org.structr.xmpp.handler.*;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  *

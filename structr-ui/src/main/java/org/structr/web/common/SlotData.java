@@ -18,11 +18,12 @@
  */
 package org.structr.web.common;
 
+import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.DOMNode;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
-import org.structr.core.property.PropertyMap;
-import org.structr.web.entity.dom.DOMNode;
 
 /**
  */

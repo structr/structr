@@ -18,7 +18,6 @@
  */
 package org.structr.test.web.entity.dom;
 
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -26,11 +25,11 @@ import org.structr.test.web.advanced.DOMTest;
 import org.structr.web.entity.dom.DOMAttribute;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

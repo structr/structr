@@ -18,10 +18,11 @@
  */
 package org.structr.memgraph;
 
-import java.util.function.Function;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.Value;
 import org.neo4j.driver.v1.types.Relationship;
+
+import java.util.function.Function;
 
 /**
  *

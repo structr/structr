@@ -21,10 +21,6 @@ package org.structr.test.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.notNullValue;
-import static org.hamcrest.Matchers.nullValue;
 import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
@@ -34,9 +30,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.StringProperty;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestTwo;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.*;
+import static org.testng.AssertJUnit.fail;
 
 /**
  * Test for property views

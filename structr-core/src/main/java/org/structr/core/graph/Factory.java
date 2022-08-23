@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
@@ -32,6 +29,10 @@ import org.structr.core.Adapter;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.SchemaHelper;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.function.Function;
 
 public abstract class Factory<S, T extends GraphObject> implements Adapter<S, T>, Function<S, T> {
 

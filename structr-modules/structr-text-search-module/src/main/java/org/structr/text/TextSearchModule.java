@@ -18,16 +18,12 @@
  */
 package org.structr.text;
 
-import java.io.InputStream;
-import java.util.LinkedHashSet;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.AutoDetectParser;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.ocr.TesseractOCRConfig;
-import org.codehaus.plexus.util.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
@@ -48,6 +44,11 @@ import org.structr.schema.action.Actions;
 import org.structr.text.model.MetadataNode;
 import org.structr.text.model.StructuredDocument;
 import org.structr.text.model.StructuredTextNode;
+
+import java.io.InputStream;
+import java.util.LinkedHashSet;
+import java.util.Map.Entry;
+import java.util.Set;
 
 /**
  *

@@ -18,9 +18,10 @@
  */
 package org.structr.web.common;
 
+import org.structr.web.entity.File;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
-import org.structr.web.entity.File;
 
 /**
  */

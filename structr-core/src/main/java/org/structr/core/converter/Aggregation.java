@@ -18,18 +18,14 @@
  */
 package org.structr.core.converter;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.AggregatorProperty;
 import org.structr.core.property.Property;
+
+import java.util.*;
 
 /**
  * Encapsulates a sorted collection of related nodes of different types, to be

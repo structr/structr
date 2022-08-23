@@ -18,7 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -27,6 +26,8 @@ import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowEngine;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.Map;
 
 public class FlowFunction extends Function<Object, Object> {
 

@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -29,13 +28,11 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.Title;
-import static org.testng.AssertJUnit.assertEquals;
+import org.structr.web.entity.html.*;
+import org.testng.annotations.Test;
 import org.w3c.dom.Node;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 
 public class CustomHtmlAttributeTest extends StructrUiTest {

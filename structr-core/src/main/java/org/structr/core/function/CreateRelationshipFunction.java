@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -31,6 +30,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Map;
 
 public class CreateRelationshipFunction extends CoreFunction {
 

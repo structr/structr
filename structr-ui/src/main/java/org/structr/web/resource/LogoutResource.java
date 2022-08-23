@@ -19,8 +19,6 @@
 package org.structr.web.resource;
 
 
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -32,6 +30,9 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.Resource;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Map;
 
 /**
  * Resource that handles logs a user out.

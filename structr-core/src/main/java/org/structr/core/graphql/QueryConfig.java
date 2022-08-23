@@ -18,24 +18,7 @@
  */
 package org.structr.core.graphql;
 
-import graphql.language.Argument;
-import graphql.language.BooleanValue;
-import graphql.language.Field;
-import graphql.language.FloatValue;
-import graphql.language.IntValue;
-import graphql.language.ObjectField;
-import graphql.language.ObjectValue;
-import graphql.language.StringValue;
-import graphql.language.Value;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+import graphql.language.*;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.common.PathResolvingComparator;
@@ -52,6 +35,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  */

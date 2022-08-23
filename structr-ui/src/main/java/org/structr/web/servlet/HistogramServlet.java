@@ -18,15 +18,16 @@
  */
 package org.structr.web.servlet;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.Set;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.QueryHistogram;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Set;
 
 /**
  * A servlet that implements the /histogram endpoint.

@@ -22,7 +22,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.action.Actions;

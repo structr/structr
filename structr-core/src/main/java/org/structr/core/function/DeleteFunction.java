@@ -18,7 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Iterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -28,6 +27,8 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Iterator;
 
 public class DeleteFunction extends CoreFunction implements BatchableFunction {
 

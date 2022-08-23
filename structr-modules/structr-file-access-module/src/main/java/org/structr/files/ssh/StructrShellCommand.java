@@ -18,19 +18,8 @@
  */
 package org.structr.files.ssh;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.Environment;
-import org.apache.sshd.server.ExitCallback;
-import org.apache.sshd.server.Signal;
-import org.apache.sshd.server.SignalListener;
+import org.apache.sshd.server.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -41,16 +30,18 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.files.ssh.shell.CatCommand;
-import org.structr.files.ssh.shell.CdCommand;
-import org.structr.files.ssh.shell.LogoutCommand;
-import org.structr.files.ssh.shell.LsCommand;
-import org.structr.files.ssh.shell.MkdirCommand;
-import org.structr.files.ssh.shell.PasswordCommand;
-import org.structr.files.ssh.shell.ShellCommand;
+import org.structr.files.ssh.shell.*;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *

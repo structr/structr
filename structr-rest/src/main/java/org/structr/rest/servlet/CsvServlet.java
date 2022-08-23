@@ -18,26 +18,8 @@
  */
 package org.structr.rest.servlet;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import com.google.gson.JsonParseException;
 import com.google.gson.JsonSyntaxException;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.io.Writer;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -66,6 +48,17 @@ import org.structr.rest.common.CsvHelper;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.schema.parser.DatePropertyParser;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search

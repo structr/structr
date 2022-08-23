@@ -18,36 +18,19 @@
  */
 package org.structr.memgraph;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.Session;
-import org.neo4j.driver.v1.StatementResult;
 import org.neo4j.driver.v1.Transaction;
-import org.neo4j.driver.v1.Value;
-import org.neo4j.driver.v1.Values;
-import org.neo4j.driver.v1.exceptions.ClientException;
-import org.neo4j.driver.v1.exceptions.DatabaseException;
-import org.neo4j.driver.v1.exceptions.NoSuchRecordException;
-import org.neo4j.driver.v1.exceptions.ServiceUnavailableException;
-import org.neo4j.driver.v1.exceptions.TransientException;
+import org.neo4j.driver.v1.*;
+import org.neo4j.driver.v1.exceptions.*;
 import org.neo4j.driver.v1.types.Entity;
 import org.neo4j.driver.v1.types.Node;
 import org.neo4j.driver.v1.types.Relationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.ConstraintViolationException;
-import org.structr.api.DataFormatException;
-import org.structr.api.NetworkException;
-import org.structr.api.NotFoundException;
-import org.structr.api.RetryException;
-import org.structr.api.UnknownClientException;
-import org.structr.api.UnknownDatabaseException;
+import org.structr.api.*;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  *

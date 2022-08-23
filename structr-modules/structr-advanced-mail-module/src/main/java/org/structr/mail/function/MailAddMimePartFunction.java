@@ -18,8 +18,6 @@
  */
 package org.structr.mail.function;
 
-import java.net.MalformedURLException;
-import javax.activation.FileDataSource;
 import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
@@ -28,6 +26,9 @@ import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
+
+import javax.activation.FileDataSource;
+import java.net.MalformedURLException;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 

@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -27,6 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Map;
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.

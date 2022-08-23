@@ -18,7 +18,8 @@
  */
 package org.structr.schema.export;
 
-import java.util.Map;
+import org.structr.api.schema.JsonDynamicProperty;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -26,8 +27,8 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
-import org.structr.api.schema.JsonDynamicProperty;
-import org.structr.api.schema.JsonSchema;
+
+import java.util.Map;
 
 /**
  *

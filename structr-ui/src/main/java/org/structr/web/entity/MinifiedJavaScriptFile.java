@@ -18,21 +18,14 @@
  */
 package org.structr.web.entity;
 
-import com.google.javascript.jscomp.BasicErrorManager;
-import com.google.javascript.jscomp.CheckLevel;
-import com.google.javascript.jscomp.CommandLineRunner;
-import com.google.javascript.jscomp.CompilationLevel;
-import com.google.javascript.jscomp.CompilerOptions;
-import com.google.javascript.jscomp.JSError;
-import com.google.javascript.jscomp.SourceFile;
+import com.google.javascript.jscomp.*;
 import com.google.javascript.jscomp.parsing.parser.util.format.SimpleFormat;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -42,9 +35,11 @@ import org.structr.core.graph.ModificationEvent;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.web.common.FileHelper;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
 
 public interface MinifiedJavaScriptFile extends AbstractMinifiedFile {
 

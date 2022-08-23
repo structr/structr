@@ -18,10 +18,11 @@
  */
 package org.structr.bolt;
 
-import java.util.function.Function;
 import org.neo4j.driver.types.Node;
 import org.neo4j.driver.types.Path;
 import org.neo4j.driver.types.Relationship;
+
+import java.util.function.Function;
 
 /**
  *

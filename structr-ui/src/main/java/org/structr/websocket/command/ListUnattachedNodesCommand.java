@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PagingHelper;
@@ -32,14 +30,13 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.dom.*;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent

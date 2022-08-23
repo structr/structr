@@ -18,9 +18,10 @@
  */
 package org.structr.files.url;
 
+import org.structr.common.SecurityContext;
+
 import java.net.URLStreamHandler;
 import java.net.URLStreamHandlerFactory;
-import org.structr.common.SecurityContext;
 
 /**
  */

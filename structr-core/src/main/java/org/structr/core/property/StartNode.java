@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -43,6 +41,9 @@ import org.structr.core.notion.ObjectNotion;
 import org.structr.schema.openapi.common.OpenAPIAnyOf;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A property that defines a relationship with the given parameters between two nodes.

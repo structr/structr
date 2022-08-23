@@ -18,16 +18,14 @@
  */
 package org.structr.flow.engine;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Future;
-import java.util.stream.Collectors;
-
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.flow.impl.FlowBaseNode;
 import org.structr.schema.action.ActionContext;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Future;
 
 /**
  *

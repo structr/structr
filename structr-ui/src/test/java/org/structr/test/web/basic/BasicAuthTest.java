@@ -19,7 +19,6 @@
 package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
-import java.io.IOException;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -33,10 +32,12 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import static org.testng.AssertJUnit.fail;
-
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+
+import static org.testng.AssertJUnit.fail;
 
 
 public class BasicAuthTest extends StructrUiTest {

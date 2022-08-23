@@ -18,12 +18,13 @@
  */
 package org.structr.core.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.Principal;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * An authenticator interface that defines how the system can obtain a principal

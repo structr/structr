@@ -20,13 +20,6 @@ package org.structr.ldap;
 
 import ch.qos.logback.classic.Level;
 import com.google.gson.GsonBuilder;
-import java.io.IOException;
-import java.util.Base64;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.apache.directory.api.ldap.codec.osgi.DefaultLdapCodecService;
 import org.apache.directory.api.ldap.codec.standalone.CodecFactoryUtil;
@@ -44,12 +37,7 @@ import org.apache.directory.ldap.client.api.LdapNetworkConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.SingletonService;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -58,6 +46,9 @@ import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
+
+import java.io.IOException;
+import java.util.*;
 
 /**
  * The LDAP synchronization service. This is a system service that requires

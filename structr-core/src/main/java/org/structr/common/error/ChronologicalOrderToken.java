@@ -18,8 +18,9 @@
  */
 package org.structr.common.error;
 
-import java.util.Date;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Date;
 
 /**
  * Indicates that two given date properties must be ordered chronologically.

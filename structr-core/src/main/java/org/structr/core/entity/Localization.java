@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.net.URI;
 import org.structr.api.schema.JsonType;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -27,6 +26,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+
+import java.net.URI;
 
 public interface Localization extends NodeInterface {
 

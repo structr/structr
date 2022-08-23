@@ -18,8 +18,6 @@
  */
 package org.structr.files.ftp;
 
-import java.util.Date;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
@@ -34,9 +32,12 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
+
+import java.util.Date;
+import java.util.List;
 
 /**
  *

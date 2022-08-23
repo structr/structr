@@ -18,18 +18,7 @@
  */
 package org.structr.core.graph;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.AccessPathCache;
@@ -43,6 +32,8 @@ import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
+
+import java.util.*;
 
 /**
  *

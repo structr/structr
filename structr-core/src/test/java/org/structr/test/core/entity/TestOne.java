@@ -18,21 +18,12 @@
  */
 package org.structr.test.core.entity;
 
-import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.ISO8601DateProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+
+import java.util.Date;
 
 /**
  * A simple entity for the most basic tests.

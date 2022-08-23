@@ -18,31 +18,6 @@
  */
 package org.structr.net.peer;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.nio.charset.Charset;
-import java.security.KeyPair;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.RejectedExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.net.PeerListener;
@@ -52,17 +27,20 @@ import org.structr.net.data.time.Clock;
 import org.structr.net.data.time.PseudoTemporalEnvironment;
 import org.structr.net.data.time.PseudoTime;
 import org.structr.net.data.time.ToplevelTemporalEnvironment;
-import org.structr.net.protocol.AbstractMessage;
-import org.structr.net.protocol.Callback;
-import org.structr.net.protocol.Delete;
-import org.structr.net.protocol.Discovery;
-import org.structr.net.protocol.Envelope;
-import org.structr.net.protocol.Inventory;
-import org.structr.net.protocol.Update;
+import org.structr.net.protocol.*;
 import org.structr.net.repository.DefaultRepositoryObject;
 import org.structr.net.repository.InternalChangeListener;
 import org.structr.net.repository.Repository;
 import org.structr.net.repository.RepositoryObject;
+
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.charset.Charset;
+import java.security.*;
+import java.util.*;
+import java.util.concurrent.*;
 
 /**
  * The main class of this peer-to-peer implementation. This class will

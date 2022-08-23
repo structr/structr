@@ -18,10 +18,11 @@
  */
 package org.structr.memgraph;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.api.search.QueryContext;
 import org.structr.api.search.SortOrder;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

@@ -18,13 +18,10 @@
  */
 package org.structr.test.core.entity;
 
-import java.util.Date;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.DateProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
+import org.structr.core.property.*;
+
+import java.util.Date;
 
 /**
  *

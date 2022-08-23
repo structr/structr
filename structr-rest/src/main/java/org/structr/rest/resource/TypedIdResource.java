@@ -18,10 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Arrays;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -40,6 +36,11 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.util.Arrays;
+import java.util.Map;
 
 /**
  * Represents a type-constrained ID match. A TypedIdResource will always

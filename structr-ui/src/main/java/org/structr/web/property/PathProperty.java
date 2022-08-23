@@ -18,11 +18,6 @@
  */
 package org.structr.web.property;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -41,6 +36,11 @@ import org.structr.core.property.AbstractReadOnlyProperty;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Linkable;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A property which returns the complete folder path of a {@link Linkable}

@@ -18,9 +18,10 @@
  */
 package org.structr.bolt;
 
-import java.util.Iterator;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.internal.shaded.reactor.core.publisher.Flux;
+
+import java.util.Iterator;
 
 /**
  */

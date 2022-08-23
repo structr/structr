@@ -18,50 +18,18 @@
  */
 package org.structr.memory.index;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.QueryFactory;
-import org.structr.api.search.ArrayQuery;
-import org.structr.api.search.ComparisonQuery;
-import org.structr.api.search.EmptyQuery;
-import org.structr.api.search.ExactQuery;
-import org.structr.api.search.FulltextQuery;
-import org.structr.api.search.GraphQuery;
-import org.structr.api.search.GroupQuery;
-import org.structr.api.search.NotEmptyQuery;
-import org.structr.api.search.QueryContext;
-import org.structr.api.search.RangeQuery;
-import org.structr.api.search.RelationshipQuery;
-import org.structr.api.search.SpatialQuery;
-import org.structr.api.search.TypeConverter;
-import org.structr.api.search.TypeQuery;
-import org.structr.api.search.UuidQuery;
+import org.structr.api.search.*;
 import org.structr.memory.MemoryDatabaseService;
-import org.structr.memory.index.converter.BooleanTypeConverter;
-import org.structr.memory.index.converter.ByteTypeConverter;
-import org.structr.memory.index.converter.DateTypeConverter;
-import org.structr.memory.index.converter.DoubleTypeConverter;
-import org.structr.memory.index.converter.FloatTypeConverter;
-import org.structr.memory.index.converter.IntTypeConverter;
-import org.structr.memory.index.converter.LongTypeConverter;
-import org.structr.memory.index.converter.ShortTypeConverter;
-import org.structr.memory.index.converter.StringTypeConverter;
-import org.structr.memory.index.factory.ArrayQueryFactory;
-import org.structr.memory.index.factory.ComparisonQueryFactory;
-import org.structr.memory.index.factory.EmptyQueryFactory;
-import org.structr.memory.index.factory.GraphQueryFactory;
-import org.structr.memory.index.factory.GroupQueryFactory;
-import org.structr.memory.index.factory.KeywordQueryFactory;
-import org.structr.memory.index.factory.NotEmptyQueryFactory;
-import org.structr.memory.index.factory.RangeQueryFactory;
-import org.structr.memory.index.factory.RelationshipQueryFactory;
-import org.structr.memory.index.factory.SpatialQueryFactory;
-import org.structr.memory.index.factory.TypeQueryFactory;
-import org.structr.memory.index.factory.UuidQueryFactory;
+import org.structr.memory.index.converter.*;
+import org.structr.memory.index.factory.*;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *

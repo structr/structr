@@ -20,12 +20,6 @@ package org.structr.rest.servlet;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.IOException;
-import java.io.Writer;
-import java.util.*;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,22 +41,7 @@ import org.structr.schema.export.StructrTypeDefinitions;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.operation.*;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationChangeNodePropertyKey;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationClearDatabase;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationCopyRelationshipProperties;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationCreateLabels;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDeploy;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDeployData;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationDirectFileImport;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationFixNodeProperties;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationFlushCaches;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationLetsencrypt;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationRebuildIndex;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetNodeProperties;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetRelationshipProperties;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSetUuid;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSnapshot;
-import org.structr.schema.openapi.operation.maintenance.OpenAPIMaintenanceOperationSync;
+import org.structr.schema.openapi.operation.maintenance.*;
 import org.structr.schema.openapi.parameter.OpenAPIQueryParameter;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.result.OpenAPICreateResponseSchema;
@@ -73,6 +52,13 @@ import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.util.*;
 
 /**
  * A servlet that implements the OpenAPI endpoint.

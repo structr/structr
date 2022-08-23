@@ -18,12 +18,13 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collection;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
+
+import java.util.Collection;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  *

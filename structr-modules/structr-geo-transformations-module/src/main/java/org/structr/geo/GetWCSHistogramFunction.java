@@ -19,13 +19,6 @@
 package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Geometry;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import javax.media.jai.Histogram;
 import org.geotools.coverage.grid.GridCoverage2D;
 import org.geotools.coverage.processing.CoverageProcessor;
 import org.opengis.coverage.processing.Operation;
@@ -37,6 +30,14 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import javax.media.jai.Histogram;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.autocomplete.AbstractHintProvider;
@@ -33,6 +32,9 @@ import org.structr.core.property.Property;
 import org.structr.schema.action.ActionContext;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to support autocompletion in the backend ui.

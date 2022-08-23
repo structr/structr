@@ -19,14 +19,6 @@
 package org.structr.flow.servlet;
 
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.io.Writer;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.*;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +37,17 @@ import org.structr.core.graph.Tx;
 import org.structr.flow.impl.FlowContainer;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.servlet.JsonRestServlet;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.Writer;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
 
 public class FlowServlet extends JsonRestServlet {
 

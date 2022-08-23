@@ -18,14 +18,15 @@
  */
 package org.structr.core.function;
 
-import java.security.MessageDigest;
-import java.util.Base64;
-import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
+
+import javax.crypto.Cipher;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.MessageDigest;
+import java.util.Base64;
 
 public abstract class CryptFunction extends AdvancedScriptingFunction {
 

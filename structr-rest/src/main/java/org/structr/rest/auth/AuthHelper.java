@@ -18,11 +18,6 @@
  */
 package org.structr.rest.auth;
 
-import java.math.BigInteger;
-import java.net.Inet4Address;
-import java.net.Inet6Address;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +37,11 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Actions;
 
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigInteger;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.HashMap;

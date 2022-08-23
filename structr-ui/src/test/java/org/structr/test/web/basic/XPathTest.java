@@ -18,22 +18,22 @@
  */
 package org.structr.test.web.basic;
 
-import org.structr.test.web.StructrUiTest;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
+import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

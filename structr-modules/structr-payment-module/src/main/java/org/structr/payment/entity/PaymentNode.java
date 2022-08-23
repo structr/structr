@@ -23,7 +23,6 @@
 
 package org.structr.payment.entity;
 
-import java.net.URI;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -36,20 +35,14 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
-import org.structr.payment.api.APIError;
-import org.structr.payment.api.APIResponse;
-import org.structr.payment.api.BeginCheckoutResponse;
-import org.structr.payment.api.CheckoutState;
-import org.structr.payment.api.ConfirmCheckoutResponse;
-import org.structr.payment.api.Payment;
-import org.structr.payment.api.PaymentItem;
-import org.structr.payment.api.PaymentProvider;
-import org.structr.payment.api.PaymentState;
+import org.structr.payment.api.*;
 import org.structr.payment.impl.paypal.PayPalErrorToken;
 import org.structr.payment.impl.paypal.PayPalPaymentProvider;
 import org.structr.payment.impl.stripe.StripePaymentProvider;
 import org.structr.payment.impl.test.TestPaymentProvider;
 import org.structr.schema.SchemaService;
+
+import java.net.URI;
 
 /**
  *

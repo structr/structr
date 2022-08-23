@@ -20,11 +20,12 @@ package org.structr.test.web.rest;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
+import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.assertNotNull;
 
 /**

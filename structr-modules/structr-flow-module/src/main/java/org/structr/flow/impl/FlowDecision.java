@@ -18,9 +18,6 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.flow.impl.rels.FlowDecisionTrue;
-import org.structr.flow.impl.rels.FlowDecisionFalse;
-import org.structr.flow.impl.rels.FlowDecisionCondition;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
@@ -29,6 +26,9 @@ import org.structr.core.property.StartNode;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Decision;
 import org.structr.flow.api.FlowElement;
+import org.structr.flow.impl.rels.FlowDecisionCondition;
+import org.structr.flow.impl.rels.FlowDecisionFalse;
+import org.structr.flow.impl.rels.FlowDecisionTrue;
 import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;

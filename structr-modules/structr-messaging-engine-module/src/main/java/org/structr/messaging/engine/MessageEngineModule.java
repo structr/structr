@@ -19,11 +19,6 @@
 package org.structr.messaging.engine;
 
 import com.google.gson.Gson;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
@@ -45,6 +40,12 @@ import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFu
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 public class MessageEngineModule implements StructrModule {
 

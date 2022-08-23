@@ -18,10 +18,11 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+
+import java.util.Map;
 
 /**
  * A resource that implements the generic ability to
