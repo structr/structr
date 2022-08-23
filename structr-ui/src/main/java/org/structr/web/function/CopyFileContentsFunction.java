@@ -19,7 +19,7 @@
 package org.structr.web.function;
 
 import java.io.IOException;
-import org.python.google.common.io.Files;
+import org.apache.commons.io.FileUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
@@ -76,7 +76,7 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 						nodeToBeReplaced.afterCreation(nodeToBeReplaced.getSecurityContext());
 					}
 
-					Files.copy(fileToCopy, fileToBeReplaced);
+					FileUtils.copyFile(fileToCopy, fileToBeReplaced);
 
 					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
 					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");

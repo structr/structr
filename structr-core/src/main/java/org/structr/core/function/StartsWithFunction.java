@@ -19,8 +19,8 @@
 package org.structr.core.function;
 
 import java.util.Collection;
+import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
-import org.python.google.common.collect.Iterables;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
@@ -48,7 +48,9 @@ public class StartsWithFunction extends CoreFunction {
 				if (sources[0] != null && sources[0] instanceof Iterable) {
 
 					final Iterable collection = (Iterable) sources[0];
-					return Iterables.size(collection) > 0 && Iterables.get(collection, 0).equals(sources[1]);
+					final Iterator it         = collection.iterator();
+
+					return (it.hasNext() && it.next().equals(sources[1]));
 
 				} else if (sources[0] != null && sources[0] instanceof Collection) {
 
