@@ -970,7 +970,7 @@ let _Dialogs = {
 			</div>
 		`,
 		showHideConditionTemplates: config => `
-			<option value="" disabled selected>Select...</option>
+			<option value="" disabled selected>Example ${config.type} conditions...</option>
 			<option value="">(none)</option>
 			<option>true</option>
 			<option>false</option>
@@ -984,7 +984,7 @@ let _Dialogs = {
 				<div class="flex">
 					<input id="show-conditions" type="text" name="showConditions">
 					<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Dialogs.templates.showHideConditionTemplates()}
+						${_Dialogs.templates.showHideConditionTemplates({ type: 'show' })}
 					</select>
 				</div>
 			</div>
@@ -994,7 +994,7 @@ let _Dialogs = {
 				<div class="flex">
 					<input id="hide-conditions" type="text" name="hideConditions">
 					<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Dialogs.templates.showHideConditionTemplates()}
+						${_Dialogs.templates.showHideConditionTemplates({ type: 'hide' })}
 					</select>
 				</div>
 			</div>
