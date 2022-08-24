@@ -36,15 +36,18 @@ import org.structr.web.entity.dom.Page;
 import static org.testng.AssertJUnit.fail;
 
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 
 public class BasicAuthTest extends StructrUiTest {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
-		super.setup();
+	public void setup(@Optional String testDatabaseConnection) {
+		super.setup(testDatabaseConnection);
 		Settings.HttpBasicAuthEnabled.setValue(true);
 	}
 
