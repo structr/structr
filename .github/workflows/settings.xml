@@ -1,0 +1,13 @@
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+	<profiles>
+		<profile>
+			<id>sign-structr-artifacts</id>
+			<properties>
+				<structrKeystorePassword>STRUCTR_KEYSTORE_PASSWORD</structrKeystorePassword>
+			</properties>
+		</profile>
+	</profiles>
+	<activeProfiles>
+		<activeProfile>sign-structr-artifacts</activeProfile>
+	</activeProfiles>
+</settings>

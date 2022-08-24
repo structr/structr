@@ -1,0 +1,83 @@
+name: Structr CI Pipeline
+on: 
+  push
+
+jobs:
+  run-tests:
+    runs-on: self-hosted    
+    environment: build-and-test
+    strategy:
+      matrix:
+        include:
+          - module: structr-ui
+            port: 7689
+          - module: structr-core
+            port: 7690
+          - module: "structr-rest"
+            port: 7691
+          - module: structr-db-driver-api
+            port: 7692
+          - module: structr-memgraph-driver
+            port: 7693
+          - module: structr-memory-driver
+            port: 7694
+          - module: structr-modules
+            port: 7695
+          - module: structr-neo4j-bolt-driver
+            port: 7696
+
+    services:    
+      neo4j:
+        image: neo4j:4.4
+        env:
+          NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
+          NEO4J_AUTH: neo4j/admin
+          NEO4J_dbms_memory_heap_maxSize: 4G
+          NEO4J_dbms_memory_pagecache_size: 4G
+        ports:
+          - ${{ matrix.port }}:7687
+
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '11'
+          components: 'js,python'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - run:  >-
+          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb && 
+          cd ${{ matrix.module }} && 
+          mvn clean install -Denv.testDatabaseConnection="bolt://localhost:${{ matrix.port }}"
+
+  build-and-deploy:
+    runs-on: self-hosted   
+    environment: build-and-test
+    if: ${{ success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/realase') }}
+    needs: run-tests
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: structr
+          password: ${{ secrets.STRUCTR_DOCKER_PASSWORD }} 
+
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '11'
+          components: 'js,python'
+          github-token: ${{ secrets.GITHUB_TOKEN }}    
+
+      - run: mvn -U clean install -Pwith-sources -DskipTests
+      - name: Upload binaries
+        run: >-
+          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload >/tmp/copy-deb-to-server.log 2>&1 && 
+          scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/tmp/copy-zip-to-server.log 2>&1

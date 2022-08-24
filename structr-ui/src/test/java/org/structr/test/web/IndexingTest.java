@@ -26,6 +26,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 /**
  * Use this test to execute tests with activated Cypher indexes.
@@ -34,16 +36,17 @@ import org.testng.annotations.BeforeClass;
  */
 public abstract class IndexingTest extends StructrUiTest {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		final long timestamp = System.nanoTime();
 
 		basePath = "/tmp/structr-test-" + timestamp;
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

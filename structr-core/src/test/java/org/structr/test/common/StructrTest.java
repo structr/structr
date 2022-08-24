@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -51,10 +52,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
+
+import org.testng.annotations.*;
 
 /**
  *
@@ -123,8 +122,9 @@ public class StructrTest {
 		first = false;
 	}
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void startSystem() {
+	public void startSystem(@Optional String testDatabaseConnection) {
 
 		final Date now          = new Date();
 		final long timestamp    = now.getTime();
@@ -133,7 +133,7 @@ public class StructrTest {
 
 		Settings.Services.setValue("NodeService SchemaService");
 
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -371,13 +371,17 @@ public class StructrTest {
 		return null;
 	}
 
-	protected void setupDatabaseConnection() {
+	protected void setupDatabaseConnection(String testDatabaseConnection) {
 
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		if (StringUtils.isBlank(testDatabaseConnection)) {
+			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		} else {
+			Settings.ConnectionUrl.setValue(testDatabaseConnection);
+		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}
