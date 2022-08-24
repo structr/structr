@@ -2354,7 +2354,10 @@ let _Code = {
 		};
 
 		let buttons = $('#property-buttons');
-		buttons.prepend(_Code.templates.propertyOptions({ property: property }));
+
+		let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+
+		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
 		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
@@ -3234,7 +3237,7 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div><label class="font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
+					<div class="${config.dbNameClass}"><label class="font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
 					<div><label class="font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
 					<div><label class="font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
 				</div>
