@@ -25,11 +25,6 @@ let _Dashboard = {
 	dashboard: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + location.port,
 
-	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + location.port,
-	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
-	favorEditorForContentElementsKey:    'favorEditorForContentElements' + location.port,
-	favorHTMLForDOMNodesKey:             'favorHTMLForDOMNodes' + location.port,
-
 	init: () => {},
 	unload: () => {
 		_Dashboard.tabs['server-log'].stop();
