@@ -56,7 +56,7 @@ jobs:
   build-and-deploy:
     runs-on: self-hosted   
     environment: build-and-test
-    if: ${{ success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/realase') }}
+    if: ${{ success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release') }}
     needs: run-tests
 
     steps:
