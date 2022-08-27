@@ -10,35 +10,34 @@ jobs:
       matrix:
         include:
           - module: structr-ui
-            port: 7689
+            variableName: UI
           - module: structr-core
-            port: 7690
-          - module: "structr-rest"
-            port: 7691
+            variableName: CORE
+          - module: structr-rest
+            variableName: REST
           - module: structr-db-driver-api
-            port: 7692
+            variableName: DB_DRIVER_API
           - module: structr-memgraph-driver
-            port: 7693
+            variableName: MEMGRAPH_DRIVER
           - module: structr-memory-driver
-            port: 7694
+            variableName: MEMORY_DRIVER
           - module: structr-modules
-            port: 7695
+            variableName: MODULES
           - module: structr-neo4j-bolt-driver
-            port: 7696
-
-    services:    
-      neo4j:
-        image: neo4j:4.4
-        env:
-          NEO4J_ACCEPT_LICENSE_AGREEMENT: "yes"
-          NEO4J_AUTH: neo4j/admin
-          NEO4J_dbms_memory_heap_maxSize: 4G
-          NEO4J_dbms_memory_pagecache_size: 4G
-        ports:
-          - ${{ matrix.port }}:7687
+            variableName: NEO4J_BOLT_DRIVER
 
     steps:
       - uses: actions/checkout@v3
+
+      - name: Start Test Datenbase
+        run: >-
+          docker run -d --name ${{ matrix.module }}-test-${{ github.run_id }} 
+          -p 7687 
+          -e NEO4J_AUTH=neo4j/admin 
+          -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
+          -e NEO4J_dbms_memory_heap_maxSize=4G 
+          -e NEO4J_dbms_memory_pagecache_size=4G neo4j:4.4 && 
+          echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-test-${{ github.run_id }})" >> $GITHUB_ENV
       
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
@@ -48,10 +47,16 @@ jobs:
           components: 'js,python'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - run:  >-
+      - name: Compile and run Tests
+        run:  >-
+          echo $ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}
           mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb && 
           cd ${{ matrix.module }} && 
-          mvn clean install -Denv.testDatabaseConnection="bolt://localhost:${{ matrix.port }}"
+          mvn clean install -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
+
+      - name: Stop Test Database
+        if: always()
+        run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
 
   build-and-deploy:
     runs-on: self-hosted   
@@ -79,5 +84,5 @@ jobs:
       - run: mvn -U clean install -Pwith-sources -DskipTests
       - name: Upload binaries
         run: >-
-          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload >/tmp/copy-deb-to-server.log 2>&1 && 
+          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload >/tmp/copy-deb-to-server.log 2>&1 && \
           scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/tmp/copy-zip-to-server.log 2>&1
