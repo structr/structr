@@ -84,5 +84,5 @@ jobs:
       - run: mvn -U clean install -Pwith-sources -DskipTests
       - name: Upload binaries
         run: >-
-          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload >/tmp/copy-deb-to-server.log 2>&1 && \
-          scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/tmp/copy-zip-to-server.log 2>&1
+          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/dev/null 2>&1
