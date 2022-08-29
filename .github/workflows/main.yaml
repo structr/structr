@@ -50,9 +50,9 @@ jobs:
       - name: Compile and run Tests
         run:  >-
           echo $ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}
-          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb && 
+          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
           cd ${{ matrix.module }} && 
-          mvn clean install -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
+          mvn clean install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
 
       - name: Stop Test Database
         if: always()
@@ -81,7 +81,7 @@ jobs:
           components: 'js,python'
           github-token: ${{ secrets.GITHUB_TOKEN }}    
 
-      - run: mvn -U clean install -Pwith-sources -DskipTests
+      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
       - name: Upload binaries
         run: >-
           scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload > /dev/null 2>&1 &&
