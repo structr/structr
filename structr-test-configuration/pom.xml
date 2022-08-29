@@ -95,7 +95,7 @@
 							</execution>
 						</executions>
 					</plugin>
-					<!--plugin>
+					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
 						<version>0.36.0</version>
@@ -127,7 +127,7 @@
 											</run>
 										</image>
 									</images>
-									<skip>${skipTests}</skip>
+									<skip>${skipDockerTestDB}</skip>
 								</configuration>
 							</execution>
 							<execution>
@@ -137,11 +137,11 @@
 									<goal>stop</goal>
 								</goals>
 								<configuration>
-									<skip>${skipTests}</skip>
+									<skip>${skipDockerTestDB}</skip>
 								</configuration>
 							</execution>
 						</executions>
-					</plugin-->
+					</plugin>
 				</plugins>
 			</build>
 		</profile>
