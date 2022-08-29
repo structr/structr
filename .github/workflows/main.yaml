@@ -86,3 +86,11 @@ jobs:
         run: >-
           scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload > /dev/null 2>&1 &&
           scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/dev/null 2>&1
+  
+  cleanup-system:
+    runs-on: self-hosted
+    if: always()
+    needs: [run-tests, build-and-deploy]
+    steps:
+      - name: Prune docker containers
+        run: docker container prune -a -f
