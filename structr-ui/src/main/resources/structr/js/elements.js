@@ -94,7 +94,11 @@ let _Elements = {
 			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'onclick', 'style', 'title', 'form', 'formaction', 'formmethod']
 		},
 		{
-			elements: ['select', 'option'],
+			elements: ['select'],
+			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style', 'required']
+		},
+		{
+			elements: ['option'],
 			attrs: ['name', 'type', 'checked', 'selected', 'value', 'size', 'multiple', 'disabled', 'autofocus', 'placeholder', 'style']
 		},
 		{
