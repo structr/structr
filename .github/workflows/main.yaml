@@ -93,4 +93,4 @@ jobs:
     needs: [run-tests, build-and-deploy]
     steps:
       - name: Prune docker containers
-        run: docker container prune -a -f
+        run: docker container prune -f
