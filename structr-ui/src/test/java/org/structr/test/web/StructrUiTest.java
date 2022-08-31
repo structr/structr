@@ -37,8 +37,8 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.IOException;
