@@ -3006,7 +3006,7 @@ let UISettings = {
 
 		if (!section) {
 			// no section given - return all
-			return [UISettings.global, UISettings.pages, UISettings.security, UISettings.importer];
+			return [UISettings.global, UISettings.pages, UISettings.security, UISettings.importer, UISettings.schema];
 
 		} else {
 
@@ -3147,7 +3147,20 @@ let UISettings = {
 				type: 'checkbox'
 			}
 		}
-	}
+	},
+	schema: {
+		title: 'Schema/Code',
+		settings: {
+			showDatabaseNameForDirectProperties: {
+				text: 'Show database name for direct properties',
+				storageKey: 'showDatabaseNameForDirectProperties' + location.port,
+				defaultValue: false,
+				type: 'checkbox',
+				onUpdate: () => {
+				}
+			}
+		}
+	},
 };
 
 function formatKey(text) {

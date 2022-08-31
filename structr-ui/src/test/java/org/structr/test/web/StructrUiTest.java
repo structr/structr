@@ -22,6 +22,7 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -36,10 +37,8 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.AfterMethod;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.*;
+import org.testng.annotations.Optional;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,14 +69,15 @@ public abstract class StructrUiTest {
 	protected String baseUri           = null;
 	protected boolean first            = true;
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		final long timestamp = System.currentTimeMillis();
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
@@ -654,13 +654,17 @@ public abstract class StructrUiTest {
 		return RandomStringUtils.randomAlphabetic(10).toUpperCase();
 	}
 
-	protected void setupDatabaseConnection() {
+	protected void setupDatabaseConnection(String testDatabaseConnection) {
 
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
-		Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		if (StringUtils.isBlank(testDatabaseConnection)) {
+			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
+		} else {
+			Settings.ConnectionUrl.setValue(testDatabaseConnection);
+		}
 		Settings.ConnectionDatabaseName.setValue("neo4j");
 		Settings.TenantIdentifier.setValue(randomTenantId);
 	}

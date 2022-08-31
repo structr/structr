@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>4.2-SNAPSHOT</version>
+		<version>4.3-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>structr-test-configuration</artifactId>
@@ -83,6 +83,7 @@
 							<!--redirectTestOutputToFile>true</redirectTestOutputToFile-->
 							<systemPropertyVariables>
 								<testDatabaseDriver>org.structr.bolt.BoltDatabaseService</testDatabaseDriver>
+								<testDatabaseConnection>${env.testDatabaseConnection}</testDatabaseConnection>
 							</systemPropertyVariables>
 						</configuration>
 						<executions>
@@ -126,7 +127,7 @@
 											</run>
 										</image>
 									</images>
-									<skip>${skipTests}</skip>
+									<skip>${skipDockerTestDB}</skip>
 								</configuration>
 							</execution>
 							<execution>
@@ -136,7 +137,7 @@
 									<goal>stop</goal>
 								</goals>
 								<configuration>
-									<skip>${skipTests}</skip>
+									<skip>${skipDockerTestDB}</skip>
 								</configuration>
 							</execution>
 						</executions>

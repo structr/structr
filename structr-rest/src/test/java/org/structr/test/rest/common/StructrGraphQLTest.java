@@ -27,6 +27,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 /**
  * Base class for Structr GraphQL tests.
@@ -34,9 +36,10 @@ import org.testng.annotations.BeforeClass;
  */
 public abstract class StructrGraphQLTest extends StructrRestTestBase {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		final long timestamp = System.nanoTime();
 
@@ -44,7 +47,7 @@ public abstract class StructrGraphQLTest extends StructrRestTestBase {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
 
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

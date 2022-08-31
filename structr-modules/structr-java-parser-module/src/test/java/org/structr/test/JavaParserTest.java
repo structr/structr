@@ -26,6 +26,8 @@ import org.structr.api.config.Settings;
 import org.structr.javaparser.JavaParserModule;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -40,13 +42,14 @@ public class JavaParserTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(JavaParserTest.class.getName());
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService");
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 	}
 
 	@Test

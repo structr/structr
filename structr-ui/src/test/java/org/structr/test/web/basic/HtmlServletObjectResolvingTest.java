@@ -35,6 +35,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
@@ -48,14 +50,15 @@ import java.util.List;
  */
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		// important: these settings must be made before HttpService is initialized..
 		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 	}
 
 	@Test

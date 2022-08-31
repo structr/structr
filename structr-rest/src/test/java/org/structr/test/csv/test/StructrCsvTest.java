@@ -28,6 +28,8 @@ import org.structr.core.auth.SuperUserAuthenticator;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 /**
  * Base class CSV tests
@@ -38,9 +40,10 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 	protected static final String csvUrl = "/structr/csv";
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		final long timestamp = System.nanoTime();
 
@@ -48,7 +51,7 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService");
 
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);

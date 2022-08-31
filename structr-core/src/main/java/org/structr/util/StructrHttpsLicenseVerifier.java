@@ -116,59 +116,73 @@ public class StructrHttpsLicenseVerifier {
 			final HttpContext context = server.createContext("/", new HttpHandler() {
 
 				@Override
-				public void handle(HttpExchange exchange) throws IOException {
+				public void handle(final HttpExchange exchange) throws IOException {
 
 					try {
 
+						final String method = exchange.getRequestMethod();
 
-						final InputStream is = exchange.getRequestBody();
-						final int bufSize    = 4096;
+						// support HEAD and GET requests to check health
+						if ("get".equalsIgnoreCase(method) || "head".equalsIgnoreCase(method)) {
 
-						// decrypt AES stream key using RSA block cipher
-						final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
-						final byte[] ivSpec     = blockCipher.doFinal(IOUtils.readFully(is, 256));
-						final byte[] buf        = new byte[bufSize];
-						int count               = 0;
+							exchange.sendResponseHeaders(200, 0);
 
-						// initialize cipher using stream key
-						streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
+						} else if ("post".equalsIgnoreCase(method)) {
 
-						// we want to be able to control the number of bytes AND the timeout
-						// of the underlying socket, so that we read the available amount of
-						// data until the socket times out or we have read all the data.
-						try {
+							final InputStream is = exchange.getRequestBody();
+							final int bufSize    = 4096;
 
-							count = is.read(buf, 0, bufSize);
+							// decrypt AES stream key using RSA block cipher
+							final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
+							final byte[] ivSpec     = blockCipher.doFinal(IOUtils.readFully(is, 256));
+							final byte[] buf        = new byte[bufSize];
+							int count               = 0;
 
-						} catch (IOException ioex) { }
+							// initialize cipher using stream key
+							streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
 
-						final byte[] decrypted        = streamCipher.doFinal(buf, 0, count);
-						final String data             = new String(decrypted, "utf-8");
+							// we want to be able to control the number of bytes AND the timeout
+							// of the underlying socket, so that we read the available amount of
+							// data until the socket times out or we have read all the data.
+							try {
 
-						// transform decrypted data into a Map<String, String>
-						final List<Pair> pairs        = split(data).stream().map(StructrHttpsLicenseVerifier::keyValue).collect(Collectors.toList());
-						final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
+								count = is.read(buf, 0, bufSize);
 
-						// validate data against customer database
-						if (isValid(map)) {
+							} catch (IOException ioex) { }
 
-							// send signatur of name field back to client
-							final String name     = (String)map.get(StructrLicenseManager.NameKey);
-							final byte[] response = name.getBytes("utf-8");
+							final byte[] decrypted        = streamCipher.doFinal(buf, 0, count);
+							final String data             = new String(decrypted, "utf-8");
 
-							exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
-							exchange.sendResponseHeaders(200, 256);
+							// transform decrypted data into a Map<String, String>
+							final List<Pair> pairs        = split(data).stream().map(StructrHttpsLicenseVerifier::keyValue).collect(Collectors.toList());
+							final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-							// send response body
-							try (final OutputStream out = exchange.getResponseBody()) {
+							// validate data against customer database
+							if (isValid(map)) {
 
-								out.write(sign(response));
-								out.flush();
+								// send signatur of name field back to client
+								final String name     = (String)map.get(StructrLicenseManager.NameKey);
+								final byte[] response = name.getBytes("utf-8");
+
+								exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
+								exchange.sendResponseHeaders(200, 256);
+
+								// send response body
+								try (final OutputStream out = exchange.getResponseBody()) {
+
+									out.write(sign(response));
+									out.flush();
+								}
+
+							} else {
+
+								logger.info("License verification failed.");
 							}
 
 						} else {
 
-							logger.info("License verification failed.");
+							exchange.getResponseHeaders().add("Allow", "HEAD, GET, POST");
+							exchange.sendResponseHeaders(405, 0);
 						}
 
 					} catch (Throwable t) {

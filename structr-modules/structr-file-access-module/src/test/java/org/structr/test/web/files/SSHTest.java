@@ -144,10 +144,10 @@ public abstract class SSHTest extends StructrFileTestBase {
 
 			session.setConfig("StrictHostKeyChecking", "no");
 			session.setPassword(password);
-			session.connect(1000);
+			session.connect(5000);
 
 			final Channel channel = session.openChannel("sftp");
-			channel.connect(1000);
+			channel.connect(5000);
 
 			return (ChannelSftp)channel;
 

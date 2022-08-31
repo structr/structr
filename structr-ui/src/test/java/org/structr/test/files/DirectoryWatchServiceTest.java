@@ -40,6 +40,8 @@ import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.io.*;
@@ -56,13 +58,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(DirectoryWatchServiceTest.class.getName());
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		Settings.Services.setValue("NodeService SchemaService HttpService DirectoryWatchService");
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 	}
 
 	@Test

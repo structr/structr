@@ -4360,6 +4360,9 @@ table.props td.__value {
 	transition: all	.1s ease-in-out;
 }
 
+.schema-props td label.caching-enabled-label {
+	min-width: initial;
+}
 
 /**
  * Design tools
@@ -4475,6 +4478,9 @@ table.props td.__value {
 }
 .m-2 {
 	margin: .5rem;
+}
+.mr-0 {
+	margin-right: 0;
 }
 .mr-1 {
 	margin-right: .25rem;
@@ -4592,6 +4598,15 @@ table.props td.__value {
 }
 .pl-2 {
 	padding-left: .5rem;
+}
+.pr-2 {
+	padding-right: .5rem;
+}
+.pr-4 {
+	padding-right: 1rem;
+}
+.pr-6 {
+	padding-right: 1.5rem;
 }
 .pb-2 {
 	padding-bottom: .5rem;

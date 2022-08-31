@@ -31,6 +31,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestTwo;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -41,11 +43,12 @@ import static org.testng.AssertJUnit.fail;
  */
 public class PropertyViewRestTest extends StructrRestTestBase {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 
 		// modify default date format
 		Settings.DefaultDateFormat.setValue("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");

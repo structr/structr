@@ -266,15 +266,6 @@ let _Files = {
 					});
 				}
 
-			} else if (fileCount === 1 && _Files.isMinificationTarget(entity)) {
-				elements.push({
-					name: 'Edit Minification',
-					clickHandler: function () {
-						_Minification.showMinificationDialog(entity);
-						return false;
-					}
-				});
-
 			} else {
 				elements.push({
 					icon: _Icons.getSvgIcon('pencil_edit'),
@@ -1296,7 +1287,7 @@ let _Files = {
 		if (_Files.selectedElements && _Files.selectedElements.length > 1 && parent.hasClass('selected')) {
 			for (let el of _Files.selectedElements) {
 				let modelObj = StructrModel.obj(Structr.getId(el));
-				if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
+				if (modelObj && modelObj.isFolder !== true) {
 					filteredFileIds.push(modelObj.id);
 				}
 			}
@@ -1305,7 +1296,7 @@ let _Files = {
 			if (!modelObj) {
 				modelObj = StructrModel.create(file);
 			}
-			if (modelObj && !_Files.isMinificationTarget(modelObj) && modelObj.isFolder !== true) {
+			if (modelObj && modelObj.isFolder !== true) {
 				filteredFileIds.push(file.id);
 			}
 		}
@@ -1711,10 +1702,6 @@ let _Files = {
 
 		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
 	},
-	isMinificationTarget: function(file) {
-		let minifyTypes = [ 'MinifiedCssFile', 'MinifiedJavaScriptFile' ];
-		return isIn(file.type, minifyTypes);
-	},
 	openMountDialog: function() {
 
 		_Schema.getTypeInfo('Folder', function(typeInfo) {
@@ -1773,8 +1760,7 @@ let _Files = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/files.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
-			
-			
+
 			<div class="tree-main" id="files-main">
 			
 				<div class="column-resizer"></div>
