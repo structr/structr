@@ -124,12 +124,15 @@ let _Dialogs = {
 
 				let child = entity.children[0];
 
+				let populateDialog = (child) => {
+					_Dialogs.populateInputFields($(textContentContainer), child);
+					_Dialogs.registerDeferredSimpleInputChangeHandlers($(textContentContainer), child, true);
+				};
+
 				if (!child.content) {
-					Command.get(child.id, 'id,type,content', (loadedChild) => {
-						textArea.value = loadedChild.content;
-					});
+					Command.get(child.id, 'id,type,content', populateDialog);
 				} else {
-					textArea.value = child.content;
+					populateDialog(child);
 				}
 			}
 		}
@@ -179,24 +182,33 @@ let _Dialogs = {
 
 		return el.value;
 	},
-	registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull) => {
+	registerDeferredSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull) => {
+
+		_Dialogs.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
+	},
+	registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
 
 		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
-			inputEl.addEventListener('change', () => {
+			let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
 
-				let key      = inputEl.name;
-				let oldVal   = entity[key];
-				let newVal   = _Dialogs.getValueFromFormElement(inputEl);
-				let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+			if (shouldDeferChangeHandler !== 'true' || (shouldDeferChangeHandler === 'true' && isDeferredChangeHandler === true) ) {
 
-				if (isChange) {
+				inputEl.addEventListener('change', () => {
 
-					let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+					let key      = inputEl.name;
+					let oldVal   = entity[key];
+					let newVal   = _Dialogs.getValueFromFormElement(inputEl);
+					let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
 
-					_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
-				}
-			});
+					if (isChange) {
+
+						let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+						_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+					}
+				});
+			}
 		}
 	},
 	populateInputFields: (el, entity) => {
@@ -578,7 +590,7 @@ let _Dialogs = {
 		contentPartial: config => `
 			<div id="child-content-editor" class="option-tile col-span-2 hidden">
 				<label class="block mb-2" for="content-input">Text Content</label>
-				<textarea id="content-input" name="content"></textarea>
+				<textarea id="content-input" name="content" data-defer-change-handler="true"></textarea>
 			</div>
 		`,
 		customPropertiesPartial: config => `
@@ -970,7 +982,7 @@ let _Dialogs = {
 			</div>
 		`,
 		showHideConditionTemplates: config => `
-			<option value="" disabled selected>Select...</option>
+			<option value="" disabled selected>Example ${config.type} conditions...</option>
 			<option value="">(none)</option>
 			<option>true</option>
 			<option>false</option>
@@ -984,7 +996,7 @@ let _Dialogs = {
 				<div class="flex">
 					<input id="show-conditions" type="text" name="showConditions">
 					<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Dialogs.templates.showHideConditionTemplates()}
+						${_Dialogs.templates.showHideConditionTemplates({ type: 'show' })}
 					</select>
 				</div>
 			</div>
@@ -994,7 +1006,7 @@ let _Dialogs = {
 				<div class="flex">
 					<input id="hide-conditions" type="text" name="hideConditions">
 					<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Dialogs.templates.showHideConditionTemplates()}
+						${_Dialogs.templates.showHideConditionTemplates({ type: 'hide' })}
 					</select>
 				</div>
 			</div>

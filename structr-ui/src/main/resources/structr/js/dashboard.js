@@ -25,11 +25,6 @@ let _Dashboard = {
 	dashboard: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + location.port,
 
-	showScriptingErrorPopupsKey:         'showScriptinErrorPopups' + location.port,
-	showVisibilityFlagsInGrantsTableKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
-	favorEditorForContentElementsKey:    'favorEditorForContentElements' + location.port,
-	favorHTMLForDOMNodesKey:             'favorHTMLForDOMNodes' + location.port,
-
 	init: () => {},
 	unload: () => {
 		_Dashboard.tabs['server-log'].stop();
@@ -409,6 +404,7 @@ let _Dashboard = {
 
 					for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
+						let topOffset       = 0;
 						let typesSelectElem = $(typesSelectElemSelector);
 
 						$('.custom-types', typesSelectElem).append(customTypes.map((type) => '<option>' + type.name + '</option>').join(''));
@@ -417,10 +413,16 @@ let _Dashboard = {
 						typesSelectElem.chosen({
 							search_contains: true,
 							width: 'calc(100% - 2rem)',
-							display_selected_options: false,
 							hide_results_on_select: false,
+							display_selected_options: false,
 							display_disabled_options: false
-						}).chosenSortable();
+						}).on('chosen:showing_dropdown', (e) => {
+							$('.chosen-results').on('scroll', (e) => {
+								topOffset = $('.chosen-results').scrollTop();
+							});
+						}).on('change', (e) => {
+							$('.chosen-results').scrollTop(topOffset);
+						});
 					}
 				});
 			},

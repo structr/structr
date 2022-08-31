@@ -12,7 +12,7 @@
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>4.2-SNAPSHOT</version>
+	<version>4.3-SNAPSHOT</version>
 
 	<url>https://structr.com</url>
 
@@ -57,7 +57,7 @@
 		<structr.lib.directory>${structr.root.directory}/structr-ui/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
-		<test.forkCount>3</test.forkCount>
+		<test.forkCount>4</test.forkCount>
 	</properties>
 
 	<modules>

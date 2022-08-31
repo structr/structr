@@ -23,6 +23,8 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import java.util.LinkedList;
 import java.util.List;
 import org.hamcrest.Matchers;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -47,14 +49,15 @@ import org.w3c.dom.Text;
  */
 public class HtmlServletObjectResolvingTest extends StructrUiTest {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		// important: these settings must be made before HttpService is initialized..
 		Settings.HtmlResolveProperties.setValue("TestOne.anInt, TestOne.aString, TestOne.aDouble");
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 	}
 
 	@Test

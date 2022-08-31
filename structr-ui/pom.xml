@@ -7,14 +7,14 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>4.2-SNAPSHOT</version>
+		<version>4.3-SNAPSHOT</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
 	<packaging>jar</packaging>
-	<version>4.2-SNAPSHOT</version>
+	<version>4.3-SNAPSHOT</version>
 
 	<properties>
 		<imageio.version>3.8.0</imageio.version>

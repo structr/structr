@@ -21,18 +21,21 @@ package org.structr.test.ldap;
 import org.structr.api.config.Settings;
 import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 /**
  */
 public class TestLDAPClient extends StructrUiTest {
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 
 		Settings.Services.setValue("NodeService LogService SchemaService HttpService AgentService LDAPService");
 
-		super.setup();
+		super.setup(testDatabaseConnection);
 	}
 
 	/* this test cannot run without an Active Directory server

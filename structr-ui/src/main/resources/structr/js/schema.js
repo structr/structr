@@ -150,7 +150,7 @@ let _Schema = {
 		_Schema.showJavaMethods       = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 		Structr.functionBar.innerHTML = _Schema.templates.functions();
 
-		UISettings.showSettingsForCurrentModule();
+		//UISettings.showSettingsForCurrentModule();
 
 		_Schema.activateDisplayDropdownTools();
 		_Schema.activateSnapshotsDialog();
@@ -432,16 +432,31 @@ let _Schema = {
 
 	},
 	bulkDialogsGeneral: {
+		closeWithoutSavingChangesQuestionOpen: false,
 		overrideDialogCancel: (mainTabs, additionalCallback) => {
+
 			dialogCancelButton.off('click').on('click', async () => {
 
-				let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?"));
+				if (_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen === false) {
 
-				if (okToNavigate) {
-					Structr.dialogCancelBaseAction();
+					let allowNavigation = true;
+					let hasChanges      = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs);
 
-					if (additionalCallback) {
-						additionalCallback();
+					if (hasChanges) {
+
+						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
+						allowNavigation = await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?")
+					}
+
+					_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
+
+					if (allowNavigation) {
+
+						Structr.dialogCancelBaseAction();
+
+						if (additionalCallback) {
+							additionalCallback();
+						}
 					}
 				}
 			});
@@ -1920,11 +1935,13 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (el, entity, overrides, optionalAfterSaveCallback) => {
 
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+
 			let tableConfig = {
 				class: 'local schema-props',
 				cols: [
 					{ class: '', title: 'JSON Name' },
-					{ class: '', title: 'DB Name' },
+					{ class: dbNameClass, title: 'DB Name' },
 					{ class: '', title: 'Type' },
 					{ class: '', title: 'Format/Code' },
 					{ class: '', title: 'Notnull' },
@@ -1949,7 +1966,7 @@ let _Schema = {
 
 			for (let prop of entity.schemaProperties) {
 
-				let row = $(_Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions }));
+				let row = $(_Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions, dbNameClass: dbNameClass }));
 				tbody.append(row);
 
 				_Schema.properties.setAttributesInRow(prop, row);
@@ -1971,7 +1988,7 @@ let _Schema = {
 
 			el[0].querySelector('button.add-button').addEventListener('click', () => {
 
-				let newPropertyHtml = _Schema.templates.propertyNew({ typeOptions: typeOptions });
+				let newPropertyHtml = _Schema.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass });
 				let tr = $(newPropertyHtml);
 				tbody.append(tr);
 
@@ -5518,7 +5535,7 @@ let _Schema = {
 		propertyLocal: config => `
 			<tr data-property-id="${config.property.id}" >
 				<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
-				<td><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
+				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
 				<td>${config.typeOptions}</td>
 				<td>
 					${
@@ -5526,10 +5543,13 @@ let _Schema = {
 							switch (config.property.propertyType) {
 								case 'Function':
 									return `
-										<button class="edit-read-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
-										<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
-										<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
-										<label for="checkbox-${config.property.id}">Cache</label>${config.typeHintOptions}
+										<div class="flex items-center">
+											<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
+											<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
+											<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+											<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
+											${config.typeHintOptions}
+										</div>
 									`;
 								case 'Cypher':
 									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
@@ -5553,7 +5573,7 @@ let _Schema = {
 		propertyNew: config => `
 			<tr class="has-changes">
 				<td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>
-				<td><input size="15" type="text" class="property-dbname" placeholder="Enter DB name"></td>
+				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" placeholder="Enter DB Name"></td>
 				<td>${config.typeOptions}</td>
 				<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>
 				<td class="centered"><input class="not-null" type="checkbox"></td>
@@ -5657,7 +5677,7 @@ let _Schema = {
 			</table>
 		`,
 		typeHintOptions: config => `
-			<select class="type-hint hover:bg-gray-100 focus:border-gray-666 active:border-green">
+			<select class="type-hint pr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<optgroup label="Type Hint">
 					<option value="null">-</option>
 					<option value="boolean">Boolean</option>
@@ -5670,7 +5690,7 @@ let _Schema = {
 			</select>
 		`,
 		typeOptions: config => `
-			<select class="property-type hover:bg-gray-100 focus:border-gray-666 active:border-green">
+			<select class="property-type pr-6 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<option value="">--Select--</option>
 				<option value="String">String</option>
 				<option value="Encrypted">Encrypted</option>

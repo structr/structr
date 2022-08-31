@@ -1,0 +1,95 @@
+name: Structr CI Pipeline
+on: 
+  push
+
+jobs:
+  run-tests:
+    runs-on: self-hosted    
+    environment: build-and-test
+    strategy:
+      matrix:
+        include:
+          - module: structr-ui
+            variableName: UI
+          - module: structr-core
+            variableName: CORE
+          - module: structr-rest
+            variableName: REST
+          - module: structr-db-driver-api
+            variableName: DB_DRIVER_API
+          - module: structr-memgraph-driver
+            variableName: MEMGRAPH_DRIVER
+          - module: structr-memory-driver
+            variableName: MEMORY_DRIVER
+          - module: structr-modules
+            variableName: MODULES
+          - module: structr-neo4j-bolt-driver
+            variableName: NEO4J_BOLT_DRIVER
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Start Test Datenbase
+        run: >-
+          docker run -d --name ${{ matrix.module }}-test-${{ github.run_id }} 
+          -p 7687 
+          -e NEO4J_AUTH=neo4j/admin 
+          -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
+          -e NEO4J_dbms_memory_heap_maxSize=4G 
+          -e NEO4J_dbms_memory_pagecache_size=4G neo4j:4.4 && 
+          echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-test-${{ github.run_id }})" >> $GITHUB_ENV
+      
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '11'
+          components: 'js,python'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compile and run Tests
+        run:  >-
+          mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
+          cd ${{ matrix.module }} && 
+          mvn clean install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_${{ github.run_id }}}"
+
+      - name: Stop Test Database
+        if: always()
+        run:  docker stop ${{ matrix.module }}-test-${{ github.run_id }}
+
+  build-and-deploy:
+    runs-on: self-hosted   
+    environment: build-and-test
+    if: ${{ success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/release') }}
+    needs: run-tests
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: structr
+          password: ${{ secrets.STRUCTR_DOCKER_PASSWORD }} 
+
+      - name: Install GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '22.2.0'
+          java-version: '11'
+          components: 'js,python'
+          github-token: ${{ secrets.GITHUB_TOKEN }}    
+
+      - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
+      - name: Upload binaries
+        run: >-
+          scp -v structr-binaries/target/structr-*.deb structr.com:/files/repositories/upload > /dev/null 2>&1 &&
+          scp -v structr-binaries/target/structr-*-dist.zip structr.com:/files/repositories/upload >/dev/null 2>&1
+  
+  cleanup-system:
+    runs-on: self-hosted
+    if: always()
+    needs: [run-tests, build-and-deploy]
+    steps:
+      - name: Prune docker containers
+        run: docker container prune -f

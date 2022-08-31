@@ -1,4 +1,4 @@
-[![Build Status](http://ci.structr.org:59398/job/Structr/badge/icon)](http://ci.structr.org:59398/job/Structr)
+[![Structr CI Pipeline](https://github.com/structr/structr/actions/workflows/main.yaml/badge.svg)](https://github.com/structr/structr/actions/workflows/main.yaml)
 [![Hits-of-Code](https://hitsofcode.com/github/structr/structr)](https://hitsofcode.com/view/github/structr/structr)
 ![Docker Pulls](https://img.shields.io/docker/pulls/structr/structr)
 

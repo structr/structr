@@ -20,7 +20,6 @@ package org.structr.schema.export;
 
 import java.util.Map;
 
-import org.python.netty.handler.codec.serialization.ObjectEncoder;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;

@@ -46,3 +46,6 @@ neo4j*/
 *.pem
 *.p12
 *license.key*
+
+# actions
+**/*.secrets

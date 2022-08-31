@@ -51,6 +51,7 @@ public class IndexManagementTest extends StructrTest {
 
 	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("sourceId", "targetId", "test", "lastModifiedDate", "visibleToAuthenticatedUsers", "relType", "visibleToPublicUsers", "internalTimestamp", "type", "createdDate", "id");
 	private static final int INDEX_CREATION_WAIT_TIME                = 60000;
+	private static final int INDEX_DELETION_WAIT_TIME                = 180000;
 
 	@Test
 	public void testIndexCreationAndRemovalForNodePropertyWithIndexedFlag() {
@@ -165,7 +166,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {
@@ -317,7 +318,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {
@@ -466,7 +467,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {
@@ -603,7 +604,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {
@@ -728,7 +729,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {
@@ -845,7 +846,7 @@ public class IndexManagementTest extends StructrTest {
 				}
 
 				// wait for index to be updated
-				try { Thread.sleep(INDEX_CREATION_WAIT_TIME); } catch (Throwable t) {}
+				try { Thread.sleep(INDEX_DELETION_WAIT_TIME); } catch (Throwable t) {}
 
 				// check that index doesn't exist any more
 				try (final Tx tx = app.tx()) {

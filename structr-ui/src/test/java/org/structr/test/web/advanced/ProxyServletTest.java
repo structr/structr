@@ -37,6 +37,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
 import java.nio.charset.Charset;
@@ -50,14 +52,15 @@ public class ProxyServletTest extends StructrUiTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(ProxyServletTest.class);
 
+	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	@Override
-	public void setup() {
+	public void setup(@Optional String testDatabaseConnection) {
 		final long timestamp = System.currentTimeMillis();
 
 		basePath = "/tmp/structr-test-" + timestamp + System.nanoTime();
 
-		setupDatabaseConnection();
+		setupDatabaseConnection(testDatabaseConnection);
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
