@@ -1152,36 +1152,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			putData(config, "height",                  image.getHeight());
 		}
 
-		if (abstractFile instanceof AbstractMinifiedFile) {
-
-			if (abstractFile instanceof MinifiedCssFile) {
-
-				final MinifiedCssFile mcf = (MinifiedCssFile)abstractFile;
-
-				putData(config, "lineBreak", mcf.getLineBreak());
-			}
-
-			if (abstractFile instanceof MinifiedJavaScriptFile) {
-
-				final MinifiedJavaScriptFile mjf = (MinifiedJavaScriptFile)abstractFile;
-
-				putData(config, "optimizationLevel", mjf.getOptimizationLevel());
-			}
-
-			final Class<Relation> relType                  = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-			final PropertyKey<Integer> positionKey         = StructrApp.key(relType, "position");
-			final Map<Integer, String> minificationSources = new TreeMap<>();
-
-			for(Relation minificationSourceRel : AbstractMinifiedFile.getSortedMinificationRelationships((AbstractMinifiedFile)abstractFile)) {
-
-				final File file = (File) minificationSourceRel.getTargetNode();
-
-				minificationSources.put(minificationSourceRel.getProperty(positionKey), file.getPath());
-			}
-
-			putData(config, "minificationSources", minificationSources);
-		}
-
 		// export all dynamic properties
 		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(abstractFile.getClass(), PropertyView.All)) {
 
@@ -1783,7 +1753,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 					Files.walkFileTree(files, fiv);
-					fiv.handleDeferredFiles();
 
 				} catch (IOException ioex) {
 					logger.warn("Exception while importing files", ioex);

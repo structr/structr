@@ -286,11 +286,6 @@
 			<version>1.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.javascript</groupId>
-			<artifactId>closure-compiler</artifactId>
-			<version>v20220601</version>
-		</dependency>
-		<dependency>
 			<groupId>net.openhft</groupId>
 			<artifactId>zero-allocation-hashing</artifactId>
 			<version>0.8</version>
@@ -338,6 +333,12 @@
 			<groupId>net.sourceforge.cssparser</groupId>
 			<artifactId>cssparser</artifactId>
 			<version>0.9.28</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>21.0</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	<build>

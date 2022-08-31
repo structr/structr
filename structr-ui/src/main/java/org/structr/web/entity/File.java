@@ -31,7 +31,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.Iterables;
 import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -44,7 +43,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
@@ -74,7 +72,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -115,7 +112,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("sha512");
 		type.addIntegerProperty("position").setIndexed(true);
 
-		type.addPropertyGetter("minificationTargets", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
 		type.addPropertyGetter("md5", String.class);
@@ -149,7 +145,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
 		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
 		type.overrideMethod("callOnUploadHandler",         false, File.class.getName() + ".callOnUploadHandler(this, arg0);");
-		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
 		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);");
@@ -239,8 +234,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}}
 
-	Iterable<AbstractMinifiedFile> getMinificationTargets();
-
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
 	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
@@ -257,7 +250,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	void notifyUploadCompletion();
 	void callOnUploadHandler(final SecurityContext ctx);
 	void increaseVersion() throws FrameworkException;
-	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
 
 	void setVersion(final int version) throws FrameworkException;
 	Integer getVersion();
@@ -303,8 +295,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
 			}
 		}
-
-		thisFile.triggerMinificationIfNeeded(modificationQueue);
 	}
 
 	static void onNodeDeletion(final File thisFile) {
@@ -423,42 +413,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		} else {
 
 			thisFile.setVersion(_version + 1);
-		}
-	}
-
-	static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		final List<AbstractMinifiedFile> targets = Iterables.toList(thisFile.getMinificationTargets());
-		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
-
-		if (!targets.isEmpty()) {
-
-			// only run minification if the file version changed
-			boolean versionChanged = false;
-			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
-
-				if (thisFile.getUuid().equals(modState.getUuid())) {
-
-					versionChanged = versionChanged ||
-							modState.getRemovedProperties().containsKey(versionKey) ||
-							modState.getModifiedProperties().containsKey(versionKey) ||
-							modState.getNewProperties().containsKey(versionKey);
-				}
-			}
-
-			if (versionChanged) {
-
-				for (AbstractMinifiedFile minifiedFile : targets) {
-
-					try {
-						minifiedFile.minify(thisFile.getSecurityContext());
-					} catch (IOException ex) {
-
-						final Logger logger = LoggerFactory.getLogger(File.class);
-						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
-					}
-				}
-			}
 		}
 	}
 

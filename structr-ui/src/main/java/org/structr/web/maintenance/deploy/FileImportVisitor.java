@@ -106,51 +106,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		return FileVisitResult.CONTINUE;
 	}
 
-	public void handleDeferredFiles() {
-
-		final Class<Relation> relType          = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-		final PropertyKey<Integer> positionKey = StructrApp.key(relType, "position");
-
-		if (!this.deferredFiles.isEmpty()) {
-
-			for (File file : this.deferredFiles) {
-
-				try (final Tx tx = app.tx(true, false, false)) {
-
-					tx.disableChangelog();
-
-					// set properties from files.json
-					final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(file.getPath());
-					final Map<String, String> sourcesConfig = (Map<String, String>)rawProperties.remove("minificationSources");
-					final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
-
-					file.unlockSystemPropertiesOnce();
-					file.setProperties(securityContext, fileProperties);
-
-					for (String positionString : sourcesConfig.keySet()) {
-
-						final Integer position    = Integer.parseInt(positionString);
-						final String sourcePath   = sourcesConfig.get(positionString);
-						final AbstractFile source = FileHelper.getFileByAbsolutePath(securityContext, sourcePath);
-
-						if (source != null) {
-
-							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, relType, new PropertyMap(positionKey, position));
-
-						} else {
-							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fxe) {
-
-				}
-			}
-		}
-	}
-
 	// ----- private methods -----
 	private Folder getExistingFolder(final String path) throws FrameworkException {
 

@@ -18,9 +18,9 @@
  */
 package org.structr.web.entity.dom;
 
+import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.javascript.jscomp.jarjar.com.google.common.base.CaseFormat;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -1216,6 +1216,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 
 							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
+
 							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
 
 							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
