@@ -90,7 +90,7 @@ public class TransactionCommand {
 					throw new DatabaseServiceNetworkException(503, nex.getMessage());
 				}
 
-				cmd.queue = new ModificationQueue();
+				cmd.queue = new ModificationQueue(cmd.transaction.getTransactionId(), Thread.currentThread().getName());
 				cmd.errorBuffer = new ErrorBuffer();
 
 				commands.set(cmd);
