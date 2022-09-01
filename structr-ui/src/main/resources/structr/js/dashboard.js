@@ -304,8 +304,9 @@ let _Dashboard = {
 			init: () => {
 
 				// App Import
-				let deploymentFileInput = document.getElementById('deployment-file-input');
-				let deploymentUrlInput  = document.getElementById('deployment-url-input');
+				let deploymentFileInput                = document.getElementById('deployment-file-input');
+				let deploymentUrlInput                 = document.getElementById('deployment-url-input');
+				let deploymentZipConentPathInput       = document.getElementById('deployment-zip-content');
 
 				deploymentFileInput.addEventListener('input', () => {
 					deploymentUrlInput.value = '';
@@ -320,8 +321,11 @@ let _Dashboard = {
 				});
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
+				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
+
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
-						_Dashboard.tabs['deployment'].deployFromZIPFileUpload(deploymentFileInput);
+
+						_Dashboard.tabs['deployment'].deployFromZIPFileUpload(deploymentFileInput, zipContentPath);
 					} else {
 
 						let downloadUrl = deploymentUrlInput.value;
@@ -329,7 +333,7 @@ let _Dashboard = {
 						if (!(downloadUrl && downloadUrl.length)) {
 							new MessageBuilder().title('Unable to start application import from URL').warning('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
 						} else {
-							_Dashboard.tabs['deployment'].deployFromZIPURL(downloadUrl);
+							_Dashboard.tabs['deployment'].deployFromZIPURL(downloadUrl, zipContentPath);
 						}
 					}
 				});
@@ -344,8 +348,9 @@ let _Dashboard = {
 				});
 
 				// Data Import
-				let dataDeploymentFileInput = document.getElementById('data-deployment-file-input');
-				let dataDeploymentUrlInput  = document.getElementById('data-deployment-url-input');
+				let dataDeploymentFileInput            = document.getElementById('data-deployment-file-input');
+				let dataDeploymentUrlInput             = document.getElementById('data-deployment-url-input');
+
 
 				dataDeploymentFileInput.addEventListener('input', () => {
 					dataDeploymentUrlInput.value = '';
@@ -368,6 +373,7 @@ let _Dashboard = {
 					} else {
 
 						let downloadUrl = dataDeploymentUrlInput.value;
+
 						if (!(downloadUrl && downloadUrl.length)) {
 
 							new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
@@ -505,10 +511,11 @@ let _Dashboard = {
 					window.location = Structr.deployRoot + '?mode=data&name=' + prefix + '&types=' + types;
 				}
 			},
-			deployFromZIPURL: async (downloadUrl) => {
+			deployFromZIPURL: async (downloadUrl, zipContentPath) => {
 
 				let formData = new FormData();
 				formData.append('redirectUrl', window.location.pathname);
+				formData.append('zipContentPath', zipContentPath);
 				formData.append('downloadUrl', downloadUrl);
 				formData.append('mode', 'app');
 
@@ -522,11 +529,12 @@ let _Dashboard = {
 					new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
-			deployDataFromZIPURL: async (downloadUrl) => {
+			deployDataFromZIPURL: async (downloadUrl, zipContentPath) => {
 
 				let formData = new FormData();
 				formData.append('redirectUrl', window.location.pathname);
 				formData.append('downloadUrl', downloadUrl);
+				formData.append('zipContentPath', zipContentPath);
 				formData.append('mode', 'data');
 
 				let response = await fetch(Structr.deployRoot, {
@@ -539,10 +547,11 @@ let _Dashboard = {
 					new MessageBuilder().title('Unable to import app from ZIP URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
-			deployFromZIPFileUpload: async (filesSelectField) => {
+			deployFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
 
 				let formData = new FormData();
 				formData.append('redirectUrl', window.location.pathname);
+				formData.append('zipContentPath', zipContentPath);
 				formData.append('mode', 'app');
 				formData.append('file', filesSelectField.files[0]);
 
@@ -556,10 +565,11 @@ let _Dashboard = {
 					new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
-			deployDataFromZIPFileUpload: async (filesSelectField) => {
+			deployDataFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
 
 				let formData = new FormData();
 				formData.append('file', filesSelectField.files[0]);
+				formData.append('zipContentPath', zipContentPath);
 				formData.append('redirectUrl', window.location.pathname);
 				formData.append('mode', 'data');
 
@@ -1035,6 +1045,7 @@ let _Dashboard = {
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeploymentServlet</code> is not running.</span>')}
 								<div>
 									<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+									<input type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the zip file. Leave blank for default" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
 									<input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}>
 									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
 								</div>
