@@ -794,8 +794,7 @@ let _Dashboard = {
 
 					for (let event of result.result) {
 
-						let tr        = document.createElement('tr');
-						let data      = event.data;
+						let data = event.data;
 
 						let row = Structr.createSingleDOMElementFromHTML(`
 							<tr>
@@ -847,6 +846,68 @@ let _Dashboard = {
 					}
 				}
 			},
+		},
+		'running-threads': {
+			onShow: async () => {
+				await _Dashboard.tabs['running-threads'].loadRunningThreads();
+			},
+			onHide: async () => {},
+			init: () => {
+
+				let container = document.querySelector('#dashboard-running-threads');
+
+				container.querySelector('#refresh-running-threads').addEventListener('click', _Dashboard.tabs['running-threads'].loadRunningThreads);
+			},
+			loadRunningThreads: async () => {
+
+				let tbody  = document.querySelector('#running-threads-container');
+
+				fastRemoveAllChildren(tbody);
+
+				let response  = await fetch(Structr.rootUrl + 'maintenance/manageThreads', {
+					method: 'POST',
+					body: JSON.stringify({ command: 'list' })
+				});
+
+				if (response.ok) {
+
+					let result = await response.json();
+
+					for (let thread of result.result) {
+
+						let row = Structr.createSingleDOMElementFromHTML(`
+							<tr>
+								<td>${thread.id}</td>
+								<td>${thread.name}</td>
+								<td>${thread.state}</td>
+								<td>${thread.deadlock}</td>
+								<td>${thread.cpuTime}</td>
+								<td>${thread.stack.join(' > ')}</td>
+								<td class="actions-cell"></td>
+							</tr>
+						`);
+
+						tbody.appendChild(row);
+
+						let actionsCell     = row.querySelector('.actions-cell');
+						let interruptButton = Structr.createSingleDOMElementFromHTML(`<button>Interrupt</button>`);
+						let killButton      = Structr.createSingleDOMElementFromHTML(`<button>Kill</button>`);
+
+						actionsCell.appendChild(interruptButton);
+						actionsCell.appendChild(killButton);
+
+						interruptButton.addEventListener('click', () => { _Dashboard.tabs['running-threads'].sendThreadCommand(thread.id, 'interrupt'); });
+						killButton.addEventListener('click', () => { _Dashboard.tabs['running-threads'].sendThreadCommand(thread.id, 'kill'); });
+					}
+				}
+			},
+			sendThreadCommand: async (id, cmd) => {
+
+				await fetch(Structr.rootUrl + 'maintenance/manageThreads', {
+					method: 'POST',
+					body: JSON.stringify({ command: cmd, id: id })
+				});
+			}
 		},
 		'ui-config': {
 			onShow: async () => {},
@@ -1218,6 +1279,34 @@ let _Dashboard = {
 						</table>
 					</div>
 
+					<div class="tab-content" id="dashboard-running-threads">
+
+						<div id="running-threads-options" class="flex items-center mb-4">
+
+							<button id="refresh-running-threads" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+							</button>
+
+						</div>
+
+						<table class="props">
+							<thead>
+								<tr>
+									<th class="text-left">ID</th>
+									<th class="text-left">Name</th>
+									<th class="text-left">State</th>
+									<th class="text-left">Deadlock detected</th>
+									<th class="text-left">CPU Time</th>
+									<th class="text-left">Stack</th>
+									<th class="text-left" style="width:160px;">Actions</th>
+								</tr>
+							</thead>
+							<tbody id="running-threads-container">
+
+							</tbody>
+						</table>
+					</div>
+
 				</div>
 
 			</div>
@@ -1241,6 +1330,9 @@ let _Dashboard = {
 				</li>
 				<li>
 					<a href="#dashboard:event-log">Event Log</a>
+				</li>
+				<li>
+					<a href="#dashboard:running-threads">Threads</a>
 				</li>
 				<li>
 					<a href="#dashboard:ui-config">UI Settings</a>

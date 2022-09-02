@@ -18,15 +18,17 @@
  */
 package org.structr.core.graph;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +92,9 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			case "list":
 				return listThreads();
 
+			case "interrupt":
+				return interruptThread();
+
 			case "kill":
 				return killThread();
 		}
@@ -102,12 +107,21 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 		final List<Map<String, Object>> threads = new LinkedList<>();
 		final ThreadMXBean bean                 = ManagementFactory.getThreadMXBean();
+		final Set<Long> deadlockedSet           = new LinkedHashSet<>();
+		final long[] deadlocked                 = bean.findDeadlockedThreads();
+
+		if (deadlocked != null) {
+
+			for (final long id : bean.findDeadlockedThreads()) {
+				deadlockedSet.add(id);
+			}
+		}
 
 		for (final Entry<Thread, StackTraceElement[]> entry : Thread.getAllStackTraces().entrySet()) {
 
-			final List<StackTraceElement> stack = filterForStructr(entry.getValue());
-			final Thread thread                 = entry.getKey();
-			final long id                       = thread.getId();
+			final List<String> stack = filterAndTransform(entry.getValue());
+			final Thread thread      = entry.getKey();
+			final long id            = thread.getId();
 
 			if (!stack.isEmpty()) {
 
@@ -117,26 +131,24 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 					"alive",    thread.isAlive(),
 					"state",    thread.getState().toString(),
 					"priority", thread.getPriority(),
-					"daemon",   thread.isDaemon(),
-					"cpuTime",  Double.valueOf(bean.getThreadCpuTime(id)) / 1000000.0,
-					"stack",    Arrays.asList(stack)
+					"cpuTime",  Double.valueOf(bean.getThreadCpuTime(id)) / 1_000_000_000.0,
+					"deadlock", deadlockedSet.contains(id),
+					"stack",    stack
 				));
 			}
 		}
 
 		// sort by id
 		Collections.sort(threads, (a, b) -> {
-		
+
 			final double id1 = (double)a.get("cpuTime");
 			final double id2 = (double)b.get("cpuTime");
 
-			return Double.compare(id1, id2);
+			// sort descending
+			return Double.compare(id2, id1);
 		});
 
-		return Map.of(
-			"threads",    threads,
-			"deadlocked", Arrays.asList(bean.findDeadlockedThreads())
-		);
+		return threads;
 	}
 
 	private Object killThread() {
@@ -149,7 +161,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 				thread.stop();
 			}
 		}
-		
+
 		return null;
 	}
 
@@ -159,26 +171,105 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 			if (thread.getId() == id) {
 
-				logger.info("Trying to kill thread {}..", id);
+				logger.info("Trying to interrupt thread {}..", id);
 				thread.interrupt();
 			}
 		}
-		
+
 		return null;
 	}
 
-	private List<StackTraceElement> filterForStructr(final StackTraceElement[] input) {
+	private List<String> filterAndTransform(final StackTraceElement[] input) {
 
-		final List<StackTraceElement> list = new LinkedList<>();
+		final List<String> list = new LinkedList<>();
 
 		for (final StackTraceElement e : input) {
 
-			//if (e.toString().contains("structr")) {
-			
-				list.add(e);
-			//}
+			final String transformed = transform(e);
+			if (transformed != null) {
+
+				list.add(0, transformed);
+			}
 		}
 
 		return list;
 	}
+
+	private String transform(final StackTraceElement stackTraceElement) {
+
+		final String className  = stackTraceElement.getClassName();
+		final String methodName = stackTraceElement.getMethodName();
+		final String key        = className + "." + methodName;
+
+		for (final Entry<Pattern, String> entry : RecognizedStackElements.entrySet()) {
+
+			final Pattern pattern    = entry.getKey();
+			final Matcher matcher    = pattern.matcher(key);
+			final String replacement = entry.getValue();
+
+			if (matcher.matches()) {
+
+				return matcher.replaceAll(replacement);
+			}
+		}
+
+		return null;
+	}
+
+	private static final Map<Pattern, String> RecognizedStackElements = Map.ofEntries(
+
+		// maintenance
+		Map.entry(Pattern.compile("org.structr.rest.resource.MaintenanceResource.doPost"),      "Execute Maintenance Command"),
+		Map.entry(Pattern.compile("org.structr.web.maintenance.DeployCommand.doImport"),        "Structr App Deployment Import"),
+		Map.entry(Pattern.compile("org.structr.web.maintenance.DeployCommand.importFiles"),     "Deployment Phase: Import Files"),
+		Map.entry(Pattern.compile("org.structr.web.maintenance.DeployCommand.importSchema"),    "Deployment Phase: Import Schema"),
+		Map.entry(Pattern.compile("org.structr.core.graph.ManageThreadsCommand.listThreads"),   "List Running Threads"),
+
+		// services
+		Map.entry(Pattern.compile("org.structr.cron.CronService\\$1.run"),                        "Cron Service"),
+
+		// schema
+		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).onCreation"),                "$1.onCreate"),
+		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).afterCreation"),             "$1.afterCreate"),
+		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).onModification"),            "$1.onSave"),
+		Map.entry(Pattern.compile("org.structr.dynamic.([A-Za-z]+).afterModification"),         "$1.afterSave"),
+		Map.entry(Pattern.compile("org.structr.core.entity.AbstractEndpoint.getSingle"),        "Get Relationship"),
+		Map.entry(Pattern.compile("org.structr.core.entity.AbstractEndpoint.getMultiple"),      "Get Relationships"),
+		Map.entry(Pattern.compile("org.structr.core.graph.CreateNodeCommand.execute"),          "Create Node"),
+		Map.entry(Pattern.compile("org.structr.core.graph.CreateRelationshipCommand.execute"),  "Create Relationship"),
+		Map.entry(Pattern.compile("org.structr.schema.SchemaService.reloadSchema"),             "Compile Dynamic Schema"),
+
+		// transactions
+		Map.entry(Pattern.compile("org.structr.core.graph.Tx.begin"),                           "Begin Transaction"),
+		Map.entry(Pattern.compile("org.structr.core.graph.Tx.success"),                         "Commit Transaction"),
+		Map.entry(Pattern.compile("org.structr.core.graph.Tx.close"),                           "Close Transaction"),
+
+		Map.entry(Pattern.compile("org.structr.core.graph.ModificationQueue.doInnerCallbacks"), "Transaction Phase: Callbacks Before Commit"),
+		Map.entry(Pattern.compile("org.structr.core.graph.ModificationQueue.doValidation"),     "Transaction Phase: Indexing"),
+		Map.entry(Pattern.compile("org.structr.core.graph.ModificationQueue.doPostProcessing"), "Transaction Phase: Callbacks After Commit"),
+
+
+		// HTML
+		Map.entry(Pattern.compile("org.structr.web.servlet.HtmlServlet.doGet"),                 "HTTP GET"),
+		Map.entry(Pattern.compile("org.structr.dynamic.Page.render"),                           "Render Page"),
+		Map.entry(Pattern.compile("org.structr.dynamic.Template.renderContent"),                "Render Template"),
+		Map.entry(Pattern.compile("org.structr.dynamic.DOMElement.renderContent"),              "Render Element"),
+		Map.entry(Pattern.compile("org.structr.dynamic.DOMNode.render"),                        "Render DOM Node"),
+
+		Map.entry(Pattern.compile("org.structr.core.script.Scripting.evaluateJavascript"),      "Run Javascript"),
+		Map.entry(Pattern.compile("org.structr.core.function.Functions.evaluate"),              "Run StructrScript"),
+
+		Map.entry(Pattern.compile("org.structr.web.function.([A-Za-z]+).apply"),                "Execute $1"),
+
+		// REST
+		Map.entry(Pattern.compile("org.structr.rest.serialization.StreamingWriter.stream"),     "Stream JSON"),
+
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doGet"),           "REST GET"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doPut"),           "REST PUT"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doPost"),          "REST POST"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doPatch"),         "REST PATCH"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doDelete"),        "REST DELETE"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doHead"),          "REST HEAD"),
+		Map.entry(Pattern.compile("org.structr.rest.servlet.JsonRestServlet.doOptions"),       "REST OPTIONS")
+	);
 }
