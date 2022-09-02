@@ -4,7 +4,7 @@ on:
 
 jobs:
   run-tests:
-    if: ${{ !startsWith( github.actor, 'dependabot/' ) }}
+    if: ${{ !startsWith( github.actor, 'dependabot' ) }}
     runs-on: self-hosted
     environment: build-and-test
     strategy:
