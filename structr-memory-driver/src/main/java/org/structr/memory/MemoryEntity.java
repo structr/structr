@@ -18,6 +18,11 @@
  */
 package org.structr.memory;
 
+import org.structr.api.NotFoundException;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.PropertyContainer;
+import org.structr.api.util.ChangeAwareMap;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -27,10 +32,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.locks.ReentrantLock;
-import org.structr.api.NotFoundException;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.api.util.ChangeAwareMap;
 
 /**
  */

@@ -18,10 +18,6 @@
  */
 package org.structr.files.ftp;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.List;
 import org.apache.ftpserver.ftplet.FtpFile;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +25,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.List;
 
 /**
  *
@@ -58,7 +60,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Long size = ((File) structrFile).getSize();
+			final Long size = FileUtils.getSize(((File) structrFile).getFileOnDisk());
 
 			tx.success();
 

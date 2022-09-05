@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
@@ -29,6 +26,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Comparator;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Wrapper representing a part of a search query. All parts of a search query

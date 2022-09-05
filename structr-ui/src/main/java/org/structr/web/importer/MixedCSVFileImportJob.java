@@ -18,16 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,6 +39,12 @@ import org.structr.module.StructrModule;
 import org.structr.module.api.APIBuilder;
 import org.structr.rest.common.CsvHelper;
 import org.structr.web.entity.File;
+
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.Map.Entry;
 
 public class MixedCSVFileImportJob extends FileImportJob {
 

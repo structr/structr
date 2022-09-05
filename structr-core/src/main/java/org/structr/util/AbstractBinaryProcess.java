@@ -18,13 +18,14 @@
  */
 package org.structr.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.concurrent.Callable;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
 
 /**
  *

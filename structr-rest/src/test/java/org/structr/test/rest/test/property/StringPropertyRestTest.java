@@ -21,11 +21,12 @@ package org.structr.test.rest.test.property;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.Matchers.*;
 import org.structr.api.DatabaseFeature;
 import org.structr.core.Services;
-import org.testng.annotations.Test;
 import org.structr.test.rest.common.IndexingTest;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
 
 /**
  *

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -29,6 +28,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.Map;
 
 /**
  * Insert a node as child of the given node.

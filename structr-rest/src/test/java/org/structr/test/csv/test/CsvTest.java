@@ -21,21 +21,20 @@ package org.structr.test.csv.test;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.internal.RestAssuredResponseImpl;
-import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
-import org.structr.test.rest.entity.TestOne;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.CsvServlet;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
+
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

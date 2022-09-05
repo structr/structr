@@ -18,6 +18,14 @@
  */
 package org.structr.memory;
 
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
+import org.structr.memory.index.filter.Filter;
+import org.structr.memory.index.filter.MemoryLabelFilter;
+import org.structr.memory.index.filter.MemoryTypeFilter;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,14 +35,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.util.Iterables;
-import static org.structr.memory.EntityRepository.STORAGE_FORMAT_VERSION;
-import org.structr.memory.index.filter.Filter;
-import org.structr.memory.index.filter.MemoryLabelFilter;
-import org.structr.memory.index.filter.MemoryTypeFilter;
 
 /**
  */

@@ -18,9 +18,6 @@
  */
 package org.structr.files.ssh.shell;
 
-import java.io.IOException;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +32,10 @@ import org.structr.files.ssh.StructrShellCommand;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+
+import java.io.IOException;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

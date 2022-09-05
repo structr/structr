@@ -19,13 +19,7 @@
 package org.structr.web.servlet;
 
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +36,11 @@ import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.resource.LoginResource;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.

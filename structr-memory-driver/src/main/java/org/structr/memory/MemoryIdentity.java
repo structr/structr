@@ -18,11 +18,12 @@
  */
 package org.structr.memory;
 
+import org.structr.api.graph.Identity;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.concurrent.atomic.AtomicLong;
-import org.structr.api.graph.Identity;
 
 /**
  */

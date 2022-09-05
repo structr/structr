@@ -19,7 +19,6 @@
 package org.structr.core.property;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -96,14 +95,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	Property<T> passivelyIndexed();
 
 	Property<T> indexedWhenEmpty();
-
-	/**
-	 * Use this method to indicate that a property key is accessible via
-	 * CMIS.
-	 *
-	 * @return the Property to satisfy the builder pattern
-	 */
-	Property<T> cmis();
 
 	/**
 	 * Returns the desired type name that will be used in the error message if a
@@ -361,10 +352,6 @@ public interface PropertyKey<T> extends Comparable<PropertyKey> {
 	PropertyKey<T> transformators(final String... transformators);
 
 	Comparator<GraphObject> sorted(final boolean descending);
-
-	// ----- CMIS support -----
-	PropertyType getDataType();
-	boolean isCMISProperty();
 
 	// ----- OpenAPI -----
 	Object getExampleValue(final String type, final String viewName);

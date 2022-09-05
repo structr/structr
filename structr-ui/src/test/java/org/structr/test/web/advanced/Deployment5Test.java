@@ -20,38 +20,30 @@ package org.structr.test.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.function.Function;
 import org.hamcrest.Matchers;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.Option;
-import org.structr.web.entity.html.Select;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
-
+import org.structr.web.entity.html.*;
 import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
+
+import java.lang.Object;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.function.Function;
+
+import static org.testng.AssertJUnit.assertTrue;
+import static org.testng.AssertJUnit.fail;
 
 public class Deployment5Test extends DeploymentTestBase {
 

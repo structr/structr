@@ -18,9 +18,10 @@
  */
 package org.structr.common;
 
-import java.util.Map;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Map;
 
 /**
  *

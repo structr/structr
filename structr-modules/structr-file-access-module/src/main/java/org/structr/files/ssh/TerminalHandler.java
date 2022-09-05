@@ -18,9 +18,10 @@
  */
 package org.structr.files.ssh;
 
+import org.structr.web.entity.User;
+
 import java.io.IOException;
 import java.util.List;
-import org.structr.web.entity.User;
 
 /**
  *

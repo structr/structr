@@ -18,22 +18,6 @@
  */
 package org.structr.schema.importer;
 
-import java.io.File;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -51,17 +35,19 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
-import static org.structr.core.entity.SchemaNode.schemaNodeNamePattern;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.BulkGraphOperation;
-import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.ConfigurationProvider;
+
+import java.io.File;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
+
+import static org.structr.core.entity.SchemaNode.schemaNodeNamePattern;
 
 public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCommand {
 

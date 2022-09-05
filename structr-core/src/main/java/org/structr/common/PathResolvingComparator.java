@@ -18,7 +18,6 @@
  */
 package org.structr.common;
 
-import java.util.Comparator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -28,6 +27,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Comparator;
 
 /**
  * A comparator for structr entities that uses a dot-notation path

@@ -19,7 +19,6 @@
 package org.structr.flow.api;
 
 import org.structr.common.SecurityContext;
-import org.structr.core.graph.Tx;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.FlowNode;

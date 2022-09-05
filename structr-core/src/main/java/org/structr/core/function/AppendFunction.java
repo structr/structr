@@ -18,14 +18,11 @@
  */
 package org.structr.core.function;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.io.*;
 
 public class AppendFunction extends AdvancedScriptingFunction {
 

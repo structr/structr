@@ -18,11 +18,12 @@
  */
 package org.structr.core.function;
 
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.ActionContext;
+
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.Set;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
 
 public class MergeUniqueFunction extends CoreFunction {
 

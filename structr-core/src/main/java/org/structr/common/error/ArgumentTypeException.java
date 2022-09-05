@@ -18,10 +18,11 @@
  */
 package org.structr.common.error;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
-import org.apache.commons.lang3.StringUtils;
 
 
 public class ArgumentTypeException extends IllegalArgumentException {

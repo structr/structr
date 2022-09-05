@@ -18,15 +18,16 @@
  */
 package org.structr.common;
 
+import org.structr.api.config.Settings;
+import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
+import org.structr.module.StructrModule;
+
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.api.config.Settings;
-import org.structr.core.Services;
-import org.structr.core.app.StructrApp;
-import org.structr.module.StructrModule;
 
 /**
  * Helper class to gather and provide information about the running Structr version.

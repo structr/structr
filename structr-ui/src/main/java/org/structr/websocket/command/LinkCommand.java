@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.LinkSource;
 import org.structr.web.entity.Linkable;

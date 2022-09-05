@@ -19,12 +19,13 @@
 package org.structr.core.function;
 
 import com.mongodb.BasicDBObject;
-import java.util.Map;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Map;
 
 public class BsonFunction extends AdvancedScriptingFunction {
 

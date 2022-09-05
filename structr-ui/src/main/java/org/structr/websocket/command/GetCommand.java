@@ -18,12 +18,13 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.Arrays;
 
 /**
  * Websocket command to retrieve a single graph object by id.

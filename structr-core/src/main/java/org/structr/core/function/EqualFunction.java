@@ -18,10 +18,11 @@
  */
 package org.structr.core.function;
 
-import java.util.Arrays;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  *

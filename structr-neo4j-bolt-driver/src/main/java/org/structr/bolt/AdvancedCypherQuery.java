@@ -18,12 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
@@ -35,6 +29,8 @@ import org.structr.api.search.SortSpec;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.QueryHistogram;
 import org.structr.api.util.QueryTimer;
+
+import java.util.*;
 
 /**
  *

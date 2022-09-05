@@ -18,12 +18,13 @@
  */
 package org.structr.test.core.script;
 
-import org.testng.annotations.Test;
-import org.structr.test.common.LicensingTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.test.common.LicensingTest;
+import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

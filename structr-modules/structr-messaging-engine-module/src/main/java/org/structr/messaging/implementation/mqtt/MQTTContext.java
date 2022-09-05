@@ -18,9 +18,7 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.cxf.common.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +30,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public abstract class MQTTContext {
 

@@ -18,11 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.TreeMap;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +36,10 @@ import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.CreationContainer;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.Transformer;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 
 /**

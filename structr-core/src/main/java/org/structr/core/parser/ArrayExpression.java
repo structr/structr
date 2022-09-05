@@ -18,8 +18,6 @@
  */
 package org.structr.core.parser;
 
-import java.util.Collection;
-import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
@@ -29,6 +27,9 @@ import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+
+import java.util.Collection;
+import java.util.stream.Collectors;
 
 /**
  *

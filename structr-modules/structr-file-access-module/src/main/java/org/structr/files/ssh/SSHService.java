@@ -18,16 +18,6 @@
  */
 package org.structr.files.ssh;
 
-import java.io.IOException;
-import java.nio.file.CopyOption;
-import java.nio.file.FileSystem;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.PublicKey;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sshd.common.Factory;
 import org.apache.sshd.common.NamedFactory;
@@ -43,21 +33,11 @@ import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.subsystem.sftp.DirectoryHandle;
-import org.apache.sshd.server.subsystem.sftp.FileHandle;
-import org.apache.sshd.server.subsystem.sftp.Handle;
-import org.apache.sshd.server.subsystem.sftp.SftpEventListener;
-import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
+import org.apache.sshd.server.subsystem.sftp.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.SingletonService;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -70,6 +50,17 @@ import org.structr.core.graph.Tx;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
+
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.FileSystem;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.PublicKey;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  *

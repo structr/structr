@@ -19,15 +19,12 @@
 package org.structr.websocket.message;
 
 import com.google.gson.JsonElement;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.BooleanUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+
+import java.util.*;
 
 /**
  *

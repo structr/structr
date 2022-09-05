@@ -18,16 +18,6 @@
  */
 package org.structr.schema.compiler;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.tools.Diagnostic;
-import javax.tools.Diagnostic.Kind;
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.ToolProvider;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +32,13 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
+
+import javax.tools.*;
+import javax.tools.Diagnostic.Kind;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 

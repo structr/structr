@@ -20,7 +20,6 @@ package org.structr.test.rest.entity;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import static org.structr.core.GraphObject.id;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
 import org.structr.core.property.EndNode;

@@ -18,6 +18,24 @@
  */
 package org.structr.test.schema;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.ErrorToken;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.*;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.EnumProperty;
+import org.structr.core.property.PropertyKey;
+import org.structr.core.property.StringProperty;
+import org.structr.test.common.StructrTest;
+import org.structr.test.core.entity.TestOne;
+import org.structr.test.core.entity.TestTwelve;
+import org.testng.annotations.Test;
+
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -25,31 +43,8 @@ import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import org.testng.annotations.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.test.common.StructrTest;
-import org.structr.common.error.ErrorToken;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestTwelve;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

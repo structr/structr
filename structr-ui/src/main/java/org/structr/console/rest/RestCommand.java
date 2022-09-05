@@ -21,16 +21,17 @@ package org.structr.console.rest;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.http.ContentType;
 import com.jayway.restassured.specification.RequestSpecification;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.schema.action.ActionContext;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeMap;
 
 /**
  *

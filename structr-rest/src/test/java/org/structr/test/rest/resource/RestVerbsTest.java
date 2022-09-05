@@ -21,20 +21,22 @@ package org.structr.test.rest.resource;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.specification.ResponseSpecification;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestOne;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *

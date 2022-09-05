@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -30,6 +28,9 @@ import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *

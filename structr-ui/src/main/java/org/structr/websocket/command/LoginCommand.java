@@ -18,10 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.io.UnsupportedEncodingException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.auth.exception.AuthenticationException;
-import org.structr.core.auth.exception.PasswordChangeRequiredException;
-import org.structr.core.auth.exception.TooManyFailedLoginAttemptsException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationFailedException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationRequiredException;
-import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidException;
+import org.structr.core.auth.exception.*;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
@@ -48,6 +39,11 @@ import org.structr.web.function.BarcodeFunction;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.UnsupportedEncodingException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
 
 public class LoginCommand extends AbstractCommand {
 

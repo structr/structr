@@ -28,21 +28,8 @@
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-		</dependency>
-		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.rometools</groupId>
-			<artifactId>rome-utils</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.jdom</groupId>
-			<artifactId>jdom2</artifactId>
-			<version>2.0.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>

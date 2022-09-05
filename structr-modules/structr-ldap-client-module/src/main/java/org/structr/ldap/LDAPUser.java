@@ -18,10 +18,6 @@
  */
 package org.structr.ldap;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.directory.api.ldap.model.cursor.CursorException;
 import org.apache.directory.api.ldap.model.entry.Attribute;
@@ -42,6 +38,11 @@ import org.structr.core.entity.Group;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.User;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

@@ -45,6 +45,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.TypeProperty;
 
+import java.util.*;
+
 /**
  *
  *

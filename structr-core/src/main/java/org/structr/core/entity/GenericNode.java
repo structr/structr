@@ -18,15 +18,16 @@
  */
 package org.structr.core.entity;
 
-import java.util.Comparator;
-import java.util.Set;
-import java.util.TreeSet;
-import java.util.function.Function;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.NonIndexed;
+
+import java.util.Comparator;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.function.Function;
 
 /**
  * A generic node entity that will be instantiated when a node with an unknown

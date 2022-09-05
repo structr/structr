@@ -18,16 +18,16 @@
  */
 package org.structr.flow.impl;
 
-import org.structr.core.property.StartNodes;
-import org.structr.flow.impl.rels.FlowForEachBody;
-import org.structr.flow.impl.rels.FlowNodes;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+import org.structr.core.property.StartNodes;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.impl.rels.FlowContainerFlowNode;
+import org.structr.flow.impl.rels.FlowForEachBody;
+import org.structr.flow.impl.rels.FlowNodes;
 
 
 /**

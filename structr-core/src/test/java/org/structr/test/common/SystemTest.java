@@ -18,18 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,20 +35,8 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.entity.*;
+import org.structr.core.graph.*;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
@@ -71,13 +47,18 @@ import org.structr.test.core.entity.TestEight;
 import org.structr.test.core.entity.TestFive;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

@@ -18,7 +18,6 @@
  */
 package org.structr.messaging;
 
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -27,8 +26,11 @@ import org.structr.messaging.engine.entities.MessageClient;
 import org.structr.messaging.engine.entities.MessageSubscriber;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
+
 import java.util.ArrayList;
 import java.util.List;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

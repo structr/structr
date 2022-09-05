@@ -18,9 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.graph.Relationship;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -33,6 +30,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.SourceId;
 import org.structr.core.property.TargetId;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * A generic relationship entity that will be instantiated when an anonymous

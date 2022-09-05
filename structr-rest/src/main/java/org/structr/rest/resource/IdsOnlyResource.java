@@ -18,7 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Map;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +29,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Value;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+
+import java.util.Map;
+
 
 /**
  *

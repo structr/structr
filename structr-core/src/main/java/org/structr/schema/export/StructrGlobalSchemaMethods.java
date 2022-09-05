@@ -18,15 +18,7 @@
  */
 package org.structr.schema.export;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import org.codehaus.plexus.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -35,6 +27,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
+
+import java.util.*;
 
 public class StructrGlobalSchemaMethods {
 

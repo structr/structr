@@ -18,7 +18,6 @@
  */
 package org.structr.payment;
 
-import java.util.Set;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +27,8 @@ import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.util.Set;
 
 
 public class PaymentsModule implements StructrModule {

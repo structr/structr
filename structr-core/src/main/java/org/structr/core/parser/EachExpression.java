@@ -18,8 +18,6 @@
  */
 package org.structr.core.parser;
 
-import java.util.Arrays;
-import java.util.Iterator;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +29,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  *

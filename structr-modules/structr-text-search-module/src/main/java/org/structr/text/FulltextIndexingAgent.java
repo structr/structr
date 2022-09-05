@@ -18,24 +18,6 @@
  */
 package org.structr.text;
 
-import java.io.BufferedInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.DefaultDetector;
@@ -61,7 +43,16 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
+
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 /**
  *
@@ -323,7 +314,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		if (indexable instanceof File) {
 
 			final File file     = (File)indexable;
-			final Long fileSize = file.getSize();
+			final Long fileSize = FileUtils.getSize(file.getFileOnDisk());
 
 			if (fileSize != null) {
 

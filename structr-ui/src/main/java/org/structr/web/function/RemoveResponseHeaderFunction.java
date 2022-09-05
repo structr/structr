@@ -18,10 +18,12 @@
  */
 package org.structr.web.function;
 
+
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
 
 public class RemoveResponseHeaderFunction extends UiAdvancedFunction {
 

@@ -18,8 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
-import java.util.Map;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
@@ -40,6 +39,9 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.exception.SystemException;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via

@@ -18,10 +18,8 @@
  */
 package org.structr.bolt.factory;
 
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.index.AbstractIndex;
-
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GraphQuery;
 import org.structr.api.search.Occurrence;
@@ -29,6 +27,8 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.AdvancedCypherQuery;
 import org.structr.bolt.BoltIdentity;
 import org.structr.bolt.GraphQueryPart;
+
+import java.util.Set;
 
 public class GraphQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 

@@ -19,17 +19,8 @@
 package org.structr.rest.servlet;
 
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
-import org.python.bouncycastle.cert.ocsp.Req;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -41,6 +32,10 @@ import org.structr.rest.exception.NoResultsException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.resource.ViewFilterResource;
+
+import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Helper class for parsing and optimizing the resource path.

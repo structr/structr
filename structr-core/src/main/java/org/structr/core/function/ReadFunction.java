@@ -18,14 +18,15 @@
  */
 package org.structr.core.function;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import org.apache.commons.io.IOUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 
 public class ReadFunction extends AdvancedScriptingFunction {
 

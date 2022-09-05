@@ -18,16 +18,6 @@
  */
 package org.structr.web.maintenance.deploy;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,18 +29,26 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.AbstractMinifiedFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
+import org.structr.web.entity.*;
 import org.structr.web.maintenance.DeployCommand;
+
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.file.FileVisitResult;
+import java.nio.file.FileVisitor;
+import java.nio.file.Path;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.structr.core.graph.NodeInterface.name;
 
 /**
  *
@@ -106,51 +104,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
-	}
-
-	public void handleDeferredFiles() {
-
-		final Class<Relation> relType          = StructrApp.getConfiguration().getRelationshipEntityClass("AbstractMinifiedFileMINIFICATIONFile");
-		final PropertyKey<Integer> positionKey = StructrApp.key(relType, "position");
-
-		if (!this.deferredFiles.isEmpty()) {
-
-			for (File file : this.deferredFiles) {
-
-				try (final Tx tx = app.tx(true, false, false)) {
-
-					tx.disableChangelog();
-
-					// set properties from files.json
-					final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(file.getPath());
-					final Map<String, String> sourcesConfig = (Map<String, String>)rawProperties.remove("minificationSources");
-					final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
-
-					file.unlockSystemPropertiesOnce();
-					file.setProperties(securityContext, fileProperties);
-
-					for (String positionString : sourcesConfig.keySet()) {
-
-						final Integer position    = Integer.parseInt(positionString);
-						final String sourcePath   = sourcesConfig.get(positionString);
-						final AbstractFile source = FileHelper.getFileByAbsolutePath(securityContext, sourcePath);
-
-						if (source != null) {
-
-							app.create(app.get(AbstractMinifiedFile.class, file.getUuid()), (File)source, relType, new PropertyMap(positionKey, position));
-
-						} else {
-							logger.warn("Source file {} for minified file {} at position {} not found - please verify that it is included in the export", sourcePath, file.getPath(), positionString);
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fxe) {
-
-				}
-			}
-		}
 	}
 
 	// ----- private methods -----

@@ -18,8 +18,11 @@
  */
 package org.structr.core.auth.exception;
 
+
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
+
+
 
 /**
  * Thrown when a protected resource is accessed. In the REST server, this

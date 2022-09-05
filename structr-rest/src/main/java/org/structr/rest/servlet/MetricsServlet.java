@@ -24,14 +24,14 @@ import io.prometheus.client.hotspot.DefaultExports;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-
-import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+
+import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class MetricsServlet extends AbstractDataServlet {
 	private final io.prometheus.client.servlet.jakarta.exporter.MetricsServlet servlet;

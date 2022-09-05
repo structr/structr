@@ -18,14 +18,15 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
-import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+import org.structr.schema.openapi.schema.OpenAPIBaseSchemaWrite;
 import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaInput;
+
+import java.util.Map;
 
 public class OpenAPIPatchOperation extends OpenAPIOperation {
 

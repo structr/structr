@@ -18,14 +18,6 @@
  */
 package org.structr.test.web.basic;
 
-import java.io.IOException;
-import java.net.URI;
-import java.text.SimpleDateFormat;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,18 +40,20 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.common.ImageHelper.Thumbnail;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.User;
+import org.structr.web.entity.*;
 import org.structr.web.property.ThumbnailProperty;
-import static org.testng.Assert.assertNotEquals;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.net.URI;
+import java.text.SimpleDateFormat;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import static org.testng.Assert.assertNotEquals;
+import static org.testng.AssertJUnit.*;
 
 
 public class UiTest extends StructrUiTest {

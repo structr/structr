@@ -18,9 +18,6 @@
  */
 package org.structr.feed.entity;
 
-import java.io.InputStream;
-import java.net.URI;
-import java.nio.charset.Charset;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +34,10 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+
+import java.io.InputStream;
+import java.net.URI;
+import java.nio.charset.Charset;
 
 /**
  * Represents a content element of a feed item

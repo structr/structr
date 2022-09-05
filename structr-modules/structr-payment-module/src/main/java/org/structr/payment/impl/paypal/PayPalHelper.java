@@ -22,28 +22,12 @@
  */
 package org.structr.payment.impl.paypal;
 
-import java.util.ArrayList;
-import java.util.Currency;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.api.config.Settings;
-import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentReq;
-import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentRequestType;
-import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentResponseType;
-import urn.ebay.api.PayPalAPI.GetExpressCheckoutDetailsReq;
-import urn.ebay.api.PayPalAPI.GetExpressCheckoutDetailsRequestType;
-import urn.ebay.api.PayPalAPI.GetExpressCheckoutDetailsResponseType;
-import urn.ebay.api.PayPalAPI.PayPalAPIInterfaceServiceService;
-import urn.ebay.api.PayPalAPI.SetExpressCheckoutReq;
-import urn.ebay.api.PayPalAPI.SetExpressCheckoutRequestType;
-import urn.ebay.api.PayPalAPI.SetExpressCheckoutResponseType;
+import urn.ebay.api.PayPalAPI.*;
 import urn.ebay.apis.CoreComponentTypes.BasicAmountType;
-import urn.ebay.apis.eBLBaseComponents.CurrencyCodeType;
-import urn.ebay.apis.eBLBaseComponents.DoExpressCheckoutPaymentRequestDetailsType;
-import urn.ebay.apis.eBLBaseComponents.PaymentActionCodeType;
-import urn.ebay.apis.eBLBaseComponents.PaymentDetailsType;
-import urn.ebay.apis.eBLBaseComponents.SetExpressCheckoutRequestDetailsType;
+import urn.ebay.apis.eBLBaseComponents.*;
+
+import java.util.*;
 
 /**
  *

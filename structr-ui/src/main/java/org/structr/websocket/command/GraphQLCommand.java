@@ -24,11 +24,6 @@ import graphql.language.Document;
 import graphql.parser.Parser;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -41,6 +36,12 @@ import org.structr.schema.SchemaService;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 

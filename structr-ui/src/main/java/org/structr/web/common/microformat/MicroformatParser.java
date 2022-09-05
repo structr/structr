@@ -18,19 +18,14 @@
  */
 package org.structr.web.common.microformat;
 
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.parser.Tag;
 import org.jsoup.select.NodeVisitor;
+
+import java.util.*;
 
 /**
  *

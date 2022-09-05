@@ -18,12 +18,13 @@
  */
 package org.structr.core.function;
 
-import java.util.Arrays;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Arrays;
 
 public class SplitFunction extends CoreFunction {
 

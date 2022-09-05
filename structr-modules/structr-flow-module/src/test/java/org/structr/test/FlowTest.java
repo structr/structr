@@ -20,37 +20,28 @@ package org.structr.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.Arrays;
-
-import org.structr.flow.impl.*;
-import org.testng.annotations.Test;
-import org.structr.core.graph.Tx;
-
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
-
-import static org.hamcrest.CoreMatchers.equalTo;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.flow.impl.*;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.Title;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import org.structr.web.entity.html.*;
+import org.testng.annotations.Test;
 import org.w3c.dom.Node;
+
+import java.lang.Object;
+import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
+
+import static org.hamcrest.CoreMatchers.equalTo;
+import static org.testng.AssertJUnit.*;
 
 public class FlowTest extends StructrUiTest {
 

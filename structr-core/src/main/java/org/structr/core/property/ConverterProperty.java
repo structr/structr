@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.lang.reflect.Constructor;
-import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
@@ -28,6 +25,9 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
+
+import java.lang.reflect.Constructor;
+import java.util.Map;
 
 /**
  * A property that applies a given converter to its value. This is needed for backwards compatibility only

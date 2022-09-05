@@ -30,10 +30,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 

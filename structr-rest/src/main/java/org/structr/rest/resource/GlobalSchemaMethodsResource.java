@@ -18,7 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Map;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -28,6 +28,8 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.SchemaHelper;
+
+import java.util.Map;
 
 /**
  *

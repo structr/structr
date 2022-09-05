@@ -18,10 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
@@ -36,6 +32,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

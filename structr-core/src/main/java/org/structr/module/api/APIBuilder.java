@@ -18,10 +18,11 @@
  */
 package org.structr.module.api;
 
-import java.util.Map;
 import org.structr.common.ResultTransformer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
+
+import java.util.Map;
 
 /**
  * API for the API builder module, to be implemented by a module.

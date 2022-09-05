@@ -20,9 +20,10 @@ package org.structr.test.rest.test.property;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.Matchers.*;
-import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.hasItems;
 
 /**
  *

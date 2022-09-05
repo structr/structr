@@ -18,8 +18,10 @@
  */
 package org.structr.rest.exception;
 
+
 import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.error.FrameworkException;
+
 
 /**
  *

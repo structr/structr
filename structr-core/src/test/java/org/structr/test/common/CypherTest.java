@@ -20,15 +20,6 @@ package org.structr.test.common;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -37,6 +28,9 @@ import org.structr.api.NativeQuery;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Relationship;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -49,27 +43,20 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.GraphDatabaseCommand;
-import org.structr.core.graph.NativeQueryCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.SixOneOneToOne;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSix;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

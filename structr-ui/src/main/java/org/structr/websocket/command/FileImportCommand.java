@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -28,6 +26,9 @@ import org.structr.core.property.Property;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command which lists currently running imports and optionally starts/pauses/resumes/cancels them

@@ -18,12 +18,6 @@
  */
 package org.structr.csv;
 
-import java.io.IOException;
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
@@ -35,6 +29,13 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.servlet.CsvServlet;
 import org.structr.schema.action.ActionContext;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 
 public class ToCsvFunction extends CsvFunction {
 

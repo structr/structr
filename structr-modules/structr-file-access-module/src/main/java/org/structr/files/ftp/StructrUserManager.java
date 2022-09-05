@@ -18,14 +18,7 @@
  */
 package org.structr.files.ftp;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import org.apache.ftpserver.ftplet.Authentication;
-import org.apache.ftpserver.ftplet.AuthenticationFailedException;
-import org.apache.ftpserver.ftplet.FtpException;
-import org.apache.ftpserver.ftplet.User;
-import org.apache.ftpserver.ftplet.UserManager;
+import org.apache.ftpserver.ftplet.*;
 import org.apache.ftpserver.usermanager.UsernamePasswordAuthentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +31,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

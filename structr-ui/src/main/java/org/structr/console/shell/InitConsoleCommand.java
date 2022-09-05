@@ -18,20 +18,17 @@
  */
 package org.structr.console.shell;
 
-import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
-import org.structr.core.graph.BulkCreateLabelsCommand;
-import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.BulkSetUuidCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeServiceCommand;
+import org.structr.core.graph.*;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A console wrapper for BulkRebuildIndexCommand.

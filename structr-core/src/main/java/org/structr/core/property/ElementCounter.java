@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collection;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
@@ -28,6 +25,9 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * A read-only property that returns the number of elements in a collection returned from a given property.

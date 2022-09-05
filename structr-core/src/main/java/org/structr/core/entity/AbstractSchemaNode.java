@@ -18,9 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.*;
-import java.util.List;
-
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
@@ -31,19 +28,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaNodeView;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import static org.structr.core.graph.NodeInterface.name;
-import org.structr.core.graph.TransactionCommand;
-import org.structr.core.graph.TransactionPostProcess;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.graph.*;
+import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
+
+import java.util.*;
 
 /**
  *

@@ -23,9 +23,6 @@ import com.vladsch.flexmark.parser.Parser;
 import com.vladsch.flexmark.profiles.pegdown.Extensions;
 import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
 import com.vladsch.flexmark.util.options.MutableDataSet;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -35,6 +32,10 @@ import org.asciidoctor.Asciidoctor;
 import org.asciidoctor.Asciidoctor.Factory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Adapter;
+
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  */

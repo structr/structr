@@ -20,7 +20,6 @@ package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import java.awt.geom.Point2D;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.referencing.GeodeticCalculator;
 import org.slf4j.Logger;
@@ -29,6 +28,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.awt.geom.Point2D;
 
 public class LineSegmentFunction extends GeoFunction {
 

@@ -18,37 +18,11 @@
  */
 package org.structr.files.external;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitOption;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardWatchEventKinds;
-import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
-import java.nio.file.WatchEvent;
-import java.nio.file.WatchEvent.Kind;
-import java.nio.file.WatchKey;
-import java.nio.file.WatchService;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -58,6 +32,15 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.Folder;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.WatchEvent.Kind;
+import java.util.*;
+import java.util.concurrent.TimeUnit;
+
+import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 
 /**
  */

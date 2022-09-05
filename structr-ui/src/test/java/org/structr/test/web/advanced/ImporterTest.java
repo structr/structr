@@ -18,11 +18,8 @@
  */
 package org.structr.test.web.advanced;
 
-import java.util.ArrayList;
-import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Node;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -36,10 +33,12 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.html.Script;
 import org.structr.web.importer.Importer;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  * Test the import of external pages

@@ -18,14 +18,15 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.TypeProperty;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Create labels for all nodes of the given type.

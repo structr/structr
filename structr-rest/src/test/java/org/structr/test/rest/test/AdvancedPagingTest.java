@@ -20,20 +20,12 @@ package org.structr.test.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
-import org.structr.api.schema.JsonSchema;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
@@ -46,6 +38,14 @@ import org.structr.test.rest.entity.TestFive;
 import org.structr.test.rest.entity.TestOne;
 import org.structr.test.rest.entity.TestThree;
 import org.testng.Assert;
+import org.testng.annotations.Test;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
+import static org.hamcrest.Matchers.*;
 
 /**
  *

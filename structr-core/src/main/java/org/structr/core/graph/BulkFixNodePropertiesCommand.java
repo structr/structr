@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Node;
@@ -30,6 +29,8 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Map;
 
 /**
  * Tries to fix properties in the database that have been stored there with the

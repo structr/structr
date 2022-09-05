@@ -29,10 +29,10 @@ import org.structr.core.parser.ConstantExpression;
 import org.structr.core.parser.LazyEvaluatedFunctionExpression;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.Arrays;
-import org.structr.schema.action.EvaluationHints;
 
 public class CacheFunction implements ProxyExecutable {
 	private static final Logger logger = LoggerFactory.getLogger(CacheFunction.class);

@@ -18,6 +18,14 @@
  */
 package org.structr.bolt;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.RetryException;
+import org.structr.api.Transaction;
+import org.structr.api.index.IndexConfig;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -27,13 +35,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.RetryException;
-import org.structr.api.Transaction;
-import org.structr.api.index.IndexConfig;
 
 public class Neo3IndexUpdater {
 

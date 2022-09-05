@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.DateFormatToken;
@@ -26,6 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.DatePropertyParser;
+
+import java.util.Date;
 
 /**
  * A property that stores and retrieves a Date string in ISO8601 format. This property

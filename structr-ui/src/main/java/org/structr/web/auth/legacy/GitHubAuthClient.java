@@ -21,12 +21,13 @@ package org.structr.web.auth.legacy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import java.util.Iterator;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.response.OAuthResourceResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+
+import java.util.Iterator;
 
 /**
  *

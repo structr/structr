@@ -18,10 +18,11 @@
  */
 package org.structr.net.repository;
 
+import org.structr.net.data.time.Clock;
+
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
-import org.structr.net.data.time.Clock;
 
 /**
  *

@@ -18,17 +18,15 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.openapi.common.OpenAPIAnyOf;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class OpenAPIMethodOperation extends OpenAPIOperation {
 

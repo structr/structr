@@ -22,8 +22,6 @@ import com.jayway.restassured.RestAssured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
@@ -31,19 +29,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.rest.service.HttpService;
-import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import java.nio.charset.Charset;
-
-import static org.testng.AssertJUnit.*;
+import static org.testng.AssertJUnit.fail;
 
 /**
  *

@@ -18,12 +18,13 @@
  */
 package org.structr.schema;
 
+import org.apache.commons.lang3.StringUtils;
+
+import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;
 import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
-import javax.tools.SimpleJavaFileObject;
-import org.apache.commons.lang3.StringUtils;
 
 /**
  */

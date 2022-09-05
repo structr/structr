@@ -18,8 +18,9 @@
  */
 package org.structr.common.fulltext;
 
-import java.util.Set;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Set;
 
 /**
  */

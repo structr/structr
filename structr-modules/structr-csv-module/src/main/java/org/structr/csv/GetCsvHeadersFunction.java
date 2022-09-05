@@ -18,11 +18,12 @@
  */
 package org.structr.csv;
 
-import java.io.StringReader;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.QuoteMode;
 import org.structr.schema.action.ActionContext;
+
+import java.io.StringReader;
 
 public class GetCsvHeadersFunction extends CsvFunction {
 

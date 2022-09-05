@@ -20,28 +20,10 @@ package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.BufferedReader;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-import java.util.*;
-import java.util.stream.Collectors;
-
 import jakarta.servlet.*;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
-import jakarta.servlet.http.HttpUpgradeHandler;
-import jakarta.servlet.http.Part;
+import jakarta.servlet.http.*;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.nullValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -54,11 +36,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -76,21 +54,20 @@ import org.structr.test.web.entity.TestTwo;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.dom.*;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Table;
 import org.structr.websocket.command.CreateComponentCommand;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.io.*;
+import java.nio.charset.Charset;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.nullValue;
+import static org.testng.AssertJUnit.*;
 
 /**
  *

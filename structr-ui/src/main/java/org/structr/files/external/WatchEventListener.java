@@ -18,8 +18,9 @@
  */
 package org.structr.files.external;
 
-import java.nio.file.Path;
 import org.structr.common.error.FrameworkException;
+
+import java.nio.file.Path;
 
 /**
  * Listener iterface for directory watch events.

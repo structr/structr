@@ -18,12 +18,8 @@
  */
 package org.structr.web.servlet;
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Collections;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -41,12 +37,16 @@ import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
-import org.structr.rest.common.HttpHelper;
 import org.structr.web.entity.User;
+
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collections;
 
 /**
  * Servlet for proxy requests.

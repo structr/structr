@@ -21,7 +21,6 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.schema.action.ActionContext;
 
 public class RequestStorePutFunction extends UiAdvancedFunction {

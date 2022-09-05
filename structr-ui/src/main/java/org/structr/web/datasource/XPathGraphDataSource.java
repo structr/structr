@@ -18,12 +18,6 @@
  */
 package org.structr.web.datasource;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +30,13 @@ import org.structr.web.entity.dom.DOMNode;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

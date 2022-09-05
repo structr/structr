@@ -18,8 +18,9 @@
  */
 package org.structr.console.tabcompletion;
 
-import java.util.List;
 import org.structr.common.SecurityContext;
+
+import java.util.List;
 
 /**
  *

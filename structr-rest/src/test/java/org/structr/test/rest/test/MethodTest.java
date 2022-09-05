@@ -19,7 +19,6 @@
 package org.structr.test.rest.test;
 
 import com.jayway.restassured.RestAssured;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
@@ -28,9 +27,12 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
+
+import java.util.Map;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 /**
  *

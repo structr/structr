@@ -18,9 +18,10 @@
  */
 package org.structr.memory.index.predicate;
 
-import java.util.Arrays;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
+
+import java.util.Arrays;
 
 /**
  */

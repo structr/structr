@@ -18,9 +18,7 @@
  */
 package org.structr.web.resource;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -47,6 +45,8 @@ import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
+
+import java.util.Map;
 
 /**
  * A resource to reset a user's password

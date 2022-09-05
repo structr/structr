@@ -18,17 +18,12 @@
  */
 package org.structr.web.entity;
 
-import java.io.IOException;
-import java.net.URI;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.cmis.CMISInfo;
-import org.structr.cmis.info.CMISFolderInfo;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.ContextAwareEntity;
 import org.structr.common.PropertyView;
@@ -39,12 +34,14 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
-import org.structr.files.cmis.config.StructrFolderActions;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 
+import java.io.IOException;
+import java.net.URI;
 
-public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextAwareEntity {
+
+public interface Folder extends AbstractFile, ContextAwareEntity {
 
 	static class Impl { static {
 
@@ -94,19 +91,7 @@ public interface Folder extends AbstractFile, CMISInfo, CMISFolderInfo, ContextA
 		// ContextAwareEntity
 		type.overrideMethod("getEntityContextPath",  false, "return getPath();");
 
-		// ----- CMIS support -----
-		type.overrideMethod("getCMISInfo",         false, "return this;");
-		type.overrideMethod("getBaseTypeId",       false, "return " + BaseTypeId.class.getName() + ".CMIS_FOLDER;");
-		type.overrideMethod("getFolderInfo",       false, "return this;");
-		type.overrideMethod("getDocumentInfo",     false, "return null;");
-		type.overrideMethod("getItemInfo",         false, "return null;");
-		type.overrideMethod("getRelationshipInfo", false, "return null;");
-		type.overrideMethod("getPolicyInfo",       false, "return null;");
-		type.overrideMethod("getSecondaryInfo",    false, "return null;");
-		type.overrideMethod("getParentId",         false, "return null;");//return getProperty(parentIdProperty);");
 		type.overrideMethod("getPath",             false, "return getProperty(pathProperty);");
-		type.overrideMethod("getAllowableActions", false, "return " + StructrFolderActions.class.getName() + ".getInstance();");
-		type.overrideMethod("getChangeToken",      false, "return null;");
 
 		type.relate(type, "CONTAINS", Cardinality.OneToMany, "folderParent", "folders");
 		type.relate(file, "CONTAINS", Cardinality.OneToMany, "fileParent",   "files");

@@ -21,7 +21,8 @@ package org.structr.javaparser.entity;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.javaparser.*;
+import org.structr.javaparser.JavaParserModule;
+import org.structr.javaparser.ParserModuleFunction;
 import org.structr.schema.action.ActionContext;
 
 public class AddJarsToIndexFunction extends ParserModuleFunction {

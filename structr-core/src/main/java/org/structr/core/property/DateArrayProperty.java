@@ -18,10 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +33,9 @@ import org.structr.core.graph.search.ArraySearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.schema.parser.DatePropertyParser;
+
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 /**
  * A property that stores and retrieves an array of Date.
@@ -261,12 +260,6 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		}
 
 		return (Date[])result.toArray(new Date[0]);
-	}
-
-        // ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return PropertyType.DATETIME;
 	}
 
 	// ----- OpenAPI -----

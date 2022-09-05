@@ -18,20 +18,15 @@
  */
 package org.structr.payment.impl.test;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.payment.api.APIError;
-import org.structr.payment.api.BeginCheckoutResponse;
-import org.structr.payment.api.CheckoutState;
-import org.structr.payment.api.ConfirmCheckoutResponse;
-import org.structr.payment.api.Payment;
-import org.structr.payment.api.PaymentProvider;
-import org.structr.payment.api.PaymentState;
+import org.structr.payment.api.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 /**
  *

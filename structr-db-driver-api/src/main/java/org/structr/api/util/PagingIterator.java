@@ -18,14 +18,15 @@
  */
 package org.structr.api.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+
 import java.lang.StackWalker.Option;
 import java.lang.StackWalker.StackFrame;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 
 /**
  * Custom iterator to allow pagination of query results.

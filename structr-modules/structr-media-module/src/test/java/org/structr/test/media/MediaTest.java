@@ -20,9 +20,6 @@ package org.structr.test.media;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.InputStream;
-import static org.hamcrest.CoreMatchers.equalTo;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
@@ -32,6 +29,11 @@ import org.structr.media.AVConv;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import java.io.InputStream;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  */

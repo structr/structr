@@ -18,13 +18,13 @@
  */
 package org.structr.core.property;
 
-import java.lang.reflect.ParameterizedType;
-import java.util.Map;
-
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+
+import java.lang.reflect.ParameterizedType;
+import java.util.Map;
 
 /**
  * A generic dummy property that does nothing.

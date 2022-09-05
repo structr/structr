@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -34,6 +33,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
+
+import java.util.Collections;
 
 /**
  *

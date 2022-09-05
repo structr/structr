@@ -18,9 +18,6 @@
  */
 package org.structr.schema;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  */
 public class SourceLine {

@@ -41,7 +41,10 @@ import org.structr.flow.impl.rels.*;
 import org.structr.module.api.DeployableEntity;
 import org.structr.web.entity.dom.DOMNode;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 

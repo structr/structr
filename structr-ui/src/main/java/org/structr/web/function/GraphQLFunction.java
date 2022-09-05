@@ -22,9 +22,6 @@ import graphql.language.Document;
 import graphql.parser.Parser;
 import graphql.validation.ValidationError;
 import graphql.validation.Validator;
-import java.io.IOException;
-import java.io.StringWriter;
-import java.util.List;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -33,6 +30,10 @@ import org.structr.core.graphql.GraphQLRequest;
 import org.structr.rest.serialization.GraphQLWriter;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.List;
 
 public class GraphQLFunction extends UiAdvancedFunction {
 

@@ -18,11 +18,12 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.export.StructrMethodDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+
+import java.util.Map;
+import java.util.Set;
 
 public class OpenAPIGlobalSchemaMethodOperation extends OpenAPIOperation {
 

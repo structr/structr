@@ -18,24 +18,25 @@
  */
 package org.structr.schema.export;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonGrant;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.entity.AbstractSchemaNode;
+import org.structr.core.entity.Principal;
+import org.structr.core.entity.SchemaGrant;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.property.PropertyMap;
+
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonGrant;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.property.PropertyMap;
-import org.structr.api.schema.JsonSchema;
-import org.structr.api.schema.JsonType;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaNode;
 
 /**
  *

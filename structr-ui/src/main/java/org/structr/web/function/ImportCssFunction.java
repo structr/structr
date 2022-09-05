@@ -26,17 +26,19 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
-import org.w3c.dom.css.CSSRule;
-import org.w3c.dom.css.CSSRuleList;
-import org.w3c.dom.css.CSSStyleSheet;
-import java.io.FileReader;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.web.entity.css.CssDeclaration;
 import org.structr.web.entity.css.CssRule;
 import org.structr.web.entity.css.CssSelector;
 import org.w3c.css.sac.InputSource;
+import org.w3c.dom.css.CSSRule;
+import org.w3c.dom.css.CSSRuleList;
+import org.w3c.dom.css.CSSStyleSheet;
+
+import java.io.FileReader;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ImportCssFunction extends UiAdvancedFunction {
 
@@ -62,7 +64,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			final File file = (File) sources[0];
 
-			if (file.getSize() == 0) {
+			if (FileUtils.getSize(file.getFileOnDisk()) == 0) {
 				return "";
 			}
 

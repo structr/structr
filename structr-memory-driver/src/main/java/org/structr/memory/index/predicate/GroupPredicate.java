@@ -18,11 +18,12 @@
  */
 package org.structr.memory.index.predicate;
 
+import org.structr.api.Predicate;
+
 import java.util.LinkedList;
 import java.util.List;
-import org.structr.api.Predicate;
+
 import static org.structr.memory.index.predicate.Conjunction.And;
-import static org.structr.memory.index.predicate.Conjunction.Or;
 
 /**
  */

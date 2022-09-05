@@ -24,13 +24,14 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.ActionContext;
+
+import javax.imageio.ImageIO;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import javax.imageio.ImageIO;
-import org.structr.common.error.FrameworkException;
-import org.structr.schema.action.ActionContext;
 
 public class BarcodeFunction extends UiAdvancedFunction {
 

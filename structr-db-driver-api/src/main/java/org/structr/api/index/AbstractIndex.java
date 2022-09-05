@@ -22,7 +22,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.api.search.*;
+import org.structr.api.search.QueryContext;
+import org.structr.api.search.QueryPredicate;
+import org.structr.api.search.SortOrder;
+import org.structr.api.search.TypeConverter;
 
 /**
  *

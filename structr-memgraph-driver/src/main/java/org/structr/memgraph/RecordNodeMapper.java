@@ -18,12 +18,13 @@
  */
 package org.structr.memgraph;
 
-import java.util.function.Function;
 import org.neo4j.driver.v1.Record;
 import org.neo4j.driver.v1.exceptions.value.Uncoercible;
 import org.neo4j.driver.v1.types.Node;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.function.Function;
 
 /**
  *

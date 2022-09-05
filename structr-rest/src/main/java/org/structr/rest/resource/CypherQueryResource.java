@@ -18,8 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Collections;
-import java.util.Map;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -32,6 +31,9 @@ import org.structr.core.graph.NativeQueryCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.exception.NotFoundException;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *

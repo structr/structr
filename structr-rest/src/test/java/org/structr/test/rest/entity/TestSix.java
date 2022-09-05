@@ -22,13 +22,7 @@ import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.notion.PropertyNotion;
-import org.structr.core.property.CollectionNotionProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.EntityNotionProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 
 /**
  *

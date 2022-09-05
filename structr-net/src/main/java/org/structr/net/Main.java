@@ -18,19 +18,6 @@
  */
 package org.structr.net;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.security.KeyPair;
-import java.util.Base64;
-import java.util.Base64.Decoder;
-import java.util.Base64.Encoder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.net.common.KeyHelper;
@@ -38,6 +25,16 @@ import org.structr.net.peer.Peer;
 import org.structr.net.protocol.BroadcastMessage;
 import org.structr.net.protocol.DirectMessage;
 import org.structr.net.repository.DefaultRepository;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.KeyPair;
+import java.util.*;
+import java.util.Base64.Decoder;
+import java.util.Base64.Encoder;
 
 /**
  * The main class that starts the peer, with an optional interactive

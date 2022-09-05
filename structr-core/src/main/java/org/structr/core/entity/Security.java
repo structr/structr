@@ -18,21 +18,14 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.structr.api.graph.Relationship;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.SecurityDelegate;
-import org.structr.common.View;
+import org.structr.common.*;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.SourceId;
-import org.structr.core.property.TargetId;
+import org.structr.core.property.*;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * Relationship type class for SECURITY relationships.

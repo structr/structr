@@ -18,9 +18,10 @@
  */
 package org.structr.rest.auth;
 
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.server.session.Session;
 import org.eclipse.jetty.server.session.SessionCache;
 import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;

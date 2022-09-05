@@ -18,20 +18,16 @@
  */
 package org.structr.web.common;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeFactory;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.SyncCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.File;
+
+import java.util.Map;
 
 public class DumpDatabaseCommand extends NodeServiceCommand implements MaintenanceCommand {
 

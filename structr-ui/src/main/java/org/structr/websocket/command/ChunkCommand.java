@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.Permission;
@@ -27,11 +26,14 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.util.Base64;
+import org.structr.util.FileUtils;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.IOException;
 
 /**
  *
@@ -105,7 +107,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), file.getSize() });
+				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), FileUtils.getSize(file.getFileOnDisk())});
 
 			}
 

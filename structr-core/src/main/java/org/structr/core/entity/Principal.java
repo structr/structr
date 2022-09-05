@@ -18,13 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -33,8 +26,11 @@ import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.graph.Node;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
@@ -44,9 +40,10 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.app.App;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
 
 public interface Principal extends NodeInterface, AccessControllable {
 

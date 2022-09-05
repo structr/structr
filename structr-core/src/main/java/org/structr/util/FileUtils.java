@@ -16,20 +16,31 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.cmis.info;
+package org.structr.util;
 
-/**
- * Optional interface for CMIS support in Structr core.
- */
-public interface CMISDocumentInfo extends CMISObjectInfo {
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.stream.Collectors;
 
-	public String getChangeToken();
-	public String getContentType();
-	public String getParentId();
-	public String getFolderPath();
+public abstract class FileUtils {
 
-	public Long getSize();
+    public static Long getSize(final File file) {
 
-	public boolean isImmutable();
+        try {
+
+            return Files.size(file.toPath());
+        } catch (IOException e) {
+
+            throw new RuntimeException(e);
+        }
+    }
+    public static String readAllLines(final InputStream is) {
+
+        return new BufferedReader(
+                new InputStreamReader(is, StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
+    }
 
 }

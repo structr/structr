@@ -20,13 +20,6 @@ package org.structr.test.web;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.File;
-import java.io.IOException;
-import java.io.RandomAccessFile;
-import java.lang.reflect.Method;
-import java.net.URL;
-import java.util.*;
-import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,8 +37,16 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.RandomAccessFile;
+import java.lang.reflect.Method;
+import java.net.URL;
+import java.util.*;
+import java.util.function.Supplier;
 
 /**
  * Base class for all structr UI tests.

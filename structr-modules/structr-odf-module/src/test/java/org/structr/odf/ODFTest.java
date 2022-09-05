@@ -39,10 +39,6 @@ package org.structr.odf;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.InputStream;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import org.testng.annotations.Test;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -52,6 +48,12 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import java.io.InputStream;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.testng.AssertJUnit.assertNotNull;
 
 public class ODFTest extends StructrUiTest {

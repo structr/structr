@@ -18,8 +18,6 @@
  */
 package org.structr.schema.compiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
@@ -28,6 +26,9 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaReloadingNode;
 import org.structr.core.graph.Tx;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A migration handler that removes duplicate schema methods that remain when

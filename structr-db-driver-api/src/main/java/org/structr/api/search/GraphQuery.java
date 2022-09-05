@@ -18,9 +18,10 @@
  */
 package org.structr.api.search;
 
-import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
+
+import java.util.Set;
 
 
 public interface GraphQuery extends QueryPredicate {

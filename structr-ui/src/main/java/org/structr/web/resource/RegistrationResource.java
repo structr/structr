@@ -18,14 +18,7 @@
  */
 package org.structr.web.resource;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -59,6 +52,8 @@ import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
+
+import java.util.*;
 
 /**
  * A resource to register new users.

@@ -18,12 +18,13 @@
  */
 package org.structr.api.config;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * A configuration setting with a key and a type.

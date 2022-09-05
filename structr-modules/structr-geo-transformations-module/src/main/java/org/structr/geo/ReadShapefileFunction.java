@@ -20,14 +20,6 @@ package org.structr.geo;
 
 import com.vividsolutions.jts.geom.Geometry;
 import com.vividsolutions.jts.geom.GeometryFactory;
-import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.Charset;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.geotools.data.PrjFileReader;
 import org.geotools.data.shapefile.dbf.DbaseFileHeader;
@@ -49,6 +41,11 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.schema.action.ActionContext;
+
+import java.io.IOException;
+import java.net.URL;
+import java.nio.charset.Charset;
+import java.util.*;
 
 public class ReadShapefileFunction extends GeoFunction {
 

@@ -18,11 +18,14 @@
  */
 package org.structr.web.function;
 
+
 import jakarta.servlet.http.HttpSession;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+
 
 public class GetSessionAttributeFunction extends UiAdvancedFunction {
 

@@ -18,12 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.util.Iterator;
-import java.util.Map;
-import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -41,6 +35,13 @@ import org.structr.module.StructrModule;
 import org.structr.module.xml.XMLModule;
 import org.structr.rest.common.XMLHandler;
 import org.structr.web.entity.File;
+
+import javax.xml.stream.XMLStreamException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.util.Iterator;
+import java.util.Map;
 
 public class XMLFileImportJob extends FileImportJob {
 

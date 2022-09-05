@@ -18,10 +18,8 @@
  */
 package org.structr.test.web.entity.dom;
 
-import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
@@ -34,9 +32,13 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.Page;
+import org.testng.annotations.Test;
+import org.w3c.dom.Element;
+
+import java.util.List;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.w3c.dom.Element;
 
 /**
  * Test to render data mixed with markup

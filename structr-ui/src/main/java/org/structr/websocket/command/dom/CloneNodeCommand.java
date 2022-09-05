@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command.dom;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.web.entity.dom.DOMNode;
@@ -30,6 +29,8 @@ import org.structr.websocket.command.CreateComponentCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
+
+import java.util.Map;
 
 
 /**

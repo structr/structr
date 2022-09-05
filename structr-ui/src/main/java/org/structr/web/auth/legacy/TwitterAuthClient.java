@@ -19,7 +19,6 @@
 package org.structr.web.auth.legacy;
 
 import jakarta.servlet.http.HttpServletRequest;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;

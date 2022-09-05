@@ -18,9 +18,6 @@
  */
 package org.structr.web.datasource;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -36,6 +33,10 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.function.UiFunction;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Data source that evaluates a function query.

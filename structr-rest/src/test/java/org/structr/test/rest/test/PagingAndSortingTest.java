@@ -18,15 +18,9 @@
  */
 package org.structr.test.rest.test;
 
-import static com.caucho.quercus.lib.JavaModule.java;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.text.SimpleDateFormat;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.lessThan;
 import org.structr.api.config.Settings;
-import org.testng.annotations.Test;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,10 +34,12 @@ import org.structr.core.graph.attribute.Name;
 import org.structr.core.property.PropertyKey;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestOne;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.text.SimpleDateFormat;
+
+import static org.hamcrest.Matchers.*;
+import static org.testng.AssertJUnit.*;
 
 /**
  *

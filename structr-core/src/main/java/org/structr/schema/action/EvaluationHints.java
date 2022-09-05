@@ -18,12 +18,13 @@
  */
 package org.structr.schema.action;
 
+import org.structr.common.error.FrameworkException;
+
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import org.structr.common.error.FrameworkException;
 
 /**
  */

@@ -19,14 +19,7 @@
 package org.structr.test.core.entity;
 
 import org.structr.core.entity.OneToOne;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 
 /**
  *

@@ -18,9 +18,9 @@
  */
 package org.structr.test.web.basic;
 
-import org.testng.annotations.Test;
-import org.structr.web.common.TestHelper;
 import org.structr.test.web.StructrUiTest;
+import org.structr.web.common.TestHelper;
+import org.testng.annotations.Test;
 
 public class ViewTest extends StructrUiTest {
 

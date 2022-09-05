@@ -18,12 +18,13 @@
  */
 package org.structr.core.function;
 
-import java.text.NumberFormat;
-import java.text.ParseException;
-import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.text.NumberFormat;
+import java.text.ParseException;
+import java.util.Locale;
 
 public class ParseNumberFunction extends CoreFunction {
 

@@ -18,13 +18,13 @@
  */
 package org.structr.bolt.factory;
 
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.api.index.AbstractIndex;
-
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
 import org.structr.bolt.AdvancedCypherQuery;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class KeywordQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> {
 

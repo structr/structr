@@ -23,8 +23,6 @@ import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import com.jayway.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
-import static org.hamcrest.Matchers.equalTo;
-import org.testng.annotations.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -37,10 +35,10 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.servlet.HtmlServlet;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.*;
 
 /**
  *

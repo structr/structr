@@ -18,8 +18,9 @@
  */
 package org.structr.api;
 
-import java.util.Iterator;
 import org.structr.api.util.PagingIterator;
+
+import java.util.Iterator;
 
 public class PagedQueryResult<T> implements Iterable<T> {
 

@@ -20,12 +20,7 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import jakarta.servlet.*;
-import jakarta.servlet.http.*;
-import org.apache.commons.collections.iterators.IteratorEnumeration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpRequest;
-import org.apache.http.impl.client.RequestWrapper;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -43,11 +38,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.security.Principal;
-import java.util.*;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 

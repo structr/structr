@@ -18,15 +18,12 @@
  */
 package org.structr.schema;
 
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.common.PropertyView;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
+import org.structr.core.entity.*;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

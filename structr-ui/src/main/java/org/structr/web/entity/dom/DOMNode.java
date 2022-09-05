@@ -18,17 +18,7 @@
  */
 package org.structr.web.entity.dom;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.ArrayUtils;
@@ -42,13 +32,7 @@ import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.LicenseManager;
 import org.structr.api.util.Iterables;
-import org.structr.common.CaseHelper;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextAwareEntity;
-import org.structr.common.Filter;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
@@ -67,12 +51,7 @@ import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -87,11 +66,10 @@ import org.structr.web.entity.Renderable;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.web.property.MethodProperty;
 import org.structr.websocket.command.CreateComponentCommand;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Text;
+import org.w3c.dom.*;
+
+import java.net.URI;
+import java.util.*;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.

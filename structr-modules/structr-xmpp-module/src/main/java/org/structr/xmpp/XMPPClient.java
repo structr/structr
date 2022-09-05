@@ -18,9 +18,6 @@
  */
 package org.structr.xmpp;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence.Mode;
@@ -44,6 +41,10 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  *

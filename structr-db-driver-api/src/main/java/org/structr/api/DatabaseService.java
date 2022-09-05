@@ -18,8 +18,6 @@
  */
 package org.structr.api;
 
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -28,6 +26,9 @@ import org.structr.api.index.Index;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
+
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

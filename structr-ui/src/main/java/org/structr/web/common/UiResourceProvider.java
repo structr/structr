@@ -18,13 +18,14 @@
  */
 package org.structr.web.common;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
 import org.structr.common.PropertyView;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
 import org.structr.web.resource.*;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * The default resource provider for structr-ui.

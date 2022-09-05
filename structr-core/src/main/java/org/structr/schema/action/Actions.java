@@ -18,8 +18,6 @@
  */
 package org.structr.schema.action;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -37,6 +35,10 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
  *

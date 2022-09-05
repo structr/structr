@@ -19,8 +19,8 @@
 package org.structr.flow.engine;
 
 import org.structr.flow.api.Aggregation;
-import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowHandler;
 
 public class AggregationHandler implements FlowHandler<Aggregation> {
 

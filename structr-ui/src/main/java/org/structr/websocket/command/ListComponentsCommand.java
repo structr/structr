@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -29,6 +28,11 @@ import org.structr.web.entity.dom.ShadowDocument;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
 

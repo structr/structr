@@ -18,9 +18,10 @@
  */
 package org.structr.api.util;
 
+import org.testng.annotations.Test;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.assertNull;
-import org.testng.annotations.Test;
 
 /**
  *

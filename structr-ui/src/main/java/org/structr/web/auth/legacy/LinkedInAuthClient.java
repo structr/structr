@@ -21,9 +21,6 @@ package org.structr.web.auth.legacy;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.UUID;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.oltu.oauth2.client.OAuthClient;
 import org.apache.oltu.oauth2.client.URLConnectionClient;
@@ -38,6 +35,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
+
+import java.util.Iterator;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  *

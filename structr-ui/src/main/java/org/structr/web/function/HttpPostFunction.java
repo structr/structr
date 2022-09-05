@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
@@ -26,6 +25,8 @@ import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Map;
 
 public class HttpPostFunction extends UiAdvancedFunction {
 

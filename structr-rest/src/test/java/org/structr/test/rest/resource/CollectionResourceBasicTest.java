@@ -20,14 +20,12 @@ package org.structr.test.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.response.ResponseBody;
-import static org.hamcrest.Matchers.*;
-import org.testng.annotations.Test;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestObject;
-import static org.testng.AssertJUnit.assertFalse;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.testng.AssertJUnit.*;
 
 /**
  *

@@ -18,11 +18,6 @@
  */
 package org.structr.media;
 
-import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -42,6 +37,12 @@ import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.File;
+
+import java.net.URI;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * A video whose binary data will be stored on disk.
@@ -135,56 +136,6 @@ public interface VideoFile extends File {
 	}}
 
 	String getDiskFilePath(final SecurityContext securityContext);
-
-	/*
-
-	private static final Logger logger = LoggerFactory.getLogger(VideoFile.class.getName());
-
-	public static final Property<List<VideoFile>> convertedVideos = new EndNodes<>("convertedVideos", VideoFileHasConvertedVideoFile.class);
-	public static final Property<VideoFile> originalVideo         = new StartNode<>("originalVideo", VideoFileHasConvertedVideoFile.class);
-	public static final Property<Image> posterImage               = new EndNode<>("posterImage", VideoFileHasPosterImage.class);
-	public static final Property<Boolean> isVideo                 = new ConstantBooleanProperty("isVideo", true);
-	public static final Property<String>  videoCodecName          = new StringProperty("videoCodecName").cmis();
-	public static final Property<String>  videoCodec              = new StringProperty("videoCodec").cmis();
-	public static final Property<String>  pixelFormat             = new StringProperty("pixelFormat").cmis();
-	public static final Property<String>  audioCodecName          = new StringProperty("audioCodecName").cmis();
-	public static final Property<String>  audioCodec              = new StringProperty("audioCodec").cmis();
-	public static final Property<Integer> audioChannels           = new IntProperty("audioChannels").cmis();
-
-	public static final Property<Double>  sampleRate              = new DoubleProperty("sampleRate").cmis().indexed();
-	public static final Property<Double>  duration                = new DoubleProperty("duration").cmis().indexed();
-
-	public static final Property<Integer> width                   = new IntProperty("width").cmis().indexed();
-	public static final Property<Integer> height                  = new IntProperty("height").cmis().indexed();
-
-	public static final org.structr.common.View uiView = new org.structr.common.View(VideoFile.class, PropertyView.Ui,
-		type, name, contentType, size, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
-		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height, originalVideo, convertedVideos,
-		posterImage
-	);
-
-	public static final org.structr.common.View publicView = new org.structr.common.View(VideoFile.class, PropertyView.Public,
-		type, name, owner, parent, path, isVideo, videoCodecName, videoCodec, pixelFormat,
-		audioCodecName, audioCodec, audioChannels, sampleRate, duration, width, height,
-		convertedVideos, posterImage
-	);
-
-	@Override
-	public boolean onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-
-		updateVideoInfo();
-
-		return super.onCreation(securityContext, errorBuffer);
-	}
-
-	@Override
-	public boolean onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		updateVideoInfo();
-
-		return super.onModification(securityContext, errorBuffer, modificationQueue);
-	}
-	*/
 
 	static String getDiskFilePath(final VideoFile thisVideo, final SecurityContext securityContext) {
 

@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
@@ -28,6 +25,10 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 
 //~--- classes ----------------------------------------------------------------
 

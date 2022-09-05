@@ -28,6 +28,8 @@ import org.apache.kafka.common.KafkaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.NotInTransactionException;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -46,11 +48,11 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 
 public interface KafkaClient extends MessageClient {
 

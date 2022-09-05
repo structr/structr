@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Arrays;
 import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -30,6 +29,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
+
+import java.util.Arrays;
 
 /**
  * Represents an exact UUID match.

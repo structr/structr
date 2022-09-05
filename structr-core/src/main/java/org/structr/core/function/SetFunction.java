@@ -20,7 +20,6 @@ package org.structr.core.function;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.util.Map;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentCountException;
@@ -34,6 +33,8 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Map;
 
 public class SetFunction extends CoreFunction {
 

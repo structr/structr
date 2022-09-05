@@ -18,8 +18,9 @@
  */
 package org.structr.memgraph;
 
-import java.util.function.Function;
 import org.structr.api.graph.Node;
+
+import java.util.function.Function;
 
 /**
  *

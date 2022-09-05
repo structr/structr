@@ -18,7 +18,10 @@
  */
 package org.structr.web.servlet;
 
+import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.collections.CollectionUtils;
@@ -60,6 +63,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
+import org.structr.util.FileUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -69,9 +73,6 @@ import org.structr.web.entity.*;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
@@ -1605,7 +1606,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (StringUtils.isNotEmpty(range)) {
 
-						final long len = file.getSize();
+						final long len = FileUtils.getSize(file.getFileOnDisk());
 						long start     = 0;
 						long end       = len - 1;
 
@@ -1638,7 +1639,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					} else {
 
 						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(file.getSize()));
+							response.addHeader("Content-Length", Long.toString(FileUtils.getSize(file.getFileOnDisk())));
 						}
 
 						if (sendContent) {

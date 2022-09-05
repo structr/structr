@@ -18,9 +18,9 @@
  */
 package org.structr.schema.compiler;
 
+import javax.tools.SimpleJavaFileObject;
 import java.io.*;
 import java.net.URI;
-import javax.tools.SimpleJavaFileObject;
 
 /**
  *

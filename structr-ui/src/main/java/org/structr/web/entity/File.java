@@ -20,27 +20,6 @@ package org.structr.web.entity;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.BufferedReader;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.Reader;
-import java.net.URI;
-import java.nio.charset.Charset;
-import java.nio.charset.IllegalCharsetNameException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import javax.activation.DataSource;
-import javax.xml.stream.XMLStreamException;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,15 +31,7 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.util.Iterables;
-import org.structr.cmis.CMISInfo;
-import org.structr.cmis.info.CMISDocumentInfo;
-import org.structr.common.ConstantBooleanTrue;
-import org.structr.common.ContextStore;
-import org.structr.common.Permission;
-import org.structr.common.PropertyView;
-import org.structr.common.RequestKeywords;
-import org.structr.common.SecurityContext;
+import org.structr.common.*;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
@@ -72,13 +43,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Favoritable;
 import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
-import org.structr.core.graph.ModificationEvent;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
-import org.structr.files.cmis.config.StructrFileActions;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -93,11 +62,24 @@ import org.structr.web.importer.MixedCSVFileImportJob;
 import org.structr.web.importer.XMLFileImportJob;
 import org.structr.web.property.FileDataProperty;
 
+import javax.activation.DataSource;
+import javax.xml.stream.XMLStreamException;
+import java.io.*;
+import java.net.URI;
+import java.nio.charset.Charset;
+import java.nio.charset.IllegalCharsetNameException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+
 /**
  *
  *
  */
-public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, CMISInfo, CMISDocumentInfo, Favoritable, DataSource {
+public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSource, Favoritable, DataSource {
 
 	static class Impl { static {
 
@@ -130,7 +112,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addStringProperty("sha512");
 		type.addIntegerProperty("position").setIndexed(true);
 
-		type.addPropertyGetter("minificationTargets", Iterable.class);
 		type.addPropertyGetter("cacheForSeconds", Integer.class);
 		type.addPropertyGetter("checksum", Long.class);
 		type.addPropertyGetter("md5", String.class);
@@ -164,7 +145,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("increaseVersion",             false, File.class.getName() + ".increaseVersion(this);");
 		type.overrideMethod("notifyUploadCompletion",      false, File.class.getName() + ".notifyUploadCompletion(this);");
 		type.overrideMethod("callOnUploadHandler",         false, File.class.getName() + ".callOnUploadHandler(this, arg0);");
-		type.overrideMethod("triggerMinificationIfNeeded", false, File.class.getName() + ".triggerMinificationIfNeeded(this, arg0);");
 
 		type.overrideMethod("getInputStream",              false, "return " + File.class.getName() + ".getInputStream(this);");
 		type.overrideMethod("getSearchContext",            false, "return " + File.class.getName() + ".getSearchContext(this, arg0, arg1, arg2);");
@@ -177,20 +157,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.overrideMethod("setFavoriteContent",          false, File.class.getName() + ".setFavoriteContent(this, arg0);");
 		type.overrideMethod("getFavoriteContent",          false, "return " + File.class.getName() + ".getFavoriteContent(this);");
 		type.overrideMethod("getCurrentWorkingDir",        false, "return " + File.class.getName() + ".getCurrentWorkingDir(this);");
-
-		// CMIS support
-		type.overrideMethod("getCMISInfo",                 false, "return this;");
-		type.overrideMethod("getBaseTypeId",               false, "return " + BaseTypeId.class.getName() + ".CMIS_DOCUMENT;");
-		type.overrideMethod("getFolderInfo",               false, "return null;");
-		type.overrideMethod("getDocumentInfo",             false, "return this;");
-		type.overrideMethod("getItemInfo",                 false, "return null;");
-		type.overrideMethod("getRelationshipInfo",         false, "return null;");
-		type.overrideMethod("getPolicyInfo",               false, "return null;");
-		type.overrideMethod("getSecondaryInfo",            false, "return null;");
-		type.overrideMethod("getChangeToken",              false, "return null;");
-		type.overrideMethod("getParentId",                 false, "return getProperty(parentIdProperty);");
-		type.overrideMethod("getAllowableActions",         false, "return new " + StructrFileActions.class.getName() + "(isImmutable());");
-		type.overrideMethod("isImmutable",                 false, "return " + File.class.getName() + ".isImmutable(this);");
 
 		// overridden methods
 		final JsonMethod getOutputStream1 = type.addMethod("getOutputStream");
@@ -268,8 +234,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	}}
 
-	Iterable<AbstractMinifiedFile> getMinificationTargets();
-
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
 	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
@@ -286,7 +250,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	void notifyUploadCompletion();
 	void callOnUploadHandler(final SecurityContext ctx);
 	void increaseVersion() throws FrameworkException;
-	void triggerMinificationIfNeeded(final ModificationQueue modificationQueue) throws FrameworkException;
 
 	void setVersion(final int version) throws FrameworkException;
 	Integer getVersion();
@@ -332,8 +295,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				RuntimeEventLog.getEvents(e -> uuid.equals(e.getData().get("id"))).stream().forEach(e -> e.acknowledge());
 			}
 		}
-
-		thisFile.triggerMinificationIfNeeded(modificationQueue);
 	}
 
 	static void onNodeDeletion(final File thisFile) {
@@ -431,7 +392,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 
 	static String getFormattedSize(final File thisFile) {
-		return FileUtils.byteCountToDisplaySize(thisFile.getSize());
+		try {
+
+			return FileUtils.byteCountToDisplaySize(Files.size(thisFile.getFileOnDisk().toPath()));
+		} catch (IOException ex) {
+
+			throw new RuntimeException(ex);
+		}
 	}
 
 	static void increaseVersion(final File thisFile) throws FrameworkException {
@@ -446,42 +413,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		} else {
 
 			thisFile.setVersion(_version + 1);
-		}
-	}
-
-	static void triggerMinificationIfNeeded(final File thisFile, final ModificationQueue modificationQueue) throws FrameworkException {
-
-		final List<AbstractMinifiedFile> targets = Iterables.toList(thisFile.getMinificationTargets());
-		final PropertyKey<Integer> versionKey    = StructrApp.key(File.class, "version");
-
-		if (!targets.isEmpty()) {
-
-			// only run minification if the file version changed
-			boolean versionChanged = false;
-			for (ModificationEvent modState : modificationQueue.getModificationEvents()) {
-
-				if (thisFile.getUuid().equals(modState.getUuid())) {
-
-					versionChanged = versionChanged ||
-							modState.getRemovedProperties().containsKey(versionKey) ||
-							modState.getModifiedProperties().containsKey(versionKey) ||
-							modState.getNewProperties().containsKey(versionKey);
-				}
-			}
-
-			if (versionChanged) {
-
-				for (AbstractMinifiedFile minifiedFile : targets) {
-
-					try {
-						minifiedFile.minify(thisFile.getSecurityContext());
-					} catch (IOException ex) {
-
-						final Logger logger = LoggerFactory.getLogger(File.class);
-						logger.warn("Could not automatically update minification target: ".concat(minifiedFile.getName()), ex);
-					}
-				}
-			}
 		}
 	}
 
@@ -965,8 +896,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 	}
-
-	// ----- CMIS support -----
 	static boolean isImmutable(final File thisFile) {
 
 		final Principal _owner = thisFile.getOwnerNode();

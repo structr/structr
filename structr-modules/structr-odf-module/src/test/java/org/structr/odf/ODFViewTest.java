@@ -19,8 +19,8 @@
 package org.structr.odf;
 
 import org.structr.test.web.StructrUiTest;
-import org.testng.annotations.Test;
 import org.structr.web.common.TestHelper;
+import org.testng.annotations.Test;
 
 /**
  */

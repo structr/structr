@@ -20,13 +20,14 @@ package org.structr.test.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.Matchers.equalTo;
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
 /**

@@ -18,16 +18,16 @@
  */
 package org.structr.test.schema;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.schema.importer.LazyFileBasedLongCollection;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

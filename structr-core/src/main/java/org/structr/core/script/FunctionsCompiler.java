@@ -18,13 +18,6 @@
  */
 package org.structr.core.script;
 
-import java.lang.reflect.Constructor;
-import java.util.LinkedList;
-import java.util.List;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileManager;
-import javax.tools.JavaFileObject;
-import javax.tools.ToolProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -33,6 +26,14 @@ import org.structr.core.function.Functions;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.compiler.CharSequenceJavaFileObject;
 import org.structr.schema.compiler.ClassFileManager;
+
+import javax.tools.JavaCompiler;
+import javax.tools.JavaFileManager;
+import javax.tools.JavaFileObject;
+import javax.tools.ToolProvider;
+import java.lang.reflect.Constructor;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

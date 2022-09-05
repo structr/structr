@@ -18,11 +18,12 @@
  */
 package org.structr.api;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.RelationshipType;
+
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *

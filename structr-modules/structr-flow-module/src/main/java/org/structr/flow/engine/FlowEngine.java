@@ -20,17 +20,17 @@ package org.structr.flow.engine;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
 import org.structr.flow.api.*;
+import org.structr.flow.impl.FlowBaseNode;
+import org.structr.flow.impl.FlowContainer;
+import org.structr.flow.impl.FlowExceptionHandler;
 
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.util.Iterables;
-import org.structr.core.GraphObject;
-import org.structr.flow.impl.FlowBaseNode;
-import org.structr.flow.impl.FlowContainer;
-import org.structr.flow.impl.FlowExceptionHandler;
 
 public class FlowEngine {
 

@@ -18,9 +18,10 @@
  */
 package org.structr.media;
 
+import org.structr.web.entity.Image;
+
 import java.util.Map;
 import java.util.concurrent.Future;
-import org.structr.web.entity.Image;
 
 /**
  *

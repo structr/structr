@@ -18,9 +18,10 @@
  */
 package org.structr.files.ssh.shell;
 
+import org.structr.files.ssh.StructrShellCommand;
+
 import java.io.IOException;
 import java.util.List;
-import org.structr.files.ssh.StructrShellCommand;
 
 /**
  *

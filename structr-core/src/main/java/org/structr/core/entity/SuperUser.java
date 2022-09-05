@@ -18,18 +18,11 @@
  */
 package org.structr.core.entity;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.RelationshipType;
-import org.structr.cmis.CMISInfo;
 import org.structr.common.AccessControllable;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
@@ -45,6 +38,8 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.*;
 
 /**
  * The SuperUser entity. Please note that this class is not persitent but will
@@ -438,11 +433,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	@Override
 	public void setRawPathSegmentId(final Identity rawSegmentId) {
 		// nothing to do for SuperUser
-	}
-
-	@Override
-	public CMISInfo getCMISInfo() {
-		return null;
 	}
 
 	@Override

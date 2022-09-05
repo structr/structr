@@ -28,13 +28,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaNodeView;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 
 /**
  *

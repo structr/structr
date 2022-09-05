@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
@@ -31,6 +28,10 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  *

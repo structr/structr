@@ -18,9 +18,6 @@
  */
 package org.structr.memory;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.util.Map;
 import org.structr.api.NotInTransactionException;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
@@ -28,6 +25,10 @@ import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.Iterables;
 import org.structr.memory.index.filter.MemoryLabelFilter;
+
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.util.Map;
 
 /**
  */

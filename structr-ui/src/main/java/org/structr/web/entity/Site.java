@@ -18,12 +18,13 @@
  */
 package org.structr.web.entity;
 
-import java.net.URI;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+
+import java.net.URI;
 
 public interface Site extends NodeInterface {
 
@@ -50,15 +51,4 @@ public interface Site extends NodeInterface {
 
 	String getHostname();
 	Integer getPort();
-
-	/*
-	public static final Property<String>  hostname = new StringProperty("hostname").cmis().indexedWhenEmpty();
-	public static final Property<Integer> port     = new IntProperty("port").cmis().indexedWhenEmpty();
-
-	public static final Property<List<Page>>    pages     = new EndNodes<>("pages", Pages.class, new UiNotion());
-
-	public static final View defaultView = new View(Site.class, PropertyView.Public, id, type, name, hostname, port, pages);
-
-	public static final View uiView = new View(Site.class, PropertyView.Ui,type, name, hostname, port, pages);
-	*/
 }

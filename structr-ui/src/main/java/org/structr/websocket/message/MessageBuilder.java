@@ -19,6 +19,7 @@
 package org.structr.websocket.message;
 
 import com.google.gson.JsonElement;
+
 import java.util.Map;
 import java.util.Map.Entry;
 

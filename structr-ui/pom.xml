@@ -44,6 +44,12 @@
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
 		</dependency>
+		<!--
+		<dependency>
+			<groupId>org.apache.pdfbox</groupId>
+			<artifactId>pdfbox</artifactId>
+		</dependency>
+		-->
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
 			<artifactId>metadata-extractor</artifactId>
@@ -86,11 +92,7 @@
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-compress</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.tukaani</groupId>
-			<artifactId>xz</artifactId>
-			<version>1.6</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.apache.oltu.oauth2</groupId>
 			<artifactId>org.apache.oltu.oauth2.client</artifactId>
@@ -284,11 +286,6 @@
 			<version>1.2.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.google.javascript</groupId>
-			<artifactId>closure-compiler</artifactId>
-			<version>v20220601</version>
-		</dependency>
-		<dependency>
 			<groupId>net.openhft</groupId>
 			<artifactId>zero-allocation-hashing</artifactId>
 			<version>0.8</version>
@@ -338,9 +335,10 @@
 			<version>0.9.28</version>
 		</dependency>
 		<dependency>
-			<groupId>net.freeutils</groupId>
-			<artifactId>jcharset</artifactId>
-			<version>2.1</version>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>21.0</version>
+			<scope>compile</scope>
 		</dependency>
 	</dependencies>
 	<build>

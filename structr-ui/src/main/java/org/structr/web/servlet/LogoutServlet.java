@@ -19,10 +19,7 @@
 package org.structr.web.servlet;
 
 
-import java.io.IOException;
-
 import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
@@ -36,6 +33,8 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.web.auth.UiAuthenticator;
+
+import java.io.IOException;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.

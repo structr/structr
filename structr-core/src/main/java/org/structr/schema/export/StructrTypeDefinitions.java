@@ -18,30 +18,34 @@
  */
 package org.structr.schema.export;
 
-import java.net.URI;
-import java.util.*;
-import java.util.Map.Entry;
-import java.util.concurrent.ConcurrentSkipListSet;
-import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.schema.*;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
+import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.common.PropertyView;
 import org.structr.core.property.FunctionProperty;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.openapi.common.OpenAPIAllOf;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
-import org.structr.schema.openapi.result.*;
-import org.structr.schema.openapi.schema.*;
+import org.structr.schema.openapi.result.OpenAPIExampleAnyResult;
+import org.structr.schema.openapi.result.OpenAPIMultipleResponseSchema;
+import org.structr.schema.openapi.result.OpenAPISingleResponseSchema;
+import org.structr.schema.openapi.schema.OpenAPIStructrTypeSchemaOutput;
+
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentSkipListSet;
+import java.util.stream.Collectors;
 
 /**
  *

@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.io.File;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +36,8 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
+
+import java.io.File;
 
 /**
  * The graph/node service.

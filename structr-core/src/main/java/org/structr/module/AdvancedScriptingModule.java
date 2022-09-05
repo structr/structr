@@ -18,72 +18,14 @@
  */
 package org.structr.module;
 
-import java.util.Set;
 import org.structr.api.service.LicenseManager;
 import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.function.AddToGroupFunction;
-import org.structr.core.function.AncestorTypesFunction;
-import org.structr.core.function.AppendFunction;
-import org.structr.core.function.AssertFunction;
-import org.structr.core.function.BsonFunction;
-import org.structr.core.function.CallFunction;
-import org.structr.core.function.CallPrivilegedFunction;
-import org.structr.core.function.ChangelogFunction;
-import org.structr.core.function.ConfigFunction;
-import org.structr.core.function.DecryptFunction;
-import org.structr.core.function.DisableCascadingDeleteFunction;
-import org.structr.core.function.DisableNotificationsFunction;
-import org.structr.core.function.DisablePreventDuplicateRelationshipsFunction;
-import org.structr.core.function.EnableCascadingDeleteFunction;
-import org.structr.core.function.EnableNotificationsFunction;
-import org.structr.core.function.EncryptFunction;
-import org.structr.core.function.EnumInfoFunction;
-import org.structr.core.function.ErrorFunction;
-import org.structr.core.function.EvaluateScriptFunction;
-import org.structr.core.function.ExecBinaryFunction;
-import org.structr.core.function.ExecFunction;
-import org.structr.core.function.Functions;
-import org.structr.core.function.GeocodeFunction;
-import org.structr.core.function.GetenvFunction;
-import org.structr.core.function.GetRelationshipTypesFunction;
-import org.structr.core.function.GrantFunction;
-import org.structr.core.function.HasErrorFunction;
-import org.structr.core.function.InheritingTypesFunction;
-import org.structr.core.function.InstantiateFunction;
-import org.structr.core.function.IsAllowedFunction;
-import org.structr.core.function.IsInGroupFunction;
-import org.structr.core.function.JdbcFunction;
-import org.structr.core.function.LocalizeFunction;
-import org.structr.core.function.MongoDBFunction;
-import org.structr.core.function.PrivilegedFindFunction;
-import org.structr.core.function.PropertyInfoFunction;
-import org.structr.core.function.RInterpreterFunction;
-import org.structr.core.function.RangeFunction;
-import org.structr.core.function.ReadFunction;
-import org.structr.core.function.RemoveFromGroupFunction;
-import org.structr.core.function.RevokeFunction;
-import org.structr.core.function.ServerLogFunction;
-import org.structr.core.function.SetEncryptionKeyFunction;
-import org.structr.core.function.SetPrivilegedFunction;
-import org.structr.core.function.TemplateFunction;
-import org.structr.core.function.TypeInfoFunction;
-import org.structr.core.function.UnlockReadonlyPropertiesFunction;
-import org.structr.core.function.UnlockSystemPropertiesFunction;
-import org.structr.core.function.UserChangelogFunction;
-import org.structr.core.function.WriteFunction;
-import org.structr.core.function.XPathFunction;
-import org.structr.core.function.XmlFunction;
-import org.structr.core.function.search.FindAndFunction;
-import org.structr.core.function.search.FindContainsFunction;
-import org.structr.core.function.search.FindEmptyFunction;
-import org.structr.core.function.search.FindEqualsFunction;
-import org.structr.core.function.search.FindNotFunction;
-import org.structr.core.function.search.FindOrFunction;
-import org.structr.core.function.search.FindPageFunction;
-import org.structr.core.function.search.FindSortFunction;
-import org.structr.core.function.search.FindWithinDistanceFunction;
+import org.structr.core.function.*;
+import org.structr.core.function.search.*;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.util.Set;
 
 /**
  *

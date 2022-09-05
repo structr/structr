@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -31,6 +29,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

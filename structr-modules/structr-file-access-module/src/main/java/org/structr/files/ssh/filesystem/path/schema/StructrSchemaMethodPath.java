@@ -18,20 +18,6 @@
  */
 package org.structr.files.ssh.filesystem.path.schema;
 
-import java.io.IOException;
-import java.nio.channels.FileChannel;
-import java.nio.file.CopyOption;
-import java.nio.file.DirectoryStream;
-import java.nio.file.LinkOption;
-import java.nio.file.NoSuchFileException;
-import java.nio.file.OpenOption;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.FileAttribute;
-import java.nio.file.attribute.FileAttributeView;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -47,6 +33,15 @@ import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
 import org.structr.files.ssh.filesystem.path.graph.StructrPropertyValueAttributes;
 import org.structr.files.ssh.filesystem.path.graph.StructrPropertyValueChannel;
+
+import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileAttributeView;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

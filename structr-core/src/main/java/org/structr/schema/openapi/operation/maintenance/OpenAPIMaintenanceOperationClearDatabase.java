@@ -19,11 +19,11 @@
 package org.structr.schema.openapi.operation.maintenance;
 
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.operation.OpenAPIOperation;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import org.structr.schema.openapi.operation.OpenAPIOperation;
 
 public class OpenAPIMaintenanceOperationClearDatabase extends LinkedHashMap<String, Object> {
 

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,6 +35,10 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Set;
 
 /**
  * Websocket command to return the properties of a given schema entity.

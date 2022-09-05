@@ -18,12 +18,12 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.List;
-import java.util.Map;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
 import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
-import org.structr.schema.openapi.common.OpenAPISchemaReference;
+
+import java.util.List;
+import java.util.Map;
 
 public class OpenAPIDeleteSingleOperation extends OpenAPIOperation {
 

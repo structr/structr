@@ -19,22 +19,7 @@
 package org.structr.core.entity;
 
 import graphql.Scalars;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectField;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLOutputType;
-import graphql.schema.GraphQLType;
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -54,20 +39,15 @@ import org.structr.core.entity.relationship.SchemaRelationshipTargetNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graphql.GraphQLListType;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNode;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SchemaService;
 import org.structr.schema.SourceFile;
+
+import java.util.*;
+
+import static graphql.schema.GraphQLTypeReference.typeRef;
 
 /**
  *

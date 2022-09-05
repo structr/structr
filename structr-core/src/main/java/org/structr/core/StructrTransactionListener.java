@@ -18,12 +18,13 @@
  */
 package org.structr.core;
 
-import java.util.Collection;
-import java.util.Map;
 import org.structr.api.Predicate;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.ModificationEvent;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  * An interface that allows you to be notified when a graph object is

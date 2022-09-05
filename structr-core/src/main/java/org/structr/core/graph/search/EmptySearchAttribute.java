@@ -18,12 +18,13 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.Iterator;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.search.EmptyQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.core.GraphObject;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Iterator;
 
 /**
  *

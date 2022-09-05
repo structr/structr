@@ -18,16 +18,6 @@
  */
 package org.structr.autocomplete;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -44,11 +34,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.function.KeywordHint;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
@@ -56,6 +42,12 @@ import org.structr.schema.action.Function;
 import org.structr.schema.action.Hint;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Content.ContentHandler;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.logging.Level;
 
 
 

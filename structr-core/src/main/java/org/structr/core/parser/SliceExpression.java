@@ -18,10 +18,6 @@
  */
 package org.structr.core.parser;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -33,6 +29,11 @@ import org.structr.core.GraphObject;
 import org.structr.core.function.QueryFunction;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

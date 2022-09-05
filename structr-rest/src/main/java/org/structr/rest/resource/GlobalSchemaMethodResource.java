@@ -18,8 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import java.util.List;
-import java.util.Map;
+
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -36,6 +35,9 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Actions;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  *

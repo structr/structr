@@ -18,12 +18,13 @@
  */
 package org.structr.schema.compiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A migration handler that removes schema nodes for classes that have

@@ -18,19 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.lang.reflect.Type;
-import java.lang.reflect.TypeVariable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
@@ -45,18 +32,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.relationship.SchemaMethodParameters;
 import org.structr.core.entity.relationship.SchemaNodeMethod;
 import org.structr.core.graph.ModificationQueue;
-import static org.structr.core.graph.NodeInterface.name;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EndNodes;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.ActionEntry;
+
+import java.lang.reflect.*;
+import java.util.*;
 
 /**
  *

@@ -18,16 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.FileVisitor;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.function.Function;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
@@ -43,18 +33,21 @@ import org.structr.core.property.PropertyKey;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.dom.*;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.websocket.command.CloneComponentCommand;
 import org.structr.websocket.command.CreateComponentCommand;
+import org.w3c.dom.Node;
+
+import java.io.IOException;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
+
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
-import org.w3c.dom.Node;
 
 public abstract class DeploymentTestBase extends StructrUiTest {
 

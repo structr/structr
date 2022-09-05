@@ -20,12 +20,7 @@ package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
-import java.util.List;
 import org.hamcrest.Matchers;
-import org.testng.annotations.Optional;
-import org.testng.annotations.Parameters;
-import org.testng.annotations.Test;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -40,9 +35,15 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Linkable;
 import org.structr.web.entity.dom.Page;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
+import org.testng.annotations.Test;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

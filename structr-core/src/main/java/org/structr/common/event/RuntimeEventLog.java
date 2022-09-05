@@ -18,14 +18,15 @@
  */
 package org.structr.common.event;
 
+import org.structr.api.Predicate;
+import org.structr.core.entity.Principal;
+
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import org.structr.api.Predicate;
-import org.structr.core.entity.Principal;
 
 /**
  * An event log implementation that records runtime events and stores

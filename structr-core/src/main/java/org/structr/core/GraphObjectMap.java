@@ -18,16 +18,8 @@
  */
 package org.structr.core;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.PropertyContainer;
-import org.structr.cmis.CMISInfo;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -41,6 +33,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * A dummy graph object that uses a map as its data store.
@@ -276,11 +271,6 @@ public class GraphObjectMap extends PropertyMap implements GraphObject {
 	@Override
 	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 		throw new UnsupportedOperationException("Invoking a method is not supported as this is a property map.");
-	}
-
-	@Override
-	public CMISInfo getCMISInfo() {
-		return null;
 	}
 
 	// ----- Cloud synchronization and replication -----

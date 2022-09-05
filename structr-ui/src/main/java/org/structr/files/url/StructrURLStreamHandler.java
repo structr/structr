@@ -18,11 +18,12 @@
  */
 package org.structr.files.url;
 
+import org.structr.common.SecurityContext;
+
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
-import org.structr.common.SecurityContext;
 
 /**
  */

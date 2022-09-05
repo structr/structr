@@ -20,11 +20,6 @@ package org.structr.test.rest.test;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import static org.hamcrest.Matchers.*;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseFeature;
@@ -41,8 +36,15 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.StringProperty;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.common.TestEnum;
-import org.structr.test.rest.entity.TestTwo;
 import org.structr.test.rest.entity.TestThree;
+import org.structr.test.rest.entity.TestTwo;
+import org.testng.annotations.Test;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Random;
+
+import static org.hamcrest.Matchers.*;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

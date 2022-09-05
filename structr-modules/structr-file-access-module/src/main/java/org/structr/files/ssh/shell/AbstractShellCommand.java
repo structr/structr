@@ -18,10 +18,11 @@
  */
 package org.structr.files.ssh.shell;
 
-import java.io.IOException;
 import org.structr.files.ssh.StructrShellCommand;
 import org.structr.files.ssh.TerminalEmulator;
 import org.structr.web.entity.User;
+
+import java.io.IOException;
 
 /**
  *

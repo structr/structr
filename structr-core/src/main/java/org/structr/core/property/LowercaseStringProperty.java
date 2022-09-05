@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import javax.mail.internet.ContentType;
-import javax.mail.internet.ParseException;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -30,6 +27,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
+import javax.mail.internet.ContentType;
+import javax.mail.internet.ParseException;
 import java.util.Map;
 
 /**
@@ -161,12 +160,6 @@ public class LowercaseStringProperty extends AbstractPrimitiveProperty<String> {
 	@Override
 	public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
 		return null;
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return PropertyType.STRING;
 	}
 
 	// ----- private methods -----

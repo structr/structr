@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.jsoup.nodes.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +30,9 @@ import org.structr.web.entity.Widget;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Websocket command to load suggestions for a given HTML element.

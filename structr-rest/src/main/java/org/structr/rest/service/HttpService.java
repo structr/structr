@@ -18,15 +18,12 @@
  */
 package org.structr.rest.service;
 
+
 import jakarta.servlet.DispatcherType;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
-import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
-import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
-import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -59,9 +56,9 @@ import org.structr.api.service.*;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
-import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
 
@@ -74,8 +71,6 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.function.Consumer;
-
-;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -312,27 +307,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			// configuration wizard entry point
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
-		}
-
-		// CMIS setup
-		if (Settings.CmisEnabled.getValue() && (licenseManager == null || licenseManager.isModuleLicensed("cmis"))) {
-
-			try {
-
-				servletContext.addEventListener(new CmisRepositoryContextListener());
-
-				final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
-				cmisAtomHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-				cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
-
-				final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
-				cmisBrowserHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-				cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
-
-
-			} catch (Throwable t) {
-				logger.warn("Cannot initialize CMIS servlet", t);
-			}
 		}
 
 		sessionCache = new DefaultSessionCache(servletContext.getSessionHandler());

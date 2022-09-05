@@ -21,13 +21,6 @@ package org.structr.rest.common;
 import com.opencsv.CSVParser;
 import com.opencsv.CSVReader;
 import com.opencsv.RFC4180Parser;
-import java.io.IOException;
-import java.io.Reader;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,6 +30,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.JsonInput;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.TransactionCommand;
+
+import java.io.IOException;
+import java.io.Reader;
+import java.util.*;
+
 import static org.structr.rest.servlet.CsvServlet.DEFAULT_FIELD_SEPARATOR_COLLECTION_CONTENTS;
 import static org.structr.rest.servlet.CsvServlet.DEFAULT_QUOTE_CHARACTER_COLLECTION_CONTENTS;
 

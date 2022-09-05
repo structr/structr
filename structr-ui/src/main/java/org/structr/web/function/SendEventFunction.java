@@ -18,13 +18,14 @@
  */
 package org.structr.web.function;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.EventSourceServlet;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class SendEventFunction extends UiAdvancedFunction {
 

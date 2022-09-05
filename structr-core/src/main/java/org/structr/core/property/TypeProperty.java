@@ -18,11 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
@@ -33,6 +28,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
+
+import java.util.*;
 
 /**
  *

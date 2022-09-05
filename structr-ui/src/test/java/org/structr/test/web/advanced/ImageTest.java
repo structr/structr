@@ -18,10 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -40,6 +36,12 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

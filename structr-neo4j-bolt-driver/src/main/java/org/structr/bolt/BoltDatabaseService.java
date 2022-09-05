@@ -18,45 +18,16 @@
  */
 package org.structr.bolt;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.time.Duration;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
-import org.neo4j.driver.AuthTokens;
-import org.neo4j.driver.Config;
-import org.neo4j.driver.Driver;
-import org.neo4j.driver.GraphDatabase;
-import org.neo4j.driver.Record;
-import org.neo4j.driver.Result;
-import org.neo4j.driver.Session;
-import org.neo4j.driver.SessionConfig;
-import org.neo4j.driver.TransactionConfig;
-import org.neo4j.driver.Value;
+import org.neo4j.driver.*;
 import org.neo4j.driver.exceptions.AuthenticationException;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.exceptions.ServiceUnavailableException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.AbstractDatabaseService;
-import org.structr.api.DatabaseFeature;
-import org.structr.api.NativeQuery;
-import org.structr.api.NetworkException;
-import org.structr.api.NotInTransactionException;
 import org.structr.api.Transaction;
+import org.structr.api.*;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
@@ -64,14 +35,13 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexConfig;
-import org.structr.api.search.ExactQuery;
-import org.structr.api.search.Occurrence;
-import org.structr.api.search.QueryContext;
-import org.structr.api.search.QueryPredicate;
-import org.structr.api.search.SortOrder;
-import org.structr.api.search.TypeQuery;
+import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
+
+import java.io.*;
+import java.time.Duration;
+import java.util.*;
 
 /**
  *

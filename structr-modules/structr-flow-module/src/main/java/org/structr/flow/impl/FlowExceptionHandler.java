@@ -18,6 +18,8 @@
  */
 package org.structr.flow.impl;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.property.EndNodes;
@@ -28,7 +30,6 @@ import org.structr.flow.api.Exception;
 import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.FlowType;
 import org.structr.flow.engine.Context;
-import org.structr.flow.engine.FlowError;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.flow.impl.rels.FlowExceptionHandlerNodes;
@@ -36,9 +37,6 @@ import org.structr.module.api.DeployableEntity;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class FlowExceptionHandler extends FlowNode implements Exception, DataSource, DeployableEntity {
 

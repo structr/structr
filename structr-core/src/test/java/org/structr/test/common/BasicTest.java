@@ -18,12 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,43 +32,19 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.GenericRelationship;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.entity.Security;
+import org.structr.core.entity.*;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.test.core.entity.OneThreeOneToOne;
-import org.structr.test.core.entity.OneTwoOneToOne;
-import org.structr.test.core.entity.SixOneManyToMany;
-import org.structr.test.core.entity.SixOneOneToOne;
-import org.structr.test.core.entity.SixThreeOneToMany;
-import org.structr.test.core.entity.TestOne;
-import org.structr.test.core.entity.TestSix;
-import org.structr.test.core.entity.TestTen;
-import org.structr.test.core.entity.TestThirteen;
-import org.structr.test.core.entity.TestThree;
-import org.structr.test.core.entity.TestTwo;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.structr.test.core.entity.*;
 import org.testng.annotations.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

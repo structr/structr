@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +25,9 @@ import org.structr.common.geo.AddressComponent;
 import org.structr.common.geo.GeoCodingResult;
 import org.structr.common.geo.GeoHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class GeocodeFunction extends AdvancedScriptingFunction {
 

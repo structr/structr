@@ -18,12 +18,11 @@
  */
 package org.structr.schema.openapi.operation;
 
+import org.structr.schema.openapi.common.OpenAPISchemaReference;
+
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 
 public class OpenAPILogoutOperation extends LinkedHashMap<String, Object> {
 

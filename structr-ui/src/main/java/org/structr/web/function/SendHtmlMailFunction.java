@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.activation.FileDataSource;
 import org.apache.commons.mail.EmailAttachment;
 import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
@@ -32,6 +29,10 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
+
+import javax.activation.FileDataSource;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SendHtmlMailFunction extends UiAdvancedFunction {
 

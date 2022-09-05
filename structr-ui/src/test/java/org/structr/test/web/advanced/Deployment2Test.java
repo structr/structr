@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.io.IOException;
-import java.util.function.Function;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
@@ -28,11 +26,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Localization;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -43,22 +37,14 @@ import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.html.Body;
-import org.structr.web.entity.html.Div;
-import org.structr.web.entity.html.Head;
-import org.structr.web.entity.html.Html;
-import org.structr.web.entity.html.Option;
-import org.structr.web.entity.html.Select;
-import org.structr.web.entity.html.Table;
-import org.structr.web.entity.html.Tbody;
-import org.structr.web.entity.html.Td;
-import org.structr.web.entity.html.Thead;
-import org.structr.web.entity.html.Tr;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.structr.web.entity.html.*;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.lang.Object;
+import java.util.function.Function;
+
+import static org.testng.AssertJUnit.*;
 
 public class Deployment2Test extends DeploymentTestBase {
 
