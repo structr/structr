@@ -499,17 +499,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	/**
-	 * Returns a list of related nodes for which a modification propagation
-	 * is configured via the relationship. Override this method to return a
-	 * set of nodes that should receive propagated modifications.
-	 *
-	 * @return a set of nodes to which modifications should be propagated
-	 */
-	public Set<AbstractNode> getNodesForModificationPropagation() {
-		return null;
-	}
-
-	/**
 	 * Returns database node.
 	 *
 	 * @return the database node

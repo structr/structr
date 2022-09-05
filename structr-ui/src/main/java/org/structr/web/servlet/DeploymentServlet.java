@@ -68,6 +68,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 	private static final String DOWNLOAD_URL_PARAMETER        = "downloadUrl";
 	private static final String REDIRECT_URL_PARAMETER        = "redirectUrl";
+	private static final String ZIP_CONTENT_PATH              = "zipContentPath";
 	private static final String FILE_PARAMETER                = "file";
 	private static final String NAME_PARAMETER                = "name";
 	private static final String MODE_PARAMETER                = "mode";
@@ -278,6 +279,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String downloadUrl        = null;
 			String fileName           = null;
 			String mode               = null;
+			String zipContentPath     = null;
 
 			while (fileItemsIterator.hasNext()) {
 
@@ -295,6 +297,10 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
 
 						redirectUrl = fieldValue;
+
+					} else if (ZIP_CONTENT_PATH.equals(fieldName)) {
+
+						zipContentPath = fieldValue;
 
 					} else if (MODE_PARAMETER.equals(fieldName)) {
 
@@ -351,7 +357,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployAppFile(file, fileName, directoryPath, securityContext);
+						deployAppFile(file, fileName, directoryPath, zipContentPath, securityContext);
 
 					} else if ("data".equals(mode)) {
 
@@ -542,16 +548,21 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployAppFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployAppFile(final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
+
+		String webappPathInZip = directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, ".");
+		if (StringUtils.isNotBlank(zipContentPath)) {
+			webappPathInZip = directoryPath  + "/" + zipContentPath;
+		}
 
 		final DeployCommand deployCommand = StructrApp.getInstance(securityContext).command(DeployCommand.class);
 
 		final Map<String, Object> attributes = new HashMap<>();
 
 		attributes.put("mode", "import");
-		attributes.put("source", directoryPath  + "/" + StringUtils.substringBeforeLast(fileName, "."));
+		attributes.put("source", webappPathInZip);
 
 		deployCommand.execute(attributes);
 

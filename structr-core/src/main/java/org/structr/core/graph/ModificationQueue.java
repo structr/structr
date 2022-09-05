@@ -46,7 +46,6 @@ import java.util.concurrent.ConcurrentSkipListMap;
 
 /**
  *
- *
  */
 
 public class ModificationQueue {
@@ -59,6 +58,7 @@ public class ModificationQueue {
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                               = true;
+	private CallbackCounter counter                                                         = null;
 	private long changelogUpdateTime                                                        = 0L;
 	private long outerCallbacksTime                                                         = 0L;
 	private long innerCallbacksTime                                                         = 0L;
@@ -66,12 +66,8 @@ public class ModificationQueue {
 	private long validationTime                                                             = 0L;
 	private long indexingTime                                                               = 0L;
 
-	public ModificationQueue() {
-		this(true);
-	}
-
-	public ModificationQueue(final boolean doUpdateChangelogIfEnabled) {
-		this.doUpateChangelogIfEnabled = doUpdateChangelogIfEnabled;
+	public ModificationQueue(final long transactionId, final String threadName) {
+		this.counter = new CallbackCounter(logger, transactionId, threadName);
 	}
 
 	/**
@@ -90,8 +86,8 @@ public class ModificationQueue {
 
 	public boolean doInnerCallbacks(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-		long t0                  = System.currentTimeMillis();
-		boolean hasModifications = true;
+		long t0                       = System.currentTimeMillis();
+		boolean hasModifications      = true;
 
 		// collect all modified nodes
 		while (hasModifications) {
@@ -103,7 +99,7 @@ public class ModificationQueue {
 				if (state.wasModified()) {
 
 					// do callback according to entry state
-					if (!state.doInnerCallback(this, securityContext, errorBuffer)) {
+					if (!state.doInnerCallback(this, securityContext, errorBuffer, counter)) {
 						return false;
 					}
 
@@ -133,7 +129,7 @@ public class ModificationQueue {
 			}
 
 			// do callback according to entry state
-			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation);
+			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation, counter);
 
 			validationTime += state.getValdationTime();
 			indexingTime += state.getIndexingTime();
@@ -177,7 +173,7 @@ public class ModificationQueue {
 
 		// copy modifications, do after transaction callbacks
 		for (GraphObjectModificationState state : modifications.values()) {
-			state.doOuterCallback(securityContext);
+			state.doOuterCallback(securityContext, counter);
 		}
 
 		outerCallbacksTime = System.currentTimeMillis() - t0;
@@ -303,21 +299,6 @@ public class ModificationQueue {
 
 		if (key != null && key.requiresSynchronization()) {
 			synchronizationKeys.add(key.getSynchronizationKey());
-		}
-	}
-
-	public void propagatedModification(NodeInterface node) {
-
-		if (node != null) {
-
-			GraphObjectModificationState state = getState(node, true);
-			if (state != null) {
-
-				state.propagatedModification();
-
-				// save hash to avoid repeated propagation
-				alreadyPropagated.add(hash(node.getNode()));
-			}
 		}
 	}
 
@@ -612,7 +593,7 @@ public class ModificationQueue {
 		return "R" + rel.getId();
 	}
 
-	private Iterable<GraphObjectModificationState> getSortedModifications() {
+	private List<GraphObjectModificationState> getSortedModifications() {
 
 		final List<GraphObjectModificationState> state = new LinkedList<>(modifications.values());
 
