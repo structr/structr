@@ -9,6 +9,11 @@
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
+	<properties>
+		<jetty.version>11.0.9</jetty.version>
+		<jaxb.version>2.3.3</jaxb.version>
+	</properties>
+
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
@@ -41,31 +46,31 @@
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
-			<version>10.0.10</version>
+			<version>${jetty.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
-			<version>11.0.9</version>
+			<version>${jetty.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>http2-server</artifactId>
-			<version>10.0.10</version>
+			<version>${jetty.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-jetty-server</artifactId>
-			<version>11.0.9</version>
+			<version>${jetty.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-alpn-server</artifactId>
-			<version>11.0.9</version>
+			<version>${jetty.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<dependency>
@@ -115,14 +120,14 @@
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>2.3.3</version>
+			<version>${jaxb.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<!-- JAXB RI, Jakarta XML Binding -->
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>2.3.3</version>
+			<version>${jaxb.version}</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
