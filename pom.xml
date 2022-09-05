@@ -350,6 +350,20 @@
 				<artifactId>rome-utils</artifactId>
 				<version>1.7.3</version>
 			</dependency>
+			<!-- JAXB API only -->
+			<dependency>
+				<groupId>jakarta.xml.bind</groupId>
+				<artifactId>jakarta.xml.bind-api</artifactId>
+				<version>2.3.3</version>
+			</dependency>
+
+			<!-- JAXB RI, Jakarta XML Binding -->
+			<dependency>
+				<groupId>com.sun.xml.bind</groupId>
+				<artifactId>jaxb-impl</artifactId>
+				<version>2.3.3</version>
+				<scope>runtime</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
