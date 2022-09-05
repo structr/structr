@@ -286,7 +286,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					type = cls.getSimpleName();
 				}
 
-				final String name = p.getName().replaceAll("\\\\", "/");
+				final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
 				File newFile      = null;
 				boolean retry     = true;
 
