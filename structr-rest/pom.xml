@@ -111,6 +111,21 @@
 			<artifactId>simpleclient_hotspot</artifactId>
 			<version>0.15.0</version>
 		</dependency>
+		<!-- JAXB API only -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>2.3.3</version>
+			<optional>true</optional>
+		</dependency>
+		<!-- JAXB RI, Jakarta XML Binding -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.3.3</version>
+			<scope>runtime</scope>
+			<optional>true</optional>
+		</dependency>
     </dependencies>
 
 	<build>
