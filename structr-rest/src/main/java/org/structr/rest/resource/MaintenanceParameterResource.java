@@ -39,6 +39,7 @@ import org.structr.core.graph.BulkSetUuidCommand;
 import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
+import org.structr.core.graph.ManageThreadsCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
@@ -77,6 +78,7 @@ public class MaintenanceParameterResource extends Resource {
 		maintenanceCommandMap.put("analyzeSchema", SchemaAnalyzer.class);
 		maintenanceCommandMap.put("migrateChangelog", BulkMigrateChangelogCommand.class);
 		maintenanceCommandMap.put("manageDatabases", ManageDatabasesCommand.class);
+		maintenanceCommandMap.put("manageThreads", ManageThreadsCommand.class);
 
 	}
 

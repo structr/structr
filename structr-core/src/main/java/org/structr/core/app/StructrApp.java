@@ -83,7 +83,7 @@ public class StructrApp implements App {
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
 	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
 	private static final Object globalConfigLock                = new Object();
-	private Map<String, Object> appContextStore                 = new LinkedHashMap<>();
+	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
 	private RelationshipFactory relFactory                      = null;
 	private NodeFactory nodeFactory                             = null;
 	private DatabaseService graphDb                             = null;
@@ -485,6 +485,9 @@ public class StructrApp implements App {
 	 * @return superuser app instance
 	 */
 	public static App getInstance() {
+		if (Thread.currentThread().isInterrupted()) {
+			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
+		}
 		return new StructrApp(SecurityContext.getSuperUserInstance());
 	}
 
@@ -496,10 +499,16 @@ public class StructrApp implements App {
 	 * @return app instance
 	 */
 	public static App getInstance(final SecurityContext securityContext) {
+		if (Thread.currentThread().isInterrupted()) {
+			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
+		}
 		return new StructrApp(securityContext);
 	}
 
 	public static ConfigurationProvider getConfiguration() {
+		if (Thread.currentThread().isInterrupted()) {
+			logger.info("Thread {} was interrupted, we could do something here...", Thread.currentThread().getName());
+		}
 		return Services.getInstance().getConfigurationProvider();
 	}
 
