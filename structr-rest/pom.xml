@@ -12,6 +12,7 @@
 	<properties>
 		<jetty.version>11.0.9</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
+		<jetty.version>10.0.10</jetty.version>
 	</properties>
 
 	<groupId>org.structr</groupId>
@@ -72,6 +73,11 @@
 			<artifactId>jetty-alpn-server</artifactId>
 			<version>${jetty.version}</version>
 			<optional>true</optional>
+		</dependency>
+		<dependency>
+			<groupId>org.eclipse.jetty</groupId>
+			<artifactId>jetty-alpn-java-server</artifactId>
+			<version>${jetty.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.tuckey</groupId>
