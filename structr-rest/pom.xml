@@ -12,7 +12,6 @@
 	<properties>
 		<jetty.version>11.0.9</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
-		<jetty.version>10.0.10</jetty.version>
 	</properties>
 
 	<groupId>org.structr</groupId>
