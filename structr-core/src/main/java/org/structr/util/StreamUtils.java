@@ -18,21 +18,19 @@
  */
 package org.structr.util;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.stream.Collectors;
 
-public abstract class FileUtils {
+public abstract class StreamUtils {
 
-    public static Long getSize(final File file) {
+    public static String readAllLines(final InputStream is) {
 
-        try {
-
-            return Files.size(file.toPath());
-        } catch (IOException e) {
-
-            throw new RuntimeException(e);
-        }
+        return new BufferedReader(
+                new InputStreamReader(is, StandardCharsets.UTF_8))
+                .lines()
+                .collect(Collectors.joining("\n"));
     }
-
 }

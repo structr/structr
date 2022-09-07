@@ -31,6 +31,8 @@ import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.io.QuietException;
+import org.eclipse.jetty.server.MultiPartFormInputStream;
+import org.eclipse.jetty.server.MultiPartParser;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,6 +57,8 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
+import org.structr.util.FileUtils;
+import org.structr.util.StreamUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -78,6 +82,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
 	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
+	private static final String FILE_SCHEMA_TYPE_PARAMETER         = "type";
 	private static final long MEGABYTE                              = 1024 * 1024;
 
 	// non-static fields
@@ -215,21 +220,25 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			for (Part p : request.getParts()) {
 
-				for (String fieldName : p.getHeaderNames()) {
+				for (final String fieldName : p.getHeaderNames()) {
 
 					final String fieldValue = p.getHeader(fieldName);
 
-					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
+					if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + REDIRECT_AFTER_UPLOAD_PARAMETER + "\"").equals(fieldValue)) {
 
-						redirectUrl = fieldValue;
+						redirectUrl = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
-					} else if (APPEND_UUID_ON_REDIRECT_PARAMETER.equals(fieldName)) {
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + APPEND_UUID_ON_REDIRECT_PARAMETER + "\"").equals(fieldValue)) {
 
-						appendUuidOnRedirect = "true".equalsIgnoreCase(fieldValue);
+						appendUuidOnRedirect = "true".equalsIgnoreCase(new String(((MultiPartFormInputStream.MultiPart) p).getBytes()));
 
-					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + UPLOAD_FOLDER_PATH_PARAMETER + "\"").equals(fieldValue)) {
 
-						path = fieldValue;
+						path = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
+
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + FILE_SCHEMA_TYPE_PARAMETER + "\"").equals(fieldValue)) {
+
+						type = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
 					} else {
 
@@ -246,111 +255,110 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					}
 				}
 
-				final String contentType = p.getContentType();
-				boolean isImage = (contentType != null && contentType.startsWith("image"));
-				boolean isVideo = (contentType != null && contentType.startsWith("video"));
+				if (p.getSubmittedFileName() != null) {
 
-				// Override type from path info
-				if (params.containsKey(NodeInterface.type.jsonName())) {
-					type = (String) params.get(NodeInterface.type.jsonName());
-				}
+					final String contentType = p.getContentType();
+					boolean isImage = (contentType != null && contentType.startsWith("image"));
+					boolean isVideo = (contentType != null && contentType.startsWith("video"));
 
-				Class cls = null;
-				if (type != null) {
+					Class cls = null;
+					if (type != null) {
 
-					cls = SchemaHelper.getEntityClassForRawType(type);
+						cls = SchemaHelper.getEntityClassForRawType(type);
 
-				}
+					}
 
-				if (cls == null) {
+					if (cls == null) {
 
-					if (isImage) {
+						if (isImage) {
 
-						cls = SchemaHelper.getEntityClassForRawType("Image");
+							cls = SchemaHelper.getEntityClassForRawType("Image");
 
-					} else if (isVideo) {
+						} else if (isVideo) {
 
-						cls = SchemaHelper.getEntityClassForRawType("VideoFile");
-						if (cls == null) {
+							cls = SchemaHelper.getEntityClassForRawType("VideoFile");
+							if (cls == null) {
 
-							logger.warn("Unable to create entity of type VideoFile, class is not defined.");
+								logger.warn("Unable to create entity of type VideoFile, class is not defined.");
+							}
+
+						} else {
+
+							cls = SchemaHelper.getEntityClassForRawType("File");
+						}
+					}
+
+					if (cls != null) {
+						type = cls.getSimpleName();
+					}
+
+					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
+					File newFile      = null;
+					boolean retry     = true;
+
+					while (retry) {
+
+						retry = false;
+
+						final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
+						Folder uploadFolder                         = null;
+
+						// If a path attribute was sent, create all folders on the fly.
+						if (path != null) {
+
+							uploadFolder = getOrCreateFolderPath(securityContext, path);
+
+						} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+
+							uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
+
 						}
 
-					} else {
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-						cls = SchemaHelper.getEntityClassForRawType("File");
-					}
-				}
+							try (final InputStream is = p.getInputStream()) {
 
-				if (cls != null) {
-					type = cls.getSimpleName();
-				}
+								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
+								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
 
-				final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
-				File newFile      = null;
-				boolean retry     = true;
+								final PropertyMap changedProperties = new PropertyMap();
 
-				while (retry) {
+								changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
 
-					retry = false;
+								// Update type as it could have changed
+								changedProperties.put(AbstractNode.type, type);
 
-					final String defaultUploadFolderConfigValue = Settings.DefaultUploadFolder.getValue();
-					Folder uploadFolder                         = null;
+								newFile.unlockSystemPropertiesOnce();
+								newFile.setProperties(securityContext, changedProperties, true);
 
-					// If a path attribute was sent, create all folders on the fly.
-					if (path != null) {
+								uuid = newFile.getUuid();
 
-						uploadFolder = getOrCreateFolderPath(securityContext, path);
+							} catch (IOException ex) {
+								logger.warn("Could not store file: {}", ex.getMessage());
+							}
 
-					} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
+							tx.success();
 
-						uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
-
-					}
-
-					try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-						try (final InputStream is = p.getInputStream()) {
-
-							newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
-							AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
-
-							final PropertyMap changedProperties = new PropertyMap();
-
-							changedProperties.putAll(PropertyMap.inputTypeToJavaType(securityContext, cls, params));
-
-							// Update type as it could have changed
-							changedProperties.put(AbstractNode.type, type);
-
-							newFile.unlockSystemPropertiesOnce();
-							newFile.setProperties(securityContext, changedProperties, true);
-
-							uuid = newFile.getUuid();
-
-						} catch (IOException ex) {
-							logger.warn("Could not store file: {}", ex.getMessage());
+						} catch (RetryException rex) {
+							retry = true;
 						}
-
-						tx.success();
-
-					} catch (RetryException rex) {
-						retry = true;
 					}
-				}
 
-				// since the transaction can be repeated, we need to make sure that
-				// only the actual existing file creates a UUID output
-				if (newFile != null) {
+					// since the transaction can be repeated, we need to make sure that
+					// only the actual existing file creates a UUID output
+					if (newFile != null) {
 
-					// upload trigger
-					newFile.notifyUploadCompletion();
+						// upload trigger
+						newFile.notifyUploadCompletion();
 
 
-					newFile.callOnUploadHandler(securityContext);
+						newFile.callOnUploadHandler(securityContext);
 
-					// store uuid
-					uuid = newFile.getUuid();
-				
+						// store uuid
+						uuid = newFile.getUuid();
+
+					}
+
 				}
 			}
 

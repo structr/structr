@@ -31,6 +31,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.util.FileUtils;
+import org.structr.util.StreamUtils;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -76,14 +77,14 @@ public class SchemaJsonImporter extends NodeServiceCommand implements Maintenanc
 				try (final InputStream is = new FileInputStream(fileName)) {
 
 
-					SchemaJsonImporter.importSchemaJson(FileUtils.readAllLines(is));
+					SchemaJsonImporter.importSchemaJson(StreamUtils.readAllLines(is));
 				}
 
 			} else if (url != null) {
 
 				try (final InputStream is = new URL(url).openStream()) {
 
-					SchemaJsonImporter.importSchemaJson(FileUtils.readAllLines(is));
+					SchemaJsonImporter.importSchemaJson(StreamUtils.readAllLines(is));
 				}
 
 			} else if (source != null) {
