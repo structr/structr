@@ -45,17 +45,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
+
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
 	private final T node;
 	private ActionContext actionContext;
 
-	public GraphObjectWrapper(ActionContext actionContext, final T node) {
-		this.node = node;
+	public GraphObjectWrapper(final ActionContext actionContext, final T node) {
+
+		this.node          = node;
 		this.actionContext = actionContext;
 	}
 
 	public T getOriginalObject() {
-
 		return node;
 	}
 
@@ -63,24 +64,26 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	public Object getMember(String key) {
 
 		if (node instanceof AbstractNode) {
+
 			switch (key) {
+
 				case "owner":
 					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
+
 				case "_path":
 					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
 			}
 		}
 
-		if (getOriginalObject() instanceof GraphObjectMap) {
+		if (node instanceof GraphObjectMap) {
 
-			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap) getOriginalObject()).get(new GenericProperty<>(key)));
+			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap)node).get(new GenericProperty<>(key)));
 
 		} else {
 
 			// Check cache for already initialized executables
-			ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
-
-			ProxyExecutable cachedExecutable = methodCache.getExecutable(node, key);
+			final ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
+			final ProxyExecutable cachedExecutable      = methodCache.getExecutable(node, key);
 
 			if (cachedExecutable != null) {
 
@@ -90,7 +93,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			// Lookup method, if it's not in cache
 			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
 			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
-				Method method = methods.get(key);
+
+				final Method method = methods.get(key);
 
 				final ProxyExecutable executable = arguments -> {
 
@@ -101,15 +105,19 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						if (paramCount == 0) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node));
+
 						} else if (paramCount == 1) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
+
 						} else if (paramCount == 2 && arguments.length == 0) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+
 						} else if (arguments.length == 0) {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
+
 						} else {
 
 							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
@@ -118,18 +126,22 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					} catch (IllegalArgumentException ex) {
 
 						throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
+
 					} catch (IllegalAccessException ex) {
 
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+
 					} catch (InvocationTargetException ex) {
 
 						if (ex.getTargetException() instanceof FrameworkException) {
 
 							throw new RuntimeException(ex.getTargetException());
+
 						} else if (ex.getTargetException() instanceof AssertException) {
 
 							throw ((AssertException)ex.getTargetException());
 						}
+
 						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 					}
 
@@ -146,20 +158,23 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 				// At this point method is guaranteed to be static since earlier isStatic check was true
 				logger.warn("Tried calling a static type method in a non-static way on a type instance.");
 				return null;
+
 			} else if (key.equals("grant")) {
 
 				// grant() on GraphObject needs special handling
 				return new GrantFunction(actionContext, node);
 			}
 
-			PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+			final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
 
 			if (propKey != null) {
 
 				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
+
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well
 					return new PolyglotProxyArray(actionContext, node, propKey);
+
 				} else if (propKey instanceof EndNode || propKey instanceof StartNode) {
 
 					GraphObject graphObject = (GraphObject)node.getProperty(propKey);
@@ -169,6 +184,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					}
 
 					return null;
+
 				} else if (propKey instanceof EnumProperty) {
 
 					Object propValue = node.getProperty(propKey);
@@ -176,7 +192,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 						return ((Enum)propValue).toString();
 					}
+
 					return propValue;
+
 				} else {
 
 					Object prop = node.getProperty(propKey);
@@ -195,28 +213,32 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	@Override
 	public Object getMemberKeys() {
-		if (getOriginalObject() instanceof GraphObjectMap) {
 
-			return ((GraphObjectMap) getOriginalObject()).toMap().keySet().toArray();
-		} else if (getOriginalObject() != null){
+		if (node instanceof GraphObjectMap) {
 
-			return getOriginalObject().getPropertyKeys("all").stream().map(PropertyKey::dbName).toArray();
+			return ((GraphObjectMap) node).toMap().keySet().toArray();
+
+		} else if (node != null){
+
+			return node.getPropertyKeys("all").stream().map(PropertyKey::dbName).toArray();
 		}
 		return null;
 	}
 
 	@Override
-	public boolean hasMember(String key) {
+	public boolean hasMember(final String key) {
 
-		if (getOriginalObject() instanceof GraphObjectMap) {
+		if (node instanceof GraphObjectMap) {
 
-			return ((GraphObjectMap) getOriginalObject()).containsKey(new GenericProperty<>(key));
+			return ((GraphObjectMap) node).containsKey(new GenericProperty<>(key));
 
 		} else {
 
 			if (node != null) {
 
-				return StructrApp.getConfiguration().getExportedMethodsForType(node.getClass()).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key) != null;
+				final Class type = node.getClass();
+
+				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null;
 
 			} else {
 
@@ -226,12 +248,14 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 	}
 
 	@Override
-	public void putMember(String key, Value value) {
+	public void putMember(final String key, final Value value) {
+
 		Object unwrappedValue = PolyglotWrapper.unwrap(actionContext, value);
 
-		if (getOriginalObject() instanceof GraphObjectMap) {
+		if (node instanceof GraphObjectMap) {
 
-			((GraphObjectMap) getOriginalObject()).put(new GenericProperty<>(key), unwrappedValue);
+			((GraphObjectMap) node).put(new GenericProperty<>(key), unwrappedValue);
+
 		} else {
 
 			try {
@@ -240,20 +264,23 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				if (propKey != null && unwrappedValue != null && !propKey.valueType().isAssignableFrom(unwrappedValue.getClass())) {
 
-					PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
+					final PropertyConverter inputConverter = propKey.inputConverter(actionContext.getSecurityContext());
 
 					if (inputConverter != null) {
 
 						try {
 
 							unwrappedValue = inputConverter.convert(unwrappedValue);
+
 						} catch (ClassCastException ex) {
 
 							throw new FrameworkException(422, "Invalid input for key " + propKey.jsonName() + ", expected a " + propKey.typeName() + ".");
 						}
 					}
 				}
+
 				node.setProperty(propKey, unwrappedValue);
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

@@ -38,6 +38,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 public class StructrBinding implements ProxyObject {
+
 	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
 	private final GraphObject entity;
 	private final ActionContext actionContext;

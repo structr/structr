@@ -108,7 +108,7 @@ public class CallbackCounter {
 			logger.warn(
 				  "Number of callbacks in transaction {} by thread {} has exceeded logging threshold: onCreate/onSave/onDelete: {}/{}/{}, "
 				+ "afterCreate/afterSave/afterDelete: {}/{}/{}, indexing: {}. This is a warning that the transaction size might be too large, "
-				+ "or that an unusual number of callbacks are executed in this transaction. To remove this warning message, increase the "
+				+ "or that an unusual number of callbacks are executed in this transaction. To disable this warning message, increase the "
 				+ "value of {} in structr.conf.",
 				transactionId, threadName,
 				onCreate, onSave, onDelete,

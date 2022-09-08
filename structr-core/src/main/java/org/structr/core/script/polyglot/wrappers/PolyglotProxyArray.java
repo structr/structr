@@ -32,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
 public class PolyglotProxyArray implements ProxyArray {
@@ -44,6 +43,7 @@ public class PolyglotProxyArray implements ProxyArray {
 
 	// Using StructrPolyglotProxyArray as a simple Wrapper/Proxy
 	public PolyglotProxyArray(final ActionContext actionContext, final Object[] arr) {
+
 		this.actionContext = actionContext;
 		this.list = Arrays.asList(arr);
 		this.node = null;
@@ -51,6 +51,7 @@ public class PolyglotProxyArray implements ProxyArray {
 	}
 
 	public PolyglotProxyArray(final ActionContext actionContext, final List list) {
+
 		this.actionContext = actionContext;
 		this.list = list;
 		this.node = null;
@@ -59,15 +60,18 @@ public class PolyglotProxyArray implements ProxyArray {
 
 	// Using StructrPolyglotProxyArray as a synchronized proxy that automatically writes updates to it's source object
 	public PolyglotProxyArray(final ActionContext actionContext, final GraphObject node, final PropertyKey propKey) {
+
 		this.actionContext = actionContext;
 		this.list = new ArrayList<>();
 		this.node = node;
 		this.propKey = propKey;
+
 		updateListFromSource();
 	}
 
 	@Override
 	public Object get(long index) {
+
 		this.checkIndex(index);
 
 		if (index >= list.size()) {
@@ -80,12 +84,15 @@ public class PolyglotProxyArray implements ProxyArray {
 
 	@Override
 	public void set(long index, Value value) {
+
 		this.checkIndex(index);
 
-		if (list.size() <= index) {
+		final int size = list.size();
+
+		if (size <= index) {
 
 			// Determine delta between current index and target index
-			long indexDelta = index -(list.size() -1);
+			long indexDelta = index - (size - 1);
 
 			// Fill intermediate indices with null and leave one slot in the final index for the actual value to be set
 			while (indexDelta > 1) {
@@ -94,6 +101,7 @@ public class PolyglotProxyArray implements ProxyArray {
 			}
 
 			list.add(PolyglotWrapper.unwrap(actionContext, value));
+
 		} else {
 
 			list.set((int) index, PolyglotWrapper.unwrap(actionContext, value));
@@ -110,18 +118,22 @@ public class PolyglotProxyArray implements ProxyArray {
 
 	@Override
 	public boolean remove(long index) {
+
 		this.checkIndex(index);
 
 		if (index < list.size()) {
 
 			list.remove((int) index);
 			writeListToSource();
+
 			return true;
 		}
+
 		return false;
 	}
 
 	private void checkIndex(long index) {
+
 		if (index > 2147483647L || index < 0L) {
 
 			throw new ArrayIndexOutOfBoundsException("invalid index.");
@@ -133,8 +145,8 @@ public class PolyglotProxyArray implements ProxyArray {
 		if (this.node != null && propKey != null) {
 
 			list.clear();
-			Object value = node.getProperty(propKey);
 
+			final Object value = node.getProperty(propKey);
 			if (value != null) {
 
 				if (value.getClass().isArray()) {
@@ -143,15 +155,19 @@ public class PolyglotProxyArray implements ProxyArray {
 
 						list.add(o);
 					}
+
 				} else if (value instanceof Iterable) {
 
 					Iterable it = (Iterable) value;
-					list = (List) StreamSupport.stream(it.spliterator(), false).collect(Collectors.toList());
+
+					StreamSupport.stream(it.spliterator(), false).forEach(list::add);
+
 				} else if (value instanceof Collection) {
 
 					if (!(value instanceof List)) {
 
 						list = new ArrayList<>((Collection) value);
+
 					} else {
 
 						list = (List) value;
@@ -162,11 +178,13 @@ public class PolyglotProxyArray implements ProxyArray {
 	}
 
 	private void writeListToSource() {
+
 		if (this.node != null && this.propKey != null) {
 
 			try {
 
 				node.setProperty(propKey, propKey.inputConverter(actionContext.getSecurityContext()).convert(list));
+
 			} catch (FrameworkException ex) {
 
 				throw new RuntimeException(ex);

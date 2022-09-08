@@ -49,10 +49,12 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 	public Object execute(final Value... arguments) {
 
 		if (arguments != null && arguments.length > 0) {
+
 			Object[] unwrappedArgs = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 			Context context = null;
 
 			try {
+
 				context = ContextFactory.getContext("js", actionContext, entity);
 
 				context.leave();
@@ -85,6 +87,7 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 
 									result = PolyglotWrapper.unwrap(actionContext, ((PolyglotWrapper.FunctionWrapper) unwrappedArgs[0]).execute());
 									tx.success();
+
 								} catch (Throwable ex) {
 
 									hasError = true;

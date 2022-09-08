@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ExecutableTypeMethodCache {
+
 	private final FixedSizeCache<GraphObject, Map<String, ProxyExecutable>> typeMethodCache = new FixedSizeCache<>("executableTypeMethodCache", 100);
 
 	public ProxyExecutable getExecutable(final GraphObject instance, final String methodName) {
@@ -43,9 +44,10 @@ public class ExecutableTypeMethodCache {
 		if (typeMethodCache.containsKey(instance)) {
 
 			typeMethodCache.get(instance).put(methodName, executable);
+
 		} else {
 
-			Map<String, ProxyExecutable> methodMap = new HashMap<>();
+			final Map<String, ProxyExecutable> methodMap = new HashMap<>();
 			methodMap.put(methodName, executable);
 			typeMethodCache.put(instance, methodMap);
 		}
@@ -60,5 +62,4 @@ public class ExecutableTypeMethodCache {
 
 		typeMethodCache.clear();
 	}
-
 }

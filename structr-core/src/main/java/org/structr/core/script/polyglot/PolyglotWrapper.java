@@ -38,55 +38,67 @@ import java.util.stream.StreamSupport;
 public abstract class PolyglotWrapper {
 
 	// Wraps values going into the scripting context. E.g.: GraphObject -> StructrPolyglotGraphObjectWrapper
-	public static Object wrap(ActionContext actionContext, Object obj) {
+	public static Object wrap(final ActionContext actionContext, final Object obj) {
 
 		if (obj == null) {
 
 			return null;
+		}
 
-		} else if (obj instanceof NonWrappableObject) {
+		if (obj instanceof NonWrappableObject) {
 
 			return ((NonWrappableObject)obj).unwrap();
+		}
 
-		} else if (obj instanceof GraphObject) {
+		if (obj instanceof GraphObject) {
 
 			return new GraphObjectWrapper(actionContext, (GraphObject) obj);
+		}
 
-		} else if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
-
-			return new PolyglotProxyArray(actionContext, (Object[]) obj);
-
-		} else 	if (obj instanceof List) {
+		if (obj instanceof List) {
 
 			return new PolyglotProxyArray(actionContext, (List)obj);
+		}
 
-		} else 	if (obj instanceof Iterable) {
+		if (obj instanceof Iterable) {
 
 			return new PolyglotProxyArray(actionContext, (List)StreamSupport.stream(((Iterable)obj).spliterator(), false).collect(Collectors.toList()));
+		}
 
-		} else if (obj instanceof Map) {
+		if (obj instanceof Map) {
 
 			return new PolyglotProxyMap(actionContext, (Map<String, Object>)obj);
+		}
 
-		} else if (obj instanceof Enumeration) {
+		if (obj instanceof Enumeration) {
 
-			Enumeration enumeration = (Enumeration)obj;
-			List<Object> enumList = new ArrayList<>();
+			final Enumeration enumeration = (Enumeration)obj;
+			final List<Object> enumList = new ArrayList<>();
+
 			while (enumeration.hasMoreElements()) {
 
 				enumList.add(enumeration.nextElement());
 			}
 
 			return new PolyglotProxyArray(actionContext, enumList.toArray());
+		}
 
-		} else if (obj instanceof Date) {
+		if (obj instanceof Date) {
 
-			final Context context = actionContext.getScriptingContext("js");
+			final Context context = Context.getCurrent();
 			final Value jsDateValue = context.eval("js", "new Date()");
 			jsDateValue.invokeMember("setTime", ((Date)obj).getTime());
+
 			return jsDateValue;
 
-		} else if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
+		}
+
+		if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
+
+			return new PolyglotProxyArray(actionContext, (Object[]) obj);
+		}
+
+		if (obj instanceof Value && !((Value)obj).getContext().equals(Context.getCurrent())) {
 
 			// Try to rewrap objects from foreign contexts
 			return wrap(actionContext, unwrap(actionContext, obj));
@@ -106,22 +118,26 @@ public abstract class PolyglotWrapper {
 			if (value.isString()) {
 
 				return value.asString();
+			}
 
-			} else if (value.isBoolean()) {
+			if (value.isBoolean()) {
 
 				return value.asBoolean();
+			}
 
-			} else if (value.isNumber()) {
+			if (value.isNumber()) {
 
 				if (value.fitsInInt()) {
 
 					return value.asInt();
+				}
 
-				} else if (value.fitsInLong()) {
+				if (value.fitsInLong()) {
 
 					return value.asLong();
+				}
 
-				} else if (value.fitsInFloat()) {
+				if (value.fitsInFloat()) {
 
 					Float f = value.asFloat();
 					if (!Float.isNaN(f)) {
@@ -130,8 +146,9 @@ public abstract class PolyglotWrapper {
 					}
 
 					return null;
+				}
 
-				} else if (value.fitsInDouble()) {
+				if (value.fitsInDouble()) {
 
 					Double d = value.asDouble();
 					if (!Double.isNaN(d)) {
@@ -148,71 +165,77 @@ public abstract class PolyglotWrapper {
 
 				return new FunctionWrapper(actionContext, value);
 
-			} else if (value.isHostObject()) {
+			}
+
+			if (value.isHostObject()) {
 
 				return unwrap(actionContext, value.asHostObject());
 
-			} else if (value.isDate()) {
+			}
+
+			if (value.isDate()) {
 
 				if (value.isTime()) {
 
 					return Date.from(value.asDate().atTime(value.asTime()).atZone(ZoneId.systemDefault()).toInstant());
-
-				} else {
-
-					return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
 				}
 
-			} else if (value.isProxyObject() && value.hasMembers()) {
+				return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+
+			}
+
+			if (value.isProxyObject() && value.hasMembers()) {
 
 				ProxyObject proxy = value.asProxyObject();
 
 				if (proxy instanceof GraphObjectWrapper) {
 
 					return ((GraphObjectWrapper)proxy).getOriginalObject();
-
-				} else if (proxy instanceof PolyglotProxyMap) {
-
-					return ((PolyglotProxyMap)proxy).getOriginalObject();
-
-				} else {
-
-					return proxy;
 				}
 
-			} else if (value.hasArrayElements()) {
+				if (proxy instanceof PolyglotProxyMap) {
 
-				return convertValueToList(actionContext, value);
+					return ((PolyglotProxyMap)proxy).getOriginalObject();
+				}
 
-			} else if (value.hasMembers()) {
-
-				return convertValueToMap(actionContext, value);
-
-			} else if (value.isNull()) {
-
-				return null;
-
-			} else {
-
-				return unwrap(actionContext, value.as(Object.class));
+				return proxy;
 			}
 
-		} else if (obj instanceof GraphObjectWrapper) {
+			if (value.hasArrayElements()) {
+
+				return convertValueToList(actionContext, value);
+			}
+
+			if (value.hasMembers()) {
+
+				return convertValueToMap(actionContext, value);
+			}
+
+			if (value.isNull()) {
+
+				return null;
+			}
+
+			return unwrap(actionContext, value.as(Object.class));
+		}
+
+		if (obj instanceof GraphObjectWrapper) {
 
 			return ((GraphObjectWrapper)obj).getOriginalObject();
 
-		} else if (obj instanceof Iterable) {
+		}
+
+		if (obj instanceof Iterable) {
 
 			return unwrapIterable(actionContext, (Iterable) obj);
+		}
 
-		} else if(obj instanceof Map) {
+		if(obj instanceof Map) {
 
 			return unwrapMap(actionContext, (Map<String, Object>) obj);
-
-		} else {
-
-			return obj;
 		}
+
+		return obj;
 	}
 
 	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {
@@ -245,7 +268,9 @@ public abstract class PolyglotWrapper {
 
 		if (value.hasArrayElements()) {
 
-			for (int i = 0; i < value.getArraySize(); i++) {
+			final long size = value.getArraySize();
+
+			for (int i = 0; i < size; i++) {
 
 				resultList.add(unwrap(actionContext, value.getArrayElement(i)));
 			}
@@ -270,6 +295,7 @@ public abstract class PolyglotWrapper {
 	}
 
 	public static class FunctionWrapper implements ProxyExecutable {
+
 		private Value func;
 		private final ActionContext actionContext;
 		private final ReentrantLock lock;
@@ -305,8 +331,8 @@ public abstract class PolyglotWrapper {
 
 					return wrap(actionContext, unwrap(actionContext, result));
 				}
-
 			}
+
 			return null;
 		}
 
