@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
@@ -55,15 +54,6 @@ public class StaticTypeWrapper implements ProxyObject {
 
 	@Override
 	public Object getMember(String key) {
-
-		// Try to lookup cached executable before initializing a new one
-		ExecutableStaticTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
-
-		ProxyExecutable cachedStaticExecutable = staticMethodCache.getExecutable(referencedClass.getSimpleName(), key);
-		if (cachedStaticExecutable != null) {
-
-			return cachedStaticExecutable;
-		}
 
 		final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(referencedClass);
 		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
@@ -122,8 +112,6 @@ public class StaticTypeWrapper implements ProxyObject {
 				return null;
 
 			};
-
-			staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
 
 			return executable;
 		}

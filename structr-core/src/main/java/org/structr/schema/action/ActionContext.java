@@ -48,8 +48,6 @@ import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
-import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
 
 /**
@@ -624,18 +622,6 @@ public class ActionContext {
 
 	public ContextStore getContextStore() {
 		return this.securityContext.getContextStore();
-	}
-
-	public ExecutableTypeMethodCache getExecutableTypeMethodCache() {
-		return this.securityContext.getExecutableTypeMethodCache();
-	}
-
-	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
-		return this.securityContext.getStaticExecutableTypeMethodCache();
-	}
-
-	public void clearExecutableCaches() {
-		this.securityContext.clearExecutableCaches();
 	}
 
 	public String getJavascriptLibraryCode(String fileName) {

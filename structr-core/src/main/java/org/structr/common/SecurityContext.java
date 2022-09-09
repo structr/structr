@@ -48,8 +48,6 @@ import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
-import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.JavaScriptSource;
 
@@ -87,22 +85,20 @@ public class SecurityContext {
 	private int serializationDepth                        = -1;
 
 
-	private final ExecutableStaticTypeMethodCache staticExecutableTypeMethodCache = new ExecutableStaticTypeMethodCache();
-	private final ExecutableTypeMethodCache executableTypeMethodCache             = new ExecutableTypeMethodCache();
-	private final Map<String, String> libraryCache                                = new HashMap<>();
-	private final Map<String, QueryRange> ranges                                  = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs                                       = new ConcurrentHashMap<>();
-	private AccessMode accessMode                                                 = AccessMode.Frontend;
-	private final List<Object> creationDetails                                    = new LinkedList<>();
-	private Authenticator authenticator                                           = null;
-	private Principal cachedUser                                                  = null;
-	private HttpServletRequest request                                            = null;
-	private HttpServletResponse response                                          = null;
-	private Set<String> customView                                                = null;
-	private String cachedUserName                                                 = null;
-	private String cachedUserId                                                   = null;
-	private String sessionId                                                      = null;
-	private ContextStore contextStore                                             = null;
+	private final Map<String, String> libraryCache = new HashMap<>();
+	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
+	private AccessMode accessMode                  = AccessMode.Frontend;
+	private final List<Object> creationDetails     = new LinkedList<>();
+	private Authenticator authenticator            = null;
+	private Principal cachedUser                   = null;
+	private HttpServletRequest request             = null;
+	private HttpServletResponse response           = null;
+	private Set<String> customView                 = null;
+	private String cachedUserName                  = null;
+	private String cachedUserId                    = null;
+	private String sessionId                       = null;
+	private ContextStore contextStore              = null;
 
 	private SecurityContext() {
 	}
@@ -1001,22 +997,6 @@ public class SecurityContext {
 
 			return cachedSource;
 		}
-	}
-
-	public ExecutableTypeMethodCache getExecutableTypeMethodCache() {
-
-		return this.executableTypeMethodCache;
-	}
-
-	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
-
-		return this.staticExecutableTypeMethodCache;
-	}
-
-	public void clearExecutableCaches() {
-
-		this.executableTypeMethodCache.clearCache();
-		this.staticExecutableTypeMethodCache.clearCache();
 	}
 
 	// ----- static methods -----

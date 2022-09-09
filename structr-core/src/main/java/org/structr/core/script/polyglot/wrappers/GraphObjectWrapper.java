@@ -33,7 +33,6 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
@@ -47,13 +46,13 @@ import java.util.Map;
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphObjectWrapper.class);
+	private final ActionContext actionContext;
 	private final T node;
-	private ActionContext actionContext;
 
 	public GraphObjectWrapper(final ActionContext actionContext, final T node) {
 
-		this.node          = node;
 		this.actionContext = actionContext;
+		this.node          = node;
 	}
 
 	public T getOriginalObject() {
@@ -80,15 +79,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			return PolyglotWrapper.wrap(actionContext, ((GraphObjectMap)node).get(new GenericProperty<>(key)));
 
 		} else {
-
-			// Check cache for already initialized executables
-			final ExecutableTypeMethodCache methodCache = actionContext.getExecutableTypeMethodCache();
-			final ProxyExecutable cachedExecutable      = methodCache.getExecutable(node, key);
-
-			if (cachedExecutable != null) {
-
-				return cachedExecutable;
-			}
 
 			// Lookup method, if it's not in cache
 			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
@@ -148,8 +138,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return null;
 
 				};
-
-				methodCache.cacheExecutable(node, key, executable);
 
 				return executable;
 
