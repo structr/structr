@@ -491,7 +491,7 @@ public class UiAuthenticator implements Authenticator {
 		// Default is value from Settings
 		Object effectiveCorsSettingValue = Settings.getSetting(corsAttributeKey).getValue();
 
-		logger.info("Settings value for {} from config: {}", corsAttributeKey, effectiveCorsSettingValue);
+		logger.debug("Settings value for {} from config: {}", corsAttributeKey, effectiveCorsSettingValue);
 
 		CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
 		if (corsSettingObjectFromDatabase != null) {
@@ -502,7 +502,7 @@ public class UiAuthenticator implements Authenticator {
 				// Overwrite config setting
 				effectiveCorsSettingValue = corsSettingValueFromDatabase;
 			}
-			logger.info("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
+			logger.debug("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
 		}
 
 		return effectiveCorsSettingValue;
