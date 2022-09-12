@@ -2881,6 +2881,7 @@ let _Entities = {
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		const oldVal = entity[key];
+		input.val(oldVal);
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
 			let newVal = result[key];
 
