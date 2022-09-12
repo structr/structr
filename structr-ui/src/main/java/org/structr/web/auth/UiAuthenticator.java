@@ -477,7 +477,7 @@ public class UiAuthenticator implements Authenticator {
 	private <T> Object getEffectiveCorsSettingValue(final String requestUri, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
 
 		// Default is value from Settings
-		Object effectiveCorsSettingValue = Settings.getStringSetting(corsAttributeKey).getValue();
+		Object effectiveCorsSettingValue = Settings.getSetting(corsAttributeKey).getValue();
 
 		CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
 		if (corsSettingObjectFromDatabase != null) {
