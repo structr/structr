@@ -359,6 +359,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						// Element with Basic Auth found and authentication succeeded
 						case Authenticated:
+
 							final Linkable result = authResult.getRootElement();
 							if (result instanceof Page) {
 

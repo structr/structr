@@ -27,6 +27,7 @@ import org.structr.schema.action.ActionContext;
 import java.util.Arrays;
 
 public class IncludeJSFunction implements ProxyExecutable {
+
 	private final ActionContext actionContext;
 
 	public IncludeJSFunction(final ActionContext actionContext) {
@@ -36,11 +37,14 @@ public class IncludeJSFunction implements ProxyExecutable {
 
 	@Override
 	public Object execute(Value... arguments) {
-		Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+
+		final Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 		String sourceFileName;
 
 		if (args.length > 0 && args[0] instanceof String) {
+
 			sourceFileName = (String)args[0];
+
 			Context.getCurrent().eval("js", actionContext.getJavascriptLibraryCode(sourceFileName));
 		}
 

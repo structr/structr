@@ -29,7 +29,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
 import org.structr.schema.action.ActionContext;
 
 import java.lang.reflect.InvocationTargetException;
@@ -40,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StaticTypeWrapper implements ProxyObject {
+
 	private final static Logger logger = LoggerFactory.getLogger(StaticTypeWrapper.class);
 	private final App app;
 	private final Class referencedClass;
@@ -52,18 +52,8 @@ public class StaticTypeWrapper implements ProxyObject {
 		this.referencedClass = referencedClass;
 	}
 
-
 	@Override
 	public Object getMember(String key) {
-
-		// Try to lookup cached executable before initializing a new one
-		ExecutableStaticTypeMethodCache staticMethodCache = actionContext.getStaticExecutableTypeMethodCache();
-
-		ProxyExecutable cachedStaticExecutable = staticMethodCache.getExecutable(referencedClass.getSimpleName(), key);
-		if (cachedStaticExecutable != null) {
-
-			return cachedStaticExecutable;
-		}
 
 		final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(referencedClass);
 		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
@@ -79,15 +69,19 @@ public class StaticTypeWrapper implements ProxyObject {
 					if (paramCount == 0) {
 
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null));
+
 					} else if (paramCount == 1) {
 
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+
 					} else if (paramCount == 2 && arguments.length == 0) {
 
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+
 					} else if (arguments.length == 0) {
 
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+
 					} else {
 
 						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
@@ -96,14 +90,17 @@ public class StaticTypeWrapper implements ProxyObject {
 				} catch (IllegalArgumentException ex) {
 
 					throw new RuntimeException(new FrameworkException(422, "Tried to call method \"" + method.getName() + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
+
 				} catch (IllegalAccessException ex) {
 
 					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+
 				} catch (InvocationTargetException ex) {
 
 					if (ex.getTargetException() instanceof FrameworkException) {
 
 						throw new RuntimeException(ex.getTargetException());
+
 					} else if (ex.getTargetException() instanceof AssertException) {
 
 						throw ((AssertException)ex.getTargetException());
@@ -115,8 +112,6 @@ public class StaticTypeWrapper implements ProxyObject {
 				return null;
 
 			};
-
-			staticMethodCache.cacheExecutable(referencedClass.getSimpleName(), key, executable);
 
 			return executable;
 		}

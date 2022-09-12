@@ -450,6 +450,8 @@ public abstract class ImageHelper extends FileHelper {
 
 			tn.setBytes(baos.toByteArray());
 
+			return tn;
+
 		} else {
 
 			logger.warn("Cropped image could not be created for '{}'", originalImage.getPath());

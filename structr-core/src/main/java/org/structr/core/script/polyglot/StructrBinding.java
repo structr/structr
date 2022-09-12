@@ -40,6 +40,7 @@ import java.util.Set;
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
 public class StructrBinding implements ProxyObject {
+
 	private final static Logger logger = LoggerFactory.getLogger(StructrBinding.class);
 	private final GraphObject entity;
 	private final ActionContext actionContext;

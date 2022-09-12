@@ -37,10 +37,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.auth.exception.UnauthorizedException;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.SuperUser;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyKey;
@@ -169,37 +166,48 @@ public class UiAuthenticator implements Authenticator {
 		securityContext.setAuthenticator(this);
 
 		// Check CORS settings (Cross-origin resource sharing, see http://en.wikipedia.org/wiki/Cross-origin_resource_sharing)
-		final String origin = request.getHeader("Origin");
+		final String origin     = request.getHeader("Origin");
+		final String requestUri = request.getRequestURI();
+
 		if (!StringUtils.isBlank(origin)) {
 
-			final List<String> acceptedOrigins = Arrays.stream(Settings.AccessControlAcceptedOrigins.getValue().split(",")).map(String::trim).collect(Collectors.toList());
+			String acceptedOriginsString  = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAcceptedOrigins.getKey(),  CorsSetting.acceptedOrigins);
+			final Integer maxAge          = (Integer) getEffectiveCorsSettingValue(requestUri, Settings.AccessControlMaxAge.getKey(),           CorsSetting.maxAge);
+			final String allowMethods     = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowMethods.getKey(),     CorsSetting.allowMethods);
+			final String allowHeaders     = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowHeaders.getKey(),     CorsSetting.allowHeaders);
+			final String allowCredentials = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowCredentials.getKey(), CorsSetting.allowCredentials);
+			final String exposeHeaders    = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlExposeHeaders.getKey(),    CorsSetting.exposeHeaders);
 
-			if (acceptedOrigins.contains(origin)) {
+			final List<String> acceptedOrigins = Arrays.stream(acceptedOriginsString.split(",")).map(String::trim).collect(Collectors.toList());
+			final boolean wildcardAllowed = acceptedOrigins.contains("*");
 
-				response.setHeader("Access-Control-Allow-Origin", origin);
+			if (acceptedOrigins.contains(origin) || wildcardAllowed) {
 
-				 // allow cross site resource sharing (read only)
-				final String maxAge = Settings.AccessControlMaxAge.getValue();
-				if (StringUtils.isNotBlank(maxAge)) {
-					response.setHeader("Access-Control-MaxAge", maxAge);
+				// Respond with wildcard "*" only for non-credentialed requests (user == null)
+				if (wildcardAllowed && user == null && !StringUtils.equalsIgnoreCase(allowCredentials, "true")) {
+					response.setHeader("Access-Control-Allow-Origin",  "*");
+				} else {
+					response.setHeader("Access-Control-Allow-Origin",  origin);
+					response.addHeader("Vary", "Origin");
 				}
 
-				final String allowMethods = Settings.AccessControlAllowMethods.getValue();
+
+				if (maxAge != null) {
+					response.setHeader("Access-Control-Max-Age", maxAge.toString());
+				}
+
 				if (StringUtils.isNotBlank(allowMethods)) {
 					response.setHeader("Access-Control-Allow-Methods", allowMethods);
 				}
 
-				final String allowHeaders = Settings.AccessControlAllowHeaders.getValue();
 				if (StringUtils.isNotBlank(allowHeaders)) {
 					response.setHeader("Access-Control-Allow-Headers", allowHeaders);
 				}
 
-				final String allowCredentials = Settings.AccessControlAllowCredentials.getValue();
 				if (StringUtils.isNotBlank(allowCredentials)) {
 					response.setHeader("Access-Control-Allow-Credentials", allowCredentials);
 				}
 
-				final String exposeHeaders = Settings.AccessControlExposeHeaders.getValue();
 				if (StringUtils.isNotBlank(exposeHeaders)) {
 					response.setHeader("Access-Control-Expose-Headers", exposeHeaders);
 				}
@@ -463,6 +471,22 @@ public class UiAuthenticator implements Authenticator {
 
 			return null;
 		}
+	}
+
+	/**
+	 * Get effective CORS setting
+	 */
+	private <T> Object getEffectiveCorsSettingValue(final String requestUri, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
+
+		// Default is value from Settings
+		Object effectiveCorsSettingValue = Settings.getStringSetting(corsAttributeKey).getValue();
+
+		CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
+		if (corsSettingObjectFromDatabase != null) {
+			effectiveCorsSettingValue = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+		}
+
+		return effectiveCorsSettingValue;
 	}
 
 	/**

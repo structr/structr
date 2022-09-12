@@ -33,8 +33,30 @@ public abstract class ContextFactory {
 
 	private static final Engine engine = Engine.create();
 
-	public static Context getContext(final String language) throws FrameworkException {
+	// javascript context builder
+	private static final Context.Builder jsBuilder = Context.newBuilder("js")
+				.engine(engine)
+				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				// TODO: Add config switch to toggle Host Class Lookup
+				//.allowHostClassLookup(new StructrClassPredicate())
+				// TODO: Add configurable chrome debug
+				//.option("inspect", "4242")
+				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
+				.allowExperimentalOptions(true)
+				.option("js.foreign-object-prototype", "true")
+				.option("js.ecmascript-version", "latest");
 
+	// other languages context builder
+	private static final Context.Builder genericBuilder = Context.newBuilder()
+				.engine(engine)
+				.allowAllAccess(true)
+				.allowHostAccess(AccessProvider.getHostAccessConfig());
+				//.allowHostClassLookup(new StructrClassPredicate());
+
+
+
+	public static Context getContext(final String language) throws FrameworkException {
 		return getContext(language, null, null);
 	}
 
@@ -59,12 +81,14 @@ public abstract class ContextFactory {
 
 			storedContext = updateBindings(storedContext, language, actionContext, entity);
 			actionContext.putScriptingContext(language, storedContext);
+
 		} else {
 
 			try {
 
 				storedContext = contextCreationFunc.call();
 				actionContext.putScriptingContext(language, storedContext);
+
 			} catch (Exception ex) {
 
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
@@ -75,40 +99,19 @@ public abstract class ContextFactory {
 	}
 
 	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
-
-		final Context context = Context.newBuilder("js")
-				.engine(engine)
-				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
-				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				// TODO: Add config switch to toggle Host Class Lookup
-				//.allowHostClassLookup(new StructrClassPredicate())
-				// TODO: Add configurable chrome debug
-				//.option("inspect", "4242")
-				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
-				.allowExperimentalOptions(true)
-				.option("js.foreign-object-prototype", "true")
-				.option("js.ecmascript-version", "latest")
-				.build();
-
-		return updateBindings(context, "js", actionContext, entity);
+		return updateBindings(jsBuilder.build(), "js", actionContext, entity);
 	}
 
 	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
-
-		final Context context = Context.newBuilder()
-				.engine(engine)
-				.allowAllAccess(true)
-				.allowHostAccess(AccessProvider.getHostAccessConfig())
-				//.allowHostClassLookup(new StructrClassPredicate())
-				.build();
-
-		return updateBindings(context, language, actionContext, entity);
+		return updateBindings(genericBuilder.build(), language, actionContext, entity);
 	}
 
 	private static Context updateBindings(final Context context, final String language, final ActionContext actionContext, final GraphObject entity) {
+
 		final StructrBinding structrBinding = new StructrBinding(actionContext, entity);
 
 		context.getBindings(language).putMember("Structr", structrBinding);
+
 		if (!language.equals("python") && !language.equals("R")) {
 			context.getBindings(language).putMember("$", structrBinding);
 		}

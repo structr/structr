@@ -28,13 +28,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.JavaScriptSource;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -74,19 +79,21 @@ public class SecurityContext {
 	private boolean doIndexing                            = Settings.IndexingEnabled.getValue(true);
 	private int serializationDepth                        = -1;
 
-	private final Map<String, QueryRange> ranges = new ConcurrentHashMap<>();
-	private final Map<String, Object> attrs      = new ConcurrentHashMap<>();
-	private AccessMode accessMode                = AccessMode.Frontend;
-	private final List<Object> creationDetails   = new LinkedList<>();
-	private Authenticator authenticator          = null;
-	private Principal cachedUser                 = null;
-	private HttpServletRequest request           = null;
-	private HttpServletResponse response         = null;
-	private Set<String> customView               = null;
-	private String cachedUserName                = null;
-	private String cachedUserId                  = null;
-	private String sessionId                     = null;
-	private ContextStore contextStore            = null;
+
+	private final Map<String, String> libraryCache = new HashMap<>();
+	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
+	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
+	private AccessMode accessMode                  = AccessMode.Frontend;
+	private final List<Object> creationDetails     = new LinkedList<>();
+	private Authenticator authenticator            = null;
+	private Principal cachedUser                   = null;
+	private HttpServletRequest request             = null;
+	private HttpServletResponse response           = null;
+	private Set<String> customView                 = null;
+	private String cachedUserName                  = null;
+	private String cachedUserId                    = null;
+	private String sessionId                       = null;
+	private ContextStore contextStore              = null;
 
 	private SecurityContext() {
 	}
@@ -924,6 +931,67 @@ public class SecurityContext {
 		}
 
 		return softLimit;
+	}
+
+	public String getJavascriptLibraryCode(String fileName) {
+
+		synchronized (libraryCache) {
+
+			String cachedSource = libraryCache.get(fileName);
+			if (cachedSource == null) {
+
+				final StringBuilder buf = new StringBuilder();
+				final App app           = StructrApp.getInstance();
+
+				try (final Tx tx = app.tx()) {
+
+					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
+							.and(JavaScriptSource.name, fileName)
+							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
+							.getAsList();
+
+					if (jsFiles.isEmpty()) {
+
+						logger.warn("No JavaScript library file found with fileName: {}", fileName );
+
+					} else if (jsFiles.size() > 1) {
+
+						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
+					}
+
+					for (final JavaScriptSource jsLibraryFile : jsFiles) {
+
+						final String contentType = jsLibraryFile.getContentType();
+						if (contentType != null) {
+
+							final String lowerCaseContentType = contentType.toLowerCase();
+							if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType)) {
+
+								buf.append(jsLibraryFile.getJavascriptLibraryCode());
+
+							} else {
+
+								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+							}
+
+						} else {
+
+							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
+						}
+					}
+
+					tx.success();
+
+				} catch (FrameworkException fex) {
+					logger.warn("", fex);
+				}
+
+				cachedSource = buf.toString();
+				libraryCache.put(fileName, cachedSource);
+			}
+
+			return cachedSource;
+		}
 	}
 
 	// ----- static methods -----

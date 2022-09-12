@@ -21,10 +21,13 @@ package org.structr.core.script;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.PolyglotException;
+import org.graalvm.polyglot.Source;
 import org.graalvm.polyglot.SourceSection;
+import org.graalvm.polyglot.Value;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
@@ -53,8 +56,9 @@ import java.util.stream.Collectors;
 
 public class Scripting {
 
-	private static final Logger logger                       = LoggerFactory.getLogger(Scripting.class.getName());
-	private static final Pattern ScriptEngineExpression      = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
+	private static final FixedSizeCache<String, Source> sourceCache = new FixedSizeCache<>("Source Cache", 10000);
+	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
+	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
 
 	public static String replaceVariables(final ActionContext actionContext, final GraphObject entity, final Object rawValue) throws FrameworkException {
 		return replaceVariables(actionContext, entity, rawValue, false, "script source");
@@ -257,70 +261,88 @@ public class Scripting {
 			actionContext.getErrorBuffer().setStatus(0);
 		}
 
-		Context context = ContextFactory.getContext("js", actionContext, entity);
-		context.enter();
-
 		try {
+			final Context context = ContextFactory.getContext("js", actionContext, entity);
 
-			Object result = null;
+			context.enter();
 
 			try {
 
-				result = PolyglotWrapper.unwrap(actionContext, context.eval("js", embedInFunction(snippet)));
+				Object result = null;
 
-			} catch (PolyglotException ex) {
+				try {
 
-				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+					Source source = sourceCache.get(snippet.getSource());
+					if (source == null) {
+
+						final String code = embedInFunction(snippet);
+						source = Source.newBuilder("js", code, snippet.getName()).build();
+
+						// store in cache
+						sourceCache.put(snippet.getSource(), source);
+					}
+
+					final Value value = context.eval(source);
+
+					result = PolyglotWrapper.unwrap(actionContext, value);
+
+				} catch (PolyglotException ex) {
+
+					if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+						// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+						if (ex.asHostException().getCause() instanceof FrameworkException) {
+							throw ex.asHostException().getCause();
+						} else {
+							throw ex.asHostException();
+						}
+					}
 
 					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-					if (ex.asHostException().getCause() instanceof FrameworkException) {
-						throw ex.asHostException().getCause();
-					} else {
-						throw ex.asHostException();
-					}
+					throw new FrameworkException(422, "Server-side scripting error", ex);
 				}
 
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				// Prefer explicitly printed output over actual result
+				final String outputBuffer = actionContext.getOutput();
+				if (outputBuffer != null && !outputBuffer.isEmpty()) {
+
+					return outputBuffer;
+				}
+
+				return result != null ? result : "";
+
+			} catch (RuntimeException ex) {
+
+				if (ex.getCause() instanceof FrameworkException) {
+
+					throw (FrameworkException) ex.getCause();
+
+				} else if (ex instanceof AssertException) {
+
+					throw ex;
+				} else {
+
+					throw ex;
+				}
+
+			} catch (FrameworkException ex) {
+
+				throw ex;
+
+			} catch (Throwable ex) {
+
 				throw new FrameworkException(422, "Server-side scripting error", ex);
+
+			} finally {
+
+				context.leave();
 			}
-
-			// Prefer explicitly printed output over actual result
-			final String outputBuffer = actionContext.getOutput();
-			if (outputBuffer != null && !outputBuffer.isEmpty()) {
-
-				return outputBuffer;
-			}
-
-			return result != null ? result : "";
-
-		} catch (RuntimeException ex) {
-
-			if (ex.getCause() instanceof FrameworkException) {
-
-				throw (FrameworkException) ex.getCause();
-
-			} else if (ex instanceof AssertException) {
-
-				throw ex;
-			} else {
-
-				throw ex;
-			}
-
-		} catch (FrameworkException ex) {
-
-			throw ex;
-
-		} catch (Throwable ex) {
-
-			throw new FrameworkException(422, "Server-side scripting error", ex);
 
 		} finally {
 
-			context.leave();
+			//actionContext.putScriptingContext("js", null);
 		}
-
 	}
 
 	// ----- private methods -----
@@ -329,6 +351,7 @@ public class Scripting {
 		try {
 
 			final Context context = ContextFactory.getContext(engineName, actionContext, entity);
+
 			context.enter();
 
 			final StringBuilder wrappedScript = new StringBuilder();
@@ -412,35 +435,37 @@ public class Scripting {
 		} catch (Throwable ex) {
 
 			throw new FrameworkException(422, "Server-side scripting error", ex);
+
+		} finally {
+
+			//actionContext.putScriptingContext(engineName, null);
 		}
 	}
-
 
 	private static String embedInFunction(final Snippet snippet) {
 
 		if (snippet.embed()) {
 
-			return embedInFunction(snippet.getSource());
+			return embedInFunction(snippet.getSource(), snippet.getName());
 		}
 
 		return snippet.getSource();
 	}
 
-	private static String embedInFunction(final String source) {
+	private static String embedInFunction(final String source, final String name) {
 
-		StringBuilder buf = new StringBuilder();
-		buf.append("function main() { ");
-		buf.append(source);
-		buf.append("\n}\n");
-		buf.append("\n\nmain();");
+		String functionName = "main";
 
-		return buf.toString();
+		if (name != null) {
+			functionName += "_" + name.replaceAll("[\\W]+", "");
+		}
+
+		return "function " + functionName + "() {\n" + source + "\n}\n\n\n" + functionName + "();";
 	}
 
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
 
-		final List<String> otherParts  = new LinkedList<>();
 		final List<String> expressions = new LinkedList<>();
 		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
@@ -517,7 +542,7 @@ public class Scripting {
 
 					} else {
 
-						otherParts.add(buffer.toString());
+						//otherParts.add(buffer.toString());
 						buffer.setLength(0);
 					}
 					hasDollar = false;

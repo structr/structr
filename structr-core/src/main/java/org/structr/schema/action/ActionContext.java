@@ -36,13 +36,9 @@ import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
-import org.structr.core.script.polyglot.cache.ExecutableStaticTypeMethodCache;
-import org.structr.core.script.polyglot.cache.ExecutableTypeMethodCache;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
@@ -59,22 +55,16 @@ public class ActionContext {
 	private static final Logger logger = LoggerFactory.getLogger(ActionContext.class.getName());
 	public static final String SESSION_ATTRIBUTE_PREFIX = "user.";
 
-	// Caches
-	// cache is not static => library cache is per request
-	private final Map<String, Context> scriptingContexts                           = new HashMap<>();
-	private final Map<String, String> libraryCache                                 = new HashMap<>();
-	private final ExecutableTypeMethodCache executableTypeMethodCache              = new ExecutableTypeMethodCache();
-	private final ExecutableStaticTypeMethodCache staticExecutableTypeMethodCache  = new ExecutableStaticTypeMethodCache();
-
 	// Regular members
-	protected SecurityContext securityContext                                      = null;
-	protected Predicate predicate                                                  = null;
-	protected ErrorBuffer errorBuffer                                              = new ErrorBuffer();
-	protected StringBuilder outputBuffer                                           = new StringBuilder();
-	protected Locale locale                                                        = Locale.getDefault();
-	private boolean javaScriptContext                                              = false;
-	private ContextStore temporaryContextStore                                     = new ContextStore();
-	private boolean disableVerboseExceptionLogging                                 = false;
+	private final Map<String, Context> scriptingContexts = new HashMap<>();
+	private ContextStore temporaryContextStore           = new ContextStore();
+	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
+	private StringBuilder outputBuffer                   = new StringBuilder();
+	private Locale locale                                = Locale.getDefault();
+	private SecurityContext securityContext              = null;
+	private Predicate predicate                          = null;
+	private boolean disableVerboseExceptionLogging       = false;
+	private boolean javaScriptContext                    = false;
 
 	public ActionContext(final SecurityContext securityContext) {
 		this(securityContext, null);
@@ -95,6 +85,7 @@ public class ActionContext {
 	}
 
 	public ActionContext(final ActionContext other) {
+
 		this.errorBuffer     = other.errorBuffer;
 		this.securityContext = other.securityContext;
 		this.locale          = other.locale;
@@ -617,64 +608,6 @@ public class ActionContext {
 		this.locale = locale;
 	}
 
-	public String getJavascriptLibraryCode(String fileName) {
-
-		synchronized (libraryCache) {
-
-			String cachedSource = libraryCache.get(fileName);
-			if (cachedSource == null) {
-
-				final StringBuilder buf = new StringBuilder();
-				final App app           = StructrApp.getInstance();
-
-				try (final Tx tx = app.tx()) {
-
-					final List<JavaScriptSource> jsFiles = app.nodeQuery(JavaScriptSource.class)
-							.and(JavaScriptSource.name, fileName)
-							.and(StructrApp.key(JavaScriptSource.class, "useAsJavascriptLibrary"), true)
-							.getAsList();
-
-					if (jsFiles.isEmpty()) {
-						logger.warn("No JavaScript library file found with fileName: {}", fileName );
-					} else if (jsFiles.size() > 1) {
-						logger.warn("Multiple JavaScript library files found with fileName: {}. This may cause problems!", fileName );
-					}
-
-					for (final JavaScriptSource jsLibraryFile : jsFiles) {
-
-						final String contentType = jsLibraryFile.getContentType();
-						if (contentType != null) {
-
-							final String lowerCaseContentType = contentType.toLowerCase();
-							if ("text/javascript".equals(lowerCaseContentType) || "application/javascript".equals(lowerCaseContentType)) {
-
-								buf.append(jsLibraryFile.getJavascriptLibraryCode());
-
-							} else {
-
-								logger.info("Ignoring file {} for use as a Javascript library, content type {} not allowed. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
-							}
-
-						} else {
-
-							logger.info("Ignoring file {} for use as a Javascript library, content type not set. Use text/javascript or application/javascript.", new Object[] { jsLibraryFile.getName(), contentType } );
-						}
-					}
-
-					tx.success();
-
-				} catch (FrameworkException fex) {
-					logger.warn("", fex);
-				}
-
-				cachedSource = buf.toString();
-				libraryCache.put(fileName, cachedSource);
-			}
-
-			return cachedSource;
-		}
-	}
-
 	public void setPredicate(final Predicate predicate) {
 		this.predicate = predicate;
 	}
@@ -687,34 +620,20 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public Context getScriptingContext(final String language) {
+	public String getJavascriptLibraryCode(String fileName) {
+		return this.securityContext.getJavascriptLibraryCode(fileName);
+	}
 
+	public Context getScriptingContext(final String language) {
 		return scriptingContexts.get(language);
 	}
 
 	public void putScriptingContext(final String language, final Context context) {
-
 		scriptingContexts.put(language, context);
 	}
 
 	public boolean isRenderContext() {
 		return false;
 
-	}
-
-	public ExecutableTypeMethodCache getExecutableTypeMethodCache() {
-
-		return this.executableTypeMethodCache;
-	}
-
-	public ExecutableStaticTypeMethodCache getStaticExecutableTypeMethodCache() {
-
-		return this.staticExecutableTypeMethodCache;
-	}
-
-	public void clearExecutableCaches() {
-
-		this.executableTypeMethodCache.clearCache();
-		this.staticExecutableTypeMethodCache.clearCache();
 	}
 }

@@ -34,32 +34,32 @@ public class ContextStore {
 
 	private final static Logger logger = LoggerFactory.getLogger(ContextStore.class);
 
-	protected Map<String, String> headers               = new HashMap<>();
-	protected Map<String, Object> constants             = new HashMap<>();
-	protected Map<String, Object> requestStore          = new HashMap<>();
-	protected Map<String, Object> tmpParameters         = new HashMap<>();
-	protected Map<String, Date> timerStore              = new HashMap<>();
-	protected Map<Integer, Integer> counters            = new HashMap<>();
-	protected AdvancedMailContainer amc                 = new AdvancedMailContainer();
-	protected ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
-	protected Map<String, Object> functionPropertyCache = new HashMap<>();
-	protected boolean sortDescending                    = false;
-	protected String sortKey                            = null;
-	protected int queryRangeStart                       = -1;
-	protected int queryRangeEnd                         = -1;
-	protected boolean validateCertificates              = true;
+	private Map<String, String> headers               = new HashMap<>();
+	private Map<String, Object> constants             = new HashMap<>();
+	private Map<String, Object> requestStore          = new HashMap<>();
+	private Map<String, Object> tmpParameters         = new HashMap<>();
+	private Map<String, Date> timerStore              = new HashMap<>();
+	private Map<Integer, Integer> counters            = new HashMap<>();
+	private AdvancedMailContainer amc                 = null;
+	private ArrayList<GraphObjectMap> localizations   = new ArrayList<>();
+	private Map<String, Object> functionPropertyCache = new HashMap<>();
+	private boolean sortDescending                    = false;
+	private String sortKey                            = null;
+	private int queryRangeStart                       = -1;
+	private int queryRangeEnd                         = -1;
+	private boolean validateCertificates              = true;
 
 	public ContextStore () {
 	}
 
 	public ContextStore (final ContextStore other) {
 
-		this.headers     = other.headers;
-		this.constants   = other.constants;
+		this.headers      = other.headers;
+		this.constants    = other.constants;
 		this.requestStore = other.requestStore;
-		this.timerStore  = other.timerStore;
-		this.counters    = other.counters;
-		this.amc         = other.amc;
+		this.timerStore   = other.timerStore;
+		this.counters     = other.counters;
+		this.amc          = other.amc;
 	}
 
 	// --- Headers ---
@@ -126,7 +126,7 @@ public class ContextStore {
 	public void store(final String key, final Object value) {
 
 		if (tmpParameters.containsKey(key)) {
-			
+
 			logger.info("Function store() was called for key \"" + key + "\", which is already used in the current context by a method parameter and won't be accessible. Consider using $.requestStore / request_store_put() to store data in the request context.");
 		}
 
@@ -196,6 +196,11 @@ public class ContextStore {
 	}
 
 	public AdvancedMailContainer getAdvancedMailContainer () {
+
+		if (amc == null) {
+			amc = new AdvancedMailContainer();
+		}
+
 		return amc;
 	}
 
