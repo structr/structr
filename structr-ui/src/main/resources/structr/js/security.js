@@ -21,6 +21,7 @@ $(document).ready(function() {
 	Structr.classes.push('user');
 	Structr.classes.push('group');
 	Structr.classes.push('resourceAccess');
+	Structr.classes.push('corsSetting');
 });
 
 let _Security = {
@@ -30,11 +31,13 @@ let _Security = {
 	groupControls: undefined,
 	groupList: undefined,
 	resourceAccesses: undefined,
+	corsSettingsList: undefined,
 	securityTabKey: 'structrSecurityTab_' + location.port,
 	init: function() {
 		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
 		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
 		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
+		_Pager.initPager('cors-settings',   'CorsSetting', 1, 25, 'requestUri', 'asc');
 	},
 	onload: function() {
 
@@ -51,7 +54,9 @@ let _Security = {
 		_Security.userList         = document.getElementById('users-list');
 		_Security.groupControls    = document.getElementById('groups-controls');
 		_Security.groupList        = document.getElementById('groups-list');
+		_Security.corsSettingsList = document.getElementById('cors-settings-list');
 		_Security.resourceAccesses = $('#resourceAccesses');
+		_Security.corsSettings     = $('#corsSettings');
 
 		let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
@@ -156,6 +161,7 @@ let _Security = {
 
 			$('#usersAndGroups').show();
 			$('#resourceAccess').hide();
+			$('#corsSettings').hide();
 			_UsersAndGroups.refreshUsers();
 			_UsersAndGroups.refreshGroups();
 
@@ -163,7 +169,15 @@ let _Security = {
 
 			$('#resourceAccess').show();
 			$('#usersAndGroups').hide();
+			$('#corsSettings').hide();
 			_ResourceAccessGrants.refreshResourceAccesses();
+
+		} else if (subModule === 'cors-settings') {
+
+			$('#corsSettings').show();
+			$('#resourceAccess').hide();
+			$('#usersAndGroups').hide();
+			_CorsSettings.refreshCorsSettings();
 		}
 	},
 
@@ -194,6 +208,10 @@ let _Security = {
 					<div id="resourceAccess" class="tab-content">
 						<div id="resourceAccesses"></div>
 					</div>
+
+					<div id="corsSettings" class="tab-content">
+						<div id="corsSettings-inner"></div>
+					</div>
 				</div>
 			</div>
 		`,
@@ -201,6 +219,7 @@ let _Security = {
 			<ul id="securityTabsMenu" class="tabs-menu flex-grow">
 			  <li><a href="#security:users-and-groups" id="usersAndGroups_"><span>Users and Groups</span></a></li>
 			  <li><a href="#security:resource-access" id="resourceAccess_"><span>Resource Access Grants</span></a></li>
+			  <li><a href="#security:cors-settings" id="corsSettings_"><span>CORS Settings</span></a></li>
 			</ul>
 		`,
 		newGroupButton: config => `
@@ -248,7 +267,7 @@ let _Security = {
 				</div>
 			</div>
 			
-			<table id="resourceAccessesTable">
+			<table class="security-module-table" id="resourceAccessesTable">
 				<thead>
 					<tr>
 						<th><div id="resourceAccessesPager"></div></th>
@@ -278,6 +297,36 @@ let _Security = {
 						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToAuthenticatedUsers</th>
 						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToPublicUsers</th>
 						<th></th>
+					</tr>
+				</thead>
+				<tbody></tbody>
+			</table>
+		`,
+		corsSettings: config => `
+			<div class="flex items-center">
+				<div id="add-cors-setting" class="flex items-center">
+					<input type="text" size="20" id="cors-setting-request-uri" placeholder="Request URI Path" class="mr-2">
+					<button class="action add_grant_icon button inline-flex items-center">
+						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add CORS Setting
+					</button>
+				</div>
+			
+				<div id="filter-cors-settings" class="flex items-center">
+					<input type="text" class="filter" data-attribute="request-uri" placeholder="Filter/Search...">
+				</div>
+			</div>
+			
+			<table class="security-module-table" id="corsSettingsTable">
+				<thead>
+					<tr>
+						<th><div id="corsSettingsPager"></div></th>
+						<th class="center br-1 bl-1"></th>
+						<th class="center br-1 bl-1"><label data-comment="Comma-separated list of accepted origins, sets the <code>Access-Control-Allow-Origin</code> header.">Accepted Origins</label></th>
+						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Max-Age</code> header. Unit is seconds.">Max. Age</label></th>
+						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Methods</code> header. Comma-delimited list of the allowed HTTP request methods.">Allow Methods</label></th>
+						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Headers</code> header.">Allow Headers</label></th>
+						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Allow-Credentials</code> header.">Allow Credentials</label></th>
+						<th class="center br-1 bl-1"><label data-comment="Sets the value of the <code>Access-Control-Expose-Headers</code> header.">Expose Headers</label></th>
 					</tr>
 				</thead>
 				<tbody></tbody>
@@ -969,5 +1018,115 @@ let _ResourceAccessGrants = {
 		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', function(obj) {
 			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
 		});
+	}
+};
+
+_CorsSettings = {
+
+	refreshCorsSettings: () => {
+
+		// if (Structr.isInMemoryDatabase === undefined) {
+		// 	window.setTimeout(() => {
+		// 		_CorsSettings.refreshCorsSettings();
+		// 	}, 500);
+		// }
+
+		let corsSettingsHtml = _Security.templates.corsSettings({});
+		_Security.corsSettings.html(corsSettingsHtml);
+
+		Structr.activateCommentsInElement(_Security.corsSettings[0]);
+
+		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings), true, 'CorsSetting', undefined, (corsSettings) => {
+			for (let corsSetting of corsSettings) {
+				let corsSettingModelObj = StructrModel.create(corsSetting);
+				_CorsSettings.appendCorsSettingToElement(corsSettingModelObj);
+			}
+		}, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', undefined, true);
+
+		csPager.cleanupFunction = () => {
+			$('#corsSettingsTable tbody tr').remove();
+		};
+
+		csPager.activateFilterElements(_Security.corsSettings);
+		csPager.setIsPaused(false);
+		csPager.refresh();
+
+		$('.add_grant_icon', _Security.corsSettings).on('click', function (e) {
+			_CorsSettings.addCorsSetting(e);
+		});
+
+		$('#cors-setting', _Security.corsSettings).on('keyup', function (e) {
+			if (e.keyCode === 13) {
+				_CorsSettings.addCorsSetting(e);
+			}
+		});
+	},
+	appendCorsSettingToElement: (corsSetting) => {
+
+		let trHtml = `<tr id="id_${corsSetting.id}" class="cors-setting"><td class="title-cell"><b>${corsSetting.requestUri}</b></td>
+			<td>${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
+			<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
+			<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
+			<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>
+			<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders || ''}"></td>
+			<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials || ''}"></td>
+			<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders || ''}"></td>
+			</td>`;
+
+		$('#corsSettingsTable').append(trHtml);
+
+		$('#id_' + corsSetting.id + ' .delete-cors-setting').on('click', (e) => {
+			e.stopPropagation();
+			corsSetting.name = corsSetting.requestUri;
+			_CorsSettings.deleteCorsSetting(corsSetting);
+		});
+
+		document.querySelectorAll('#id_' + corsSetting.id + ' input[type="text"]').forEach(inp => {
+			inp.addEventListener('blur', e => {
+				e.stopPropagation();
+				_Entities.setPropertyWithFeedback(corsSetting, inp.dataset.attrKey, inp.value, $(inp), inp);
+			});
+		});
+
+	},
+	addCorsSetting: function(e) {
+		e.stopPropagation();
+
+		let inp = $('#cors-setting-request-uri');
+		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_grant_icon', _Security.corsSettings).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+
+		let reEnableInput = () => {
+			$('.add_grant_icon', _Security.corsSettings).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
+		};
+
+		let requestUri = inp.val();
+		if (requestUri) {
+			_CorsSettings.createCorsSetting(requestUri, () => {
+				reEnableInput();
+				inp.val('');
+			});
+		} else {
+			reEnableInput();
+			blinkRed(inp);
+		}
+		window.setTimeout(reEnableInput, 250);
+		_CorsSettings.refreshCorsSettings();
+	},
+	createCorsSetting: (requestUri, callback, additionalData) => {
+		let corsSettingData = {
+			type: 'CorsSetting',
+			requestUri: requestUri
+		};
+
+		if (additionalData) {
+			corsSettingData = Object.assign(corsSettingData, additionalData);
+		}
+
+		Command.create(corsSettingData, callback);
+	},
+	deleteCorsSetting: (corsSetting) => {
+		_Entities.deleteNode(null, corsSetting);
 	}
 };

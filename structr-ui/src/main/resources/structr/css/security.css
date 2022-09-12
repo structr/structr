@@ -66,56 +66,56 @@ input.max-w-75 {
 	max-width: 75%;
 }
 
-#resourceAccessesTable {
+.security-module-table {
 	display: block;
 	margin: 1rem 0;
 }
 
-#resourceAccessesTable tbody tr:hover {
+.security-module-table tbody tr:hover {
 	background-color: var(--structr-light-green-transparent) ! important;
 }
 
-#resourceAccessesTable td, #resourceAccessesTable th {
+.security-module-table td, .security-module-table th {
 	padding: .5rem 1rem;
 	text-align: center;
 	vertical-align: middle;
 	height: 1rem;
 }
 
-#resourceAccessesTable th.br-1, #resourceAccessesTable td.br-1 {
+.security-module-table th.br-1, .security-module-table td.br-1 {
 	/*border-right: 1px solid var(--light-gray-bg-f3);*/
 }
 
-#resourceAccessesTable th.bl-1, #resourceAccessesTable td.bl-1 {
+.security-module-table th.bl-1, .security-module-table td.bl-1 {
 	/*border-left: 1px solid var(--light-gray-bg-f3);*/
 }
 
-#resourceAccessesTable .title-cell {
+.security-module-table .title-cell {
 	text-align: left;
 }
 
-#resourceAccessesTable tr:nth-child(odd) {
+.security-module-table tr:nth-child(odd) {
 	background: var(--light-gray-bg-f7) ! important;
 }
 
-#resourceAccessesTable tr:nth-child(even) {
+.security-module-table tr:nth-child(even) {
 	background: var(--solid-white) ! important;
 }
 
-#resourceAccessesTable th {
+.security-module-table th {
 	background: var(--input-background);
 	color: var(--gray-333);
 	vertical-align: top;
 	min-width: 2rem;
 }
 
-#resourceAccessesTable td {
+.security-module-table td {
 	position: relative;
 }
 
-#resourceAccessesPager {
+#resourceAccessesPager, #corsSettingsPager {
 	text-align: left;
-	min-width: 24rem;
+	/*min-width: 24rem;*/
 }
 
 input.bitmask {
