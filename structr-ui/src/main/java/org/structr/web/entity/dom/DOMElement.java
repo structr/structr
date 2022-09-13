@@ -20,6 +20,8 @@ package org.structr.web.entity.dom;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -59,6 +61,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.property.UuidProperty;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
@@ -550,21 +553,54 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
 		}
 
-		final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
-		final Logger logger             = LoggerFactory.getLogger(getClass());
+		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
 
-		if (targets.size() > 1) {
-			logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
-		}
+			final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
+			final Logger logger             = LoggerFactory.getLogger(getClass());
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+			if (targets.size() > 1) {
+				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
+			}
 
-		for (final GraphObject target : targets) {
+			// remove internal keys
+			parameters.remove("structrTarget");
+			parameters.remove("htmlEvent");
 
-			// try to execute event method
-			return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
+			for (final GraphObject target : targets) {
+
+				// try to execute event method
+				return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
+			}
+
+		} else {
+
+			// add support for static methods
+			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
+			if (staticClass != null) {
+
+				final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(staticClass);
+				final Method method               = methods.get(action);
+
+				if (method != null) {
+
+					if (Modifier.isStatic(methods.get(action).getModifiers())) {
+
+						return AbstractNode.invokeMethod(actionContext.getSecurityContext(), method, null, parameters, new EvaluationHints());
+
+					} else {
+
+						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": method is not static.");
+					}
+
+				} else {
+
+					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": method not found.");
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": type not found.");
+			}
 		}
 
 		return null;
