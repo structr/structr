@@ -62,14 +62,14 @@ let _Entities = {
 
 			Structr.confirmation(confirmationHtml,() => {
 
-					Command.deleteNodes(nodeIds, recursive);
-					$.unblockUI({
-						fadeOut: 25
-					});
-					if (callback) {
-						callback();
-					}
+				Command.deleteNodes(nodeIds, recursive);
+				$.unblockUI({
+					fadeOut: 25
 				});
+				if (callback) {
+					callback();
+				}
+			});
 		}
 	},
 	deleteNode: (button, entity, recursive, callback) => {
@@ -124,7 +124,7 @@ let _Entities = {
 	// },
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		let eventsHtml = _Entities.templates.events({ entity: entity });
+		let eventsHtml = _Entities.templates.events({entity: entity});
 		el.empty();
 		el.append(eventsHtml);
 
@@ -136,22 +136,21 @@ let _Entities = {
 			parent = $(document.body);
 		}
 
-		let eventMappingSelect  = $('select#event-mapping-select', el);
-		let targetTypeSelect    = $('select#target-type-select', el);
-		let deleteTargetInput   = $('#delete-target-input', el);
-		let methodNameInput     = $('#method-name-input', el);
-		let methodTargetInput   = $('#method-target-input', el);
-		let updateTargetInput   = $('#update-target-input', el);
+		let eventMappingSelect = $('select#event-mapping-select', el);
+		let targetTypeSelect = $('select#target-type-select', el);
+		let deleteTargetInput = $('#delete-target-input', el);
+		let methodNameInput = $('#method-name-input', el);
+		let methodTargetInput = $('#method-target-input', el);
+		let updateTargetInput = $('#update-target-input', el);
 		let updatePropertyInput = $('#update-property-input', el);
-		let reloadOptionSelect  = $('select#reload-option-select', el);
+		let reloadOptionSelect = $('select#reload-option-select', el);
 		let reloadSelectorInput = $('#reload-selector-input', el);
-		let reloadUrlInput      = $('#reload-url-input', el);
-		let reloadEventInput    = $('#reload-event-input', el);
-		let customEventInput    = $('#custom-event-input', el);
-		let customActionInput   = $('#custom-action-input', el);
-		let customTargetInput   = $('#custom-target-input', el);
+		let reloadUrlInput = $('#reload-url-input', el);
+		let reloadEventInput = $('#reload-event-input', el);
+		let customEventInput = $('#custom-event-input', el);
+		let customActionInput = $('#custom-action-input', el);
+		let customTargetInput = $('#custom-target-input', el);
 		let paginationNameInput = $('#pagination-name-input', el);
-		let multipleProperties  = $('.multiple-properties', el);
 
 		// event mapping selector
 		eventMappingSelect.select2({
@@ -159,7 +158,7 @@ let _Entities = {
 			style: style,
 			width: width,
 			dropdownParent: parent,
-		}).on('select2:select', function(e) {
+		}).on('select2:select', function (e) {
 			let data = e.params.data;
 			$('div.event-options', el).addClass('hidden');
 			if (this.value && this.value.length > 0) {
@@ -170,7 +169,7 @@ let _Entities = {
 			}
 
 			// name comes from _html_name, always fill this field
-			Command.getProperty(entity.id, '_html_name', function(result) {
+			Command.getProperty(entity.id, '_html_name', function (result) {
 				updatePropertyInput.val(result);
 			});
 		});
@@ -186,7 +185,7 @@ let _Entities = {
 				url: Structr.rootUrl + 'SchemaNode',
 				processResults: function (data) {
 					return {
-						results: data.result.map(n => ({ id: n.name, text: n.name }))
+						results: data.result.map(n => ({id: n.name, text: n.name}))
 					};
 				},
 				data: function (params) {
@@ -201,7 +200,7 @@ let _Entities = {
 					return config;
 				}
 			}
-		}).on('select2:select', function(e) {
+		}).on('select2:select', function (e) {
 			$('.select2-selection', targetTypeSelect.parent()).removeClass('required');
 		});
 
@@ -211,124 +210,191 @@ let _Entities = {
 			style: style,
 			width: width,
 			dropdownParent: parent,
-		}).on('select2:select', function(e) {
+		}).on('select2:select', function (e) {
 			$('div.reload-options', el).addClass('hidden');
 			if (this.value && this.value.length > 0) {
 				$('#' + this.value).removeClass('hidden');
 			}
 		});
 
-		deleteTargetInput.on('change', function(e) { deleteTargetInput.removeClass('required'); });
-		methodTargetInput.on('change', function(e) { methodTargetInput.removeClass('required'); });
-		methodNameInput.on('change', function(e) { methodNameInput.removeClass('required'); });
-		updateTargetInput.on('change', function(e) { updateTargetInput.removeClass('required'); });
-		updatePropertyInput.on('change', function(e) { updatePropertyInput.removeClass('required'); });
-		reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
-		reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
-		reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
-		customEventInput.on('change', function(e) { customEventInput.removeClass('required'); });
-		customActionInput.on('change', function(e) { customActionInput.removeClass('required'); });
-		customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
-		paginationNameInput.on('change', function(e) { paginationNameInput.removeClass('required'); });
+		deleteTargetInput.on('change', function (e) {
+			deleteTargetInput.removeClass('required');
+		});
+		methodTargetInput.on('change', function (e) {
+			methodTargetInput.removeClass('required');
+		});
+		methodNameInput.on('change', function (e) {
+			methodNameInput.removeClass('required');
+		});
+		updateTargetInput.on('change', function (e) {
+			updateTargetInput.removeClass('required');
+		});
+		updatePropertyInput.on('change', function (e) {
+			updatePropertyInput.removeClass('required');
+		});
+		reloadSelectorInput.on('change', function (e) {
+			reloadSelectorInput.removeClass('required');
+		});
+		reloadUrlInput.on('change', function (e) {
+			reloadUrlInput.removeClass('required');
+		});
+		reloadEventInput.on('change', function (e) {
+			reloadEventInput.removeClass('required');
+		});
+		customEventInput.on('change', function (e) {
+			customEventInput.removeClass('required');
+		});
+		customActionInput.on('change', function (e) {
+			customActionInput.removeClass('required');
+		});
+		customTargetInput.on('change', function (e) {
+			customTargetInput.removeClass('required');
+		});
+		paginationNameInput.on('change', function (e) {
+			paginationNameInput.removeClass('required');
+		});
 
 		Structr.activateCommentsInElement(el[0]);
 
-		// initialize fields from values in the object
-		let eventMapping = JSON.parse(entity.eventMapping);
-		if (eventMapping) {
+		const updateEventMapping = (entity, actionMapping) => {
 
-			let click        = eventMapping.click;
-			let change       = eventMapping.change;
-			let focusout     = eventMapping.focusout;
-			let drop         = eventMapping.drop;
-			let id           = 'options-custom';
+			console.log('updateEventMapping', entity, actionMapping);
 
-			if (click) {
+			let id = 'options-none';
+			let targetType, idExpression, reloadMode, reloadTarget;
 
-				switch (click) {
+			if (actionMapping) {
 
-					case 'create':
-						id = 'options-create-click';
-						break;
+				// new event action mapping based on configuration saved in ActionMapping object
 
-					case 'update':
-						id = 'options-update-click';
-						break;
+				let event      = actionMapping.event;
+				let action     = actionMapping.action;
+				let method     = actionMapping.method;
+				targetType     = actionMapping.dataType;
+				idExpression   = actionMapping.idExpression;
+				reloadMode     = actionMapping.reloadMode;
+				reloadTarget   = actionMapping.reloadTarget;
 
-					case 'delete':
-						id = 'options-delete-click';
-						break;
+				// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
+				if (action === 'previous-page') action = 'prev-page';
 
-					case 'previous-page':
-						id = 'options-prev-page-click';
-						break;
-
-					case 'next-page':
-						id = 'options-next-page-click';
-						break;
-
-					default:
-						id = 'options-method-click';
-						methodNameInput.val(click);
-						break;
+				if (!['create', 'update', 'delete', 'previous-page', 'next-page'].includes(action)) {
+					action = 'method';
+					methodNameInput.val(method);
 				}
 
-			} else if (change) {
+				if (event === 'custom') {
 
-				switch (change) {
+					customEventInput.val(event);
+					customActionInput.val(action);
 
-					case 'update':
-						id = 'options-update-change';
-						break;
+				} else {
 
-					case 'create':
-						id = 'options-create-change';
-						break;
-
-					default:
-						id = 'options-method-change';
-						methodNameInput.val(change);
-						break;
+					id = 'options-' + action + '-' + event;
 				}
-
-			} else if (focusout) {
-
-				switch (focusout) {
-
-					case 'update':
-						id = 'options-update-focusout';
-						break;
-
-					case 'create':
-						id = 'options-create-focusout';
-						break;
-
-					default:
-						id = 'options-method-focusout';
-						methodNameInput.val(focusout);
-						break;
-				}
-
-			} else if (drop) {
-
-				id = 'options-method-drop';
-				methodNameInput.val(drop);
 
 			} else {
 
-				for (let key of Object.keys(eventMapping)) {
+				// initialize fields from values in the object
+				let eventMapping = JSON.parse(entity.eventMapping);
+				if (eventMapping) {
 
-					customEventInput.val(key);
-					customActionInput.val(eventMapping[key]);
+					let click        = eventMapping.click;
+					let change       = eventMapping.change;
+					let focusout     = eventMapping.focusout;
+					let drop         = eventMapping.drop;
+
+					targetType   = entity['data-structr-target'];
+					id = 'options-custom';
+
+					if (click) {
+
+						switch (click) {
+
+							case 'create':
+								id = 'options-create-click';
+								break;
+
+							case 'update':
+								id = 'options-update-click';
+								break;
+
+							case 'delete':
+								id = 'options-delete-click';
+								break;
+
+							case 'previous-page':
+								id = 'options-prev-page-click';
+								break;
+
+							case 'next-page':
+								id = 'options-next-page-click';
+								break;
+
+							default:
+								id = 'options-method-click';
+								methodNameInput.val(click);
+								break;
+						}
+
+					} else if (change) {
+
+						switch (change) {
+
+							case 'update':
+								id = 'options-update-change';
+								break;
+
+							case 'create':
+								id = 'options-create-change';
+								break;
+
+							default:
+								id = 'options-method-change';
+								methodNameInput.val(change);
+								break;
+						}
+
+					} else if (focusout) {
+
+						switch (focusout) {
+
+							case 'update':
+								id = 'options-update-focusout';
+								break;
+
+							case 'create':
+								id = 'options-create-focusout';
+								break;
+
+							default:
+								id = 'options-method-focusout';
+								methodNameInput.val(focusout);
+								break;
+						}
+
+					} else if (drop) {
+
+						id = 'options-method-drop';
+						methodNameInput.val(drop);
+
+					} else {
+
+						for (let key of Object.keys(eventMapping)) {
+
+							customEventInput.val(key);
+							customActionInput.val(eventMapping[key]);
+						}
+					}
 				}
 			}
 
 			eventMappingSelect.val(id);
 			eventMappingSelect.trigger('change');
-			eventMappingSelect.trigger({ type: 'select2:select', params: { data: { id: id }}});
+			eventMappingSelect.trigger({type: 'select2:select', params: {data: {id: id}}});
 
 			// set selected option in targetTypeSelect
-			let selectedType = entity['data-structr-target'];
+			let selectedType = targetType;
 			if (selectedType) {
 
 				let option = new Option(selectedType, selectedType, true, true);
@@ -336,17 +402,17 @@ let _Entities = {
 
 				targetTypeSelect.trigger({
 					type: 'select2:select',
-					params: { data: { id: selectedType } }
+					params: {data: {id: selectedType}}
 				});
 			}
 
-			deleteTargetInput.val(entity['data-structr-target']);
-			methodTargetInput.val(entity['data-structr-target']);
-			updateTargetInput.val(entity['data-structr-target']);
-			customTargetInput.val(entity['data-structr-target']);
-			paginationNameInput.val(entity['data-structr-target']);
+			deleteTargetInput.val(idExpression || entity['data-structr-target']);
+			methodTargetInput.val(idExpression || entity['data-structr-target']);
+			updateTargetInput.val(idExpression || entity['data-structr-target']);
+			customTargetInput.val(idExpression || entity['data-structr-target']);
+			paginationNameInput.val(idExpression || entity['data-structr-target']);
 
-			let reloadTargetValue = entity['data-structr-reload-target'];
+			let reloadTargetValue = reloadTarget || entity['data-structr-reload-target'];
 			if (reloadTargetValue) {
 
 				let reloadOption = 'reload-manual';
@@ -373,15 +439,32 @@ let _Entities = {
 
 				reloadOptionSelect.val(reloadOption);
 				reloadOptionSelect.trigger('change');
-				reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: reloadOption }}});
+				reloadOptionSelect.trigger({type: 'select2:select', params: {data: {id: reloadOption}}});
 
 			} else {
 
 				// reload option default is "page" for empty values
 				reloadOptionSelect.val('reload-page');
 				reloadOptionSelect.trigger('change');
-				reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: 'reload-page' }}});
+				reloadOptionSelect.trigger({type: 'select2:select', params: {data: {id: 'reload-page'}}});
 			}
+		};
+
+		if (entity.triggeredActions && entity.triggeredActions.length) {
+
+			console.log('Triggered actions found:', entity.triggeredActions);
+
+			// TODO: Support multiple actions per DOM element
+			let actionMapping = entity.triggeredActions[0];
+
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType', (result) => {
+				//console.log('Using first object for event action mapping:', result);
+				updateEventMapping(entity, result);
+			});
+
+		} else {
+
+			updateEventMapping(entity);
 		}
 
 		// name comes from _html_name, always fill this field
@@ -511,7 +594,7 @@ let _Entities = {
 		let saveButton = $('#save-event-mapping-button');
 		if (saveButton) {
 
-			saveButton.on('click', function() {
+			saveButton.on('click', () => {
 
 				// collect values
 				let eventType      = eventMappingSelect.val();
@@ -528,6 +611,35 @@ let _Entities = {
 				let paginationName = paginationNameInput.val();
 				let reloadTarget   = null;
 				let inputEl        = $(eventType);
+
+				const saveEventMappingData = (entity, eventMappingValue, targetValue, reloadTargetValue, reloadMode) => {
+
+					console.log('Save event mapping data:', entity, eventMappingValue, targetValue, reloadTargetValue);
+
+					if (entity.triggeredActions && entity.triggeredActions.length) {
+
+						// New mode: Store values on ActionMapping object
+
+						let eventMapping = JSON.parse(eventMappingValue);
+						let eventValue   = Object.keys(eventMapping)[0];
+						let actionValue  = eventMapping[eventValue];
+
+						console.log('NEW MODE', eventValue, actionValue, targetValue, reloadTargetValue);
+
+						_Entities.setPropertyWithFeedback(entity.triggeredActions[0], 'event',        eventValue,              $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity.triggeredActions[0], 'action',       actionValue,             $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity.triggeredActions[0], 'dataType',     targetTypeSelect.val(),  $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity.triggeredActions[0], 'idExpression', updateTargetInput.val(), $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity.triggeredActions[0], 'reloadMode',   reloadMode,              $(inputEl), null);
+
+					} else {
+
+						// No ActionMapping object => save values on trigger element to support old mode
+						_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', reloadTargetValue, $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity, 'data-structr-target', targetValue, $(inputEl), null);
+						_Entities.setPropertyWithFeedback(entity, 'eventMapping', eventMappingValue, $(inputEl), null);
+					}
+				};
 
 				// build reload target according to reloadOption
 				switch (reloadOption) {
@@ -550,18 +662,14 @@ let _Entities = {
 
 				switch (eventType) {
 					case 'options-none':
-						_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
-						_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
-						_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
+						saveEventMappingData(entity, null, null, null, null);
 						break;
 
 					case 'options-custom':
 						if (customEvent && customAction && customTarget) {
 							let customMapping = {};
 							customMapping[customEvent] = customAction;
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', JSON.stringify(customMapping), $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  customTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, JSON.stringify(customMapping), customTarget, reloadTarget, reloadOption);
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please enter event and action.', 'warning', 2000, 200);
 							customEventInput.addClass('required');
@@ -572,9 +680,7 @@ let _Entities = {
 
 					case 'options-create-click':
 						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "click": "create" }', targetType, reloadTarget, reloadOption);
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
 							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
@@ -583,9 +689,7 @@ let _Entities = {
 
 					case 'options-create-change':
 						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "change": "create" }', targetType, reloadTarget, reloadOption);
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
 							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
@@ -594,9 +698,32 @@ let _Entities = {
 
 					case 'options-create-focusout':
 						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "focusout": "create" }', targetType, reloadTarget, reloadOption);
+
+							if (customPropertiesPresent) {
+
+								const inputDefinitions = [
+									{ key: 'name',        selector: '.custom-properties-container .multiple-input-name-input' },
+									{ key: '_html_name',  selector: '.custom-properties-container .multiple-input-property-key-input' },
+									{ key: '_html_id',    selector: '.custom-properties-container .multiple-input-css-id-input' },
+									{ key: '_html_value', selector: '.custom-properties-container .multiple-input-value-input' }
+								];
+
+								for (const inputDefinition of inputDefinitions) {
+
+									for (const inp of document.querySelectorAll(inputDefinition.selector)) {
+										const structrId = inp.dataset.structrId;
+										const value     = inp.value;
+										Command.get(structrId, inputDefinition.key, (data) => {
+											_Entities.setPropertyWithFeedback(data, inputDefinition.key, value, $(inp), null);
+										});
+									}
+
+								}
+
+							}
+
+
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
 							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
@@ -605,9 +732,7 @@ let _Entities = {
 
 					case 'options-delete-click':
 						if (deleteTarget) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "delete" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  deleteTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "click": "delete" }', deleteTarget, reloadTarget, reloadOption);
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
 							deleteTargetInput.addClass('required');
@@ -619,9 +744,7 @@ let _Entities = {
 						if (paginationName) {
 							let paginationAction = 'next-page';
 							if (eventType === 'options-prev-page-click') { paginationAction = 'previous-page'; }
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + paginationAction + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  paginationName, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "click": "' + paginationAction + '" }', paginationName, reloadTarget, reloadOption);
 						} else {
 							Structr.showAndHideInfoBoxMessage('Please provide the name of the pagination request parameter.', 'warning', 2000, 200);
 							paginationNameInput.addClass('required');
@@ -629,15 +752,14 @@ let _Entities = {
 						break;
 
 					case 'options-method-click':
-						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+						//if (methodTarget && methodName) {
+						if (methodName) {
+							saveEventMappingData(entity, '{ "click": "' + methodName + '" }', methodTarget, reloadTarget, reloadOption);
 						} else {
-							if (!methodTarget) {
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
-								methodTargetInput.addClass('required');
-							}
+							// if (!methodTarget) {
+							// 	Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+							// 	methodTargetInput.addClass('required');
+							// }
 							if (!methodName) {
 								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
 								methodNameInput.addClass('required');
@@ -647,9 +769,7 @@ let _Entities = {
 
 					case 'options-method-change':
 						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "change": "' + methodName + '" }', methodTarget, reloadTarget, reloadOption);
 						} else {
 							if (!methodTarget) {
 								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
@@ -664,9 +784,7 @@ let _Entities = {
 
 					case 'options-method-focusout':
 						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "focusout": "' + methodName + '" }', methodTarget, reloadTarget, reloadOption);
 						} else {
 							if (!methodTarget) {
 								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
@@ -698,9 +816,7 @@ let _Entities = {
 
 					case 'options-update-click':
 						if (updateTarget && (updateProperty || customPropertiesPresent)) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "click": "update" }', updateTarget, reloadTarget, reloadOption);
 
 							if (customPropertiesPresent) {
 
@@ -741,10 +857,8 @@ let _Entities = {
 
 					case 'options-update-change':
 						if (updateTarget && updateProperty) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "change": "update" }', updateTarget, reloadTarget, reloadOption);
 							_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
 						} else {
 							if (!updateTarget) {
 
@@ -760,10 +874,8 @@ let _Entities = {
 
 					case 'options-update-focusout':
 						if (updateTarget && updateProperty) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
+							saveEventMappingData(entity, '{ "focusout": "update" }', updateTarget, reloadTarget, reloadOption);
 							_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
 						} else {
 							if (!updateTarget) {
 
@@ -1902,7 +2014,7 @@ let _Entities = {
 	extendCollection: function(itemId, newItemId, key, callback) {
 		var collectionIds = [];
 		Command.get(itemId, key, function(obj) {
-				//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
+			//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
 			var collection = obj[key];
 			if (collection && collection.length) {
 				collection.forEach(function(collectionItem) {
@@ -2943,6 +3055,7 @@ let _Entities = {
 							<option value="options-update-click">Update a data object on click</option>
 							<option value="options-delete-click">Delete a data object on click</option>
 							<option value="options-method-click">Execute a method on click</option>
+							<option value="options-flow-click">Execute a Flow on click</option>
 							<option value="options-next-page-click">Go to next page on click</option>
 							<option value="options-prev-page-click">Go to previous page on click</option>
 						</optgroup>
@@ -2950,11 +3063,13 @@ let _Entities = {
 							<option value="options-create-change">Create a new data object on change</option>
 							<option value="options-update-change">Update a data object on change</option>
 							<option value="options-method-change">Execute a method on change</option>
+							<option value="options-flow-change">Execute a Flow on change</option>
 						</optgroup>
 						<optgroup label="Focus actions">
 							<option value="options-create-focusout">Create a new data object on focus out</option>
 							<option value="options-update-focusout">Update a data object on focus out</option>
 							<option value="options-method-focusout">Execute a method on focus out</option>
+							<option value="options-flow-focusout">Execute a Flow on focus out</option>
 						</optgroup>
 						<optgroup label="Drag & Drop">
 							<option value="options-method-drop">Execute a method on drop</option>
@@ -2971,7 +3086,6 @@ let _Entities = {
 						<label class="block mb-2" for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
 						<input type="text" id="delete-target-input">
 					</div>
-
 					<div class="option-tile hidden event-options options-method-click options-method-change options-method-drop">
 						<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
 						<input type="text" id="method-target-input">
@@ -3012,7 +3126,7 @@ let _Entities = {
 				<div class="row hidden event-options options-create-click options-create-change">
 					<div class="option-tile">
 						<label class="block mb-2" for="target-type-select" data-comment="Define the type of data object that will be created with the create action.">Select type of data object to create</label>
-						<select class="select2" id="target-type-select">
+						<select class="" id="target-type-select">
 							<option value=""></option>
 						</select>
 					</div>
@@ -3031,8 +3145,6 @@ let _Entities = {
 						<input type="text" id="update-property-input">
 					</div>
 				</div>
-
-
 				<div class="col-span-2 hidden event-options options-properties options-method-drop">
 
 					<h3>Drag & Drop</h3>
@@ -3051,13 +3163,13 @@ let _Entities = {
 
 					<div class="hidden event-options options-reload-target">
 
-						<div class="hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
+						<div class="hidden event-options options-properties options-create-click options-update-change options-update-click custom-properties-container"></div>
 
-						<div class="hidden hidden event-options options-properties options-update-change options-update-click">
+						<div class="hidden hidden event-options options-properties options-create-click options-update-change options-update-click">
 							<div id="link-existing-element-dropzone" class="element-dropzone">
 								<div class="info-icon h-16 flex items-center justify-center">
 									<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
-									<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop existing element here to add
+									<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop existing element here to add it
 								</div>
 							</div>
 						</div>
@@ -3112,18 +3224,23 @@ let _Entities = {
 
 				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Name</label>
 						<input type="text" class="multiple-input-name-input" placeholder="Name of input element" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Property key</label>
 						<input type="text" class="multiple-input-property-key-input" placeholder="Property key to update" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
-						<input type="text" class="multiple-input-css-id-input" placeholder="CSS ID" data-structr-id="${config.id}">
+						<label class="hidden mb-1">CSS id</label>
+						<input type="text" class="multiple-input-css-id-input" placeholder="CSS id attribute" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Value</label>
 						<input type="text" class="multiple-input-value-input" placeholder="Value expression" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Actions</label>
 						<i class="block mt-4 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
 					</div>
 				</div>

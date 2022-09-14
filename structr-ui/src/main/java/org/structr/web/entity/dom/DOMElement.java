@@ -53,6 +53,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -67,6 +68,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
@@ -101,8 +103,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static class Impl { static {
 
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("DOMElement");
+		final JsonSchema schema            = SchemaService.getDynamicSchema();
+		final JsonObjectType type          = schema.addType("DOMElement");
+		final JsonObjectType actionMapping = schema.addType("ActionMapping");
 
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
@@ -201,6 +204,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty("_html_name", PropertyView.Ui);
 		type.addViewProperty(PropertyView.Ui, "actionElement");
 		type.addViewProperty(PropertyView.Ui, "inputs");
+
+		// new event action mapping, moved to ActionMapping node
+		type.relate(actionMapping, "TRIGGERS",  Cardinality.OneToMany, "triggerElement", "triggeredActions");
+		type.addViewProperty(PropertyView.Ui, "triggeredActions");
+		type.addViewProperty(PropertyView.Ui, "actionMappings");
 
 		// attributes for lazy rendering
 		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
@@ -550,7 +558,17 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final String dataTarget = (String)parameters.get("structrTarget");
 		if (dataTarget == null) {
 
-			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
+			// Find global method by action name
+			final SchemaMethod globalMethod = StructrApp.getInstance(actionContext.getSecurityContext()).nodeQuery(SchemaMethod.class).andName(action).and(SchemaMethod.schemaNode, null).getFirst();
+
+			if (globalMethod != null) {
+
+				Actions.callWithSecurityContext(action, actionContext.getSecurityContext(), parameters);
+
+			} else {
+
+				throw new FrameworkException(422, "Empty data-structr-target attribute and no global method found by this name: " + action);
+			}
 		}
 
 		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
@@ -1261,9 +1279,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 
 							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
-							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
+							if (StringUtils.isNotBlank(nameAttribute) && StringUtils.isNotBlank(cssIdAttribute)) {
 
-							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
+								final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
+								out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
+							}
 						}
 
 
