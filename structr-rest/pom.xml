@@ -10,7 +10,7 @@
 	</parent>
 
 	<properties>
-		<jetty.version>11.0.9</jetty.version>
+		<jetty.version>11.0.10</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
 	</properties>
 
