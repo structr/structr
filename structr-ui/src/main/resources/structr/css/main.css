@@ -4093,8 +4093,8 @@ table#principals .typeIcon {
 .events-container textarea {
 	width: 100%;
 	box-sizing: border-box;
-	margin-top: .25rem;
-	height: 2.5rem;
+	/*margin-top: .25rem;*/
+	/*height: 2.5rem;*/
 }
 
 .add-property-input-button {
