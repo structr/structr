@@ -240,6 +240,7 @@ let _Entities = {
 			let click        = eventMapping.click;
 			let change       = eventMapping.change;
 			let focusout     = eventMapping.focusout;
+			let drop         = eventMapping.drop;
 			let id           = 'options-custom';
 
 			if (click) {
@@ -307,6 +308,11 @@ let _Entities = {
 						methodNameInput.val(focusout);
 						break;
 				}
+
+			} else if (drop) {
+
+				id = 'options-method-drop';
+				methodNameInput.val(drop);
 
 			} else {
 
@@ -659,6 +665,23 @@ let _Entities = {
 					case 'options-method-focusout':
 						if (methodTarget && methodName) {
 							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "' + methodName + '" }', $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
+							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
+						} else {
+							if (!methodTarget) {
+								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
+								methodTargetInput.addClass('required');
+							}
+							if (!methodName) {
+								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
+								methodNameInput.addClass('required');
+							}
+						}
+						break;
+
+					case 'options-method-drop':
+						if (methodTarget && methodName) {
+							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "drop": "' + methodName + '" }', $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
 							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
 						} else {
@@ -2881,6 +2904,7 @@ let _Entities = {
 	},
 	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
 		const oldVal = entity[key];
+		input.val(oldVal);
 		Command.setProperty(entity.id, key, newVal, false, function(result) {
 			let newVal = result[key];
 
@@ -2932,6 +2956,9 @@ let _Entities = {
 							<option value="options-update-focusout">Update a data object on focus out</option>
 							<option value="options-method-focusout">Execute a method on focus out</option>
 						</optgroup>
+						<optgroup label="Drag & Drop">
+							<option value="options-method-drop">Execute a method on drop</option>
+						</optgroup>
 						<optgroup label="Other">
 							<option value="options-custom">Custom configuration</option>
 						</optgroup>
@@ -2944,17 +2971,17 @@ let _Entities = {
 						<label class="block mb-2" for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
 						<input type="text" id="delete-target-input">
 					</div>
-	
-					<div class="option-tile hidden event-options options-method-click options-method-change">
-						<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on.">UUID of data object to call method on</label>
+
+					<div class="option-tile hidden event-options options-method-click options-method-change options-method-drop">
+						<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
 						<input type="text" id="method-target-input">
 					</div>
-	
+
 					<div class="option-tile hidden event-options options-custom">
 						<label class="block mb-2" for="custom-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
 						<input type="text" id="custom-target-input">
 					</div>
-	
+
 					<div class="option-tile hidden event-options options-update-change options-update-click">
 						<label class="block mb-2" for="update-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
 						<input type="text" id="update-target-input">
@@ -2973,12 +3000,15 @@ let _Entities = {
 						<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
 						<input type="text" id="custom-event-input">
 					</div>
+				</div>
+
+				<div class="row hidden event-options options-custom">
 					<div class="option-tile">
 						<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
 						<input type="text" id="custom-action-input">
 					</div>
 				</div>
-	
+
 				<div class="row hidden event-options options-create-click options-create-change">
 					<div class="option-tile">
 						<label class="block mb-2" for="target-type-select" data-comment="Define the type of data object that will be created with the create action.">Select type of data object to create</label>
@@ -2987,24 +3017,38 @@ let _Entities = {
 						</select>
 					</div>
 				</div>
-	
-				<div class="row hidden event-options options-method-click options-method-change">
+
+				<div class="row hidden event-options options-method-click options-method-change options-method-drop">
 					<div class="option-tile">
 						<label class="block mb-2" for="method-name-input">Name of method to execute</label>
 						<input type="text" id="method-name-input">
 					</div>
 				</div>
-	
+
 				<div class="row hidden event-options options-update-change options-update-click">
 					<div class="option-tile">
 						<label class="block mb-2" for="update-property-input">Name of property to update</label>
 						<input type="text" id="update-property-input">
 					</div>
 				</div>
-	
+
+
+				<div class="col-span-2 hidden event-options options-properties options-method-drop">
+
+					<h3>Drag & Drop</h3>
+					<div class="option-tile">
+						<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
+						<ul class="mb-2">
+							<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
+							<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
+							<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
+						<ul>
+					</div>
+				</div>
+
 				<div class="col-span-2 hidden event-options options-properties options-update-change options-update-click">
 					<h3>Property Inputs</h3>
-					
+
 					<div class="hidden event-options options-reload-target">
 
 						<div class="hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
@@ -3015,9 +3059,9 @@ let _Entities = {
 									<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
 									<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop existing element here to add
 								</div>
-							</div>						
+							</div>
 						</div>
-			
+
 						<div class="hidden event-options options-properties options-update-change options-update-click">
 							<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new input</button>
 							<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new select</button>
@@ -3027,9 +3071,9 @@ let _Entities = {
 
 				<div class="col-span-2 hidden event-options options-reload-target">
 					<h3>Refresh/Reload</h3>
-					
+
 					<div class="col-span-2 grid grid-cols-2 gap-8 hidden event-options options-reload-target">
-		
+
 						<div class="option-tile">
 							<label class="block mb-2" for="reload-option-select">Select refresh/reload behaviour</label>
 							<select class="select2" id="reload-option-select">
@@ -3040,24 +3084,24 @@ let _Entities = {
 								<option value="reload-event">Fire a custom event</option>
 							</select>
 						</div>
-		
+
 						<div class="option-tile reload-options hidden" id="reload-selector">
 							<label class="block mb-2" for="reload-selector-input">CSS selector of element to refresh</label>
 							<input type="text" id="reload-selector-input">
 						</div>
-		
+
 						<div class="option-tile reload-options hidden" id="reload-url">
 							<label class="block mb-2" for="reload-url-input">Target URL</label>
 							<input type="text" id="reload-url-input">
 						</div>
-		
+
 						<div class="option-tile reload-options hidden" id="reload-event">
 							<label class="block mb-2" for="reload-event-input">Event to fire</label>
 							<input type="text" id="reload-event-input">
 						</div>
 					</div>
 				</div>
-	
+
 				<div class="option-tile col-span-2">
 					<button type="button" class="action" id="save-event-mapping-button">Save</button>
 				</div>
@@ -3065,7 +3109,7 @@ let _Entities = {
 		`,
 		multipleInputsRow: config => `
 			<div class="event-options options-properties options-update-change options-update-click multiple-properties">
-			
+
 				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
 					<div class="option-tile flat">
 						<input type="text" class="multiple-input-name-input" placeholder="Name of input element" data-structr-id="${config.id}">

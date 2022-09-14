@@ -222,22 +222,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			// check if this is a CORS preflight request
-			final String origin      = request.getHeader("Origin");
-			final String corsHeaders = request.getHeader("Access-Control-Request-Headers");
-			final String corsMethod  = request.getHeader("Access-Control-Request-Method");
 			int statusCode           = HttpServletResponse.SC_OK;
 
-			if (origin != null && corsHeaders != null && corsMethod != null) {
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
 				final Authenticator auth = getConfig().getAuthenticator();
-				// Ensure CORS settings apply by letting the authenticator examine the request.
 				auth.initializeAndExamineRequest(request, response);
 
-			} else {
-
-				// OPTIONS is not allowed for non-CORS requests
-				statusCode = HttpServletResponse.SC_METHOD_NOT_ALLOWED;
+				tx.success();
 			}
 
 			resetResponseBuffer(response, statusCode);

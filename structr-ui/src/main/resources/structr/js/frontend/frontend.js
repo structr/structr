@@ -96,8 +96,6 @@ export class Frontend {
 					}
 				});
 
-				console.log({ name: name, elements: elements, values: values });
-
 				switch (values.length) {
 					case 0: break;
 					case 1: resolved[key] = values[0]; break;
@@ -114,7 +112,10 @@ export class Frontend {
 				// data() refers to the dataset of the datatransfer object in a drag and drop
 				// event, maybe the name of the key needs some more thought..
 				let data = event.dataTransfer.getData('application/json');
-				resolved[key] = JSON.parse(data);
+				if (data && data.length) {
+
+					resolved[key] = JSON.parse(data);
+				}
 
 			} else {
 
@@ -498,47 +499,57 @@ export class Frontend {
 		if (preventDefault) { event.preventDefault(); }
 		if (stopPropagation) { event.stopPropagation(); }
 
-		if (this.timeout) {
-			window.clearTimeout(this.timeout);
-		}
+		if (delay === 0) {
 
-		this.timeout = window.setTimeout(() => {
+			this.doHandleGenericEvent(event, target, data);
 
-			// special handling for possible sort keys (can contain multiple values, separated by ,)
-			let sortKey = this.getFirst(data.structrTarget);
+		} else {
 
-			// special handling for frontend-only events (pagination, sorting)
-			if (sortKey && data[sortKey]) {
-
-				// The above condition is true when the dataset of an element contains a value with the same name as the
-				// data-structr-target attribute. This is currently only true for pagination and sorting, where
-				// data-structr-target="page" and data-page="1" (which comes from the backend), or
-				// data-structr-target="sort" and data-sort="sortKeyName".
-
-				this.handlePagination(event, target);
-
-			} else if (id && id.length === 32) {
-
-				this.fireEvent('start', { target: target, data: data, event: event });
-
-				// server-side
-				// store event type in htmlEvent property
-				data.htmlEvent = event.type;
-
-				fetch('/structr/rest/DOMElement/' + id + '/event', {
-					body: JSON.stringify(this.resolveData(event, target)),
-					method: 'post',
-					credentials: 'same-origin'
-				})
-
-				.then(response => {
-					return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
-				})
-				.then(response => this.handleResult(target, response.json, response.status))
-				.catch(error   => this.handleError(target, error, {}));
+			if (this.timeout) {
+				window.clearTimeout(this.timeout);
 			}
 
-		}, delay);
+			this.timeout = window.setTimeout(() => this.doHandleGenericEvent(event, target, data), delay);
+		}
+	}
+
+	doHandleGenericEvent(event, target, data) {
+
+		let id = data.structrId;
+
+		// special handling for possible sort keys (can contain multiple values, separated by ,)
+		let sortKey = this.getFirst(data.structrTarget);
+
+		// special handling for frontend-only events (pagination, sorting)
+		if (sortKey && data[sortKey]) {
+
+			// The above condition is true when the dataset of an element contains a value with the same name as the
+			// data-structr-target attribute. This is currently only true for pagination and sorting, where
+			// data-structr-target="page" and data-page="1" (which comes from the backend), or
+			// data-structr-target="sort" and data-sort="sortKeyName".
+
+			this.handlePagination(event, target);
+
+		} else if (id && id.length === 32) {
+
+			this.fireEvent('start', { target: target, data: data, event: event });
+
+			// server-side
+			// store event type in htmlEvent property
+			data.htmlEvent = event.type;
+
+			fetch('/structr/rest/DOMElement/' + id + '/event', {
+				body: JSON.stringify(this.resolveData(event, target)),
+				method: 'post',
+				credentials: 'same-origin'
+			})
+
+			.then(response => {
+				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
+			})
+			.then(response => this.handleResult(target, response.json, response.status))
+			.catch(error   => this.handleError(target, error, {}));
+		}
 	}
 
 	getFirst(csvString) {
@@ -633,7 +644,7 @@ export class Frontend {
 
 		event.stopPropagation();
 
-		let data = this.resolveData(event, event.currentTarget.dataset);
+		let data = this.resolveData(event, event.currentTarget);
 
 		// store UUID of structr node explicitly for drag and drop
 		data.id = event.currentTarget.dataset.structrTarget;
@@ -693,16 +704,11 @@ export class Frontend {
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
 					elem.addEventListener(event, this.boundHandleGenericEvent);
 
-					// add event listeners to support drag and drop
+					// add dragover event listener to support drag and drop
 					if (event === 'drop') {
 
-						elem.removeEventListener('dragstart', this.boundHandleDragStart);
 						elem.removeEventListener('dragover',  this.boundHandleDragOver);
-						elem.removeEventListener('drag',      this.boundHandleDrag);
-
-						elem.addEventListener('dragstart', this.boundHandleDragStart);
 						elem.addEventListener('dragover',  this.boundHandleDragOver);
-						elem.addEventListener('drag',      this.boundHandleDrag);
 					}
 				}
 			}
@@ -717,6 +723,13 @@ export class Frontend {
 				elem.removeEventListener('blur', this.boundHandleBlur);
 				elem.addEventListener('blur', this.boundHandleBlur);
 			}
+		});
+
+		document.querySelectorAll('*[draggable]').forEach(elem => {
+
+			// add dragstart event listener to support drag and drop
+			elem.removeEventListener('dragstart', this.boundHandleDragStart);
+			elem.addEventListener('dragstart', this.boundHandleDragStart);
 		});
 	}
 

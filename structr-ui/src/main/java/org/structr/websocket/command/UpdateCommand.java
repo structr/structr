@@ -154,7 +154,7 @@ public class UpdateCommand extends AbstractCommand {
 
 		} catch (FrameworkException ex) {
 
-			logger.warn("Exception occurred", ex);
+			logger.debug("Exception occurred", ex);
 			getWebSocket().send(MessageBuilder.status().code(ex.getStatus()).message(ex.getMessage()).jsonErrorObject(ex.toJSON()).build(), true);
 		}
 	}

@@ -31,11 +31,11 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
+import org.structr.core.property.UuidProperty;
 
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
@@ -82,7 +82,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return (T) source;
 		}
 
-		if (source != null && source instanceof String && Pattern.matches("[a-fA-F0-9]{32}", (String) source)) {
+		if (source != null && source instanceof String && UuidProperty.UUID_PATTERN.matcher((String)source).matches()) {
 
 			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById((String) source), type);
 
