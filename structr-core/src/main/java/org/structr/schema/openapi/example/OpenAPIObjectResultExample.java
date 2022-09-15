@@ -18,8 +18,9 @@
  */
 package org.structr.schema.openapi.example;
 
-import java.util.LinkedHashMap;
 import org.structr.schema.export.StructrTypeDefinition;
+
+import java.util.LinkedHashMap;
 
 public class OpenAPIObjectResultExample extends LinkedHashMap<String, Object> {
 

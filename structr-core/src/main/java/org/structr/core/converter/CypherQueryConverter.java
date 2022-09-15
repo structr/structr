@@ -18,8 +18,6 @@
  */
 package org.structr.core.converter;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -31,6 +29,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cypher.CypherQueryHandler;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.GraphDatabaseCommand;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Executes the given {@link CypherQueryConverter} on the current node and

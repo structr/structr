@@ -18,14 +18,15 @@
  */
 package org.structr.core.cypher;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.core.property.PropertyKey;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Encapsulates a Cypher query.

@@ -21,8 +21,10 @@ package org.structr.websocket;
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.server.JettyServerUpgradeRequest;
 import org.eclipse.jetty.websocket.server.JettyServerUpgradeResponse;
-import org.eclipse.jetty.websocket.server.JettyWebSocketCreator;;
+import org.eclipse.jetty.websocket.server.JettyWebSocketCreator;
 import org.structr.core.auth.Authenticator;
+
+;
 
 /**
  * Custom creator for structr WebSockets.

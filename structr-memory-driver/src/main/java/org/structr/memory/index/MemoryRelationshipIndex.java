@@ -18,11 +18,12 @@
  */
 package org.structr.memory.index;
 
-import java.util.Set;
 import org.structr.api.graph.Relationship;
 import org.structr.api.util.Iterables;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.memory.index.filter.MemoryLabelFilter;
+
+import java.util.Set;
 
 /**
  *

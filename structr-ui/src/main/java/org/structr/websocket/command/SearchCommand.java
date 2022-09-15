@@ -20,9 +20,6 @@ package org.structr.websocket.command;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,6 +37,10 @@ import org.structr.web.datasource.RestDataSource;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  */

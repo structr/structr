@@ -18,12 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletionStage;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.Result;
 import org.neo4j.driver.TransactionConfig;
@@ -31,11 +25,7 @@ import org.neo4j.driver.Values;
 import org.neo4j.driver.async.AsyncSession;
 import org.neo4j.driver.async.AsyncTransaction;
 import org.neo4j.driver.async.ResultCursor;
-import org.neo4j.driver.exceptions.ClientException;
-import org.neo4j.driver.exceptions.DatabaseException;
-import org.neo4j.driver.exceptions.NoSuchRecordException;
-import org.neo4j.driver.exceptions.ServiceUnavailableException;
-import org.neo4j.driver.exceptions.TransientException;
+import org.neo4j.driver.exceptions.*;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.types.Entity;
 import org.neo4j.driver.types.Node;
@@ -45,6 +35,9 @@ import org.structr.api.NotFoundException;
 import org.structr.api.RetryException;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
+import java.util.concurrent.CompletionStage;
 
 /**
  *

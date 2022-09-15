@@ -18,9 +18,10 @@
  */
 package org.structr.bolt;
 
-import java.util.List;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.types.Path;
+
+import java.util.List;
 
 /**
  * A mapper that converts a stream of Records to a stream of Nodes,

@@ -18,9 +18,6 @@
  */
 package org.structr.test.core.common;
 
-import java.util.Locale;
-import org.testng.annotations.Test;
-import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.app.StructrApp;
@@ -30,6 +27,11 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
+import org.structr.test.common.StructrTest;
+import org.testng.annotations.Test;
+
+import java.util.Locale;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

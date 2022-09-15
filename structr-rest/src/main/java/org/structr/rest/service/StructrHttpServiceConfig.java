@@ -18,7 +18,6 @@
  */
 package org.structr.rest.service;
 
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +26,8 @@ import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
 import org.structr.rest.ResourceProvider;
 import org.structr.schema.compiler.NodeExtender;
+
+import java.util.Set;
 
 /**
  *

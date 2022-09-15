@@ -18,6 +18,7 @@
  */
 package org.structr.test;
 
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.flow.impl.FlowAction;
 import org.structr.flow.impl.FlowContainer;
@@ -28,7 +29,6 @@ import org.testng.annotations.Test;
 
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.common.error.FrameworkException;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;

@@ -18,7 +18,6 @@
  */
 package org.structr.core.property;
 
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
@@ -184,12 +183,6 @@ public class DoubleProperty extends AbstractPrimitiveProperty<Double> implements
 	@Override
 	public Object getIndexValue(final Object value) {
 		return fixDatabaseProperty(value);
-	}
-
-	// ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return PropertyType.DECIMAL;
 	}
 
 	// ----- OpenAPI -----

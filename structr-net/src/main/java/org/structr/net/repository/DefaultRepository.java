@@ -18,15 +18,11 @@
  */
 package org.structr.net.repository;
 
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.UUID;
 import org.structr.net.data.time.PseudoTime;
 import org.structr.net.peer.Peer;
+
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *

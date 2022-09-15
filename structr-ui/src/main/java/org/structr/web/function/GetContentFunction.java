@@ -18,14 +18,16 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Scanner;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Scanner;
 
 public class GetContentFunction extends UiAdvancedFunction {
 
@@ -53,7 +55,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 				final File file = (File)sources[0];
 
-				if (file.getSize() == 0) {
+				if (FileUtils.getSize(file.getFileOnDisk()) == 0) {
 					return "";
 				}
 

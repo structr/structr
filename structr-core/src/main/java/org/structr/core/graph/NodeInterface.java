@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.List;
-import java.util.Map;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
@@ -27,26 +25,12 @@ import org.structr.common.AccessControllable;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
 import org.structr.core.GraphObject;
-import static org.structr.core.GraphObject.id;
-import static org.structr.core.GraphObject.type;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.ManyEndpoint;
-import org.structr.core.entity.ManyStartpoint;
-import org.structr.core.entity.OneEndpoint;
-import org.structr.core.entity.OneStartpoint;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.Relation;
-import org.structr.core.entity.Security;
-import org.structr.core.entity.Source;
-import org.structr.core.entity.Target;
+import org.structr.core.entity.*;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.EntityIdProperty;
-import org.structr.core.property.InternalPathProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+
+import java.util.List;
+import java.util.Map;
 
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 

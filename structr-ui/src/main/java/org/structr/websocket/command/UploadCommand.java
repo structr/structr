@@ -25,10 +25,10 @@ import org.structr.common.SecurityContext;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.structr.web.entity.File;
 
 //~--- classes ----------------------------------------------------------------
 

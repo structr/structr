@@ -18,6 +18,11 @@
  */
 package org.structr.memgraph;
 
+import org.neo4j.driver.v1.Record;
+import org.neo4j.driver.v1.StatementResultCursor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -26,10 +31,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
-import org.neo4j.driver.v1.Record;
-import org.neo4j.driver.v1.StatementResultCursor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  *

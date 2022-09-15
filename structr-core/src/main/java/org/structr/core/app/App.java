@@ -18,8 +18,6 @@
  */
 package org.structr.core.app;
 
-import java.io.Closeable;
-import java.util.Map;
 import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.service.Command;
@@ -29,12 +27,11 @@ import org.structr.common.fulltext.ContentAnalyzer;
 import org.structr.common.fulltext.FulltextIndexer;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.Relation;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.property.PropertyMap;
+
+import java.io.Closeable;
+import java.util.Map;
 
 /**
  *

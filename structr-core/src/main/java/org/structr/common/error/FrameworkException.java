@@ -18,15 +18,13 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
+import com.google.gson.*;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
-import javax.servlet.http.HttpServletResponse;
+
 
 /**
  * The base class for all structr exceptions. This class contains

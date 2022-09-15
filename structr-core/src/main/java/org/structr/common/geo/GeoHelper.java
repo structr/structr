@@ -19,9 +19,6 @@
 package org.structr.common.geo;
 
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Map;
 import org.apache.commons.collections.map.LRUMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +29,10 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Location;
 import org.structr.core.graph.search.DistanceSearchAttribute;
 import org.structr.core.property.PropertyMap;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Map;
 
 //~--- classes ----------------------------------------------------------------
 

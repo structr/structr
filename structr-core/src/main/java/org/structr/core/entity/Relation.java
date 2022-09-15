@@ -18,8 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -32,6 +30,9 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Defines constants for structr's relationship entities.

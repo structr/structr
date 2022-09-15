@@ -18,10 +18,8 @@
  */
 package org.structr.core.property;
 
-import java.util.Comparator;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
@@ -32,6 +30,9 @@ import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.graph.search.SearchAttribute;
+
+import java.util.Comparator;
+import java.util.Map;
 
 /**
  * Contains information about a related node property. This class can be used together
@@ -362,21 +363,6 @@ public class Reference<T> implements PropertyKey<T> {
 	@Override
 	public PropertyKey<T> dynamic() {
 		return propertyKey.dynamic();
-	}
-
-	@Override
-	public PropertyType getDataType() {
-		return propertyKey.getDataType();
-	}
-
-	@Override
-	public Property<T> cmis() {
-		return propertyKey.cmis();
-	}
-
-	@Override
-	public boolean isCMISProperty() {
-		return propertyKey.isCMISProperty();
 	}
 
 	@Override

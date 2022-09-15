@@ -22,13 +22,6 @@ import graphql.Scalars;
 import graphql.schema.GraphQLArgument;
 import graphql.schema.GraphQLFieldDefinition;
 import graphql.schema.GraphQLOutputType;
-import static graphql.schema.GraphQLTypeReference.typeRef;
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,32 +34,22 @@ import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.app.StructrApp;
-import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 import org.structr.core.entity.relationship.SchemaNodeProperty;
 import org.structr.core.entity.relationship.SchemaViewProperty;
 import org.structr.core.graph.ModificationQueue;
-
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.notion.PropertySetNotion;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.StartNode;
-import org.structr.core.property.StartNodes;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.SourceFile;
-import org.structr.schema.parser.DoubleArrayPropertyParser;
-import org.structr.schema.parser.DoublePropertyParser;
-import org.structr.schema.parser.IntPropertyParser;
-import org.structr.schema.parser.IntegerArrayPropertyParser;
-import org.structr.schema.parser.LongArrayPropertyParser;
-import org.structr.schema.parser.LongPropertyParser;
-import org.structr.schema.parser.NotionPropertyParser;
-import org.structr.schema.parser.PropertyDefinition;
+import org.structr.schema.parser.*;
+
+import java.util.*;
+
+import static graphql.schema.GraphQLTypeReference.typeRef;
+import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
 

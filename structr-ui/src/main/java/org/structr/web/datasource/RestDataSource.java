@@ -18,16 +18,8 @@
  */
 package org.structr.web.datasource;
 
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import org.apache.commons.collections.iterators.IteratorEnumeration;
-import org.apache.commons.lang3.StringUtils;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -37,7 +29,10 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
+import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.exception.IllegalPathException;
@@ -45,13 +40,16 @@ import org.structr.rest.exception.NotFoundException;
 import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
 import org.structr.rest.servlet.ResourceHelper;
-import org.structr.core.datasources.GraphDataSource;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Pattern;
 
 /**
  * List data source equivalent to a rest resource.
@@ -107,52 +105,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		// initialize variables
 		// mimic HTTP request
-		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request) {
-
-			@Override
-			public Enumeration<String> getParameterNames() {
-				return new IteratorEnumeration(getParameterMap().keySet().iterator());
-			}
-
-			@Override
-			public String getParameter(final String key) {
-				String[] p = getParameterMap().get(key);
-				return p != null ? p[0] : null;
-			}
-
-			@Override
-			public String[] getParameterValues(final String key) {
-				return getParameterMap().get(key);
-			}
-
-			@Override
-			public Map<String, String[]> getParameterMap() {
-				String[] parts = StringUtils.split(getQueryString(), "&");
-				Map<String, String[]> parameterMap = new HashMap();
-				for (String p : parts) {
-					String[] kv = StringUtils.split(p, "=");
-					if (kv.length > 1) {
-						parameterMap.put(kv[0], new String[]{kv[1]});
-					}
-				}
-				return parameterMap;
-			}
-
-			@Override
-			public String getQueryString() {
-				return StringUtils.substringAfter(restQuery, "?");
-			}
-
-			@Override
-			public String getPathInfo() {
-				return StringUtils.substringBefore(restQuery, "?");
-			}
-
-			@Override
-			public StringBuffer getRequestURL() {
-				return new StringBuffer(restQuery);
-			}
-		};
+		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request, restQuery);
 
 		// store original request
 		final HttpServletRequest origRequest = securityContext.getRequest();
@@ -240,7 +193,5 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			return get();
 		}
 	}
-
-
 
 }

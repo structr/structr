@@ -36,7 +36,7 @@
 		<module>structr-messaging-engine-module</module>
 		<module>structr-excel-module</module>
 		<module>structr-advanced-mail-module</module>
-	        <module>structr-pdf-module</module>
+		<module>structr-pdf-module</module>
 		<module>structr-security-module</module>
 	</modules>
 

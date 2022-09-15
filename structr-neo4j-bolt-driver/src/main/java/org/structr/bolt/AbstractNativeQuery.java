@@ -18,9 +18,10 @@
  */
 package org.structr.bolt;
 
+import org.structr.api.NativeQuery;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.api.NativeQuery;
 
 /**
  */

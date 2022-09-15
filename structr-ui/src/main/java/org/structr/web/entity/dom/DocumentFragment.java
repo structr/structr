@@ -18,16 +18,17 @@
  */
 package org.structr.web.entity.dom;
 
-import java.net.URI;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.Renderable;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.net.URI;
 
 /**
  *

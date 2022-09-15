@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
@@ -28,6 +25,10 @@ import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**

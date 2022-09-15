@@ -18,14 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -38,19 +30,19 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.GenericNode;
 import org.structr.core.entity.GenericRelationship;
-import org.structr.core.graph.BulkDeleteCommand;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeAttribute;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.test.web.IndexingTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestOne;
 import org.structr.test.web.entity.TestTwo;
 import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.*;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *

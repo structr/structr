@@ -18,7 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.io.IOException;
 import org.apache.http.HttpException;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -32,11 +31,11 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  */

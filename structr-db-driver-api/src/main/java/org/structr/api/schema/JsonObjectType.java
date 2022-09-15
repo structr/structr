@@ -18,8 +18,9 @@
  */
 package org.structr.api.schema;
 
-import java.net.URI;
 import org.structr.api.graph.Cardinality;
+
+import java.net.URI;
 
 /**
  *

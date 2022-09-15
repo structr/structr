@@ -20,28 +20,23 @@ package org.structr.schema.export;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
+import org.structr.core.app.App;
+import org.structr.core.entity.*;
+import org.structr.core.graph.Tx;
+
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
-import org.structr.core.app.App;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaMethodParameter;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
-import org.structr.core.entity.SchemaView;
-import org.structr.core.graph.Tx;
-import org.structr.api.schema.InvalidSchemaException;
-import org.structr.api.schema.JsonSchema;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaRelationshipNode;
 
 /**
  * The main class to interact with the Structr Schema API.

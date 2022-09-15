@@ -18,7 +18,6 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.Occurrence;
@@ -26,6 +25,8 @@ import org.structr.api.search.TypeQuery;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
+
+import java.util.Set;
 
 /**
  *

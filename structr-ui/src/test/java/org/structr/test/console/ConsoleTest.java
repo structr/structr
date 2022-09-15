@@ -18,7 +18,6 @@
  */
 package org.structr.test.console;
 
-import java.util.Collections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -31,10 +30,11 @@ import org.structr.core.property.PropertyMap;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+
+import static org.testng.AssertJUnit.*;
 
 public class ConsoleTest extends StructrUiTest {
 
@@ -147,8 +147,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 2255;
-		final int relCount    = 2193;
+		final int nodeCount   = 2180;
+		final int relCount    = 2123;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
@@ -182,9 +182,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
-			"RebuildNodeIndex: 576 objects processed\r\n" +
-			"RebuildNodeIndex: 576 objects processed\r\n" +
-			"Done with (re-)indexing 576 nodes\r\n";
+			"RebuildNodeIndex: 561 objects processed\r\n" +
+			"RebuildNodeIndex: 561 objects processed\r\n" +
+			"Done with (re-)indexing 561 nodes\r\n";
 
 		final String typedRelationshipIndexRebuildOutput =
 			"Starting (re-)indexing all relationships of type ResourceAccess\r\n" +

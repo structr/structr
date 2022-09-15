@@ -18,16 +18,17 @@
  */
 package org.structr.schema.action;
 
+import org.apache.commons.lang3.StringUtils;
+import org.structr.schema.CodeSource;
+import org.structr.schema.SourceFile;
+import org.structr.schema.SourceLine;
+
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.schema.CodeSource;
-import org.structr.schema.SourceFile;
-import org.structr.schema.SourceLine;
 
 /**
  *

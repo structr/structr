@@ -18,12 +18,13 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+
+import java.util.Map;
 
 /**
  * Clears database.

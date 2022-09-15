@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -33,6 +31,9 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Sets the properties found in the property set on all nodes matching the type.

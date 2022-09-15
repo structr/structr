@@ -19,8 +19,6 @@
 package org.structr.test.web.basic;
 
 import com.jayway.restassured.RestAssured;
-import java.util.Arrays;
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
@@ -30,6 +28,10 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Site;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
+import org.testng.annotations.Test;
+
+import java.util.Arrays;
+
 import static org.testng.AssertJUnit.fail;
 
 /**

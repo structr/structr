@@ -18,7 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
@@ -28,6 +27,8 @@ import org.structr.core.property.StringProperty;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+
+import java.io.IOException;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 

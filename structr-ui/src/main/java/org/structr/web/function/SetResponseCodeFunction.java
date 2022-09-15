@@ -18,10 +18,13 @@
  */
 package org.structr.web.function;
 
-import javax.servlet.http.HttpServletResponse;
+
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.schema.action.ActionContext;
+
+
 
 public class SetResponseCodeFunction extends UiAdvancedFunction {
 

@@ -18,14 +18,15 @@
  */
 package org.structr.test;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.api.Transaction;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.memory.MemoryDatabaseService;
 import org.structr.memory.index.filter.MemoryLabelFilter;
 import org.testng.annotations.Test;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  */

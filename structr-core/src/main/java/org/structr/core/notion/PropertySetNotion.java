@@ -18,10 +18,11 @@
  */
 package org.structr.core.notion;
 
-import java.util.Map;
 import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Map;
 
 /**
  * Combines a {@link PropertySetSerializationStrategy} and a {@link TypeAndPropertySetDeserializationStrategy}

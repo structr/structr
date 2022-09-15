@@ -18,26 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Queue;
-import java.util.Set;
-import org.apache.chemistry.opencmis.commons.data.Ace;
-import org.apache.chemistry.opencmis.commons.data.AllowableActions;
-import org.apache.chemistry.opencmis.commons.enums.BaseTypeId;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -47,44 +27,11 @@ import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.PropagationDirection;
-import static org.structr.api.graph.PropagationDirection.In;
-import static org.structr.api.graph.PropagationDirection.Out;
-import static org.structr.api.graph.PropagationMode.Add;
-import static org.structr.api.graph.PropagationMode.Keep;
-import static org.structr.api.graph.PropagationMode.Remove;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
+import org.structr.api.graph.*;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
-import org.structr.cmis.CMISInfo;
-import org.structr.cmis.common.CMISExtensionsData;
-import org.structr.cmis.common.StructrItemActions;
-import org.structr.cmis.info.CMISDocumentInfo;
-import org.structr.cmis.info.CMISFolderInfo;
-import org.structr.cmis.info.CMISItemInfo;
-import org.structr.cmis.info.CMISPolicyInfo;
-import org.structr.cmis.info.CMISRelationshipInfo;
-import org.structr.cmis.info.CMISSecondaryInfo;
-import org.structr.common.AccessControllable;
-import org.structr.common.ContextStore;
-import org.structr.common.Permission;
-import org.structr.common.PermissionPropagation;
-import org.structr.common.PermissionResolutionMask;
-import org.structr.common.PropertyView;
-import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
-import org.structr.common.View;
-import org.structr.common.error.AssertException;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InternalSystemPropertyToken;
-import org.structr.common.error.NullArgumentToken;
-import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.common.*;
+import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.IterableAdapter;
 import org.structr.core.Services;
@@ -93,11 +40,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.relationship.Ownership;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
-import org.structr.core.graph.ModificationQueue;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeRelationshipStatisticsCommand;
-import org.structr.core.graph.RelationshipFactory;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.*;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -106,10 +49,14 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
+
 /**
  * Abstract base class for all node entities in Structr.
  */
-public abstract class AbstractNode implements NodeInterface, AccessControllable, CMISInfo, CMISItemInfo {
+public abstract class AbstractNode implements NodeInterface, AccessControllable {
 
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
@@ -1910,131 +1857,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 		throw new ClassCastException(this.getClass() + " cannot be cast to org.structr.core.graph.RelationshipInterface");
 	}
 
-	// ----- CMIS support methods -----
-	@Override
-	public CMISInfo getCMISInfo() {
-		return this;
-	}
-
-	@Override
-	public BaseTypeId getBaseTypeId() {
-		return BaseTypeId.CMIS_ITEM;
-	}
-
-	@Override
-	public CMISFolderInfo getFolderInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISDocumentInfo getDocumentInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISItemInfo getItemInfo() {
-		return this;
-	}
-
-	@Override
-	public CMISRelationshipInfo getRelationshipInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISPolicyInfo getPolicyInfo() {
-		return null;
-	}
-
-	@Override
-	public CMISSecondaryInfo getSecondaryInfo() {
-		return null;
-	}
-
-	@Override
 	public String getCreatedBy() {
 		return getProperty(AbstractNode.createdBy);
 	}
 
-	@Override
+
 	public String getLastModifiedBy() {
 		return getProperty(AbstractNode.lastModifiedBy);
-	}
-
-	@Override
-	public GregorianCalendar getLastModificationDate() {
-
-		final Date creationDate = getProperty(AbstractNode.lastModifiedDate);
-		if (creationDate != null) {
-
-			final GregorianCalendar calendar = new GregorianCalendar();
-			calendar.setTime(creationDate);
-
-			return calendar;
-		}
-
-		return null;
-	}
-
-	@Override
-	public GregorianCalendar getCreationDate() {
-
-		final Date creationDate = getProperty(AbstractNode.createdDate);
-		if (creationDate != null) {
-
-			final GregorianCalendar calendar = new GregorianCalendar();
-			calendar.setTime(creationDate);
-
-			return calendar;
-		}
-
-		return null;
-	}
-
-	@Override
-	public PropertyMap getDynamicProperties() {
-
-		final PropertyMap propertyMap       = new PropertyMap();
-		final Class type                    = getClass();
-
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
-
-			// include all dynamic keys in definition
-			if (key.isDynamic() || key.isCMISProperty()) {
-
-				// only include primitives here
-				final PropertyType dataType = key.getDataType();
-				if (dataType != null) {
-
-					propertyMap.put(key, getProperty(key));
-				}
-			}
-		}
-
-
-
-		return propertyMap;
-	}
-
-	@Override
-	public AllowableActions getAllowableActions() {
-		return new StructrItemActions();
-	}
-
-	@Override
-	public List<Ace> getAccessControlEntries() {
-
-		final List<Ace> entries = new LinkedList<>();
-
-		for (final Security security : getIncomingRelationshipsAsSuperUser(Security.class)) {
-
-			if (security != null) {
-
-				entries.add(new AceEntry(security));
-			}
-		}
-
-		return entries;
 	}
 
 	@Override
@@ -2200,55 +2029,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable,
 	}
 
 	// ----- nested classes -----
-	private static class AceEntry extends CMISExtensionsData implements Ace, org.apache.chemistry.opencmis.commons.data.Principal {
-
-		private final List<String> permissions = new LinkedList<>();
-		private String principalId             = null;
-
-		/**
-		 * Construct a new AceEntry from the given Security relationship. This
-		 * method assumes that is is called in a transaction.
-		 *
-		 * @param security
-		 */
-		public AceEntry(final Security security) {
-
-			final Principal principal = security.getSourceNode();
-			if (principal != null) {
-
-				this.principalId = principal.getProperty(Principal.name);
-			}
-
-			permissions.addAll(security.getPermissions());
-		}
-
-		@Override
-		public org.apache.chemistry.opencmis.commons.data.Principal getPrincipal() {
-			return this;
-		}
-
-		@Override
-		public String getPrincipalId() {
-			return principalId;
-		}
-
-		@Override
-		public List<String> getPermissions() {
-			return permissions;
-		}
-
-		@Override
-		public boolean isDirect() {
-			return true;
-		}
-
-		// ----- interface Principal -----
-		@Override
-		public String getId() {
-			return getPrincipalId();
-		}
-	}
-
 	private static class AlreadyTraversed {
 
 		private Map<String, Set<String>> sets = new LinkedHashMap<>();

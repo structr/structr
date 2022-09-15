@@ -18,11 +18,12 @@
  */
 package org.structr.console.rest;
 
-import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.util.Writable;
+
+import java.io.IOException;
 
 /**
  *

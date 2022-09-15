@@ -18,10 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import org.structr.api.search.Occurrence;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -35,6 +31,11 @@ import org.structr.core.function.search.SearchParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.Hint;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Abstract implementation of the basic functions of the Interface QueryFunction.

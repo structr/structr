@@ -18,14 +18,15 @@
  */
 package org.structr.core.property;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.TreeMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.ReadOnlyPropertyToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
  * Abstract base class for read-only properties.

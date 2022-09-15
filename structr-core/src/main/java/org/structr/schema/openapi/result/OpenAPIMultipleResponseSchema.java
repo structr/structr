@@ -19,9 +19,7 @@
 package org.structr.schema.openapi.result;
 
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.schema.OpenAPIArraySchema;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.TreeMap;

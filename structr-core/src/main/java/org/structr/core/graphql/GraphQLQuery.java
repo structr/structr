@@ -21,11 +21,6 @@ package org.structr.core.graphql;
 import graphql.language.Field;
 import graphql.language.Selection;
 import graphql.language.SelectionSet;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -33,6 +28,8 @@ import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+
+import java.util.*;
 
 /**
  */

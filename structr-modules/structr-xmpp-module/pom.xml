@@ -41,11 +41,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
-			<artifactId>smack-sasl-javax</artifactId>
-			<version>4.1.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-extensions</artifactId>
 			<version>4.1.1</version>
 		</dependency>
@@ -58,6 +53,11 @@
 			<groupId>org.testng</groupId>
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>ch.qos.logback</groupId>
+			<artifactId>logback-classic</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 

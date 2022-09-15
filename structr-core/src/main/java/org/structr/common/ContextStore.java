@@ -18,14 +18,14 @@
  */
 package org.structr.common;
 
-import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.entity.Localization;
 import org.structr.core.property.GenericProperty;
+
+import java.util.*;
 
 /**
  * Encapsulates all information stored for Action-/SecurityContexts which are available via scripting

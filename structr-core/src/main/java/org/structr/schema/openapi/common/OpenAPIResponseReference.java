@@ -18,13 +18,12 @@
  */
 package org.structr.schema.openapi.common;
 
-import java.util.Set;
-import java.util.TreeMap;
-
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
-import org.structr.schema.export.StructrTypeDefinitions;
+
+import java.util.Set;
+import java.util.TreeMap;
 
 public class OpenAPIResponseReference extends TreeMap<String, Object> {
 

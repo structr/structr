@@ -18,8 +18,8 @@
  */
 package org.structr.core.function.search;
 
-import org.structr.core.function.*;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.function.CoreFunction;
 import org.structr.schema.action.ActionContext;
 
 public class FindNotFunction extends CoreFunction {

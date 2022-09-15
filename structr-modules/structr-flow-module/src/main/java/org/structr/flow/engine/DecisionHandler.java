@@ -18,10 +18,10 @@
  */
 package org.structr.flow.engine;
 
-import org.structr.flow.api.FlowHandler;
 import org.structr.flow.api.DataSource;
-import org.structr.flow.api.FlowElement;
 import org.structr.flow.api.Decision;
+import org.structr.flow.api.FlowElement;
+import org.structr.flow.api.FlowHandler;
 
 /**
  *

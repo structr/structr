@@ -18,7 +18,6 @@
  */
 package org.structr.schema.parser;
 
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorBuffer;
@@ -27,6 +26,8 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.property.FunctionProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.Map;
 
 /**
  *

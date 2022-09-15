@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
 import org.structr.api.graph.Node;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.FrameworkException;
@@ -27,6 +26,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyMap;
+
+import java.util.List;
 
 /**
  * Abstract base class for a multi-dimensional linked list data structure.

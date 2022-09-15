@@ -18,12 +18,11 @@
  */
 package org.structr.schema.openapi.operation;
 
-import java.util.Map;
 import org.structr.common.PropertyView;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.common.OpenAPISchemaReference;
-import org.structr.schema.openapi.request.OpenAPIRequestResponse;
+
+import java.util.Map;
 
 public class OpenAPIGetMultipleOperation extends OpenAPIOperation {
 

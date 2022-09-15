@@ -28,15 +28,17 @@ import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import com.github.javaparser.resolution.declarations.ResolvedMethodDeclaration;
 import com.github.javaparser.symbolsolver.javaparsermodel.JavaParserFacade;
 import com.github.javaparser.symbolsolver.model.resolution.SymbolReference;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.core.app.App;
+import org.structr.javaparser.entity.JavaClass;
+import org.structr.javaparser.entity.Method;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import org.apache.commons.lang3.StringUtils;
-import org.structr.core.app.App;
+
 import static org.structr.javaparser.JavaParserModule.logger;
-import org.structr.javaparser.entity.JavaClass;
-import org.structr.javaparser.entity.Method;
 
 public class MethodVisitorAdapter extends VoidVisitorAdapter<Object> {
 

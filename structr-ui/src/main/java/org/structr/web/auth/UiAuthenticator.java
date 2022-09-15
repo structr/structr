@@ -18,18 +18,10 @@
  */
 package org.structr.web.auth;
 
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import com.github.scribejava.core.model.OAuth2AccessToken;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
@@ -52,9 +44,19 @@ import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
 import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -67,7 +69,7 @@ public class UiAuthenticator implements Authenticator {
 
 	private enum Method { GET, PUT, POST, DELETE, HEAD, OPTIONS, PATCH }
 	private static final Map<String, Method> methods = new LinkedHashMap();
-	private static final Map<String, Map<String,String[]>> stateParamters = new LinkedHashMap<>();
+	private static final Map<String, Map<String,String[]>> stateParameters = new LinkedHashMap<>();
 
 	// HTTP methods
 	static {
@@ -531,14 +533,28 @@ public class UiAuthenticator implements Authenticator {
 		final String name   = uriParts[1];
 		final String action = uriParts[2];
 
-		// Try to getValue an OAuth2 server for the given name
-		final StructrOAuthClient oauthServer = StructrOAuthClient.getServer(name);
+		OAuth2Client oAuth2Client = null;
 
-		if (oauthServer == null) {
 
-			logger.warn("No OAuth2 authentication server configured for {}", path);
-			return null;
-
+		switch (name) {
+			case "auth0":
+				oAuth2Client = new Auth0AuthClient();
+				break;
+			case "facebook":
+				oAuth2Client = new FacebookAuthClient();
+				break;
+			case "github":
+				oAuth2Client = new GithubAuthClient();
+				break;
+			case "google":
+				oAuth2Client = new GoogleAuthClient();
+				break;
+			case "linkedin":
+				oAuth2Client = new LinkedInAuthClient();
+				break;
+			default:
+				logger.error("Could not initialze oAuth2Client for provider {}", name);
+				return null;
 		}
 
 		if ("login".equals(action)) {
@@ -546,44 +562,48 @@ public class UiAuthenticator implements Authenticator {
 			try {
 
 				final String state = NodeServiceCommand.getNextUuid();
-				stateParamters.put(state, request.getParameterMap());
-				response.sendRedirect(oauthServer.getEndUserAuthorizationRequestUri(request, state));
+				stateParameters.put(state, request.getParameterMap());
+				response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
+
+				return null;
+			} catch (Exception ex) {
+
+				logger.error("Could not send redirect to authorization server.", ex);
+			}
+		} else if ("logout".equals(action)) {
+
+			try {
+
+				final String logoutURI = oAuth2Client.getLogoutURI();
+				if (logoutURI != null && logoutURI.length() > 0) {
+
+					response.sendRedirect(logoutURI);
+				}
 
 				return null;
 
 			} catch (Exception ex) {
 
-				logger.error("Could not send redirect to authorization server", ex);
+				logger.error("Could not send redirect to logout endpoint", ex);
 			}
-
-		} else if ("logout".equals(action)) {
-
-			 try {
-
-				 response.sendRedirect(oauthServer.getEndUserLogoutRequestUri());
-				 return null;
-
-			 } catch (Exception ex) {
-
-				 logger.error("Could not send redirect to logout endpoint", ex);
-			 }
-
 		} else if ("auth".equals(action)) {
 
-			final String accessToken = oauthServer.getAccessToken(request);
+			final String[] codes = request.getParameterMap().get("code");
+			final String code = codes != null && codes.length == 1 ? codes[0] : null;
 			final SecurityContext superUserContext = SecurityContext.getSuperUserInstance();
 
+			final OAuth2AccessToken accessToken = oAuth2Client.getAccessToken(code);
 			if (accessToken != null) {
 
 				logger.debug("Got access token {}", accessToken);
 
-				String value = oauthServer.getCredential(request);
+				String value = oAuth2Client.getClientCredentials(accessToken);
 
 				logger.debug("Got credential value: {}", value);
 
 				if (value != null) {
 
-					final PropertyKey credentialKey = oauthServer.getCredentialKey();
+					final PropertyKey credentialKey = StructrApp.key(User.class, "eMail");
 
 					logger.debug("Fetching user with {} {}", credentialKey, value);
 
@@ -608,7 +628,7 @@ public class UiAuthenticator implements Authenticator {
 							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 							// let oauth implementation augment user info
-							oauthServer.initializeUser(user);
+							oAuth2Client.initializeAutoCreatedUser(user);
 
 							RuntimeEventLog.registration("OAuth user created", Map.of("id", user.getUuid(), "name", user.getName()));
 
@@ -625,16 +645,16 @@ public class UiAuthenticator implements Authenticator {
 						AuthHelper.doLogin(request, user);
 						HtmlServlet.setNoCacheHeaders(response);
 
-						oauthServer.invokeOnLoginMethod(user);
+						oAuth2Client.invokeOnLoginMethod(user);
 
-						logger.debug("Response status: {}", response.getStatus());
+						logger.debug("HttpServletResponse status: {}", response.getStatus());
 
 						try {
 
 							// get the original request state and add the parameters to the redirect page
 							final String originalRequestState = request.getParameter("state");
-							Map<String, String[]> originalRequestParameters = stateParamters.get(originalRequestState);
-							stateParamters.remove(originalRequestState);
+							Map<String, String[]> originalRequestParameters = stateParameters.get(originalRequestState);
+							stateParameters.remove(originalRequestState);
 
 							URIBuilder uriBuilder = new URIBuilder();
 							if (originalRequestParameters != null) {
@@ -645,7 +665,7 @@ public class UiAuthenticator implements Authenticator {
 								}
 							}
 
-							final String configuredReturnUri = oauthServer.getReturnUri();
+							final String configuredReturnUri = oAuth2Client.getReturnURI();
 							if (StringUtils.startsWith(configuredReturnUri, "http")) {
 
 								URI redirectUri = new URI(configuredReturnUri);
@@ -665,7 +685,7 @@ public class UiAuthenticator implements Authenticator {
 
 						} catch (IOException | URISyntaxException ex) {
 
-							logger.error("Could not redirect to {}: {}", new Object[]{oauthServer.getReturnUri(), ex});
+							logger.error("Could not redirect", ex);
 						}
 
 						return user;
@@ -680,12 +700,13 @@ public class UiAuthenticator implements Authenticator {
 
 		try {
 
-			response.sendRedirect(oauthServer.getErrorUri());
+			response.sendRedirect(oAuth2Client.getErrorURI());
 
 		} catch (IOException ex) {
 
-			logger.error("Could not redirect to {}: {}", new Object[]{ oauthServer.getReturnUri(), ex });
+			logger.error("Could not redirect to {}: {}", new Object[]{ oAuth2Client.getErrorURI(), ex });
 		}
+
 
 		return null;
 	}

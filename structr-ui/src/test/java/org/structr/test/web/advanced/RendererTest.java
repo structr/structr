@@ -21,7 +21,6 @@ package org.structr.test.web.advanced;
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -32,8 +31,10 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Page;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
 import org.w3c.dom.Element;
+
+import static org.testng.AssertJUnit.fail;
 
 /**
  *

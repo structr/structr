@@ -18,16 +18,16 @@
  */
 package org.structr.core.property;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * A property that returns the end node of a hyperrelationship.

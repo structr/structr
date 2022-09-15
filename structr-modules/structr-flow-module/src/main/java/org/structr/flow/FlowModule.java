@@ -19,8 +19,6 @@
 package org.structr.flow;
 
 import com.google.gson.Gson;
-import java.nio.file.Path;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.LicenseManager;
@@ -33,6 +31,9 @@ import org.structr.flow.impl.FlowFunction;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.nio.file.Path;
+import java.util.Set;
 
 /**
  *

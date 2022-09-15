@@ -18,13 +18,14 @@
  */
 package org.structr.core.parser;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.api.UnknownClientException;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
@@ -28,6 +26,9 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NativeQueryCommand;
 import org.structr.schema.action.ActionContext;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class CypherFunction extends CoreFunction {
 

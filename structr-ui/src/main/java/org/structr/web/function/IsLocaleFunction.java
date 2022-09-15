@@ -18,9 +18,10 @@
  */
 package org.structr.web.function;
 
-import java.util.Locale;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Locale;
 
 public class IsLocaleFunction extends UiAdvancedFunction {
 

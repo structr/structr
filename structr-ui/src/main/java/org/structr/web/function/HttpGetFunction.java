@@ -18,12 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.net.UnknownHostException;
-import java.nio.charset.Charset;
-import java.nio.charset.UnsupportedCharsetException;
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.ParseException;
 import org.apache.http.entity.ContentType;
@@ -33,6 +27,12 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
+
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
+import java.nio.charset.UnsupportedCharsetException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  *

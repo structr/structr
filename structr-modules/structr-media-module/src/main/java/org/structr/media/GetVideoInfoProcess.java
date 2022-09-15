@@ -20,10 +20,11 @@ package org.structr.media;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.util.AbstractProcess;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PagingHelper;
@@ -34,6 +33,9 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.LinkedList;
+import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
 

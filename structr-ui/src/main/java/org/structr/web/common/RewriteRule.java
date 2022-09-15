@@ -18,8 +18,8 @@
  */
 package org.structr.web.common;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.rest.service.HttpService;

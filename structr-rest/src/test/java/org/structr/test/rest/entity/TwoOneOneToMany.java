@@ -21,14 +21,7 @@ package org.structr.test.rest.entity;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.core.entity.OneToMany;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.DoubleProperty;
-import org.structr.core.property.EnumProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.test.rest.common.TestEnum;
 
 /**

@@ -18,11 +18,10 @@
  */
 package org.structr.rest.resource;
 
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.schema.InvalidSchemaException;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -34,7 +33,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonSchema;
+
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Map;
 
 public class SchemaJsonResource extends Resource {
 

@@ -18,9 +18,10 @@
  */
 package org.structr.memory.index.filter;
 
+import org.structr.memory.MemoryEntity;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
-import org.structr.memory.MemoryEntity;
 
 /**
  */

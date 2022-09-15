@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Date;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -29,6 +28,8 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.LongProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+
+import java.util.Date;
 
 /**
  * Storage object for session data.

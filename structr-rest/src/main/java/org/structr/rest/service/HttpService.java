@@ -18,24 +18,12 @@
  */
 package org.structr.rest.service;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.SecureRandom;
-import java.util.*;
-import java.util.function.Consumer;
-import javax.servlet.DispatcherType;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.chemistry.opencmis.server.impl.CmisRepositoryContextListener;
-import org.apache.chemistry.opencmis.server.impl.atompub.CmisAtomPubServlet;
-import org.apache.chemistry.opencmis.server.impl.browser.CmisBrowserBindingServlet;
-import org.apache.chemistry.opencmis.server.shared.BasicAuthCallContextHandler;
+
+import jakarta.servlet.DispatcherType;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -46,19 +34,14 @@ import org.eclipse.jetty.http.MimeTypes;
 import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
+import org.eclipse.jetty.rewrite.handler.RewriteHandler;
+import org.eclipse.jetty.rewrite.handler.RewriteRegexRule;
 import org.eclipse.jetty.server.*;
-import org.eclipse.jetty.server.handler.AbstractHandler;
-import org.eclipse.jetty.server.handler.ContextHandler;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.ErrorHandler;
-import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.handler.*;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.server.session.DefaultSessionCache;
 import org.eclipse.jetty.server.session.DefaultSessionIdManager;
 import org.eclipse.jetty.server.session.SessionCache;
-import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.resource.JarResource;
@@ -69,24 +52,25 @@ import org.eclipse.jetty.websocket.server.config.JettyWebSocketServletContainerI
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.api.service.Command;
-import org.structr.api.service.InitializationCallback;
-import org.structr.api.service.LicenseManager;
-import org.structr.api.service.RunnableService;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StartServiceInMaintenanceMode;
-import org.structr.api.service.StopServiceForMaintenanceMode;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.core.Services;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
+import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
 import org.structr.rest.common.StatsCallback;
-import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.servlet.MetricsServlet;
 import org.structr.schema.SchemaService;
-import org.tuckey.web.filters.urlrewrite.UrlRewriteFilter;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.security.SecureRandom;
+import java.util.*;
+import java.util.function.Consumer;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -282,9 +266,8 @@ public class HttpService implements RunnableService, StatsCallback {
 		}
 
 		server = new Server(httpPort);
-		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
-		contexts.addHandler(new DefaultHandler());
+		final ContextHandlerCollection contexts = new ContextHandlerCollection();
 
 		final ServletContextHandler servletContext = new ServletContextHandler(server, contextPath, true, true);
 		final ErrorHandler errorHandler = new ErrorHandler();
@@ -300,6 +283,7 @@ public class HttpService implements RunnableService, StatsCallback {
 			gzipHandler.setIncludedMethods("GET", "POST", "PUT", "HEAD", "DELETE");
 			gzipHandler.addIncludedPaths("/*");
 			gzipHandler.setDispatcherTypes(EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
+
 		}
 
 		servletContext.insertHandler(gzipHandler);
@@ -323,27 +307,6 @@ public class HttpService implements RunnableService, StatsCallback {
 
 			// configuration wizard entry point
 			servletContext.addServlet("org.structr.rest.servlet.ConfigServlet", "/structr/config/*");
-		}
-
-		// CMIS setup
-		if (Settings.CmisEnabled.getValue() && (licenseManager == null || licenseManager.isModuleLicensed("cmis"))) {
-
-			try {
-
-				servletContext.addEventListener(new CmisRepositoryContextListener());
-
-				final ServletHolder cmisAtomHolder = servletContext.addServlet(CmisAtomPubServlet.class.getName(), "/structr/cmis/atom/*");
-				cmisAtomHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-				cmisAtomHolder.setInitParameter("cmisVersion", "1.1");
-
-				final ServletHolder cmisBrowserHolder = servletContext.addServlet(CmisBrowserBindingServlet.class.getName(), "/structr/cmis/browser/*");
-				cmisBrowserHolder.setInitParameter("callContextHandler", BasicAuthCallContextHandler.class.getName());
-				cmisBrowserHolder.setInitParameter("cmisVersion", "1.1");
-
-
-			} catch (Throwable t) {
-				logger.warn("Cannot initialize CMIS servlet", t);
-			}
 		}
 
 		sessionCache = new DefaultSessionCache(servletContext.getSessionHandler());
@@ -378,15 +341,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		servletContext.getSessionHandler().setMaxInactiveInterval(-1);
 		servletContext.getSessionHandler().setSessionCache(sessionCache);
 
-		if (enableRewriteFilter) {
-
-			final FilterHolder rewriteFilter = new FilterHolder(UrlRewriteFilter.class);
-			rewriteFilter.setInitParameter("confPath", "urlrewrite.xml");
-			servletContext.addFilter(rewriteFilter, "/*", EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.ASYNC));
-		}
-
-		contexts.addHandler(servletContext);
-
 		// enable request logging
 		if (logRequests) {
 
@@ -405,13 +359,6 @@ public class HttpService implements RunnableService, StatsCallback {
 			final String request_format = "%t \"%r\" %s %{ms}T";
 			final RequestLog requestLog = new CustomRequestLog(requestLogWriter, request_format);
 			server.setRequestLog(requestLog);
-
-			final HandlerCollection handlers = new HandlerCollection();
-			handlers.setHandlers(new Handler[]{contexts});
-			server.setHandler(handlers);
-		} else {
-
-			server.setHandler(contexts);
 		}
 
 		final List<ContextHandler> resourceHandler = collectResourceHandlers();
@@ -441,7 +388,25 @@ public class HttpService implements RunnableService, StatsCallback {
 			servletContext.addFilter(MetricsFilter.class, "/*", EnumSet.allOf(DispatcherType.class));
 		}
 
+		// Always add servletContext last because it's terminal in the resource chain
 		contexts.addHandler(servletContext);
+
+		if (enableRewriteFilter) {
+
+			final RewriteHandler rewriteHandler = new RewriteHandler();
+			rewriteHandler.setRewriteRequestURI(true);
+			rewriteHandler.addRule(new RewriteRegexRule("^(\\/(?!structr$|structr\\/.*).*)", "/structr/html$1"));
+			rewriteHandler.setHandler(contexts);
+			server.setHandler(rewriteHandler);
+
+			// Enable https redirect handler
+			if (forceHttps) {
+
+				SecuredRedirectHandler securedHandler = new SecuredRedirectHandler();
+				securedHandler.setHandler(rewriteHandler);
+				server.setHandler(securedHandler);
+			}
+		}
 
 		httpConfig = new HttpConfiguration();
 		httpConfig.setSendServerVersion(false);
@@ -904,13 +869,16 @@ public class HttpService implements RunnableService, StatsCallback {
 											cfg.initializeFromSettings(servletName, resourceProviders);
 										}
 
+										final ServletHolder servletHolder = new ServletHolder(servlet);
+										((HttpServiceServlet) servlet).configureServletHolder(servletHolder);
+
 										if (servletPath.endsWith("*")) {
 
-											servlets.put(servletPath, new ServletHolder(servlet));
+											servlets.put(servletPath, servletHolder);
 
 										} else {
 
-											servlets.put(servletPath + "/*", new ServletHolder(servlet));
+											servlets.put(servletPath + "/*", servletHolder);
 										}
 
 										// callback for statistics

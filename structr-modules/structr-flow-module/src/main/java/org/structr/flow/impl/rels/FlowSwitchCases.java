@@ -21,12 +21,7 @@ package org.structr.flow.impl.rels;
 import org.structr.api.graph.PropagationDirection;
 import org.structr.api.graph.PropagationMode;
 import org.structr.common.PermissionPropagation;
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.ManyToOne;
 import org.structr.core.entity.OneToMany;
-import org.structr.core.property.PropertyMap;
-import org.structr.flow.impl.FlowNode;
 import org.structr.flow.impl.FlowSwitch;
 import org.structr.flow.impl.FlowSwitchCase;
 

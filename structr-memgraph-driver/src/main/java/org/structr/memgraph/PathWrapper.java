@@ -18,14 +18,15 @@
  */
 package org.structr.memgraph;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import org.neo4j.driver.v1.types.Path.Segment;
 import org.neo4j.driver.v1.types.Relationship;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 
 /**

@@ -22,14 +22,15 @@ import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.RequestLoggingFilter;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.lang.StringUtils;
-import static org.hamcrest.CoreMatchers.equalTo;
-import org.testng.annotations.Test;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
 /**

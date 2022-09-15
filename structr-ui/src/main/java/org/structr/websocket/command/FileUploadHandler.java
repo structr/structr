@@ -18,16 +18,18 @@
  */
 package org.structr.websocket.command;
 
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
+
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 
 public class FileUploadHandler {
 
@@ -41,7 +43,7 @@ public class FileUploadHandler {
 
 	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size            = file.getSize();
+		this.size            = FileUtils.getSize(file.getFileOnDisk());
 		this.file            = file;
 		this.isCreation      = isCreation;
 		this.securityContext = securityContext;

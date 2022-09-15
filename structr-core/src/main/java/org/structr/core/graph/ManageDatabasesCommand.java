@@ -18,13 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.io.IOException;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -34,29 +27,17 @@ import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.service.DatabaseConnection;
-import static org.structr.api.service.DatabaseConnection.KEY_ACTIVE;
-import static org.structr.api.service.DatabaseConnection.KEY_DATABASENAME;
-import static org.structr.api.service.DatabaseConnection.KEY_DISPLAYNAME;
-import static org.structr.api.service.DatabaseConnection.KEY_DRIVER;
-import static org.structr.api.service.DatabaseConnection.KEY_FORCE_STREAMING;
-import static org.structr.api.service.DatabaseConnection.KEY_NAME;
-import static org.structr.api.service.DatabaseConnection.KEY_NODE_CACHE_SIZE;
-import static org.structr.api.service.DatabaseConnection.KEY_PASSWORD;
-import static org.structr.api.service.DatabaseConnection.KEY_RELATIONSHIP_CACHE_SIZE;
-import static org.structr.api.service.DatabaseConnection.KEY_TENANT_IDENTIFIER;
-import static org.structr.api.service.DatabaseConnection.KEY_URL;
-import static org.structr.api.service.DatabaseConnection.KEY_USERNAME;
-import static org.structr.api.service.DatabaseConnection.KEY_UUID_CACHE_SIZE;
 import org.structr.api.service.ServiceResult;
-import org.structr.common.error.EmptyPropertyToken;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.error.UniqueToken;
+import org.structr.common.error.*;
 import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.function.Functions;
 import org.structr.core.property.GenericProperty;
+
+import java.io.IOException;
+import java.util.*;
+
+import static org.structr.api.service.DatabaseConnection.*;
 
 /**
  */

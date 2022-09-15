@@ -22,32 +22,23 @@ package org.structr.web.servlet;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Matcher;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.FileUploadException;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.io.QuietException;
+import org.eclipse.jetty.server.MultiPartFormInputStream;
+import org.eclipse.jetty.server.MultiPartParser;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
-import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
-import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
@@ -66,11 +57,20 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
+import org.structr.util.FileUtils;
+import org.structr.util.StreamUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * Simple upload servlet.
@@ -82,14 +82,20 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
 	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
+	private static final String FILE_SCHEMA_TYPE_PARAMETER         = "type";
 	private static final long MEGABYTE                              = 1024 * 1024;
 
 	// non-static fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	private ServletFileUpload uploader            = null;
 	private java.io.File filesDir                 = null;
 
 	public UploadServlet() {
+	}
+
+	@Override
+	public void configureServletHolder(final ServletHolder servletHolder) {
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
 	@Override
@@ -100,11 +106,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 	@Override
 	public String getModuleName() {
 		return "ui";
-	}
-
-	@Override
-	public void init() {
-		uploader = new ServletFileUpload();
 	}
 
 	@Override
@@ -136,7 +137,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		try {
 
-			if (!ServletFileUpload.isMultipartContent(request)) {
+			if (request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
@@ -212,35 +213,32 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			}
 
-			uploader.setFileSizeMax((long) MEGABYTE * Settings.UploadMaxFileSize.getValue());
-			uploader.setSizeMax((long) MEGABYTE * Settings.UploadMaxRequestSize.getValue());
-
 			response.setContentType("text/html");
 
-			final FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
 			final Map<String, Object> params         = new HashMap<>();
 			String uuid                              = null;
 
-			while (fileItemsIterator.hasNext()) {
+			for (Part p : request.getParts()) {
 
-				final FileItemStream item = fileItemsIterator.next();
+				for (final String fieldName : p.getHeaderNames()) {
 
-				if (item.isFormField()) {
+					final String fieldValue = p.getHeader(fieldName);
 
-					final String fieldName = item.getFieldName();
-					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
+					if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + REDIRECT_AFTER_UPLOAD_PARAMETER + "\"").equals(fieldValue)) {
 
-					if (REDIRECT_AFTER_UPLOAD_PARAMETER.equals(fieldName)) {
+						redirectUrl = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
-						redirectUrl = fieldValue;
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + APPEND_UUID_ON_REDIRECT_PARAMETER + "\"").equals(fieldValue)) {
 
-					} else if (APPEND_UUID_ON_REDIRECT_PARAMETER.equals(fieldName)) {
+						appendUuidOnRedirect = "true".equalsIgnoreCase(new String(((MultiPartFormInputStream.MultiPart) p).getBytes()));
 
-						appendUuidOnRedirect = "true".equalsIgnoreCase(fieldValue);
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + UPLOAD_FOLDER_PATH_PARAMETER + "\"").equals(fieldValue)) {
 
-					} else if (UPLOAD_FOLDER_PATH_PARAMETER.equals(fieldName)) {
+						path = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
-						path = fieldValue;
+					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + FILE_SCHEMA_TYPE_PARAMETER + "\"").equals(fieldValue)) {
+
+						type = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
 					} else {
 
@@ -255,17 +253,13 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 							params.put(fieldName, fieldValue);
 						}
 					}
+				}
 
-				} else {
+				if (p.getSubmittedFileName() != null) {
 
-					final String contentType = item.getContentType();
+					final String contentType = p.getContentType();
 					boolean isImage = (contentType != null && contentType.startsWith("image"));
 					boolean isVideo = (contentType != null && contentType.startsWith("video"));
-
-					// Override type from path info
-					if (params.containsKey(NodeInterface.type.jsonName())) {
-						type = (String) params.get(NodeInterface.type.jsonName());
-					}
 
 					Class cls = null;
 					if (type != null) {
@@ -298,7 +292,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						type = cls.getSimpleName();
 					}
 
-					final String name = item.getName().replaceAll("\\\\", "/");
+					final String name = (p.getSubmittedFileName() != null ? p.getSubmittedFileName() : p.getName()).replaceAll("\\\\", "/");
 					File newFile      = null;
 					boolean retry     = true;
 
@@ -322,7 +316,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-							try (final InputStream is = item.openStream()) {
+							try (final InputStream is = p.getInputStream()) {
 
 								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
 								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
@@ -357,11 +351,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						// upload trigger
 						newFile.notifyUploadCompletion();
 
+
 						newFile.callOnUploadHandler(securityContext);
 
 						// store uuid
 						uuid = newFile.getUuid();
+
 					}
+
 				}
 			}
 
@@ -420,6 +417,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				logger.error("Could not write to response", ex);
 			}
 		}
+
 	}
 
 	@Override
@@ -479,14 +477,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				return;
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Settings.UploadMaxFileSize.getValue());
-			uploader.setSizeMax(MEGABYTE * Settings.UploadMaxRequestSize.getValue());
-
-			FileItemIterator fileItemsIterator = uploader.getItemIterator(request);
-
-			while (fileItemsIterator.hasNext()) {
-
-				final FileItemStream fileItem = fileItemsIterator.next();
+			for (Part p : request.getParts()) {
 
 				try {
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
@@ -503,7 +494,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						final File file = (File) node;
 						if (file.isGranted(Permission.write, securityContext)) {
 
-							try (final InputStream is = fileItem.openStream()) {
+							try (final InputStream is = p.getInputStream()) {
 
 								FileHelper.writeToFile(file, is);
 								file.increaseVersion();
@@ -528,11 +519,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			tx.success();
 
-		} catch (FrameworkException | IOException | FileUploadException t) {
+		} catch (FrameworkException | IOException  t) {
 
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
+
 	}
 
 	@Override
@@ -625,7 +617,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 		if (jsonInput == null) {
 
-			if (org.tuckey.web.filters.urlrewrite.utils.StringUtils.isBlank(input)) {
+			if (StringUtils.isBlank(input)) {
 
 				try (final Tx tx = app.tx()) {
 

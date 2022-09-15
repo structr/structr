@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Date;
-import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -36,6 +34,9 @@ import org.structr.core.entity.Relation;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Date;
+import java.util.Map.Entry;
 
 /**
  * Creates a relationship between two NodeInterface instances. The execute

@@ -18,10 +18,11 @@
  */
 package org.structr.schema.parser;
 
-import java.util.Date;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.core.property.DateArrayProperty;
 import org.structr.schema.SchemaHelper.Type;
+
+import java.util.Date;
 
 /**
  *

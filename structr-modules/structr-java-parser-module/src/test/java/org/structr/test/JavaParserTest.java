@@ -19,19 +19,21 @@
 package org.structr.test;
 
 import com.google.gson.GsonBuilder;
-import java.io.IOException;
-import java.io.InputStream;
 import org.asciidoctor.internal.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.javaparser.JavaParserModule;
 import org.structr.test.web.StructrUiTest;
-import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 /**
  * Tests for Java parser.

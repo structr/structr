@@ -18,9 +18,9 @@
  */
 package org.structr.core.entity;
 
-import java.net.URI;
-import java.util.List;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
 import org.structr.common.ConstantBooleanTrue;
 import org.structr.common.PropertyView;
@@ -29,8 +29,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+
+import java.net.URI;
+import java.util.List;
 
 /**
  */

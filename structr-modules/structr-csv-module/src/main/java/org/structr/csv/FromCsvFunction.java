@@ -18,17 +18,17 @@
  */
 package org.structr.csv;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
+import org.apache.commons.csv.CSVRecord;
+import org.apache.commons.csv.QuoteMode;
+import org.structr.schema.action.ActionContext;
+
 import java.io.StringReader;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVParser;
-import org.apache.commons.csv.CSVRecord;
-import org.apache.commons.csv.QuoteMode;
-import org.structr.rest.common.CsvHelper;
-import org.structr.schema.action.ActionContext;
 
 public class FromCsvFunction extends CsvFunction {
 

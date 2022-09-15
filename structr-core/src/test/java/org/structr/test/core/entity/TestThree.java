@@ -18,11 +18,12 @@
  */
 package org.structr.test.core.entity;
 
-import java.util.Date;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.ISO8601DateProperty;
 import org.structr.core.property.Property;
 import org.structr.core.property.StartNode;
+
+import java.util.Date;
 
 /**
  * A simple entity for the most basic tests.

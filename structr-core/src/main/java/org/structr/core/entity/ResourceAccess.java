@@ -18,12 +18,8 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.Permission;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
@@ -31,12 +27,11 @@ import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.ConstantBooleanProperty;
-import org.structr.core.property.IntProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
+
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Controls access to REST resources.
@@ -73,8 +68,8 @@ public class ResourceAccess extends AbstractNode {
 	private static final Map<String, List<ResourceAccess>> grantCache = new ConcurrentHashMap<>();
 	private static final Logger logger                                = LoggerFactory.getLogger(ResourceAccess.class.getName());
 
-	public static final Property<String>               signature          = new StringProperty("signature").cmis().indexed();
-	public static final Property<Long>                 flags              = new LongProperty("flags").cmis().indexed();
+	public static final Property<String>               signature          = new StringProperty("signature").indexed();
+	public static final Property<Long>                 flags              = new LongProperty("flags").indexed();
 	public static final Property<Boolean>              isResourceAccess   = new ConstantBooleanProperty("isResourceAccess", true);
 
 	public static final View uiView = new View(ResourceAccess.class, PropertyView.Ui,

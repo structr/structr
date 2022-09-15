@@ -18,10 +18,11 @@
  */
 package org.structr.common;
 
+import org.structr.core.property.PropertyKey;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.structr.core.property.PropertyKey;
 
 /**
  *

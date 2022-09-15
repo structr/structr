@@ -18,12 +18,13 @@
  */
 package org.structr.text.model;
 
-import java.net.URI;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.schema.SchemaService;
+
+import java.net.URI;
 
 /**
  *

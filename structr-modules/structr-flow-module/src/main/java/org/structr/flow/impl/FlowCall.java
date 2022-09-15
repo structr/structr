@@ -20,6 +20,7 @@ package org.structr.flow.impl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
 import org.structr.common.error.FrameworkException;
@@ -41,7 +42,6 @@ import org.structr.module.api.DeployableEntity;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.util.Iterables;
 
 public class FlowCall extends FlowActionNode implements DataSource, DeployableEntity, ThrowingElement {
 

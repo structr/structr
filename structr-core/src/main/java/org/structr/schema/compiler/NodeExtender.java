@@ -18,16 +18,6 @@
  */
 package org.structr.schema.compiler;
 
-import java.io.StringWriter;
-import java.io.Writer;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.tools.Diagnostic;
-import javax.tools.Diagnostic.Kind;
-import javax.tools.DiagnosticListener;
-import javax.tools.JavaCompiler;
-import javax.tools.JavaFileObject;
-import javax.tools.ToolProvider;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +32,13 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.module.JarConfigurationProvider;
 import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
+
+import javax.tools.*;
+import javax.tools.Diagnostic.Kind;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.codec.digest.DigestUtils.md5Hex;
 
@@ -207,15 +204,34 @@ public class NodeExtender {
 				final SourceFile obj      = (SourceFile)diagnostic.getSource();
 				String name               = obj.getName();
 
-				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
+				final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
+				final List<SourceLine> code = sourceFile.getLines();
+
+				SourceLine line = null;
+
+				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in realtiy)
+				int lineCount = 0;
+				for (SourceLine sl : code) {
+
+					if (lineCount < errorLineNumber) {
+						lineCount += sl.getNumberOfLines();
+
+						if (lineCount >= errorLineNumber) {
+							line = sl;
+						}
+					}
+				}
+
+				final AbstractNode source   = (AbstractNode)line.getCodeSource();
+				final int size              = code.size();
+
+				if (source != null) {
+					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic, source.getClass().getSimpleName(), source.getUuid(), source.getName()));
+				} else {
+					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
+				}
 
 				if (Settings.LogSchemaErrors.getValue()) {
-
-					final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
-					final List<SourceLine> code = sourceFile.getLines();
-					final SourceLine line       = code.get(errorLineNumber - 1);
-					final AbstractNode source   = (AbstractNode)line.getCodeSource();
-					final int size              = code.size();
 
 					logger.error(diagnostic.getMessage(Locale.ENGLISH));
 

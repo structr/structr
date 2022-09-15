@@ -18,18 +18,6 @@
  */
 package org.structr.test.core.maintenance;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -37,27 +25,24 @@ import org.structr.api.Transaction;
 import org.structr.api.graph.Node;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.util.Iterables;
-import org.structr.test.common.StructrTest;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.graph.*;
+import org.structr.schema.export.StructrSchema;
+import org.structr.test.common.StructrTest;
 import org.structr.test.core.entity.TestEleven;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestTwo;
-import org.structr.core.graph.BulkCreateLabelsCommand;
-import org.structr.core.graph.BulkRebuildIndexCommand;
-import org.structr.core.graph.BulkSetNodePropertiesCommand;
-import org.structr.core.graph.BulkSetUuidCommand;
-import org.structr.core.graph.ClearDatabase;
-import org.structr.core.graph.SyncCommand;
-import org.structr.core.graph.Tx;
-import org.structr.schema.export.StructrSchema;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertNotNull;
-import static org.testng.AssertJUnit.assertNull;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  *
@@ -181,7 +166,7 @@ public class MaintenanceTest extends StructrTest {
 			// create test nodes
 			final List<TestEleven> testNodes = createTestNodes(TestEleven.class, 10);
 			final String tenantIdentifier    = app.getDatabaseService().getTenantIdentifier();
-			int labelCount                   = 7;
+			int labelCount                   = 5;
 
 			// one additional label
 			if (tenantIdentifier != null) {
@@ -201,12 +186,10 @@ public class MaintenanceTest extends StructrTest {
 					}
 					System.out.println();
 
-					assertEquals("Number of labels must be 7", labelCount,      labels.size());
+					assertEquals("Number of labels must be " + labelCount, labelCount,      labels.size());
 					assertTrue("Set of labels must contain AbstractNode",       labels.contains("AbstractNode"));
 					assertTrue("Set of labels must contain NodeInterface",      labels.contains("NodeInterface"));
 					assertTrue("Set of labels must contain AccessControllable", labels.contains("AccessControllable"));
-					assertTrue("Set of labels must contain CMISInfo",           labels.contains("CMISInfo"));
-					assertTrue("Set of labels must contain CMISItemInfo",       labels.contains("CMISItemInfo"));
 					assertTrue("Set of labels must contain TestOne",            labels.contains("TestOne"));
 					assertTrue("Set of labels must contain TestEleven",         labels.contains("TestEleven"));
 
@@ -247,10 +230,8 @@ public class MaintenanceTest extends StructrTest {
 					assertTrue("First label has to be AbstractNode",       set.contains("AbstractNode"));
 					assertTrue("Second label has to be NodeInterface",     set.contains("NodeInterface"));
 					assertTrue("Third label has to be AccessControllable", set.contains("AccessControllable"));
-					assertTrue("Fourth label has to be CMISInfo",          set.contains("CMISInfo"));
-					assertTrue("Firth label has to be CMISItemInfo",       set.contains("CMISItemInfo"));
-					assertTrue("Sixth label has to be TestEleven",         set.contains("TestEleven"));
-					assertTrue("Seventh label has to be TestOne",          set.contains("TestOne"));
+					assertTrue("Fourth label has to be TestEleven",        set.contains("TestEleven"));
+					assertTrue("Fifth label has to be TestOne",            set.contains("TestOne"));
 
 					if (tenantIdentifier != null) {
 						assertTrue("Set of labels must contain custom tenant identifier if set", set.contains(tenantIdentifier));
@@ -284,8 +265,6 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add("AccessControllable");
 			expectedLabels.add("AbstractNode");
 			expectedLabels.add("NodeInterface");
-			expectedLabels.add("CMISInfo");
-			expectedLabels.add("CMISItemInfo");
 
 			if (graphDb.getTenantIdentifier() != null) {
 				expectedLabels.add(graphDb.getTenantIdentifier());
@@ -345,8 +324,6 @@ public class MaintenanceTest extends StructrTest {
 			expectedLabels.add("AccessControllable");
 			expectedLabels.add("AbstractNode");
 			expectedLabels.add("NodeInterface");
-			expectedLabels.add("CMISInfo");
-			expectedLabels.add("CMISItemInfo");
 
 			if (graphDb.getTenantIdentifier() != null) {
 				expectedLabels.add(graphDb.getTenantIdentifier());

@@ -33,60 +33,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parser-scientific-package</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-langdetect</artifactId>
-			<type>pom</type>
-		</dependency>
-		<dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-langdetect-optimaize</artifactId>
-		</dependency>
-		<!--dependency>
-			<groupId>org.apache.tika</groupId>
-			<artifactId>tika-parsers</artifactId>
-			<exclusions>
-				<exclusion>
-					<groupId>com.google.guava</groupId>
-					<artifactId>guava</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.core</groupId>
-					<artifactId>sis-utility</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.storage</groupId>
-					<artifactId>sis-netcdf</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.apache.sis.core</groupId>
-					<artifactId>sis-metadata</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>org.opengis</groupId>
-					<artifactId>geoapi</artifactId>
-				</exclusion>
-				<exclusion>
-					<groupId>com.github.jai-imageio</groupId>
-					<artifactId>jai-imageio-core</artifactId>
-				</exclusion>
-			</exclusions>
-		</dependency-->
-		<dependency>
-			<groupId>com.jayway.restassured</groupId>
-			<artifactId>rest-assured</artifactId>
-			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>

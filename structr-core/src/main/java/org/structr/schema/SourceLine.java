@@ -18,9 +18,6 @@
  */
 package org.structr.schema;
 
-import java.util.Map;
-import java.util.TreeMap;
-
 /**
  */
 public class SourceLine {
@@ -62,5 +59,10 @@ public class SourceLine {
 
 	public CodeSource getCodeSource() {
 		return codeSource;
+	}
+
+	public int getNumberOfLines() {
+
+		return toString().split("\r\n|\r|\n").length;
 	}
 }

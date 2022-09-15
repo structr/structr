@@ -18,9 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.Map;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -33,6 +30,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.function.ChangelogFunction;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.Map;
 
 /**
  * Maintenance command to migrate structrChangeLog property values

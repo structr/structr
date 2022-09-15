@@ -20,18 +20,15 @@ package org.structr.test.rest.resource;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.Matchers.equalTo;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.Tx;
 import org.structr.test.rest.common.StructrRestTestBase;
-import org.structr.test.rest.entity.TestFive;
-import org.structr.test.rest.entity.TestFour;
-import org.structr.test.rest.entity.TestOne;
-import org.structr.test.rest.entity.TestThree;
-import org.structr.test.rest.entity.TestTwo;
+import org.structr.test.rest.entity.*;
+import org.testng.annotations.Test;
+
+import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
 /**

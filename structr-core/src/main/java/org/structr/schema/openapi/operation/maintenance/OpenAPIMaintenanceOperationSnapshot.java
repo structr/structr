@@ -19,6 +19,7 @@
 package org.structr.schema.openapi.operation.maintenance;
 
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
+import org.structr.schema.openapi.operation.OpenAPIOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
 import org.structr.schema.openapi.schema.OpenAPIObjectSchema;
 import org.structr.schema.openapi.schema.OpenAPIPrimitiveSchema;
@@ -27,7 +28,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.structr.schema.openapi.operation.OpenAPIOperation;
 
 public class OpenAPIMaintenanceOperationSnapshot extends LinkedHashMap<String, Object> {
 

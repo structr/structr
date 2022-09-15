@@ -18,9 +18,6 @@
  */
 package org.structr.feed.entity;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import java.net.URI;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
@@ -35,6 +32,10 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.SchemaService;
+
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.URI;
 
 /**
  * Represents a single item of a data feed.

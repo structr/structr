@@ -19,8 +19,6 @@
 package org.structr.api.index;
 
 import org.structr.api.search.Occurrence;
-import static org.structr.api.search.Occurrence.FORBIDDEN;
-import static org.structr.api.search.Occurrence.OPTIONAL;
 import org.structr.api.search.TypeConverter;
 
 /**

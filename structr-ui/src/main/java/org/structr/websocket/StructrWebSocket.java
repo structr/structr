@@ -19,15 +19,8 @@
 package org.structr.websocket;
 
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.channels.ClosedChannelException;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.concurrent.TimeoutException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
-
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.websocket.api.Session;
@@ -56,6 +49,13 @@ import org.structr.websocket.command.LoginCommand;
 import org.structr.websocket.command.PingCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.channels.ClosedChannelException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
 
 /**
  *

@@ -18,9 +18,12 @@
  */
 package org.structr.rest;
 
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.common.SecurityContext;
 import org.structr.core.Value;
+
+
 
 /**
  *
@@ -49,7 +52,7 @@ public class RequestParameterValue implements Value<String> {
 	public String get(SecurityContext securityContext) {
 		
 		if (securityContext != null) {
-			
+
 			HttpServletRequest request = securityContext.getRequest();
 			
 			if (request != null) {

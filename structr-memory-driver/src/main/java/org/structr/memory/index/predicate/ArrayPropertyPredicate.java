@@ -18,11 +18,12 @@
  */
 package org.structr.memory.index.predicate;
 
+import org.structr.api.Predicate;
+import org.structr.api.graph.PropertyContainer;
+
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-import org.structr.api.Predicate;
-import org.structr.api.graph.PropertyContainer;
 
 /**
  * A predicate that accepts entities whose array property value

@@ -18,12 +18,6 @@
  */
 package org.structr.memgraph;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
@@ -31,26 +25,10 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.QueryFactory;
 import org.structr.api.search.*;
-import org.structr.memgraph.converter.BooleanTypeConverter;
-import org.structr.memgraph.converter.ByteTypeConverter;
-import org.structr.memgraph.converter.DateTypeConverter;
-import org.structr.memgraph.converter.DoubleTypeConverter;
-import org.structr.memgraph.converter.FloatTypeConverter;
-import org.structr.memgraph.converter.IntTypeConverter;
-import org.structr.memgraph.converter.LongTypeConverter;
-import org.structr.memgraph.converter.ShortTypeConverter;
-import org.structr.memgraph.converter.StringTypeConverter;
-import org.structr.memgraph.factory.ArrayQueryFactory;
-import org.structr.memgraph.factory.ComparisonQueryFactory;
-import org.structr.memgraph.factory.EmptyQueryFactory;
-import org.structr.memgraph.factory.GroupQueryFactory;
-import org.structr.memgraph.factory.KeywordQueryFactory;
-import org.structr.memgraph.factory.NotEmptyQueryFactory;
-import org.structr.memgraph.factory.RangeQueryFactory;
-import org.structr.memgraph.factory.RelationshipQueryFactory;
-import org.structr.memgraph.factory.SpatialQueryFactory;
-import org.structr.memgraph.factory.TypeQueryFactory;
-import org.structr.memgraph.factory.UuidQueryFactory;
+import org.structr.memgraph.converter.*;
+import org.structr.memgraph.factory.*;
+
+import java.util.*;
 
 /**
  *

@@ -18,14 +18,15 @@
  */
 package org.structr.core.parser;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  *

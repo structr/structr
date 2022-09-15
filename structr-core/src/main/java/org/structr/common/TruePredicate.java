@@ -18,9 +18,10 @@
  */
 package org.structr.common;
 
-import java.util.Comparator;
 import org.structr.api.Predicate;
 import org.structr.core.GraphObject;
+
+import java.util.Comparator;
 
 /**
  * A predicate that accepts all inputs and supports a comparator.

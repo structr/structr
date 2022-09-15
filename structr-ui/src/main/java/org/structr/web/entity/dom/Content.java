@@ -18,9 +18,6 @@
  */
 package org.structr.web.entity.dom;
 
-import java.io.IOException;
-import java.net.URI;
-import java.nio.charset.Charset;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,13 +44,18 @@ import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.converter.ContentConverters;
-import static org.structr.web.entity.dom.DOMNode.escapeForHtml;
-import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.entity.html.Textarea;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.Text;
+
+import java.io.IOException;
+import java.net.URI;
+import java.nio.charset.Charset;
+
+import static org.structr.web.entity.dom.DOMNode.escapeForHtml;
+import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
 /**
  * Represents a content node. This class implements the org.w3c.dom.Text interface.

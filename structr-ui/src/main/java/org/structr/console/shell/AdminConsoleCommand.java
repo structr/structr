@@ -18,15 +18,12 @@
  */
 package org.structr.console.shell;
 
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.*;
 
 public abstract class AdminConsoleCommand {
 

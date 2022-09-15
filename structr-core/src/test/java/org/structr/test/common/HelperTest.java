@@ -18,11 +18,13 @@
  */
 package org.structr.test.common;
 
-import java.util.Calendar;
-import java.util.Date;
-import org.testng.annotations.Test;
 import org.structr.common.CaseHelper;
 import org.structr.common.RecurringDateHelper;
+import org.testng.annotations.Test;
+
+import java.util.Calendar;
+import java.util.Date;
+
 import static org.testng.AssertJUnit.assertEquals;
 
 /**

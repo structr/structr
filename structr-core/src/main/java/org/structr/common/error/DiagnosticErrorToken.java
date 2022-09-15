@@ -18,9 +18,9 @@
  */
 package org.structr.common.error;
 
-import java.util.Locale;
 import javax.tools.Diagnostic;
 import javax.tools.JavaFileObject;
+import java.util.Locale;
 
 /**
  *
@@ -28,8 +28,37 @@ import javax.tools.JavaFileObject;
  */
 public class DiagnosticErrorToken extends SemanticErrorToken {
 
+	final String nodeType;
+	final String nodeUuid;
+	final String nodeName;
+
 	public DiagnosticErrorToken(final String type, final Diagnostic<? extends JavaFileObject> diagnostic) {
 
 		super(type, null, "compiler_error", diagnostic.getMessage(Locale.ENGLISH));
+
+		this.nodeType = null;
+		this.nodeUuid = null;
+		this.nodeName = null;
+	}
+
+	public DiagnosticErrorToken(final String type, final Diagnostic<? extends JavaFileObject> diagnostic, final String nodeType, final String nodeUuid, final String nodeName) {
+
+		super(type, null, "compiler_error", diagnostic.getMessage(Locale.ENGLISH));
+
+		this.nodeType = nodeType;
+		this.nodeUuid = nodeUuid;
+		this.nodeName = nodeName;
+	}
+
+	public String getNodeType() {
+		return this.nodeType;
+	}
+
+	public String getNodeUuid() {
+		return this.nodeUuid;
+	}
+
+	public String getNodeName() {
+		return this.nodeName;
 	}
 }

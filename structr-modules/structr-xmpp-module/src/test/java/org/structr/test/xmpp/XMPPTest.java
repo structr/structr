@@ -20,7 +20,6 @@ package org.structr.test.xmpp;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import static org.hamcrest.CoreMatchers.equalTo;
 import org.jivesoftware.smack.packet.Presence;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -29,6 +28,8 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.User;
 import org.structr.xmpp.XMPPClient;
 import org.testng.annotations.Test;
+
+import static org.hamcrest.CoreMatchers.equalTo;
 
 /**
  */

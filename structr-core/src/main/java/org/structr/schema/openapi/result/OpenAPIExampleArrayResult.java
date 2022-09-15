@@ -18,10 +18,11 @@
  */
 package org.structr.schema.openapi.result;
 
+import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.example.OpenAPIStructrTypeExample;
+
 import java.util.LinkedHashMap;
 import java.util.List;
-import org.structr.schema.export.StructrTypeDefinition;
 
 public class OpenAPIExampleArrayResult extends LinkedHashMap<String, Object> {
 

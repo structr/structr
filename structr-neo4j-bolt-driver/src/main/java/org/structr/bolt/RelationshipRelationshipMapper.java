@@ -18,8 +18,9 @@
  */
 package org.structr.bolt;
 
-import java.util.function.Function;
 import org.structr.api.graph.Relationship;
+
+import java.util.function.Function;
 
 /**
  *

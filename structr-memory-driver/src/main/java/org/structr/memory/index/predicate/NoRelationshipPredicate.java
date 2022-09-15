@@ -18,7 +18,6 @@
  */
 package org.structr.memory.index.predicate;
 
-import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
@@ -28,6 +27,8 @@ import org.structr.api.search.GraphQuery;
 import org.structr.api.util.Iterables;
 import org.structr.memory.MemoryNode;
 import org.structr.memory.MemoryRelationship;
+
+import java.util.List;
 
 /**
  */

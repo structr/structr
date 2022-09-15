@@ -18,11 +18,12 @@
  */
 package org.structr.rest.serialization;
 
+import org.structr.common.SecurityContext;
+import org.structr.core.Value;
+
 import java.io.BufferedWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
-import org.structr.common.SecurityContext;
-import org.structr.core.Value;
 
 /**
  *

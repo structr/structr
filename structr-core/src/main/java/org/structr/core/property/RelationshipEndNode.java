@@ -23,8 +23,6 @@
 
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.Map;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
@@ -33,6 +31,9 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.notion.Notion;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *

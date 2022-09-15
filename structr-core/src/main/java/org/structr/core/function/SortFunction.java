@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.Collections;
-import java.util.List;
 import org.structr.api.util.Iterables;
 import org.structr.common.PathResolvingComparator;
 import org.structr.common.error.FrameworkException;
@@ -28,6 +26,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Collections;
+import java.util.List;
 
 public class SortFunction extends CoreFunction {
 

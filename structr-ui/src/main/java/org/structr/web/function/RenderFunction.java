@@ -18,12 +18,13 @@
  */
 package org.structr.web.function;
 
-import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Collection;
 
 public class RenderFunction extends UiCommunityFunction {
 

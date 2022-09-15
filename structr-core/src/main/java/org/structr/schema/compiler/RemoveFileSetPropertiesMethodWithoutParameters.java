@@ -18,8 +18,6 @@
  */
 package org.structr.schema.compiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.ErrorToken;
@@ -29,6 +27,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * A migration handler that removes old setProperties method on the File class which needed to be more explicit to work correctly

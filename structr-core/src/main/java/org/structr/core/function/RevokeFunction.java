@@ -18,8 +18,6 @@
  */
 package org.structr.core.function;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.error.ArgumentCountException;
@@ -29,6 +27,9 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
 import org.structr.schema.action.ActionContext;
+
+import java.util.HashSet;
+import java.util.Set;
 
 public class RevokeFunction extends AdvancedScriptingFunction {
 

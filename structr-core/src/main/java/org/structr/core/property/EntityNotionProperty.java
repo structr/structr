@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Collections;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -34,6 +32,9 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.GraphSearchAttribute;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
 * A property that uses the value of a related node property to create

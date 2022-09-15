@@ -18,14 +18,14 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.core.function.ParseResult;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.common.CaseHelper;
-import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.function.ParseResult;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Hint;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

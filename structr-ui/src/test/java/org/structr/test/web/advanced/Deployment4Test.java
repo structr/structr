@@ -20,13 +20,6 @@ package org.structr.test.web.advanced;
 
 import com.jayway.restassured.RestAssured;
 import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;
@@ -35,13 +28,7 @@ import org.structr.common.Permission;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractSchemaNode;
-import org.structr.core.entity.Group;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.SchemaGrant;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.Security;
+import org.structr.core.entity.*;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
@@ -61,10 +48,17 @@ import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Head;
 import org.structr.web.entity.html.Html;
 import org.structr.web.maintenance.DeployCommand;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.testng.AssertJUnit.*;
 
 public class Deployment4Test extends DeploymentTestBase {
 

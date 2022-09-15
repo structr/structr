@@ -19,27 +19,7 @@
 package org.structr.schema;
 
 import graphql.Scalars;
-import graphql.schema.GraphQLArgument;
-import graphql.schema.GraphQLFieldDefinition;
-import graphql.schema.GraphQLInputObjectType;
-import graphql.schema.GraphQLList;
-import graphql.schema.GraphQLObjectType;
-import graphql.schema.GraphQLSchema;
-import graphql.schema.GraphQLType;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
+import graphql.schema.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -50,17 +30,9 @@ import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.schema.JsonSchema;
-import org.structr.api.service.Command;
-import org.structr.api.service.Service;
-import org.structr.api.service.ServiceDependency;
-import org.structr.api.service.ServiceResult;
-import org.structr.api.service.StructrServices;
+import org.structr.api.service.*;
 import org.structr.common.AccessPathCache;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.ErrorToken;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.InstantiationErrorToken;
-import org.structr.common.error.InvalidSchemaToken;
+import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.App;
@@ -75,17 +47,16 @@ import org.structr.core.graph.NodeService;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.compiler.BlacklistSchemaNodeWhenMissingPackage;
-import org.structr.schema.compiler.BlacklistUnlicensedTypes;
-import org.structr.schema.compiler.ExtendNotionPropertyWithUuid;
-import org.structr.schema.compiler.MigrationHandler;
-import org.structr.schema.compiler.NodeExtender;
-import org.structr.schema.compiler.RemoveClassesWithUnknownSymbols;
-import org.structr.schema.compiler.RemoveDuplicateClasses;
-import org.structr.schema.compiler.RemoveExportedMethodsWithoutSecurityContext;
-import org.structr.schema.compiler.RemoveMethodsWithUnusedSignature;
-import org.structr.schema.compiler.RemoveFileSetPropertiesMethodWithoutParameters;
+import org.structr.schema.compiler.*;
 import org.structr.schema.export.StructrSchema;
+
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -112,6 +83,8 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
 		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
 		migrationHandlers.add(new RemoveFileSetPropertiesMethodWithoutParameters());
+		migrationHandlers.add(new RemoveIncompatibleTypes());
+		migrationHandlers.add(new RemoveTypesWithNonExistentPackages());
 	}
 
 	@Override

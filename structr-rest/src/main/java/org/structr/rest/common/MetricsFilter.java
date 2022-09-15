@@ -18,21 +18,19 @@
  */
 package org.structr.rest.common;
 
+import jakarta.servlet.*;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.structr.rest.servlet.MetricsServlet;
+
 import java.io.IOException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.structr.rest.servlet.MetricsServlet;
+
 
 /**
  */
-public class MetricsFilter implements javax.servlet.Filter {
+public class MetricsFilter implements jakarta.servlet.Filter {
 
 	private static final Pattern UUID_PATTERN = Pattern.compile("[a-fA-F0-9]{32}");
 

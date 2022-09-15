@@ -21,23 +21,12 @@ package org.structr.memory.index.factory;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.ComparisonQuery;
-import static org.structr.api.search.ComparisonQuery.Operation.caseInsensitiveContains;
-import static org.structr.api.search.ComparisonQuery.Operation.caseInsensitiveEndsWith;
-import static org.structr.api.search.ComparisonQuery.Operation.caseInsensitiveStartsWith;
-import static org.structr.api.search.ComparisonQuery.Operation.equal;
-import static org.structr.api.search.ComparisonQuery.Operation.greater;
-import static org.structr.api.search.ComparisonQuery.Operation.greaterOrEqual;
-import static org.structr.api.search.ComparisonQuery.Operation.isNotNull;
-import static org.structr.api.search.ComparisonQuery.Operation.isNull;
-import static org.structr.api.search.ComparisonQuery.Operation.less;
-import static org.structr.api.search.ComparisonQuery.Operation.lessOrEqual;
-import static org.structr.api.search.ComparisonQuery.Operation.notEqual;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
 import org.structr.memory.index.predicate.NotPredicate;
 import org.structr.memory.index.predicate.NullPredicate;
-import org.structr.memory.index.predicate.ValuePredicate;
 import org.structr.memory.index.predicate.RangePredicate;
+import org.structr.memory.index.predicate.ValuePredicate;
 
 public class ComparisonQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 

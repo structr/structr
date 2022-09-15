@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.function;
 
-import java.util.Arrays;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
@@ -32,6 +31,8 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
+
+import java.util.Arrays;
 
 public class DoInNewTransactionFunction implements ProxyExecutable {
 

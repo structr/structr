@@ -18,14 +18,15 @@
  */
 package org.structr.schema.export;
 
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
-import org.structr.core.entity.SchemaNode;
-import org.structr.core.entity.SchemaProperty;
 import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonReferenceProperty;
 import org.structr.api.schema.JsonType;
+import org.structr.core.entity.SchemaNode;
+import org.structr.core.entity.SchemaProperty;
+
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 
 /**
  *

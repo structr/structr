@@ -18,15 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.io.File;
-import java.lang.reflect.Method;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Supplier;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,10 +41,16 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
+import org.testng.annotations.*;
+import org.testng.annotations.Optional;
+
+import java.io.File;
+import java.lang.reflect.Method;
+import java.util.*;
+import java.util.function.Supplier;
+
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
-
-import org.testng.annotations.*;
 
 /**
  *

@@ -18,28 +18,27 @@
  */
 package org.structr.test;
 
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
 import org.apache.commons.lang3.StringUtils;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Localization;
-import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import org.structr.test.entity.CsvTestEnum;
 import org.structr.test.entity.CsvTestOne;
 import org.structr.test.entity.CsvTestTwo;
-import org.structr.schema.action.ActionContext;
 import org.structr.test.web.StructrUiTest;
 import org.structr.test.web.entity.TestFive;
 import org.structr.test.web.entity.TestTwo;
+import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.Locale;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

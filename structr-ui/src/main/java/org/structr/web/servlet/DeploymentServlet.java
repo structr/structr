@@ -18,27 +18,17 @@
  */
 package org.structr.web.servlet;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+
+import jakarta.servlet.MultipartConfigElement;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.Part;
 import net.lingala.zip4j.ZipFile;
-import org.apache.commons.fileupload.FileItemIterator;
-import org.apache.commons.fileupload.FileItemStream;
-import org.apache.commons.fileupload.disk.DiskFileItemFactory;
-import org.apache.commons.fileupload.servlet.ServletFileUpload;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -56,6 +46,17 @@ import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.maintenance.DeployDataCommand;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 //~--- classes ----------------------------------------------------------------
 /**
@@ -76,7 +77,6 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	private static final int MEMORY_THRESHOLD                 = 10 * MEGABYTE;  // above 10 MB, files are stored on disk
 
 	// non-static fields
-	private ServletFileUpload uploader = null;
 	private File filesDir = null;
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
 
@@ -84,6 +84,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	}
 
 	//~--- methods --------------------------------------------------------
+	@Override
+	public void configureServletHolder(final ServletHolder servletHolder) {
+		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
+	}
+
 	@Override
 	public StructrHttpServiceConfig getConfig() {
 		return config;
@@ -99,17 +105,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final DiskFileItemFactory fileFactory = new DiskFileItemFactory();
-			fileFactory.setSizeThreshold(MEMORY_THRESHOLD);
-
 			filesDir = new File(Settings.TmpPath.getValue()); // new File(Services.getInstance().getTmpPath());
 			if (!filesDir.exists()) {
 
 				filesDir.mkdir();
 			}
-
-			fileFactory.setRepository(filesDir);
-			uploader = new ServletFileUpload(fileFactory);
 
 			tx.success();
 
@@ -217,7 +217,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			if (!ServletFileUpload.isMultipartContent(request)) {
+			if (request.getParts().size() <= 0) {
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): Request does not contain multipart content.\n".getBytes("UTF-8"));
 				return;
@@ -265,12 +265,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				return;
 			}
 
-			uploader.setFileSizeMax(MEGABYTE * Settings.DeploymentMaxFileSize.getValue());
-			uploader.setSizeMax(MEGABYTE * Settings.DeploymentMaxRequestSize.getValue());
-
 			response.setContentType("text/html");
 
-			final FileItemIterator fileItemsIterator   = uploader.getItemIterator(request);
 			final String directoryPath                 = "/tmp/" + UUID.randomUUID();
 			final String filePath                      = directoryPath + ".zip";
 			final File file                            = new File(filePath);
@@ -280,14 +276,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String mode               = null;
 			String zipContentPath     = null;
 
-			while (fileItemsIterator.hasNext()) {
+			for (Part p : request.getParts()) {
 
-				final FileItemStream item = fileItemsIterator.next();
 
-				if (item.isFormField()) {
+				for (String fieldName : p.getHeaderNames()) {
 
-					final String fieldName = item.getFieldName();
-					final String fieldValue = IOUtils.toString(item.openStream(), "UTF-8");
+					final String fieldValue = p.getHeader(fieldName);
 
 					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
 
@@ -307,19 +301,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					} else if (FILE_PARAMETER.equals(fieldName)) {
 
-						try (final InputStream is = item.openStream()) {
+						try (final InputStream is = p.getInputStream()) {
 
 							Files.write(file.toPath(), IOUtils.toByteArray(is));
-							fileName = item.getName();
+							fileName = p.getName();
 						}
-					}
-
-				} else {
-
-					try (final InputStream is = item.openStream()) {
-
-						Files.write(file.toPath(), IOUtils.toByteArray(is));
-						fileName = item.getName();
 					}
 				}
 			}
@@ -415,6 +401,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 				UiAuthenticator.writeInternalServerError(response);
 			}
 		}
+
 	}
 
 	/**

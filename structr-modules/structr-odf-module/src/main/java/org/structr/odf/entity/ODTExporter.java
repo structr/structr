@@ -18,13 +18,6 @@
  */
 package org.structr.odf.entity;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.odftoolkit.simple.TextDocument;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +38,9 @@ import org.structr.web.entity.File;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import java.net.URI;
+import java.util.*;
 
 /**
  * Reads a nodes attributes and tries to replace matching attributes in the

@@ -18,9 +18,8 @@
  */
 package org.structr.core.function;
 
-import java.util.List;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -33,6 +32,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
+
+import java.util.List;
+import java.util.Map;
 
 public class GetFunction extends CoreFunction {
 

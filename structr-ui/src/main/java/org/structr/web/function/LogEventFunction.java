@@ -18,8 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.util.Date;
-import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -27,6 +25,9 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.logging.entity.LogEvent;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.dom.DOMNode;
+
+import java.util.Date;
+import java.util.Map;
 
 public class LogEventFunction extends UiAdvancedFunction {
 

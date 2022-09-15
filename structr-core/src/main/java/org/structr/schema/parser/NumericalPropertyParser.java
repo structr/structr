@@ -18,13 +18,14 @@
  */
 package org.structr.schema.parser;
 
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.InvalidPropertySchemaToken;
 import org.structr.core.entity.SchemaNode;
 import org.structr.schema.Schema;
+
+import java.util.Map;
 
 /**
  *

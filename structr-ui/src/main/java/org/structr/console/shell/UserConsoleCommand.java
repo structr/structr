@@ -18,9 +18,6 @@
  */
 package org.structr.console.shell;
 
-import java.io.IOException;
-import java.util.Iterator;
-import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.SecurityContext;
@@ -33,6 +30,10 @@ import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.util.Writable;
+
+import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A console command for user management.

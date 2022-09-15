@@ -18,13 +18,14 @@
  */
 package org.structr.test.knowledge;
 
+import org.structr.test.web.StructrUiTest;
+import org.structr.web.common.TestHelper;
+import org.testng.annotations.Test;
+
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.structr.test.web.StructrUiTest;
-import org.structr.web.common.TestHelper;
-import org.testng.annotations.Test;
 
 
 /**

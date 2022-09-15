@@ -18,13 +18,14 @@
  */
 package org.structr.core.graph.search;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
 import org.structr.api.search.GroupQuery;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;
+
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a group of search operators, to be used for queries with multiple textual search attributes grouped by parenthesis.

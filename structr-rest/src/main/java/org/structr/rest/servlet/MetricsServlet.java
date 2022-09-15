@@ -21,33 +21,32 @@ package org.structr.rest.servlet;
 import io.prometheus.client.Counter;
 import io.prometheus.client.Histogram;
 import io.prometheus.client.hotspot.DefaultExports;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 
+import java.io.IOException;
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 public class MetricsServlet extends AbstractDataServlet {
+	private final io.prometheus.client.servlet.jakarta.exporter.MetricsServlet servlet;
 
 	public static final Counter HTTP_REQUEST_COUNTER = Counter.build("structr_http_requests_total", "Total number of HTTP requests.").labelNames("method", "path", "status").create().register();
 	public static final Histogram HTTP_REQUEST_TIMER = Histogram.build("structr_http_request_duration_seconds", "Duration of HTTP requests.").labelNames("method", "path").exponentialBuckets(0.001, 10.0, 4).create().register();
 
 	private static final Logger logger = LoggerFactory.getLogger(MetricsServlet.class);
 
-	private final io.prometheus.client.exporter.MetricsServlet servlet;
-
 	protected final Set<String> whitelist    = new LinkedHashSet<>();
 	protected String previousWhitelist       = "";
 
 	public MetricsServlet() {
 
-		servlet = new io.prometheus.client.exporter.MetricsServlet();
+		servlet = new io.prometheus.client.servlet.jakarta.exporter.MetricsServlet();
 		DefaultExports.initialize();
 	}
 

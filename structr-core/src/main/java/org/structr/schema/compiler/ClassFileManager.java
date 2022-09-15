@@ -20,15 +20,14 @@ package org.structr.schema.compiler;
 
 import org.structr.module.JarConfigurationProvider;
 
+import javax.tools.*;
+import javax.tools.JavaFileObject.Kind;
 import java.io.IOException;
 import java.security.SecureClassLoader;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import javax.tools.*;
-import javax.tools.JavaFileObject.Kind;
 
 /**
  *

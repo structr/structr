@@ -18,8 +18,6 @@
  */
 package org.structr.test.common;
 
-import java.util.*;
-import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -61,10 +59,12 @@ import org.structr.test.core.entity.SixOneManyToMany;
 import org.structr.test.core.entity.TestOne;
 import org.structr.test.core.entity.TestSeven;
 import org.structr.test.core.entity.TestSix;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
 import org.testng.annotations.Test;
+
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.testng.AssertJUnit.*;
 
 /**
  */

@@ -18,10 +18,11 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
 import org.structr.api.DatabaseService;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.AbstractNode;
+
+import java.util.Collections;
 
 /**
  * Fetches all the nodes in the database.

@@ -18,29 +18,17 @@
  */
 package org.structr.payment.impl.paypal;
 
-import java.util.LinkedList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.payment.api.BeginCheckoutResponse;
-import org.structr.payment.api.ConfirmCheckoutResponse;
-import org.structr.payment.api.Payment;
-import org.structr.payment.api.PaymentItem;
-import org.structr.payment.api.PaymentProvider;
-import org.structr.payment.api.PaymentState;
+import org.structr.payment.api.*;
 import urn.ebay.api.PayPalAPI.DoExpressCheckoutPaymentResponseType;
 import urn.ebay.api.PayPalAPI.GetExpressCheckoutDetailsResponseType;
 import urn.ebay.api.PayPalAPI.SetExpressCheckoutResponseType;
-import urn.ebay.apis.eBLBaseComponents.AckCodeType;
-import urn.ebay.apis.eBLBaseComponents.AddressType;
-import urn.ebay.apis.eBLBaseComponents.CurrencyCodeType;
-import urn.ebay.apis.eBLBaseComponents.DoExpressCheckoutPaymentResponseDetailsType;
-import urn.ebay.apis.eBLBaseComponents.GetExpressCheckoutDetailsResponseDetailsType;
-import urn.ebay.apis.eBLBaseComponents.PayerInfoType;
-import urn.ebay.apis.eBLBaseComponents.PaymentActionCodeType;
-import urn.ebay.apis.eBLBaseComponents.PaymentDetailsItemType;
-import urn.ebay.apis.eBLBaseComponents.PaymentDetailsType;
+import urn.ebay.apis.eBLBaseComponents.*;
+
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  *

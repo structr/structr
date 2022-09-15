@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
@@ -36,8 +34,12 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import static org.testng.AssertJUnit.assertEquals;
 import org.testng.annotations.Test;
+
+import java.util.List;
+import java.util.Map;
+
+import static org.testng.AssertJUnit.assertEquals;
 
 public class AutocompleteTest extends StructrUiTest {
 

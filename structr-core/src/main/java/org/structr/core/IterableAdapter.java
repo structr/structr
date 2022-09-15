@@ -18,12 +18,13 @@
  */
 package org.structr.core;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
 
 /**
  * Converts an Iterable of source type S to an Iterable of target type T by

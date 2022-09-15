@@ -18,12 +18,19 @@
  */
 package org.structr.schema.compiler;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.DiagnosticErrorToken;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaReloadingNode;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 
 /**
  * A migration handler that removes schema nodes for classes that have
@@ -49,18 +56,40 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 
 				logger.warn(errorToken.toJSON().toString());
 
-				/*
-
 				try {
 
 					final App app = StructrApp.getInstance();
 
 					try (final Tx tx = app.tx()) {
 
-						final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
-						if (schemaNode != null) {
+						boolean handled = false;
 
-							app.delete(schemaNode);
+						if (errorToken instanceof DiagnosticErrorToken) {
+
+							final String nodeUuid = ((DiagnosticErrorToken)errorToken).getNodeUuid();
+
+							if (nodeUuid != null) {
+
+								final NodeInterface schemaNode = app.getNodeById(nodeUuid);
+
+								if (schemaNode != null) {
+
+									logger.info("Removing {} named '{}'", schemaNode.getType(), schemaNode.getName());
+									app.delete(schemaNode);
+
+									handled = true;
+								}
+							}
+						}
+
+						if (handled == false) {
+
+							final SchemaReloadingNode schemaNode = app.nodeQuery(SchemaReloadingNode.class).andName(type).getFirst();
+
+							if (schemaNode != null) {
+
+								app.delete(schemaNode);
+							}
 						}
 
 						tx.success();
@@ -72,8 +101,6 @@ public class RemoveClassesWithUnknownSymbols implements MigrationHandler {
 				} catch (ArrayIndexOutOfBoundsException ibex) {
 					logger.warn("Unable to extract error information from {}: {}", detail, ibex.getMessage());
 				}
-
-				*/
 			}
 		}
 	}

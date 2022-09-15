@@ -19,35 +19,14 @@
 package org.structr.flow;
 
 import com.google.gson.Gson;
-
-import java.awt.*;
-import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
 import org.structr.flow.deployment.FlowLegacyDeploymentHandler;
 import org.structr.flow.deployment.FlowTreeDeploymentHandler;
-import org.structr.flow.impl.*;
-import org.structr.flow.impl.rels.*;
-import org.structr.module.api.DeployableEntity;
-import org.structr.schema.SchemaHelper;
-import org.structr.web.common.AbstractMapComparator;
+
+import java.io.File;
+import java.nio.file.Path;
 
 public abstract class FlowDeploymentHandler {
 

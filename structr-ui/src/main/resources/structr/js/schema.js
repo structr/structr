@@ -1603,6 +1603,24 @@ let _Schema = {
 			$('#delete-selector').val(rel.deletePropagation || 'Remove');
 			$('#access-control-selector').val(rel.accessControlPropagation || 'Remove');
 			$('#masked-properties').val(rel.propertyMask);
+
+			if (rel.isPartOfBuiltInSchema) {
+				$('#source-type-name').attr('disabled', 'disabled');
+				$('#target-type-name').attr('disabled', 'disabled');
+				$('#source-json-name').attr('disabled', 'disabled');
+				$('#target-json-name').attr('disabled', 'disabled');
+				$('#source-multiplicity-selector').attr('disabled', 'disabled');
+				$('#target-multiplicity-selector').attr('disabled', 'disabled');
+				$('#relationship-type-name').attr('disabled', 'disabled');
+				$('#cascading-delete-selector').attr('disabled', 'disabled');
+				$('#autocreate-selector').attr('disabled', 'disabled');
+				$('#propagation-selector').attr('disabled', 'disabled');
+				$('#read-selector').attr('disabled', 'disabled');
+				$('#write-selector').attr('disabled', 'disabled');
+				$('#delete-selector').attr('disabled', 'disabled');
+				$('#access-control-selector').attr('disabled', 'disabled');
+				$('#masked-properties').attr('disabled', 'disabled');
+			}
 		},
 		reactToCardinalityChange: (entity, sourceHelpElements, targetHelpElements) => {
 
@@ -4491,7 +4509,6 @@ let _Schema = {
 				e.stopPropagation();
 
 				let inp = e.target.closest('tr').querySelector('.toggle-type');
-				console.log(inp, e.target, inp === e.target);
 				if (inp !== e.target) {
 					inp.checked = !inp.checked;
 				}

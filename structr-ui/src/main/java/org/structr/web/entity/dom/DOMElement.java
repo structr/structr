@@ -18,22 +18,12 @@
  */
 package org.structr.web.entity.dom;
 
+import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.renjin.repackaged.guava.base.CaseFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -53,42 +43,37 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.StringProperty;
-import org.structr.core.property.UuidProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
-import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
-
 import org.structr.web.entity.html.Input;
 import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
 import org.structr.web.servlet.HtmlServlet;
-import org.w3c.dom.Attr;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Element;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.w3c.dom.*;
+
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.net.URI;
+import java.util.*;
+import java.util.Map.Entry;
+
+import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -103,9 +88,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static class Impl { static {
 
-		final JsonSchema schema            = SchemaService.getDynamicSchema();
-		final JsonObjectType type          = schema.addType("DOMElement");
-		final JsonObjectType actionMapping = schema.addType("ActionMapping");
+		final JsonSchema schema       = SchemaService.getDynamicSchema();
+		final JsonObjectType type     = schema.addType("DOMElement");
 
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
@@ -205,11 +189,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addViewProperty(PropertyView.Ui, "actionElement");
 		type.addViewProperty(PropertyView.Ui, "inputs");
 
-		// new event action mapping, moved to ActionMapping node
-		type.relate(actionMapping, "TRIGGERS",  Cardinality.OneToMany, "triggerElement", "triggeredActions");
-		type.addViewProperty(PropertyView.Ui, "triggeredActions");
-		type.addViewProperty(PropertyView.Ui, "actionMappings");
-
 		// attributes for lazy rendering
 		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
 		type.addStringProperty("data-structr-delay-or-interval",    PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Delay or interval in milliseconds for 'delayed' or 'periodic' rendering mode");
@@ -294,7 +273,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.overrideMethod("getContextName",         false, "return " + DOMElement.class.getName() + ".getContextName(this);");
 		type.overrideMethod("item",                   false, "return " + DOMElement.class.getName() + ".item(this, arg0);");
 
-		// CMISInfo
+		// W3C Element
 		type.overrideMethod("getSchemaTypeInfo",      false, "return null;");
 
 		// view configuration
@@ -558,17 +537,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final String dataTarget = (String)parameters.get("structrTarget");
 		if (dataTarget == null) {
 
-			// Find global method by action name
-			final SchemaMethod globalMethod = StructrApp.getInstance(actionContext.getSecurityContext()).nodeQuery(SchemaMethod.class).andName(action).and(SchemaMethod.schemaNode, null).getFirst();
-
-			if (globalMethod != null) {
-
-				Actions.callWithSecurityContext(action, actionContext.getSecurityContext(), parameters);
-
-			} else {
-
-				throw new FrameworkException(422, "Empty data-structr-target attribute and no global method found by this name: " + action);
-			}
+			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
 		}
 
 		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
@@ -1279,11 +1248,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 
 							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
-							if (StringUtils.isNotBlank(nameAttribute) && StringUtils.isNotBlank(cssIdAttribute)) {
 
-								final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
-								out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
-							}
+							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
+
+							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
 						}
 
 

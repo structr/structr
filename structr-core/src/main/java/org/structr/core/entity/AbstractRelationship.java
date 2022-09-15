@@ -18,28 +18,15 @@
  */
 package org.structr.core.entity;
 
-import java.util.*;
-
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
-import org.structr.cmis.CMISInfo;
+import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.IdNotFoundToken;
-import org.structr.common.error.InternalSystemPropertyToken;
-import org.structr.common.error.NullArgumentToken;
-import org.structr.common.error.ReadOnlyPropertyToken;
+import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -48,19 +35,13 @@ import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.Property;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
-import org.structr.core.property.RelationshipTypeProperty;
-import org.structr.core.property.SourceId;
-import org.structr.core.property.SourceNodeProperty;
-import org.structr.core.property.StringProperty;
-import org.structr.core.property.TargetId;
-import org.structr.core.property.TargetNodeProperty;
+import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
+
+import java.util.*;
 
 
 /**
@@ -735,11 +716,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return Direction.BOTH;
 	}
 
-	@Override
-	public final CMISInfo getCMISInfo() {
-		return null;
-	}
-
 	// ----- Cloud synchronization and replication -----
 	@Override
 	public List<GraphObject> getSyncData() {
@@ -766,64 +742,11 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		return this;
 	}
 
-	// ----- CMIS support methods -----
 	public String getCreatedBy() {
 		return getProperty(AbstractNode.createdBy);
 	}
 
 	public String getLastModifiedBy() {
 		return getProperty(AbstractNode.lastModifiedBy);
-	}
-
-	public GregorianCalendar getLastModificationDate() {
-
-		final Date creationDate = getProperty(AbstractNode.lastModifiedDate);
-		if (creationDate != null) {
-
-			final GregorianCalendar calendar = new GregorianCalendar();
-			calendar.setTime(creationDate);
-
-			return calendar;
-		}
-
-		return null;
-	}
-
-	public GregorianCalendar getCreationDate() {
-
-		final Date creationDate = getProperty(AbstractNode.createdDate);
-		if (creationDate != null) {
-
-			final GregorianCalendar calendar = new GregorianCalendar();
-			calendar.setTime(creationDate);
-
-			return calendar;
-		}
-
-		return null;
-	}
-
-	public PropertyMap getDynamicProperties() {
-
-		final PropertyMap propertyMap       = new PropertyMap();
-		final Class type                    = getClass();
-
-		for (final PropertyKey key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
-
-			// include all dynamic keys in definition
-			if (key.isDynamic() || key.isCMISProperty()) {
-
-				// only include primitives here
-				final PropertyType dataType = key.getDataType();
-				if (dataType != null) {
-
-					propertyMap.put(key, getProperty(key));
-				}
-			}
-		}
-
-
-
-		return propertyMap;
 	}
 }

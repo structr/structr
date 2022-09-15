@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -27,6 +26,8 @@ import org.structr.core.GraphObject;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.SearchCommand;
+
+import java.util.Set;
 
 /**
  *

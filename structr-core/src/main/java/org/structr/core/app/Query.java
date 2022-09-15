@@ -18,8 +18,6 @@
  */
 package org.structr.core.app;
 
-import java.util.Comparator;
-import java.util.List;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.QueryContext;
@@ -31,6 +29,9 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Comparator;
+import java.util.List;
 
 /**
  *

@@ -18,21 +18,8 @@
  */
 package org.structr.memory;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import org.structr.api.AbstractDatabaseService;
-import org.structr.api.DatabaseFeature;
-import org.structr.api.NativeQuery;
-import org.structr.api.NotInTransactionException;
-import org.structr.api.Transaction;
-import org.structr.api.graph.Direction;
-import org.structr.api.graph.GraphProperties;
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
-import org.structr.api.graph.RelationshipType;
+import org.structr.api.*;
+import org.structr.api.graph.*;
 import org.structr.api.index.Index;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.util.CountResult;
@@ -40,11 +27,12 @@ import org.structr.api.util.Iterables;
 import org.structr.api.util.NodeWithOwnerResult;
 import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
-import org.structr.memory.index.filter.Filter;
-import org.structr.memory.index.filter.MemoryLabelFilter;
-import org.structr.memory.index.filter.MemoryTypeFilter;
-import org.structr.memory.index.filter.SourceNodeFilter;
-import org.structr.memory.index.filter.TargetNodeFilter;
+import org.structr.memory.index.filter.*;
+
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
 
 /**
  */

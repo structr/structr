@@ -18,9 +18,10 @@
  */
 package org.structr.web.function;
 
-import java.util.Map;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Map;
 
 public class JobInfoFunction extends UiAdvancedFunction {
 

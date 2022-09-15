@@ -18,7 +18,6 @@
  */
 package org.structr.translation;
 
-import java.util.Set;
 import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.StringSetting;
@@ -28,6 +27,8 @@ import org.structr.core.function.Functions;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
+
+import java.util.Set;
 
 
 public class TranslationModule implements StructrModule {

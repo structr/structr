@@ -18,8 +18,6 @@
  */
 package org.structr.websocket.command.dom;
 
-import java.util.Map;
-import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,6 +41,9 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
+
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  *

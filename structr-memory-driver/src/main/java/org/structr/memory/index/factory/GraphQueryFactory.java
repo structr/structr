@@ -18,16 +18,16 @@
  */
 package org.structr.memory.index.factory;
 
-import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.index.AbstractIndex;
-
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.GraphQuery;
 import org.structr.api.search.QueryPredicate;
 import org.structr.memory.index.MemoryQuery;
 import org.structr.memory.index.predicate.GraphPredicate;
 import org.structr.memory.index.predicate.NoRelationshipPredicate;
+
+import java.util.Set;
 
 public class GraphQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 

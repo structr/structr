@@ -18,11 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeSet;
 import org.apache.commons.lang.StringUtils;
 import org.structr.api.NotFoundException;
 import org.structr.api.config.Settings;
@@ -33,6 +28,8 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.api.search.QueryContext;
 import org.structr.api.util.FixedSizeCache;
 import org.structr.api.util.Iterables;
+
+import java.util.*;
 
 /**
  *

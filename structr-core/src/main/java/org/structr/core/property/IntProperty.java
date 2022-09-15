@@ -18,9 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.Map;
-import java.util.TreeMap;
-import org.apache.chemistry.opencmis.commons.enums.PropertyType;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +27,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.NumberToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+
+import java.util.Map;
+import java.util.TreeMap;
 
 /**
 * A property that stores and retrieves a simple Integer value.
@@ -190,13 +190,6 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 	public Object getIndexValue(final Object value) {
 		return fixDatabaseProperty(value);
 	}
-
-	// ----- CMIS support -----
-	@Override
-	public PropertyType getDataType() {
-		return PropertyType.INTEGER;
-	}
-
 
 	// ----- OpenAPI -----
 	@Override

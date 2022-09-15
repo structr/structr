@@ -18,13 +18,6 @@
  */
 package org.structr.web.importer;
 
-import java.io.InputStream;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Locale;
-import java.util.Map;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,7 +30,16 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
+
+import java.io.InputStream;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Locale;
+import java.util.Map;
 
 abstract class FileImportJob extends ScheduledJob {
 
@@ -57,7 +59,7 @@ abstract class FileImportJob extends ScheduledJob {
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();
 		this.fileName = file.getName();
-		this.fileSize = file.getSize();
+		this.fileSize = FileUtils.getSize(file.getFileOnDisk());
 	}
 
 	public String getFileUuid () {

@@ -18,12 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.lang.management.ManagementFactory;
-import java.lang.management.MemoryPoolMXBean;
-import java.lang.management.MemoryUsage;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.api.util.CountResult;
@@ -34,6 +28,13 @@ import org.structr.core.function.LocalizeFunction;
 import org.structr.core.graph.NodeService;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.maintenance.DeployCommand;
+
+import java.lang.management.ManagementFactory;
+import java.lang.management.MemoryPoolMXBean;
+import java.lang.management.MemoryUsage;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SystemInfoFunction extends AdvancedScriptingFunction {
 

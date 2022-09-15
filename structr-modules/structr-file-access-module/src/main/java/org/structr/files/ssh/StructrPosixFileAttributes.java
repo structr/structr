@@ -18,14 +18,6 @@
  */
 package org.structr.files.ssh;
 
-import java.nio.file.attribute.FileTime;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributes;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipal;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
@@ -33,9 +25,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
+import org.structr.util.FileUtils;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+
+import java.nio.file.attribute.*;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  *
@@ -174,7 +172,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		long size = 0;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			size = ((File)file).getSize();
+			size = FileUtils.getSize(((File)file).getFileOnDisk());
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);

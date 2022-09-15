@@ -18,7 +18,6 @@
  */
 package org.structr.websocket.command;
 
-import java.util.Arrays;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -29,6 +28,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
+
+import java.util.Arrays;
 
 //~--- classes ----------------------------------------------------------------
 /**

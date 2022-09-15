@@ -18,13 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.Modifier;
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,17 +37,15 @@ import org.structr.core.entity.Relation;
 import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.search.SearchCommand;
-import org.structr.core.property.BooleanProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.LongProperty;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.RelationProperty;
-import org.structr.core.property.StringProperty;
+import org.structr.core.property.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
+
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 /**
  *

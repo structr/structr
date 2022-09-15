@@ -18,10 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import org.testng.annotations.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -33,9 +29,13 @@ import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 import org.structr.web.entity.User;
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.assertTrue;
-import static org.testng.AssertJUnit.fail;
+import org.testng.annotations.Test;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import static org.testng.AssertJUnit.*;
 
 public class FilesystemTest extends StructrUiTest {
 

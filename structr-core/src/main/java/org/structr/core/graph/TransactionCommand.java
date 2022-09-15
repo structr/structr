@@ -19,14 +19,12 @@
 package org.structr.core.graph;
 
 
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.Map;
-import java.util.Set;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.*;
+import org.structr.api.DatabaseService;
+import org.structr.api.NetworkException;
+import org.structr.api.NotInTransactionException;
+import org.structr.api.Predicate;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.common.SecurityContext;
@@ -43,6 +41,11 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.TransactionPostProcessQueue;
+
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Graph service command for database operations that need to be wrapped in

@@ -18,9 +18,6 @@
  */
 package org.structr.web.function;
 
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.util.Collection;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.ZipParameters;
 import net.lingala.zip4j.model.enums.EncryptionMethod;
@@ -30,6 +27,10 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
+
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.Collection;
 
 public class CreateZipFunction extends UiAdvancedFunction {
 

@@ -18,9 +18,10 @@
  */
 package org.structr.core.graphql;
 
-import java.util.Set;
 import org.structr.api.Predicate;
 import org.structr.core.property.PropertyKey;
+
+import java.util.Set;
 
 /**
  */

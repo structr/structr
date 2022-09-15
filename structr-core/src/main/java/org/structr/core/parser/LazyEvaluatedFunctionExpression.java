@@ -22,9 +22,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 import java.util.function.Supplier;
-import org.structr.schema.action.EvaluationHints;
 
 public class LazyEvaluatedFunctionExpression extends Expression {
 

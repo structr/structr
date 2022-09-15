@@ -18,21 +18,18 @@
  */
 package org.structr.core.property;
 
-import java.util.Date;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.ErrorBuffer;
-import org.structr.common.error.FrameworkException;
-import org.structr.common.error.PasswordPolicyViolationException;
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.common.error.TooShortToken;
+import org.structr.common.error.*;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.HashHelper;
 import org.structr.core.converter.ValidationInfo;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.CreationContainer;
+
+import java.util.Date;
 
 /**
  * A {@link StringProperty} that converts its value to a hexadecimal SHA512 hash upon storage.

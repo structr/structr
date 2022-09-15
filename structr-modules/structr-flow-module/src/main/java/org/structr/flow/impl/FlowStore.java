@@ -22,7 +22,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.View;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.property.*;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.api.Store;

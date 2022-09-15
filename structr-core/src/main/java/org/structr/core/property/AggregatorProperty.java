@@ -18,8 +18,6 @@
  */
 package org.structr.core.property;
 
-import java.util.*;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -31,6 +29,8 @@ import org.structr.core.converter.Aggregation;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.notion.Notion;
+
+import java.util.*;
 
 /**
  * A property that uses an {@link Aggregation} to return a list of entities.

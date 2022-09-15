@@ -18,8 +18,8 @@
  */
 package org.structr.rest.resource;
 
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
+
+import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -28,6 +28,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
+
+import java.util.Map;
 
 /**
  *

@@ -18,9 +18,10 @@
  */
 package org.structr.core.function;
 
+import org.structr.core.parser.Expression;
+
 import java.util.ArrayList;
 import java.util.List;
-import org.structr.core.parser.Expression;
 
 public class ParseResult {
 

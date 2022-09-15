@@ -18,15 +18,17 @@
  */
 package org.structr.core.property;
 
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.regex.Pattern;
+
 import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.core.app.Query;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.UuidSearchAttribute;
+
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.regex.Pattern;
 
 /**
  *

@@ -18,14 +18,15 @@
  */
 package org.structr.memgraph;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.api.util.FixedSizeCache;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  *

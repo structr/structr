@@ -18,8 +18,6 @@
  */
 package org.structr.messaging.implementation.mqtt.entity;
 
-import java.net.URI;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
@@ -41,6 +39,9 @@ import org.structr.messaging.implementation.mqtt.MQTTContext;
 import org.structr.messaging.implementation.mqtt.MQTTInfo;
 import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
+
+import java.net.URI;
+import java.util.List;
 
 public interface MQTTClient extends MessageClient, MQTTInfo {
 

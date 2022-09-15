@@ -18,10 +18,11 @@
  */
 package org.structr.api.config;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * A configuration setting with a key and a type.

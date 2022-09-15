@@ -18,15 +18,10 @@
  */
 package org.structr.web.entity.dom;
 
-import java.util.LinkedHashMap;
 import org.structr.web.entity.html.Object;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.DocumentType;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.UserDataHandler;
+import org.w3c.dom.*;
+
+import java.util.LinkedHashMap;
 
 /**
  *

@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import java.util.Collections;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -29,6 +27,9 @@ import org.structr.common.fulltext.Indexable;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  * Rebuild index for nodes or relationships of given type.

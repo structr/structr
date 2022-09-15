@@ -18,11 +18,12 @@
  */
 package org.structr.core.entity;
 
-import java.util.List;
-import java.util.Set;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+
+import java.util.List;
+import java.util.Set;
 
 /**
  * Abstract base class for a multi-dimensional ordered tree datastructure.

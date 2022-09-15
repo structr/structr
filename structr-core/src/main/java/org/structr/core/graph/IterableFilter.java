@@ -18,10 +18,11 @@
  */
 package org.structr.core.graph;
 
-import java.util.Iterator;
-import java.util.Set;
 import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
+
+import java.util.Iterator;
+import java.util.Set;
 
 /**
  * An Iterable implementation that evaluates a set of predicates evaluate for

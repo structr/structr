@@ -18,9 +18,6 @@
  */
 package org.structr.web.property;
 
-import java.lang.reflect.Method;
-import java.util.Map;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -30,6 +27,9 @@ import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.property.AbstractReadOnlyProperty;
+
+import java.lang.reflect.Method;
+import java.util.Map;
 
 /**
  */

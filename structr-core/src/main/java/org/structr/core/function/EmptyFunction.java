@@ -18,11 +18,12 @@
  */
 package org.structr.core.function;
 
-import java.util.Collection;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.Collection;
+import java.util.Map;
 
 /**
  *

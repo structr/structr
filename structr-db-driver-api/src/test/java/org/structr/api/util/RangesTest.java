@@ -18,12 +18,14 @@
  */
 package org.structr.api.util;
 
+import org.testng.annotations.Test;
+
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
-import org.testng.annotations.Test;
 
 public class RangesTest {
 

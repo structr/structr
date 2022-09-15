@@ -18,15 +18,6 @@
  */
 package org.structr.bolt;
 
-import java.lang.reflect.Array;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.WeakHashMap;
 import org.neo4j.driver.exceptions.NoSuchRecordException;
 import org.neo4j.driver.types.Entity;
 import org.slf4j.Logger;
@@ -37,6 +28,10 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
+
+import java.lang.reflect.Array;
+import java.util.*;
+import java.util.Map.Entry;
 
 
 abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cachable {

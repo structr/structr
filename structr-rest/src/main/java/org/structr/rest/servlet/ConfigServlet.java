@@ -18,20 +18,11 @@
  */
 package org.structr.rest.servlet;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeSet;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
@@ -41,11 +32,7 @@ import org.structr.api.config.Setting;
 import org.structr.api.config.Settings;
 import org.structr.api.config.SettingsGroup;
 import org.structr.api.service.DatabaseConnection;
-import org.structr.api.util.html.Attr;
-import org.structr.api.util.html.Document;
-import org.structr.api.util.html.InputField;
-import org.structr.api.util.html.SelectField;
-import org.structr.api.util.html.Tag;
+import org.structr.api.util.html.*;
 import org.structr.api.util.html.attr.Href;
 import org.structr.api.util.html.attr.Rel;
 import org.structr.common.error.FrameworkException;
@@ -54,6 +41,11 @@ import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.action.ActionContext;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.*;
+import java.util.Map.Entry;
 
 /**
  *

@@ -9,14 +9,15 @@
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
+	<properties>
+		<jetty.version>11.0.10</jetty.version>
+		<jaxb.version>2.3.3</jaxb.version>
+	</properties>
+
 	<groupId>org.structr</groupId>
 	<artifactId>structr-rest</artifactId>
 	<packaging>jar</packaging>
 	<version>4.3-SNAPSHOT</version>
-
-	<properties>
-		<jetty.version>10.0.10</jetty.version>
-	</properties>
 
 	<dependencies>
 		<dependency>
@@ -32,6 +33,7 @@
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.httpcomponents</groupId>
@@ -44,31 +46,37 @@
 		<dependency>
 			<groupId>com.jayway.restassured</groupId>
 			<artifactId>rest-assured</artifactId>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-server</artifactId>
 			<version>${jetty.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-servlets</artifactId>
 			<version>${jetty.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.http2</groupId>
 			<artifactId>http2-server</artifactId>
 			<version>${jetty.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty.websocket</groupId>
 			<artifactId>websocket-jetty-server</artifactId>
 			<version>${jetty.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
 			<artifactId>jetty-alpn-server</artifactId>
 			<version>${jetty.version}</version>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>org.eclipse.jetty</groupId>
@@ -83,10 +91,6 @@
 		<dependency>
 			<groupId>com.opencsv</groupId>
 			<artifactId>opencsv</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.hamcrest</groupId>
-			<artifactId>hamcrest-all</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.auth0</groupId>
@@ -108,19 +112,34 @@
 		<dependency>
 		  <groupId>io.prometheus</groupId>
 		  <artifactId>simpleclient</artifactId>
-		  <version>0.11.0</version>
+		  <version>0.16.0</version>
 		</dependency>
 		<!-- Prometheus HTTPServer -->
 		<dependency>
 			<groupId>io.prometheus</groupId>
-			<artifactId>simpleclient_servlet</artifactId>
-			<version>0.11.0</version>
+			<artifactId>simpleclient_servlet_jakarta</artifactId>
+			<version>0.16.0</version>
 		</dependency>
 		<!-- Prometheus Hotspot -->
 		<dependency>
 			<groupId>io.prometheus</groupId>
 			<artifactId>simpleclient_hotspot</artifactId>
-			<version>0.11.0</version>
+			<version>0.15.0</version>
+		</dependency>
+		<!-- JAXB API only -->
+		<dependency>
+			<groupId>jakarta.xml.bind</groupId>
+			<artifactId>jakarta.xml.bind-api</artifactId>
+			<version>${jaxb.version}</version>
+			<optional>true</optional>
+		</dependency>
+		<!-- JAXB RI, Jakarta XML Binding -->
+		<dependency>
+			<groupId>com.sun.xml.bind</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>${jaxb.version}</version>
+			<scope>runtime</scope>
+			<optional>true</optional>
 		</dependency>
     </dependencies>
 

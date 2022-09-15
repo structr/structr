@@ -18,11 +18,12 @@
  */
 package org.structr.common.fulltext;
 
-import java.util.Collections;
-import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  *

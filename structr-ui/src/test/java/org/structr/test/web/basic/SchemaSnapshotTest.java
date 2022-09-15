@@ -18,21 +18,23 @@
  */
 package org.structr.test.web.basic;
 
+import org.apache.commons.io.IOUtils;
+import org.structr.api.graph.Cardinality;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonReferenceType;
+import org.structr.api.schema.JsonSchema;
+import org.structr.common.error.FrameworkException;
+import org.structr.rest.maintenance.SnapshotCommand;
+import org.structr.schema.export.StructrSchema;
+import org.structr.test.web.StructrUiTest;
+import org.testng.annotations.Test;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import org.apache.commons.io.IOUtils;
-import org.structr.api.graph.Cardinality;
-import org.testng.annotations.Test;
-import org.structr.common.error.FrameworkException;
-import org.structr.rest.maintenance.SnapshotCommand;
-import org.structr.schema.export.StructrSchema;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonReferenceType;
-import org.structr.api.schema.JsonSchema;
-import org.structr.test.web.StructrUiTest;
+
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 

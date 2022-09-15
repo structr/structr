@@ -18,9 +18,10 @@
  */
 package org.structr.rest;
 
+import org.structr.rest.resource.Resource;
+
 import java.util.Map;
 import java.util.regex.Pattern;
-import org.structr.rest.resource.Resource;
 
 /**
  * A provider interface that allows external modules to

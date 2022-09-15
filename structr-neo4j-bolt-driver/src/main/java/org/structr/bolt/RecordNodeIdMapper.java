@@ -18,8 +18,9 @@
  */
 package org.structr.bolt;
 
-import java.util.function.Function;
 import org.neo4j.driver.Record;
+
+import java.util.function.Function;
 
 /**
  *

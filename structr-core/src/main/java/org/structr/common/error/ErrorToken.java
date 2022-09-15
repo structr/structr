@@ -18,14 +18,11 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonNull;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonPrimitive;
-import java.util.Map;
+import com.google.gson.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+
+import java.util.Map;
 
 /**
  * Abstract base class for all error tokens.

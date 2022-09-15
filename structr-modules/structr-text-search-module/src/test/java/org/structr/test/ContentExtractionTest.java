@@ -18,17 +18,19 @@
  */
 package org.structr.test;
 
-import java.io.IOException;
-import java.io.InputStream;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.testng.annotations.Test;
 import org.structr.test.web.StructrUiTest;
 import org.structr.text.model.StructuredDocument;
 import org.structr.text.model.StructuredTextNode;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
+import org.testng.annotations.Test;
+
+import java.io.IOException;
+import java.io.InputStream;
+
 import static org.testng.AssertJUnit.fail;
 
 /**

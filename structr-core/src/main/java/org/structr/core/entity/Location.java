@@ -18,12 +18,13 @@
  */
 package org.structr.core.entity;
 
-import java.net.URI;
+import org.structr.api.schema.JsonObjectType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
+
+import java.net.URI;
 
 /**
  * The Location entity.
@@ -50,69 +51,4 @@ public interface Location extends NodeInterface {
 		type.addStringProperty("stateDistrict", PropertyView.Public, PropertyView.Ui).setIndexed(true);
 	}}
 
-	/*
-	public static final Property<Double> latitude     = new DoubleProperty("latitude").cmis().passivelyIndexed();	// these need to be indexed at the end
-	public static final Property<Double> longitude    = new DoubleProperty("longitude").cmis().passivelyIndexed();	// of the transaction so the spatial
-	public static final Property<Double> altitude     = new DoubleProperty("altitude").cmis().passivelyIndexed();	// indexer sees all properties at once
-	public static final Property<String> country      = new StringProperty("country");
-	public static final Property<String> postalCode   = new StringProperty("postalCode");
-	public static final Property<String> city         = new StringProperty("city");
-	public static final Property<String> street       = new StringProperty("street");
-	public static final Property<String> houseNumber  = new StringProperty("houseNumber");
-	public static final Property<String> state        = new StringProperty("state");
-	public static final Property<String> stateDistrict = new StringProperty("stateDistrict");
-
-	public static final View publicView = new View(Location.class, PropertyView.Public,
-		latitude, longitude, altitude, country, postalCode, city, street, houseNumber, state, stateDistrict
-	);
-
-	public static final View uiView = new View(Location.class, PropertyView.Ui,
-		latitude, longitude, altitude, country, postalCode, city, street, houseNumber, state, stateDistrict
-	);
-
-	@Override
-	public void onCreation(SecurityContext securityContext, ErrorBuffer errorBuffer) throws FrameworkException {
-		notifyLocatables(errorBuffer);
-	}
-
-	@Override
-	public void onModification(SecurityContext securityContext, ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
-		notifyLocatables(errorBuffer);
-	}
-
-	@Override
-	public void afterCreation(SecurityContext securityContext) {
-		notifyLocatables(null);
-	}
-
-	@Override
-	public void afterModification(SecurityContext securityContext) {
-		notifyLocatables(null);
-
-	}
-
-	@Override
-	public boolean isValid(ErrorBuffer errorBuffer) {
-
-		boolean valid = super.isValid(errorBuffer);
-
-		notifyLocatables(errorBuffer);
-
-		return valid;
-
-	}
-
-	static void notifyLocatables(final Location thisLocation, final ErrorBuffer errorBuffer) {
-
-		for(RelationshipInterface rel : this.getRelationships(NodeHasLocation.class)) {
-
-			NodeInterface otherNode = rel.getOtherNode(this);
-			if(otherNode != null && otherNode instanceof Locatable) {
-
-				// notify other node of location change
-				((Locatable)otherNode).locationChanged(errorBuffer);
-			}
-		}
-	}
-	*/
 }
