@@ -60,4 +60,9 @@ public class SourceLine {
 	public CodeSource getCodeSource() {
 		return codeSource;
 	}
+
+	public int getNumberOfLines() {
+
+		return toString().split("\r\n|\r|\n").length;
+	}
 }

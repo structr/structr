@@ -204,15 +204,34 @@ public class NodeExtender {
 				final SourceFile obj      = (SourceFile)diagnostic.getSource();
 				String name               = obj.getName();
 
-				errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
+				final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
+				final List<SourceLine> code = sourceFile.getLines();
+
+				SourceLine line = null;
+
+				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in realtiy)
+				int lineCount = 0;
+				for (SourceLine sl : code) {
+
+					if (lineCount < errorLineNumber) {
+						lineCount += sl.getNumberOfLines();
+
+						if (lineCount >= errorLineNumber) {
+							line = sl;
+						}
+					}
+				}
+
+				final AbstractNode source   = (AbstractNode)line.getCodeSource();
+				final int size              = code.size();
+
+				if (source != null) {
+					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic, source.getClass().getSimpleName(), source.getUuid(), source.getName()));
+				} else {
+					errorBuffer.add(new DiagnosticErrorToken(name, diagnostic));
+				}
 
 				if (Settings.LogSchemaErrors.getValue()) {
-
-					final SourceFile sourceFile = (SourceFile)diagnostic.getSource();
-					final List<SourceLine> code = sourceFile.getLines();
-					final SourceLine line       = code.get(errorLineNumber - 1);
-					final AbstractNode source   = (AbstractNode)line.getCodeSource();
-					final int size              = code.size();
 
 					logger.error(diagnostic.getMessage(Locale.ENGLISH));
 
