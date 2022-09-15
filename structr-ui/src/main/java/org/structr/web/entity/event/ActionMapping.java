@@ -97,7 +97,7 @@ public interface ActionMapping extends NodeInterface {
 
 		type.relate(node, "RELOAD_TARGET",   Cardinality.ManyToMany,"reloadingActions",   "reloadTargets");
 		type.relate(node, "REDIRECT_TARGET", Cardinality.ManyToMany,"redirectingActions", "redirectTarget");
-		type.relate(elem, "INPUTS",          Cardinality.ManyToMany,"processingActions",  "inputs");
+		type.relate(elem, "INPUT_ELEMENT",   Cardinality.ManyToMany,"processingActions",  "inputElements");
 
 		type.addStringProperty("event",        PropertyView.Ui).setHint("DOM event which triggers the action.");
 		type.addStringProperty("action",       PropertyView.Ui).setHint("Action which will be triggered.");
@@ -110,7 +110,7 @@ public interface ActionMapping extends NodeInterface {
 		type.addViewProperty(PropertyView.Ui, "triggerElement");
 		type.addViewProperty(PropertyView.Ui, "reloadTargets");
 		type.addViewProperty(PropertyView.Ui, "redirectTarget");
-		type.addViewProperty(PropertyView.Ui, "inputs");
+		type.addViewProperty(PropertyView.Ui, "inputElements");
 
 	}}
 

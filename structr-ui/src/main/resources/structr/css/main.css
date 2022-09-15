@@ -4747,6 +4747,9 @@ table.props td.__value {
 .min-w-64 {
 	min-width: 16rem;
 }
+.opacity-0 {
+	opacity: 0;
+}
 .opacity-60 {
 	opacity: .6;
 }
