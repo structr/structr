@@ -83,6 +83,8 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
 		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
 		migrationHandlers.add(new RemoveFileSetPropertiesMethodWithoutParameters());
+		migrationHandlers.add(new RemoveIncompatibleTypes());
+		migrationHandlers.add(new RemoveTypesWithNonExistentPackages());
 	}
 
 	@Override
