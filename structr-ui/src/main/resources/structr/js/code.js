@@ -1813,6 +1813,9 @@ let _Code = {
 					_Code.runGlobalSchemaMethod(result);
 				});
 
+				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
+				Structr.activateCommentsInElement(buttons[0]);
+
 			} else if (result.schemaNode) {
 
 				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
@@ -3080,6 +3083,12 @@ let _Code = {
 						</div>
 						<div class="checkbox hidden entity-method">
 							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
+						</div>
+						<div class="checkbox hidden global-method">
+							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
+						</div>
+						<div class="checkbox hidden global-method">
+							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
 						</div>
 					</div>
 				</div>

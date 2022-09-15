@@ -73,6 +73,8 @@ public class StructrGlobalSchemaMethods {
 				entry.put("name",                        schemaMethod.getProperty(SchemaMethod.name));
 				entry.put("source",                      schemaMethod.getProperty(SchemaMethod.source));
 				entry.put("virtualFileName",             schemaMethod.getProperty(SchemaMethod.virtualFileName));
+				entry.put("visibleToAuthenticatedUsers", schemaMethod.getProperty(SchemaMethod.visibleToAuthenticatedUsers));
+				entry.put("visibleToPublicUsers",        schemaMethod.getProperty(SchemaMethod.visibleToPublicUsers));
 				entry.put("tags",                        schemaMethod.getProperty(SchemaMethod.tags));
 				entry.put("includeInOpenAPI",            schemaMethod.getProperty(SchemaMethod.includeInOpenAPI));
 				entry.put("summary",                     schemaMethod.getProperty(SchemaMethod.summary));
