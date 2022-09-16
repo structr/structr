@@ -45,7 +45,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String[] getParameterValues(String s) {
-		return new String[0];
+		return request.getParameterValues(s);
 	}
 
 	@Override
