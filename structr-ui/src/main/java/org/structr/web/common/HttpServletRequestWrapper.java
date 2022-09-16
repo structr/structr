@@ -45,7 +45,7 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 
 	@Override
 	public String[] getParameterValues(String s) {
-		return new String[0];
+		return getParameterMap().get(s);
 	}
 
 	@Override
@@ -98,12 +98,20 @@ public class HttpServletRequestWrapper implements HttpServletRequest {
 	public Map<String, String[]> getParameterMap() {
 		String[] parts = StringUtils.split(getQueryString(), "&");
 		Map<String, String[]> parameterMap = new HashMap();
+
 		for (String p : parts) {
 			String[] kv = StringUtils.split(p, "=");
 			if (kv.length > 1) {
 				parameterMap.put(kv[0], new String[]{kv[1]});
 			}
 		}
+
+		for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+
+			parameterMap.computeIfAbsent(entry.getKey(), k -> entry.getValue());
+		}
+
+
 		return parameterMap;
 	}
 
