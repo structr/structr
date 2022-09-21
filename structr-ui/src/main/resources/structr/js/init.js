@@ -2702,6 +2702,14 @@ let _TreeHelper = {
 			}, 500);
 		}
 	},
+	getNode: (tree, node) => {
+		return $(tree).jstree('get_node', node);
+	},
+	isNodeOpened: (tree, node) => {
+		let n = _TreeHelper.getNode(tree, node);
+
+		return n?.state.opened;
+	},
 	makeDroppable: function(tree, list) {
 		window.setTimeout(function() {
 			list.forEach(function(obj) {

@@ -1267,8 +1267,13 @@ let _Code = {
 						additionalClasses.push('icon-red');
 						break;
 					default:
-						icon = 'circle-empty';
-						additionalClasses.push('icon-blue');
+						if (entity.isStatic) {
+							icon = 'static-method';
+							additionalClasses.push('icon-blue');
+						} else {
+							icon = 'circle-empty';
+							additionalClasses.push('icon-blue');
+						}
 						break;
 				}
 				break;
@@ -1700,12 +1705,15 @@ let _Code = {
 					let clone = parameterTplRow.clone().removeClass('template');
 
 					if (parameter) {
+
 						$('input[data-parameter-property=index]', clone).val(parameter.index);
 						$('input[data-parameter-property=name]', clone).val(parameter.name);
 						$('input[data-parameter-property=parameterType]', clone).val(parameter.parameterType);
 						$('input[data-parameter-property=description]', clone).val(parameter.description);
 						$('input[data-parameter-property=exampleValue]', clone).val(parameter.exampleValue);
+
 					} else {
+
 						let maxCnt = 0;
 						for (let indexInput of apiTab[0].querySelectorAll('input[data-parameter-property=index]')) {
 							maxCnt = Math.max(maxCnt, parseInt(indexInput.value) + 1);
@@ -1785,6 +1793,9 @@ let _Code = {
 				let afterSaveCallback = () => {
 					_Code.additionalDirtyChecks = [];
 					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
+
+					// refresh parent in case icon changed
+					_TreeHelper.refreshNode('#code-tree', data.id.slice(0, data.id.lastIndexOf('-')));
 				};
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -2160,10 +2171,8 @@ let _Code = {
 		Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), null, methods, () => {
-				if (selection && selection.extended) {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-				} else {
-					_Code.refreshTree();
+				if (_TreeHelper.isNodeOpened('#code-tree', selection.source)) {
+					_TreeHelper.refreshNode('#code-tree', selection.source);
 				}
 			});
 
@@ -2187,10 +2196,8 @@ let _Code = {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), entity, entity.schemaMethods, () => {
 
-				if (selection && selection.extended) {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + selection.extended);
-				} else {
-					_Code.refreshTree();
+				if (_TreeHelper.isNodeOpened('#code-tree', selection.source)) {
+					_TreeHelper.refreshNode('#code-tree', selection.source);
 				}
 			});
 
