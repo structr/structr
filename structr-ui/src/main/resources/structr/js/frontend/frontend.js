@@ -346,6 +346,7 @@ export class Frontend {
 					container.replaceWith('');
 				}
 				container.dispatchEvent(new Event('structr-reload'));
+				this.fireEvent('reload', {target: container});
 			}
 
 			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
