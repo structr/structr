@@ -803,6 +803,9 @@ let Structr = {
 				if (error.property) {
 					errorMsg += '.' + error.property;
 				}
+				if (error.value) {
+					errorMsg += ' ' + error.value;
+				}
 				if (error.token) {
 					errorMsg += ' ' + error.token;
 				}

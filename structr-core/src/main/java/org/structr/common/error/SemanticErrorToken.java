@@ -28,10 +28,13 @@ import org.structr.core.property.PropertyKey;
 public class SemanticErrorToken extends ErrorToken {
 
 	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token) {
-		this(type, propertyKey, token, null);
+		this(type, propertyKey, token, null, null);
+	}
+	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail) {
+		this(type, propertyKey, token, detail, null);
 	}
 
-	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail) {
-		super(type, propertyKey != null ? propertyKey.jsonName() : null, token, detail);
+	public SemanticErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail, final Object value) {
+		super(type, propertyKey != null ? propertyKey.jsonName() : null, token, detail, value);
 	}
 }
