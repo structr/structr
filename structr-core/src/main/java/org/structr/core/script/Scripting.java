@@ -453,14 +453,7 @@ public class Scripting {
 	}
 
 	private static String embedInFunction(final String source, final String name) {
-
-		String functionName = "main";
-
-		if (name != null) {
-			functionName += "_" + name.replaceAll("[\\W]+", "");
-		}
-
-		return "function " + functionName + "() {\n" + source + "\n}\n\n\n" + functionName + "();";
+		return "function main() { " + source + "\n}\n" + "\n\nmain();";
 	}
 
 	// this is only public to be testable :(
