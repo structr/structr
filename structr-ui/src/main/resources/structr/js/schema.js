@@ -3225,6 +3225,7 @@ let _Schema = {
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
 					id:              method.id,
+					type:            method.type,
 					name:            method.name,
 					isStatic:        method.isStatic,
 					source:          method.source || '',
