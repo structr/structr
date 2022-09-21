@@ -79,6 +79,7 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new PropertyInfoFunction());
 		Functions.put(licenseManager, new TypeInfoFunction());
 		Functions.put(licenseManager, new EnumInfoFunction());
+		Functions.put(licenseManager, new StructrEnvFunction());
 		Functions.put(licenseManager, new DisableCascadingDeleteFunction());
 		Functions.put(licenseManager, new EnableCascadingDeleteFunction());
 		Functions.put(licenseManager, new DisableNotificationsFunction());
