@@ -27,7 +27,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class MatchToken extends SemanticErrorToken {
 
-	public MatchToken(final String type, final PropertyKey propertyKey, String expression) {
-		super(type, propertyKey, "must_match", expression);
+	public MatchToken(final String type, final PropertyKey propertyKey, final String expression, final Object value) {
+		super(type, propertyKey, "must_match", expression, value);
 	}
 }

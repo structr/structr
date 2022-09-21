@@ -165,7 +165,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, expression));
+		errorBuffer.add(new MatchToken(node.getType(), key, expression, value));
 		return false;
 	}
 
