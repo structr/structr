@@ -29,6 +29,7 @@ import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
+import org.structr.core.function.StructrEnvFunction;
 import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
@@ -63,40 +64,8 @@ public class EnvResource extends Resource {
 	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		final List<GraphObjectMap> resultList             = new LinkedList<>();
-		final GraphObjectMap info                         = new GraphObjectMap();
 
-		info.setProperty(new GenericProperty("modules"),                        VersionHelper.getModules());
-		info.setProperty(new GenericProperty("components"),                     VersionHelper.getComponents());
-		info.setProperty(new StringProperty("classPath"),                       VersionHelper.getClassPath());
-		info.setProperty(new StringProperty("instanceName"),                    VersionHelper.getInstanceName());
-		info.setProperty(new StringProperty("instanceStage"),                   VersionHelper.getInstanceStage());
-		info.setProperty(new ArrayProperty("mainMenu", String.class),           VersionHelper.getMenuEntries());
-		info.setProperty(new ArrayProperty("availableMenuItems", String.class), VersionHelper.getAvailableMenuItems());
-
-		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
-		if (licenseManager != null) {
-
-			info.setProperty(new StringProperty("edition"),  licenseManager.getEdition());
-			info.setProperty(new StringProperty("licensee"), licenseManager.getLicensee());
-			info.setProperty(new StringProperty("hostId"),   licenseManager.getHardwareFingerprint());
-			info.setProperty(new DateProperty("startDate"),  licenseManager.getStartDate());
-			info.setProperty(new DateProperty("endDate"),    licenseManager.getEndDate());
-
-		} else {
-
-			info.setProperty(new StringProperty("edition"),  "Community");
-			info.setProperty(new StringProperty("licensee"), "Unlicensed");
-		}
-
-		info.setProperty(new GenericProperty("databaseService"), Services.getInstance().getDatabaseService().getClass().getSimpleName());
-		info.setProperty(new GenericProperty("resultCountSoftLimit"), Settings.ResultCountSoftLimit.getValue());
-		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
-		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
-
-		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
-		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
-
-		resultList.add(info);
+		resultList.add(StructrEnvFunction.getStructrEnv());
 
 		return new PagingIterable("/" + getUriPart(), resultList);
 	}

@@ -121,7 +121,7 @@ let _Icons = {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use xlink:href="#${id}"></use></svg>`;
+		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use href="#${id}"></use></svg>`;
 	},
 
 	updateSvgIconInElement: (element, from, to) => {
@@ -132,7 +132,7 @@ let _Icons = {
 			return false;
 		}
 
-		use.setAttribute('xlink:href', '#' + to);
+		use.setAttribute('href', '#' + to);
 		return true;
 	},
 
@@ -144,7 +144,7 @@ let _Icons = {
 			return false;
 		}
 
-		return use.getAttribute('xlink:href').slice(1);
+		return use.getAttribute('href').slice(1);
 	},
 
 	hasSvgIcon: (element, icon) => {

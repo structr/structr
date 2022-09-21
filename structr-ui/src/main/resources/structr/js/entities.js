@@ -2456,9 +2456,9 @@ let _Entities = {
 
 			let newIconId = _Entities.getNewAccessControlIconId(entity);
 
-			// replace only xlink:href to keep bindings intact
+			// replace only href to keep bindings intact
 			let use = svgKeyIcon.querySelector(':scope > use');
-			use.setAttribute('xlink:href', '#' + newIconId);
+			use.setAttribute('href', '#' + newIconId);
 
 			if (svgKeyIcon.dataset['onlyShowWhenProtected'] === 'true') {
 

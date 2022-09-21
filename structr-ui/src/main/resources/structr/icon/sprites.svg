@@ -254,6 +254,10 @@
 	<symbol id="circle-empty" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
 		<path d="M0.750 12.000 A11.250 11.250 0 1 0 23.250 12.000 A11.250 11.250 0 1 0 0.750 12.000 Z"></path>
 	</symbol>
+	<symbol id="static-method" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+		<use href="#circle-empty"></use>
+		<text x="12" y="13" fill="currentColor" dominant-baseline="middle" text-anchor="middle">S</text>
+	</symbol>
 
 	<!-- overlay icons for bottom right corner -->
 	<symbol id="overlay-plus" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5">

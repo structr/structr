@@ -959,7 +959,10 @@ let _Dashboard = {
 
 				for (let mainMenuItem of userConfigMenu.main) {
 					if (Structr.availableMenuItems.includes(mainMenuItem)) {
-						mainMenuConfigContainer.appendChild(subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]'));
+						let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
+						if (child) {
+							mainMenuConfigContainer.appendChild(child);
+						}
 					}
 				}
 

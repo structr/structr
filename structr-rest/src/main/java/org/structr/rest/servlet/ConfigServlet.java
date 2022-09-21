@@ -592,7 +592,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag body     = setupDocument(request, doc).css("login");
 		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
-		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("xlink:href", "#structr-logo"));
+		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("href", "#structr-logo"));
 		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super-user</b> password which can be found in your structr.conf.");
 
 		final Tag form     = loginBox.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
@@ -605,7 +605,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag row2     = table.block("tr");
 		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
 		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login")).css("inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green");
-		button.block("svg").attr(new Attr("width", 16), new Attr("height", 16)).css("mr-2").block("use").attr(new Attr("xlink:href", "#visibility-lock-key"));
+		button.block("svg").attr(new Attr("width", 16), new Attr("height", 16)).css("mr-2").block("use").attr(new Attr("href", "#visibility-lock-key"));
 		button.block("span").text(" Login");
 
 		cell13.empty("input").attr(new Type("hidden"), new Name("action"), new Value("login"));
@@ -633,7 +633,7 @@ public class ConfigServlet extends AbstractServletBase {
 		final Tag body = doc.block("body");
 		final Tag header = body.block("div").id("header");
 
-		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("xlink:href", "#structr-logo"));
+		header.block("svg").attr(new Attr("title", "Structr Logo")).css("logo").block("use").attr(new Attr("href", "#structr-logo"));
 		final Tag links = header.block("div").id("menu").css("menu").block("ul");
 
 		if (isAuthenticated(request)) {
@@ -812,7 +812,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 
-		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("xlink:href", "#circle_plus"));
+		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("href", "#circle_plus"));
 	}
 
 	private Tag header(final Tag container, final String title) {

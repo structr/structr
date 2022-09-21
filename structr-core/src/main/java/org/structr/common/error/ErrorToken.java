@@ -38,11 +38,18 @@ public abstract class ErrorToken {
 	private Object value    = null;
 
 	public ErrorToken(final String type, final String property, final String token, final Object detail) {
-
 		this.type     = type;
 		this.property = property;
 		this.token    = token;
 		this.detail   = detail;
+	}
+
+	public ErrorToken(final String type, final String property, final String token, final Object detail, final Object value) {
+		this.type     = type;
+		this.property = property;
+		this.token    = token;
+		this.detail   = detail;
+		this.value    = value;
 	}
 
 	public String getProperty() {
@@ -75,11 +82,14 @@ public abstract class ErrorToken {
 
 		token.add("type",     getStringOrNull(getType()));
 		token.add("property", getStringOrNull(getProperty()));
+
+		// optional value
+		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
+
 		token.add("token",    getStringOrNull(getToken()));
 
-		// optional
+		// optional detail
 		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
-		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
 
 		return token;
 	}
@@ -98,6 +108,12 @@ public abstract class ErrorToken {
 
 			buf.append(".");
 			buf.append(property);
+		}
+
+		if (value != null) {
+
+			buf.append(" ");
+			buf.append(value);
 		}
 
 		if (token != null) {

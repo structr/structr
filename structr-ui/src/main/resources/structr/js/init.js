@@ -803,6 +803,9 @@ let Structr = {
 				if (error.property) {
 					errorMsg += '.' + error.property;
 				}
+				if (error.value) {
+					errorMsg += ' ' + error.value;
+				}
 				if (error.token) {
 					errorMsg += ' ' + error.token;
 				}
@@ -2701,6 +2704,14 @@ let _TreeHelper = {
 				callback();
 			}, 500);
 		}
+	},
+	getNode: (tree, node) => {
+		return $(tree).jstree('get_node', node);
+	},
+	isNodeOpened: (tree, node) => {
+		let n = _TreeHelper.getNode(tree, node);
+
+		return n?.state.opened;
 	},
 	makeDroppable: function(tree, list) {
 		window.setTimeout(function() {

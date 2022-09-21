@@ -2055,7 +2055,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 		@Override
 		public Map<String, String[]> getParameterMap() {
-			throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+			return new HashMap<>();
 		}
 
 		@Override
