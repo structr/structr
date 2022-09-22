@@ -2171,9 +2171,7 @@ let _Code = {
 		Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), null, methods, () => {
-				if (_TreeHelper.isNodeOpened('#code-tree', selection.source)) {
-					_TreeHelper.refreshNode('#code-tree', selection.source);
-				}
+				_TreeHelper.refreshNode('#code-tree', selection.source);
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -2195,10 +2193,7 @@ let _Code = {
 		Command.get(selection.typeId, null, (entity) => {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), entity, entity.schemaMethods, () => {
-
-				if (_TreeHelper.isNodeOpened('#code-tree', selection.source)) {
-					_TreeHelper.refreshNode('#code-tree', selection.source);
-				}
+				_TreeHelper.refreshNode('#code-tree', selection.source);
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
