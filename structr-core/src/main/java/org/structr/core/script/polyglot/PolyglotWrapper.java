@@ -45,6 +45,10 @@ public abstract class PolyglotWrapper {
 			return null;
 		}
 
+		if (obj instanceof Value) {
+			return obj;
+		}
+
 		if (obj instanceof NonWrappableObject) {
 
 			return ((NonWrappableObject)obj).unwrap();
@@ -206,7 +210,7 @@ public abstract class PolyglotWrapper {
 				return convertValueToList(actionContext, value);
 			}
 
-			if (value.hasMembers()) {
+			if (value.hasMembers() && value.getMetaObject().getMetaSimpleName().toLowerCase().equals("object")) {
 
 				return convertValueToMap(actionContext, value);
 			}
@@ -216,7 +220,7 @@ public abstract class PolyglotWrapper {
 				return null;
 			}
 
-			return unwrap(actionContext, value.as(Object.class));
+			return value;
 		}
 
 		if (obj instanceof GraphObjectWrapper) {
