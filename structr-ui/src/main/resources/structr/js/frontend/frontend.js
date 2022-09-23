@@ -176,40 +176,34 @@ export class Frontend {
 		}
 	}
 
-	handleResult(element, json, status) {
+	handleResult(element, json, status, options) {
 
 		switch (status) {
 
 			case 200:
-				this.handleSuccessResult(element, json.result, status);
-				break;
-
-			case 401:
-			case 403:
-				this.resetValue(element);
-				this.fireEvent('forbidden', { target: element, data: json, status: status });
-				break;
-
-			case 404:
-				this.resetValue(element);
-				this.fireEvent('notfound', { target: element, data: json, status: status });
+				this.fireEvent('success', { target: element, data: json, status: status });
+				this.processReloadTargets(element, json.result, status, options);
 				break;
 
 			case 400:
+			case 401:
+			case 403:
+			case 404:
+			case 405:
 			case 422:
 			case 500:
 			case 503:
-				this.resetValue(element);
 				this.fireEvent('error', { target: element, data: json, status: status });
+				this.processReloadTargets(element, json, status, options);
 				break;
+		}
+
+		if (options.resetValue === true) {
+			this.resetValue(element);
 		}
 	}
 
-	handleSuccessResult(element, parameters, status) {
-
-		// result is deprecated, use success here..
-		this.fireEvent('result', { target: element, data: parameters, status: status });
-		this.fireEvent('success', { target: element, data: parameters, status: status });
+	processReloadTargets(element, parameters, status, options) {
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -241,6 +235,12 @@ export class Frontend {
 
 					element.dispatchEvent(new CustomEvent(event, { detail: { result: parameters, status: status } }));
 
+				} else if (reloadTarget.indexOf('template:') === 0) {
+
+					let selector = reloadTarget.substring(9);
+
+					this.instantiateTemplate(selector, parameters, status, options);
+
 				} else if (reloadTarget === 'none') {
 
 					// do nothing
@@ -260,7 +260,7 @@ export class Frontend {
 		}
 	}
 
-	handleError(element, error, status) {
+	handleNetworkError(element, error, status) {
 
 		console.log(error);
 
@@ -289,12 +289,7 @@ export class Frontend {
 
 			if (!id || id.length !== 32) {
 
-				//console.log('Container with selector ' + selector + ' has no data-structr-id attribute, trying resolution by CSS selector...');
 				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
-
-				//console.log(match[0], match[1], match[2]);
-
-				// Try to find element by selector
 				let attrKey, attrVal;
 				if (match[0] && match[0].startsWith('#')) {
 					attrKey = '_html_id';
@@ -318,6 +313,7 @@ export class Frontend {
 				});
 
 			} else {
+
 				this.replacePartial(container, id, element, data, parameters, dontRebind);
 			}
 
@@ -361,7 +357,7 @@ export class Frontend {
 			}
 
 		}).catch(e => {
-			this.handleError(element, e, {});
+			this.handleNetworkError(element, e, {});
 		});
 
 	}
@@ -387,8 +383,58 @@ export class Frontend {
 			this.bindEvents();
 
 		}).catch(e => {
-			this.handleError(container, e, {});
+			this.handleNetworkError(container, e, {});
 		});
+	}
+
+	instantiateTemplate(selector, data, status, options) {
+
+		let templates = document.querySelectorAll(selector);
+
+		if (!templates.length) {
+			console.log('Template with selector ' + selector + ' not found.');
+			return;
+		}
+
+		for (let template of templates) {
+
+			if (template && template.dataset.structrId) {
+
+				let id = template.dataset.structrId;
+				if (id) {
+
+					fetch('/structr/html/' + id, {
+						body: JSON.stringify({
+							status: status,
+							data: data
+						}),
+						contentType: 'application/json',
+						method: 'post',
+						credentials: 'same-origin'
+					})
+					.then(response => response.text())
+					.then(html => {
+
+						// find existing template element and remove first
+						let existing = document.querySelector('*[data-structr-template-id="' + id + '"]');
+						if (existing) {
+
+							existing.remove();
+						}
+
+						template.parentNode.insertAdjacentHTML('beforeend', html);
+						this.bindEvents();
+
+						let fragment = document.querySelector('*[data-structr-template-id="' + id + '"]');
+						if (fragment) {
+
+							window.setTimeout(() => fragment.remove(), options.hideTimeout || 2000);
+						}
+					})
+					.catch(error => this.handleNetworkError(template, error, {}));
+				}
+			}
+		}
 	}
 
 	/**
@@ -475,26 +521,13 @@ export class Frontend {
 		let target     = event.currentTarget;
 		let data       = target.dataset;
 		let id         = data.structrId;
+		let options    = this.parseOptions(target);
 		let delay      = 0;
 
-		// adjust debounce delay if set
-		if (data && data.structrOptions) {
-			try {
-
-				let options = JSON.parse(data.structrOptions);
-				if (options) {
-
-					if (options.delay) {
-						delay = options.delay;
-					}
-
-					if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
-					if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
-				}
-			} catch (e) {
-				console.error(e);
-			}
-		}
+		// handle options
+		if (options.delay) { delay = options.delay; }
+		if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
+		if (options.stopPropagation !== undefined) { stopPropagation = options.stopPropagation; }
 
 		// allow element to override preventDefault and stopPropagation
 		if (preventDefault) { event.preventDefault(); }
@@ -502,7 +535,7 @@ export class Frontend {
 
 		if (delay === 0) {
 
-			this.doHandleGenericEvent(event, target, data);
+			this.doHandleGenericEvent(event, target, data, options);
 
 		} else {
 
@@ -510,11 +543,11 @@ export class Frontend {
 				window.clearTimeout(this.timeout);
 			}
 
-			this.timeout = window.setTimeout(() => this.doHandleGenericEvent(event, target, data), delay);
+			this.timeout = window.setTimeout(() => this.doHandleGenericEvent(event, target, data, options), delay);
 		}
 	}
 
-	doHandleGenericEvent(event, target, data) {
+	doHandleGenericEvent(event, target, data, options) {
 
 		let id = data.structrId;
 
@@ -544,12 +577,11 @@ export class Frontend {
 				method: 'post',
 				credentials: 'same-origin'
 			})
-
 			.then(response => {
 				return response.json().then(json => ({ json: json, status: response.status, statusText: response.statusText }))
 			})
-			.then(response => this.handleResult(target, response.json, response.status))
-			.catch(error   => this.handleError(target, error, {}));
+			.then(response => this.handleResult(target, response.json, response.status, options))
+			.catch(error   => this.handleNetworkError(target, error, {}));
 		}
 	}
 
@@ -639,6 +671,25 @@ export class Frontend {
 		}
 
 		return result;
+	}
+
+	parseOptions(target) {
+
+		let data = target.dataset;
+
+		// adjust debounce delay if set
+		if (data && data.structrOptions) {
+
+			try {
+
+				return JSON.parse(data.structrOptions);
+
+			} catch (e) {
+				console.error(e);
+			}
+		}
+
+		return {};
 	}
 
 	handleDragStart(event) {

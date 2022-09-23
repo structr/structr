@@ -36,7 +36,7 @@ let _Elements = {
 	elementGroups: [
 		{
 			name: 'Root',
-			elements: ['html', 'content', 'comment', 'template']
+			elements: ['html', '#content', '#comment', '#template']
 		},
 		{
 			name: 'Metadata',
@@ -227,7 +227,7 @@ let _Elements = {
 		},
 		{
 			name: 't',
-			elements: ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track']
+			elements: ['table', 'tbody', 'td', 'template', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track']
 		},
 		{
 			name: 'u-w',
@@ -486,7 +486,7 @@ let _Elements = {
 					forcedClickHandler(itemText);
 				} else {
 					let pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
-					let tagName = (itemText === 'content') ? null : itemText;
+					let tagName = itemText;
 
 					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibilityFlagsChecked());
 				}

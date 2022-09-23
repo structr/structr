@@ -21,10 +21,8 @@ package org.structr.websocket.command.dom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
@@ -93,35 +91,8 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 
 				try {
 
-					DOMNode newNode;
-
-					if (tagName != null && "comment".equals(tagName)) {
-
-						newNode = (DOMNode) document.createComment("#comment");
-
-					} else if (tagName != null && "template".equals(tagName)) {
-
-						newNode = (DOMNode) document.createTextNode("#template");
-
-						try {
-
-							newNode.unlockSystemPropertiesOnce();
-
-							newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
-
-						} catch (FrameworkException fex) {
-
-							logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-
-						}
-
-					} else if (tagName != null && !tagName.isEmpty()) {
-
-						newNode = (DOMNode) document.createElement(tagName);
-
-					} else {
-
-						getWebSocket().send(MessageBuilder.status().code(404).message("Cannot create node without tagname").build(), true);
+					DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
+					if (newNode == null) {
 						return;
 					}
 

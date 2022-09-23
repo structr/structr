@@ -221,7 +221,7 @@ let _Pages = {
 
 		let handleInsertHTMLAction = function (itemText) {
 			let pageId = isPage ? entity.id : entity.pageId;
-			let tagName = (itemText === 'content') ? null : itemText;
+			let tagName = itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked());
 		};
@@ -249,7 +249,7 @@ let _Pages = {
 
 			elements.push({
 				name: 'Insert content element',
-				elements: !isPage ? ['content', 'template'] : ['template'],
+				elements: !isPage ? ['#content', '#template'] : ['#template'],
 				forcedClickHandler: handleInsertHTMLAction
 			});
 
@@ -286,7 +286,7 @@ let _Pages = {
 					},
 					{
 						name: '... Content element',
-						elements: ['content', 'template'],
+						elements: ['#content', '#template'],
 						forcedClickHandler: handleInsertBeforeAction
 					},
 					{
@@ -308,7 +308,7 @@ let _Pages = {
 					},
 					{
 						name: '... Content element',
-						elements: ['content', 'template'],
+						elements: ['#content', '#template'],
 						forcedClickHandler: handleInsertAfterAction
 					},
 					{
@@ -367,7 +367,7 @@ let _Pages = {
 					{
 						name: '... Template element',
 						clickHandler: function () {
-							handleWrapInHTMLAction('template');
+							handleWrapInHTMLAction('#template');
 						}
 					},
 					{
@@ -763,7 +763,7 @@ let _Pages = {
 			dialog.append(`
 				<h3>Create page from source code ...</h3>
 				<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
-				
+
 				<h3>... or fetch page from URL: <input id="_address" name="address" size="40" value="http://"></h3>
 				<table class="props">
 					<tr>
@@ -2133,7 +2133,7 @@ let _Pages = {
 			let html = `
 				<div class="inner">
 					<div class="mr-12" id="design-tools-area">
-						
+
 						<h3>Import from page</h3>
 						<div class="w-full mb-4">
 							<label class="block mb-2" for="design-tools-url-input">Enter URL of example page to preview</label>
@@ -2154,7 +2154,7 @@ let _Pages = {
 						<div class="w-full mb-8">
 							<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-page-button">Create new page</button>
 						</div>
-						
+
 						<h3>Select element</h3>
 						<p>Hover over elements in the preview page. Click to select and lock an element.</p>
 						<div class="grid grid-cols-6 gap-4">
@@ -2197,7 +2197,7 @@ let _Pages = {
 							</div>
 
 						</div>
-						
+
 
 					</div>
 				</div>
@@ -2828,11 +2828,11 @@ let _Pages = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
-			
+
 			<div class="column-resizer-blocker"></div>
 			<div class="column-resizer column-resizer-left hidden"></div>
 			<div class="column-resizer column-resizer-right hidden"></div>
-			
+
 			<div class="slideout-activator left" id="pagesTab">
 				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
 					<g transform="matrix(1,0,0,1,0,0)">
@@ -2842,7 +2842,7 @@ let _Pages = {
 				<br>
 				Page Tree
 			</div>
-			
+
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
 					<div id="pagesPager">
@@ -2851,22 +2851,22 @@ let _Pages = {
 							<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category" />
 						</div>
 					</div>
-			
+
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon('circle_plus')}
 						</button>
 						<div class="dropdown-menu-container">
-						
+
 							<div class="flex flex-col divide-x-0 divide-y">
 								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Page
 								</a>
-								
+
 								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('file_add', 16, 16, 'mr-2')} Import Page
 								</a>
-								
+
 								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 									${_Icons.getSvgIcon('magic_wand')} Add Template
 								</a-->
@@ -2876,7 +2876,7 @@ let _Pages = {
 				</div>
 				<div id="pagesTree"></div>
 			</div>
-			
+
 			<div class="slideout-activator left" id="localizationsTab">
 				<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 28 28" width="24" height="24">
 					<g transform="matrix(1,0,0,1,0,0)">
@@ -2886,7 +2886,7 @@ let _Pages = {
 				<br>
 				Trans-<br>lations
 			</div>
-			
+
 			<div id="localizations" class="slideOut slideOutLeft">
 				<div class="page inner">
 					<div class="localizations-inputs flex">
@@ -2894,13 +2894,13 @@ let _Pages = {
 						<input class="locale" placeholder="Locale">
 						<button class="refresh action button flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
 					</div>
-			
+
 					<div class="results"></div>
 				</div>
 			</div>
-			
+
 			<div id="center-pane"></div>
-			
+
 			<div class="slideout-activator right" id="widgetsTab">
 				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
@@ -2910,12 +2910,12 @@ let _Pages = {
 				<br>
 				Widgets
 			</div>
-			
+
 			<div id="widgetsSlideout" class="slideOut slideOutRight">
 			</div>
-			
+
 			<div class="slideout-activator right" id="paletteTab">
-				<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">  
+				<svg height="24" width="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)"><g>
 						<rect x="0.75" y="0.75" width="22.5" height="22.5" rx="1.5" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
 						<rect x="4.25" y="4.25" width="9.5" height="9.5" rx="0.75" style="fill: none;stroke: currentColor;stroke-linecap: round;stroke-linejoin: round;stroke-width: 1.5px"></rect>
@@ -2928,11 +2928,11 @@ let _Pages = {
 					  </g></g></svg>
 				<br>Design Tools
 			</div>
-			
+
 			<div id="palette" class="slideOut slideOutRight">
 				<div id="paletteArea"></div>
 			</div>
-			
+
 			<div class="slideout-activator right" id="componentsTab">
 				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
@@ -2942,11 +2942,11 @@ let _Pages = {
 				<br>
 				Shared Comp.
 			</div>
-			
+
 			<div id="components" class="slideOut slideOutRight">
 				<div class="inner"></div>
 			</div>
-			
+
 			<div class="slideout-activator right" id="elementsTab">
 				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg">
 					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
@@ -2956,7 +2956,7 @@ let _Pages = {
 				<br>
 				Recycle Bin
 			</div>
-			
+
 			<div id="elements" class="slideOut slideOutRight">
 				<div id="elementsArea"></div>
 			</div>
@@ -3006,7 +3006,7 @@ let _Pages = {
 		`,
 		events: config => `
 			<div class="content-container">
-			
+
 				<div class="inline-info">
 					<div class="inline-info-icon">
 						${_Icons.getSvgIcon('info-icon', 24, 24)}
@@ -3016,7 +3016,7 @@ let _Pages = {
 						Actions can be triggered by specific events like click on an element, change a value or select option, or if an element looses the focus.
 					</div>
 				</div>
-			
+
 				<div class="events-container"></div>
 			</div>
 		`,
@@ -3032,7 +3032,7 @@ let _Pages = {
 		`,
 		repeater: config => `
 			<div class="content-container">
-			
+
 				<div class="inline-info">
 					<div class="inline-info-icon">
 						${_Icons.getSvgIcon('info-icon', 24, 24)}
@@ -3043,18 +3043,18 @@ let _Pages = {
 						The respective result element can be accessed via a keyword configured further below.
 					</div>
 				</div>
-			
+
 				<div class="flex flex-col h-full repeater-container">
 					<h3>Result Collection</h3>
-			
+
 					<div class="query-type-buttons"></div>
-			
+
 					<select class="hidden" id="flow-selector"></select>
 					<div class="hidden flex-grow query-text"></div>
 					<div>
 						<button class="save-repeater-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
 					</div>
-					
+
 					<div class="my-8">
 						<h3>Repeater Keyword</h3>
 						<p>
