@@ -2760,7 +2760,7 @@ let _Code = {
 	},
 	cancelSearch: () => {
 		$('#tree-search-input').val('');
-		$('#tree-search-input').trigger('input');
+		_Code.doSearch();
 	},
 	activateLastClicked: () => {
 		_Code.findAndOpenNode(_Code.lastClickedPath);
@@ -2774,11 +2774,10 @@ let _Code = {
 
 		let parent = parts.join('-');
 
-		Structr.confirmation('<h3>' + title + '</h3><p>' + (text || '') + '</p>',
-			function() {
-				$.unblockUI({
-					fadeOut: 25
-				});
+		Structr.confirmationPromiseNonBlockUI(`<h3>${title}</h3><p>${(text || '')}</p>`).then((answer) => {
+
+			if (answer === true) {
+
 				_Code.showSchemaRecompileMessage();
 				_Code.dirty = false;
 
@@ -2789,7 +2788,7 @@ let _Code = {
 					_Code.refreshTree();
 				});
 			}
-		);
+		});
 	},
 	runGlobalSchemaMethod: (schemaMethod) => {
 
@@ -2960,7 +2959,7 @@ let _Code = {
 				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-back-button" title="Back" disabled>
 					<i class="fa fa-caret-left"></i>
 				</button>
-				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search..">
+				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
 				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-forward-button" title="Forward" disabled>
 					<i class="fa fa-caret-right"></i>
 				</button>
