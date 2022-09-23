@@ -359,7 +359,7 @@ let _Widgets = {
 				var part = parts[i];
 				if (part) {
 
-					let lowerPart = part.toLowerCase().replace(/ /g, '');
+					let lowerPart = part.toLowerCase().replace(/\W/g, '');
 					let idString = lowerPart + suffix;
 					let newParent = $('#' + idString + '_folder');
 
