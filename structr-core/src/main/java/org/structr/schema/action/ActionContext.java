@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.apache.commons.lang3.StringUtils;
 import org.graalvm.polyglot.Context;
+import org.graalvm.polyglot.Source;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -620,7 +621,7 @@ public class ActionContext {
 		return this.securityContext.getContextStore();
 	}
 
-	public String getJavascriptLibraryCode(String fileName) {
+	public Source getJavascriptLibraryCode(String fileName) {
 		return this.securityContext.getJavascriptLibraryCode(fileName);
 	}
 

@@ -45,7 +45,7 @@ public class IncludeJSFunction implements ProxyExecutable {
 
 			sourceFileName = (String)args[0];
 
-			Context.getCurrent().eval("js", actionContext.getJavascriptLibraryCode(sourceFileName));
+			Context.getCurrent().eval(actionContext.getJavascriptLibraryCode(sourceFileName));
 		}
 
 		return null;
