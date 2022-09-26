@@ -1818,10 +1818,10 @@ let _Code = {
 			});
 
 			// run button and global schema method flags
-			if (!result.schemaNode && !result.isPartOfBuiltInSchema) {
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
-					_Code.runGlobalSchemaMethod(result);
+					_Code.runSchemaMethod(result);
 				});
 
 				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
@@ -2790,9 +2790,17 @@ let _Code = {
 			}
 		});
 	},
-	runGlobalSchemaMethod: (schemaMethod) => {
+	getUrlForSchemaMethod: (schemaMethod) => {
+		return Structr.rootUrl +
+			((schemaMethod.schemaNode === null) ? 'maintenance/globalSchemaMethods/' : schemaMethod.schemaNode.name + '/' )+
+			schemaMethod.name;
+	},
+	runSchemaMethod: (schemaMethod) => {
 
-		Structr.dialog('Run global schema method ' + schemaMethod.name, () => {}, () => {
+		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
+		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
+
+		Structr.dialog('Run global schema method ' + name, () => {}, () => {
 			document.querySelector('#run-method')?.remove();
 			document.querySelector('#clear-log')?.remove();
 		}, ['run-global-schema-method-dialog']);
@@ -2859,7 +2867,7 @@ let _Code = {
 				}
 			}
 
-			let response = await fetch(Structr.rootUrl + 'maintenance/globalSchemaMethods/' + schemaMethod.name, {
+			let response = await fetch(url, {
 				method: 'POST',
 				body: JSON.stringify(params)
 			});
