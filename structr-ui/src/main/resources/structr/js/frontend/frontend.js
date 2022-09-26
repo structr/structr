@@ -203,7 +203,7 @@ export class Frontend {
 		}
 	}
 
-	processReloadTargets(element, parameters, status, options) {
+	async processReloadTargets(element, parameters, status, options) {
 
 		if (element.dataset.structrReloadTarget) {
 
@@ -211,35 +211,34 @@ export class Frontend {
 
 			for (let reloadTarget of reloadTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
-				if (reloadTarget.indexOf('url:') === 0) {
+				if (reloadTarget.indexOf(':') !== -1) {
 
-					let url     = reloadTarget.substring(4).replaceAll('{', '${');
-					let replace = new Function('result', 'return `' + url + '`;');
-					let value   = replace(parameters);
+					let moduleName = reloadTarget.substring(0, reloadTarget.indexOf(':'));
+					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
+					if (module) {
 
-					window.location.href = value;
+						if (module.Handler) {
 
-				} else if (reloadTarget.indexOf('css:') === 0) {
+							let handler = new module.Handler(this);
 
-					let css = reloadTarget.substring(4);
+							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
 
-					element.classList.add(css);
+								handler.handleReloadTarget(reloadTarget, element, parameters, status, options);
 
-					window.setTimeout(() => {
-						element.classList.remove(css);
-					}, 1000);
+							} else {
 
-				} else if (reloadTarget.indexOf('event:') === 0) {
+								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
+							}
 
-					let event = reloadTarget.substring(6);
+						} else {
 
-					element.dispatchEvent(new CustomEvent(event, { detail: { result: parameters, status: status } }));
+							throw `Module for behaviour ${moduleName} has no class "Handler".`;
+						}
 
-				} else if (reloadTarget.indexOf('template:') === 0) {
+					} else {
 
-					let selector = reloadTarget.substring(9);
-
-					this.instantiateTemplate(selector, parameters, status, options);
+						throw `No module found for behaviour ${moduleName}.`;
+					}
 
 				} else if (reloadTarget === 'none') {
 
