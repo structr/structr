@@ -1127,6 +1127,51 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.when()
 				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO 18]"));
+
+		// test simple related node search with range query (with null start)
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(1))
+				.body("result_count", equalTo(1))
+				.body("result[0].id", equalTo(test10))
+
+				.when()
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[ TO 13]"));
+
+		// test simple related node search with range query (with null end)
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].id", equalTo(test14))
+				.body("result[1].id", equalTo(test15))
+
+				.when()
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO ]"));
 	}
 
 	/**
