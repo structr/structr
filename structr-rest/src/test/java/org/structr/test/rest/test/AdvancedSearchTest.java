@@ -1082,6 +1082,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
 		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
 		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test21 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test03, "], aString: string21, anInt: 21 }");
 
 		// test simple related node search
 		RestAssured
@@ -1143,12 +1144,13 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.expect()
 				.statusCode(200)
 
-				.body("result",	      hasSize(1))
-				.body("result_count", equalTo(1))
-				.body("result[0].id", equalTo(test10))
+				.body("result",	      hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].id", equalTo(test14))
+				.body("result[1].id", equalTo(test15))
 
 				.when()
-				.get(concat("/test_sixs/", test03, "/testEights?anInt=[ TO 13]"));
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[ TO 15]"));
 
 		// test simple related node search with range query (with null end)
 		RestAssured
@@ -1167,11 +1169,11 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				.body("result",	      hasSize(2))
 				.body("result_count", equalTo(2))
-				.body("result[0].id", equalTo(test14))
-				.body("result[1].id", equalTo(test15))
+				.body("result[0].id", equalTo(test15))
+				.body("result[1].id", equalTo(test21))
 
 				.when()
-				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO ]"));
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[15 TO ]"));
 	}
 
 	/**
