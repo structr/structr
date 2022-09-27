@@ -652,7 +652,7 @@ let _Dashboard = {
 						for (let method of data.result) {
 
 							maintenanceList.querySelector('button#run-' + method.id).addEventListener('click', () => {
-								_Code.runGlobalSchemaMethod(method);
+								_Code.runSchemaMethod(method);
 							});
 						}
 					}

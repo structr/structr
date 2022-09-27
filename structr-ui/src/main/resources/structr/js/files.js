@@ -1546,14 +1546,14 @@ let _Files = {
 
 		let language = file.contentType;
 
-		if (language === 'application/javascript') {
+		if (language.startsWith('application/javascript')) {
 			language = 'javascript';
 		}
 
 		if (!language) {
 			if (file.name.endsWith('.css')) {
 				language = 'css';
-			} else if (file.name.endsWith('.js')) {
+			} else if (file.name.endsWith('.js') || file.name.endsWith('.mjs')) {
 				language = 'javascript';
 			} else {
 				language = 'text';

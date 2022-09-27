@@ -3380,7 +3380,7 @@ let _Schema = {
 							Command.get(entity.id, null, (reloadedEntity) => {
 
 								el.empty();
-								_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods);
+								_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
 
 								if (optionalAfterSaveCallback) {
@@ -3392,7 +3392,7 @@ let _Schema = {
 
 							Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 								el.empty();
-								_Schema.methods.appendMethods(el, null, methods);
+								_Schema.methods.appendMethods(el, null, methods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
 
 								if (optionalAfterSaveCallback) {
