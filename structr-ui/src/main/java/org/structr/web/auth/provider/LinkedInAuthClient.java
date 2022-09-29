@@ -20,22 +20,25 @@ package org.structr.web.auth.provider;
 
 import com.github.scribejava.apis.LinkedInApi20;
 import com.github.scribejava.core.builder.ServiceBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.web.auth.AbstractOAuth2Client;
 
 public class LinkedInAuthClient extends AbstractOAuth2Client {
+
 	private static final Logger logger = LoggerFactory.getLogger(LinkedInAuthClient.class);
 
 	private final static String authServer = "linkedin";
 
-	public LinkedInAuthClient() {
-		super(authServer);
+	public LinkedInAuthClient(final HttpServletRequest request) {
+
+		super(request, authServer);
 
 		service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.callback(redirectUri)
-				.defaultScope("r_liteprofile r_emailaddress")
+				.defaultScope(scope)
 				.build(LinkedInApi20.instance());
 	}
 }

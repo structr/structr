@@ -24,6 +24,7 @@ import com.github.scribejava.core.model.Response;
 import com.github.scribejava.core.model.Verb;
 import com.github.scribejava.core.oauth.OAuth20Service;
 import com.google.gson.Gson;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 
 public abstract class AbstractOAuth2Client implements OAuth2Client {
+
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOAuth2Client.class);
 
 	protected final String provider;
@@ -49,20 +51,29 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	protected final String errorUri;
 	protected final String logoutUri;
 	protected final String userDetailsURI;
+	protected final String scope;
 
 	protected OAuth20Service service;
 
-	public AbstractOAuth2Client(final String provider) {
-		this.provider = provider;
-		authLocation = Settings.getOrCreateStringSetting("oauth", provider, "authorization_location").getValue("");
-		tokenLocation = Settings.getOrCreateStringSetting("oauth", provider, "token_location").getValue("");
-		clientId = Settings.getOrCreateStringSetting("oauth", provider, "client_id").getValue("");
-		clientSecret = Settings.getOrCreateStringSetting("oauth", provider, "client_secret").getValue("");
-		redirectUri = Settings.getOrCreateStringSetting("oauth", provider, "redirect_uri").getValue("");
-		returnUri = Settings.getOrCreateStringSetting("oauth", provider, "return_uri").getValue("");
-		errorUri = Settings.getOrCreateStringSetting("oauth", provider, "error_uri").getValue("");
-		logoutUri = Settings.getOrCreateStringSetting("oauth", provider, "logout_uri").getValue("");
+	public AbstractOAuth2Client(final HttpServletRequest request, final String provider) {
+
+		this.provider  = provider;
+
+		authLocation   = Settings.getOrCreateStringSetting("oauth", provider, "authorization_location").getValue("");
+		tokenLocation  = Settings.getOrCreateStringSetting("oauth", provider, "token_location").getValue("");
+		clientId       = Settings.getOrCreateStringSetting("oauth", provider, "client_id").getValue("");
+		clientSecret   = Settings.getOrCreateStringSetting("oauth", provider, "client_secret").getValue("");
+		redirectUri    = getAbsoluteUrl(request, Settings.getOrCreateStringSetting("oauth", provider, "redirect_uri").getValue(""));
+		returnUri      = Settings.getOrCreateStringSetting("oauth", provider, "return_uri").getValue("");
+		errorUri       = Settings.getOrCreateStringSetting("oauth", provider, "error_uri").getValue("");
+		logoutUri      = Settings.getOrCreateStringSetting("oauth", provider, "logout_uri").getValue("");
 		userDetailsURI = Settings.getOrCreateStringSetting("oauth", provider, "user_details_resource_uri").getValue("");
+		scope          = Settings.getOrCreateStringSetting("oauth", provider, "scope").getValue("");
+	}
+
+	protected String getAbsoluteUrl(final HttpServletRequest request, final String redirectUri) {
+
+		return !(redirectUri.startsWith("http")) ? "http" + (request.isSecure() ? "s" : "") + "://" + request.getServerName() + ":" + request.getServerPort() + redirectUri : redirectUri;
 	}
 
 	@Override
@@ -101,6 +112,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		try {
 
 			return service.getAccessToken(authorizationReplyCode);
+
 		} catch (IOException | InterruptedException | ExecutionException e) {
 
 			logger.error("Could not get accessToken", e);
@@ -111,6 +123,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 	@Override
 	public String getClientCredentials(final OAuth2AccessToken accessToken) {
+
 		final OAuthRequest request = new OAuthRequest(Verb.GET, userDetailsURI);
 
 		service.signRequest(accessToken, request);
@@ -128,6 +141,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			}
 
 			return null;
+
 		} catch (IOException | InterruptedException | ExecutionException e) {
 
 			logger.error("Could not get perform client credential request", e);
@@ -139,10 +153,10 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParamerers = new LinkedHashMap<>();
-		methodParamerers.put("provider", this.provider);
+		final Map<String, Object> methodParameters = new LinkedHashMap<>();
+		methodParameters.put("provider", this.provider);
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParamerers, false, new EvaluationHints());
+		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParameters, false, new EvaluationHints());
 	}
 
 	@Override

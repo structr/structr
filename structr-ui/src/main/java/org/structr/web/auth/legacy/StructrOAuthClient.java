@@ -178,7 +178,7 @@ public abstract class StructrOAuthClient {
 				final String clientSecret  = Settings.getOrCreateStringSetting("oauth", authServer, "client_secret").getValue("");
 				final String redirectUri   = Settings.getOrCreateStringSetting("oauth", authServer, "redirect_uri").getValue("");
 
-				// Minumum required fields
+				// Minimum required fields
 				if (clientId != null && clientSecret != null && redirectUri != null) {
 
 					final Class serverClass		   = getServerClassForName(name);

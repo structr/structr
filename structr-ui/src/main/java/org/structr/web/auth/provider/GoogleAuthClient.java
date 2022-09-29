@@ -20,22 +20,27 @@ package org.structr.web.auth.provider;
 
 import com.github.scribejava.apis.GoogleApi20;
 import com.github.scribejava.core.builder.ServiceBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.web.auth.AbstractOAuth2Client;
 
 public class GoogleAuthClient extends AbstractOAuth2Client {
+
 	private static final Logger logger = LoggerFactory.getLogger(GoogleAuthClient.class);
 
 	private final static String authServer = "google";
 
-	public GoogleAuthClient() {
-		super(authServer);
+	public GoogleAuthClient(final HttpServletRequest request) {
+
+		super(request, authServer);
+
+		System.out.println("Initializing google oauth client");
 
 		service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.callback(redirectUri)
-				.defaultScope("user:email")
+				.defaultScope(scope)
 				.build(GoogleApi20.instance());
 	}
 }

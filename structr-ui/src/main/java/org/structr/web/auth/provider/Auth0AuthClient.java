@@ -20,22 +20,25 @@ package org.structr.web.auth.provider;
 
 import com.github.scribejava.core.builder.ServiceBuilder;
 import com.github.scribejava.core.builder.api.DefaultApi20;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.web.auth.AbstractOAuth2Client;
 
 public class Auth0AuthClient extends AbstractOAuth2Client {
+
     private static final Logger logger = LoggerFactory.getLogger(Auth0AuthClient.class);
 
     private final static String authServer = "auth0";
 
-    public Auth0AuthClient() {
-        super(authServer);
+    public Auth0AuthClient(final HttpServletRequest request) {
+
+        super(request, authServer);
 
         service = new ServiceBuilder(clientId)
                 .apiSecret(clientSecret)
                 .callback(redirectUri)
-                .defaultScope("openid profile email")
+                .defaultScope(scope)
                 .build(new DefaultApi20() {
 
                     @Override
