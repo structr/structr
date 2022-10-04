@@ -237,6 +237,7 @@ let _Editors = {
 						if (!keys[key]) {
 
 							keys[key] = true;
+							let date = new Date(runtimeEvent.absoluteTimestamp);
 
 							events.push({
 								range: new monaco.Range(fromLine, fromCol, toLine, toCol),
@@ -245,7 +246,7 @@ let _Editors = {
 									className: 'monaco-editor-warning-line',
 									glyphMarginClassName: _Icons.getFullSpriteClass(_Icons.error_icon) + ' force-sprite-size',
 									glyphMarginHoverMessage: {
-										value: 'Scripting error: ' + message,
+										value: '[' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '] __Scripting error:__ \n\n ' + message,
 									}
 								}
 							});
