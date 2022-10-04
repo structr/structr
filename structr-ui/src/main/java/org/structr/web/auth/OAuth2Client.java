@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 
 public interface OAuth2Client {
+
     String getAuthorizationURL(final String state);
     OAuth2AccessToken getAccessToken(final String authorizationReplyCode);
 

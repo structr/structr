@@ -1082,6 +1082,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
 		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
 		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test21 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test03, "], aString: string21, anInt: 21 }");
 
 		// test simple related node search
 		RestAssured
@@ -1127,6 +1128,52 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 			.when()
 				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO 18]"));
+
+		// test simple related node search with range query (with null start)
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].id", equalTo(test14))
+				.body("result[1].id", equalTo(test15))
+
+				.when()
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[ TO 15]"));
+
+		// test simple related node search with range query (with null end)
+		RestAssured
+
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+				.expect()
+				.statusCode(200)
+
+				.body("result",	      hasSize(2))
+				.body("result_count", equalTo(2))
+				.body("result[0].id", equalTo(test15))
+				.body("result[1].id", equalTo(test21))
+
+				.when()
+				.get(concat("/test_sixs/", test03, "/testEights?anInt=[15 TO ]"));
 	}
 
 	/**

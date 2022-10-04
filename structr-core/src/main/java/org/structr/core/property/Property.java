@@ -45,7 +45,7 @@ import java.util.regex.Pattern;
 public abstract class Property<T> implements PropertyKey<T> {
 
 	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
-	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.+) TO (.+)\\]");
+	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.*) TO (.*)\\]");
 
 	protected List<String> transformators                  = new LinkedList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
@@ -619,23 +619,28 @@ public abstract class Property<T> implements PropertyKey<T> {
 
 		if (StringUtils.startsWith(requestParameter, "[") && StringUtils.endsWith(requestParameter, "]")) {
 
-			// check for existance of range query string
+			// check for existence of range query string
 			Matcher matcher = rangeQueryPattern.matcher(requestParameter);
 			if (matcher.matches()) {
 
 				if (matcher.groupCount() == 2) {
 
-					String rangeStart = matcher.group(1);
-					String rangeEnd = matcher.group(2);
+					final String rangeStart = matcher.group(1);
+					final String rangeEnd   = matcher.group(2);
 
-					PropertyConverter inputConverter = inputConverter(securityContext);
-					Object rangeStartConverted = rangeStart;
-					Object rangeEndConverted = rangeEnd;
+					final PropertyConverter inputConverter = inputConverter(securityContext);
+					Object rangeStartConverted = (rangeStart.equals("")) ? null : rangeStart;
+					Object rangeEndConverted   = (rangeEnd.equals(""))   ? null : rangeEnd;
 
 					if (inputConverter != null) {
 
-						rangeStartConverted = inputConverter.convert(rangeStartConverted);
-						rangeEndConverted = inputConverter.convert(rangeEndConverted);
+						if (rangeStartConverted != null) {
+							rangeStartConverted = inputConverter.convert(rangeStartConverted);
+						}
+
+						if (rangeEndConverted != null) {
+							rangeEndConverted   = inputConverter.convert(rangeEndConverted);
+						}
 					}
 
 					query.andRange(this, rangeStartConverted, rangeEndConverted);

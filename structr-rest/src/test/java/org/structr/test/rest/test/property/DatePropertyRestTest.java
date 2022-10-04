@@ -174,6 +174,50 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 	}
 
 	@Test
+	public void testRangeSearch3() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+
+		// range search pattern with null start
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.expect()
+				.statusCode(200)
+				.body("result_count", equalTo(2))
+				.when()
+				.get("/test_threes?dateProperty=[ TO 2013-04-06T23:59:59+0000]");
+	}
+
+	@Test
+	public void testRangeSearch4() {
+
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+
+		// range search pattern with null end
+		RestAssured.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.expect()
+				.statusCode(200)
+				.body("result_count", equalTo(1))
+				.when()
+				.get("/test_threes?dateProperty=[2013-04-06T23:59:59+0000 TO ]");
+	}
+
+	@Test
 	public void testPatchOnNestedResourceWithoutType() {
 
 		final Gson gson = new GsonBuilder().setPrettyPrinting().create();

@@ -538,22 +538,22 @@ public class UiAuthenticator implements Authenticator {
 
 		switch (name) {
 			case "auth0":
-				oAuth2Client = new Auth0AuthClient();
+				oAuth2Client = new Auth0AuthClient(request);
 				break;
 			case "facebook":
-				oAuth2Client = new FacebookAuthClient();
+				oAuth2Client = new FacebookAuthClient(request);
 				break;
 			case "github":
-				oAuth2Client = new GithubAuthClient();
+				oAuth2Client = new GithubAuthClient(request);
 				break;
 			case "google":
-				oAuth2Client = new GoogleAuthClient();
+				oAuth2Client = new GoogleAuthClient(request);
 				break;
 			case "linkedin":
-				oAuth2Client = new LinkedInAuthClient();
+				oAuth2Client = new LinkedInAuthClient(request);
 				break;
 			default:
-				logger.error("Could not initialze oAuth2Client for provider {}", name);
+				logger.error("Could not initialize oAuth2Client for provider {}", name);
 				return null;
 		}
 
@@ -566,10 +566,12 @@ public class UiAuthenticator implements Authenticator {
 				response.sendRedirect(oAuth2Client.getAuthorizationURL(state));
 
 				return null;
+
 			} catch (Exception ex) {
 
 				logger.error("Could not send redirect to authorization server.", ex);
 			}
+
 		} else if ("logout".equals(action)) {
 
 			try {
@@ -586,6 +588,7 @@ public class UiAuthenticator implements Authenticator {
 
 				logger.error("Could not send redirect to logout endpoint", ex);
 			}
+
 		} else if ("auth".equals(action)) {
 
 			final String[] codes = request.getParameterMap().get("code");
