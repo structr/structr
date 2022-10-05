@@ -48,6 +48,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		connOpts = new MqttConnectOptions();
 
 		if (info.getFallbackBrokerURLs() != null) {
+
 			String[] fallBackBrokers;
 			if (info.getMainBrokerURL() != null) {
 
@@ -55,6 +56,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 				mergedBrokers.add(info.getMainBrokerURL());
 				mergedBrokers.addAll(List.of(info.getFallbackBrokerURLs()));
 				fallBackBrokers = mergedBrokers.toArray(String[]::new);
+
 			} else {
 
 				fallBackBrokers = info.getFallbackBrokerURLs();
@@ -69,6 +71,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		connOpts.setMaxReconnectDelay(5);
 
 		if (info.getUsername() != null && info.getPassword() != null) {
+
 			connOpts.setUserName(info.getUsername());
 			connOpts.setPassword(info.getPassword().toCharArray());
 		}
@@ -83,6 +86,7 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 				client.connect(connOpts);
 				info.connectionStatusCallback(true);
 			}
+
 		} catch (MqttException ex) {
 
 			throw new FrameworkException(422, "Could not connect to MQTT broker.");
@@ -91,13 +95,32 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 	public void disconnect() throws FrameworkException {
 
-		try{
+		try {
 
-			if(client.isConnected()){
+			if (client.isConnected()){
 
 				client.disconnect();
 				info.connectionStatusCallback(false);
 			}
+
+		} catch (MqttException ex) {
+
+			throw new FrameworkException(422, "Error while disconnecting from MQTT broker.");
+		}
+	}
+
+	/**
+	 * same as disconnect, but does not set the status afterwards because that results in an exception
+	 */
+	public void delete() throws FrameworkException {
+
+		try {
+
+			if (client.isConnected()){
+
+				client.disconnect();
+			}
+
 		} catch (MqttException ex) {
 
 			throw new FrameworkException(422, "Error while disconnecting from MQTT broker.");
@@ -111,9 +134,9 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 	public void sendMessage(String topic, String message) throws FrameworkException {
 
-		try{
+		try {
 
-			if(client.isConnected()){
+			if (client.isConnected()){
 
 				MqttMessage msg = new MqttMessage(message.getBytes());
 
@@ -121,49 +144,48 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 				client.publish(topic, msg);
 			}
+
 		} catch (MqttException ex) {
 
 			throw new FrameworkException(422, "Error while sending message.");
 		}
-
 	}
 
 	public void subscribeTopic(String topic) throws FrameworkException {
 
-		try{
+		try {
 
-			if(client.isConnected()){
+			if (client.isConnected()){
 
 				client.subscribe(topic, info.getQos());
-
 			}
+
 		} catch (MqttException ex) {
 
 			throw new FrameworkException(422, "Error while subscribing to topic.");
 		}
-
 	}
 
 	public void unsubscribeTopic(String topic) throws FrameworkException {
 
-		try{
+		try {
 
-		if(client.isConnected()){
+			if (client.isConnected()){
 
-			client.unsubscribe(topic);
-		}
+				client.unsubscribe(topic);
+			}
 
 		} catch (MqttException ex) {
 
 			throw new FrameworkException(422, "Error while unsubscribing from topic.");
 		}
-
 	}
 
 	@Override
 	public void messageArrived(String topic, MqttMessage msg) throws Exception {
 
 		if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
+
 			Thread workerThread = new Thread(new CallbackWorker(info, topic, msg.toString()));
 			workerThread.start();
 		}
@@ -198,14 +220,15 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 		public void run() {
 
 			try {
-				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone())
-				info.messageCallback(topic, message);
+
+				if (!Services.getInstance().isShuttingDown() && !Services.getInstance().isShutdownDone()) {
+					info.messageCallback(topic, message);
+				}
+
 			} catch (FrameworkException e) {
+
 				logger.error("Error during MQTT message callback: " + e.getMessage());
 			}
-
 		}
-
 	}
-
 }

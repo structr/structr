@@ -58,10 +58,12 @@ public abstract class MQTTContext {
 
 		MQTTClientConnection con = getClientForId(uuid);
 
-		if(con != null){
+		if (con != null){
 
 			connections.remove(uuid);
+
 			if (con.isConnected()) {
+
 				con.disconnect();
 			}
 		}
@@ -71,12 +73,29 @@ public abstract class MQTTContext {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
 
-		if(con != null){
+		if (con != null){
 
 			connections.remove(info.getUuid());
+
 			if (con.isConnected()) {
+
 				con.disconnect();
 			}
+		}
+	}
+
+	/**
+	 * same as disconnect, but calls connection.delete to prevent updating the client while it is being deleted
+	 */
+	public static void delete(final String uuid) throws FrameworkException {
+
+		MQTTClientConnection con = getClientForId(uuid);
+
+		if (con != null){
+
+			connections.remove(uuid);
+
+			con.delete();
 		}
 	}
 
@@ -86,14 +105,15 @@ public abstract class MQTTContext {
 
 			MQTTClientConnection con = getClientForId(info.getUuid());
 
-			if(con == null){
+			if (con == null){
 
 				con = new MQTTClientConnection(info);
 				connections.put(info.getUuid(), con);
 				con.connect();
+
 			} else {
 
-				if(!con.isConnected()){
+				if (!con.isConnected()){
 
 					con.connect();
 				}
@@ -103,20 +123,19 @@ public abstract class MQTTContext {
 
 			throw new FrameworkException(422, "Error while connecting to MQTT broker");
 		}
-
 	}
 
 	public static void subscribeAllTopics(MQTTInfo info) throws FrameworkException {
 
 		MQTTClientConnection con = getClientForId(info.getUuid());
 
-		for(String topic : info.getTopics()) {
-			if(!StringUtils.isEmpty(topic)){
+		for (String topic : info.getTopics()) {
+
+			if (!StringUtils.isEmpty(topic)){
 
 				con.subscribeTopic(topic);
 			}
 		}
-
 	}
 
 	private static class SubscriptionWorker implements Runnable {
@@ -145,6 +164,7 @@ public abstract class MQTTContext {
 							MQTTContext.connect(client);
 							MQTTContext.subscribeAllTopics(client);
 							client.connectionStatusCallback(true);
+
 						} catch (FrameworkException ex) {
 
 							client.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
@@ -155,9 +175,9 @@ public abstract class MQTTContext {
 				tx.success();
 
 			} catch (Throwable t) {
+
 				logger.warn("Could not connect to MQTT broker: {}", t.getMessage());
 			}
 		}
-
 	}
 }
