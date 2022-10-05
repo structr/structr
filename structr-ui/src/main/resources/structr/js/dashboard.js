@@ -1109,7 +1109,7 @@ let _Dashboard = {
 								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeploymentServlet</code> is not running.</span>')}
 								<div>
 									<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<input type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the zip file. Leave blank for default" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
+									<input type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
 									<input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}>
 									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
 								</div>

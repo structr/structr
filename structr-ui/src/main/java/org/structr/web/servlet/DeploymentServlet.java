@@ -276,36 +276,33 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			String mode               = null;
 			String zipContentPath     = null;
 
-			for (Part p : request.getParts()) {
+			for (final Part p : request.getParts()) {
 
+				final String fieldName  = p.getName();
+				final String fieldValue = request.getParameter(fieldName);
 
-				for (String fieldName : p.getHeaderNames()) {
+				if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
 
-					final String fieldValue = p.getHeader(fieldName);
+					downloadUrl = StringUtils.trim(fieldValue);
 
-					if (DOWNLOAD_URL_PARAMETER.equals(fieldName)) {
+				} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
 
-						downloadUrl = StringUtils.trim(fieldValue);
+					redirectUrl = fieldValue;
 
-					} else if (REDIRECT_URL_PARAMETER.equals(fieldName)) {
+				} else if (ZIP_CONTENT_PATH.equals(fieldName)) {
 
-						redirectUrl = fieldValue;
+					zipContentPath = fieldValue;
 
-					} else if (ZIP_CONTENT_PATH.equals(fieldName)) {
+				} else if (MODE_PARAMETER.equals(fieldName)) {
 
-						zipContentPath = fieldValue;
+					mode = fieldValue;
 
-					} else if (MODE_PARAMETER.equals(fieldName)) {
+				} else if (FILE_PARAMETER.equals(fieldName)) {
 
-						mode = fieldValue;
+					try (final InputStream is = p.getInputStream()) {
 
-					} else if (FILE_PARAMETER.equals(fieldName)) {
-
-						try (final InputStream is = p.getInputStream()) {
-
-							Files.write(file.toPath(), IOUtils.toByteArray(is));
-							fileName = p.getName();
-						}
+						Files.write(file.toPath(), IOUtils.toByteArray(is));
+						fileName = p.getSubmittedFileName();
 					}
 				}
 			}

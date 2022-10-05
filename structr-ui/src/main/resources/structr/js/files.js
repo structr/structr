@@ -1544,9 +1544,9 @@ let _Files = {
 	},
 	getLanguageForFile: (file) => {
 
-		let language = file.contentType;
+		let language = file.contentType ?? file.favoriteContentType;
 
-		if (language.startsWith('application/javascript')) {
+		if (language && (language.startsWith('application/javascript') || language.startsWith('text/javascript'))) {
 			language = 'javascript';
 		}
 

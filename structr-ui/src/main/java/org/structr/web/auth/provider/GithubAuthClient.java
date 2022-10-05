@@ -20,22 +20,25 @@ package org.structr.web.auth.provider;
 
 import com.github.scribejava.apis.GitHubApi;
 import com.github.scribejava.core.builder.ServiceBuilder;
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.web.auth.AbstractOAuth2Client;
 
 public class GithubAuthClient extends AbstractOAuth2Client {
+
 	private static final Logger logger = LoggerFactory.getLogger(GithubAuthClient.class);
 
 	private final static String authServer = "github";
 
-	public GithubAuthClient() {
-		super(authServer);
+	public GithubAuthClient(final HttpServletRequest request) {
+
+		super(request, authServer);
 
 		service = new ServiceBuilder(clientId)
 				.apiSecret(clientSecret)
 				.callback(redirectUri)
-				.defaultScope("user:email")
+				.defaultScope(scope)
 				.build(GitHubApi.instance());
 	}
 }
