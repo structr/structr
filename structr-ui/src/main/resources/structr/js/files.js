@@ -1762,53 +1762,53 @@ let _Files = {
 			<link rel="stylesheet" type="text/css" media="screen" href="css/lib/cropper.min.css">
 
 			<div class="tree-main" id="files-main">
-			
+
 				<div class="column-resizer"></div>
-			
+
 				<div class="tree-container" id="file-tree-container">
 					<div class="tree" id="file-tree">
 					</div>
 				</div>
-			
+
 				<div class="tree-contents-container" id="folder-contents-container">
 					<div class="tree-contents tree-contents-with-top-buttons" id="folder-contents">
 					</div>
 				</div>
-			
+
 			</div>
 		`,
 		functions: config => `
 			<div id="files-action-buttons" class="flex-grow">
-			
+
 				<div class="inline-flex">
-			
+
 					<select class="select-create-type mr-2" id="folder-type">
 						<option value="Folder">Folder</option>
 						${config.folderTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
-			
+
 					<button class="action button inline-flex items-center" id="add-folder-button">
 						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
-			
+
 					<select class="select-create-type mr-2" id="file-type">
 						<option value="File">File</option>
 						${config.fileTypes.map(type => '<option value="' + type + '">' + type + '</option>').join('')}
 					</select>
-			
+
 					<button class="action button inline-flex items-center" id="add-file-button">
 						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
-			
+
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
 						${_Icons.getSvgIcon('folder-link-open-icon', 16, 16, ['mr-2'])}
 						Mount Folder
 					</button>
 				</div>
 			</div>
-			
+
 			<div class="searchBox module-dependend" data-structr-module="text-search">
 				<input id="files-search-box" class="search" name="search" placeholder="Search...">
 				${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
