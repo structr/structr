@@ -220,37 +220,42 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 			for (Part p : request.getParts()) {
 
-				for (final String fieldName : p.getHeaderNames()) {
+				for (final String headerName : p.getHeaderNames()) {
 
-					final String fieldValue = p.getHeader(fieldName);
+					final String headerValue = p.getHeader(headerName);
 
-					if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + REDIRECT_AFTER_UPLOAD_PARAMETER + "\"").equals(fieldValue)) {
+					if ("content-disposition".equals(headerName) && ("form-data; name=\"" + REDIRECT_AFTER_UPLOAD_PARAMETER + "\"").equals(headerValue)) {
 
 						redirectUrl = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
-					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + APPEND_UUID_ON_REDIRECT_PARAMETER + "\"").equals(fieldValue)) {
+					} else if ("content-disposition".equals(headerName) && ("form-data; name=\"" + APPEND_UUID_ON_REDIRECT_PARAMETER + "\"").equals(headerValue)) {
 
 						appendUuidOnRedirect = "true".equalsIgnoreCase(new String(((MultiPartFormInputStream.MultiPart) p).getBytes()));
 
-					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + UPLOAD_FOLDER_PATH_PARAMETER + "\"").equals(fieldValue)) {
+					} else if ("content-disposition".equals(headerName) && ("form-data; name=\"" + UPLOAD_FOLDER_PATH_PARAMETER + "\"").equals(headerValue)) {
 
 						path = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
-					} else if ("content-disposition".equals(fieldName) && ("form-data; name=\"" + FILE_SCHEMA_TYPE_PARAMETER + "\"").equals(fieldValue)) {
+					} else if ("content-disposition".equals(headerName) && ("form-data; name=\"" + FILE_SCHEMA_TYPE_PARAMETER + "\"").equals(headerValue)) {
 
 						type = new String(((MultiPartFormInputStream.MultiPart) p).getBytes());
 
 					} else {
 
+						final String fieldName  = p.getName();
+						final String fieldValue = request.getParameter(fieldName);
+
 						try {
 
 							final IJsonInput jsonInput = cleanAndParseJsonString(app, "{" + fieldName + ":" + fieldValue + "}");
+
 							for (final JsonInput input : jsonInput.getJsonInputs()) {
 								params.put(fieldName, convertPropertySetToMap(input).get(fieldName));
 							}
 
 						} catch (final FrameworkException fex) {
-							params.put(fieldName, fieldValue);
+
+							params.put(fieldName, headerValue);
 						}
 					}
 				}
@@ -311,7 +316,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						} else if (StringUtils.isNotBlank(defaultUploadFolderConfigValue)) {
 
 							uploadFolder = getOrCreateFolderPath(SecurityContext.getSuperUserInstance(), defaultUploadFolderConfigValue);
-
 						}
 
 						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
@@ -334,12 +338,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								uuid = newFile.getUuid();
 
 							} catch (IOException ex) {
+
 								logger.warn("Could not store file: {}", ex.getMessage());
 							}
 
 							tx.success();
 
 						} catch (RetryException rex) {
+
 							retry = true;
 						}
 					}
@@ -358,7 +364,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						uuid = newFile.getUuid();
 
 					}
-
 				}
 			}
 
@@ -417,7 +422,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				logger.error("Could not write to response", ex);
 			}
 		}
-
 	}
 
 	@Override
@@ -430,6 +434,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 		} catch (FrameworkException fex) {
 
 			try {
+
 				response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 				response.getOutputStream().write(fex.getMessage().getBytes("UTF-8"));
 
@@ -448,6 +453,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			final String uuid = PathHelper.getName(request.getPathInfo());
 
 			if (uuid == null) {
+
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
@@ -457,6 +463,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			matcher.reset(uuid);
 
 			if (!matcher.matches()) {
+
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));
 				return;
@@ -480,13 +487,13 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			for (Part p : request.getParts()) {
 
 				try {
+
 					final GraphObject node = StructrApp.getInstance().getNodeById(uuid);
 
 					if (node == null) {
 
 						response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 						response.getOutputStream().write("ERROR (404): File not found.\n".getBytes("UTF-8"));
-
 					}
 
 					if (node instanceof org.structr.web.entity.File) {
@@ -507,14 +514,12 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 
 							response.setStatus(HttpServletResponse.SC_FORBIDDEN);
 							response.getOutputStream().write("ERROR (403): Write access forbidden.\n".getBytes("UTF-8"));
-
 						}
 					}
 
 				} catch (IOException ex) {
 					logger.warn("Could not write to file", ex);
 				}
-
 			}
 
 			tx.success();
@@ -524,7 +529,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			logger.error("Exception while processing request", t);
 			UiAuthenticator.writeInternalServerError(response);
 		}
-
 	}
 
 	@Override
