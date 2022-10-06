@@ -104,13 +104,13 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			try {
 
 				MQTTContext.connect(thisClient);
+
 			} catch (FrameworkException ex) {
 
 				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isEnabled"), false);
 				thisClient.setProperty(StructrApp.key(MQTTClient.class, "isConnected"), false);
 			}
 		}
-
 	}
 
 	static void onModification(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
@@ -120,7 +120,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			MQTTContext.disconnect(thisClient);
 		}
 
-		if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"isEnabled")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))){
+		if (modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"isEnabled")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))){
 
 			MQTTClientConnection connection = MQTTContext.getClientForId(thisClient.getUuid());
 			boolean enabled                 = thisClient.getIsEnabled();
@@ -146,6 +146,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 					if (connection.isConnected()) {
 
 						thisClient.setProperties(securityContext, new PropertyMap(StructrApp.key(MQTTClient.class,"isConnected"), true));
+
 					} else {
 
 						thisClient.setProperties(securityContext, new PropertyMap(StructrApp.key(MQTTClient.class,"isConnected"), false));
@@ -153,7 +154,6 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 				}
 			}
 		}
-
 	}
 
 	static void onDeletion(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
@@ -161,21 +161,20 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		final String uuid = properties.get(id);
 		if (uuid != null) {
 
-			MQTTContext.disconnect(uuid);
+			MQTTContext.delete(uuid);
 			final MQTTClientConnection connection = MQTTContext.getClientForId(uuid);
 			if (connection != null) {
 
-				connection.disconnect();
+				connection.delete();
 			}
 		}
-
 	}
 
 
 	static void connectionStatusCallback(MQTTClient thisClient, boolean connected) {
 
 		final App app = StructrApp.getInstance();
-		try(final Tx tx = app.tx()) {
+		try (final Tx tx = app.tx()) {
 
 			if (!thisClient.getIsConnected() && connected) {
 
@@ -184,12 +183,12 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 
 			thisClient.setIsConnected(connected);
 			tx.success();
+
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(MQTTClient.class);
 			logger.warn("Error in connection status callback for MQTTClient.");
 		}
-
 	}
 
 	static String[] getTopics(MQTTClient thisClient) {
@@ -200,7 +199,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			List<MessageSubscriber> subs = Iterables.toList(thisClient.getSubscribers());
 			String[] topics = new String[subs.size()];
 
-			for(int i = 0; i < subs.size(); i++) {
+			for (int i = 0; i < subs.size(); i++) {
 
 				topics[i] = subs.get(i).getTopic();
 			}
@@ -213,7 +212,6 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			logger.error("Couldn't retrieve client topics for MQTT subscription.");
 			return null;
 		}
-
 	}
 
 	static RestMethodResult sendMessage(MQTTClient thisClient, final String topic, final String message, final SecurityContext ctx) throws FrameworkException {
@@ -242,9 +240,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			if (connection != null && connection.isConnected()) {
 
 				connection.subscribeTopic(topic);
-
 			}
-
 		}
 
 		return new RestMethodResult(200);
@@ -259,12 +255,9 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			if (connection != null && connection.isConnected()) {
 
 				connection.unsubscribeTopic(topic);
-
 			}
-
 		}
 
 		return new RestMethodResult(200);
 	}
-
 }
