@@ -93,6 +93,6 @@ jobs:
     needs: [run-tests, build-and-deploy]
     steps:
       - name: Cleanup docker
-        run: docker container prune -f && docker image prune -f
+        run: docker container prune -f && docker image prune -f && docker volume prune -f
       - name: Cleanup runner home
         run: cd ~/actions-runner/_work/structr/ && rm -rf structr
