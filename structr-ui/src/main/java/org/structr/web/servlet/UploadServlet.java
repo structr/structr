@@ -323,7 +323,6 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 							try (final InputStream is = p.getInputStream()) {
 
 								newFile = FileHelper.createFile(securityContext, is, contentType, cls, name, uploadFolder);
-								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
 
 								final PropertyMap changedProperties = new PropertyMap();
 
@@ -335,11 +334,14 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 								newFile.unlockSystemPropertiesOnce();
 								newFile.setProperties(securityContext, changedProperties, true);
 
+								// validate and rename file after setting all properties (as the folder might have changed)
+								AbstractFile.validateAndRenameFileOnce(newFile, securityContext, null);
+
 								uuid = newFile.getUuid();
 
 							} catch (IOException ex) {
 
-								logger.warn("Could not store file: {}", ex.getMessage());
+								logger.warn("Unable to store file: {}", ex.getMessage());
 							}
 
 							tx.success();
@@ -357,12 +359,10 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 						// upload trigger
 						newFile.notifyUploadCompletion();
 
-
 						newFile.callOnUploadHandler(securityContext);
 
 						// store uuid
 						uuid = newFile.getUuid();
-
 					}
 				}
 			}
