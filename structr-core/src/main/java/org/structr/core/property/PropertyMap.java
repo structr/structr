@@ -363,33 +363,38 @@ public class PropertyMap {
 
 					PropertyKey propertyKey = StructrApp.key(entity, key, false);
 					if (propertyKey == null) {
+
 						propertyKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(entity, key);
 					}
 
 					if (propertyKey instanceof GenericProperty) {
 
 						if (!(StructrApp.key(entity, "isDOMNode", false) instanceof GenericProperty)) {
+
 							// allow custom attributes on DOMNode
+
 						} else if ("Principal".equals(entity.getSimpleName()) && "allowed".equals(key)) {
+
 							// allow "allowed" property for grantees
+
 						} else {
 
 							// check settings on how to handle invalid JSON input
 							switch (Settings.InputValidationMode.getValue()) {
 
 								case "reject_warn":
-									logger.warn("Rejecting input with unknown JSON key \"{}\" = \"{}\"", key, value);
+									logger.warn("Rejecting input with unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
 								case "reject":
-									throw new FrameworkException(422, "Rejecting input with unknown JSON key \"" + key + "\" with value \"" + value + "\".");
+									throw new FrameworkException(422, "Rejecting input with unknown JSON key for type " + entity.getSimpleName() + ": \"" + key + "\" with value \"" + value + "\".");
 
 								case "ignore_warn":
-									logger.warn("Ignoring unknown JSON key \"{}\" = \"{}\"", key, value);
+									logger.warn("Ignoring unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
 								case "ignore":
 									// move on to the next key/value pair
 									continue;
 
 								case "accept_warn":
-									logger.warn("Accepting unknown JSON key \"{}\" = \"{}\"", key, value);
+									logger.warn("Accepting unknown JSON key for type {}: \"{}\" = \"{}\"", entity.getSimpleName(), key, value);
 								case "accept":
 									// allow the key/value pair to be read
 							}
