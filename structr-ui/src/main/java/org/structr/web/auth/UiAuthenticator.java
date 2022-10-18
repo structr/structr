@@ -643,15 +643,6 @@ public class UiAuthenticator implements Authenticator {
 
 					if (user != null) {
 
-						logger.debug("Logging in user {}", user);
-
-						AuthHelper.doLogin(request, user);
-						HtmlServlet.setNoCacheHeaders(response);
-
-						oAuth2Client.invokeOnLoginMethod(user);
-
-						logger.debug("HttpServletResponse status: {}", response.getStatus());
-
 						try {
 
 							// get the original request state and add the parameters to the redirect page
@@ -659,14 +650,40 @@ public class UiAuthenticator implements Authenticator {
 							Map<String, String[]> originalRequestParameters = stateParameters.get(originalRequestState);
 							stateParameters.remove(originalRequestState);
 
+							Boolean isTokenLogin = false;
+
 							URIBuilder uriBuilder = new URIBuilder();
 							if (originalRequestParameters != null) {
 								for (Map.Entry<String, String[]> entry : originalRequestParameters.entrySet()) {
 									for (String parameterEntry : entry.getValue()) {
-										uriBuilder.addParameter(entry.getKey(), parameterEntry);
+
+										final String entryKey = entry.getKey();
+
+										if (StringUtils.equals(entryKey, "createTokens") && StringUtils.equals(parameterEntry, "true")) {
+											isTokenLogin = true;
+
+											Map<String, String> tokenMap = JWTHelper.createTokensForUser(user);
+
+											uriBuilder.addParameter("access_token", tokenMap.get("access_token"));
+											uriBuilder.addParameter("refresh_token", tokenMap.get("refresh_token"));
+										} else {
+
+											uriBuilder.addParameter(entry.getKey(), parameterEntry);
+										}
 									}
 								}
 							}
+
+							logger.debug("Logging in user {}", user);
+
+							if(!isTokenLogin) {
+								AuthHelper.doLogin(request, user);
+							}
+							HtmlServlet.setNoCacheHeaders(response);
+
+							oAuth2Client.invokeOnLoginMethod(user);
+
+							logger.debug("HttpServletResponse status: {}", response.getStatus());
 
 							final String configuredReturnUri = oAuth2Client.getReturnURI();
 							if (StringUtils.startsWith(configuredReturnUri, "http")) {
