@@ -1521,9 +1521,12 @@ let _Files = {
 
 		isTemplateCheckbox.addEventListener('change', () => {
 			let active = isTemplateCheckbox.checked;
-			_Entities.setProperty(file.id, 'isTemplate', active, false, function() {
+			_Entities.setProperty(file.id, 'isTemplate', active, false, () => {
 				file.isTemplate = active;
 				showPreviewCheckbox.disabled = !active;
+
+				let language = _Files.getLanguageForFile(file);
+				_Editors.updateMonacoEditorLanguage(editor, language);
 			});
 		});
 

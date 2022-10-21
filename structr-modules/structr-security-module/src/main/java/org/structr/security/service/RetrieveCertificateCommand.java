@@ -86,6 +86,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private final static String PRODUCTION_SERVER_KEY = "production";
 	private final static String STAGING_SERVER_KEY    = "staging";
 
+	private final static Integer MAX_RETRIES = 3;
+
 	static {
 
 		MaintenanceParameterResource.registerMaintenanceCommand("letsencrypt", RetrieveCertificateCommand.class);
@@ -103,6 +105,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private List<Order>            orders     = new ArrayList<>();
 	private Map<String, Challenge> challenges = new HashMap<>();
 	private boolean success                   = false;
+	private List<String> errorMessages        = new ArrayList<>();
 
 	@Override
 	public void execute(final Map<String, Object> attributes) throws FrameworkException {
@@ -130,6 +133,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				}
 
 			} else {
+
 				logger.info("No server supplied, aborting.");
 				throw new FrameworkException(422, "No server supplied, aborting.");
 			}
@@ -139,7 +143,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				mode = WAIT_MODE_KEY;
 			}
 
-			final Boolean reload        = Boolean.TRUE.equals(attributes.get("reload"));
+			final Boolean reload = Boolean.TRUE.equals(attributes.get("reload"));
 
 			final String wait = (String) attributes.get(WAIT_PARAM_KEY);
 			if (StringUtils.isBlank(wait)) {
@@ -221,6 +225,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					error("No valid mode supplied, aborting.");
 			}
 
+		} catch (FrameworkException fex) {
+
+			// catch FrameworkException, so we always return a command result
+			success = false;
+
 		} finally {
 
 			cleanUpChallengeFiles();
@@ -241,8 +250,20 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	}
 
 	private void error(final String msg) throws FrameworkException {
-		logger.error(msg);
+
+		error(msg, true);
+	}
+
+	private void error(final String msg, final boolean addToErrorResponseList) throws FrameworkException {
+
+		logger.error("Error in certificate retrieval progress: {}", msg);
 		publishWarningMessage("Error in certificate retrieval progress", msg);
+
+		if (addToErrorResponseList) {
+
+			errorMessages.add(msg);
+		}
+
 		throw new FrameworkException(422, msg);
 	}
 
@@ -266,6 +287,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private Account getOrCreateAccount() throws FrameworkException {
 
 		if (account != null) {
+
 			return account;
 		}
 
@@ -280,9 +302,9 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			logger.info("Created new ACME session, account URL: {}", account.getStatus(), account.getLocation());
 
-
 		} catch (final Throwable t) {
-			error("Unable to create account: " + t.getMessage());
+
+			error("Unable to create account: " + t.getMessage(), false);
 		}
 
 		return account;
@@ -296,14 +318,16 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			order = getOrCreateAccount().newOrder().domains(domains).create();
 
-			for (int i=0; i<order.getAuthorizations().size(); i++) {
-				logger.info("Authorization: " + order.getAuthorizations().get(i).getJSON());
+			for (final Authorization authorization : order.getAuthorizations()) {
+
+				logger.info("Authorization: " + authorization.getJSON());
 			}
 
 			logger.info("Successfully created new certificate order for {}: {}", domains, order.getJSON());
 			orders.add(order);
 
 		} catch (final Throwable t) {
+
 			error("Unable to create certificate order: " + t.getMessage());
 		}
 
@@ -328,8 +352,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		Order order = null;
 		if (!orders.isEmpty()) {
+
 			order = orders.get(0);
+
 		} else {
+
 			logger.warn("No existing certificate orders found, aborting.");
 			return;
 		}
@@ -350,17 +377,20 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			try {
 
-				int attempts = 3;
+				int attempts = MAX_RETRIES;
 				while (org.shredzone.acme4j.Status.VALID != order.getStatus() && attempts-- > 0) {
 
 					if (org.shredzone.acme4j.Status.INVALID == order.getStatus()) {
-						logger.info("Order failed after " + attempts + " attempts, aborting.");
-						throw new FrameworkException(422, "Order failed after " + attempts + " attempts, aborting.");
+						error("Order failed due to invalid response, aborting. Error: " + order.getError(), false);
 					}
 
 					Thread.sleep(2000L);
 
 					order.update();
+				}
+
+				if (order.getStatus() != org.shredzone.acme4j.Status.VALID) {
+					error("No valid order received after " + MAX_RETRIES + " attempts, aborting.", false);
 				}
 
 			} catch (InterruptedException ex) {
@@ -395,10 +425,12 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				}
 
 			} else {
-				error("Unable to get certificate from order, aborting.");
+
+				error("Unable to get certificate from order, aborting.", false);
 			}
 
 		} catch (final Exception e) {
+
 			error("Unable to retrieve certificate from ACME server: " + e.getMessage());
 		}
 	}
@@ -412,11 +444,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			String domain = auth.getIdentifier().getDomain();
 
 			if (org.shredzone.acme4j.Status.VALID == auth.getStatus()) {
+
 				logger.info("Challenge for {} is already authorized.", domain);
 
 				challenge = auth.getChallenges().get(0);
-
-				domain = auth.getJSON().toString();
+				domain    = auth.getJSON().toString();
 
 			} else {
 
@@ -444,6 +476,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					logger.info("Challenge for {} has already been authorized.", domain);
 				}
 			}
+
 			if (challenge != null) {
 				challenges.put(domain, challenge);
 			}
@@ -454,7 +487,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		logger.info("Starting authorization for existing challenges.");
 
-		// Loop over all authorizations
 		for (final Authorization authorization : authorizations) {
 
 			logger.info("Verify challenge authorization for {}", authorization.getJSON());
@@ -469,44 +501,33 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 						challenge.trigger();
 
-						int attempts = 3;
-
+						int attempts = MAX_RETRIES;
 						while (org.shredzone.acme4j.Status.VALID != challenge.getStatus() && attempts-- > 0) {
 
 							if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
-								logger.info("Challenge authorization failed due to invalid response, aborting. Error: {}", challenge.getError());
-								throw new FrameworkException(422, "Challenge authorization failed due to invalid response, aborting.");
+								error("Received invalid challenge response, aborting. Error: {}" + challenge.getError(), false);
 							}
-
-							Thread.sleep(3000L);
 
 							challenge.update();
 						}
 
 						if (challenge.getStatus() != org.shredzone.acme4j.Status.VALID) {
-
-							clear();
-
-							logger.info("No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
-							throw new FrameworkException(422, "No valid authorization received for challenge " + challenge.getJSON() + ", aborting.");
+							error("No valid authorization received for challenge " + challenge.getJSON() + ", after " + MAX_RETRIES + " attempts aborting.", false);
 						}
 
-
 						logger.info("Successfully finished challenge, cleaning up...");
-
-						clear();
 					}
-
 				}
-
 
 			} catch (final Throwable t) {
 
+				error("Challenge authorization failed: " + t.getMessage());
+
+			} finally {
+
 				clear();
-				error("Challenge authorization failed, aborting: " + t.getMessage());
 			}
 		}
-
 	}
 
 	private void clear() {
@@ -609,7 +630,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 					logger.info("Successfully responded to challenge authorization request.");
 				}
-
 			});
 
 			server.start();
@@ -662,16 +682,20 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			});
 
 			workerThread.start();
-			try { workerThread.join(); } catch (Throwable t) {
+			try {
+
+				workerThread.join();
+
+			} catch (Throwable t) {
+
 				logger.error(ExceptionUtils.getStackTrace(t));
 			}
 
 			if (exceptionFromThread.get(null) != null) {
-				FrameworkException fex = exceptionFromThread.get(null);
-				logger.error("Unable to create challenge response file in internal file system, aborting.", fex.getMessage());
-				throw fex;
-			}
 
+				FrameworkException fex = exceptionFromThread.get(null);
+				error("Unable to create challenge response file in internal file system, aborting. Error: " + fex.getMessage());
+			}
 		}
 
 		return challenge;
@@ -720,6 +744,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		if (userKeyFile.exists()) {
 
 			try (final FileReader fileWriter = new FileReader(userKeyFile)) {
+
 				return KeyPairUtils.readKeyPair(fileWriter);
 			}
 
@@ -743,6 +768,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		if (domainKeyFile.exists()) {
 
 			try (final FileReader fileWriter = new FileReader(domainKeyFile)) {
+
 				return KeyPairUtils.readKeyPair(fileWriter);
 			}
 
@@ -758,7 +784,6 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			return domainKey;
 		}
 	}
-
 
 	private void writeCertificateToKeyStore(final Collection<String> domains, final Certificate certificate, final KeyPair domainKeyPair) throws FrameworkException {
 
@@ -780,11 +805,13 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			writeKeyStore(keyStore);
 
 		} catch (final Exception ex) {
+
 			error("Unable to write to keystore: " + ex.getMessage());
 		}
 	}
 
 	private String getKeyStoreFilename() {
+
 		return Settings.KeystorePath.getValue(Settings.LetsEncryptDomainKeyFilename.getValue() + ".keystore");
 	}
 
@@ -800,6 +827,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			keyStore.store(fos, password.toCharArray());
 
 		} catch (final Exception ex) {
+
 			error("Unable to write to keystore: " + ex.getMessage());
 		}
 	}
@@ -811,16 +839,20 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		final File keyStoreFile       = new File(keyStoreFilename);
 
 		KeyStore keyStore = null;
+
 		try {
+
 			keyStore = KeyStore.getInstance("PKCS12");
 
 		} catch (final KeyStoreException ex) {
+
 			error("Unable to create Keystore instance: " + ex.getMessage());
 		}
 
 		try {
 
 			if (!keyStoreFile.exists()) {
+
 				keyStoreFile.createNewFile();
 
 				keyStore.load(null, null);
@@ -832,11 +864,13 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					keyStore.load(fis, password.toCharArray());
 				}
 			}
+
 		} catch (final Exception ex) {
+
 			error("Unable to create new keystore file. Check permissions. " + ex.getMessage());
 		}
-		return keyStore;
 
+		return keyStore;
 	}
 
 	@Override
@@ -849,22 +883,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		final Map<String, Object> result = new HashMap<>();
 		result.put("success", success);
+		result.put("errors", errorMessages);
 
-		// does not make sense, challenges are cleared after finishing
-//		final List<Map> transformedChallenges = new ArrayList<>();
-//		result.put("challenges", transformedChallenges);
-//
-//		for (final String domain : challenges.keySet()) {
-//
-//			final Challenge challenge = challenges.get(domain);
-//
-//			final Map<String, Object> tmp = new HashMap<>();
-//			tmp.putAll(challenge.getJSON().toMap());
-//			tmp.put("domain", domain);
-//
-//			transformedChallenges.add(tmp);
-//		}
-//
 		return result;
 	}
 }
