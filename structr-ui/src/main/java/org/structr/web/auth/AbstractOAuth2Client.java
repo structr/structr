@@ -156,7 +156,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	}
 
 	public Map<String, Object> getUserInfo() {
-		return userInfo;
+		return this.userInfo;
 	}
 
 	@Override
