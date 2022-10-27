@@ -39,7 +39,7 @@ import java.util.concurrent.ExecutionException;
 public class AzureAuthClient extends AbstractOAuth2Client {
     private static final Logger logger = LoggerFactory.getLogger(FacebookAuthClient.class);
 
-    private final static String authServer = "facebook";
+    private final static String authServer = "azure";
 
     public AzureAuthClient(final HttpServletRequest request) {
 
