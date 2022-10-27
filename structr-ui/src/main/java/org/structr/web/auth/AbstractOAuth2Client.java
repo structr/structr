@@ -53,6 +53,8 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	protected final String userDetailsURI;
 	protected final String scope;
 
+	protected Map<String, Object> userInfo;
+
 	protected OAuth20Service service;
 
 	public AbstractOAuth2Client(final HttpServletRequest request, final String provider) {
@@ -135,6 +137,9 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			Gson gson = new Gson();
 			Map<String, Object> params = gson.fromJson(rawResponse, Map.class);
 
+			// make full user info available to implementing classes
+			this.userInfo = params;
+
 			if (params.get(getCredentialKey()) != null) {
 
 				return params.get(getCredentialKey()).toString();
@@ -150,11 +155,16 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		return null;
 	}
 
+	public Map<String, Object> getUserInfo() {
+		return userInfo;
+	}
+
 	@Override
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
 		final Map<String, Object> methodParameters = new LinkedHashMap<>();
 		methodParameters.put("provider", this.provider);
+		methodParameters.put("userinfo", this.getUserInfo());
 
 		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParameters, false, new EvaluationHints());
 	}
