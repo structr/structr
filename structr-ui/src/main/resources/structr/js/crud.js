@@ -465,7 +465,6 @@ let _Crud = {
 			_Crud.deActivatePagerElements(pagerNode);
 			_Crud.activateList(type);
 			_Crud.activatePagerElements(type, pagerNode);
-			_Crud.updateUrl(type);
 		});
 	},
 	getCurrentProperties: (type) => {
@@ -635,8 +634,6 @@ let _Crud = {
 			_Crud.type = type;
 			_Crud.storeType();
 			_Crud.storePagerData();
-			window.location.hash = 'crud';
-
 		}
 		_Crud.searchField.focus();
 	},
@@ -1167,7 +1164,7 @@ let _Crud = {
 				clearTimeout(_Crud.messageTimeout);
 				_Crud.removeMessage();
 
-				if (!data) {
+				if (!data || !Structr.isModuleActive(_Crud)) {
 					return;
 				}
 
@@ -1383,10 +1380,13 @@ let _Crud = {
 			Structr.errorFromResponse(data, url, { statusCode: 400, requiresConfirmation: true });
 		}
 	},
-	updatePager: function(type, qt, st, ps, p, pc) {
+	updatePager: (type, qt, st, ps, p, pc) => {
 
 		let softLimited = false;
-		var typeNode = $('#crud-type-detail');
+		let typeNode = $('#crud-type-detail');
+		if (typeNode.length === 0) {
+			return;
+		}
 		$('.queryTime', typeNode).text(qt);
 		$('.serTime', typeNode).text(st);
 		$('.pageSize', typeNode).val(ps);
@@ -1423,7 +1423,7 @@ let _Crud = {
 
 		_Crud.updateUrl(type);
 	},
-	activatePagerElements: function(type, pagerNode) {
+	activatePagerElements: (type, pagerNode) => {
 
 		$('.page', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {

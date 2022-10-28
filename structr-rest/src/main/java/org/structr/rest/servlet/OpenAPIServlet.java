@@ -499,7 +499,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private String getTagFromURLPath(final HttpServletRequest request) {
 
-		final String pathInfo = StringUtils.substringAfter(StringUtils.defaultIfBlank(request.getPathInfo(), "").toLowerCase(), "/");
+		final String pathInfo = StringUtils.substringAfter(StringUtils.defaultIfBlank(request.getPathInfo(), ""), "/");
 
 		if (StringUtils.isNotBlank(pathInfo) && pathInfo.endsWith(".json")) {
 
