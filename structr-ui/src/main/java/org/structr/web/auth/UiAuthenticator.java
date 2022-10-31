@@ -535,7 +535,6 @@ public class UiAuthenticator implements Authenticator {
 
 		OAuth2Client oAuth2Client = null;
 
-
 		switch (name) {
 			case "auth0":
 				oAuth2Client = new Auth0AuthClient(request);

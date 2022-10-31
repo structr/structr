@@ -18,6 +18,9 @@
  */
 package org.structr.web.auth;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import com.github.scribejava.core.model.OAuth2AccessToken;
 import com.github.scribejava.core.model.OAuthRequest;
 import com.github.scribejava.core.model.Response;
@@ -33,6 +36,7 @@ import org.structr.core.entity.Principal;
 import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -80,7 +84,6 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 	@Override
 	public String getAuthorizationURL(final String state) {
-
 		return service.getAuthorizationUrl(state);
 	}
 
@@ -137,6 +140,25 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			Gson gson = new Gson();
 			Map<String, Object> params = gson.fromJson(rawResponse, Map.class);
 
+			// also add the accessToken payload into the userinformation because it contains some additional user information
+			try {
+
+				final String encodedToken = accessToken.getAccessToken();
+				DecodedJWT jwt = JWT.decode(encodedToken);
+
+				Map<String, Object> accessTokenEntries = new HashMap<>();
+
+				Map<String, Claim> map = jwt.getClaims();
+				for (Map.Entry<String, Claim> entry : map.entrySet()) {
+					accessTokenEntries.put(entry.getKey(), entry.getValue());
+				}
+
+				params.put("accessTokenClaims", accessTokenEntries);
+
+			} catch (Exception e) {
+				logger.error("Could not read client information from access_token {}", e);
+			}
+
 			// make full user info available to implementing classes
 			this.userInfo = params;
 
@@ -147,9 +169,9 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 
 			return null;
 
-		} catch (IOException | InterruptedException | ExecutionException e) {
+		} catch (Exception e) {
 
-			logger.error("Could not get perform client credential request", e);
+			logger.error("Could not perform client credential request {}", e);
 		}
 
 		return null;
