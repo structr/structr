@@ -18,51 +18,26 @@
  */
 package org.structr.web.auth.provider;
 
+import com.github.scribejava.apis.MicrosoftAzureActiveDirectory20Api;
 import com.github.scribejava.core.builder.ServiceBuilder;
-import com.github.scribejava.core.builder.api.DefaultApi20;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.config.Settings;
 import org.structr.web.auth.AbstractOAuth2Client;
-import org.structr.web.entity.html.Map;
 
-import java.util.HashMap;
+public class AzureAuthClient extends AbstractOAuth2Client {
+    private static final Logger logger = LoggerFactory.getLogger(FacebookAuthClient.class);
 
-public class Auth0AuthClient extends AbstractOAuth2Client {
+    private final static String authServer = "azure";
 
-    private static final Logger logger = LoggerFactory.getLogger(Auth0AuthClient.class);
-
-    private final static String authServer = "auth0";
-    protected String audience = null;
-
-    public Auth0AuthClient(final HttpServletRequest request) {
+    public AzureAuthClient(final HttpServletRequest request) {
 
         super(request, authServer);
-
-        this.audience = Settings.getOrCreateStringSetting("oauth", provider, "audience").getValue("");
 
         service = new ServiceBuilder(clientId)
                 .apiSecret(clientSecret)
                 .callback(redirectUri)
                 .defaultScope(scope)
-                .build(new DefaultApi20() {
-
-                    @Override
-                    public String getAccessTokenEndpoint() { return tokenLocation; }
-
-                    @Override
-                    protected String getAuthorizationBaseUrl() {
-                        return authLocation;
-                    }
-                });
-    }
-
-    @Override
-    public String getAuthorizationURL(final String state) {
-        HashMap parameters = new HashMap<String, String>();
-        parameters.put("audience", this.audience);
-
-        return service.createAuthorizationUrlBuilder().state(state).additionalParams(parameters).build();
+                .build(MicrosoftAzureActiveDirectory20Api.instance());
     }
 }

@@ -535,7 +535,6 @@ public class UiAuthenticator implements Authenticator {
 
 		OAuth2Client oAuth2Client = null;
 
-
 		switch (name) {
 			case "auth0":
 				oAuth2Client = new Auth0AuthClient(request);
@@ -551,6 +550,9 @@ public class UiAuthenticator implements Authenticator {
 				break;
 			case "linkedin":
 				oAuth2Client = new LinkedInAuthClient(request);
+				break;
+			case "azure":
+				oAuth2Client = new AzureAuthClient(request);
 				break;
 			default:
 				logger.error("Could not initialize oAuth2Client for provider {}", name);
