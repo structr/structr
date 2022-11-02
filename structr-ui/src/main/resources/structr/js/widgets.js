@@ -425,7 +425,6 @@ let _Widgets = {
 			div = Structr.node(widget.id);
 		}
 
-		console.log(widget);
 		let iconsContainer = div.children('.node-container').children('.icons-container');
 
 		div.draggable({
