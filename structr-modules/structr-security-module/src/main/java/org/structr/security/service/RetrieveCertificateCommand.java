@@ -74,10 +74,13 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private static final Logger logger = LoggerFactory.getLogger(RetrieveCertificateCommand.class.getName());
 	private final static String CERTIFICATE_RETRIEVAL_STATUS = "CERTIFICATE_RETRIEVAL_STATUS";
 
-	private final static String MODE_PARAM_KEY      = "mode";
-	private final static String CHALLENGE_PARAM_KEY = "challenge";
-	private final static String SERVER_PARAM_KEY    = "server";
-	private final static String WAIT_PARAM_KEY      = "wait";
+	private final static String MODE_PARAM_KEY                 = "mode";
+	private final static String CHALLENGE_PARAM_KEY            = "challenge";
+	private final static String SERVER_PARAM_KEY               = "server";
+	private final static String WAIT_PARAM_KEY                 = "wait";
+	private final static String RELOAD_PARAM_KEY               = "reload";
+	private final static String VERBOSE_PARAM_KEY              = "verbose";
+	private final static String KEEP_CHALLENGE_FILES_PARAM_KEY = "keepChallengeFiles";
 
 	private final static String WAIT_MODE_KEY   = "wait";
 	private final static String CREATE_MODE_KEY = "create";
@@ -97,8 +100,12 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	private String     serverUrl;
 	private String     challengeType;
 
-	private String     mode;
-	private int        waitForSeconds;
+	private String     mode               = WAIT_MODE_KEY;
+	private int        waitForSeconds     = Settings.LetsEncryptWaitBeforeAuthorization.getValue();
+	private boolean    reload             = false;
+	private boolean    verbose            = false;
+	private boolean    keepChallengeFiles = false;
+
 	private Collection<String> domains;
 
 	private Account                account;
@@ -138,18 +145,21 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				throw new FrameworkException(422, "No server supplied, aborting.");
 			}
 
-			mode = (String) attributes.get(MODE_PARAM_KEY);
-			if (StringUtils.isEmpty(mode)) {
-				mode = WAIT_MODE_KEY;
+			if (attributes.containsKey(MODE_PARAM_KEY)) {
+				mode = "" + attributes.get(MODE_PARAM_KEY);
 			}
 
-			final Boolean reload = Boolean.TRUE.equals(attributes.get("reload"));
+			reload             = Boolean.TRUE.equals(attributes.get(RELOAD_PARAM_KEY));
+			verbose            = Boolean.TRUE.equals(attributes.get(VERBOSE_PARAM_KEY));
+			keepChallengeFiles = Boolean.TRUE.equals(attributes.get(KEEP_CHALLENGE_FILES_PARAM_KEY));
 
-			final String wait = (String) attributes.get(WAIT_PARAM_KEY);
-			if (StringUtils.isBlank(wait)) {
-				waitForSeconds = Settings.LetsEncryptWaitBeforeAuthorization.getValue();
-			} else {
-				waitForSeconds = Integer.parseInt((String) attributes.get("wait"));
+			if (verbose) {
+				logger.info("Debug mode active - logging more verbosely and not removing challenge files.");
+			}
+
+			if (attributes.containsKey(WAIT_MODE_KEY)) {
+				// support string and integer values (legacy)
+				waitForSeconds = Integer.parseInt("" + attributes.get(WAIT_PARAM_KEY));
 			}
 
 			final Map<String, Object> broadcastData = new HashMap<>();
@@ -171,6 +181,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					try {
 						// Wait the specified amount of milliseconds
 						publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Waiting " + waitForSeconds + " seconds");
+						logger.info("Waiting " + waitForSeconds + " seconds");
 
 						Thread.sleep(waitForSeconds * 1000);
 
@@ -182,7 +193,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Verifying Challenges");
 					verifyChallenges(order.getAuthorizations());
 
-					getCertificate(reload);
+					getCertificate();
 
 					success = true;
 
@@ -212,7 +223,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					verifyChallenges(order.getAuthorizations());
 					publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Challenges verified");
 
-					getCertificate(reload);
+					getCertificate();
 
 					success = true;
 
@@ -320,10 +331,17 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 			for (final Authorization authorization : order.getAuthorizations()) {
 
-				logger.info("Authorization: " + authorization.getJSON());
+				if (verbose) {
+					logger.info("Authorization: " + authorization.getJSON());
+				}
 			}
 
-			logger.info("Successfully created new certificate order for {}: {}", domains, order.getJSON());
+			if (verbose) {
+				logger.info("Successfully created new certificate order for {}: {}", domains, order.getJSON());
+			} else {
+				logger.info("Successfully created new certificate order for {}", domains);
+			}
+
 			orders.add(order);
 
 		} catch (final Throwable t) {
@@ -348,7 +366,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 		}
 	}
 
-	private void getCertificate(final Boolean reload) throws FrameworkException {
+	private void getCertificate() throws FrameworkException {
 
 		Order order = null;
 		if (!orders.isEmpty()) {
@@ -469,7 +487,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					error("No ACME challenge found for type " + challengeType + ", aborting.");
 				}
 
-				logger.info("Created " + challengeType + " challenge authorization for domain {}; {}", domain, auth.getJSON());
+				if (verbose) {
+					logger.info("Created " + challengeType + " challenge authorization for domain {}; {}", domain, auth.getJSON());
+				} else {
+					logger.info("Created " + challengeType + " challenge authorization for domain {}", domain);
+				}
 
 				if (challenge.getStatus() == org.shredzone.acme4j.Status.VALID) {
 
@@ -489,7 +511,11 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 		for (final Authorization authorization : authorizations) {
 
-			logger.info("Verify challenge authorization for {}", authorization.getJSON());
+			if (verbose) {
+				logger.info("Verify challenge authorization for {}", authorization.getJSON());
+			} else {
+				logger.info("Verify challenge authorization");
+			}
 
 			try {
 
@@ -507,6 +533,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 							if (challenge.getStatus() == org.shredzone.acme4j.Status.INVALID) {
 								error("Received invalid challenge response, aborting. Error: {}" + challenge.getError(), false);
 							}
+
+							Thread.sleep(3000L);
 
 							challenge.update();
 						}
@@ -555,6 +583,12 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 	}
 
 	private void cleanUpChallengeFiles() {
+
+		if (keepChallengeFiles) {
+
+			logger.info("Not removing challenge files /.well-known/acme-challenge/* from internal file system...");
+			return;
+		}
 
 		logger.info("Removing /.well-known/acme-challenge/* from internal file system...");
 
