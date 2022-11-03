@@ -34,6 +34,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.web.entity.html.P;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -141,22 +142,9 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			Map<String, Object> params = gson.fromJson(rawResponse, Map.class);
 
 			// also add the accessToken payload into the userinformation because it contains some additional user information
-			try {
-
-				final String encodedToken = accessToken.getAccessToken();
-				DecodedJWT jwt = JWT.decode(encodedToken);
-
-				Map<String, Object> accessTokenEntries = new HashMap<>();
-
-				Map<String, Claim> map = jwt.getClaims();
-				for (Map.Entry<String, Claim> entry : map.entrySet()) {
-					accessTokenEntries.put(entry.getKey(), entry.getValue());
-				}
-
+			Map<String, Object> accessTokenEntries = decodeAndConvertAccessTokenClaims(accessToken);
+			if (accessTokenEntries != null) {
 				params.put("accessTokenClaims", accessTokenEntries);
-
-			} catch (Exception e) {
-				logger.error("Could not read client information from access_token {}", e);
 			}
 
 			// make full user info available to implementing classes
@@ -172,6 +160,47 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		} catch (Exception e) {
 
 			logger.error("Could not perform client credential request {}", e);
+		}
+
+		return null;
+	}
+
+	Map<String, Object> decodeAndConvertAccessTokenClaims (final OAuth2AccessToken accessToken) {
+		try {
+
+			DecodedJWT jwt = JWT.decode(accessToken.getAccessToken());
+
+			Map<String, Object> accessTokenEntries = new HashMap<>();
+			Object claimValue;
+			for (Map.Entry<String, Claim> entry : jwt.getClaims().entrySet()) {
+
+				Claim value = entry.getValue();
+				if (value.asDouble() != null || value.asLong() != null || value.asInt() != null) {
+
+					accessTokenEntries.put(entry.getKey(), value.as(Number.class));
+
+				} else if ((claimValue = value.asBoolean()) != null) {
+
+					accessTokenEntries.put(entry.getKey(), claimValue);
+
+				} else if ((claimValue = value.asList(Object.class)) != null) {
+
+					accessTokenEntries.put(entry.getKey(), claimValue);
+
+				}  else if ((claimValue = value.asMap()) != null) {
+
+					accessTokenEntries.put(entry.getKey(), claimValue);
+
+				} else if ((claimValue = value.asString()) != null) {
+
+					accessTokenEntries.put(entry.getKey(), claimValue);
+				}
+			}
+
+			return accessTokenEntries;
+
+		} catch (Exception e) {
+			logger.error("Could not read client information from access_token {}", e);
 		}
 
 		return null;
