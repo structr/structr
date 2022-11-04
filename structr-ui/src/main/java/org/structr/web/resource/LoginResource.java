@@ -98,7 +98,7 @@ public class LoginResource extends FilterableResource {
 
 			try {
 
-				returnedMethodResult = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode);
+				returnedMethodResult = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -188,7 +188,7 @@ public class LoginResource extends FilterableResource {
 		return false;
 	}
 
-	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {

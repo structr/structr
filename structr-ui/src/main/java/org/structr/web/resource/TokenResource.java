@@ -18,6 +18,8 @@
  */
 package org.structr.web.resource;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -29,8 +31,6 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 
-import jakarta.servlet.http.Cookie;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 
 public class TokenResource extends LoginResource {
@@ -51,7 +51,7 @@ public class TokenResource extends LoginResource {
     }
 
     @Override
-    protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode) throws FrameworkException {
+    protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
 
         Principal user = null;
 
@@ -61,7 +61,7 @@ public class TokenResource extends LoginResource {
 
         if (user == null) {
 
-            String refreshToken = getRefreshToken();
+            String refreshToken = getRefreshToken(propertySet);
 
             if (refreshToken != null) {
 
@@ -107,11 +107,19 @@ public class TokenResource extends LoginResource {
         return createRestMethodResult(securityContext, tokenMap);
     }
 
-    private String getRefreshToken() {
+    private String getRefreshToken(Map<String, Object> propertySet) {
+
+        String refreshToken = (String) propertySet.get("refresh_token");
+        if (refreshToken != null) {
+            return refreshToken;
+        }
+
+        if (this.request == null) {
+            return null;
+        }
 
         final Cookie[] cookies = request.getCookies();
 
-        // first check for token in cookie
         if (cookies != null) {
 
             for (Cookie cookie : request.getCookies()) {
@@ -123,11 +131,6 @@ public class TokenResource extends LoginResource {
             }
         }
 
-        if (this.request == null) {
-            return null;
-        }
-
-        final String refreshToken = request.getParameter("refresh_token");
         if (refreshToken == null) {
             return request.getHeader("refresh_token");
         }
