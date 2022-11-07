@@ -124,7 +124,7 @@ public class UiAuthenticator implements Authenticator {
 
 		String authorizationToken = getAuthorizationToken(request);
 
-		if (user == null && StringUtils.isBlank(authorizationToken)) {
+		if (user == null && StringUtils.isBlank(authorizationToken) && !response.isCommitted()) {
 
 			user = SessionHelper.checkSessionAuthentication(request);
 		}
