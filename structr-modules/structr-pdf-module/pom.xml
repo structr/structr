@@ -14,7 +14,7 @@
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
-			<artifactId>structr-ui</artifactId>
+			<artifactId>structr-base</artifactId>
 			<version>${project.version}</version>
 			<optional>true</optional>
 		</dependency>

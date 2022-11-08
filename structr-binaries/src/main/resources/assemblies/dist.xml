@@ -15,7 +15,7 @@
 	</moduleSets>
 	<fileSets>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-ui/target</directory>
+			<directory>${project.parent.basedir}/structr-base/target</directory>
 			<outputDirectory></outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -28,7 +28,7 @@
 
 		</fileSet>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-ui/target/lib</directory>
+			<directory>${project.parent.basedir}/structr-base/target/lib</directory>
 			<outputDirectory>lib</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -37,7 +37,7 @@
 			</includes>
 		</fileSet>
 		<fileSet>
-			<directory>${project.parent.basedir}/structr-ui/src/main/resources/structr</directory>
+			<directory>${project.parent.basedir}/structr-base/src/main/resources/structr</directory>
 			<outputDirectory>structr</outputDirectory>
 			<directoryMode>0755</directoryMode>
 			<fileMode>0644</fileMode>
@@ -57,52 +57,52 @@
 	</fileSets>
 	<files>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/amd64/prunsrv.exe</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/amd64/prunsrv.exe</source>
 			<outputDirectory>bin/commons-daemon/amd64</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/LICENSE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/NOTICE.txt</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/NOTICE.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/prunmgr.exe</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/prunmgr.exe</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/prunsrv.exe</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/prunsrv.exe</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/commons-daemon/RELEASE-NOTES.txt</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/commons-daemon/RELEASE-NOTES.txt</source>
 			<outputDirectory>bin/commons-daemon</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/config</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/config</source>
 			<outputDirectory>bin</outputDirectory>
 			<filtered>true</filtered>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/start</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/start.cmd</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/start.cmd</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/stop</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/stop</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 		<file>
-			<source>${project.parent.basedir}/structr-ui/src/main/resources/bin/docker.sh</source>
+			<source>${project.parent.basedir}/structr-base/src/main/resources/bin/docker.sh</source>
 			<outputDirectory>bin</outputDirectory>
 		</file>
 	</files>

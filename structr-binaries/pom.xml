@@ -64,7 +64,7 @@
 								</data>
 
 								<data>
-									<src>${project.parent.basedir}/structr-ui/target/lib</src>
+									<src>${project.parent.basedir}/structr-base/target/lib</src>
 									<type>directory</type>
 									<mapper>
 										<type>perm</type>
@@ -74,7 +74,7 @@
 								</data>
 
 								<data>
-									<src>${project.parent.basedir}/structr-ui/src/main/resources/structr</src>
+									<src>${project.parent.basedir}/structr-base/src/main/resources/structr</src>
 									<type>directory</type>
 									<mapper>
 										<type>perm</type>

@@ -1,0 +1,7 @@
+
+# rename first page
+click css "div.page.node > b"
+pause 100
+sendKeys newPageName
+click id "pagesTree"
+pause 100
