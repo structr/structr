@@ -53,6 +53,7 @@ public class ConsoleCommand extends AbstractCommand {
 	private static final String COMMANDS_KEY       = "commands";
 	private static final String PROMPT_KEY         = "prompt";
 	private static final String VERSION_INFO_KEY   = "versionInfo";
+	private static final String IS_JSON_KEY        = "isJSON";
 
 	static {
 
@@ -113,17 +114,29 @@ public class ConsoleCommand extends AbstractCommand {
 						.build(), true);
 			}
 
-		} catch (IOException | FrameworkException ex) {
+		} catch (final FrameworkException ex) {
 
 			logger.debug("Error while executing console line {}", line, ex);
 
-			final String message = (ex.getCause() instanceof UnlicensedScriptException) ? ex.getCause().getMessage() : ex.getMessage();
+			final String message = (ex.getCause() instanceof UnlicensedScriptException) ? ex.getCause().getMessage() : ex.toJSON().toString();
 
 			getWebSocket().send(MessageBuilder.forName(getCommand())
 					.callback(webSocketData.getCallback())
 					.data(MODE_KEY, console.getMode())
 					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
+					.data(IS_JSON_KEY, true)
 					.message(message)
+					.build(), true);
+
+		} catch (final IOException ex) {
+
+			logger.debug("Error while executing console line {}", line, ex);
+
+			getWebSocket().send(MessageBuilder.forName(getCommand())
+					.callback(webSocketData.getCallback())
+					.data(MODE_KEY, console.getMode())
+					.data(VERSION_INFO_KEY, VersionHelper.getFullVersionInfo())
+					.message(ex.getMessage())
 					.build(), true);
 		}
 	}

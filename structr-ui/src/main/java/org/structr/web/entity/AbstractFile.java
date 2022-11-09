@@ -183,7 +183,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 					if (errorBuffer != null) {
 
-						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey, file.getUuid());
+						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey, file.getUuid(), thisFile.getUuid(), filePath);
 						token.setValue(filePath);
 
 						errorBuffer.add(token);
