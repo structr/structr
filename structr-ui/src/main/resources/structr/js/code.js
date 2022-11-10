@@ -558,7 +558,7 @@ let _Code = {
 	treeInitFunction: (obj, callback) => {
 
 		let id   = obj?.data?.key || '#';
-		let path = obj?.data?.path || 'root';
+		let path = obj?.data?.path || '';
 
 		/* The tree construction is now based on obj.data.key, together with
 		 * additional information like type, parent etc. That means all nodes
@@ -611,7 +611,7 @@ let _Code = {
 									query: { parentPackage: null },
 									*/
 									content: 'custom',
-									path: path + '/custom'
+									path: '/root/custom'
 								},
 								li_attr: { 'data-id': 'custom' }
 							},
@@ -624,7 +624,7 @@ let _Code = {
 									key: 'SchemaNode',
 									query: { isBuiltinType: true },
 									content: 'builtin',
-									path: path + '/builtin'
+									path: '/root/builtin'
 								},
 								li_attr: { 'data-id': 'builtin' }
 							},
@@ -636,7 +636,7 @@ let _Code = {
 									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
 									key: 'workingsets',
 									content: 'workingsets',
-									path: path + '/workingsets'
+									path: '/root/workingsets'
 								},
 								li_attr: { 'data-id': 'workingsets' }
 							}
@@ -645,7 +645,7 @@ let _Code = {
 						data: {
 							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
 							key: 'root',
-							path: path + '/root'
+							path: '/root'
 						},
 						li_attr: { 'data-id': 'root' }
 					}
