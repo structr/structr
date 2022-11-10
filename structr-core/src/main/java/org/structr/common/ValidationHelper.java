@@ -582,7 +582,7 @@ public class ValidationHelper {
 							// we can assume that the object currently examined is the first
 							// existing object, hence all others get the error message with the
 							// UUID of the first one.
-							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid()));
+							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid(), value));
 
 							// error!
 							return false;
@@ -665,7 +665,7 @@ public class ValidationHelper {
 					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 						// validation is aborted when the first validation failure occurs, so
-						// we can assume that the object currently exmained is the first
+						// we can assume that the object currently examined is the first
 						// existing object, hence all others get the error message with the
 						// UUID of the first one.
 						errorBuffer.add(new CompoundToken(object.getType(), keys, object.getUuid()));
@@ -728,10 +728,10 @@ public class ValidationHelper {
 					if (!identity.equals(foundNode.getPropertyContainer().getId())) {
 
 						// validation is aborted when the first validation failure occurs, so
-						// we can assume that the object currently exmained is the first
+						// we can assume that the object currently examined is the first
 						// existing object, hence all others get the error message with the
 						// UUID of the first one.
-						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid()));
+						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid(), value));
 
 						// error!
 						return false;

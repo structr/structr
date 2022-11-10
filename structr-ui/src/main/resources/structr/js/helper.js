@@ -673,6 +673,21 @@ let _Console = new (function() {
 
 			if (result !== undefined) {
 
+				let isJSON = data.data?.isJSON ?? false;
+				if (isJSON) {
+					try {
+
+						let data = JSON.parse(result);
+
+						let errorText = Structr.getErrorMessageFromResponse(data, false);
+
+						result = errorText;
+
+					} catch (e) {
+						result = new String(result);
+					}
+				}
+
 				// prevent the output from being formatted and re-interpreted by term. ('[[1,2,3]]' leads to re-interpretation)
 				let echoConfig = {
 					exec: false,
@@ -683,7 +698,7 @@ let _Console = new (function() {
 					}
 				};
 
-				term.echo( new String(result), echoConfig);
+				term.echo(result, echoConfig);
 			}
 		});
 	};

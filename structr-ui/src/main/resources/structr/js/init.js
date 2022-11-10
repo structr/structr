@@ -789,7 +789,7 @@ let Structr = {
 		}
 		message.show();
 	},
-	errorFromResponse: (response, url, additionalParameters) => {
+	getErrorMessageFromResponse: (response, useHtml = true) => {
 
 		let errorText = '';
 
@@ -819,7 +819,7 @@ let Structr = {
 				errorLines.push(errorMsg);
 			}
 
-			errorText = errorLines.join('<br>');
+			errorText = errorLines.join((useHtml ? '<br>' : '\n'));
 
 		} else {
 
@@ -827,14 +827,24 @@ let Structr = {
 				errorText = url + ': ';
 			}
 
-			errorText += response.code + '<br>';
+			errorText += response.code + (useHtml ? '<br>' : '\n');
 
 			for (let key in response) {
 				if (key !== 'code') {
-					errorText += '<b>' + key.capitalize() + '</b>: ' + response[key] + '<br>';
+					if (useHtml) {
+						errorText += `<b>${key.capitalize()}</b>: ${response[key]}<br>`;
+					} else {
+						errorText += `${key.capitalize()}: ${response[key]}`;
+					}
 				}
 			}
 		}
+
+		return errorText;
+	},
+	errorFromResponse: (response, url, additionalParameters) => {
+
+		let errorText = Structr.getErrorMessageFromResponse(response);
 
 		let message = new MessageBuilder().error(errorText);
 
