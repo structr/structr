@@ -443,7 +443,7 @@ let _Code = {
 
 		if (_Code.isDirty()) {
 
-			let formData        = _Code.collectChangedPropertyData(entity);
+			let formData = _Code.collectChangedPropertyData(entity);
 
 			for (let modFn of optionalFormDataModificationFunctions) {
 				modFn(formData);
@@ -500,11 +500,10 @@ let _Code = {
 		let iconSvg   = _Code.getIconForNodeType(entity);
 		let localPath = path;
 
-		if (localPath.indexOf('searchresults-') === 0) {
-			localPath = _Code.removeSearchResultsPartFromPath(localPath, entity);
+		// don't add search results to recently used elements (we cannot construct the path)
+		if (localPath.indexOf('root/searchresults/') !== 0) {
+			_Code.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
 		}
-
-		_Code.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
 	},
 	addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
 
@@ -553,153 +552,115 @@ let _Code = {
 
 		LSWrapper.setItem(_Code.codeRecentElementsKey, filteredRecentElements);
 	},
-	removeSearchResultsPartFromPath: (path, entity) => {
-
-		let parts = path.split('-');
-
-		// we need to change tree paths that start with searchresults-
-		switch (entity.type) {
-
-			case 'SchemaNode':
-				if (entity.isBuiltinType) {
-					parts[0] = 'builtin';
-				} else {
-					parts[0] = 'custom';
-				}
-				break;
-
-			case 'SchemaProperty':
-			case 'SchemaView':
-				if (entity.schemaNode) {
-					if (entity.schemaNode.isBuiltinType) {
-						parts[0] = 'builtin';
-					} else {
-						parts[0] = 'custom';
-					}
-				} else {
-					console.log('Missing schemaNode for ' + entity.id);
-				}
-				break;
-
-			case 'SchemaMethod':
-				if (entity.schemaNode) {
-					if (entity.schemaNode.isBuiltinType) {
-						parts[0] = 'builtin';
-					} else {
-						parts[0] = 'custom';
-					}
-				} else {
-					parts[0] = 'globals';
-				}
-				break;
-
-			default:
-				console.log('Unhandled entity type ' + entity.type);
-				break;
-		}
-
-		return parts.join('-');
-	},
-	createFullPath: function(entity) {
-
-		var parts = [];
-
-		// we need to change tree paths that start with searchresults-
-		switch (entity.type) {
-
-			case 'SchemaNode':
-				parts.push('');
-				parts.push(entity.id);
-				break;
-
-			case 'SchemaProperty':
-				if (entity.schemaNode) {
-					parts.push('');
-					parts.push(entity.schemaNode.id);
-					parts.push('properties');
-					parts.push(entity.id);
-				} else {
-					console.log('Missing schemaNode for ' + entity.id);
-				}
-				break;
-
-			case 'SchemaView':
-				if (entity.schemaNode) {
-					parts.push('');
-					parts.push(entity.schemaNode.id);
-					parts.push('views');
-					parts.push(entity.id);
-				} else {
-					console.log('Missing schemaNode for ' + entity.id);
-				}
-				break;
-
-			case 'SchemaMethod':
-				if (entity.schemaNode) {
-					parts.push('');
-					parts.push(entity.schemaNode.id);
-					parts.push('methods');
-					parts.push(entity.id);
-				} else {
-					parts.push('globals');
-				}
-				break;
-
-			default:
-				console.log('Unhandled entity type ' + entity.type);
-				break;
-		}
-
-		return parts.join('-');
-	},
 	refreshTree: () => {
 		_TreeHelper.refreshTree(_Code.codeTree);
 	},
 	treeInitFunction: (obj, callback) => {
 
-		switch (obj.id) {
+		let id   = obj?.data?.key || '#';
+		let path = obj?.data?.path || 'root';
+
+		/* The tree construction is now based on obj.data.key, together with
+		 * additional information like type, parent etc. That means all nodes
+		 * must specify a data object (see below for example).
+		 */
+
+		switch (id) {
 
 			case '#':
 
 				let defaultEntries = [
 					{
-						id: 'globals-',
 						text: 'Global Methods',
 						children: true,
 						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24) }
+						data: {
+							svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
+							key: 'SchemaMethod',
+							query: { schemaNode: null },
+							content: 'globals',
+							path: path + '/globals'
+						},
+						li_attr: { 'data-id': 'globals' }
 					},
 					{
-						id: 'openapi-',
 						text: 'OpenAPI - Swagger UI',
 						children: (_Code.availableTags.length > 0),
 						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24) }
+						data: {
+							svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
+							key: 'openapi',
+							content: 'openapi',
+							path: path + '/openapi'
+						},
+						li_attr: { 'data-id': 'openapi' }
 					},
 					{
-						id: 'root',
 						text: 'Types',
 						children: [
-							{ id: 'custom-',     text: 'Custom',       children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) } },
-							{ id: 'builtin-',    text: 'Built-In',     children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) } },
-							{ id: 'workingsets', text: 'Working Sets', children: true, icon: _Icons.jstree_fake_icon, data: { svgIcon: _Icons.getSvgIcon('folder_star', 16, 24) } }
+							{
+								text: 'Custom',
+								children: true,
+								icon: _Icons.jstree_fake_icon,
+								data: {
+									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+									key: 'SchemaNode',
+									query: { isBuiltinType: false },
+									/*
+									key: 'SchemaPackage',
+									query: { parentPackage: null },
+									*/
+									content: 'custom',
+									path: path + '/custom'
+								},
+								li_attr: { 'data-id': 'custom' }
+							},
+							{
+								text: 'Built-In',
+								children: true,
+								icon: _Icons.jstree_fake_icon,
+								data: {
+									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+									key: 'SchemaNode',
+									query: { isBuiltinType: true },
+									content: 'builtin',
+									path: path + '/builtin'
+								},
+								li_attr: { 'data-id': 'builtin' }
+							},
+							{
+								text: 'Working Sets',
+								children: true,
+								icon: _Icons.jstree_fake_icon,
+								data: {
+									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
+									key: 'workingsets',
+									content: 'workingsets',
+									path: path + '/workingsets'
+								},
+								li_attr: { 'data-id': 'workingsets' }
+							}
 						],
 						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
-						path: '/',
-						state: {
-							opened: true
-						}
+						data: {
+							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+							key: 'root',
+							path: path + '/root'
+						},
+						li_attr: { 'data-id': 'root' }
 					}
 				];
 
 				if (_Code.searchIsActive()) {
 
 					defaultEntries.unshift({
-						id: 'searchresults-',
 						text: 'Search Results',
 						children: true,
 						icon: 'fa fa-search',
+						data: {
+							key: 'searchresults',
+							path: path + '/searchresults'
+						},
 						state: {
 							opened: true
 						}
@@ -707,10 +668,6 @@ let _Code = {
 				}
 
 				callback(defaultEntries);
-				break;
-
-			case 'root':
-				_Code.load(null, callback);
 				break;
 
 			default:
@@ -732,8 +689,9 @@ let _Code = {
 
 		return allow;
 	},
-	displayFunction: (result, identifier, dontSort, isSearch) => {
+	displayFunction: (result, data, dontSort, isSearch) => {
 
+		let path = data.path;
 		let list = [];
 
 		for (let entity of result) {
@@ -741,23 +699,23 @@ let _Code = {
 			// skip HTML entities
 			if (entity?.category !== 'html') {
 
-				let icon     = _Code.getIconForNodeType(entity);
-				let treeId = identifier.source + '-' + entity.id;
+				let icon = _Code.getIconForNodeType(entity);
 
 				switch (entity.type) {
 
 					case 'OpenAPITag': {
 
 						list.push({
-							id:       treeId,
 							text:     entity.name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
 							data: {
-								type:    entity.type,
-								name:    entity.name,
-								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24)
-							}
+								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
+							},
+							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -766,15 +724,40 @@ let _Code = {
 					case 'SchemaGroup': {
 
 						list.push({
-							id:       treeId,
 							text:     entity.name,
 							children: entity.children.length > 0,
 							icon:     _Icons.jstree_fake_icon,
 							data: {
-								type:    entity.type,
-								name:    entity.name,
-								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24)
-							}
+								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
+								key:     'workingset',
+								id:      entity.id,
+								content: 'workingset',
+								path:    path + '/' + entity.id
+							},
+							li_attr: { 'data-id': entity.id }
+						});
+
+						break;
+					}
+
+					case 'SchemaPackage': {
+
+						list.push({
+							text:     entity.name,
+							children: (entity.childPackages.length + entity.classesInPackage.length) > 0,
+							icon:     _Icons.jstree_fake_icon,
+							data: {
+								svgIcon:   _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
+								key:       'loadmultiple', /* special key that selects a different query function for contents */
+								id:        entity.id,
+								queries:   [
+									{ type: 'SchemaPackage', query: { parentPackage: entity.id }},
+									{ type: 'SchemaNode',    query: { inPackage: entity.id }}
+								],
+								content: entity.type,
+								path:    path + '/' + entity.id
+							},
+							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -784,72 +767,92 @@ let _Code = {
 
 						let children = [
 							{
-								id:       treeId + '-properties',
 								text:     'Local Properties',
 								children: (entity.schemaProperties.length > 0),
 								icon:     _Icons.jstree_fake_icon,
 								data:     {
-									type: entity.name,
-									name: entity.name,
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24)
-								}
+									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+									key:     'SchemaProperty',
+									id:      entity.id,
+									type:    entity.name,
+									query:   { schemaNode: entity.id },
+									content: 'properties',
+									path:    path + '/' + entity.id + '/properties'
+								},
+								li_attr: { 'data-id': 'properties' }
 							},
 							{
-								id:       treeId + '-remoteproperties',
 								text:     'Related Properties',
 								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 								icon:     _Icons.jstree_fake_icon,
 								data:     {
-									type: entity.name,
-									name: entity.name,
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24)
-								}
+									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+									key:     'remoteproperties',
+									id:      entity.id,
+									type:    entity.name,
+									content: 'remoteproperties',
+									path:    path + '/' + entity.id + '/remoteproperties'
+								},
+								li_attr: { 'data-id': 'remoteproperties' }
 							},
 							{
-								id:       treeId + '-views',
 								text:     'Views',
 								children: (entity.schemaViews.length > 0),
 								icon:     _Icons.jstree_fake_icon,
 								data:     {
-									type: entity.name,
-									name: entity.name,
-									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24)
-								}
+									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
+									key:     'SchemaView',
+									id:      entity.id,
+									type:    entity.name,
+									query:   { schemaNode: entity.id },
+									content: 'views',
+									path:    path + '/' + entity.id + '/views'
+								},
+								li_attr: { 'data-id': 'views' }
 							},
 							{
-								id:       treeId + '-methods',
 								text:     'Methods',
 								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 								icon:     _Icons.jstree_fake_icon,
 								data:     {
-									type: entity.name,
-									name: entity.name,
-									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24)
-								}
+									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
+									key:     'SchemaMethod',
+									id:      entity.id,
+									type:    entity.name,
+									query:   { schemaNode: entity.id },
+									content: 'methods',
+									path:    path + '/' + entity.id + '/methods'
+								},
+								li_attr: { 'data-id': 'methods' }
 							},
 							{
-								id:       treeId + '-inheritedproperties',
 								text:     'Inherited Properties',
 								children: true,
 								icon:     _Icons.jstree_fake_icon,
 								data:     {
-									type: entity.name,
-									name: entity.name,
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24)
-								}
+									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+									key:     'inheritedproperties',
+									id:      entity.id,
+									type:    entity.name,
+									content: 'inheritedproperties',
+									path:    path + '/' + entity.id + '/inheritedproperties'
+
+								},
+								li_attr: { 'data-id': 'inheritedproperties' }
 							}
 						];
 
 						list.push({
-							id:       treeId,
 							text:     entity.name,
 							children: children,
 							icon:     _Icons.jstree_fake_icon,
 							data: {
-								type: entity.type,
-								name: entity.name,
-								svgIcon: icon
-							}
+								svgIcon: icon,
+								key: entity.type,
+								id: entity.id,
+								path: path + '/' + entity.id
+							},
+							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -860,20 +863,18 @@ let _Code = {
 						let name = entity.name || '[unnamed]';
 						let listItemAttributes = {};
 
-						treeId = identifier.source + '-' + entity.id + '-' + name;
-
 						list.push({
-							id:       treeId,
 							text:     name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
 							li_attr:  listItemAttributes,
 							data: {
-								type: entity.type,
-								name: entity.name,
-								entity: entity,
-								svgIcon: icon
-							}
+								svgIcon: icon,
+								key: entity.type,
+								id: entity.id,
+								path: path + '/' + entity.id
+							},
+							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -885,30 +886,29 @@ let _Code = {
 
 						if (isSearch && entity.schemaNode) {
 							name = entity.schemaNode.name + '.' + name;
-							treeId = 'searchresults-' + _Code.createFullPath(entity);
 						}
 
 						if (entity.inherited) {
 
 							list.push({
-								id: treeId,
 								text:  name + (' (' + (entity.propertyType || '') + ')'),
 								children: false,
 								icon: _Icons.jstree_fake_icon,
 								li_attr: {
-									style: 'color: #aaa;'
+									style: 'color: #aaa;',
+									'data-id': entity.id
 								},
 								data: {
-									type: entity.type,
-									name: entity.name,
-									svgIcon: icon
+									svgIcon: icon,
+									key: entity.type,
+									id: entity.id,
+									path: path + '/' + entity.id
 								}
 							});
 
 						} else {
 
-							let hasVisibleChildren = _Code.hasVisibleChildren(identifier.root, entity);
-							let listItemAttributes = {};
+							let hasVisibleChildren = _Code.hasVisibleChildren(data.root, entity);
 
 							if (entity.type === 'SchemaMethod') {
 								name = name + '()';
@@ -919,16 +919,16 @@ let _Code = {
 							}
 
 							list.push({
-								id: treeId,
 								text:  name,
 								children: hasVisibleChildren,
 								icon: _Icons.jstree_fake_icon,
-								li_attr: listItemAttributes,
 								data: {
-									type: entity.type,
-									name: entity.name,
-									svgIcon: icon
-								}
+									svgIcon: icon,
+									key: entity.type,
+									id: entity.id,
+									path: path + '/' + entity.id
+								},
+								li_attr: { 'data-id': entity.id }
 							});
 						}
 
@@ -947,48 +947,53 @@ let _Code = {
 			});
 		}
 
-		identifier.callback(list);
+		data.callback(list);
 	},
 	load: (obj, callback) => {
 
-		let identifier = _Code.splitIdentifier(obj);
+		let data = obj.data;
 
-		identifier.callback = callback;
+		data.callback = callback;
 
-		switch (identifier.root) {
+		switch (data.key) {
 
 			case 'searchresults':
-				if (identifier.memberCollection) {
-				       _Code.loadTypeMembers(identifier);
-			       } else if (identifier.typeId) {
-					_Code.loadType(identifier);
-				} else {
-					_Code.loadSearchResults(identifier);
-				}
-				break;
-
-			case 'globals':
-				_Code.loadGlobalSchemaMethods(identifier);
+				_Code.loadSearchResults(data);
 				break;
 
 			case 'openapi':
-				_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), identifier);
-				break;
-
-			case 'custom':
-				_Code.loadCustomTypes(identifier);
-				break;
-
-			case 'builtin':
-				_Code.loadBuiltInTypes(identifier);
+				_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
 				break;
 
 			case 'workingsets':
-				_Code.loadWorkingSets(identifier);
+				_Code.loadWorkingSets(data);
 				break;
+
+			case 'workingset':
+				_Code.loadWorkingSet(data);
+				break;
+
+			case 'loadmultiple':
+				_Code.loadMultiple(data);
+				break;
+
+			case 'remoteproperties':
+				_Code.loadRemoteProperties(data);
+				break;
+
+			case 'inheritedproperties':
+				_Code.loadInheritedProperties(data);
+				break;
+
+			default:
+				// generic query function, controlled by data object
+				Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
+					_Code.displayFunction(result, data);
+				}, true, 'ui');
+
 		}
 	},
-	loadSearchResults: (identifier) => {
+	loadSearchResults: (data) => {
 
 		let text          = $('#tree-search-input').val();
 		let searchResults = {};
@@ -1000,7 +1005,7 @@ let _Code = {
 
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
-				_Code.displayFunction(Object.values(searchResults), identifier, false, true);
+				_Code.displayFunction(Object.values(searchResults), data, false, true);
 			}
 		};
 
@@ -1062,21 +1067,14 @@ let _Code = {
 		Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { readFunction: text}, collectFunction, false);
 
 	},
-	loadGlobalSchemaMethods: (identifier) => {
-		if (identifier.typeId) {
-			_Code.loadType(identifier);
-		} else {
-			Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: null}, result => _Code.displayFunction(result, identifier), true, 'ui');
-		}
-	},
-	showSwaggerUI: (selection) => {
+	showSwaggerUI: (data) => {
 
-		_Code.updatePathLocationStack(selection.source);
-		_Code.lastClickedPath = selection.source;
+		_Code.updatePathLocationStack(data.path);
+		_Code.lastClickedPath = data.path;
 
 		_Code.codeContents.empty();
 
-		let tagName       = selection.nodeData?.name;
+		let tagName       = data?.name;
 		let baseUrl       = location.origin + location.pathname;
 		let swaggerUrl    = baseUrl + 'swagger/';
 		let openApiTagUrl = baseUrl + 'openapi/' + (tagName ? tagName + '.json' : '');
@@ -1085,114 +1083,47 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.swaggerui({ iframeSrc: iframeSrc }));
 
 	},
-	loadCustomTypes: (identifier) => {
-		if (identifier.typeId) {
-			_Code.loadType(identifier);
-		} else {
-			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isBuiltinType: false}, result => _Code.displayFunction(result, identifier), true);
+	loadMultiple: async (data) => {
+		// execute a list of queries and join the results
+		let result = [];
+		for (let query of data.queries) {
+			let r = await Command.queryPromise(query.type, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', query.query, true, 'ui');
+			result = result.concat(r);
 		}
+		_Code.displayFunction(result, data);
 	},
-	loadWorkingSets: (identifier) => {
-		if (identifier.typeId) {
-			_Code.loadType(identifier);
-		} else if (identifier.workingSetId) {
-			_WorkingSets.getWorkingSetContents(identifier.workingSetId, result => _Code.displayFunction(result, identifier));
-		} else {
-			_WorkingSets.getWorkingSets(result => _Code.displayFunction(result, identifier, true));
-		}
+	loadWorkingSets: (data) => {
+		_WorkingSets.getWorkingSets(result => _Code.displayFunction(result, data, true));
 	},
-	loadBuiltInTypes: (identifier) => {
-		if (identifier.typeId) {
-			_Code.loadType(identifier);
-		} else {
-			Command.query('SchemaNode', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { isBuiltinType: true }, result => _Code.displayFunction(result, identifier), false);
-		}
+	loadWorkingSet: (data) => {
+		_WorkingSets.getWorkingSetContents(data.id, result => _Code.displayFunction(result, data));
 	},
-	loadType: (identifier) => {
-	       if (identifier.memberCollection) {
-		       _Code.loadTypeMembers(identifier);
-	       } else {
-			Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { schemaNode: identifier.typeId }, (result) => {
-				_Code.displayFunction(result, identifier);
-			}, true, 'ui');
-	       }
-	},
-	loadTypeMembers: (identifier) => {
+	loadRemoteProperties: (data) => {
 
-		switch (identifier.memberCollection) {
+		Command.get(data.id, null, entity => {
 
-			case 'properties':
-				_Code.loadLocalProperties(identifier);
-				break;
+			let mapFn = (rel, out) => {
+				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
-			case 'remoteproperties':
-				_Code.loadRemoteProperties(identifier);
-				break;
-
-			case 'views':
-				_Code.loadViews(identifier);
-				break;
-
-			case 'methods':
-				_Code.loadMethods(identifier);
-				break;
-
-			case 'inheritedproperties':
-				_Code.loadInheritedProperties(identifier);
-				break;
-		}
-	},
-	loadLocalProperties: (identifier) => {
-		if (identifier.memberId) {
-		} else {
-			Command.query('SchemaProperty', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', { schemaNode: identifier.typeId }, (result) => {
-				_Code.displayFunction(result, identifier);
-			}, true, 'ui');
-		}
-	},
-	loadRemoteProperties: (identifier) => {
-
-		if (identifier.memberId) {
-			// hm?
-		} else {
-
-			Command.get(identifier.typeId, null, entity => {
-
-				let mapFn = (rel, out) => {
-					let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
-
-					return {
-						id: rel.id,
-						type: rel.type,
-						name: attrName,
-						propertyType: '',
-						inherited: false
-					};
+				return {
+					id: rel.id,
+					type: rel.type,
+					name: attrName,
+					propertyType: '',
+					inherited: false
 				};
+			};
 
-				let processedRemoteAttributes = [].concat(entity.relatedTo.map(r => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
+			let processedRemoteAttributes = [].concat(entity.relatedTo.map(r => mapFn(r, true))).concat(entity.relatedFrom.map((r) => mapFn(r, false)));
 
-				_Code.displayFunction(processedRemoteAttributes, identifier);
-			});
-		}
+			_Code.displayFunction(processedRemoteAttributes, data);
+		});
 	},
-	loadViews: (identifier) => {
+	loadInheritedProperties: (data) => {
 
-		Command.query('SchemaView', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: identifier.typeId }, (result) => {
-			_Code.displayFunction(result, identifier);
-		}, true, 'ui');
-	},
-	loadMethods: (identifier) => {
+		Command.listSchemaProperties(data.id, 'custom', (result) => {
 
-		Command.query('SchemaMethod', _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', {schemaNode: identifier.typeId }, (result) => {
-			_Code.displayFunction(_Schema.filterJavaMethods(result), identifier);
-		}, true, 'ui');
-	},
-	loadInheritedProperties: (identifier) => {
-
-		Command.listSchemaProperties(identifier.typeId, 'custom', (result) => {
-
-			let filtered = result.filter(p => (p.declaringClass !== identifier.obj.data.type));
+			let filtered = result.filter(p => (p.declaringClass !== data.type));
 
 			_Code.displayFunction(filtered.map(s => {
 				return {
@@ -1202,25 +1133,8 @@ let _Code = {
 					propertyType: s.declaringPropertyType ? s.declaringPropertyType : s.propertyType,
 					inherited: true
 				};
-			}), identifier);
+			}), data);
 		});
-	},
-	splitIdentifier: (obj) => {
-
-		let parts = obj.id.split('-');
-
-		let identifier = {
-			source: obj.id,
-			obj: obj
-		};
-
-		if (parts.length) { identifier.root             = parts[0]; parts = parts.slice(1); }
-		if (parts.length) { identifier.workingSetId     = parts[0]; parts = parts.slice(1); }
-		if (parts.length) { identifier.typeId           = parts[0]; parts = parts.slice(1); }
-		if (parts.length) { identifier.memberCollection = parts[0]; parts = parts.slice(1); }
-		if (parts.length) { identifier.memberId         = parts[0]; parts = parts.slice(1); }
-
-		return identifier;
 	},
 	clearMainArea: () => {
 		fastRemoveAllChildren(_Code.codeContents[0]);
@@ -1344,24 +1258,18 @@ let _Code = {
 	},
 	handleTreeClick: (evt, data) => {
 
-		if (data && data.node && data.node.id) {
+		let selection = data?.node?.data || {};
 
-			let selection = {
-				id: data.node.id,
-				updateLocationStack: true,
-				nodeData: data.node.data
-			};
+		selection.updateLocationStack = true;
 
-			if (data.node.data) {
-				selection.type = data.node.data.type;
-			}
+		// copy key => source for backwards compatibility
+		selection.source = selection.key;
 
-			if (data && data.event && data.event.updateLocationStack === false) {
-				selection.updateLocationStack = false;
-			}
-
-			_Code.handleSelection(selection);
+		if (data && data.event && data.event.updateLocationStack === false) {
+			selection.updateLocationStack = false;
 		}
+
+		_Code.handleSelection(selection);
 	},
 	handleSelection: (data) => {
 
@@ -1373,108 +1281,88 @@ let _Code = {
 			// clear page
 			_Code.clearMainArea();
 
-			let identifier = _Code.splitIdentifier(data);
+			switch (data.content) {
 
-			// the order of the checks is important: member id first, then member collection, then type, then root
-			if (identifier.memberId) {
+				case 'searchresults':
+				case 'undefined':
+				case 'null':
+					break;
 
-				switch (identifier.memberId) {
+				case 'root':
+					_Code.displayRootContent();
+					break;
 
-					case 'searchresults':
-					case 'undefined':
-					case 'null':
-						break;
+				case 'globals':
+					_Code.displayGlobalMethodsContent(data, true);
+					break;
 
-					default:
-						_Code.handleNodeObjectClick(data);
-						break;
-				}
+				case 'openapi':
+					_Code.showSwaggerUI(data);
+					break;
 
+				case 'custom':
+					_Code.displayCustomTypesContent();
+					break;
 
-			} else if (identifier.memberCollection) {
+				case 'SchemaPackage':
+					_Code.displayPackageContent(data);
+					break;
 
-				switch (identifier.memberCollection) {
+				case 'builtin':
+					_Code.displayBuiltInTypesContent(data.type);
+					break;
 
-					case 'properties':
-						_Code.displayPropertiesContent(identifier, data.updateLocationStack);
-						break;
+				case 'workingsets':
+					_Code.displayWorkingSetsContent();
+					break;
 
-					case 'remoteproperties':
-						_Code.displayRemotePropertiesContent(identifier, data.updateLocationStack);
-						break;
+				case 'workingset':
+					_Code.displaySchemaGroupContent(data);
+					break;
 
-					case 'views':
-						_Code.displayViewsContent(identifier, data.updateLocationStack);
-						break;
+				case 'properties':
+					_Code.displayPropertiesContent(data, data.updateLocationStack);
+					break;
 
-					case 'methods':
-						_Code.displayMethodsContent(identifier, data.updateLocationStack);
-						break;
+				case 'remoteproperties':
+					_Code.displayRemotePropertiesContent(data, data.updateLocationStack);
+					break;
 
-					case 'inheritedproperties':
-						_Code.displayInheritedPropertiesContent(identifier, data.updateLocationStack);
-						break;
+				case 'views':
+					_Code.displayViewsContent(data, data.updateLocationStack);
+					break;
 
-					case 'inherited':
-						_Code.findAndOpenNode(identifier.source, true);
-						break;
-				}
+				case 'methods':
+					_Code.displayMethodsContent(data, data.updateLocationStack);
+					break;
 
-			} else if (identifier.typeId) {
+				case 'inheritedproperties':
+					_Code.displayInheritedPropertiesContent(data, data.updateLocationStack);
+					break;
 
-				_Code.handleNodeObjectClick(data);
+				case 'inherited':
+					_Code.findAndOpenNode(data.path, true);
+					break;
 
-			} else if (identifier.workingSetId) {
-
-				_Code.displaySchemaGroupContent(data, identifier);
-
-			} else {
-
-				switch (identifier.root) {
-
-					case 'root':
-						_Code.displayRootContent();
-						break;
-
-					case 'globals':
-						_Code.displayGlobalMethodsContent(identifier, true);
-						break;
-
-					case 'openapi':
-						_Code.showSwaggerUI(identifier);
-						break;
-
-					case 'custom':
-						_Code.displayCustomTypesContent();
-						break;
-
-					case 'builtin':
-						_Code.displayBuiltInTypesContent(data.type);
-						break;
-
-					case 'workingsets':
-						_Code.displayWorkingSetsContent();
-						break;
-				}
+				default:
+					_Code.handleNodeObjectClick(data);
+					break;
 			}
 		}
 	},
 	handleNodeObjectClick: (data) => {
 
-		let identifier = _Code.splitIdentifier(data);
-
-		if (data.type) {
-
-			let nodeType = data.type || data.nodeData?.type;
+		let nodeType = data.key || data.type;
+		if (nodeType) {
 
 			switch (nodeType) {
 
 				case 'SchemaView':
-					_Code.displayViewDetails(data, identifier);
+					_Code.displayViewDetails(data);
 					break;
 
 				case 'SchemaProperty':
-					_Code.displayPropertyDetails(data, identifier);
+					_Code.displayPropertyDetails(data);
 					break;
 
 				case 'SchemaMethod':
@@ -1482,15 +1370,11 @@ let _Code = {
 					break;
 
 				case 'SchemaNode':
-					_Code.displaySchemaNodeContent(data, identifier);
-					break;
-
-				case 'SchemaGroup':
-					_Code.displaySchemaGroupContent(data, identifier);
+					_Code.displaySchemaNodeContent(data);
 					break;
 
 				case 'SchemaRelationshipNode':
-					_Code.displaySchemaRelationshipNodeContent(data, identifier);
+					_Code.displaySchemaRelationshipNodeContent(data);
 					break;
 
 				case 'OpenAPITag':
@@ -1499,9 +1383,9 @@ let _Code = {
 			}
 		}
 	},
-	displaySchemaNodeContent: (data, identifier) => {
+	displaySchemaNodeContent: (data) => {
 
-		fetch(Structr.rootUrl + identifier.typeId + '/schema').then(response => {
+		fetch(Structr.rootUrl + data.id + '/schema').then(response => {
 
 			if (response.ok) {
 				return response.json();
@@ -1513,10 +1397,10 @@ let _Code = {
 
 			let entity = json.result;
 
-			_Code.updateRecentlyUsed(entity, identifier.source, data.updateLocationStack);
+			_Code.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
 			_Code.codeContents.empty();
-			_Code.codeContents.append(_Code.templates.type({ identifier, type: entity }));
+			_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
 			let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
 			let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', _Code.codeContents), $('.tabs-content-container', _Code.codeContents), targetView);
@@ -1528,8 +1412,7 @@ let _Code = {
 
 			_Code.runCurrentEntitySaveAction = () => {
 
-				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(identifier.typeId, tabControls).then((success) => {
-
+				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 					if (success) {
 						_Code.refreshTree();
@@ -1546,7 +1429,7 @@ let _Code = {
 			// delete button
 			if (!entity.isPartOfBuiltInSchema) {
 				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
-					_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
+					_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
 				});
 			}
 
@@ -1583,16 +1466,16 @@ let _Code = {
 			});
 		});
 	},
-	displaySchemaRelationshipNodeContent: (data, identifier) => {
+	displaySchemaRelationshipNodeContent: (data) => {
 
-		Command.get(identifier.obj.nodeData.entity.id, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 
 			Command.get(entity.sourceId, null, (sourceNode) => {
 
 				Command.get(entity.targetId, null, (targetNode) => {
 
 					_Code.codeContents.empty();
-					_Code.codeContents.append(_Code.templates.propertyRemote({ identifier, entity, sourceNode, targetNode }));
+					_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
 
 					let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
 					let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents), $('.tabs-content-container', _Code.codeContents), sourceNode, targetNode, targetView);
@@ -1604,7 +1487,7 @@ let _Code = {
 
 					_Code.runCurrentEntitySaveAction = () => {
 
-						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(identifier.obj.nodeData.entity.id, tabControls).then((success) => {
+						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 							if (success) {
 								_Code.refreshTree();
@@ -1621,7 +1504,7 @@ let _Code = {
 					// delete button
 					if (!entity.isPartOfBuiltInSchema) {
 						_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete relationship ' + entity.relationshipType, () => {
-							_Code.deleteSchemaEntity(entity, 'Delete relationship ' + entity.relationshipType + '?', 'This will delete all schema relationships as well, but no data will be removed.', identifier);
+							_Code.deleteSchemaEntity(entity, 'Delete relationship ' + entity.relationshipType + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
 						});
 					}
 
@@ -1662,12 +1545,10 @@ let _Code = {
 	},
 	displaySchemaMethodContent: (data, lastOpenTab) => {
 
-		let identifier = _Code.splitIdentifier(data);
-
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(identifier.memberId || identifier.typeId, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
-			_Code.updateRecentlyUsed(result, identifier.source, data.updateLocationStack);
+			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Code.codeContents.empty();
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
@@ -1795,7 +1676,7 @@ let _Code = {
 					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
 
 					// refresh parent in case icon changed
-					_TreeHelper.refreshNode('#code-tree', data.id.slice(0, data.id.lastIndexOf('-')));
+					_Code.refreshNode(data.id.slice(0, data.id.lastIndexOf('/')));
 				};
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1814,7 +1695,7 @@ let _Code = {
 
 			// delete button
 			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
-				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', identifier);
+				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
 			// run button and global schema method flags
@@ -1926,11 +1807,11 @@ let _Code = {
 
 		return false;
 	},
-	displaySchemaGroupContent: (data, identifier) => {
+	displaySchemaGroupContent: (data) => {
 
-		_WorkingSets.getWorkingSet(identifier.workingSetId, function(workingSet) {
+		_WorkingSets.getWorkingSet(data.id, function(workingSet) {
 
-			_Code.updateRecentlyUsed(workingSet, identifier.source, data.updateLocationStack);
+			_Code.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
 			_Code.codeContents.empty();
 			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
@@ -1947,8 +1828,8 @@ let _Code = {
 			} else {
 
 				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
-					_WorkingSets.deleteSet(identifier.workingSetId, function() {
-						_TreeHelper.refreshNode('#code-tree', 'workingsets');
+					_WorkingSets.deleteSet(data.id, function() {
+						_Code.refreshNode('workingsets');
 						_Code.findAndOpenNode('workingsets');
 					});
 				});
@@ -1964,7 +1845,7 @@ let _Code = {
 
 				for (let node of result1) {
 					if (workingSet.children.includes(node.name)) {
-						layouter.addNode(node, identifier.source);
+						layouter.addNode(node, data.path);
 					}
 				}
 
@@ -2045,71 +1926,56 @@ let _Code = {
 
 			if (data.node.path) {
 
-				_Code.findAndOpenNode(data.node.path + '-' + data.node.id, false);
+				_Code.findAndOpenNode(data.node.path + '/' + data.node.id, false);
 
 			} else {
 
 				// we need to found out if this node is a custom type or built-in
 				if (data.node.builtIn) {
-					_Code.findAndOpenNode('builtin--' + data.node.id, false);
+					_Code.findAndOpenNode('builtin/' + data.node.id, false);
 				} else {
-					_Code.findAndOpenNode('custom--' + data.node.id, false);
+					_Code.findAndOpenNode('custom/' + data.node.id, false);
 				}
 			}
 		}
 
 	},
 	displayCustomTypesContent: () => {
-
 		_Code.codeContents.append(_Code.templates.custom());
-
-		_Code.displayCreateTypeButton("#type-actions");
-
-		// list of existing custom types
-		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: false }, (result) => {
-
-			for (let t of result) {
-				_Code.displaySvgActionButton('#existing-types', _Icons.getSvgIcon('file-code', 16, 16, ['m-2']), t.id, t.name, () => {
-					_Code.findAndOpenNode('custom--' + t.id);
-				});
-			}
-		}, true);
+		_Code.activateCreateTypeOrPackageButton('#create_package', '#type-name', { type: 'SchemaPackage' });
+		_Code.activateCreateTypeOrPackageButton('#create_type',    '#type-name', { type: 'SchemaNode' });
+	},
+	displayPackageContent: (data) => {
+		Command.get(data.id, null, (entity) => {
+			_Code.codeContents.append(_Code.templates.package({ package: entity }));
+			_Code.activateCreateTypeOrPackageButton('#create_package', '#type-name', { type: 'SchemaPackage', parentPackage: entity.id });
+			_Code.activateCreateTypeOrPackageButton('#create_type',    '#type-name', { type: 'SchemaNode',    inPackage: entity.id });
+		});
 	},
 	displayWorkingSetsContent: () => {
 		_Code.codeContents.append(_Code.templates.workingSets());
 	},
 	displayBuiltInTypesContent: () => {
-
 		_Code.codeContents.append(_Code.templates.builtin());
-
-		// list of existing custom types
-		Command.query('SchemaNode', 10000, 1, 'name', 'asc', { isBuiltinType: true }, (result) => {
-
-			for (let t of result) {
-				_Code.displaySvgActionButton('#builtin-types', _Icons.getSvgIcon('file-code', 16, 16, ['m-2']), t.id, t.name, () => {
-					_Code.findAndOpenNode('builtin--' + t.id);
-				});
-			}
-		}, true);
 	},
-	displayPropertiesContent: (selection, updateLocationStack) => {
+	displayPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.codeContents.append(_Code.templates.propertiesLocal({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesLocal({ data: data }));
 
-		Command.get(selection.typeId, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 
 			_Schema.properties.appendLocalProperties($('.content-container', _Code.codeContents), entity, {
 
 				editReadWriteFunction: (property) => {
-					_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
+					_Code.findAndOpenNode(data.id + '/' + property.id, true);
 				},
 				editCypherProperty: (property) => {
-					_Code.findAndOpenNode(selection.obj.id + '-' + property.id, true);
+					_Code.findAndOpenNode(data.id + '/' + property.id, true);
 				}
 			}, _Code.refreshTree);
 
@@ -2118,16 +1984,16 @@ let _Code = {
 			};
 		});
 	},
-	displayRemotePropertiesContent: (selection, updateLocationStack) => {
+	displayRemotePropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.codeContents.append(_Code.templates.propertiesRemote({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesRemote({ data: data }));
 
-		Command.get(selection.typeId, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 
 			_Schema.remoteProperties.appendRemote($('.content-container', _Code.codeContents), entity, () => {
 
@@ -2140,16 +2006,16 @@ let _Code = {
 			};
 		});
 	},
-	displayViewsContent: (selection, updateLocationStack) => {
+	displayViewsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.codeContents.append(_Code.templates.views({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.views({ data: data }));
 
-		Command.get(selection.typeId, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, _Code.refreshTree);
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -2157,21 +2023,21 @@ let _Code = {
 			};
 		});
 	},
-	displayGlobalMethodsContent: (selection, updateLocationStack) => {
+	displayGlobalMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.addRecentlyUsedElement(selection.source, "Global methods", selection.obj.nodeData.svgIcon, selection.source, false);
+		_Code.addRecentlyUsedElement(data.path, "Global methods", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
 		Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), null, methods, () => {
-				_TreeHelper.refreshNode('#code-tree', selection.source);
+				_Code.refreshNode(data.path);
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -2179,21 +2045,19 @@ let _Code = {
 			};
 		});
 	},
-	displayMethodsContent: (selection, updateLocationStack) => {
+	displayMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.addRecentlyUsedElement(selection.source, selection.obj.type + ' Methods' , selection.obj.nodeData.svgIcon, selection.source, false);
+		_Code.codeContents.append(_Code.templates.methods({ data: data }));
 
-		_Code.codeContents.append(_Code.templates.methods({ identifier: selection }));
-
-		Command.get(selection.typeId, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 
 			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), entity, entity.schemaMethods, () => {
-				_TreeHelper.refreshNode('#code-tree', selection.source);
+				_Code.refreshNode(data.path);
 			});
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -2201,24 +2065,24 @@ let _Code = {
 			};
 		}, 'schema');
 	},
-	displayInheritedPropertiesContent: (selection, updateLocationStack) => {
+	displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(selection.source);
-			_Code.lastClickedPath = selection.source;
+			_Code.updatePathLocationStack(data.path);
+			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.codeContents.append(_Code.templates.propertiesInherited({ identifier: selection }));
+		_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
 
-		Command.get(selection.typeId, null, (entity) => {
+		Command.get(data.id, null, (entity) => {
 			_Schema.properties.appendBuiltinProperties($('.content-container', _Code.codeContents), entity);
 		});
 	},
-	displayPropertyDetails: (selection, identifier) => {
+	displayPropertyDetails: (data) => {
 
-		Command.get(identifier.memberId, null, (result) => {
+		Command.get(data.id, null, (result) => {
 
-			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
+			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			if (result.propertyType) {
 
@@ -2228,19 +2092,19 @@ let _Code = {
 						break;
 
 					case 'Function':
-						_Code.displayFunctionPropertyDetails(result, identifier);
+						_Code.displayFunctionPropertyDetails(result, data);
 						break;
 
 					case 'String':
-						_Code.displayStringPropertyDetails(result, identifier);
+						_Code.displayStringPropertyDetails(result, data);
 						break;
 
 					case 'Boolean':
-						_Code.displayBooleanPropertyDetails(result, identifier);
+						_Code.displayBooleanPropertyDetails(result, data);
 						break;
 
 					default:
-						_Code.displayDefaultPropertyDetails(result, identifier);
+						_Code.displayDefaultPropertyDetails(result, data);
 						break;
 				}
 
@@ -2253,19 +2117,17 @@ let _Code = {
 			}
 		});
 	},
-	displayViewDetails: (selection) => {
+	displayViewDetails: (data) => {
 
-		let identifier = _Code.splitIdentifier(selection);
+		Command.get(data.id, null, (result) => {
 
-		Command.get(identifier.memberId, null, (result) => {
-
-			_Code.updateRecentlyUsed(result, identifier.source, selection.updateLocationStack);
+			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
-			_Code.displayDefaultViewOptions(result, undefined, identifier);
+			_Code.displayDefaultViewOptions(result, undefined, data);
 		});
 	},
-	displayFunctionPropertyDetails: (property, identifier, lastOpenTab) => {
+	displayFunctionPropertyDetails: (property, data, lastOpenTab) => {
 
 		_Code.codeContents.append(_Code.templates.functionProperty({ property: property }));
 
@@ -2316,9 +2178,9 @@ let _Code = {
 
 		_Editors.getMonacoEditor(property, 'openAPIReturnType', _Code.codeContents[0].querySelector('#tabView-api .editor'), openAPIReturnTypeMonacoConfig);
 
-		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
+		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
 	},
-	displayCypherPropertyDetails: (property, identifier) => {
+	displayCypherPropertyDetails: (property, data) => {
 
 		_Code.codeContents.append(_Code.templates.cypherProperty({ property: property }));
 
@@ -2335,24 +2197,24 @@ let _Code = {
 		_Editors.getMonacoEditor(property, 'format', _Code.codeContents[0].querySelector('#cypher-code-container .editor'), cypherMonacoConfig);
 		_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, identifier);
+		_Code.displayDefaultPropertyOptions(property, _Editors.resizeVisibleEditors, data);
 	},
-	displayStringPropertyDetails: (property, identifier) => {
+	displayStringPropertyDetails: (property, data) => {
 
 		_Code.codeContents.append(_Code.templates.stringProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		_Code.displayDefaultPropertyOptions(property, undefined, data);
 	},
-	displayBooleanPropertyDetails: (property, identifier) => {
+	displayBooleanPropertyDetails: (property, data) => {
 
 		_Code.codeContents.append(_Code.templates.booleanProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		_Code.displayDefaultPropertyOptions(property, undefined, data);
 	},
-	displayDefaultPropertyDetails: (property, identifier) => {
+	displayDefaultPropertyDetails: (property, data) => {
 
 		_Code.codeContents.append(_Code.templates.defaultProperty({ property: property }));
-		_Code.displayDefaultPropertyOptions(property, undefined, identifier);
+		_Code.displayDefaultPropertyOptions(property, undefined, data);
 	},
-	displayDefaultPropertyOptions: (property, callback, identifier) => {
+	displayDefaultPropertyOptions: (property, callback, data) => {
 
 		_Code.runCurrentEntitySaveAction = () => {
 			_Code.saveEntityAction(property);
@@ -2373,7 +2235,7 @@ let _Code = {
 		if (!property.schemaNode.isBuiltinType) {
 
 			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', identifier);
+				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', data);
 			});
 		}
 
@@ -2403,7 +2265,7 @@ let _Code = {
 			$('button#delete-property-button').parent().remove();
 		} else {
 			$('button#delete-property-button').on('click', function() {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', identifier);
+				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', data);
 			});
 		}
 
@@ -2413,7 +2275,7 @@ let _Code = {
 			callback();
 		}
 	},
-	displayDefaultViewOptions: (view, callback, identifier) => {
+	displayDefaultViewOptions: (view, callback, data) => {
 
 		_Code.runCurrentEntitySaveAction = () => {
 
@@ -2457,7 +2319,7 @@ let _Code = {
 
 		// delete button
 		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', identifier);
+			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', data);
 		});
 
 		_Code.updateDirtyFlag(view);
@@ -2559,6 +2421,26 @@ let _Code = {
 			});
 		});
 	},
+	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
+
+		let typeNameInput       = document.querySelector(inputSelector);
+		let createNewTypeButton = document.querySelector(buttonSelector);
+
+		createNewTypeButton.addEventListener('click', e => {
+
+			data.name = typeNameInput.value;
+
+			_Code.showSchemaRecompileMessage();
+
+			Command.create(data, (entity) => {
+				_Code.refreshTree();
+				_Code.clearMainArea();
+				_Code.displayCustomTypesContent();
+				_Code.hideSchemaRecompileMessage();
+				//window.setTimeout(() => _Code.findAndOpenNode(data.path + '/' + entity.id, false), 1000);
+			});
+		});
+	},
 	displaySvgCreateButton: (targetId, iconSvg, suffix, name, presetValue, createData) => {
 		let html = _Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name });
 		$(targetId).append(html);
@@ -2574,8 +2456,8 @@ let _Code = {
 
 		return button;
 	},
-	displayCreateTypeButton: (targetId) => {
-		_Code.displaySvgCreateButton(targetId, _Icons.getSvgIcon('magic_wand', 14, 14, ''), 'create-type', 'Create new type', '', { type: 'SchemaNode'});
+	displayCreateTypeButton: (targetId, packageId ) => {
+		_Code.displaySvgCreateButton(targetId, _Icons.getSvgIcon('magic_wand', 14, 14, ''), 'create-type', 'Create new type', '', { type: 'SchemaNode', inPackage: packageId });
 	},
 	getEditorModeForContent: (content) => {
 		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
@@ -2596,73 +2478,63 @@ let _Code = {
 	},
 	findAndOpenNode: (path, updateLocationStack) => {
 		let tree = $('#code-tree').jstree(true);
-		tree.open_node('root', () => {
-			_Code.findAndOpenNodeRecursive(tree, path, 0, updateLocationStack);
-		});
+		_Code.findAndOpenNodeRecursive(tree, document, path, 0, updateLocationStack);
 	},
-	findAndOpenNodeRecursive: (tree, path, depth, updateLocationStack) => {
+	findAndOpenNodeRecursive: (tree, parent, path, depth, updateLocationStack) => {
 
-		let parts = path.split('-');
+		let parts = path.split('/').filter(p => p.length);
 		if (path.length === 0) { return; }
 		if (parts.length < 1) {	return; }
 		if (depth > 15) { return; }
 
-		let id = parts.slice(0, depth + 1).join('-');
+		let id   = parts[depth];
+		let node = parent.querySelector(`li[data-id="${id}"]`);
 
-		// special handling for globals, custom and builtin because these ids include an additional dash that skips the workingSetId
-		switch (id) {
-			case 'globals':
-			case 'custom':
-			case 'builtin':
-				id = id + '-';
-				break;
-			case 'searchresults':
-				// skip first part..
-				id = parts.slice(1, depth + 1).join('-');
-				break;
-		}
+		if (depth === parts.length - 1) {
 
-		if (depth === parts.length) {
+			if (node != null) {
 
-			// node found, activate
-			if (tree.get_selected().indexOf(id) === -1) {
-				tree.activate_node(id, { updateLocationStack: updateLocationStack });
-			}
-
-			let selectedNode = tree.get_node(id);
-			if (selectedNode) {
-
-				// depending on the depth we select a different parent level
-				let parentToScrollTo = id;
-				switch (selectedNode.parents.length) {
-					case 1:
-					case 2:
-					case 3:
-						parentToScrollTo = id;
-						break;
-					case 4:
-						parentToScrollTo = tree.get_parent(id);
-						break;
-					case 5:
-						parentToScrollTo = tree.get_parent(tree.get_parent(id));
-						break;
+				// node found, activate
+				if (tree.get_selected().indexOf(node.id) === -1) {
+					tree.activate_node(node, { updateLocationStack: updateLocationStack });
 				}
 
-				// also scroll into view if node is in tree
-				let domNode = document.getElementById( parentToScrollTo ) ;
-				if (domNode) {
-					domNode.scrollIntoView();
-				}
-			}
+				let selectedNode = tree.get_node(node);
+				if (selectedNode) {
 
-			if (_Code.searchIsActive()) {
-				tree.element[0].scrollTo(0,0);
+					// depending on the depth we select a different parent level
+					let parentToScrollTo = id;
+					switch (selectedNode.parents.length) {
+						case 1:
+						case 2:
+						case 3:
+							parentToScrollTo = id;
+							break;
+						case 4:
+							parentToScrollTo = tree.get_parent(node);
+							break;
+						case 5:
+							parentToScrollTo = tree.get_parent(tree.get_parent(node));
+							break;
+					}
+
+					// also scroll into view if node is in tree
+					let domNode = document.getElementById( parentToScrollTo ) ;
+					if (domNode) {
+						domNode.scrollIntoView();
+					}
+				}
+
+				if (_Code.searchIsActive()) {
+					tree.element[0].scrollTo(0,0);
+				}
 			}
 
 		} else {
 
-			tree.open_node(id, function(n) {
-				_Code.findAndOpenNodeRecursive(tree, path, depth + 1, updateLocationStack);
+			tree.open_node(node, function(n) {
+				let newParent = parent.querySelector(`li[data-id="${id}"]`);
+				_Code.findAndOpenNodeRecursive(tree, newParent, path, depth + 1, updateLocationStack);
 			});
 		}
 	},
@@ -2765,9 +2637,9 @@ let _Code = {
 	activateLastClicked: () => {
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
-	deleteSchemaEntity: (entity, title, text, identifier) => {
+	deleteSchemaEntity: (entity, title, text, data) => {
 
-		let path  = identifier.source;
+		let path  = data.path;
 		let parts = path.split('-');
 
 		parts.pop();
@@ -2934,28 +2806,35 @@ let _Code = {
 			if (callNow) func.apply(context, args);
 		};
 	},
+	refreshNode(id) {
+		// We need a separate method because we address nodes
+		// differently, (data-id attribute).
+		if (_Code.codeTree && _Code.codeTree.refresh_node) {
+			_Code.codeTree.refresh_node(document.querySelector(`li[data-id="${id}"]`));
+		}
+	},
 
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/code.css">
-			
+
 			<div class="tree-main" id="code-main">
-			
+
 				<div class="column-resizer-blocker"></div>
 				<div class="column-resizer column-resizer-left"></div>
 				<div class="column-resizer column-resizer-right"></div>
-			
+
 				<div class="tree-container" id="code-tree-container">
 					<div class="tree" id="code-tree">
-			
+
 					</div>
 				</div>
-			
+
 				<div class="tree-contents-container" id="code-contents-container">
 					<div class="flex flex-col tree-contents" id="code-contents"></div>
 				</div>
-			
+
 				<div class="tree-context-container" id="code-context-container">
 					<div class="tree-context" id="code-context"></div>
 				</div>
@@ -2978,7 +2857,7 @@ let _Code = {
 				<div class="action-button-icon">
 					${config.iconSvg ? config.iconSvg : ''}
 				</div>
-			
+
 				<div>${config.name}</div>
 			</button>
 		`,
@@ -2988,11 +2867,6 @@ let _Code = {
 		`,
 		builtin: config => `
 			<h2>System Types</h2>
-
-			<div class="mb-4">
-				<div><label>Existing builtin types</label></div>
-				<div id="builtin-types"></div>
-			</div>
 		`,
 		createObjectForm: config => `
 			<div class="mt-4">
@@ -3007,15 +2881,48 @@ let _Code = {
 				</button>
 			</div>
 		`,
+		package: config => `
+			<h2>Package ${config.package.packageName}</h2>
+			<div class="mb-4">
+				<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type or package" autocomplete="off">
+				<div id="types-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus')}
+					</button>
+					<div class="dropdown-menu-container">
+
+						<div class="flex flex-col divide-x-0 divide-y">
+							<a id="create_package" title="Create Package" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Package
+							</a>
+							<a id="create_type" title="Create Type" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Type
+							</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		`,
 		custom: config => `
 			<h2>Custom types</h2>
 			<div class="mb-4">
-			<!--	<div><label>Add type</label></div>-->
-				<div id="type-actions"></div>
-			</div>
-			<div class="mb-4">
-				<div><label>Existing custom types</label></div>
-				<div id="existing-types"></div>
+				<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type or package" autocomplete="off">
+				<div id="types-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon('circle_plus')}
+					</button>
+					<div class="dropdown-menu-container">
+
+						<div class="flex flex-col divide-x-0 divide-y">
+							<a id="create_package" title="Create Package" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Package
+							</a>
+							<a id="create_type" title="Create Type" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Type
+							</a>
+						</div>
+					</div>
+				</div>
 			</div>
 		`,
 		cypherProperty: config => `
@@ -3040,16 +2947,16 @@ let _Code = {
 		functionProperty: config => `
 			<h2>FunctionProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
-			
+
 			<div id="function-property-container" class="data-tabs level-two flex flex-col flex-grow">
 				<ul>
 					<li data-name="source">Code</li>
 					<li data-name="api">API</li>
 				</ul>
 				<div id="function-property-content" class="flex flex-col flex-grow">
-			
+
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-source">
-			
+
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
 							<h4>Read Function</h4>
 							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
@@ -3060,16 +2967,16 @@ let _Code = {
 							</div>
 							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
 						</div>
-			
+
 					</div>
-			
+
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-api">
 						<div>
 							<h4 class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
 						</div>
 						<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 					</div>
-			
+
 				</div>
 				<div class="editor-info"></div>
 			</div>
@@ -3108,34 +3015,34 @@ let _Code = {
 					<li data-name="api">API</li>
 				</ul>
 				<div id="methods-content" class="flex flex-col flex-grow">
-			
+
 					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-source">
 						<div class="editor property-code flex-grow" data-property="source"></div>
 					</div>
-			
+
 					<div class="tab method-tab-content flex flex-col flex-grow" id="tabView-api">
 					</div>
-			
+
 				</div>
 				<div class="editor-info"></div>
 			</div>
 		`,
 		methods: config => `
-			<h2>Methods of type ${config.identifier.obj.type}</h2>
+			<h2>Methods of type ${config.data.type}</h2>
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		openAPIBaseConfig: config => `
 			<div id="openapi-options" class="flex flex-col flex-grow mt-4">
-			
+
 				<div class="flex flex-wrap gap-x-8">
-			
+
 					<div>
 						<label class="font-semibold">Enabled</label>
 						<label class="checkbox block mt-3">
 							<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
 						</label>
 					</div>
-			
+
 					<div style="width: 200px">
 						<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 						<select id="tags-select" data-property="tags" multiple="multiple">
@@ -3147,7 +3054,7 @@ let _Code = {
 						<label class="block font-semibold">Summary</label>
 						<input class="mt-1" data-property="summary" value="${config.element.summary || ''}" type="text">
 					</div>
-			
+
 					${(config.element.type === 'SchemaNode') ? '' : `
 						<div>
 							<label class="font-semibold">Description</label>
@@ -3155,18 +3062,18 @@ let _Code = {
 						</div>
 					`}
 				</div>
-				
+
 				${(config.includeMethodMarkup ? _Code.templates.openAPIMethodConfig() : '')}
 			</div>
 		`,
 		openAPIMethodConfig: config => `
 			<div class="mt-4">
-			
+
 				<label class="font-semibold">Parameters</label>
 				<button id="add-parameter-button">
 					${_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green']), 'Add parameter')}
 				</button>
-			
+
 				<div>
 					<div class="method-parameter-grid">
 						<div class="method-parameter-heading">
@@ -3179,7 +3086,7 @@ let _Code = {
 						</div>
 					</div>
 				</div>
-			
+
 				<div class="method-parameter-grid template">
 					<div class="method-parameter">
 						<div>
@@ -3197,29 +3104,29 @@ let _Code = {
 						<div>
 							<input data-parameter-property="exampleValue">
 						</div>
-			
+
 						<div class="method-parameter-property method-parameter-delete flex items-center justify-center">
 							${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
 						</div>
 					</div>
 				</div>
 			</div>
-			
+
 			<div class="mt-4 flex flex-col flex-grow">
 				<label class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</label>
 				<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 			</div>
 		`,
 		propertiesInherited: config => `
-			<h2>Inherited Attributes of type ${config.identifier.obj.type}</h2>
+			<h2>Inherited Attributes of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		propertiesLocal: config => `
-			<h2>Local Properties of type ${config.identifier.obj.type}</h2>
+			<h2>Local Properties of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		propertiesRemote: config => `
-			<h2>Linked properties of type ${config.identifier.obj.type}</h2>
+			<h2>Linked properties of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		property: config => `
@@ -3234,11 +3141,11 @@ let _Code = {
 		`,
 		propertyOptions: config => `
 			<div id="property-options">
-			
+
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-			
+
 				<div class="mb-4 flex flex-wrap gap-x-8">
 					<div><label class="font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
 					<div><label class="font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
@@ -3259,7 +3166,7 @@ let _Code = {
 					<div><label class="font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
 					<div><label class="font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
 				</div>
-			
+
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
@@ -3308,18 +3215,18 @@ let _Code = {
 		`,
 		viewOptions: config => `
 			<div id="view-options">
-			
+
 				<div class="mb-4">
 					<div id="view-actions"></div>
 				</div>
-			
+
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Name</label>
 						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" />
 					</div>
 				</div>
-			
+
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Properties</label>
@@ -3330,7 +3237,7 @@ let _Code = {
 			</div>
 		`,
 		views: config => `
-			<h2>Views of type ${config.identifier.obj.type}</h2>
+			<h2>Views of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		workingSet: config => `
@@ -3338,16 +3245,16 @@ let _Code = {
 			<div class="mb-4">
 				A customizable group of classes. To add classes, click on the class name and then on the "New group" button.
 			</div>
-			
+
 			<div id="working-set-content" data-type-id="${config.type.id}"></div>
-			
+
 			<div class="mb-4">
 				<p class="input">
 					<label class="block">Name</label>
 					<input type="text" id="group-name-input" data-property="name" size="30" value="${config.type.name}">
 				</p>
 			</div>
-			
+
 			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;" class="fit-to-height"></div>
 		`,
 		workingSets: config => `
@@ -3385,8 +3292,8 @@ let _WorkingSets = {
 					let content  = JSON.parse(layout.content);
 					let children = Object.keys(content.positions);
 					let data     = {
-						type: 'SchemaGroup',
 						id: layout.id,
+						type: 'SchemaGroup',
 						name: layout.name,
 						children: children
 					};
@@ -3555,13 +3462,13 @@ let _WorkingSets = {
 			if (result && result.length) {
 
 				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets-' + result[0].id);
+					_Code.refreshNode('workingsets/' + result[0].id);
 				});
 
 			} else {
 
 				_WorkingSets.createNewSetAndAddType(name, () => {
-					_TreeHelper.refreshNode('#code-tree', 'workingsets');
+					_Code.refreshNode('workingsets');
 				}, _WorkingSets.recentlyUsedName);
 			}
 

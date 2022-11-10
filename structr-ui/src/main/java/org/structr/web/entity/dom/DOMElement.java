@@ -74,6 +74,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.structr.web.entity.html.TemplateElement;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -1082,7 +1083,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			out.append("<").append(tag);
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Class type = thisElement.getEntityType();
+			final Class type  = thisElement.getEntityType();
+			final String uuid = thisElement.getUuid();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
@@ -1141,7 +1143,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final boolean isFromWidget = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-from-widget"));
 
 					if (isInsertable || isFromWidget) {
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 					break;
 
@@ -1157,7 +1159,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						}
 					}
 
-					out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					out.append(" data-structr-id=\"").append(uuid).append("\"");
 					break;
 
 				case RAW:
@@ -1181,7 +1183,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final Map<String, Object> mapping = thisElement.getMappedEvents();
 					if (mapping != null) {
 
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
 
 						final PropertyKey<String> targetKey = StructrApp.key(DOMElement.class, "data-structr-target");
@@ -1257,7 +1259,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					} else if (isReloadTarget(thisElement)) {
 
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 
 						// make current object ID available in reload targets
 						final GraphObject current = renderContext.getDetailsDataObject();
@@ -1289,13 +1291,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
-					}
 
-					final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
-					if (renderingMode != null) {
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					} else if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
+
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
 
+					} else if (renderContext.isTemplateRoot(uuid)) {
+
+						// render template ID into output so it can be re-used
+						out.append(" data-structr-template-id=\"").append(renderContext.getTemplateId()).append("\"");
+
+					} else if (thisElement instanceof TemplateElement) {
+
+						// render template ID into output so it can be re-used
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 
 					break;

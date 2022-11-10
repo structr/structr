@@ -347,25 +347,26 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 	static Element createElement (final Page page, final String tag, final boolean suppressException) {
 
-		final String elementType = StringUtils.capitalize(tag);
-		final App app            = StructrApp.getInstance(page.getSecurityContext());
-
-		String c = Content.class.getSimpleName();
+		final ConfigurationProvider config = StructrApp.getConfiguration();
+		final Logger logger                = LoggerFactory.getLogger(Page.class);
+		final App app                      = StructrApp.getInstance(page.getSecurityContext());
+		String elementType                 = StringUtils.capitalize(tag);
 
 		// Avoid creating an (invalid) 'Content' DOMElement
-		if (elementType == null || c.equals(elementType)) {
+		if (elementType == null || "Content".equals(elementType)) {
 
-			final Logger logger = LoggerFactory.getLogger(Page.class);
-			logger.warn("Blocked attempt to create a DOMElement of type {}", c);
+			logger.warn("Blocked attempt to create a DOMElement of type Content");
 
 			return null;
 
 		}
 
-		final ConfigurationProvider config = StructrApp.getConfiguration();
+		// Template is already taken => we need to modify the type :(
+		if ("Template".equals(elementType)) {
+			elementType = "TemplateElement";
+		}
 
-		Class entityClass = config.getNodeEntityClass(elementType); // Class.forName("org.structr.web.entity.html." + elementType);
-
+		Class entityClass = config.getNodeEntityClass(elementType);
 		if (entityClass == null) {
 
 			// No HTML type element found so lets try the dynamic DOMElement class
@@ -388,7 +389,6 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 
 			if (!suppressException) {
 
-				final Logger logger = LoggerFactory.getLogger(Page.class);
 				logger.error("Unable to instantiate element of type " + elementType, t);
 			}
 		}
