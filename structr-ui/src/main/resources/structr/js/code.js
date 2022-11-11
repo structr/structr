@@ -557,6 +557,9 @@ let _Code = {
 	},
 	treeInitFunction: (obj, callback) => {
 
+		// make sure the internal ID of the tree is always the same
+		$(_Code.codeTree).jstree(true)._id = 'code';
+
 		let id   = obj?.data?.key || '#';
 		let path = obj?.data?.path || '';
 
