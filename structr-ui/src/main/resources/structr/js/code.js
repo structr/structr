@@ -2033,7 +2033,7 @@ let _Code = {
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.addRecentlyUsedElement(data.path, "Global methods", data.svgIcon, data.path, false);
+		_Code.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
