@@ -1,7 +1,0 @@
-
-click text "Pages"
-
-# open page tree
-if not exists id "pagesTree"
-	click text "Page Tree"
-

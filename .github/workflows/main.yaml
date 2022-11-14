@@ -10,6 +10,8 @@ jobs:
     strategy:
       matrix:
         include:
+          - module: structr-base
+            variableName: Base
           - module: structr-ui
             variableName: UI
           - module: structr-core
