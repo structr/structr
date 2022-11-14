@@ -359,7 +359,7 @@ let _Widgets = {
 				var part = parts[i];
 				if (part) {
 
-					let lowerPart = part.toLowerCase().replace(/ /g, '');
+					let lowerPart = part.toLowerCase().replace(/\W/g, '');
 					let idString = lowerPart + suffix;
 					let newParent = $('#' + idString + '_folder');
 
@@ -890,7 +890,7 @@ let _Widgets = {
 	templates: {
 		slideout: config => `
 			${_Icons.getSvgIcon('circle_plus', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
-			
+
 			<div class="inner">
 
 				<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
@@ -899,26 +899,26 @@ let _Widgets = {
 							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
 						</h3>
 					</a>
-			
+
 					<div class="tab-group-content">
 						<div id="widgets"></div>
 					</div>
 				</div>
-			
+
 				<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
 					<a href="javascript:void(0);" class="tab-group-toggle">
 						<h3 class="flex items-center">
 							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
 						</h3>
 					</a>
-			
+
 					<div class="tab-group-content">
 						<div class="flex items-center mb-4" id="widget-server-selector-container">
 							${_Icons.getSvgIcon('list-cog', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['edit-widget-servers', 'ml-1', 'mr-8'], 'Edit Widget Servers'))}
-			
+
 							<input placeholder="Filter..." size="10" id="remoteWidgetsFilter">
 						</div>
-			
+
 						<div id="remoteWidgets"></div>
 					</div>
 				</div>
@@ -939,13 +939,13 @@ let _Widgets = {
 				<li>View and copy the source code of that page</li>
 				<li>Paste it into the "Source" tab of the "Edit Widget" dialog</li>
 			</ol>
-			
+
 			<h2>Configuration</h2>
 			<p>You can create advanced widgets and make them configurable by inserting template expressions in the widget source and adding the expression into the configuration. Template expressions look like this "[configSwitch]" and can contain any characters (except the closing bracket). If a corresponding entry is found in the configuration, a dialog is displayed when adding the widget to a page.</p>
 			<p>Elements that look like template expressions are only treated as such if a corresponding entry is found in the configuration. This allows the use of square brackets in the widget source without it being interpreted as a template expression.</p>
 			<p>The configuration must be a valid JSON string (and is validated as such when trying to save the widget).</p>
 			<p>Have a look at the widget configuration of "configurable" widgets for more examples.</p>
-			
+
 			<h4>Basic example</h4>
 			<pre>
 			{
@@ -975,7 +975,7 @@ let _Widgets = {
 				},
 				"processDeploymentInfo": true,
 			}</pre>
-			
+
 			<p>Reserved top-level words:</p>
 			<ul>
 				<li><b>processDeploymentInfo</b> (<i>boolean, default: false</i>)<br>Special configuration flag which allows the widgets to contain deployment annotations.</li>
@@ -995,10 +995,10 @@ let _Widgets = {
 				<li><b>dynamicOptionsFunction</b> <i>(only applicable to type=select)</i><br>The body of a function which is used to populate the options array. The function receives a 'callback' parameter which has to be called with the resulting options.<br>The dynamic options can be in the same format as the options above. IMPORTANT: If this key is provided, the options key is ignored.</li>
 				<li><b>rows</b> <i>(only applicable to type=textarea)</i><br>The number of rows the textarea will have initially. If omitted, or not parseable as an integer, it will default to 5.</li>
 			</ul>
-			
+
 			<h2>Description</h2>
 			<p>The description will be displayed when the user adds the widget to a page. It can contain HTML and usually serves the purpose of explaining what the widget is used for and the function of the configuration switches.</p>
-			
+
 			<h2>Options</h2>
 			<p>The following options can be configured for a widget:</p>
 			<ul>
@@ -1008,24 +1008,24 @@ let _Widgets = {
 		`,
 		serversDialog: config => `
 			<div id="widget-server-config-dialog" class="dialog-padding">
-			
+
 				<h3>Configured Servers</h3>
 				<div id="widget-servers-container"></div>
-			
+
 				<h3 data-comment="Only use trusted sources for remote widgets!<br><br><strong>Using <em>untrusted sources</em> poses a security threat</strong>!" data-comment-config='{ "customToggleIcon": "warning-sign-icon-filled", "customToggleIconClasses": [], "helpElementCss": { "font-size": "14px"} }'>Add Server</h3>
-			
+
 				<div id="add-widget-server" class="grid items-center gap-x-2 gap-y-2" style="grid-template-columns: 1fr 10fr">
-			
+
 					<div class="bold">Name</div>
 					<div><input id="new-widget-server-name"></div>
-			
+
 					<div class="bold">
 						<label data-comment="The server should respond with JSON-formatted widgets as every structr instance would.<br><br>Because the widgets are fetched via a HTTP GET request, the usual rights management applies. Widgets need to be visible to public users to show up in the resulting list.">URL</label>
 					</div>
 					<div>
 						<input id="new-widget-server-url">
 					</div>
-			
+
 					<div></div>
 					<div>
 						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">

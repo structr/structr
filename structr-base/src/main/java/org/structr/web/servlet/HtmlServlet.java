@@ -86,6 +86,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.core.property.UuidProperty;
+import org.structr.web.entity.dom.DOMElement;
 
 /**
  * Main servlet for content rendering.
@@ -238,6 +240,18 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					rootElement = findIndexPage(securityContext, edit);
 
 				} else {
+
+					// special optimization for UUID-addressed partials
+					if (uriParts.length == 1 && UuidProperty.UUID_PATTERN.matcher(uriParts[0]).matches()) {
+
+						final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
+						if (node != null && node instanceof DOMElement) {
+
+							rootElement = (DOMElement) node;
+
+							renderContext.setIsPartialRendering(true);
+						}
+					}
 
 					if (rootElement == null) {
 
