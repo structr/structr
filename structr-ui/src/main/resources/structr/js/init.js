@@ -2353,7 +2353,7 @@ let Structr = {
 			css: Structr.defaultBlockUICss
 		});
 	},
-	confirmationPromiseNonBlockUI: (text) => {
+	confirmationPromiseNonBlockUI: (text, defaultOption = true) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -2392,6 +2392,12 @@ let Structr = {
 			let body = document.querySelector('body');
 			body.appendChild(pageBlockerDiv);
 			body.appendChild(messageDiv);
+
+			if (defaultOption === true) {
+				yesButton.focus();
+			} else {
+				noButton.focus();
+			}
 		});
 	},
 	getDocumentationURLForTopic: (topic) => {
