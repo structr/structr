@@ -2371,23 +2371,28 @@ let Structr = {
 			let yesButton = el.querySelector('.yesButton');
 			let noButton  = el.querySelector('.noButton');
 
-			yesButton.addEventListener('click', (e) => {
+			let answerFunction = (e, response) => {
 				e.stopPropagation();
 
 				pageBlockerDiv.remove();
 				messageDiv.remove();
 
-				resolve(true);
+				resolve(response);
+			};
+
+			yesButton.addEventListener('click', (e) => {
+				answerFunction(e, true);
 			});
 
 			noButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				pageBlockerDiv.remove();
-				messageDiv.remove();
-
-				resolve(false);
+				answerFunction(e, false);
 			});
+
+			messageDiv.addEventListener('keyup', (e) => {
+				if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
+					answerFunction(e, false);
+				}
+			})
 
 			let body = document.querySelector('body');
 			body.appendChild(pageBlockerDiv);
