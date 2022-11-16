@@ -450,7 +450,7 @@ let _Schema = {
 
 					_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
 
-					if (allowNavigation) {
+					if (allowNavigation === true) {
 
 						Structr.dialogCancelBaseAction();
 
