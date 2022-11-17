@@ -2183,7 +2183,7 @@ let Structr = {
 								}
 
 								if (title != '') {
-									builder.warning(data.message + '<br><br>Soure: ' + title);
+									builder.warning(data.message + '<br><br>Source: ' + title);
 								}
 
 								builder.specialInteractionButton('Go to element in page tree', function (btn) {
@@ -2231,26 +2231,24 @@ let Structr = {
 	},
 	activateCommentsInElement: (elem, defaults) => {
 
-		let elsWithComment = elem.querySelectorAll('[data-comment]') || [];
+		let elementsWithComment = elem.querySelectorAll('[data-comment]') || [];
 
-		for (let el of elsWithComment) {
+		for (let el of elementsWithComment) {
 
-			let $el = $(el);
+			if (!el.dataset['commentApplied']) {
 
-			if (!$el.data('commentApplied')) {
-
-				$el.data('commentApplied', true);
+				el.dataset.commentApplied = 'true';
 
 				let config = {
-					text: $el.data("comment"),
-					element: $el,
+					text: el.dataset['comment'],
+					element: el,
 					css: {
-						"margin": "0 4px",
-						"vertical-align": "top"
+						'margin': '0 4px',
+						'vertical-align': 'top'
 					}
 				};
 
-				let elCommentConfig = $el.data('commentConfig') || {};
+				let elCommentConfig = el.dataset['commentConfig'] || {};
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
