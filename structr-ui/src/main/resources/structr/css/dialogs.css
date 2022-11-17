@@ -32,11 +32,55 @@ div.custom-dialog div.row label {
 	min-width: 120px !important;
 }
 
-.select2-selection.required,
-input.required {
+.select2-selection.required, input.required {
 	border: 1px solid red !important;
 }
 
 #password-input {
 	margin-bottom: .5rem;
+}
+
+.option-tile {
+	position: relative;
+}
+
+input.combined-input-select-field, select.combined-input-select-field {
+	position: absolute;
+}
+
+input.combined-input-select-field {
+	width: calc(100% - 2rem) !important;
+	border-right: none;
+	z-index: 1;
+}
+
+select.combined-input-select-field {
+	width: 50%;
+	right: 0;
+}
+
+ul.combined-input-select-field {
+	list-style-type: none;
+	font-family: var(--font-inter) ! important;
+	font-size: 1rem;
+	color: var(--body-text);
+	border: 1px solid var(--input-field-border);
+	padding: 0.5rem 0rem;
+	border-radius: 0.25rem;
+	line-height: 1.25rem;
+	overflow: scroll;
+	position: absolute;
+	top: 3.75rem;
+	width: calc(100% - 2px);
+	max-height: 15rem;
+}
+
+ul.combined-input-select-field li {
+	list-style-type: none;
+	padding: .5rem;
+	cursor: default;
+}
+
+ul.combined-input-select-field li:hover {
+	background-color: var(--input-background);
 }

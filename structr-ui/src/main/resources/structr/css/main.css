@@ -1027,10 +1027,6 @@ img.disabled {
 	margin: 6px 0 0 0;
 }
 
-.data-tabs > div {
-	padding: 2px 8px 12px 0 ! important;
-}
-
 .propTabContent {
 	display: none;
 }
@@ -4097,6 +4093,30 @@ table#principals .typeIcon {
 	/*height: 2.5rem;*/
 }
 
+.events-container .node {
+	color: var(--gray-333);
+	border: 1px solid transparent;
+	padding: 0.125rem 1rem;
+	margin: 0;
+	background-color: var(--gray-bg);
+	border-radius: 0.5rem;
+	min-width: 7rem;
+	display: inline-block;
+}
+
+.events-container .node:hover {
+	color: var(--gray-555);
+	border: 1px solid transparent;
+	background-color: var(--light-gray-bg-f3);
+	cursor: pointer;
+}
+
+.events-container .node i {
+	position: absolute;
+	top: .6rem;
+	right: .6rem;
+}
+
 .add-property-input-button {
 	margin-bottom: 1rem;
 }
@@ -4545,6 +4565,12 @@ table.props td.__value {
 .mb-4 {
 	margin-bottom: 1rem;
 }
+.mb-5 {
+	margin-bottom: 1.25rem;
+}
+.mb-6 {
+	margin-bottom: 1.5rem;
+}
 .mb-8 {
 	margin-bottom: 2rem;
 }
@@ -4589,6 +4615,10 @@ table.props td.__value {
 }
 .text-right {
 	text-align: right;
+}
+.text-lg	{
+	font-size: 1.125rem; /* 18px */
+	line-height: 1.75rem;/* 28px */
 }
 .font-semibold {
 	font-weight: 600;
@@ -4668,6 +4698,30 @@ table.props td.__value {
 }
 .justify-around {
 	justify-content: space-around;
+}
+.align-baseline {
+	vertical-align: baseline;
+}
+.align-top {
+	vertical-align: top;
+}
+.align-middle {
+	vertical-align: middle;
+}
+.align-bottom {
+	vertical-align: bottom;
+}
+.align-text-top {
+	vertical-align: text-top;
+}
+.align-text-bottom {
+	vertical-align: text-bottom;
+}
+.align-sub {
+	vertical-align: sub;
+}
+.align-super {
+	vertical-align: super;
 }
 .cursor-pointer {
 	cursor: pointer;
