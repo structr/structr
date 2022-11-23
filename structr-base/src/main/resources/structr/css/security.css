@@ -76,7 +76,7 @@ input.max-w-75 {
 }
 
 .security-module-table td, .security-module-table th {
-	padding: .5rem 1rem;
+	padding: .5rem .5rem;
 	text-align: center;
 	vertical-align: middle;
 	height: 1rem;
@@ -92,6 +92,10 @@ input.max-w-75 {
 
 .security-module-table .title-cell {
 	text-align: left;
+}
+
+.security-module-table .actions {
+	white-space: nowrap;
 }
 
 .security-module-table tr:nth-child(odd) {

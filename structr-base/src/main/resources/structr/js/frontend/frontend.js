@@ -561,7 +561,7 @@ export class Frontend {
 			// data-structr-target="page" and data-page="1" (which comes from the backend), or
 			// data-structr-target="sort" and data-sort="sortKeyName".
 
-			this.handlePagination(event, target);
+			this.handlePagination(event, target, options);
 
 		} else if (id && id.length === 32) {
 
@@ -595,7 +595,7 @@ export class Frontend {
 		return csvString;
 	}
 
-	handlePagination(event, target) {
+	handlePagination(event, target, options) {
 
 		//let target       = event.target;
 		let data         = target.dataset;
@@ -646,7 +646,7 @@ export class Frontend {
 			}
 		}
 
-		this.handleResult(target, { result: parameters }, 200);
+		this.handleResult(target, { result: parameters }, 200, options);
 	}
 
 	parseQueryString(query) {

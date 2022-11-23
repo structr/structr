@@ -239,20 +239,24 @@ let _MailTemplates = {
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
-			pagerData.forEach(_MailTemplates.appendMailTemplate);
+			pagerData.forEach(_MailTemplates.appendMailTemplateToList);
 		}
 	},
-	appendMailTemplate: (mailTemplate) => {
+	appendMailTemplateToList: (mailTemplate) => {
 
 		_MailTemplates.showMain();
 
 		let html = _MailTemplates.templates.typeRow({ mailTemplate: mailTemplate });
-		let row = Structr.createSingleDOMElementFromHTML(html);
+		let row  = Structr.createSingleDOMElementFromHTML(html);
 
 		_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
 		_MailTemplates.mailTemplatesList.appendChild(row);
 
 		row.addEventListener('click', () => {
+
+			// we are re-using the UI, so dispose previous editor (in this case we only have one editor, so we can simply use the kill all method)
+			_Editors.disposeAllEditors();
+
 			_MailTemplates.selectRow(mailTemplate.id);
 			_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 		});

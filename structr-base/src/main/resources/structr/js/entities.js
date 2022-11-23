@@ -62,14 +62,14 @@ let _Entities = {
 
 			Structr.confirmation(confirmationHtml,() => {
 
-					Command.deleteNodes(nodeIds, recursive);
-					$.unblockUI({
-						fadeOut: 25
-					});
-					if (callback) {
-						callback();
-					}
+				Command.deleteNodes(nodeIds, recursive);
+				$.unblockUI({
+					fadeOut: 25
 				});
+				if (callback) {
+					callback();
+				}
+			});
 		}
 	},
 	deleteNode: (button, entity, recursive, callback) => {
@@ -106,27 +106,12 @@ let _Entities = {
 		}
 
 	},
-	// showSyncDialog: function(source, target) {
-	// 	Structr.dialog('Sync between ' + source.id + ' and ' + target.id, function() {
-	// 		return true;
-	// 	}, function() {
-	// 		return true;
-	// 	});
-	//
-	// 	dialog.append('<div><input type="radio" name="syncMode" value="none"><label for="unidir">None</label></div>');
-	// 	dialog.append('<div><input type="radio" name="syncMode" value="unidir"><label for="unidir">Uni-directional (primary/secondary)</label></div>');
-	// 	dialog.append('<div><input type="radio" name="syncMode" value="bidir"><label for="unidir">Bi-directional</label></div>');
-	//
-	// 	$('input[name=syncMode]:radio', dialog).on('change', function() {
-	// 		Command.setSyncMode(source.id, target.id, $(this).val());
-	// 	});
-	//
-	// },
 	dataBindingDialog: function(entity, el, typeInfo) {
 
-		let eventsHtml = _Entities.templates.events({ entity: entity });
+		let eventsHtml = _Entities.templates.events({entity: entity});
 		el.empty();
 		el.append(eventsHtml);
+		Structr.activateCommentsInElement(el[0]);
 
 		let width = '100%';
 		let style = 'text-align: left; color: red;';
@@ -136,649 +121,576 @@ let _Entities = {
 			parent = $(document.body);
 		}
 
-		let eventMappingSelect  = $('select#event-mapping-select', el);
-		let targetTypeSelect    = $('select#target-type-select', el);
-		let deleteTargetInput   = $('#delete-target-input', el);
-		let methodNameInput     = $('#method-name-input', el);
-		let methodTargetInput   = $('#method-target-input', el);
-		let updateTargetInput   = $('#update-target-input', el);
-		let updatePropertyInput = $('#update-property-input', el);
-		let reloadOptionSelect  = $('select#reload-option-select', el);
-		let reloadSelectorInput = $('#reload-selector-input', el);
-		let reloadUrlInput      = $('#reload-url-input', el);
-		let reloadEventInput    = $('#reload-event-input', el);
-		let customEventInput    = $('#custom-event-input', el);
-		let customActionInput   = $('#custom-action-input', el);
-		let customTargetInput   = $('#custom-target-input', el);
-		let paginationNameInput = $('#pagination-name-input', el);
-		let multipleProperties  = $('.multiple-properties', el);
+		let eventSelectElement               = document.getElementById('event-select');
+		let actionSelectElement              = document.getElementById('action-select');
 
-		// event mapping selector
-		eventMappingSelect.select2({
-			placeholder: 'Event',
-			style: style,
-			width: width,
-			dropdownParent: parent,
-		}).on('select2:select', function(e) {
-			let data = e.params.data;
-			$('div.event-options', el).addClass('hidden');
-			if (this.value && this.value.length > 0) {
-				$('.' + this.value).removeClass('hidden');
-			}
-			if (data.id !== 'options-none') {
-				$('.options-reload-target').removeClass('hidden');
-			}
+		let customEventInput                 = document.getElementById('custom-event-input');
+		let customActionInput                = document.getElementById('custom-action-input');
 
-			// name comes from _html_name, always fill this field
-			Command.getProperty(entity.id, '_html_name', function(result) {
-				updatePropertyInput.val(result);
+		let dataTypeSelect                   = document.getElementById('data-type-select');
+		let dataTypeInput                    = document.getElementById('data-type-input');
+		let methodNameInput                  = document.getElementById('method-name-input');
+
+		let updateTargetInput                = document.getElementById('update-target-input');
+		let deleteTargetInput                = document.getElementById('delete-target-input');
+		let methodTargetInput                = document.getElementById('method-target-input');
+		let customTargetInput                = document.getElementById('custom-target-input');
+
+		let addParameterMappingButton        = document.querySelector('.add-parameter-mapping-button');
+		let addParameterMappingForTypeButton = document.querySelector('.add-parameter-mapping-for-type-button');
+
+		let successBehaviourSelect           = document.getElementById('success-behaviour-select');
+		let successPartialRefreshInput       = document.getElementById('success-partial-refresh-input');
+		let successNavigateToURLInput        = document.getElementById('success-navigate-to-url-input');
+		let successFireEventInput            = document.getElementById('success-fire-event-input');
+
+		let failureBehaviourSelect           = document.getElementById('failure-behaviour-select');
+		let failurePartialRefreshInput       = document.getElementById('failure-partial-refresh-input');
+		let failureNavigateToURLInput        = document.getElementById('failure-navigate-to-url-input');
+		let failureFireEventInput            = document.getElementById('failure-fire-event-input');
+
+		let saveButton                       = document.getElementById('save-event-mapping-button');
+
+		let actionMapping;
+
+		if (entity.triggeredActions && entity.triggeredActions.length) {
+
+			actionMapping = entity.triggeredActions[0];
+
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
+				//console.log('Using first object for event action mapping:', result);
+				updateEventMapping(entity, result);
 			});
-		});
-
-		// target type selector
-		targetTypeSelect.select2({
-			allowClear: true,
-			placeholder: 'Select type..',
-			style: style,
-			width: width,
-			dropdownParent: parent,
-			ajax: {
-				url: Structr.rootUrl + 'SchemaNode',
-				processResults: function (data) {
-					return {
-						results: data.result.map(n => ({ id: n.name, text: n.name }))
-					};
-				},
-				data: function (params) {
-
-					let config = {
-						name: params.term
-					};
-
-					config[Structr.getRequestParameterName('sort')] = 'name';
-					config[Structr.getRequestParameterName('loose')] = 1;
-
-					return config;
-				}
-			}
-		}).on('select2:select', function(e) {
-			$('.select2-selection', targetTypeSelect.parent()).removeClass('required');
-		});
-
-		// reload target selector
-		reloadOptionSelect.select2({
-			placeholder: 'Reload target',
-			style: style,
-			width: width,
-			dropdownParent: parent,
-		}).on('select2:select', function(e) {
-			$('div.reload-options', el).addClass('hidden');
-			if (this.value && this.value.length > 0) {
-				$('#' + this.value).removeClass('hidden');
-			}
-		});
-
-		deleteTargetInput.on('change', function(e) { deleteTargetInput.removeClass('required'); });
-		methodTargetInput.on('change', function(e) { methodTargetInput.removeClass('required'); });
-		methodNameInput.on('change', function(e) { methodNameInput.removeClass('required'); });
-		updateTargetInput.on('change', function(e) { updateTargetInput.removeClass('required'); });
-		updatePropertyInput.on('change', function(e) { updatePropertyInput.removeClass('required'); });
-		reloadSelectorInput.on('change', function(e) { reloadSelectorInput.removeClass('required'); });
-		reloadUrlInput.on('change', function(e) { reloadUrlInput.removeClass('required'); });
-		reloadEventInput.on('change', function(e) { reloadEventInput.removeClass('required'); });
-		customEventInput.on('change', function(e) { customEventInput.removeClass('required'); });
-		customActionInput.on('change', function(e) { customActionInput.removeClass('required'); });
-		customTargetInput.on('change', function(e) { customTargetInput.removeClass('required'); });
-		paginationNameInput.on('change', function(e) { paginationNameInput.removeClass('required'); });
-
-		Structr.activateCommentsInElement(el[0]);
-
-		// initialize fields from values in the object
-		let eventMapping = JSON.parse(entity.eventMapping);
-		if (eventMapping) {
-
-			let click        = eventMapping.click;
-			let change       = eventMapping.change;
-			let focusout     = eventMapping.focusout;
-			let drop         = eventMapping.drop;
-			let id           = 'options-custom';
-
-			if (click) {
-
-				switch (click) {
-
-					case 'create':
-						id = 'options-create-click';
-						break;
-
-					case 'update':
-						id = 'options-update-click';
-						break;
-
-					case 'delete':
-						id = 'options-delete-click';
-						break;
-
-					case 'previous-page':
-						id = 'options-prev-page-click';
-						break;
-
-					case 'next-page':
-						id = 'options-next-page-click';
-						break;
-
-					default:
-						id = 'options-method-click';
-						methodNameInput.val(click);
-						break;
-				}
-
-			} else if (change) {
-
-				switch (change) {
-
-					case 'update':
-						id = 'options-update-change';
-						break;
-
-					case 'create':
-						id = 'options-create-change';
-						break;
-
-					default:
-						id = 'options-method-change';
-						methodNameInput.val(change);
-						break;
-				}
-
-			} else if (focusout) {
-
-				switch (focusout) {
-
-					case 'update':
-						id = 'options-update-focusout';
-						break;
-
-					case 'create':
-						id = 'options-create-focusout';
-						break;
-
-					default:
-						id = 'options-method-focusout';
-						methodNameInput.val(focusout);
-						break;
-				}
-
-			} else if (drop) {
-
-				id = 'options-method-drop';
-				methodNameInput.val(drop);
-
-			} else {
-
-				for (let key of Object.keys(eventMapping)) {
-
-					customEventInput.val(key);
-					customActionInput.val(eventMapping[key]);
-				}
-			}
-
-			eventMappingSelect.val(id);
-			eventMappingSelect.trigger('change');
-			eventMappingSelect.trigger({ type: 'select2:select', params: { data: { id: id }}});
-
-			// set selected option in targetTypeSelect
-			let selectedType = entity['data-structr-target'];
-			if (selectedType) {
-
-				let option = new Option(selectedType, selectedType, true, true);
-				targetTypeSelect.append(option).trigger('change');
-
-				targetTypeSelect.trigger({
-					type: 'select2:select',
-					params: { data: { id: selectedType } }
-				});
-			}
-
-			deleteTargetInput.val(entity['data-structr-target']);
-			methodTargetInput.val(entity['data-structr-target']);
-			updateTargetInput.val(entity['data-structr-target']);
-			customTargetInput.val(entity['data-structr-target']);
-			paginationNameInput.val(entity['data-structr-target']);
-
-			let reloadTargetValue = entity['data-structr-reload-target'];
-			if (reloadTargetValue) {
-
-				let reloadOption = 'reload-manual';
-
-				if (reloadTargetValue === 'none') {
-
-					reloadOption = 'reload-none';
-
-				} else if (reloadTargetValue.indexOf('url:') === 0) {
-
-					reloadOption = 'reload-url';
-					reloadUrlInput.val(reloadTargetValue.substring(4));
-
-				} else if (reloadTargetValue.indexOf('event:') === 0) {
-
-					reloadOption = 'reload-event';
-					reloadEventInput.val(reloadTargetValue.substring(6));
-
-				} else {
-
-					reloadOption = 'reload-selector';
-					reloadSelectorInput.val(reloadTargetValue);
-				}
-
-				reloadOptionSelect.val(reloadOption);
-				reloadOptionSelect.trigger('change');
-				reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: reloadOption }}});
-
-			} else {
-
-				// reload option default is "page" for empty values
-				reloadOptionSelect.val('reload-page');
-				reloadOptionSelect.trigger('change');
-				reloadOptionSelect.trigger({ type: 'select2:select', params: { data: { id: 'reload-page' }}});
-			}
 		}
 
-		// name comes from _html_name, always fill this field
-		Command.getProperty(entity.id, '_html_name', function(result) {
-			updatePropertyInput.val(result);
+		Command.getByType('SchemaNode', 1000, 1, 'name', 'asc', 'id,name', false, result => {
+			for (const typeObj of result) {
+				dataTypeSelect.insertAdjacentHTML('beforeend', '<option>' + typeObj.name + '</option>');
+			}
 		});
 
-		let customPropertiesPresent = false;
 
-		const getAndAppendInput = (id) => {
-			Command.get(id, 'type,name,_html_name,_html_id,_html_value', (inputData) => {
+		if (saveButton) {
+			saveButton.addEventListener('click', () => {
+				saveEventMappingData(entity);
+				saveParameterMappings();
+			});
+		}
 
-				customPropertiesPresent = true;
-				updatePropertyInput.removeClass('required');
-				updatePropertyInput.closest('.event-options').addClass('hidden');
+		eventSelectElement.addEventListener('change', e => {
 
-				let html = _Entities.templates.multipleInputsRow({ id: id });
-				document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = inputData.name;
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = inputData._html_name;
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = inputData._html_id;
+			let el = e.target;
+			el.classList.remove('required');
+			let selectedValue = el.value;
 
-				if (inputData.type === 'Input') {
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = inputData._html_value;
-				} else {
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
-				}
-
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-remove-button')].pop().addEventListener('click', (e) => {
-					const el = e.target.closest('.multiple-input-remove-button');
-					const id = el.dataset.structrId;
-					Command.setProperty(id, 'actionElement', null, false, () => {
-						const row = el.closest('.multiple-properties');
-						row.parentNode?.removeChild(row);
+			if (selectedValue === 'custom') {
+				document.querySelectorAll('.options-custom-event').forEach(el => {
+					el.classList.remove('opacity-0', 'hidden')
+				});
+			} else if (selectedValue === 'drop') {
+				document.querySelectorAll('.event-drop').forEach(el => {
+					el.classList.remove('opacity-0', 'hidden')
+				});
+			} else {
+				document.querySelectorAll('.options-custom-event').forEach(el => {
+					el.classList.add('opacity-0')
+				});
+				if (actionSelectElement.value !== 'custom') {
+					document.querySelectorAll('.options-custom-event').forEach(el => {
+						el.classList.add('hidden')
 					});
-				});
+				}
+			}
 
+			saveEventMappingData(entity);
+		});
+
+		actionSelectElement.addEventListener('change', e => {
+
+			let el = e.target;
+			el.classList.remove('required');
+			let selectedValue = el.value;
+
+			document.querySelectorAll('.options-properties').forEach(el => {
+				el.classList.remove('hidden')
 			});
-		};
 
-		Command.get(entity.id, 'inputs', (actionElementData) => {
+			document.querySelectorAll('.options-properties').forEach(el => {
+				el.classList.remove('hidden')
+			});
 
-			for (const input of actionElementData.inputs) {
-				customPropertiesPresent = true;
-				getAndAppendInput(input.id);
+			if (selectedValue === 'custom') {
+				document.querySelectorAll('.options-custom-action').forEach(el => {
+					el.classList.remove('opacity-0', 'hidden')
+				});
+				document.querySelectorAll('.options-custom-event').forEach(el => {
+					el.classList.remove('hidden')
+				});
+			} else {
+				document.querySelectorAll('.options-' + selectedValue).forEach(el => {
+					el.classList.remove('hidden')
+				});
+				document.querySelectorAll('.options-any').forEach(el => {
+					el.classList.remove('hidden')
+				});
 			}
 
-			if (customPropertiesPresent) {
-				updatePropertyInput.removeClass('required');
-				updatePropertyInput.closest('.event-options').addClass('hidden');
+			if (selectedValue !== 'custom') {
+				document.querySelectorAll('.options-custom-action').forEach(el => {
+					el.classList.add('opacity-0', 'hidden')
+				});
+				if (eventSelectElement.value !== 'custom') {
+					document.querySelectorAll('.options-custom-event').forEach(el => {
+						el.classList.add('hidden')
+					});
+				}
 			}
 
-		}, 'html');
+			if (selectedValue !== 'create') {
+				//document.querySelectorAll('.options-create').forEach(el => { el.classList.add('hidden') });
+			}
 
-		const createInput = (elementType) => {
-			const initialName = elementType + ' of ' + entity.tag + ' ' + entity.id.substring(0,6);
-			updatePropertyInput.removeClass('required');
-			updatePropertyInput.closest('.event-options').addClass('hidden');
+			saveEventMappingData(entity);
 
-			Command.create({type: elementType, tag: elementType.toLowerCase(), name: initialName, _html_type: 'text', actionElement: entity.id, pageId: entity.pageId }, (data) => {
+		});
 
-				Command.insertBefore(entity.parent.id, data.id, entity.id);
-				customPropertiesPresent = true;
+		dataTypeSelect.addEventListener('change', e => {
+			let el = e.target;
+			let selectedValue = el.value;
+			dataTypeInput.value = selectedValue;
+		});
 
-				let html = _Entities.templates.multipleInputsRow({ id: data.id });
-				document.querySelector('.custom-properties-container').insertAdjacentHTML('beforeend', html);
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-name-input')].pop().value         = data.name;
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-property-key-input')].pop().value = data._html_name  || null;
-				[...document.querySelectorAll('.custom-properties-container .multiple-input-css-id-input')].pop().value       = data._html_id    || null;
-				if (elementType === 'Input') {
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().value = data._html_value || null;
-				} else {
-					[...document.querySelectorAll('.custom-properties-container .multiple-input-value-input')].pop().remove();
+		dataTypeSelect.addEventListener('mousedown', e => {
+			e.preventDefault(); // => catches click
+			let listEl = dataTypeSelect.parentNode.querySelector('ul');
+			if (!listEl) {
+				dataTypeSelect.insertAdjacentHTML('afterend', '<ul class="combined-input-select-field"></ul>');
+				listEl = dataTypeSelect.parentNode.querySelector('ul');
+				document.addEventListener('click', removeListElementHandler);
+			}
+			dataTypeSelect.querySelectorAll('option').forEach(option => {
+				const dataType = option.value;
+				appendListItem(listEl, dataType);
+			});
+		});
+
+		dataTypeInput.addEventListener('keyup', e => {
+			const el = e.target;
+			const key = e.key;
+			let listEl = dataTypeSelect.parentNode.querySelector('ul');
+			if (key === 'Escape') {
+				listEl.remove(); return;
+			}
+			if (!listEl) {
+				dataTypeSelect.insertAdjacentHTML('afterend', '<ul class="combined-input-select-field"></ul>');
+				listEl = dataTypeSelect.parentNode.querySelector('ul');
+			} else {
+				listEl.querySelectorAll('li').forEach(el => el.remove());
+			}
+			dataTypeSelect.querySelectorAll('option').forEach(option => {
+				const dataType = option.value;
+				if (dataType && dataType.match(el.value)) appendListItem(listEl, dataType);
+			});
+		});
+
+		addParameterMappingButton.addEventListener('click', e => {
+			Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+				getAndAppendParameterMapping(parameterMapping.id);
+			});
+		});
+
+		addParameterMappingForTypeButton.addEventListener('click', e => {
+
+			Command.getSchemaInfo(dataTypeSelect.value, result => {
+
+				let properties = result.filter(property => !property.system);
+				//console.log(properties); return;
+
+				for (const property of properties) {
+
+					Command.create({
+						type: 'ParameterMapping',
+						parameterName: property.jsonName,
+						actionMapping: actionMapping.id
+					}, (parameterMapping) => {
+						getAndAppendParameterMapping(parameterMapping.id);
+					});
+
 				}
 			});
+
+		});
+
+		successBehaviourSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			let selectedValue = el.value;
+			//console.log(successBehaviourSelect, selectedValue);
+			document.querySelectorAll('.option-success').forEach(el => {
+				el.classList.add('hidden')
+			});
+			document.querySelectorAll('.option-success-' + selectedValue).forEach(el => {
+				el.classList.remove('hidden')
+			});
+		});
+
+		failureBehaviourSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			let selectedValue = el.value;
+			//console.log(successBehaviourSelect, selectedValue);
+			document.querySelectorAll('.option-failure').forEach(el => {
+				el.classList.add('hidden')
+			});
+			document.querySelectorAll('.option-failure-' + selectedValue).forEach(el => {
+				el.classList.remove('hidden')
+			});
+
+		});
+
+		const appendListItem = (listEl, dataType) => {
+			if (dataType) {
+				listEl.insertAdjacentHTML('beforeend', `<li data-value="${dataType}">${dataType}</li>`);
+				const liEl = listEl.querySelector(`li[data-value="${dataType}"]`);
+				if (liEl) {
+					liEl.addEventListener('click', e => {
+						const el = e.target;
+						dataTypeInput.value = el.innerText;
+						listEl.remove();
+					});
+				}
+			}
 		};
 
-		let addPropertyInputButton  = $('.add-property-input-button');
-		if (addPropertyInputButton) {
-			addPropertyInputButton.on('click', (e) => {
-				createInput('Input');
+		const removeListElementHandler = (e) => {
+			const el = e.target;
+			const listEl = dataTypeSelect.parentNode.querySelector('ul');
+			if (listEl && el !== dataTypeSelect) {
+				console.log(e.target);
+				const val = el.dataset['value'];
+				if (val) dataTypeInput.value = val;
+				e.preventDefault();
+				listEl.remove();
+				document.removeEventListener('click', removeListElementHandler);
+			}
+		};
+
+
+		const updateEventMapping = (entity, actionMapping) => {
+
+			if (!actionMapping) {
+				console.warn('No actionMapping object given', entity);
+				return;
+			}
+
+			//console.log('updateEventMapping', entity, actionMapping);
+
+			let id = 'options-none';
+
+			let event                = actionMapping.event;
+			let action               = actionMapping.action;
+
+			let method               = actionMapping.method;
+			let targetType           = actionMapping.dataType;
+			let idExpression         = actionMapping.idExpression;
+
+			let successBehaviour       = actionMapping.successBehaviour;
+			let successPartial         = actionMapping.successPartial;
+			let successURL             = actionMapping.successURL;
+			let successEvent           = actionMapping.successEvent;
+
+			let failureBehaviour       = actionMapping.failureBehaviour;
+			let failurePartial         = actionMapping.failurePartial;
+			let failureURL             = actionMapping.failureURL;
+			let failureEvent           = actionMapping.failureEvent;
+
+			// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
+			if (action === 'previous-page') action = 'prev-page';
+
+			if (event === 'custom') {
+				customEventInput.value = event;
+				customActionInput.value = action;
+			} else {
+				id = 'options-' + action + '-' + event;
+			}
+
+			eventSelectElement.value        = event;
+			actionSelectElement.value       = action;
+
+			methodNameInput.value           = method;
+			dataTypeSelect.value            = targetType;
+			dataTypeInput.value             = targetType;
+
+			if (action === 'update') {
+				updateTargetInput.value         = idExpression;
+			} else if (action === 'delete') {
+				deleteTargetInput.value         = idExpression;
+			} else if (action === 'method') {
+				methodTargetInput.value         = idExpression;
+			} else if (action === 'custom') {
+				customTargetInput.value         = idExpression;
+			}
+
+			successBehaviourSelect.value     = successBehaviour;
+			successPartialRefreshInput.value = successPartial;
+			successNavigateToURLInput.value  = successURL;
+			successFireEventInput.value      = successEvent;
+
+			failureBehaviourSelect.value     = failureBehaviour;
+			failurePartialRefreshInput.value = failurePartial;
+			failureNavigateToURLInput.value  = failureURL;
+			failureFireEventInput.value      = failureEvent;
+
+			document.querySelectorAll('.options-' + action).forEach(el => {
+				el.classList.remove('hidden')
 			});
-		}
-
-		let addPropertySelectButton = $('.add-property-select-button');
-		if (addPropertySelectButton) {
-			addPropertySelectButton.on('click', (e) => {
-				createInput('Select');
+			document.querySelectorAll('.options-any').forEach(el => {
+				el.classList.remove('hidden')
 			});
-		}
+			document.querySelectorAll('.option-success-' + successBehaviour).forEach(el => {
+				el.classList.remove('hidden')
+			});
+			document.querySelectorAll('.option-failure-' + failureBehaviour).forEach(el => {
+				el.classList.remove('hidden')
+			});
 
-		let linkExistingElementDropzone = $('#link-existing-element-dropzone');
-		if (linkExistingElementDropzone) {
+			// remove existing parameter mappings
+			for (const parameterMappingElement of document.querySelectorAll('.options-properties .parameter-mapping')) {
+				parameterMappingElement.remove();
+			}
 
-			linkExistingElementDropzone.droppable({
-				drop: function(e, el) {
+			// append mapped parameters
+			Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
+				for (const parameterMapping of actionMapping.parameterMappings) {
+					getAndAppendParameterMapping(parameterMapping.id);
+				}
+			});
+
+			// if (entity.triggeredActions && entity.triggeredActions.length) {
+			//
+			// 	// TODO: Support multiple actions per DOM element
+			// 	let actionMapping = entity.triggeredActions[0];
+
+
+		};
+
+		const getAndAppendParameterMapping = (id) => {
+
+			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', (parameterMapping) => {
+
+				//console.log('Append parameter mapping element for', parameterMapping);
+
+				const html = _Entities.templates.parameterMappingRow(parameterMapping);
+				const container = document.querySelector('.parameter-mappings-container');
+				container.insertAdjacentHTML('beforeend', html);
+				const row = container.querySelector('.parameter-mapping[data-structr-id="' + id + '"]');
+
+				const parameterTypeSelector = row.querySelector('.parameter-type-select');
+				parameterTypeSelector.value = parameterMapping.parameterType;
+				row.querySelector('.parameter-' + parameterTypeSelector.value)?.classList.remove('hidden');
+				activateExistingElementDropzone(row);
+
+				parameterTypeSelector.addEventListener('change', e => {
+					const selectElement = e.target;
+					const value = selectElement.value;
+					row.querySelectorAll('.parameter-value').forEach(el => el.classList.add('hidden'));
+					row.querySelector('.parameter-' + value)?.classList.remove('hidden');
+					activateExistingElementDropzone(row);
+				});
+
+				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
+				if (parameterMapping.parameterType === 'user-input' && parameterMapping.inputElement) {
+					replaceDropzoneByInputElement(row, parameterMapping.inputElement);
+				}
+
+				const constantValueInputElement = row.querySelector('.parameter-constant-value-input');
+				if (parameterMapping.constantValue) {
+					constantValueInputElement.value = parameterMapping.constantValue;
+				}
+
+				const scriptExpressionInputElement = row.querySelector('.parameter-script-expression-input');
+				if (parameterMapping.scriptExpression) {
+					scriptExpressionInputElement.value = parameterMapping.scriptExpression;
+				}
+
+				activateRemoveIcon(parameterMapping);
+				Structr.activateCommentsInElement(container);
+
+			}, null);
+		};
+
+		const replaceDropzoneByInputElement = (parentElement, inputElement) => {
+			const userInputElement = parentElement.querySelector('.parameter-user-input');
+			_Entities.appendRelatedNode($(userInputElement), inputElement, (nodeEl) => {
+				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
+					userInputElement.querySelector('.node').remove();
+					dropzoneElement.classList.remove('hidden');
+				});
+			});
+			const dropzoneElement = userInputElement.querySelector('.link-existing-element-dropzone');
+			dropzoneElement.classList.add('hidden');
+		};
 
-					let sourceEl = $(el.draggable);
-					let sourceId = Structr.getId(sourceEl);
+		const activateRemoveIcon = (parameterMapping) => {
+			let parameterMappingElement = document.querySelector('.parameter-mapping[data-structr-id="' + parameterMapping.id + '"]');
+			let removeIcon = parameterMappingElement.querySelector('.parameter-mapping-remove-button');
+			removeIcon?.addEventListener('click', e => {
+				Command.deleteNode(parameterMapping.id, false, () => {
+					parameterMappingElement.remove();
+				});
+			});
+		};
 
-					if (!sourceId) {
-						return false;
-					}
+		const activateExistingElementDropzone = (parentElement) => {
 
-					let obj = StructrModel.obj(sourceId);
+			const parameterMappingId = parentElement.dataset['structrId'];
+			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
 
-					if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-						return false;
-					}
+			if (dropzoneElement) {
 
-					// Link to this action element
-					Command.setProperty(sourceId, 'actionElement', entity.id, false, () => {
+				$(dropzoneElement).droppable({
 
-						updatePropertyInput.removeClass('required');
-						updatePropertyInput.closest('.event-options').addClass('hidden');
-						getAndAppendInput(sourceId);
+					drop: (e, el) => {
 
+						e.preventDefault();
+						e.stopPropagation();
+
+						let sourceEl = $(el.draggable);
+						let sourceId = Structr.getId(sourceEl);
+
+						if (!sourceId) {
+							return false;
+						}
+
+						let obj = StructrModel.obj(sourceId);
+
+						// Ignore shared components
+						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+							return false;
+						}
+
+						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
 						_Elements.dropBlocked = false;
-					});
+						replaceDropzoneByInputElement(parentElement, obj);
+					}
+				});
+			}
+		};
+
+		const saveEventMappingData = (entity) => {
+
+			let eventValue             = eventSelectElement?.value;
+			let actionValue            = actionSelectElement?.value;
+
+			let methodValue            = methodNameInput?.value;
+			let dataTypeValue          = dataTypeInput?.value || dataTypeSelect?.value;
+
+			let updateTargetValue      = updateTargetInput?.value;
+			let deleteTargetValue      = deleteTargetInput?.value;
+			let methodTargetValue      = methodTargetInput?.value;
+			let customTargetValue      = customTargetInput?.value;
+
+			let successBehaviourValue  = successBehaviourSelect?.value;
+			let successPartialValue    = successPartialRefreshInput?.value;
+			let successURLValue        = successNavigateToURLInput?.value;
+			let successEventValue      = successFireEventInput?.value;
+
+			let failureBehaviourValue  = failureBehaviourSelect?.value;
+			let failurePartialValue    = failurePartialRefreshInput?.value;
+			let failureURLValue        = failureNavigateToURLInput?.value;
+			let failureEventValue      = failureFireEventInput?.value;
+
+			// let customEvent        = customEventInput?.value;
+			// let customAction       = customActionInput?.value;
+			// let customTarget       = customTargetInput?.value;
+			//
+			// let methodName     = methodNameInput?.value;
+			// let methodTarget   = methodTargetInput?.value;
+			// let deleteTarget   = deleteTargetInput?.value;
+			// let paginationName = paginationNameInput?.value;
+			// let reloadTarget   = null;
+
+			let actionMappingObject = {
+				type:             'ActionMapping',
+				event:            eventValue,
+				action:           actionValue,
+				method:           methodValue,
+				dataType:         dataTypeValue,
+				idExpression:     (actionValue === 'method') ? methodTargetValue : (actionValue === 'update') ? updateTargetValue : deleteTargetValue,
+				successBehaviour: successBehaviourValue,
+				successPartial:   successPartialValue,
+				successURL:       successURLValue,
+				successEvent:     successEventValue,
+				failureBehaviour: failureBehaviourValue,
+				failurePartial:   failurePartialValue,
+				failureURL:       failureURLValue,
+				failureEvent:     failureEventValue
+			};
+
+			//console.log(actionMappingObject);
+
+			if (entity.triggeredActions && entity.triggeredActions.length) {
+
+				actionMappingObject.id = entity.triggeredActions[0].id;
+
+				console.log('ActionMapping object already exists, updating...', actionMappingObject);
+				Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
+					blinkGreen(Structr.nodeContainer(entity.id));
+					updateEventMapping(entity, actionMappingObject);
+				});
+
+			} else {
+
+				actionMappingObject.triggerElements = [ entity.id ];
+
+				console.log('No ActionMapping object exists, create one and update data...');
+				Command.create(actionMappingObject, (actionMapping) => {
+					//console.log('Successfully created new ActionMapping object:', actionMapping);
+					blinkGreen(Structr.nodeContainer(entity.id));
+					updateEventMapping(entity, actionMapping);
+				});
+			}
+		};
+
+		const saveParameterMappings = () => {
+
+			const inputDefinitions = [
+				{ key: 'parameterName',    selector: '.parameter-mapping .parameter-name-input' },
+				{ key: 'parameterType',    selector: '.parameter-mapping .parameter-type-select' },
+				{ key: 'constantValue',    selector: '.parameter-mapping .parameter-constant-value-input' },
+				{ key: 'scriptExpression', selector: '.parameter-mapping .parameter-script-expression-input' },
+				{ key: 'inputElement',     selector: '.parameter-mapping .parameter-user-input-input' },
+				{ key: 'methodResult',     selector: '.parameter-mapping .parameter-method-result-input' },
+				{ key: 'flowResult',       selector: '.parameter-mapping .parameter-flow-result-input' }
+			];
+
+			const parameterMappings = document.querySelectorAll('.parameter-mapping');
+
+			//console.log('save parameter mappings', inputDefinitions, parameterMappings);
+
+			for (const parameterMappingElement of parameterMappings) {
+				const parameterMappingId = parameterMappingElement.dataset['structrId'];
+				//console.log(parameterMappingId);
+				const parameterMappingData = { id: parameterMappingId };
+				for (const inputDefinition of inputDefinitions) {
+
+					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
+						const value     = inp.value;
+						if (value) {
+							//console.log(inputDefinition.key, value);
+							parameterMappingData[inputDefinition.key] = value;
+						}
+					}
 				}
-			});
 
-		}
+				//console.log(parameterMappingData);
+				Command.setProperties(parameterMappingId, parameterMappingData);
 
-		let saveButton = $('#save-event-mapping-button');
-		if (saveButton) {
+			}
+		};
 
-			saveButton.on('click', function() {
-
-				// collect values
-				let eventType      = eventMappingSelect.val();
-				let targetType     = targetTypeSelect.val();
-				let methodName     = methodNameInput.val();
-				let methodTarget   = methodTargetInput.val();
-				let updateTarget   = updateTargetInput.val();
-				let updateProperty = updatePropertyInput.val();
-				let deleteTarget   = deleteTargetInput.val();
-				let reloadOption   = reloadOptionSelect.val();
-				let customEvent    = customEventInput.val();
-				let customAction   = customActionInput.val();
-				let customTarget   = customTargetInput.val();
-				let paginationName = paginationNameInput.val();
-				let reloadTarget   = null;
-				let inputEl        = $(eventType);
-
-				// build reload target according to reloadOption
-				switch (reloadOption) {
-					case 'reload-none':
-						reloadTarget = 'none';
-						break;
-					case 'reload-page':
-						// this is the default, so nothing to do
-						break;
-					case 'reload-selector':
-						reloadTarget = reloadSelectorInput.val();
-						break;
-					case 'reload-url':
-						reloadTarget = 'url:' + reloadUrlInput.val();
-						break;
-					case 'reload-event':
-						reloadTarget = 'event:' + reloadEventInput.val();
-						break;
-				}
-
-				switch (eventType) {
-					case 'options-none':
-						_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target', null, $(inputEl), null);
-						_Entities.setPropertyWithFeedback(entity, 'data-structr-target',        null, $(inputEl), null);
-						_Entities.setPropertyWithFeedback(entity, 'eventMapping',               null, $(inputEl), null);
-						break;
-
-					case 'options-custom':
-						if (customEvent && customAction && customTarget) {
-							let customMapping = {};
-							customMapping[customEvent] = customAction;
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', JSON.stringify(customMapping), $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  customTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please enter event and action.', 'warning', 2000, 200);
-							customEventInput.addClass('required');
-							customActionInput.addClass('required');
-							customTargetInput.addClass('required');
-						}
-						break;
-
-					case 'options-create-click':
-						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
-							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
-						}
-						break;
-
-					case 'options-create-change':
-						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
-							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
-						}
-						break;
-
-					case 'options-create-focusout':
-						if (targetType) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "create" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  targetType, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please select the type of object to create.', 'warning', 2000, 200);
-							$('.select2-selection', targetTypeSelect.parent()).addClass('required');
-						}
-						break;
-
-					case 'options-delete-click':
-						if (deleteTarget) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "delete" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  deleteTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to delete.', 'warning', 2000, 200);
-							deleteTargetInput.addClass('required');
-						}
-						break;
-
-					case 'options-next-page-click':
-					case 'options-prev-page-click':
-						if (paginationName) {
-							let paginationAction = 'next-page';
-							if (eventType === 'options-prev-page-click') { paginationAction = 'previous-page'; }
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + paginationAction + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  paginationName, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							Structr.showAndHideInfoBoxMessage('Please provide the name of the pagination request parameter.', 'warning', 2000, 200);
-							paginationNameInput.addClass('required');
-						}
-						break;
-
-					case 'options-method-click':
-						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!methodTarget) {
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
-								methodTargetInput.addClass('required');
-							}
-							if (!methodName) {
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
-								methodNameInput.addClass('required');
-							}
-						}
-						break;
-
-					case 'options-method-change':
-						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!methodTarget) {
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
-								methodTargetInput.addClass('required');
-							}
-							if (!methodName) {
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
-								methodNameInput.addClass('required');
-							}
-						}
-						break;
-
-					case 'options-method-focusout':
-						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!methodTarget) {
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
-								methodTargetInput.addClass('required');
-							}
-							if (!methodName) {
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
-								methodNameInput.addClass('required');
-							}
-						}
-						break;
-
-					case 'options-method-drop':
-						if (methodTarget && methodName) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "drop": "' + methodName + '" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  methodTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!methodTarget) {
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to call.', 'warning', 2000, 200);
-								methodTargetInput.addClass('required');
-							}
-							if (!methodName) {
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the method to execute.', 'warning', 2000, 200);
-								methodNameInput.addClass('required');
-							}
-						}
-						break;
-
-					case 'options-update-click':
-						if (updateTarget && (updateProperty || customPropertiesPresent)) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "click": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-
-							if (customPropertiesPresent) {
-
-								const inputDefinitions = [
-									{ key: 'name',        selector: '.custom-properties-container .multiple-input-name-input' },
-									{ key: '_html_name',  selector: '.custom-properties-container .multiple-input-property-key-input' },
-									{ key: '_html_id',    selector: '.custom-properties-container .multiple-input-css-id-input' },
-									{ key: '_html_value', selector: '.custom-properties-container .multiple-input-value-input' }
-								];
-
-								for (const inputDefinition of inputDefinitions) {
-
-									for (const inp of document.querySelectorAll(inputDefinition.selector)) {
-										const structrId = inp.dataset.structrId;
-										const value     = inp.value;
-										Command.get(structrId, inputDefinition.key, (data) => {
-											_Entities.setPropertyWithFeedback(data, inputDefinition.key, value, $(inp), null);
-										});
-									}
-
-								}
-
-							} else if (updateProperty) {
-								_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
-							}
-
-						} else {
-							if (!updateTarget) {
-								updateTargetInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
-							}
-							if (!updateProperty) {
-								updatePropertyInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
-							}
-						}
-						break;
-
-					case 'options-update-change':
-						if (updateTarget && updateProperty) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "change": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!updateTarget) {
-
-								updateTargetInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
-							}
-							if (!updateProperty) {
-								updatePropertyInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
-							}
-						}
-						break;
-
-					case 'options-update-focusout':
-						if (updateTarget && updateProperty) {
-							_Entities.setPropertyWithFeedback(entity, 'eventMapping', '{ "focusout": "update" }', $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-target',  updateTarget, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, '_html_name',  updateProperty, $(inputEl), null);
-							_Entities.setPropertyWithFeedback(entity, 'data-structr-reload-target',  reloadTarget, $(inputEl), null);
-						} else {
-							if (!updateTarget) {
-
-								updateTargetInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the UUID of the object to update.', 'warning', 2000, 200);
-							}
-							if (!updateProperty) {
-								updatePropertyInput.addClass('required');
-								Structr.showAndHideInfoBoxMessage('Please provide the name of the property to update.', 'warning', 2000, 200);
-							}
-						}
-						break;
-				}
-			});
-		}
 	},
 	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
 		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
@@ -1902,7 +1814,7 @@ let _Entities = {
 	extendCollection: function(itemId, newItemId, key, callback) {
 		var collectionIds = [];
 		Command.get(itemId, key, function(obj) {
-				//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
+			//var keyInfo = typeInfo.filter(function(item) { return item.jsonName === key; })[0];
 			var collection = obj[key];
 			if (collection && collection.length) {
 				collection.forEach(function(collectionItem) {
@@ -2935,106 +2847,93 @@ let _Entities = {
 			<div class="grid grid-cols-2 gap-8">
 
 				<div class="option-tile">
-					<label class="block mb-2" data-comment="Define a backend action and the event that triggers the action.">Select action for this element</label>
-					<select class="select2" id="event-mapping-select">
-						<option value="options-none">No action</option>
-						<optgroup label="Click actions">
-							<option value="options-create-click">Create a new data object on click</option>
-							<option value="options-update-click">Update a data object on click</option>
-							<option value="options-delete-click">Delete a data object on click</option>
-							<option value="options-method-click">Execute a method on click</option>
-							<option value="options-next-page-click">Go to next page on click</option>
-							<option value="options-prev-page-click">Go to previous page on click</option>
-						</optgroup>
-						<optgroup label="Change actions">
-							<option value="options-create-change">Create a new data object on change</option>
-							<option value="options-update-change">Update a data object on change</option>
-							<option value="options-method-change">Execute a method on change</option>
-						</optgroup>
-						<optgroup label="Focus actions">
-							<option value="options-create-focusout">Create a new data object on focus out</option>
-							<option value="options-update-focusout">Update a data object on focus out</option>
-							<option value="options-method-focusout">Execute a method on focus out</option>
-						</optgroup>
-						<optgroup label="Drag & Drop">
-							<option value="options-method-drop">Execute a method on drop</option>
-						</optgroup>
-						<optgroup label="Other">
-							<option value="options-custom">Custom configuration</option>
-						</optgroup>
+					<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
+					<select class="select2" id="event-select">
+						<option value="none">None</option>
+						<option value="click">Click</option>
+						<option value="change">Change</option>
+						<option value="focusout">Focus out</option>
+						<option value="drop">Drop</option>
+						<option value="custom">Custom frontend event</option>
 					</select>
 				</div>
 
-				<div class="option-tile uuid-container-for-all-events">
+				<div class="option-tile">
+					<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
+					<select class="select2" id="action-select">
+						<option value="none">No action</option>
+						<option value="create">Create new object</option>
+						<option value="update">Update object</option>
+						<option value="delete">Delete object</option>
+						<option value="method">Execute method</option>
+						<option value="flow">Execute flow</option>
+						<option value="custom">Custom action</option>
+						<option value="next-page">Next page</option>
+						<option value="prev-page">Previous page</option>
+					</select>
+				</div>
 
-					<div class="option-tile hidden event-options options-delete-click">
+				<div class="hidden opacity-0 option-tile options-custom-event">
+					<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
+					<input type="text" id="custom-event-input">
+				</div>
+
+				<div class="hidden opacity-0 option-tile options-custom-action">
+					<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
+					<input type="text" id="custom-action-input">
+				</div>
+
+				<div class="option-tile option-any uuid-container-for-all-events">
+					<div class="option-tile hidden event-options options-delete">
 						<label class="block mb-2" for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
 						<input type="text" id="delete-target-input">
 					</div>
-
-					<div class="option-tile hidden event-options options-method-click options-method-change options-method-drop">
+					<div class="option-tile hidden event-options options-method">
 						<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
 						<input type="text" id="method-target-input">
 					</div>
-
 					<div class="option-tile hidden event-options options-custom">
 						<label class="block mb-2" for="custom-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
 						<input type="text" id="custom-target-input">
 					</div>
-
-					<div class="option-tile hidden event-options options-update-change options-update-click">
+					<div class="option-tile hidden event-options options-update">
 						<label class="block mb-2" for="update-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
 						<input type="text" id="update-target-input">
 					</div>
 				</div>
 
-				<div class="row hidden event-options options-prev-page-click options-next-page-click">
+				<!--div class="row hidden event-options options-prev-page options-next-page">
 					<div class="option-tile">
 						<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 						<input type="text" id="pagination-name-input">
 					</div>
-				</div>
+				</div-->
 
-				<div class="row hidden event-options options-custom">
+				<div class="row hidden event-options options-create options-update">
 					<div class="option-tile">
-						<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
-						<input type="text" id="custom-event-input">
-					</div>
-				</div>
-
-				<div class="row hidden event-options options-custom">
-					<div class="option-tile">
-						<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
-						<input type="text" id="custom-action-input">
-					</div>
-				</div>
-
-				<div class="row hidden event-options options-create-click options-create-change">
-					<div class="option-tile">
-						<label class="block mb-2" for="target-type-select" data-comment="Define the type of data object that will be created with the create action.">Select type of data object to create</label>
-						<select class="select2" id="target-type-select">
-							<option value=""></option>
+						<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
+						<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
+						<select class="required combined-input-select-field" id="data-type-select">
+							<option value="">Select type from schema</option>
 						</select>
 					</div>
 				</div>
 
-				<div class="row hidden event-options options-method-click options-method-change options-method-drop">
+				<div class="row hidden event-options options-method">
 					<div class="option-tile">
 						<label class="block mb-2" for="method-name-input">Name of method to execute</label>
 						<input type="text" id="method-name-input">
 					</div>
 				</div>
 
-				<div class="row hidden event-options options-update-change options-update-click">
-					<div class="option-tile">
-						<label class="block mb-2" for="update-property-input">Name of property to update</label>
-						<input type="text" id="update-property-input">
-					</div>
-				</div>
-
-
-				<div class="col-span-2 hidden event-options options-properties options-method-drop">
-
+<!--				<div class="row hidden event-options options-update">-->
+<!--					<div class="option-tile">-->
+<!--						<label class="block mb-2" for="update-property-input">Name of property to update</label>-->
+<!--						<input type="text" id="update-property-input">-->
+<!--					</div>-->
+<!--				</div>-->
+				
+				<div class="col-span-2 hidden event-options event-drop">
 					<h3>Drag & Drop</h3>
 					<div class="option-tile">
 						<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
@@ -3046,85 +2945,181 @@ let _Entities = {
 					</div>
 				</div>
 
-				<div class="col-span-2 hidden event-options options-properties options-update-change options-update-click">
-					<h3>Property Inputs</h3>
+				<div class="col-span-2 hidden event-options options-properties options-any">
+					<h3>Parameter Mapping
+						<i class="m-2 add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon('circle_plus',16,16,[], 'Add parameter')}</i>
+						<i class="m-2 add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon('list_add',16,16,[], 'Add parameters for all properties')}</i>
+					</h3>
 
-					<div class="hidden event-options options-reload-target">
+					<div class="event-options options-properties options-create options-update parameter-mappings-container"></div>
 
-						<div class="hidden event-options options-properties options-update-change options-update-click custom-properties-container"></div>
-
-						<div class="hidden hidden event-options options-properties options-update-change options-update-click">
-							<div id="link-existing-element-dropzone" class="element-dropzone">
-								<div class="info-icon h-16 flex items-center justify-center">
-									<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
-									<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop existing element here to add
-								</div>
-							</div>
-						</div>
-
-						<div class="hidden event-options options-properties options-update-change options-update-click">
-							<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new input</button>
-							<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new select</button>
-						</div>
-					</div>
 				</div>
 
-				<div class="col-span-2 hidden event-options options-reload-target">
-					<h3>Refresh/Reload</h3>
-
-					<div class="col-span-2 grid grid-cols-2 gap-8 hidden event-options options-reload-target">
+				<div class="col-span-2 hidden event-options options-any">
+					<h3>Follow-up Actions</h3>
+					<div class="grid grid-cols-2 gap-8 event-options">
 
 						<div class="option-tile">
-							<label class="block mb-2" for="reload-option-select">Select refresh/reload behaviour</label>
-							<select class="select2" id="reload-option-select">
-								<option value="reload-none">No refresh/reload</option>
-								<option value="reload-selector">Partial page refresh</option>
-								<option value="reload-page">Full page reload</option>
-								<option value="reload-url">Navigate to new URL</option>
-								<option value="reload-event">Fire a custom event</option>
+							<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
+							<select class="select2" id="success-behaviour-select">
+								<option value="nothing">Nothing</option>
+								<option value="full-page-reload">Reload the current page</option>
+								<option value="partial-refresh">Refresh a section of the current page</option>
+								<option value="navigate-to-url">Navigate to a new page</option>
+								<option value="fire-event">Fire a custom event</option>
 							</select>
 						</div>
-
-						<div class="option-tile reload-options hidden" id="reload-selector">
-							<label class="block mb-2" for="reload-selector-input">CSS selector of element to refresh</label>
-							<input type="text" id="reload-selector-input">
+						<div class="hidden option-tile option-success option-success-partial-refresh">
+							<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+							<input type="text" id="success-partial-refresh-input" placeholder="Enter a CSS ID selector">
 						</div>
-
-						<div class="option-tile reload-options hidden" id="reload-url">
-							<label class="block mb-2" for="reload-url-input">Target URL</label>
-							<input type="text" id="reload-url-input">
+						<div class="hidden option-tile option-success option-success-navigate-to-url">
+							<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+							<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 						</div>
-
-						<div class="option-tile reload-options hidden" id="reload-event">
-							<label class="block mb-2" for="reload-event-input">Event to fire</label>
-							<input type="text" id="reload-event-input">
+						<div class="hidden option-tile option-success option-success-fire-event">
+							<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be fired.">Event to fire on success</label>
+							<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
 						</div>
 					</div>
-				</div>
 
+					<div class="grid grid-cols-2 gap-8 mt-4 event-options">
+						<div class="option-tile">
+							<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
+							<select class="select2" id="failure-behaviour-select">
+								<option value="nothing">Nothing</option>
+								<option value="full-page-reload">Reload the current page</option>
+								<option value="partial-refresh">Refresh a section of the current page</option>
+								<option value="navigate-to-url">Navigate to a new page</option>
+								<option value="fire-event">Fire a custom event</option>
+							</select>
+						</div>
+						<div class="hidden option-tile option-failure option-failure-partial-refresh">
+							<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
+							<input type="text" id="failure-partial-refresh-input" placeholder="Enter a CSS ID">
+						</div>
+						<div class="hidden option-tile option-failure option-failure-navigate-to-url">
+							<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
+							<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+						</div>
+						<div class="hidden option-tile option-failure option-failure-fire-event">
+							<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be fired.">Event to fire on failure</label>
+							<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
+						</div>
+
+
+					</div>
+				</div>
+				
 				<div class="option-tile col-span-2">
 					<button type="button" class="action" id="save-event-mapping-button">Save</button>
 				</div>
+
+			</div>
+		`,
+		parameterMappingRow: config => `
+			<div class="event-options options-properties options-update parameter-mapping" data-structr-id="${config.id}">
+				
+				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
+				
+					<div class="option-tile">
+						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>
+						<input type="text" class="parameter-name-input" placeholder="Name" value="${config.parameterName || ''}">
+					</div>
+
+					<div class="option-tile">
+						<label class="block mb-2" for="parameter-type-select" data-comment="Select the type of this parameter.">Parameter type</label>
+						<select class="parameter-type-select">
+							<option>-- Select --</option>						
+							<option value="user-input">User Input</option>
+							<option value="page-param">Request parameter for page</option>
+							<option value="pagesize-param">Request parameter for page size</option>
+							<option value="constant-value">Constant value</option>
+							<option value="script-expression">Script expression</option>
+							<option value="method-result">Result of method call</option>
+							<option value="flow-result">Result of flow</option>
+						</select>
+					</div>
+					
+					<div class="hidden col-span-2 option-tile parameter-value parameter-constant-value">
+						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
+						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 option-tile parameter-value parameter-script-expression">
+						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
+						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 option-tile parameter-value parameter-user-input">
+						<label class="block mb-2" data-comment="Drag a form input element (&amp;lt;input&amp;gt;, &amp;lt;textarea&amp;gt; or &amp;lt;select&amp;gt;) and drop it here">Form input element</label>
+						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
+						<div class="element-dropzone link-existing-element-dropzone">
+							<div class="info-icon h-16 flex items-center justify-center">
+								<i class="m-2 active align-middle">${_Icons.getSvgIcon('circle_plus')}</i>
+								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon('circle_plus')}</i> Drag and drop existing form input element here 
+							</div>
+						</div>
+					</div>
+
+					<div class="hidden col-span-2 option-tile parameter-value parameter-method-result">
+						<label class="block mb-2" data-comment="The method will be evaluated and the result passed as parameter value">Method</label>
+						<input type="text" class="parameter-method-result-input" placeholder="Method name" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 option-tile parameter-value parameter-flow-result">
+						<label class="block mb-2" data-comment="The selected Flow will be evaluated and the result passed as parameter value">Flow result</label>
+						<select class="parameter-flow-result-input">
+							<option value="">-- Select flow --</option>
+						</select>
+					</div>
+					
+					<div class="option-tile">
+						<label class="hidden block mb-2">Actions</label>
+						<i class="block mt-4 cursor-pointer parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
+					</div>
+
+				</div>
+								
+				<!--div class="event-options options-properties options-create options-update">
+					<div id="link-existing-element-dropzone" class="element-dropzone">
+						<div class="info-icon h-16 flex items-center justify-center">
+							<i class="m-2 active">${_Icons.getSvgIcon('circle_plus')}</i>
+							<i class="m-2 inactive">${_Icons.getSvgIcon('circle_plus')}</i> Drop existing input or select elements here
+						</div>
+					</div>
+				</div>
+
+				<div class="event-options options-properties options-update">
+					<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new input</button>
+					<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new select</button>
+				</div-->
+				
 			</div>
 		`,
 		multipleInputsRow: config => `
-			<div class="event-options options-properties options-update-change options-update-click multiple-properties">
+			<div class="event-options options-properties options-update multiple-properties">
 
 				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Name</label>
 						<input type="text" class="multiple-input-name-input" placeholder="Name of input element" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Property key</label>
 						<input type="text" class="multiple-input-property-key-input" placeholder="Property key to update" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
-						<input type="text" class="multiple-input-css-id-input" placeholder="CSS ID" data-structr-id="${config.id}">
+						<label class="hidden mb-1">CSS id</label>
+						<input type="text" class="multiple-input-css-id-input" placeholder="CSS id attribute" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
+						<label class="hidden mb-1">Value</label>
 						<input type="text" class="multiple-input-value-input" placeholder="Value expression" data-structr-id="${config.id}">
 					</div>
 					<div class="option-tile flat">
-						<i class="block mt-4 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
+						<label class="hidden mb-1">Actions</label>
+						<i class="block mt-2 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
 					</div>
 				</div>
 

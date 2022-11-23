@@ -105,6 +105,14 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule();
 
+			document.addEventListener('click', e => {
+				const el = e.target;
+				const methodNameInputField = document.getElementById('method-name-input');
+				if (methodNameInputField && el != methodNameInputField && !methodNameInputField.classList.contains('hidden')) {
+					_Code.resetMethodNameInput();
+				}
+			});
+
 			let codeSearchInput = document.querySelector('#tree-search-input');
 			_Code.inSearchBox = false;
 			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
@@ -191,6 +199,14 @@ let _Code = {
 			if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 				event.preventDefault();
 				_Code.runCurrentEntitySaveAction();
+			}
+
+			// ctrl-r / cmd-r
+			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+				event.preventDefault();
+				event.stopPropagation();
+				//document.getElementById('action-button-save')?.click();
+				document.getElementById('action-button-run')?.click();
 			}
 		}
 	},
@@ -1546,6 +1562,21 @@ let _Code = {
 			});
 		});
 	},
+	resetMethodNameInput: (value) => {
+		const methodNameInputField = document.getElementById('method-name-input');
+		const methodNameSpan       = document.getElementById('method-name-output');
+
+		methodNameInputField.classList.add('hidden');
+		methodNameSpan.classList.remove('hidden');
+		if (value) {
+			methodNameSpan.innerText = methodNameInputField.value + '()';
+		} else {
+			methodNameInputField.value = methodNameSpan.innerText.replace('()', '');
+		}
+	},
+	updateMethodNameDisplay: () => {
+		_Code.resetMethodNameInput(document.getElementById('method-name-input')?.value);
+	},
 	displaySchemaMethodContent: (data, lastOpenTab) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
@@ -1557,6 +1588,15 @@ let _Code = {
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+			document.getElementById('method-name-input').addEventListener('keyup', (e) => {
+				if (e.key === 'Escape') {
+					_Code.resetMethodNameInput();
+				} else if (e.key === 'Enter') {
+					_Code.updateMethodNameDisplay();
+				}
+				_Code.updateDirtyFlag(result);
+			});
 
 			// Source Editor
 			let sourceMonacoConfig = {
@@ -1740,6 +1780,15 @@ let _Code = {
 				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+
+				document.getElementById('method-name-output').addEventListener('click', (e) => {
+					e.stopPropagation();
+					const el = e.target;
+					el.classList.add('hidden');
+					const methodNameInputField = document.getElementById('method-name-input');
+					methodNameInputField?.classList.remove('hidden');
+					methodNameInputField?.focus();
+				});
 			};
 
 			$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
@@ -2686,6 +2735,7 @@ let _Code = {
 				<span>Run</span>
 			</button>
 		`);
+		window.setTimeout(() => { $('#run-method', dialogBtn).focus(); }, 50);
 		dialogBtn.append('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
 		let paramsOuterBox = Structr.createSingleDOMElementFromHTML(`
@@ -2989,25 +3039,22 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</h2>
+			<h2><span id="method-name-output">${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</span>
+			<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}"></h2>
 			<div id="method-buttons">
-				<div id="method-options">
-					<div class="mb-4">
+				<div id="method-options" class="flex flex-wrap gap-x-4">
+					<div class="mb-2">
 						<div id="method-actions"></div>
 					</div>
-					<div class="mb-4 flex flex-wrap gap-x-8">
-						<div class="input">
-							<label>Name</label>
-							<input type="text" id="method-name-input" data-property="name" size="20" value="${config.method.name}">
-						</div>
+					<div class="mb-2">
 						<div class="checkbox hidden entity-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
 						</div>
 						<div class="checkbox hidden global-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
 						</div>
 						<div class="checkbox hidden global-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
 						</div>
 					</div>
 				</div>
@@ -3028,6 +3075,7 @@ let _Code = {
 
 				</div>
 				<div class="editor-info"></div>
+				<div class="logging-output"></div>
 			</div>
 		`,
 		methods: config => `
@@ -3035,33 +3083,32 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		openAPIBaseConfig: config => `
-			<div id="openapi-options" class="flex flex-col flex-grow mt-4">
-
-				<div class="flex flex-wrap gap-x-8">
-
-					<div>
-						<label class="font-semibold">Enabled</label>
-						<label class="checkbox block mt-3">
-							<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
-						</label>
+			<div id="openapi-options" class="flex flex-col flex-grow">
+			
+				<div class="flex flex-wrap gap-8">
+			
+					<div class="min-w-48">
+						<label class="block mb-5">Enabled</label>
+						<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
 					</div>
-
-					<div style="width: 200px">
-						<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
+			
+					<div class="min-w-48">
+						<label class="block mb-2" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 						<select id="tags-select" data-property="tags" multiple="multiple">
 							${config.element.tags ? config.element.tags.map(tag => `<option selected>${tag}</option>`).join() : ''}
 							${config.availableTags.filter(tag => (!config.element.tags || !config.element.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join()}
 						</select>
 					</div>
-					<div>
-						<label class="block font-semibold">Summary</label>
-						<input class="mt-1" data-property="summary" value="${config.element.summary || ''}" type="text">
+					
+					<div class="min-w-48">
+						<label class="block mb-2">Summary</label>
+						<input data-property="summary" value="${config.element.summary || ''}" type="text">
 					</div>
 
 					${(config.element.type === 'SchemaNode') ? '' : `
-						<div>
-							<label class="font-semibold">Description</label>
-							<input class="mt-1" data-property="description" value="${config.element.description || ''}" type="text">
+						<div class="min-w-48">
+							<label class="block mb-2">Description</label>
+							<input data-property="description" value="${config.element.description || ''}" type="text">
 						</div>
 					`}
 				</div>
@@ -3148,11 +3195,10 @@ let _Code = {
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-
-				<div class="mb-4 flex flex-wrap gap-x-8">
-					<div><label class="font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div><label class="font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div><label class="font-semibold">Type hint</label>
+				<div class="mb-4">
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3165,21 +3211,21 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="${config.dbNameClass}"><label class="font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
-					<div><label class="font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div><label class="font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="mt-2 mb-4 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
 				</div>
 
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="flex flex-wrap gap-x-8 mt-2">
-						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					<div class="mt-2">
+						<div class="mt-4"><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
 					</div>
 				</div>
 			</div>

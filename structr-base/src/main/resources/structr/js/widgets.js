@@ -271,7 +271,7 @@ let _Widgets = {
 
 			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
 
-			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parent) {
+			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parentNode) {
 
 				_Widgets.widgetServerSelector.replaceWith(newElement);
 
@@ -289,7 +289,7 @@ let _Widgets = {
 			}
 		});
 	},
-	refreshRemoteWidgets: function() {
+	refreshRemoteWidgets: () => {
 
 		let url = _Widgets.getWidgetServerUrl();
 
@@ -300,17 +300,17 @@ let _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then((data) => {
 
-				data.forEach(function(entity) {
-					var obj = StructrModel.create(entity, null, false);
+				for (let entity of data) {
+					let obj = StructrModel.create(entity, null, false);
 					obj.srcUrl = url + '/' + entity.id;
 					_Widgets.remoteWidgetData.push(obj);
-				});
+				}
 
 				_Widgets.repaintRemoteWidgets();
 
-			}).catch(function(e) {
+			}).catch((e) => {
 				_Widgets.remoteWidgetFilterEl.hide();
 				_Widgets.remoteWidgetsEl.empty();
 				_Widgets.remoteWidgetsEl.html('Could not fetch widget data from server (' + url + '). Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.');

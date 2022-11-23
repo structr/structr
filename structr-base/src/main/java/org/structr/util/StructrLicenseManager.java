@@ -222,7 +222,10 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 		}
 
-		if (licenseExpired(endDate)) {
+		if (endDate == null) {
+			// nothing to do - was unlicensed and still is
+
+		} else if (licenseExpired(endDate)) {
 
 			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 
