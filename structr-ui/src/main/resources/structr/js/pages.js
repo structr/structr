@@ -829,21 +829,16 @@ let _Pages = {
 
 				dialog.empty();
 				dialogMsg.empty();
-				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
-				dialog.append(dialogDom);
 
-				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
-				createSimplePageButton.addEventListener('click', () => {
-					Command.createSimplePage();
-					blinkGreen(createSimplePageButton);
-				});
+				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
+				dialog.append(dialogDom);
 
 				let container = $('#template-tiles');
 
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let dom = Structr.createSingleDOMElementFromHTML(`<div class="app-tile"><h4>${widget.name}</h4><br><p>${(widget.description || '')}</p><button class="action" id="${id}">Create</button></div>`);
+					let dom = Structr.createSingleDOMElementFromHTML(`<div class="app-tile"><h4>${widget.name}</h4><p>${(widget.description || '')}</p><button class="action" id="${id}">Create</button></div>`);
 
 					let createPageButton = dom.querySelector('#' + id);
 					createPageButton.addEventListener('click', () => {
@@ -857,6 +852,16 @@ let _Pages = {
 
 					container.append(dom);
 				}
+
+				// default page
+				let defaultTile = Structr.createSingleDOMElementFromHTML('<div class="app-tile"><h4>Simple Page</h4><p>Creates a simple unstyled page.</p><button class="action" id="create-simple-page">Create</button></div>');
+				container.append(defaultTile);
+
+				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
+				createSimplePageButton.addEventListener('click', () => {
+					Command.createSimplePage();
+					blinkGreen(createSimplePageButton);
+				});
 			}
 		});
 

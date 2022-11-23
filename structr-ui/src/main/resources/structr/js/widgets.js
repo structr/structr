@@ -17,7 +17,8 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Widgets = {
-	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/widgets',
+	//defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
+	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/Widget',
 	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
@@ -168,7 +169,19 @@ let _Widgets = {
 	getWidgetServerUrl: () => {
 
 		if (_Widgets.widgetServerSelector) {
-			return _Widgets.widgetServerSelector.value;
+
+			let url = _Widgets.widgetServerSelector.value;
+			if (url && url.toLowerCase().indexOf('/structr/rest/widget') === -1) {
+				if (url.indexOf('/') === url.length) {
+					// append REST path without /
+					return url + 'structr/rest/Widget';
+				} else {
+					// append REST path with /
+					return url + '/structr/rest/Widget';
+				}
+			}
+			// else return unmodified URL
+			return url;
 		}
 	},
 	getConfiguredWidgetServers: (callback) => {
@@ -300,7 +313,7 @@ let _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?_sort=treePath&_sort=name', url + '?sort=treePath&sort=name').then(function(data) {
 
 				data.forEach(function(entity) {
 					var obj = StructrModel.create(entity, null, false);
@@ -832,7 +845,7 @@ let _Widgets = {
 
 		if (!url.startsWith(document.location.origin)) {
 
-			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&sort=name', url + '?isPageTemplate=true&_sort=name');
+			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&_sort=name', url + '?isPageTemplate=true&sort=name');
 			return widgets;
 		}
 
