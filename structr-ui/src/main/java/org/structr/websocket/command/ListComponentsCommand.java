@@ -34,12 +34,9 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command to retrieve nodes which are in use on more than
  * one page.
- *
  *
  */
 public class ListComponentsCommand extends AbstractCommand {
@@ -49,7 +46,6 @@ public class ListComponentsCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(ListComponentsCommand.class);
-
 	}
 
 	@Override

@@ -116,6 +116,8 @@ public interface Widget extends NodeInterface {
 				importer.setIsDeployment(true);
 			}
 
+			//importer.setIsWidgetImport(true);
+
 			if (importer.parse(true)) {
 
 				importer.createChildNodes(parent, page, true);

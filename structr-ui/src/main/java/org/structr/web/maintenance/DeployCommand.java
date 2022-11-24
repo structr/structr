@@ -1343,9 +1343,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		try {
 
-			// first delete all contents of the schema directory
 			deleteDirectoryContentsRecursively(targetFolder);
-
 
 			try (final Tx tx = app.tx()) {
 
@@ -2064,7 +2062,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importFiles (final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
+	private void importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
 
 		if (Files.exists(filesMetadataFile)) {
 

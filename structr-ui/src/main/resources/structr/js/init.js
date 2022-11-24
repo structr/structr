@@ -1538,19 +1538,27 @@ let Structr = {
 	removeExpandedNode: (id) => {
 
 		if (id) {
-			delete Structr.getExpanded()[id];
+			Structr.getExpanded()[id] = false;
 			LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
 		}
 	},
-	isExpanded: (id) => {
+	isExpanded: (id, defaultValue = false) => {
 
 		if (id) {
-			let isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
 
-			return isExpanded;
+			let storedValue = Structr.getExpanded()[id];
+
+			if (storedValue === undefined) {
+
+				return defaultValue;
+
+			} else {
+
+				return storedValue;
+			}
 		}
 
-		return false;
+		return defaultValue;
 	},
 	getExpanded: () => {
 
