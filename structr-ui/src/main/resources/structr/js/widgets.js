@@ -17,8 +17,8 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Widgets = {
-	//defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
-	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/Widget',
+	defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
+	//defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/Widget',
 	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
