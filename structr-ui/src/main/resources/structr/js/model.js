@@ -928,7 +928,7 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["data-structr-confirm"] === true
 		|| this["data-structr-reload"] === true
 		//Collection attributes
-		|| this["triggeredActions"].length
+		|| (this["triggeredActions"] ?? []).length
 		;
 };
 

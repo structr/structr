@@ -284,7 +284,7 @@ let _Widgets = {
 
 			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
 
-			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parentNode) {
+			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.isConnected === true) {
 
 				_Widgets.widgetServerSelector.replaceWith(newElement);
 
@@ -316,6 +316,7 @@ let _Widgets = {
 			_Widgets.fetchRemoteWidgets(url + '?sort=treePath&sort=name', url + '?_sort=treePath&_sort=name').then(function(data) {
 
 				for (let entity of data) {
+
 					let obj = StructrModel.create(entity, null, false);
 					obj.srcUrl = url + '/' + entity.id;
 					_Widgets.remoteWidgetData.push(obj);
@@ -324,6 +325,7 @@ let _Widgets = {
 				_Widgets.repaintRemoteWidgets();
 
 			}).catch((e) => {
+
 				_Widgets.remoteWidgetFilterEl.hide();
 				_Widgets.remoteWidgetsEl.empty();
 				_Widgets.remoteWidgetsEl.html('Could not fetch widget data from server (' + url + '). Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.');
@@ -344,7 +346,9 @@ let _Widgets = {
 			search = search.toLowerCase();
 
 			for (let obj of _Widgets.remoteWidgetData) {
+
 				if (obj.name.toLowerCase().indexOf(search) !== -1) {
+
 					_Widgets.appendWidgetElement(obj, true, _Widgets.remoteWidgetsEl);
 				}
 			}
@@ -358,27 +362,34 @@ let _Widgets = {
 
 		_Pages.resize();
 	},
+	getFolderNameForTreePathPart: (idString) => {
+		return 	idString + '_folder';
+	},
 	getTreeParent: (element, treePath, suffix) => {
 
-		let parent = element;
+		let parent             = element;
+		let allFoldersExpanded = true;
 
 		if (treePath) {
 
 			let parts = treePath.split('/');
-			let num = parts.length;
 
-			for (let i = 0; i < num; i++) {
+			for (let part of parts) {
 
-				var part = parts[i];
 				if (part) {
 
 					let lowerPart = part.toLowerCase().replace(/\W/g, '');
 					let idString = lowerPart + suffix;
-					let newParent = $('#' + idString + '_folder');
+					let newParent = $(`#${_Widgets.getFolderNameForTreePathPart(idString)}`);
 
 					if (newParent.length === 0) {
-						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
-						newParent = $('#' + idString + '_folder');
+
+						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part, allFoldersExpanded);
+						newParent = $(`#${_Widgets.getFolderNameForTreePathPart(idString)}`);
+					}
+
+					if (_Widgets.isFolderExpanded(newParent) === false) {
+						allFoldersExpanded = false;
 					}
 
 					parent = newParent;
@@ -388,11 +399,12 @@ let _Widgets = {
 		} else {
 
 			let idString = 'other' + suffix;
-			let newParent = $('#' + idString + '_folder');
+			let newParent = $(`#${_Widgets.getFolderNameForTreePathPart(idString)}`);
 
 			if (newParent.length === 0) {
-				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
-				newParent = $('#' + idString + '_folder');
+
+				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized', allFoldersExpanded);
+				newParent = $(`#${_Widgets.getFolderNameForTreePathPart(idString)}`);
 			}
 
 			parent = newParent;
@@ -400,34 +412,40 @@ let _Widgets = {
 
 		return parent;
 	},
-	appendFolderElement: (parent, id, icon, name) => {
+	isFolderExpanded: (folder) => {
 
-		let expanded = Structr.isExpanded(id);
+		return folder.data('expanded') === true;
+	},
+	appendFolderElement: (parent, id, icon, name, allParentsExpanded) => {
+
+		let expanded = Structr.isExpanded(id, true);
+		let folderId = _Widgets.getFolderNameForTreePathPart(id);
 
 		parent.append(`
-			<div id="${id}_folder" class="widget node">
+			<div id="${folderId}" class="folder widget node${allParentsExpanded === false ? ' hidden': ''}">
 				<div class="node-container flex items-center">
 					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
 					<b title="${escapeForHtmlAttributes(name)}" class="name flex-grow">${name}</b>
-					<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
 				</div>
 			</div>
 		`);
 
-		let div = $('#' + id + '_folder');
+		let div = $(`#${folderId}`);
+		div.data('expanded', expanded);
 
-		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, false);
+		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, expanded);
 	},
-	appendWidgetElement: function(widget, remote, el) {
+	appendWidgetElement: (widget, remote, el) => {
 
-		let icon   = _Icons.widget_icon;
-		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
-		let div    = Structr.node(widget.id);
+		let icon             = _Icons.widget_icon;
+		let parent           = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
+		let div              = Structr.node(widget.id);
+		let isParentExpanded = _Widgets.isFolderExpanded(parent);
 
 		if (!div) {
 
 			parent.append(`
-				<div id="id_${widget.id}" class="node widget">
+				<div id="id_${widget.id}" class="node widget ${isParentExpanded ? '' : ' hidden'}">
 					<div class="node-container flex items-center">
 						<i class="typeIcon typeIcon-nochildren ${_Icons.getFullSpriteClass(icon)}"></i>
 						<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow">${widget.name}</b>
@@ -435,6 +453,7 @@ let _Widgets = {
 					</div>
 				</div>
 			`);
+
 			div = Structr.node(widget.id);
 		}
 
@@ -454,7 +473,7 @@ let _Widgets = {
 
 		if (remote) {
 
-			div.children('b.name_').off('click').css({cursor: 'move'});
+			div.children('b.name_').off('click').css({ cursor: 'move' });
 
 			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
 			iconsContainer.append(eyeIcon);
@@ -626,17 +645,12 @@ let _Widgets = {
 
 		activateTab('source');
 	},
-	// appendWidgetSelectorEditor: function (container, entity, allowEdit) {
-	//
-	// 	let html = _Widgets.templates.editSelectors();
-	// 	container.append(html);
-	// },
-	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
+	appendVisualExpandIcon: (el, id, name, hasChildren, expanded) => {
 
 		if (hasChildren) {
 
 			let typeIcon            = $(el.children('.typeIcon').first());
-			let icon                = $(el).children('.node').hasClass('hidden') ? _Icons.collapsedClass : _Icons.expandedClass;
+			let icon                = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 			let expandIconClassName = 'expand_icon_svg';
 
 			typeIcon.before(`<i class="${expandIconClassName} ${icon}"></i>`);
@@ -644,19 +658,36 @@ let _Widgets = {
 			let expandIcon = el.children('.' + expandIconClassName).first();
 
 			let expandClickHandler = (e) => {
+
 				e.stopPropagation();
 
-				let childNodes = el.parent().children('.node');
+				let wasCollapsed                = el.parent().data('expanded') == false;
+				let directChildrenWithNodeClass = el.parent().children('.node');
 
-				childNodes.toggleClass('hidden');
+				directChildrenWithNodeClass.toggleClass('hidden');
 
-				let isCollapsed = childNodes.hasClass('hidden');
-				if (isCollapsed) {
+				if (wasCollapsed) {
+
+					// show folder children of expanded folders
+					for (let subFldr of el.parent().children('.folder')) {
+
+						let subFolder         = $(subFldr);
+						let subFolderExpanded = subFolder.data('expanded');
+
+						if (subFolderExpanded) {
+							subFolder.children('.node').removeClass('hidden');
+						}
+					}
+
+					el.parent().data('expanded', true);
 					Structr.addExpandedNode(id);
-					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
-				} else {
-					Structr.removeExpandedNode(id);
 					expandIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
+
+				} else {
+
+					el.parent().data('expanded', false);
+					Structr.removeExpandedNode(id);
+					expandIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				}
 			};
 
@@ -675,7 +706,7 @@ let _Widgets = {
 			});
 		}
 	},
-	insertWidgetIntoPage: function(widget, target, pageId, callback) {
+	insertWidgetIntoPage: (widget, target, pageId, callback) => {
 
 		let url               = _Widgets.getWidgetServerUrl();
 		let widgetSource      = widget.source;
