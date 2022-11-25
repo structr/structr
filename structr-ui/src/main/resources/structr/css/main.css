@@ -2271,7 +2271,46 @@ table.push {
 	margin: 2em 0;
 }
 
-.widget b, .widget span {
+.widget-folder {
+	display: flex;
+	flex-wrap: wrap;
+}
+
+.widget {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 70px;
+	min-height: 60px;
+	color: #333;
+	background-color: #fff;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.widget img {
+	opacity: 0.75;
+	flex-grow: 1;
+}
+
+.widget:hover img {
+	opacity: 1.0;
+}
+
+.widget:hover {
+	border: 1px solid #999;
+}
+
+.widget span {
+	width: 100%;
+	text-align: center;
+	flex-grow: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.widget-header b, .widget-header span {
 	cursor: pointer;
 	line-height: 2rem;
 }
@@ -4483,6 +4522,15 @@ table.props td.__value {
 .justify-end {
 	justify-content: flex-end;
 }
+.h-4 {
+	height: 1rem;
+}
+.h-8 {
+	height: 2rem;
+}
+.h-12 {
+	height: 3rem;
+}
 .h-16 {
 	height: 4rem;
 }
@@ -4596,6 +4644,9 @@ table.props td.__value {
 }
 .w-8 {
 	width: 2rem;
+}
+.w-12 {
+	width: 3rem;
 }
 .w-16 {
 	width: 4rem;
@@ -4865,4 +4916,13 @@ table.props td.__value {
 	border-bottom-right-radius: .25rem;
 	border-top-left-radius: 0;
 	border-bottom-left-radius: 0;
+}
+.inset-0 {
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+}
+.bg-white {
+	background-color: var(--solid-white);
 }
