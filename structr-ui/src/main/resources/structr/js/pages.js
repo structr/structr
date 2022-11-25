@@ -837,7 +837,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = Structr.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><h4>${widget.name}</h4><br><p>${(widget.description || '')}</p></div>`);
+					let tile = Structr.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
 					container.append(tile);
 
 					//let createPageButton = dom.querySelector('#' + id);
@@ -853,7 +853,7 @@ let _Pages = {
 				}
 
 				// default page
-				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><h4>Simple Page</h4><br><p>Creates a simple page with a minimum set of HTML elements</p></div>');
+				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/empty.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimum set of HTML elements</p></div>');
 				container.append(defaultTile);
 
 				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');

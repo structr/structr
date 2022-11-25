@@ -2452,14 +2452,14 @@ th.center {
 	border: 1px solid var(--black-opacity-125);
 	box-shadow: 0 0 1rem var(--gray-opacity-10);
 	margin: 1rem;
-	padding: 1rem;
+	padding: 0;
 	position: relative;
 	width: 14rem;
 	min-width: 14rem;
-	min-height: 10rem;
+	min-height: 17rem;
 	display: inline-block;
 	vertical-align: text-top;
-    border-radius: .5rem;
+    	border-radius: .5rem;
 }
 
 .app-tile:hover {
@@ -2468,8 +2468,12 @@ th.center {
     cursor: pointer;
 }
 
+.app-tile img {
+	width: 100%;
+}
+
 .app-tile h4 {
-	margin: 0 0 8px 0;
+	margin: 1rem;
 	/*font-size: 1em;*/
 	font-weight: 500;
 	overflow: hidden;
@@ -2478,7 +2482,7 @@ th.center {
 }
 
 .app-tile p {
-	margin: 0;
+	margin: 1rem;
 }
 
 /*
