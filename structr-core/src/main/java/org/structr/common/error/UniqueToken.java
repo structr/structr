@@ -100,6 +100,12 @@ public class UniqueToken extends SemanticErrorToken {
 			buf.append(getExistingUuid());
 		}
 
+		if (getValue() != null) {
+
+			buf.append(" Value = ");
+			buf.append(getValue());
+		}
+
 		return buf.toString();
 	}
 
