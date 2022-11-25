@@ -2568,33 +2568,27 @@ let _Entities = {
 		}
 	},
 	expandAll: (ids, lastId) => {
+
 		if (!ids || ids.length === 0) {
 			return;
 		}
 
-		for (let id of ids) {
+		// top-level object
+		let firstId = ids[0];
+		let el      = Structr.node(firstId);
 
-			let el = Structr.node(id);
+		// if top-level element is not present, we can not do anything
+		if (el) {
 
-			if (el && id === lastId) {
+			if (firstId === lastId) {
+
+				// finally highlight last element
 				_Entities.deselectAllElements();
 				_Entities.highlightElement(el);
-			} else if (!el && id === lastId) {
-				// if node is not present, delay and retry
-				window.setTimeout(() => {
-					let nodeEl = Structr.node(id);
-					if (nodeEl) {
-						_Entities.deselectAllElements();
-						_Entities.highlightElement(nodeEl);
-					}
-				}, 500);
 			}
 
 			_Entities.ensureExpanded(el, (childNodes) => {
-				if (childNodes && childNodes.length) {
-					ids = ids.filter(id => id !== childNodes[0].id);
-					_Entities.expandAll(ids, lastId);
-				}
+				_Entities.expandAll(ids.slice(1), lastId);
 			});
 		}
 	},
