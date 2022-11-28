@@ -2569,11 +2569,12 @@ let Structr = {
 	}
 };
 
-Structr.rootUrl     = Structr.getPrefixedRootUrl('/structr/rest/');
-Structr.csvRootUrl  = Structr.getPrefixedRootUrl('/structr/csv/');
-Structr.viewRootUrl = Structr.getPrefixedRootUrl('/');
-Structr.wsRoot      = Structr.getPrefixedRootUrl('/structr/ws');
-Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
+Structr.rootUrl        = Structr.getPrefixedRootUrl('/structr/rest/');
+Structr.csvRootUrl     = Structr.getPrefixedRootUrl('/structr/csv/');
+Structr.graphQLRootUrl = Structr.getPrefixedRootUrl('/structr/graphql/');
+Structr.viewRootUrl    = Structr.getPrefixedRootUrl('/');
+Structr.wsRoot         = Structr.getPrefixedRootUrl('/structr/ws');
+Structr.deployRoot     = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {

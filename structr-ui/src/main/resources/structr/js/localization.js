@@ -181,7 +181,7 @@ let _Localization = {
 			return true;
 		});
 	},
-	listKeysAndDomains: function () {
+	listKeysAndDomains: () => {
 
 		let pagerEl = $('#localization-pager');
 
@@ -201,20 +201,25 @@ let _Localization = {
 
 		let lastSelectedLocalizationElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);
 		if (!lastSelectedLocalizationElement) {
+
 			let rows = document.querySelectorAll('.localization-row');
 			if (rows && rows.length !== 0) {
 				rows[0].click();
 			}
+
 		} else {
+
 			_Localization.showLocalizationsForKeyAndDomainObject(lastSelectedLocalizationElement);
 		}
 	},
-	customPagerTransportFunction: function(type, pageSize, page, filterAttrs, callback) {
+	customPagerTransportFunction: (type, pageSize, page, filterAttrs, callback) => {
+
 		let filterString = "";
 		let presentFilters = Object.keys(filterAttrs);
 		if (presentFilters.length > 0) {
 			filterString = 'WHERE ' + presentFilters.map((key) => { return `n.${key} =~ "(?i).*${filterAttrs[key]}.*"`; }).join(' AND ');
 		}
+
 		Command.cypher(`MATCH (n:Localization) ${filterString} RETURN DISTINCT { name: n.name, domain: n.domain } as res ORDER BY res.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]}`, undefined, callback, pageSize, page);
 	},
 	processPagerData: (pagerData) => {
@@ -282,6 +287,19 @@ let _Localization = {
 		let combinedTypeForId = 'localization-' + (key ? key : 'nullKey') + '___' + (domain ? domain : 'nullDomain');
 		return combinedTypeForId;
 	},
+	getLocalizationsForNameAndDomain: async (name, domain) => {
+
+		let response = await fetch(Structr.graphQLRootUrl + '?query=' + `{ Localization(_sort: "locale") { id, locale, name${name ? `(_equals: "${name}")` : ''}, domain${domain ? `(_equals: "${domain}")` : ''}, localizedName, visibleToPublicUsers, visibleToAuthenticatedUsers }}`);
+
+		if (response.ok) {
+
+			let data = await response.json();
+
+			return { responseOk: true, result: data['Localization'] };
+		}
+
+		return { responseOk: false, result: [] };
+	},
 	showLocalizationsForKeyAndDomainObject: async (keyAndDomainObject, isCreate) => {
 
 		let key    = (keyAndDomainObject.name === undefined ? null : keyAndDomainObject.name);
@@ -292,38 +310,35 @@ let _Localization = {
 
 		LSWrapper.setItem(_Localization.localizationSelectedElementKey, keyAndDomainObject);
 
-		let response = await fetch(Structr.rootUrl + 'Localization/all?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let { responseOk, result } = await _Localization.getLocalizationsForNameAndDomain(key, domain);
 
-		if (response.ok) {
+		if (responseOk && result.length > 0) {
 
-			let data = await response.json();
+			_Localization.localizationDetailContainer.style.display = null;
 
-			if (data.result.length > 0) {
+			_Localization.localizationDetailKey.val(key).removeData('oldValue').data('oldValue', key);
+			_Localization.localizationDetailDomain.val(domain).removeData('oldValue').data('oldValue', domain);
 
-				_Localization.localizationDetailContainer.style.display = null;
+			_Localization.clearLocalizationDetailsList();
 
-				_Localization.localizationDetailKey.val(key).removeData('oldValue').data('oldValue', key);
-				_Localization.localizationDetailDomain.val(domain).removeData('oldValue').data('oldValue', domain);
+			for (let loc of result) {
 
-				_Localization.clearLocalizationDetailsList();
-
-				for (let loc of data.result) {
-					if (key === loc.name && domain === loc.domain) {
-						_Localization.appendLocalizationDetailListRow(loc);
-					}
+				if (key === loc.name && domain === loc.domain) {
+					_Localization.appendLocalizationDetailListRow(loc);
 				}
-
-				if (isCreate === true) {
-					let localizationKey = document.getElementById('localization-key');
-					localizationKey.focus();
-					localizationKey.select();
-
-					_Localization.keyAndDomainPager.refresh();
-				}
-
-			} else {
-				LSWrapper.removeItem(_Localization.localizationSelectedElementKey);
 			}
+
+			if (isCreate === true) {
+
+				let localizationKey = document.getElementById('localization-key');
+				localizationKey.focus();
+				localizationKey.select();
+
+				_Localization.keyAndDomainPager.refresh();
+			}
+
+		} else {
+			LSWrapper.removeItem(_Localization.localizationSelectedElementKey);
 		}
 	},
 	clearLocalizationsList: () => {
@@ -360,16 +375,15 @@ let _Localization = {
 					domain: curDomain
 				};
 
-				let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (oldKey ? 'name=' + oldKey : '') + (oldDomain ? '&domain=' + oldDomain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+				let { responseOk, result } = await _Localization.getLocalizationsForNameAndDomain(oldKey, oldDomain);
 
-				if (response.ok) {
+				if (responseOk) {
 
-					let data = await response.json();
 					LSWrapper.setItem(_Localization.localizationSelectedElementKey, newData);
 
 					let patchData = [];
 
-					for (let loc of data.result) {
+					for (let loc of result) {
 
 						if (oldKey === loc.name && oldDomain === loc.domain) {
 							patchData.push(Object.assign({ id: loc.id }, newData));
@@ -382,12 +396,14 @@ let _Localization = {
 					});
 
 					if (putResponse.ok) {
+
 						blinkGreen($(e.target));
 
 						_Localization.keyAndDomainPager.refresh();
-						_Localization.showLocalizationsForKeyAndDomainObject(newData);
+						await _Localization.showLocalizationsForKeyAndDomainObject(newData);
 
 					} else {
+
 						blinkRed($(e.target));
 					}
 				}
@@ -598,19 +614,21 @@ let _Localization = {
 	},
 	deleteCompleteLocalization: async (key, domain) => {
 
-		let response = await fetch(Structr.rootUrl + 'Localization/ui?' + (key ? 'name=' + key : '') + (domain ? '&domain=' + domain : '') + '&' + Structr.getRequestParameterName('sort') + '=locale');
+		let { responseOk, result } = await _Localization.getLocalizationsForNameAndDomain(key, domain);
 
-		if (response.ok) {
+		if (responseOk) {
 
-			let data = await response.json();
+			let promises = result.filter((loc) => {
 
-			let promises = data.result.filter((loc) => {
 				return (key === loc.name && domain === loc.domain);
+
 			}).map((loc) => {
+
 				return _Localization.deleteSingleLocalization(loc.id);
 			});
 
 			Promise.all(promises).then(() => {
+
 				_Localization.keyAndDomainPager.refresh();
 				_Localization.checkMainVisibility();
 			});
