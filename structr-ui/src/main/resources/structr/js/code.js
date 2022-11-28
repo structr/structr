@@ -203,10 +203,16 @@ let _Code = {
 
 			// ctrl-r / cmd-r
 			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
-				event.preventDefault();
-				event.stopPropagation();
-				//document.getElementById('action-button-save')?.click();
-				document.getElementById('action-button-run')?.click();
+
+				let runButton = document.getElementById('action-button-run');
+
+				if (runButton) {
+
+					event.preventDefault();
+					event.stopPropagation();
+
+					runButton.click();
+				}
 			}
 		}
 	},
@@ -1741,21 +1747,25 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button and global schema method flags
+			// run button
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
+			}
+
+			// run button and global schema method flags
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
 
 				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 
 			} else if (result.schemaNode) {
 
 				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 			}
+
+			Structr.activateCommentsInElement(buttons[0]);
 
 			_Code.updateDirtyFlag(result);
 
@@ -3016,7 +3026,9 @@ let _Code = {
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">Write Function</h4>
+								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+									Write Function
+								</h4>
 							</div>
 							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
 						</div>
@@ -3048,13 +3060,19 @@ let _Code = {
 					</div>
 					<div class="mb-2">
 						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
+							</label>
 						</div>
 						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by public users.">
+								<input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers
+							</label>
 						</div>
 						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by authenticated users.">
+								<input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers
+							</label>
 						</div>
 					</div>
 				</div>
