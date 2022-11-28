@@ -336,7 +336,11 @@ let StructrModel = {
 
 				if (key === 'content') {
 
-					attrElement.text(newValue);
+					if (newValue) {
+						attrElement.text(newValue);
+					} else {
+						attrElement.html('&nbsp;');
+					}
 				}
 
 				if (key === 'position') {
