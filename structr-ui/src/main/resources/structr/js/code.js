@@ -1586,7 +1586,7 @@ let _Code = {
 	displaySchemaMethodContent: (data, lastOpenTab) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
@@ -3062,16 +3062,6 @@ let _Code = {
 						<div class="checkbox hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
 								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
-							</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by public users.">
-								<input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers
-							</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by authenticated users.">
-								<input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers
 							</label>
 						</div>
 					</div>

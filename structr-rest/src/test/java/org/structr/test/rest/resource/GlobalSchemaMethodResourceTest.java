@@ -136,17 +136,16 @@ public class GlobalSchemaMethodResourceTest extends StructrRestTestBase {
 		}
 
 		RestAssured
-				.given()
+			.given()
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.expect()
+			.expect()
 				.statusCode(200)
 				.body("result[0][0].name", equalTo("a"))
 				.body("result[1][0].name", equalTo("b"))
 				.body("result[2][0].name", equalTo("c"))
-				.when()
+			.when()
 				.post(concat("/maintenance/globalSchemaMethods/myTestMethod03"));
 	}
-
 }
