@@ -24,6 +24,7 @@ import java.util.TreeMap;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
+import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 
@@ -40,6 +41,7 @@ public class OpenAPISchemaReference extends TreeMap<String, Object> {
 		Set<String> viewNames = configuration.getPropertyViewsForType(type);
 
 		final String simpleName = type.getSimpleName();
+
 		if (viewName == null || "public".equals(viewName) || !viewNames.contains(viewName)) {
 
 			put("$ref", base + simpleName);
