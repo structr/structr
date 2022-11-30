@@ -17,7 +17,8 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Widgets = {
-	defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/widgets',
+	defaultWidgetServerUrl: 'https://apps.structr.com/structr/rest/Widget',
+	//defaultWidgetServerUrl: 'https://widgets.structr.org/structr/rest/Widget',
 	widgetServerKey: 'structrWidgetServerKey_' + location.port,
 	applicationConfigurationDataNodeKey: 'remote_widget_server',
 
@@ -168,7 +169,19 @@ let _Widgets = {
 	getWidgetServerUrl: () => {
 
 		if (_Widgets.widgetServerSelector) {
-			return _Widgets.widgetServerSelector.value;
+
+			let url = _Widgets.widgetServerSelector.value;
+			if (url && url.toLowerCase().indexOf('/structr/rest/widget') === -1) {
+				if (url.indexOf('/') === url.length) {
+					// append REST path without /
+					return url + 'structr/rest/Widget';
+				} else {
+					// append REST path with /
+					return url + '/structr/rest/Widget';
+				}
+			}
+			// else return unmodified URL
+			return url;
 		}
 	},
 	getConfiguredWidgetServers: (callback) => {
@@ -271,7 +284,7 @@ let _Widgets = {
 
 			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
 
-			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parent) {
+			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parentNode) {
 
 				_Widgets.widgetServerSelector.replaceWith(newElement);
 
@@ -289,7 +302,7 @@ let _Widgets = {
 			}
 		});
 	},
-	refreshRemoteWidgets: function() {
+	refreshRemoteWidgets: () => {
 
 		let url = _Widgets.getWidgetServerUrl();
 
@@ -300,17 +313,17 @@ let _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			_Widgets.fetchRemoteWidgets(url + '?sort=treePath', url + '?_sort=treePath').then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?sort=treePath&sort=name', url + '?_sort=treePath&_sort=name').then(function(data) {
 
-				data.forEach(function(entity) {
-					var obj = StructrModel.create(entity, null, false);
+				for (let entity of data) {
+					let obj = StructrModel.create(entity, null, false);
 					obj.srcUrl = url + '/' + entity.id;
 					_Widgets.remoteWidgetData.push(obj);
-				});
+				}
 
 				_Widgets.repaintRemoteWidgets();
 
-			}).catch(function(e) {
+			}).catch((e) => {
 				_Widgets.remoteWidgetFilterEl.hide();
 				_Widgets.remoteWidgetsEl.empty();
 				_Widgets.remoteWidgetsEl.html('Could not fetch widget data from server (' + url + '). Make sure that the resource loads correctly and check CORS settings.<br>Also check your adblocker settings for possible conflicts.');
@@ -347,58 +360,33 @@ let _Widgets = {
 	},
 	getTreeParent: (element, treePath, suffix) => {
 
-		let parent = element;
+		let parent     = element;
+		let title      = treePath ? treePath.split('/').pop() : 'Uncategorized';
+		let lowerTitle = title.replace(/\W/g, '').toLowerCase();
+		let idString   = lowerTitle + suffix;
+		let newParent  = $('#' + idString + '_folder');
 
-		if (treePath) {
-
-			let parts = treePath.split('/');
-			let num = parts.length;
-
-			for (let i = 0; i < num; i++) {
-
-				var part = parts[i];
-				if (part) {
-
-					let lowerPart = part.toLowerCase().replace(/\W/g, '');
-					let idString = lowerPart + suffix;
-					let newParent = $('#' + idString + '_folder');
-
-					if (newParent.length === 0) {
-						_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, part);
-						newParent = $('#' + idString + '_folder');
-					}
-
-					parent = newParent;
-				}
-			}
-
-		} else {
-
-			let idString = 'other' + suffix;
-			let newParent = $('#' + idString + '_folder');
-
-			if (newParent.length === 0) {
-				_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, 'Uncategorized');
-				newParent = $('#' + idString + '_folder');
-			}
-
-			parent = newParent;
+		if (newParent.length === 0) {
+			_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, title);
+			newParent = $('#' + idString + '_folder');
 		}
+
+		parent = newParent;
 
 		return parent;
 	},
 	appendFolderElement: (parent, id, icon, name) => {
 
-		let expanded = Structr.isExpanded(id);
-
 		parent.append(`
-			<div id="${id}_folder" class="widget node">
-				<div class="node-container flex items-center">
-					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
-					<b title="${escapeForHtmlAttributes(name)}" class="name flex-grow">${name}</b>
-					<div id="${id}" class="node${expanded ? ' hidden' : ''}"></div>
+			<div class="relative mt-1 mb-1">
+				<div class="absolute inset-0 flex items-center" aria-hidden="true">
+					<div class="w-full" style="border-top: 1px solid #ddd;"></div>
+				</div>
+				<div class="relative flex justify-center">
+					<span class="bg-white px-3 text-lg font-medium text-gray-500">${name}</span>
 				</div>
 			</div>
+			<div id="${id}_folder" class="widget-folder"></div>
 		`);
 
 		let div = $('#' + id + '_folder');
@@ -413,13 +401,16 @@ let _Widgets = {
 
 		if (!div) {
 
+			let style = 'width: 24px;';
+
+			if (!widget.svgIconPath) {
+				style = 'width: 24px; opacity: 0.5;';
+			}
+
 			parent.append(`
-				<div id="id_${widget.id}" class="node widget">
-					<div class="node-container flex items-center">
-						<i class="typeIcon typeIcon-nochildren ${_Icons.getFullSpriteClass(icon)}"></i>
-						<b title="${escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow">${widget.name}</b>
-						<div class="icons-container flex items-center"></div>
-					</div>
+				<div id="id_${widget.id}" class="widget p-1 m-2 hover:icon-active">
+					<img style="${style}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}"/>
+					<span title="${escapeForHtmlAttributes(widget.name)}" class="flex-grow mt-4">${widget.name}</span>
 				</div>
 			`);
 			div = Structr.node(widget.id);
@@ -832,7 +823,7 @@ let _Widgets = {
 
 		if (!url.startsWith(document.location.origin)) {
 
-			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&sort=name', url + '?isPageTemplate=true&_sort=name');
+			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&_sort=name', url + '?isPageTemplate=true&sort=name');
 			return widgets;
 		}
 
@@ -1060,3 +1051,4 @@ let _Widgets = {
 		`,
 	}
 };
+

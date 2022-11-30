@@ -360,8 +360,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * @param sourceTypeName
 	 * @param relType
 	 * @param targetTypeName
-	 * @param rel
-	 * @param candidate
 	 * @return class
 	 */
 	private Class findNearestMatchingRelationClass(final String sourceTypeName, final String relType, final String targetTypeName) {

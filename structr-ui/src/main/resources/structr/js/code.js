@@ -105,6 +105,14 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule();
 
+			document.addEventListener('click', e => {
+				const el = e.target;
+				const methodNameInputField = document.getElementById('method-name-input');
+				if (methodNameInputField && el != methodNameInputField && !methodNameInputField.classList.contains('hidden')) {
+					_Code.resetMethodNameInput();
+				}
+			});
+
 			let codeSearchInput = document.querySelector('#tree-search-input');
 			_Code.inSearchBox = false;
 			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
@@ -191,6 +199,20 @@ let _Code = {
 			if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 				event.preventDefault();
 				_Code.runCurrentEntitySaveAction();
+			}
+
+			// ctrl-r / cmd-r
+			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
+
+				let runButton = document.getElementById('action-button-run');
+
+				if (runButton) {
+
+					event.preventDefault();
+					event.stopPropagation();
+
+					runButton.click();
+				}
 			}
 		}
 	},
@@ -557,9 +579,6 @@ let _Code = {
 	},
 	treeInitFunction: (obj, callback) => {
 
-		// make sure the internal ID of the tree is always the same
-		$(_Code.codeTree).jstree(true)._id = 'code';
-
 		let id   = obj?.data?.key || '#';
 		let path = obj?.data?.path || '';
 
@@ -574,92 +593,99 @@ let _Code = {
 
 				let defaultEntries = [
 					{
-						text: 'Global Methods',
+						id:       path + '/globals',
+						text:     'Global Methods',
 						children: true,
-						icon: _Icons.jstree_fake_icon,
+						icon:     _Icons.jstree_fake_icon,
+						li_attr:  { 'data-id': 'globals' },
 						data: {
 							svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
-							key: 'SchemaMethod',
-							query: { schemaNode: null },
+							key:     'SchemaMethod',
+							query:   { schemaNode: null },
 							content: 'globals',
-							path: path + '/globals'
+							path:    path + '/globals'
 						},
-						li_attr: { 'data-id': 'globals' }
 					},
 					{
-						text: 'OpenAPI - Swagger UI',
+						id:       path + '/openapi',
+						text:     'OpenAPI - Swagger UI',
 						children: (_Code.availableTags.length > 0),
-						icon: _Icons.jstree_fake_icon,
+						icon:     _Icons.jstree_fake_icon,
+						li_attr:  { 'data-id': 'openapi' },
 						data: {
 							svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
-							key: 'openapi',
+							key:     'openapi',
 							content: 'openapi',
-							path: path + '/openapi'
+							path:    path + '/openapi'
 						},
-						li_attr: { 'data-id': 'openapi' }
 					},
 					{
-						text: 'Types',
+						id:      '/root',
+						text:    'Types',
+						icon:    _Icons.jstree_fake_icon,
+						li_attr: { 'data-id': 'root' },
+						data: {
+							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+							key:     'root',
+							path:    '/root'
+						},
 						children: [
 							{
-								text: 'Custom',
+								id:       '/root/custom',
+								text:     'Custom',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'custom' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: false },
+									key:     'SchemaNode',
+									query:   { isBuiltinType: false },
+									content: 'custom',
+									path:    '/root/custom',
 									/*
 									key: 'SchemaPackage',
 									query: { parentPackage: null },
 									*/
-									content: 'custom',
-									path: '/root/custom'
 								},
-								li_attr: { 'data-id': 'custom' }
 							},
 							{
-								text: 'Built-In',
+								id:       '/root/builtin',
+								text:     'Built-In',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'builtin' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: true },
+									key:     'SchemaNode',
+									query:   { isBuiltinType: true },
 									content: 'builtin',
-									path: '/root/builtin'
+									path:    '/root/builtin'
 								},
-								li_attr: { 'data-id': 'builtin' }
 							},
 							{
-								text: 'Working Sets',
+								id:       '/root/workingsets',
+								text:     'Working Sets',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'workingsets' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
 									key: 'workingsets',
 									content: 'workingsets',
 									path: '/root/workingsets'
 								},
-								li_attr: { 'data-id': 'workingsets' }
 							}
 						],
-						icon: _Icons.jstree_fake_icon,
-						data: {
-							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
-							key: 'root',
-							path: '/root'
-						},
-						li_attr: { 'data-id': 'root' }
 					}
 				];
 
 				if (_Code.searchIsActive()) {
 
 					defaultEntries.unshift({
-						text: 'Search Results',
+						id:       path + '/searchresults',
+						text:     'Search Results',
 						children: true,
-						icon: 'fa fa-search',
+						icon:     'fa fa-search',
 						data: {
 							key: 'searchresults',
 							path: path + '/searchresults'
@@ -709,16 +735,17 @@ let _Code = {
 					case 'OpenAPITag': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
 								key:     entity.type,
 								id:      entity.id,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -727,9 +754,11 @@ let _Code = {
 					case 'SchemaGroup': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: entity.children.length > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:     'workingset',
@@ -737,7 +766,6 @@ let _Code = {
 								content: 'workingset',
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -746,9 +774,11 @@ let _Code = {
 					case 'SchemaPackage': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: (entity.childPackages.length + entity.classesInPackage.length) > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon:   _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:       'loadmultiple', /* special key that selects a different query function for contents */
@@ -760,7 +790,6 @@ let _Code = {
 								content: entity.type,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -770,9 +799,11 @@ let _Code = {
 
 						let children = [
 							{
+								id:       path + '/' + entity.id + '/properties',
 								text:     'Local Properties',
 								children: (entity.schemaProperties.length > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'properties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'SchemaProperty',
@@ -782,12 +813,13 @@ let _Code = {
 									content: 'properties',
 									path:    path + '/' + entity.id + '/properties'
 								},
-								li_attr: { 'data-id': 'properties' }
 							},
 							{
+								id:       path + '/' + entity.id + '/remoteproperties',
 								text:     'Related Properties',
 								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'remoteproperties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'remoteproperties',
@@ -796,12 +828,13 @@ let _Code = {
 									content: 'remoteproperties',
 									path:    path + '/' + entity.id + '/remoteproperties'
 								},
-								li_attr: { 'data-id': 'remoteproperties' }
 							},
 							{
+								id:       path + '/' + entity.id + '/views',
 								text:     'Views',
 								children: (entity.schemaViews.length > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'views' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
 									key:     'SchemaView',
@@ -811,12 +844,13 @@ let _Code = {
 									content: 'views',
 									path:    path + '/' + entity.id + '/views'
 								},
-								li_attr: { 'data-id': 'views' }
 							},
 							{
+								id:       path + '/' + entity.id + '/methods',
 								text:     'Methods',
 								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'methods' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
 									key:     'SchemaMethod',
@@ -826,12 +860,13 @@ let _Code = {
 									content: 'methods',
 									path:    path + '/' + entity.id + '/methods'
 								},
-								li_attr: { 'data-id': 'methods' }
 							},
 							{
+								id:       path + '/' + entity.id + '/inheritedproperties',
 								text:     'Inherited Properties',
 								children: true,
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'inheritedproperties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'inheritedproperties',
@@ -839,23 +874,22 @@ let _Code = {
 									type:    entity.name,
 									content: 'inheritedproperties',
 									path:    path + '/' + entity.id + '/inheritedproperties'
-
 								},
-								li_attr: { 'data-id': 'inheritedproperties' }
 							}
 						];
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: children,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
 								key: entity.type,
 								id: entity.id,
 								path: path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -864,20 +898,19 @@ let _Code = {
 					case 'SchemaRelationshipNode': {
 
 						let name = entity.name || '[unnamed]';
-						let listItemAttributes = {};
 
 						list.push({
+							id:       path + '/' + entity.name,
 							text:     name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
-							li_attr:  listItemAttributes,
+							li_attr: { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
-								key: entity.type,
-								id: entity.id,
-								path: path + '/' + entity.id
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -894,18 +927,16 @@ let _Code = {
 						if (entity.inherited) {
 
 							list.push({
-								text:  name + (' (' + (entity.propertyType || '') + ')'),
+								id:       path + '/' + entity.id,
+								text:     name + (' (' + (entity.propertyType || '') + ')'),
 								children: false,
-								icon: _Icons.jstree_fake_icon,
-								li_attr: {
-									style: 'color: #aaa;',
-									'data-id': entity.id
-								},
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								}
 							});
 
@@ -922,16 +953,17 @@ let _Code = {
 							}
 
 							list.push({
-								text:  name,
+								id:       path + '/' + entity.id,
+								text:     name,
 								children: hasVisibleChildren,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								},
-								li_attr: { 'data-id': entity.id }
 							});
 						}
 
@@ -1008,7 +1040,15 @@ let _Code = {
 
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
-				_Code.displayFunction(Object.values(searchResults), data, false, true);
+
+				let results = Object.values(searchResults);
+
+				if (!_Schema.showJavaMethods) {
+					// filter out schema methods of code type java
+					results = results.filter(sr => sr.type !== 'SchemaMethod' || sr.codeType != 'java');
+				}
+
+				_Code.displayFunction(results, data, false, true);
 			}
 		};
 
@@ -1109,11 +1149,11 @@ let _Code = {
 				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 				return {
-					id: rel.id,
-					type: rel.type,
-					name: attrName,
+					id:           rel.id,
+					type:         rel.type,
+					name:         attrName,
 					propertyType: '',
-					inherited: false
+					inherited:    false
 				};
 			};
 
@@ -1546,10 +1586,25 @@ let _Code = {
 			});
 		});
 	},
+	resetMethodNameInput: (value) => {
+		const methodNameInputField = document.getElementById('method-name-input');
+		const methodNameSpan       = document.getElementById('method-name-output');
+
+		methodNameInputField.classList.add('hidden');
+		methodNameSpan.classList.remove('hidden');
+		if (value) {
+			methodNameSpan.innerText = methodNameInputField.value + '()';
+		} else {
+			methodNameInputField.value = methodNameSpan.innerText.replace('()', '');
+		}
+	},
+	updateMethodNameDisplay: () => {
+		_Code.resetMethodNameInput(document.getElementById('method-name-input')?.value);
+	},
 	displaySchemaMethodContent: (data, lastOpenTab) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
@@ -1557,6 +1612,15 @@ let _Code = {
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
+
+			document.getElementById('method-name-input').addEventListener('keyup', (e) => {
+				if (e.key === 'Escape') {
+					_Code.resetMethodNameInput();
+				} else if (e.key === 'Enter') {
+					_Code.updateMethodNameDisplay();
+				}
+				_Code.updateDirtyFlag(result);
+			});
 
 			// Source Editor
 			let sourceMonacoConfig = {
@@ -1701,21 +1765,25 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button and global schema method flags
+			// run button
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
+			}
+
+			// run button and global schema method flags
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
 
 				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 
 			} else if (result.schemaNode) {
 
 				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 			}
+
+			Structr.activateCommentsInElement(buttons[0]);
 
 			_Code.updateDirtyFlag(result);
 
@@ -1740,6 +1808,15 @@ let _Code = {
 				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
+
+				document.getElementById('method-name-output').addEventListener('click', (e) => {
+					e.stopPropagation();
+					const el = e.target;
+					el.classList.add('hidden');
+					const methodNameInputField = document.getElementById('method-name-input');
+					methodNameInputField?.classList.remove('hidden');
+					methodNameInputField?.focus();
+				});
 			};
 
 			$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
@@ -1980,7 +2057,9 @@ let _Code = {
 				editCypherProperty: (property) => {
 					_Code.findAndOpenNode(data.id + '/' + property.id, true);
 				}
-			}, _Code.refreshTree);
+			}, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2019,7 +2098,9 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.views({ data: data }));
 
 		Command.get(data.id, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, _Code.refreshTree);
+			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2612,6 +2693,7 @@ let _Code = {
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
 	doSearch: () => {
+
 		let tree      = $('#code-tree').jstree(true);
 		let input     = $('#tree-search-input');
 		let text      = input.val();
@@ -2630,14 +2712,17 @@ let _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: () => {
+
 		let text = $('#tree-search-input').val();
 		return (text && text.length >= _Code.searchThreshold);
 	},
 	cancelSearch: () => {
+
 		$('#tree-search-input').val('');
 		_Code.doSearch();
 	},
 	activateLastClicked: () => {
+
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
 	deleteSchemaEntity: (entity, title, text, data) => {
@@ -2686,6 +2771,7 @@ let _Code = {
 				<span>Run</span>
 			</button>
 		`);
+		window.setTimeout(() => { $('#run-method', dialogBtn).focus(); }, 50);
 		dialogBtn.append('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
 		let paramsOuterBox = Structr.createSingleDOMElementFromHTML(`
@@ -2794,7 +2880,7 @@ let _Code = {
 
 		return errorPropertyNameForLinting;
 	},
-	debounce(func, wait, immediate) {
+	debounce: (func, wait, immediate) => {
 		var timeout;
 
 		return function() {
@@ -2809,11 +2895,10 @@ let _Code = {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	refreshNode(id) {
-		// We need a separate method because we address nodes
-		// differently, (data-id attribute).
-		if (_Code.codeTree && _Code.codeTree.refresh_node) {
-			_Code.codeTree.refresh_node(document.querySelector(`li[data-id="${id}"]`));
+	refreshNode: (id) => {
+		if (_Code.codeTree) {
+			let escapedId = id.replaceAll('/', '\\/');
+			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
 	},
 
@@ -2966,7 +3051,9 @@ let _Code = {
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">Write Function</h4>
+								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+									Write Function
+								</h4>
 							</div>
 							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
 						</div>
@@ -2989,25 +3076,18 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</h2>
+			<h2><span id="method-name-output">${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</span>
+			<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}"></h2>
 			<div id="method-buttons">
-				<div id="method-options">
-					<div class="mb-4">
+				<div id="method-options" class="flex flex-wrap gap-x-4">
+					<div class="mb-2">
 						<div id="method-actions"></div>
 					</div>
-					<div class="mb-4 flex flex-wrap gap-x-8">
-						<div class="input">
-							<label>Name</label>
-							<input type="text" id="method-name-input" data-property="name" size="20" value="${config.method.name}">
-						</div>
+					<div class="mb-2">
 						<div class="checkbox hidden entity-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block mt-6" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
+							</label>
 						</div>
 					</div>
 				</div>
@@ -3028,6 +3108,7 @@ let _Code = {
 
 				</div>
 				<div class="editor-info"></div>
+				<div class="logging-output"></div>
 			</div>
 		`,
 		methods: config => `
@@ -3035,33 +3116,32 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		openAPIBaseConfig: config => `
-			<div id="openapi-options" class="flex flex-col flex-grow mt-4">
-
-				<div class="flex flex-wrap gap-x-8">
-
-					<div>
-						<label class="font-semibold">Enabled</label>
-						<label class="checkbox block mt-3">
-							<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
-						</label>
+			<div id="openapi-options" class="flex flex-col flex-grow">
+			
+				<div class="flex flex-wrap gap-8">
+			
+					<div class="min-w-48">
+						<label class="block mb-5">Enabled</label>
+						<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
 					</div>
-
-					<div style="width: 200px">
-						<label class="font-semibold" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
+			
+					<div class="min-w-48">
+						<label class="block mb-2" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 						<select id="tags-select" data-property="tags" multiple="multiple">
 							${config.element.tags ? config.element.tags.map(tag => `<option selected>${tag}</option>`).join() : ''}
 							${config.availableTags.filter(tag => (!config.element.tags || !config.element.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join()}
 						</select>
 					</div>
-					<div>
-						<label class="block font-semibold">Summary</label>
-						<input class="mt-1" data-property="summary" value="${config.element.summary || ''}" type="text">
+					
+					<div class="min-w-48">
+						<label class="block mb-2">Summary</label>
+						<input data-property="summary" value="${config.element.summary || ''}" type="text">
 					</div>
 
 					${(config.element.type === 'SchemaNode') ? '' : `
-						<div>
-							<label class="font-semibold">Description</label>
-							<input class="mt-1" data-property="description" value="${config.element.description || ''}" type="text">
+						<div class="min-w-48">
+							<label class="block mb-2">Description</label>
+							<input data-property="description" value="${config.element.description || ''}" type="text">
 						</div>
 					`}
 				</div>
@@ -3148,11 +3228,10 @@ let _Code = {
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-
-				<div class="mb-4 flex flex-wrap gap-x-8">
-					<div><label class="font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div><label class="font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div><label class="font-semibold">Type hint</label>
+				<div class="mb-4">
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3165,21 +3244,21 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="${config.dbNameClass}"><label class="font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
-					<div><label class="font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div><label class="font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="mt-2 mb-4 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
 				</div>
 
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="flex flex-wrap gap-x-8 mt-2">
-						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					<div class="mt-2">
+						<div class="mt-4"><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div class="mt-4"><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
 					</div>
 				</div>
 			</div>

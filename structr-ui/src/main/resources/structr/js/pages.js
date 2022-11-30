@@ -829,34 +829,38 @@ let _Pages = {
 
 				dialog.empty();
 				dialogMsg.empty();
-				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"><div class="app-tile"><h4>Simple Page</h4><br><p>Create simple page</p><button class="action" id="create-simple-page">Create</button></div></div>');
+				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
 				dialog.append(dialogDom);
-
-				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
-				createSimplePageButton.addEventListener('click', () => {
-					Command.createSimplePage();
-					blinkGreen(createSimplePageButton);
-				});
 
 				let container = $('#template-tiles');
 
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let dom = Structr.createSingleDOMElementFromHTML(`<div class="app-tile"><h4>${widget.name}</h4><br><p>${(widget.description || '')}</p><button class="action" id="${id}">Create</button></div>`);
+					let tile = Structr.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
+					container.append(tile);
 
-					let createPageButton = dom.querySelector('#' + id);
-					createPageButton.addEventListener('click', () => {
+					//let createPageButton = dom.querySelector('#' + id);
+					tile.addEventListener('click', () => {
 						Command.create({ type: 'Page' }, (page) => {
 							Structr.removeExpandedNode(page.id);
 							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
 
-							blinkGreen(createPageButton);
+							blinkGreen(tile);
 						});
 					});
 
-					container.append(dom);
 				}
+
+				// default page
+				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/empty.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimum set of HTML elements</p></div>');
+				container.append(defaultTile);
+
+				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
+				createSimplePageButton.addEventListener('click', () => {
+					Command.createSimplePage();
+					blinkGreen(createSimplePageButton);
+				});
 			}
 		});
 
@@ -1991,7 +1995,7 @@ let _Pages = {
 			return previewUrl;
 		},
 		getUrlForPage: (entity) => {
-			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
+			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '?' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + requestParameters;
 		},
 		getUrlForPreview: (entity) => {
@@ -3012,8 +3016,8 @@ let _Pages = {
 						${_Icons.getSvgIcon('info-icon', 24, 24)}
 					</div>
 					<div class="inline-info-text">
-						Here you can define actions like creating, updating or deleting data objects in the system.<br><br>
-						Actions can be triggered by specific events like click on an element, change a value or select option, or if an element looses the focus.
+						Here you can define actions to modify data objects in the backend like create, update or delete.<br><br>
+						Actions can be triggered by specific events like clicking on an element, changing a value or select option, or when it's loosing the focus.
 					</div>
 				</div>
 

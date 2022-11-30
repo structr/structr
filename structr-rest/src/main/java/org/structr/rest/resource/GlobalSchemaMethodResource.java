@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.Actions;
@@ -46,7 +47,8 @@ import java.util.Map;
 public class GlobalSchemaMethodResource extends Resource {
 
 	private static final Logger logger = LoggerFactory.getLogger(GlobalSchemaMethodResource.class);
-	private String methodName = null;
+	private String methodName          = null;
+	private SchemaMethod method        = null;
 
 	@Override
 	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) {
@@ -61,6 +63,8 @@ public class GlobalSchemaMethodResource extends Resource {
 			tx.success();
 
 			if (!methods.isEmpty()) {
+
+				method = methods.get(0);
 
 				this.methodName = part;
 
@@ -86,7 +90,29 @@ public class GlobalSchemaMethodResource extends Resource {
 
 	@Override
 	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-		return SchemaMethodResource.wrapInResult(Actions.callWithSecurityContext(methodName, securityContext, propertySet));
+
+		//return SchemaMethodResource.wrapInResult(Actions.callWithSecurityContext(methodName, securityContext, propertySet));
+
+		final App app           = StructrApp.getInstance(securityContext);
+		RestMethodResult result = null;
+
+		if (method != null) {
+
+			try (final Tx tx = app.tx()) {
+
+				final String source = method.getProperty(SchemaMethod.source);
+
+				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodName, method.getUuid());
+
+				tx.success();
+			}
+		}
+
+		if (result == null) {
+			throw new IllegalPathException("Type and method name do not match the given path.");
+		}
+
+		return result;
 	}
 
 	@Override

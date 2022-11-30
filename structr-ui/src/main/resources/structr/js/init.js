@@ -1538,19 +1538,27 @@ let Structr = {
 	removeExpandedNode: (id) => {
 
 		if (id) {
-			delete Structr.getExpanded()[id];
+			Structr.getExpanded()[id] = false;
 			LSWrapper.setItem(Structr.expandedIdsKey, JSON.stringify(Structr.expanded));
 		}
 	},
-	isExpanded: (id) => {
+	isExpanded: (id, defaultValue = false) => {
 
 		if (id) {
-			let isExpanded = (Structr.getExpanded()[id] === true) ? true : false;
 
-			return isExpanded;
+			let storedValue = Structr.getExpanded()[id];
+
+			if (storedValue === undefined) {
+
+				return defaultValue;
+
+			} else {
+
+				return storedValue;
+			}
 		}
 
-		return false;
+		return defaultValue;
 	},
 	getExpanded: () => {
 
@@ -2183,7 +2191,7 @@ let Structr = {
 								}
 
 								if (title != '') {
-									builder.warning(data.message + '<br><br>Soure: ' + title);
+									builder.warning(data.message + '<br><br>Source: ' + title);
 								}
 
 								builder.specialInteractionButton('Go to element in page tree', function (btn) {
@@ -2231,26 +2239,24 @@ let Structr = {
 	},
 	activateCommentsInElement: (elem, defaults) => {
 
-		let elsWithComment = elem.querySelectorAll('[data-comment]') || [];
+		let elementsWithComment = elem.querySelectorAll('[data-comment]') || [];
 
-		for (let el of elsWithComment) {
+		for (let el of elementsWithComment) {
 
-			let $el = $(el);
+			if (!el.dataset['commentApplied']) {
 
-			if (!$el.data('commentApplied')) {
-
-				$el.data('commentApplied', true);
+				el.dataset.commentApplied = 'true';
 
 				let config = {
-					text: $el.data("comment"),
-					element: $el,
+					text: el.dataset['comment'],
+					element: el,
 					css: {
-						"margin": "0 4px",
-						"vertical-align": "top"
+						'margin': '0 4px',
+						'vertical-align': 'top'
 					}
 				};
 
-				let elCommentConfig = $el.data('commentConfig') || {};
+				let elCommentConfig = el.dataset['commentConfig'] || {};
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
@@ -2353,7 +2359,7 @@ let Structr = {
 			css: Structr.defaultBlockUICss
 		});
 	},
-	confirmationPromiseNonBlockUI: (text) => {
+	confirmationPromiseNonBlockUI: (text, defaultOption = true) => {
 
 		return new Promise((resolve, reject) => {
 
@@ -2371,27 +2377,38 @@ let Structr = {
 			let yesButton = el.querySelector('.yesButton');
 			let noButton  = el.querySelector('.noButton');
 
-			yesButton.addEventListener('click', (e) => {
+			let answerFunction = (e, response) => {
 				e.stopPropagation();
 
 				pageBlockerDiv.remove();
 				messageDiv.remove();
 
-				resolve(true);
+				resolve(response);
+			};
+
+			yesButton.addEventListener('click', (e) => {
+				answerFunction(e, true);
 			});
 
 			noButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				pageBlockerDiv.remove();
-				messageDiv.remove();
-
-				resolve(false);
+				answerFunction(e, false);
 			});
+
+			messageDiv.addEventListener('keyup', (e) => {
+				if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
+					answerFunction(e, false);
+				}
+			})
 
 			let body = document.querySelector('body');
 			body.appendChild(pageBlockerDiv);
 			body.appendChild(messageDiv);
+
+			if (defaultOption === true) {
+				yesButton.focus();
+			} else {
+				noButton.focus();
+			}
 		});
 	},
 	getDocumentationURLForTopic: (topic) => {
@@ -2552,11 +2569,12 @@ let Structr = {
 	}
 };
 
-Structr.rootUrl     = Structr.getPrefixedRootUrl('/structr/rest/');
-Structr.csvRootUrl  = Structr.getPrefixedRootUrl('/structr/csv/');
-Structr.viewRootUrl = Structr.getPrefixedRootUrl('/');
-Structr.wsRoot      = Structr.getPrefixedRootUrl('/structr/ws');
-Structr.deployRoot  = Structr.getPrefixedRootUrl('/structr/deploy');
+Structr.rootUrl        = Structr.getPrefixedRootUrl('/structr/rest/');
+Structr.csvRootUrl     = Structr.getPrefixedRootUrl('/structr/csv/');
+Structr.graphQLRootUrl = Structr.getPrefixedRootUrl('/structr/graphql/');
+Structr.viewRootUrl    = Structr.getPrefixedRootUrl('/');
+Structr.wsRoot         = Structr.getPrefixedRootUrl('/structr/ws');
+Structr.deployRoot     = Structr.getPrefixedRootUrl('/structr/deploy');
 
 let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {

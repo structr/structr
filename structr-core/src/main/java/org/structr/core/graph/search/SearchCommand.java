@@ -860,11 +860,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 				className = declaringClass.getSimpleName() + ".";
 			}
 
-			// disable warning for keys we know are not indexed and cannot
+			// disable logging for keys we know are not indexed and cannot
 			// easily be indexed because of the character limit of 4000..
 			if (!indexedWarningDisabled.contains(key)) {
 
-				logger.warn("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
+				logger.debug("Non-indexed property key {}{} is used in query. This can lead to performance problems in large databases.", className, key.jsonName());
 			}
 		}
 	}

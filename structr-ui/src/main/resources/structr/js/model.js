@@ -336,7 +336,11 @@ let StructrModel = {
 
 				if (key === 'content') {
 
-					attrElement.text(newValue);
+					if (newValue) {
+						attrElement.text(newValue);
+					} else {
+						attrElement.html('&nbsp;');
+					}
 				}
 
 				if (key === 'position') {
@@ -927,6 +931,8 @@ StructrElement.prototype.isActiveNode = function() {
 		|| this["data-structr-append-id"] === true
 		|| this["data-structr-confirm"] === true
 		|| this["data-structr-reload"] === true
+		//Collection attributes
+		|| (this["triggeredActions"] ?? []).length
 		;
 };
 

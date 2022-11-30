@@ -293,8 +293,8 @@ input.dataKey_ {
 }
 
 #localizations .results {
-	overflow: auto;
-	margin-top: 0.5rem;
+	overflow: hidden;
+	margin-top: .5rem;
 }
 
 #localizations .inner input.locale {

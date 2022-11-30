@@ -150,8 +150,9 @@ let Command = {
 	/**
 	 * Send a single GET_TYPE_INFO command to the server.
 	 *
-	 * The server will return a single schema node with all relevant properties
-	 * of the node with the given type to the sending client (no broadcast).
+	 * The server will return a collection containing a single schema node
+	 * with all relevant properties of the node with the given type to the
+	 * sending client (no broadcast).
 	 */
 	getTypeInfo: function(type, callback) {
 		let obj = {

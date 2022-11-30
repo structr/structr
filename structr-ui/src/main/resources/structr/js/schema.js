@@ -450,7 +450,7 @@ let _Schema = {
 
 					_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
 
-					if (allowNavigation) {
+					if (allowNavigation === true) {
 
 						Structr.dialogCancelBaseAction();
 
@@ -2001,7 +2001,7 @@ let _Schema = {
 			propertiesTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
 			propertiesTable[0].querySelector('.save-all').addEventListener('click', () => {
-				_Schema.properties.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
+				_Schema.properties.bulkSave(el, tbody, entity, overrides, optionalAfterSaveCallback);
 			});
 
 			el[0].querySelector('button.add-button').addEventListener('click', () => {
@@ -2095,7 +2095,7 @@ let _Schema = {
 
 			return { name, data, allow, counts };
 		},
-		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
+		bulkSave: (el, tbody, entity, overrides, optionalAfterSaveCallback) => {
 
 			let { allow, counts, data } = _Schema.properties.getDataFromTable(el, tbody, entity);
 
@@ -2113,7 +2113,7 @@ let _Schema = {
 						Command.get(entity.id, null, (reloadedEntity) => {
 
 							el.empty();
-							_Schema.properties.appendLocalProperties(el, reloadedEntity);
+							_Schema.properties.appendLocalProperties(el, reloadedEntity, overrides, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
 
 							if (optionalAfterSaveCallback) {
@@ -2952,7 +2952,7 @@ let _Schema = {
 
 						Command.get(entity.id, null, (reloadedEntity) => {
 							el.empty();
-							_Schema.views.appendViews(el, reloadedEntity);
+							_Schema.views.appendViews(el, reloadedEntity, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
 
 							if (optionalAfterSaveCallback) {
