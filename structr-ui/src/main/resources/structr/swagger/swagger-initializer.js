@@ -36,7 +36,8 @@ window.onload = function() {
       }
     ],
     layout: "BaseLayout",     // use layout: "StandaloneLayout" to add the top bar
-    queryConfigEnabled: true
+    queryConfigEnabled: true,
+    defaultModelsExpandDepth: 3
   });
 
   //</editor-fold>
