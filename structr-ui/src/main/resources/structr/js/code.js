@@ -579,9 +579,6 @@ let _Code = {
 	},
 	treeInitFunction: (obj, callback) => {
 
-		// make sure the internal ID of the tree is always the same
-		$(_Code.codeTree).jstree(true)._id = 'code';
-
 		let id   = obj?.data?.key || '#';
 		let path = obj?.data?.path || '';
 
@@ -596,92 +593,99 @@ let _Code = {
 
 				let defaultEntries = [
 					{
-						text: 'Global Methods',
+						id:       path + '/globals',
+						text:     'Global Methods',
 						children: true,
-						icon: _Icons.jstree_fake_icon,
+						icon:     _Icons.jstree_fake_icon,
+						li_attr:  { 'data-id': 'globals' },
 						data: {
 							svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
-							key: 'SchemaMethod',
-							query: { schemaNode: null },
+							key:     'SchemaMethod',
+							query:   { schemaNode: null },
 							content: 'globals',
-							path: path + '/globals'
+							path:    path + '/globals'
 						},
-						li_attr: { 'data-id': 'globals' }
 					},
 					{
-						text: 'OpenAPI - Swagger UI',
+						id:       path + '/openapi',
+						text:     'OpenAPI - Swagger UI',
 						children: (_Code.availableTags.length > 0),
-						icon: _Icons.jstree_fake_icon,
+						icon:     _Icons.jstree_fake_icon,
+						li_attr:  { 'data-id': 'openapi' },
 						data: {
 							svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
-							key: 'openapi',
+							key:     'openapi',
 							content: 'openapi',
-							path: path + '/openapi'
+							path:    path + '/openapi'
 						},
-						li_attr: { 'data-id': 'openapi' }
 					},
 					{
-						text: 'Types',
+						id:      '/root',
+						text:    'Types',
+						icon:    _Icons.jstree_fake_icon,
+						li_attr: { 'data-id': 'root' },
+						data: {
+							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+							key:     'root',
+							path:    '/root'
+						},
 						children: [
 							{
-								text: 'Custom',
+								id:       '/root/custom',
+								text:     'Custom',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'custom' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: false },
+									key:     'SchemaNode',
+									query:   { isBuiltinType: false },
+									content: 'custom',
+									path:    '/root/custom',
 									/*
 									key: 'SchemaPackage',
 									query: { parentPackage: null },
 									*/
-									content: 'custom',
-									path: '/root/custom'
 								},
-								li_attr: { 'data-id': 'custom' }
 							},
 							{
-								text: 'Built-In',
+								id:       '/root/builtin',
+								text:     'Built-In',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'builtin' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: true },
+									key:     'SchemaNode',
+									query:   { isBuiltinType: true },
 									content: 'builtin',
-									path: '/root/builtin'
+									path:    '/root/builtin'
 								},
-								li_attr: { 'data-id': 'builtin' }
 							},
 							{
-								text: 'Working Sets',
+								id:       '/root/workingsets',
+								text:     'Working Sets',
 								children: true,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'workingsets' },
 								data: {
 									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
 									key: 'workingsets',
 									content: 'workingsets',
 									path: '/root/workingsets'
 								},
-								li_attr: { 'data-id': 'workingsets' }
 							}
 						],
-						icon: _Icons.jstree_fake_icon,
-						data: {
-							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
-							key: 'root',
-							path: '/root'
-						},
-						li_attr: { 'data-id': 'root' }
 					}
 				];
 
 				if (_Code.searchIsActive()) {
 
 					defaultEntries.unshift({
-						text: 'Search Results',
+						id:       path + '/searchresults',
+						text:     'Search Results',
 						children: true,
-						icon: 'fa fa-search',
+						icon:     'fa fa-search',
 						data: {
 							key: 'searchresults',
 							path: path + '/searchresults'
@@ -731,16 +735,17 @@ let _Code = {
 					case 'OpenAPITag': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
 								key:     entity.type,
 								id:      entity.id,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -749,9 +754,11 @@ let _Code = {
 					case 'SchemaGroup': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: entity.children.length > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:     'workingset',
@@ -759,7 +766,6 @@ let _Code = {
 								content: 'workingset',
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -768,9 +774,11 @@ let _Code = {
 					case 'SchemaPackage': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: (entity.childPackages.length + entity.classesInPackage.length) > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon:   _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:       'loadmultiple', /* special key that selects a different query function for contents */
@@ -782,7 +790,6 @@ let _Code = {
 								content: entity.type,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -792,9 +799,11 @@ let _Code = {
 
 						let children = [
 							{
+								id:       path + '/' + entity.id + '/properties',
 								text:     'Local Properties',
 								children: (entity.schemaProperties.length > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'properties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'SchemaProperty',
@@ -804,12 +813,13 @@ let _Code = {
 									content: 'properties',
 									path:    path + '/' + entity.id + '/properties'
 								},
-								li_attr: { 'data-id': 'properties' }
 							},
 							{
+								id:       path + '/' + entity.id + '/remoteproperties',
 								text:     'Related Properties',
 								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'remoteproperties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'remoteproperties',
@@ -818,12 +828,13 @@ let _Code = {
 									content: 'remoteproperties',
 									path:    path + '/' + entity.id + '/remoteproperties'
 								},
-								li_attr: { 'data-id': 'remoteproperties' }
 							},
 							{
+								id:       path + '/' + entity.id + '/views',
 								text:     'Views',
 								children: (entity.schemaViews.length > 0),
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'views' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
 									key:     'SchemaView',
@@ -833,12 +844,13 @@ let _Code = {
 									content: 'views',
 									path:    path + '/' + entity.id + '/views'
 								},
-								li_attr: { 'data-id': 'views' }
 							},
 							{
+								id:       path + '/' + entity.id + '/methods',
 								text:     'Methods',
 								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'methods' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
 									key:     'SchemaMethod',
@@ -848,12 +860,13 @@ let _Code = {
 									content: 'methods',
 									path:    path + '/' + entity.id + '/methods'
 								},
-								li_attr: { 'data-id': 'methods' }
 							},
 							{
+								id:       path + '/' + entity.id + '/inheritedproperties',
 								text:     'Inherited Properties',
 								children: true,
 								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': 'inheritedproperties' },
 								data:     {
 									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
 									key:     'inheritedproperties',
@@ -861,23 +874,22 @@ let _Code = {
 									type:    entity.name,
 									content: 'inheritedproperties',
 									path:    path + '/' + entity.id + '/inheritedproperties'
-
 								},
-								li_attr: { 'data-id': 'inheritedproperties' }
 							}
 						];
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: children,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
 								key: entity.type,
 								id: entity.id,
 								path: path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -886,20 +898,19 @@ let _Code = {
 					case 'SchemaRelationshipNode': {
 
 						let name = entity.name || '[unnamed]';
-						let listItemAttributes = {};
 
 						list.push({
+							id:       path + '/' + entity.name,
 							text:     name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
-							li_attr:  listItemAttributes,
+							li_attr: { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
-								key: entity.type,
-								id: entity.id,
-								path: path + '/' + entity.id
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -916,18 +927,16 @@ let _Code = {
 						if (entity.inherited) {
 
 							list.push({
-								text:  name + (' (' + (entity.propertyType || '') + ')'),
+								id:       path + '/' + entity.id,
+								text:     name + (' (' + (entity.propertyType || '') + ')'),
 								children: false,
-								icon: _Icons.jstree_fake_icon,
-								li_attr: {
-									style: 'color: #aaa;',
-									'data-id': entity.id
-								},
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								}
 							});
 
@@ -944,16 +953,17 @@ let _Code = {
 							}
 
 							list.push({
-								text:  name,
+								id:       path + '/' + entity.id,
+								text:     name,
 								children: hasVisibleChildren,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								},
-								li_attr: { 'data-id': entity.id }
 							});
 						}
 
@@ -1030,7 +1040,15 @@ let _Code = {
 
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
-				_Code.displayFunction(Object.values(searchResults), data, false, true);
+
+				let results = Object.values(searchResults);
+
+				if (!_Schema.showJavaMethods) {
+					// filter out schema methods of code type java
+					results = results.filter(sr => sr.type !== 'SchemaMethod' || sr.codeType != 'java');
+				}
+
+				_Code.displayFunction(results, data, false, true);
 			}
 		};
 
@@ -1131,11 +1149,11 @@ let _Code = {
 				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 				return {
-					id: rel.id,
-					type: rel.type,
-					name: attrName,
+					id:           rel.id,
+					type:         rel.type,
+					name:         attrName,
 					propertyType: '',
-					inherited: false
+					inherited:    false
 				};
 			};
 
@@ -2039,7 +2057,9 @@ let _Code = {
 				editCypherProperty: (property) => {
 					_Code.findAndOpenNode(data.id + '/' + property.id, true);
 				}
-			}, _Code.refreshTree);
+			}, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2078,7 +2098,9 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.views({ data: data }));
 
 		Command.get(data.id, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, _Code.refreshTree);
+			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2671,6 +2693,7 @@ let _Code = {
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
 	doSearch: () => {
+
 		let tree      = $('#code-tree').jstree(true);
 		let input     = $('#tree-search-input');
 		let text      = input.val();
@@ -2689,14 +2712,17 @@ let _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: () => {
+
 		let text = $('#tree-search-input').val();
 		return (text && text.length >= _Code.searchThreshold);
 	},
 	cancelSearch: () => {
+
 		$('#tree-search-input').val('');
 		_Code.doSearch();
 	},
 	activateLastClicked: () => {
+
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
 	deleteSchemaEntity: (entity, title, text, data) => {
@@ -2854,7 +2880,7 @@ let _Code = {
 
 		return errorPropertyNameForLinting;
 	},
-	debounce(func, wait, immediate) {
+	debounce: (func, wait, immediate) => {
 		var timeout;
 
 		return function() {
@@ -2869,11 +2895,10 @@ let _Code = {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	refreshNode(id) {
-		// We need a separate method because we address nodes
-		// differently, (data-id attribute).
-		if (_Code.codeTree && _Code.codeTree.refresh_node) {
-			_Code.codeTree.refresh_node(document.querySelector(`li[data-id="${id}"]`));
+	refreshNode: (id) => {
+		if (_Code.codeTree) {
+			let escapedId = id.replaceAll('/', '\\/');
+			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
 	},
 
