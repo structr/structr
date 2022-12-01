@@ -172,6 +172,8 @@ let _Code = {
 	},
 	addAvailableTagsForEntities: (entities) => {
 
+		let change = false;
+
 		for (let entity of entities) {
 
 			if (entity.tags) {
@@ -179,10 +181,15 @@ let _Code = {
 				for (let tag of entity.tags) {
 
 					if (!_Code.availableTags.includes(tag) && !_Code.tagBlacklist.includes(tag)) {
+						change = true;
 						_Code.availableTags.push(tag);
 					}
 				}
 			}
+		}
+
+		if (change) {
+			_Code.refreshNode('/openapi');
 		}
 
 		_Code.availableTags.sort();
@@ -484,7 +491,6 @@ let _Code = {
 				Object.assign(entity, formData);
 				_Code.updateDirtyFlag(entity);
 
-
 				if (formData.name) {
 					_Code.refreshTree();
 				}
@@ -587,123 +593,175 @@ let _Code = {
 		 * must specify a data object (see below for example).
 		 */
 
-		switch (id) {
+		if (id === '#') {
 
-			case '#':
-
-				let defaultEntries = [
-					{
-						id:       path + '/globals',
-						text:     'Global Methods',
-						children: true,
-						icon:     _Icons.jstree_fake_icon,
-						li_attr:  { 'data-id': 'globals' },
-						data: {
-							svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
-							key:     'SchemaMethod',
-							query:   { schemaNode: null },
-							content: 'globals',
-							path:    path + '/globals'
-						},
+			let defaultEntries = [
+				{
+					id:       path + '/globals',
+					text:     'Global Methods',
+					children: true,
+					icon:     _Icons.jstree_fake_icon,
+					li_attr:  { 'data-id': 'globals' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
+						key:     'SchemaMethod',
+						query:   { schemaNode: null },
+						content: 'globals',
+						path:    path + '/globals'
 					},
-					{
-						id:       path + '/openapi',
-						text:     'OpenAPI - Swagger UI',
-						children: (_Code.availableTags.length > 0),
-						icon:     _Icons.jstree_fake_icon,
-						li_attr:  { 'data-id': 'openapi' },
-						data: {
-							svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
-							key:     'openapi',
-							content: 'openapi',
-							path:    path + '/openapi'
-						},
+				},
+				{
+					id:       path + '/openapi',
+					text:     'OpenAPI - Swagger UI',
+					children: (_Code.availableTags.length > 0),
+					icon:     _Icons.jstree_fake_icon,
+					li_attr:  { 'data-id': 'openapi' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
+						key:     'openapi',
+						content: 'openapi',
+						path:    path + '/openapi'
 					},
-					{
-						id:      '/root',
-						text:    'Types',
-						icon:    _Icons.jstree_fake_icon,
-						li_attr: { 'data-id': 'root' },
-						data: {
-							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
-							key:     'root',
-							path:    '/root'
-						},
-						children: [
-							{
-								id:       '/root/custom',
-								text:     'Custom',
-								children: true,
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'custom' },
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key:     'SchemaNode',
-									query:   { isBuiltinType: false },
-									content: 'custom',
-									path:    '/root/custom',
-									/*
-									key: 'SchemaPackage',
-									query: { parentPackage: null },
-									*/
-								},
+				},
+				{
+					id:      '/root',
+					text:    'Types',
+					icon:    _Icons.jstree_fake_icon,
+					li_attr: { 'data-id': 'root' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+						key:     'root',
+						path:    '/root'
+					},
+					children: [
+						{
+							id:       '/root/custom',
+							text:     'Custom',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'custom' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								key:     'SchemaNode',
+								query:   { isBuiltinType: false },
+								content: 'custom',
+								path:    '/root/custom',
+								/*
+                                key: 'SchemaPackage',
+                                query: { parentPackage: null },
+                                */
 							},
-							{
-								id:       '/root/builtin',
-								text:     'Built-In',
-								children: true,
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'builtin' },
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key:     'SchemaNode',
-									query:   { isBuiltinType: true },
-									content: 'builtin',
-									path:    '/root/builtin'
-								},
-							},
-							{
-								id:       '/root/workingsets',
-								text:     'Working Sets',
-								children: true,
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'workingsets' },
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
-									key: 'workingsets',
-									content: 'workingsets',
-									path: '/root/workingsets'
-								},
-							}
-						],
-					}
-				];
-
-				if (_Code.searchIsActive()) {
-
-					defaultEntries.unshift({
-						id:       path + '/searchresults',
-						text:     'Search Results',
-						children: true,
-						icon:     'fa fa-search',
-						data: {
-							key: 'searchresults',
-							path: path + '/searchresults'
 						},
-						state: {
-							opened: true
+						{
+							id:       '/root/builtin',
+							text:     'Built-In',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'builtin' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								key:     'SchemaNode',
+								query:   { isBuiltinType: true },
+								content: 'builtin',
+								path:    '/root/builtin'
+							},
+						},
+						{
+							id:       '/root/workingsets',
+							text:     'Working Sets',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'workingsets' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
+								key: 'workingsets',
+								content: 'workingsets',
+								path: '/root/workingsets'
+							},
 						}
-					});
+					],
 				}
+			];
 
-				callback(defaultEntries);
-				break;
+			if (_Code.searchIsActive()) {
 
-			default:
-				_Code.load(obj, callback);
-				break;
+				defaultEntries.unshift({
+					id:       path + '/searchresults',
+					text:     'Search Results',
+					children: true,
+					icon:     'fa fa-search',
+					data: {
+						key: 'searchresults',
+						path: path + '/searchresults'
+					},
+					state: {
+						opened: true
+					}
+				});
+			}
+
+			callback(defaultEntries);
+
+		} else {
+
+			let data = obj.data;
+
+			data.callback = callback;
+
+			switch (data.key) {
+
+				case 'searchresults':
+					_Code.loadSearchResults(data);
+					break;
+
+				case 'openapi':
+					_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
+					break;
+
+				case 'workingsets':
+					_Code.loadWorkingSets(data);
+					break;
+
+				case 'workingset':
+					_Code.loadWorkingSet(data);
+					break;
+
+				case 'loadmultiple':
+					_Code.loadMultiple(data);
+					break;
+
+				case 'remoteproperties':
+					_Code.loadRemoteProperties(data);
+					break;
+
+				case 'inheritedproperties':
+					_Code.loadInheritedProperties(data);
+					break;
+
+				default: {
+
+					if (data.key === 'SchemaNode' && data.path.indexOf(data.id) >= 0) {
+
+						// reload function for single type
+						Command.get(data.id, null, (entity) => {
+
+							let children = _Code.getChildElementsForSchemaNode(entity, data.path);
+
+							// directly call callback method to insert child nodes of type
+							callback(children);
+
+						}, 'ui');
+
+					} else {
+
+						// generic query function, controlled by data object
+						Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
+							_Code.displayFunction(result, data);
+						}, true, 'ui');
+					}
+				}
+			}
 		}
-
 	},
 	unload: function() {
 
@@ -797,98 +855,17 @@ let _Code = {
 
 					case 'SchemaNode': {
 
-						let children = [
-							{
-								id:       path + '/' + entity.id + '/properties',
-								text:     'Local Properties',
-								children: (entity.schemaProperties.length > 0),
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'properties' },
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'SchemaProperty',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'properties',
-									path:    path + '/' + entity.id + '/properties'
-								},
-							},
-							{
-								id:       path + '/' + entity.id + '/remoteproperties',
-								text:     'Related Properties',
-								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'remoteproperties' },
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'remoteproperties',
-									id:      entity.id,
-									type:    entity.name,
-									content: 'remoteproperties',
-									path:    path + '/' + entity.id + '/remoteproperties'
-								},
-							},
-							{
-								id:       path + '/' + entity.id + '/views',
-								text:     'Views',
-								children: (entity.schemaViews.length > 0),
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'views' },
-								data:     {
-									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
-									key:     'SchemaView',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'views',
-									path:    path + '/' + entity.id + '/views'
-								},
-							},
-							{
-								id:       path + '/' + entity.id + '/methods',
-								text:     'Methods',
-								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'methods' },
-								data:     {
-									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
-									key:     'SchemaMethod',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'methods',
-									path:    path + '/' + entity.id + '/methods'
-								},
-							},
-							{
-								id:       path + '/' + entity.id + '/inheritedproperties',
-								text:     'Inherited Properties',
-								children: true,
-								icon:     _Icons.jstree_fake_icon,
-								li_attr:  { 'data-id': 'inheritedproperties' },
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'inheritedproperties',
-									id:      entity.id,
-									type:    entity.name,
-									content: 'inheritedproperties',
-									path:    path + '/' + entity.id + '/inheritedproperties'
-								},
-							}
-						];
-
 						list.push({
 							id:       path + '/' + entity.id,
 							text:     entity.name,
-							children: children,
+							children: _Code.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 							icon:     _Icons.jstree_fake_icon,
 							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
-								key: entity.type,
-								id: entity.id,
-								path: path + '/' + entity.id
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
 							},
 						});
 
@@ -984,49 +961,89 @@ let _Code = {
 
 		data.callback(list);
 	},
-	load: (obj, callback) => {
+	getChildElementsForSchemaNode: (entity, path) => {
 
-		let data = obj.data;
+		return [
+			{
+				id:       path + '/properties',
+				text:     'Local Properties',
+				children: (entity.schemaProperties.length > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'properties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'SchemaProperty',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'properties',
+					path:    path + '/properties'
+				},
+			},
+			{
+				id:       path + '/remoteproperties',
+				text:     'Related Properties',
+				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'remoteproperties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'remoteproperties',
+					id:      entity.id,
+					type:    entity.name,
+					content: 'remoteproperties',
+					path:    path + '/remoteproperties'
+				},
+			},
+			{
+				id:       path + '/views',
+				text:     'Views',
+				children: (entity.schemaViews.length > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'views' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
+					key:     'SchemaView',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'views',
+					path:    path + '/views'
+				},
+			},
+			{
+				id:       path + '/methods',
+				text:     'Methods',
+				children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'methods' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
+					key:     'SchemaMethod',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'methods',
+					path:    path + '/methods'
+				},
+			},
+			{
+				id:       path + '/inheritedproperties',
+				text:     'Inherited Properties',
+				children: true,
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'inheritedproperties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'inheritedproperties',
+					id:      entity.id,
+					type:    entity.name,
+					content: 'inheritedproperties',
+					path:    path + '/inheritedproperties'
+				},
+			}
+		];
 
-		data.callback = callback;
-
-		switch (data.key) {
-
-			case 'searchresults':
-				_Code.loadSearchResults(data);
-				break;
-
-			case 'openapi':
-				_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
-				break;
-
-			case 'workingsets':
-				_Code.loadWorkingSets(data);
-				break;
-
-			case 'workingset':
-				_Code.loadWorkingSet(data);
-				break;
-
-			case 'loadmultiple':
-				_Code.loadMultiple(data);
-				break;
-
-			case 'remoteproperties':
-				_Code.loadRemoteProperties(data);
-				break;
-
-			case 'inheritedproperties':
-				_Code.loadInheritedProperties(data);
-				break;
-
-			default:
-				// generic query function, controlled by data object
-				Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
-					_Code.displayFunction(result, data);
-				}, true, 'ui');
-
-		}
 	},
 	loadSearchResults: (data) => {
 
@@ -1071,6 +1088,7 @@ let _Code = {
 					let matchingMethods = [];
 
 					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
+
 						if (method.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1083,6 +1101,7 @@ let _Code = {
 
 					let matchingProperties = [];
 					for (let property of schemaNode.schemaProperties) {
+
 						if (property.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1458,7 +1477,12 @@ let _Code = {
 				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 					if (success) {
-						_Code.refreshTree();
+
+						// reload tree node
+						_Code.refreshNode(data.path);
+
+						// and refresh center pane
+						_Code.handleNodeObjectClick(data);
 					}
 				});
 			};

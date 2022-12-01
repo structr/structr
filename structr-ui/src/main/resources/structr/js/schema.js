@@ -572,7 +572,9 @@ let _Schema = {
 			if (counts > 0) {
 
 				if (!allow) {
+
 					new MessageBuilder().warning(`Unable to save. ${reasons.join()} are preventing saving.`).show();
+
 				} else {
 
 					// save data
@@ -587,7 +589,11 @@ let _Schema = {
 					_Schema.hideSchemaRecompileMessage();
 
 					if (response.ok) {
+
+						_Code.addAvailableTagsForEntities([data]);
+
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+
 					} else {
 
 						let data = await response.json();
@@ -1054,8 +1060,6 @@ let _Schema = {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent[0], entity);
 					}
 					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
-
-					_Code.addAvailableTagsForEntities([typeInfo]);
 
 					return {
 						name: 'Basic type attributes',
