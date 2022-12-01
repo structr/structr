@@ -1557,7 +1557,10 @@ let _Code = {
 						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 							if (success) {
-								_Code.refreshTree();
+
+								// refresh parent node "Related properties"
+								let parentPath = data.path.substring(0, data.path.lastIndexOf('/'));
+								_Code.refreshNode(parentPath);
 							}
 						});
 					};
@@ -1763,11 +1766,12 @@ let _Code = {
 				};
 
 				let afterSaveCallback = () => {
+
 					_Code.additionalDirtyChecks = [];
 					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
 
 					// refresh parent in case icon changed
-					_Code.refreshNode(data.id.slice(0, data.id.lastIndexOf('/')));
+					_Code.refreshNode(data.path.slice(0, data.path.lastIndexOf('/')));
 				};
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1933,8 +1937,8 @@ let _Code = {
 
 				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
 					_WorkingSets.deleteSet(data.id, function() {
-						_Code.refreshNode('workingsets');
-						_Code.findAndOpenNode('workingsets');
+						_Code.refreshNode('/workingsets');
+						_Code.findAndOpenNode('/workingsets');
 					});
 				});
 
@@ -2034,11 +2038,11 @@ let _Code = {
 
 			} else {
 
-				// we need to found out if this node is a custom type or built-in
+				// we need to find out if this node is a custom type or built-in
 				if (data.node.builtIn) {
-					_Code.findAndOpenNode('builtin/' + data.node.id, false);
+					_Code.findAndOpenNode('/root/builtin/' + data.node.id, false);
 				} else {
-					_Code.findAndOpenNode('custom/' + data.node.id, false);
+					_Code.findAndOpenNode('/root/custom/' + data.node.id, false);
 				}
 			}
 		}
@@ -2076,10 +2080,10 @@ let _Code = {
 			_Schema.properties.appendLocalProperties($('.content-container', _Code.codeContents), entity, {
 
 				editReadWriteFunction: (property) => {
-					_Code.findAndOpenNode(data.id + '/' + property.id, true);
+					_Code.findAndOpenNode(data.path + '/' + property.id, true);
 				},
 				editCypherProperty: (property) => {
-					_Code.findAndOpenNode(data.id + '/' + property.id, true);
+					_Code.findAndOpenNode(data.path + '/' + property.id, true);
 				}
 			}, () => {
 				_Code.refreshNode(data.path);
@@ -2605,6 +2609,7 @@ let _Code = {
 				// node found, activate
 				if (tree.get_selected().indexOf(node.id) === -1) {
 					tree.activate_node(node, { updateLocationStack: updateLocationStack });
+					tree.open_node(node);
 				}
 
 				let selectedNode = tree.get_node(node);
@@ -3568,13 +3573,13 @@ let _WorkingSets = {
 			if (result && result.length) {
 
 				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_Code.refreshNode('workingsets/' + result[0].id);
+					_Code.refreshNode('/workingsets/' + result[0].id);
 				});
 
 			} else {
 
 				_WorkingSets.createNewSetAndAddType(name, () => {
-					_Code.refreshNode('workingsets');
+					_Code.refreshNode('/workingsets');
 				}, _WorkingSets.recentlyUsedName);
 			}
 
