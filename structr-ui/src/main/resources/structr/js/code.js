@@ -800,6 +800,7 @@ let _Code = {
 							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
+								name:    entity.name,
 								key:     entity.type,
 								id:      entity.id,
 								path:    path + '/' + entity.id
