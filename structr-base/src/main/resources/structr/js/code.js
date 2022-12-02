@@ -172,6 +172,8 @@ let _Code = {
 	},
 	addAvailableTagsForEntities: (entities) => {
 
+		let change = false;
+
 		for (let entity of entities) {
 
 			if (entity.tags) {
@@ -179,10 +181,15 @@ let _Code = {
 				for (let tag of entity.tags) {
 
 					if (!_Code.availableTags.includes(tag) && !_Code.tagBlacklist.includes(tag)) {
+						change = true;
 						_Code.availableTags.push(tag);
 					}
 				}
 			}
+		}
+
+		if (change) {
+			_Code.refreshNode('/openapi');
 		}
 
 		_Code.availableTags.sort();
@@ -203,10 +210,16 @@ let _Code = {
 
 			// ctrl-r / cmd-r
 			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
-				event.preventDefault();
-				event.stopPropagation();
-				//document.getElementById('action-button-save')?.click();
-				document.getElementById('action-button-run')?.click();
+
+				let runButton = document.getElementById('action-button-run');
+
+				if (runButton) {
+
+					event.preventDefault();
+					event.stopPropagation();
+
+					runButton.click();
+				}
 			}
 		}
 	},
@@ -478,7 +491,6 @@ let _Code = {
 				Object.assign(entity, formData);
 				_Code.updateDirtyFlag(entity);
 
-
 				if (formData.name) {
 					_Code.refreshTree();
 				}
@@ -573,9 +585,6 @@ let _Code = {
 	},
 	treeInitFunction: (obj, callback) => {
 
-		// make sure the internal ID of the tree is always the same
-		$(_Code.codeTree).jstree(true)._id = 'code';
-
 		let id   = obj?.data?.key || '#';
 		let path = obj?.data?.path || '';
 
@@ -584,116 +593,175 @@ let _Code = {
 		 * must specify a data object (see below for example).
 		 */
 
-		switch (id) {
+		if (id === '#') {
 
-			case '#':
-
-				let defaultEntries = [
-					{
-						text: 'Global Methods',
-						children: true,
-						icon: _Icons.jstree_fake_icon,
-						data: {
-							svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
-							key: 'SchemaMethod',
-							query: { schemaNode: null },
-							content: 'globals',
-							path: path + '/globals'
-						},
-						li_attr: { 'data-id': 'globals' }
+			let defaultEntries = [
+				{
+					id:       path + '/globals',
+					text:     'Global Methods',
+					children: true,
+					icon:     _Icons.jstree_fake_icon,
+					li_attr:  { 'data-id': 'globals' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
+						key:     'SchemaMethod',
+						query:   { schemaNode: null },
+						content: 'globals',
+						path:    path + '/globals'
 					},
-					{
-						text: 'OpenAPI - Swagger UI',
-						children: (_Code.availableTags.length > 0),
-						icon: _Icons.jstree_fake_icon,
-						data: {
-							svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
-							key: 'openapi',
-							content: 'openapi',
-							path: path + '/openapi'
-						},
-						li_attr: { 'data-id': 'openapi' }
+				},
+				{
+					id:       path + '/openapi',
+					text:     'OpenAPI - Swagger UI',
+					children: (_Code.availableTags.length > 0),
+					icon:     _Icons.jstree_fake_icon,
+					li_attr:  { 'data-id': 'openapi' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
+						key:     'openapi',
+						content: 'openapi',
+						path:    path + '/openapi'
 					},
-					{
-						text: 'Types',
-						children: [
-							{
-								text: 'Custom',
-								children: true,
-								icon: _Icons.jstree_fake_icon,
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: false },
-									/*
-									key: 'SchemaPackage',
-									query: { parentPackage: null },
-									*/
-									content: 'custom',
-									path: '/root/custom'
-								},
-								li_attr: { 'data-id': 'custom' }
+				},
+				{
+					id:      '/root',
+					text:    'Types',
+					icon:    _Icons.jstree_fake_icon,
+					li_attr: { 'data-id': 'root' },
+					data: {
+						svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+						key:     'root',
+						path:    '/root'
+					},
+					children: [
+						{
+							id:       '/root/custom',
+							text:     'Custom',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'custom' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								key:     'SchemaNode',
+								query:   { isBuiltinType: false },
+								content: 'custom',
+								path:    '/root/custom',
+								/*
+                                key: 'SchemaPackage',
+                                query: { parentPackage: null },
+                                */
 							},
-							{
-								text: 'Built-In',
-								children: true,
-								icon: _Icons.jstree_fake_icon,
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
-									key: 'SchemaNode',
-									query: { isBuiltinType: true },
-									content: 'builtin',
-									path: '/root/builtin'
-								},
-								li_attr: { 'data-id': 'builtin' }
+						},
+						{
+							id:       '/root/builtin',
+							text:     'Built-In',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'builtin' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								key:     'SchemaNode',
+								query:   { isBuiltinType: true },
+								content: 'builtin',
+								path:    '/root/builtin'
 							},
-							{
-								text: 'Working Sets',
-								children: true,
-								icon: _Icons.jstree_fake_icon,
-								data: {
-									svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
-									key: 'workingsets',
-									content: 'workingsets',
-									path: '/root/workingsets'
-								},
-								li_attr: { 'data-id': 'workingsets' }
-							}
-						],
-						icon: _Icons.jstree_fake_icon,
-						data: {
-							svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
-							key: 'root',
-							path: '/root'
 						},
-						li_attr: { 'data-id': 'root' }
-					}
-				];
-
-				if (_Code.searchIsActive()) {
-
-					defaultEntries.unshift({
-						text: 'Search Results',
-						children: true,
-						icon: 'fa fa-search',
-						data: {
-							key: 'searchresults',
-							path: path + '/searchresults'
-						},
-						state: {
-							opened: true
+						{
+							id:       '/root/workingsets',
+							text:     'Working Sets',
+							children: true,
+							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': 'workingsets' },
+							data: {
+								svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
+								key: 'workingsets',
+								content: 'workingsets',
+								path: '/root/workingsets'
+							},
 						}
-					});
+					],
 				}
+			];
 
-				callback(defaultEntries);
-				break;
+			if (_Code.searchIsActive()) {
 
-			default:
-				_Code.load(obj, callback);
-				break;
+				defaultEntries.unshift({
+					id:       path + '/searchresults',
+					text:     'Search Results',
+					children: true,
+					icon:     'fa fa-search',
+					data: {
+						key: 'searchresults',
+						path: path + '/searchresults'
+					},
+					state: {
+						opened: true
+					}
+				});
+			}
+
+			callback(defaultEntries);
+
+		} else {
+
+			let data = obj.data;
+
+			data.callback = callback;
+
+			switch (data.key) {
+
+				case 'searchresults':
+					_Code.loadSearchResults(data);
+					break;
+
+				case 'openapi':
+					_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
+					break;
+
+				case 'workingsets':
+					_Code.loadWorkingSets(data);
+					break;
+
+				case 'workingset':
+					_Code.loadWorkingSet(data);
+					break;
+
+				case 'loadmultiple':
+					_Code.loadMultiple(data);
+					break;
+
+				case 'remoteproperties':
+					_Code.loadRemoteProperties(data);
+					break;
+
+				case 'inheritedproperties':
+					_Code.loadInheritedProperties(data);
+					break;
+
+				default: {
+
+					if (data.key === 'SchemaNode' && data.path.indexOf(data.id) >= 0) {
+
+						// reload function for single type
+						Command.get(data.id, null, (entity) => {
+
+							let children = _Code.getChildElementsForSchemaNode(entity, data.path);
+
+							// directly call callback method to insert child nodes of type
+							callback(children);
+
+						}, 'ui');
+
+					} else {
+
+						// generic query function, controlled by data object
+						Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
+							_Code.displayFunction(result, data);
+						}, true, 'ui');
+					}
+				}
+			}
 		}
-
 	},
 	unload: function() {
 
@@ -725,16 +793,18 @@ let _Code = {
 					case 'OpenAPITag': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
+								name:    entity.name,
 								key:     entity.type,
 								id:      entity.id,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -743,9 +813,11 @@ let _Code = {
 					case 'SchemaGroup': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: entity.children.length > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:     'workingset',
@@ -753,7 +825,6 @@ let _Code = {
 								content: 'workingset',
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -762,9 +833,11 @@ let _Code = {
 					case 'SchemaPackage': {
 
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: (entity.childPackages.length + entity.classesInPackage.length) > 0,
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon:   _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
 								key:       'loadmultiple', /* special key that selects a different query function for contents */
@@ -776,7 +849,6 @@ let _Code = {
 								content: entity.type,
 								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -784,94 +856,18 @@ let _Code = {
 
 					case 'SchemaNode': {
 
-						let children = [
-							{
-								text:     'Local Properties',
-								children: (entity.schemaProperties.length > 0),
-								icon:     _Icons.jstree_fake_icon,
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'SchemaProperty',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'properties',
-									path:    path + '/' + entity.id + '/properties'
-								},
-								li_attr: { 'data-id': 'properties' }
-							},
-							{
-								text:     'Related Properties',
-								children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-								icon:     _Icons.jstree_fake_icon,
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'remoteproperties',
-									id:      entity.id,
-									type:    entity.name,
-									content: 'remoteproperties',
-									path:    path + '/' + entity.id + '/remoteproperties'
-								},
-								li_attr: { 'data-id': 'remoteproperties' }
-							},
-							{
-								text:     'Views',
-								children: (entity.schemaViews.length > 0),
-								icon:     _Icons.jstree_fake_icon,
-								data:     {
-									svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
-									key:     'SchemaView',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'views',
-									path:    path + '/' + entity.id + '/views'
-								},
-								li_attr: { 'data-id': 'views' }
-							},
-							{
-								text:     'Methods',
-								children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
-								icon:     _Icons.jstree_fake_icon,
-								data:     {
-									svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
-									key:     'SchemaMethod',
-									id:      entity.id,
-									type:    entity.name,
-									query:   { schemaNode: entity.id },
-									content: 'methods',
-									path:    path + '/' + entity.id + '/methods'
-								},
-								li_attr: { 'data-id': 'methods' }
-							},
-							{
-								text:     'Inherited Properties',
-								children: true,
-								icon:     _Icons.jstree_fake_icon,
-								data:     {
-									svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
-									key:     'inheritedproperties',
-									id:      entity.id,
-									type:    entity.name,
-									content: 'inheritedproperties',
-									path:    path + '/' + entity.id + '/inheritedproperties'
-
-								},
-								li_attr: { 'data-id': 'inheritedproperties' }
-							}
-						];
-
 						list.push({
+							id:       path + '/' + entity.id,
 							text:     entity.name,
-							children: children,
+							children: _Code.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
 							icon:     _Icons.jstree_fake_icon,
+							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
-								key: entity.type,
-								id: entity.id,
-								path: path + '/' + entity.id
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -880,20 +876,19 @@ let _Code = {
 					case 'SchemaRelationshipNode': {
 
 						let name = entity.name || '[unnamed]';
-						let listItemAttributes = {};
 
 						list.push({
+							id:       path + '/' + entity.name,
 							text:     name,
 							children: false,
 							icon:     _Icons.jstree_fake_icon,
-							li_attr:  listItemAttributes,
+							li_attr: { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
-								key: entity.type,
-								id: entity.id,
-								path: path + '/' + entity.id
+								key:     entity.type,
+								id:      entity.id,
+								path:    path + '/' + entity.id
 							},
-							li_attr: { 'data-id': entity.id }
 						});
 
 						break;
@@ -910,18 +905,16 @@ let _Code = {
 						if (entity.inherited) {
 
 							list.push({
-								text:  name + (' (' + (entity.propertyType || '') + ')'),
+								id:       path + '/' + entity.id,
+								text:     name + (' (' + (entity.propertyType || '') + ')'),
 								children: false,
-								icon: _Icons.jstree_fake_icon,
-								li_attr: {
-									style: 'color: #aaa;',
-									'data-id': entity.id
-								},
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								}
 							});
 
@@ -938,16 +931,17 @@ let _Code = {
 							}
 
 							list.push({
-								text:  name,
+								id:       path + '/' + entity.id,
+								text:     name,
 								children: hasVisibleChildren,
-								icon: _Icons.jstree_fake_icon,
+								icon:     _Icons.jstree_fake_icon,
+								li_attr:  { 'data-id': entity.id },
 								data: {
 									svgIcon: icon,
-									key: entity.type,
-									id: entity.id,
-									path: path + '/' + entity.id
+									key:     entity.type,
+									id:      entity.id,
+									path:    path + '/' + entity.id
 								},
-								li_attr: { 'data-id': entity.id }
 							});
 						}
 
@@ -968,49 +962,89 @@ let _Code = {
 
 		data.callback(list);
 	},
-	load: (obj, callback) => {
+	getChildElementsForSchemaNode: (entity, path) => {
 
-		let data = obj.data;
+		return [
+			{
+				id:       path + '/properties',
+				text:     'Local Properties',
+				children: (entity.schemaProperties.length > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'properties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'SchemaProperty',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'properties',
+					path:    path + '/properties'
+				},
+			},
+			{
+				id:       path + '/remoteproperties',
+				text:     'Related Properties',
+				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'remoteproperties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'remoteproperties',
+					id:      entity.id,
+					type:    entity.name,
+					content: 'remoteproperties',
+					path:    path + '/remoteproperties'
+				},
+			},
+			{
+				id:       path + '/views',
+				text:     'Views',
+				children: (entity.schemaViews.length > 0),
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'views' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
+					key:     'SchemaView',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'views',
+					path:    path + '/views'
+				},
+			},
+			{
+				id:       path + '/methods',
+				text:     'Methods',
+				children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'methods' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
+					key:     'SchemaMethod',
+					id:      entity.id,
+					type:    entity.name,
+					query:   { schemaNode: entity.id },
+					content: 'methods',
+					path:    path + '/methods'
+				},
+			},
+			{
+				id:       path + '/inheritedproperties',
+				text:     'Inherited Properties',
+				children: true,
+				icon:     _Icons.jstree_fake_icon,
+				li_attr:  { 'data-id': 'inheritedproperties' },
+				data:     {
+					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					key:     'inheritedproperties',
+					id:      entity.id,
+					type:    entity.name,
+					content: 'inheritedproperties',
+					path:    path + '/inheritedproperties'
+				},
+			}
+		];
 
-		data.callback = callback;
-
-		switch (data.key) {
-
-			case 'searchresults':
-				_Code.loadSearchResults(data);
-				break;
-
-			case 'openapi':
-				_Code.displayFunction(_Code.availableTags.map(t => { return { id: t, name: t, type: "OpenAPITag" } }), data);
-				break;
-
-			case 'workingsets':
-				_Code.loadWorkingSets(data);
-				break;
-
-			case 'workingset':
-				_Code.loadWorkingSet(data);
-				break;
-
-			case 'loadmultiple':
-				_Code.loadMultiple(data);
-				break;
-
-			case 'remoteproperties':
-				_Code.loadRemoteProperties(data);
-				break;
-
-			case 'inheritedproperties':
-				_Code.loadInheritedProperties(data);
-				break;
-
-			default:
-				// generic query function, controlled by data object
-				Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
-					_Code.displayFunction(result, data);
-				}, true, 'ui');
-
-		}
 	},
 	loadSearchResults: (data) => {
 
@@ -1024,7 +1058,15 @@ let _Code = {
 
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
-				_Code.displayFunction(Object.values(searchResults), data, false, true);
+
+				let results = Object.values(searchResults);
+
+				if (!_Schema.showJavaMethods) {
+					// filter out schema methods of code type java
+					results = results.filter(sr => sr.type !== 'SchemaMethod' || sr.codeType != 'java');
+				}
+
+				_Code.displayFunction(results, data, false, true);
 			}
 		};
 
@@ -1047,6 +1089,7 @@ let _Code = {
 					let matchingMethods = [];
 
 					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
+
 						if (method.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1059,6 +1102,7 @@ let _Code = {
 
 					let matchingProperties = [];
 					for (let property of schemaNode.schemaProperties) {
+
 						if (property.name.indexOf(parts[1]) === 0) {
 
 							// populate backRef to schemaNode because it only contains id by default
@@ -1125,11 +1169,11 @@ let _Code = {
 				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 				return {
-					id: rel.id,
-					type: rel.type,
-					name: attrName,
+					id:           rel.id,
+					type:         rel.type,
+					name:         attrName,
 					propertyType: '',
-					inherited: false
+					inherited:    false
 				};
 			};
 
@@ -1434,7 +1478,12 @@ let _Code = {
 				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 					if (success) {
-						_Code.refreshTree();
+
+						// reload tree node
+						_Code.refreshNode(data.path);
+
+						// and refresh center pane
+						_Code.handleNodeObjectClick(data);
 					}
 				});
 			};
@@ -1509,7 +1558,10 @@ let _Code = {
 						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
 
 							if (success) {
-								_Code.refreshTree();
+
+								// refresh parent node "Related properties"
+								let parentPath = data.path.substring(0, data.path.lastIndexOf('/'));
+								_Code.refreshNode(parentPath);
 							}
 						});
 					};
@@ -1580,7 +1632,7 @@ let _Code = {
 	displaySchemaMethodContent: (data, lastOpenTab) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,visibleToPublicUsers,visibleToAuthenticatedUsers,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
@@ -1715,11 +1767,12 @@ let _Code = {
 				};
 
 				let afterSaveCallback = () => {
+
 					_Code.additionalDirtyChecks = [];
 					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
 
 					// refresh parent in case icon changed
-					_Code.refreshNode(data.id.slice(0, data.id.lastIndexOf('/')));
+					_Code.refreshNode(data.path.slice(0, data.path.lastIndexOf('/')));
 				};
 
 				_Code.saveEntityAction(result, afterSaveCallback, [storeParametersInFormDataFunction]);
@@ -1741,21 +1794,25 @@ let _Code = {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
-			// run button and global schema method flags
+			// run button
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
+			}
+
+			// run button and global schema method flags
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema)) {
 
 				$('.checkbox.global-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 
 			} else if (result.schemaNode) {
 
 				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
-				Structr.activateCommentsInElement(buttons[0]);
 			}
+
+			Structr.activateCommentsInElement(buttons[0]);
 
 			_Code.updateDirtyFlag(result);
 
@@ -1881,8 +1938,8 @@ let _Code = {
 
 				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
 					_WorkingSets.deleteSet(data.id, function() {
-						_Code.refreshNode('workingsets');
-						_Code.findAndOpenNode('workingsets');
+						_Code.refreshNode('/workingsets');
+						_Code.findAndOpenNode('/workingsets');
 					});
 				});
 
@@ -1982,11 +2039,11 @@ let _Code = {
 
 			} else {
 
-				// we need to found out if this node is a custom type or built-in
+				// we need to find out if this node is a custom type or built-in
 				if (data.node.builtIn) {
-					_Code.findAndOpenNode('builtin/' + data.node.id, false);
+					_Code.findAndOpenNode('/root/builtin/' + data.node.id, false);
 				} else {
-					_Code.findAndOpenNode('custom/' + data.node.id, false);
+					_Code.findAndOpenNode('/root/custom/' + data.node.id, false);
 				}
 			}
 		}
@@ -2024,12 +2081,14 @@ let _Code = {
 			_Schema.properties.appendLocalProperties($('.content-container', _Code.codeContents), entity, {
 
 				editReadWriteFunction: (property) => {
-					_Code.findAndOpenNode(data.id + '/' + property.id, true);
+					_Code.findAndOpenNode(data.path + '/' + property.id, true);
 				},
 				editCypherProperty: (property) => {
-					_Code.findAndOpenNode(data.id + '/' + property.id, true);
+					_Code.findAndOpenNode(data.path + '/' + property.id, true);
 				}
-			}, _Code.refreshTree);
+			}, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2068,7 +2127,9 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.views({ data: data }));
 
 		Command.get(data.id, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, _Code.refreshTree);
+			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, () => {
+				_Code.refreshNode(data.path);
+			});
 
 			_Code.runCurrentEntitySaveAction = () => {
 				$('.save-all', _Code.codeContents).click();
@@ -2549,6 +2610,7 @@ let _Code = {
 				// node found, activate
 				if (tree.get_selected().indexOf(node.id) === -1) {
 					tree.activate_node(node, { updateLocationStack: updateLocationStack });
+					tree.open_node(node);
 				}
 
 				let selectedNode = tree.get_node(node);
@@ -2661,6 +2723,7 @@ let _Code = {
 		$('#tree-back-button').prop('disabled', backDisabled);
 	},
 	doSearch: () => {
+
 		let tree      = $('#code-tree').jstree(true);
 		let input     = $('#tree-search-input');
 		let text      = input.val();
@@ -2679,14 +2742,17 @@ let _Code = {
 		_Code.searchTextLength = text.length;
 	},
 	searchIsActive: () => {
+
 		let text = $('#tree-search-input').val();
 		return (text && text.length >= _Code.searchThreshold);
 	},
 	cancelSearch: () => {
+
 		$('#tree-search-input').val('');
 		_Code.doSearch();
 	},
 	activateLastClicked: () => {
+
 		_Code.findAndOpenNode(_Code.lastClickedPath);
 	},
 	deleteSchemaEntity: (entity, title, text, data) => {
@@ -2844,7 +2910,7 @@ let _Code = {
 
 		return errorPropertyNameForLinting;
 	},
-	debounce(func, wait, immediate) {
+	debounce: (func, wait, immediate) => {
 		var timeout;
 
 		return function() {
@@ -2859,11 +2925,10 @@ let _Code = {
 			if (callNow) func.apply(context, args);
 		};
 	},
-	refreshNode(id) {
-		// We need a separate method because we address nodes
-		// differently, (data-id attribute).
-		if (_Code.codeTree && _Code.codeTree.refresh_node) {
-			_Code.codeTree.refresh_node(document.querySelector(`li[data-id="${id}"]`));
+	refreshNode: (id) => {
+		if (_Code.codeTree) {
+			let escapedId = id.replaceAll('/', '\\/');
+			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
 	},
 
@@ -3016,7 +3081,9 @@ let _Code = {
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">Write Function</h4>
+								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+									Write Function
+								</h4>
 							</div>
 							<div class="editor flex-grow" data-property="writeFunction" data-recompile="false"></div>
 						</div>
@@ -3048,13 +3115,9 @@ let _Code = {
 					</div>
 					<div class="mb-2">
 						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context)."><input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by public users."><input type="checkbox" data-property="visibleToPublicUsers" ${config.method.visibleToPublicUsers ? 'checked' : ''}> visibleToPublicUsers</label>
-						</div>
-						<div class="checkbox hidden global-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable via REST by authenticated users."><input type="checkbox" data-property="visibleToAuthenticatedUsers" ${config.method.visibleToAuthenticatedUsers ? 'checked' : ''}> visibleToAuthenticatedUsers</label>
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
+							</label>
 						</div>
 					</div>
 				</div>
@@ -3511,13 +3574,13 @@ let _WorkingSets = {
 			if (result && result.length) {
 
 				_WorkingSets.addTypeToSet(result[0].id, name, () => {
-					_Code.refreshNode('workingsets/' + result[0].id);
+					_Code.refreshNode('/workingsets/' + result[0].id);
 				});
 
 			} else {
 
 				_WorkingSets.createNewSetAndAddType(name, () => {
-					_Code.refreshNode('workingsets');
+					_Code.refreshNode('/workingsets');
 				}, _WorkingSets.recentlyUsedName);
 			}
 

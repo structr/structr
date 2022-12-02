@@ -804,7 +804,7 @@ let _Elements = {
 		let isTemplate   = (entity.type === 'Template');
 		let name         = entity.name;
 		let displayName  = getElementDisplayName(entity);
-		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content)}</span>`);
+		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content) || '&nbsp;'}</span>`);
 
 		let icon = _Elements.getContentIcon(entity);
 		let html = `

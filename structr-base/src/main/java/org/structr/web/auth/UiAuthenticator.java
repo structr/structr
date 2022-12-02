@@ -40,6 +40,7 @@ import org.structr.core.auth.exception.UnauthorizedException;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
@@ -190,12 +191,12 @@ public class UiAuthenticator implements Authenticator {
 		final String requestedMethod  = request.getHeader("Access-Control-Request-Method");
 		final String requestUri       = request.getRequestURI();
 
-		String acceptedOriginsString  = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAcceptedOrigins.getKey(),  CorsSetting.acceptedOrigins);
-		final Integer maxAge          = (Integer) getEffectiveCorsSettingValue(requestUri, Settings.AccessControlMaxAge.getKey(),           CorsSetting.maxAge);
-		final String allowMethods     = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowMethods.getKey(),     CorsSetting.allowMethods);
-		final String allowHeaders     = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowHeaders.getKey(),     CorsSetting.allowHeaders);
-		final String allowCredentials = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlAllowCredentials.getKey(), CorsSetting.allowCredentials);
-		final String exposeHeaders    = (String)  getEffectiveCorsSettingValue(requestUri, Settings.AccessControlExposeHeaders.getKey(),    CorsSetting.exposeHeaders);
+		String acceptedOriginsString  = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAcceptedOrigins.getKey(),  CorsSetting.acceptedOrigins);
+		final Integer maxAge          = (Integer) getEffectiveCorsSettingValue(request, Settings.AccessControlMaxAge.getKey(),           CorsSetting.maxAge);
+		final String allowMethods     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowMethods.getKey(),     CorsSetting.allowMethods);
+		final String allowHeaders     = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowHeaders.getKey(),     CorsSetting.allowHeaders);
+		final String allowCredentials = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlAllowCredentials.getKey(), CorsSetting.allowCredentials);
+		final String exposeHeaders    = (String)  getEffectiveCorsSettingValue(request, Settings.AccessControlExposeHeaders.getKey(),    CorsSetting.exposeHeaders);
 
 		final List<String> acceptedOrigins = Arrays.stream(acceptedOriginsString.split(",")).map(String::trim).collect(Collectors.toList());
 		final boolean wildcardAllowed = acceptedOrigins.contains("*");
@@ -483,26 +484,38 @@ public class UiAuthenticator implements Authenticator {
 	/**
 	 * Get effective CORS setting
 	 */
-	private <T> Object getEffectiveCorsSettingValue(final String requestUri, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
+	private <T> Object getEffectiveCorsSettingValue(final HttpServletRequest request, final String corsAttributeKey, final PropertyKey<T> corsSettingPropertyKey) throws FrameworkException {
 
 		// Default is value from Settings
 		Object effectiveCorsSettingValue = Settings.getSetting(corsAttributeKey).getValue();
 
 		logger.debug("Settings value for {} from config: {}", corsAttributeKey, effectiveCorsSettingValue);
 
-		CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
-		if (corsSettingObjectFromDatabase != null) {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
-			final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+			final String requestUri       = request.getRequestURI();
+			CorsSetting corsSettingObjectFromDatabase = StructrApp.getInstance().nodeQuery(CorsSetting.class).and(CorsSetting.requestUri, requestUri).getFirst();
 
-			if (corsSettingValueFromDatabase != null) {
-				// Overwrite config setting
-				effectiveCorsSettingValue = corsSettingValueFromDatabase;
+			if (corsSettingObjectFromDatabase != null) {
+
+				final Object corsSettingValueFromDatabase = corsSettingObjectFromDatabase.getProperty(corsSettingPropertyKey);
+
+				if (corsSettingValueFromDatabase != null) {
+					// Overwrite config setting
+					effectiveCorsSettingValue = corsSettingValueFromDatabase;
+				}
+				logger.debug("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
 			}
-			logger.debug("Settings value for {} from database: {}", corsAttributeKey, effectiveCorsSettingValue);
+
+			tx.success();
+			return effectiveCorsSettingValue;
+
+		}  catch (FrameworkException t) {
+
+			logger.error("Exception while processing request", t);
 		}
 
-		return effectiveCorsSettingValue;
+		return null;
 	}
 
 	/**
