@@ -118,62 +118,9 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 						return;
 					}
 
-					DOMNode newNode;
-
-					if (tagName != null && "comment".equals(tagName)) {
-
-						newNode = (DOMNode) document.createComment("#comment");
-
-					} else if (tagName != null && "template".equals(tagName)) {
-
-						newNode = (DOMNode) document.createTextNode("#template");
-
-						try {
-
-							newNode.unlockSystemPropertiesOnce();
-
-							newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
-
-						} catch (FrameworkException fex) {
-
-							logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-
-						}
-
-					} else if (tagName != null && !tagName.isEmpty()) {
-
-						if ("custom".equals(tagName)) {
-
-							try {
-
-								final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
-
-								// experimental: create DOM element with literal tag
-								newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(entityClass,
-									new NodeAttribute(StructrApp.key(DOMElement.class, "tag"),          "custom"),
-									new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnDetail"), false),
-									new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnIndex"),  false)
-								);
-
-								if (newNode != null && document != null) {
-									newNode.doAdopt((Page)document);
-								}
-
-							} catch (FrameworkException fex) {
-
-								// abort
-								getWebSocket().send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
-								return;
-							}
-
-						} else {
-
-							newNode = (DOMNode) document.createElement(tagName);
-						}
-
-					} else {
-
-						newNode = (DOMNode) document.createTextNode("#text");
+					DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
+					if (newNode == null) {
+						return;
 					}
 
 					// Instantiate node again to get correct class
@@ -279,5 +226,73 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
+	}
+
+	// ----- public static methods -----
+	public static DOMNode createNewNode(final StructrWebSocket webSocket, final String tagName, final Document document) {
+
+		DOMNode newNode;
+
+		if (tagName != null) {
+
+			switch (tagName) {
+
+				case "#comment":
+					newNode = (DOMNode) document.createComment("#comment");
+					break;
+
+				case "#content":
+					// maybe this is unneccessary..
+					newNode = (DOMNode) document.createTextNode("#text");
+					break;
+
+				case "#template":
+					newNode = (DOMNode) document.createTextNode("#template");
+					try {
+
+						newNode.unlockSystemPropertiesOnce();
+						newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
+
+					} catch (FrameworkException fex) {
+						logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
+					}
+					break;
+
+				case "custom":
+					try {
+
+						final Class entityClass = StructrApp.getConfiguration().getNodeEntityClass("DOMElement");
+
+						// experimental: create DOM element with literal tag
+						newNode = (DOMElement) StructrApp.getInstance(webSocket.getSecurityContext()).create(entityClass,
+							new NodeAttribute(StructrApp.key(DOMElement.class, "tag"),          "custom"),
+							new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnDetail"), false),
+							new NodeAttribute(StructrApp.key(DOMElement.class, "hideOnIndex"),  false)
+						);
+
+						if (newNode != null && document != null) {
+							newNode.doAdopt((Page)document);
+						}
+
+					} catch (FrameworkException fex) {
+
+						// abort
+						webSocket.send(MessageBuilder.status().code(422).message(fex.getMessage()).build(), true);
+						return null;
+					}
+					break;
+
+				default:
+					newNode = (DOMNode) document.createElement(tagName);
+					break;
+
+			}
+
+		} else {
+
+			newNode = (DOMNode) document.createTextNode("#text");
+		}
+
+		return newNode;
 	}
 }

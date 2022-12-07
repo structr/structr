@@ -147,8 +147,9 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount   = 2180;
-		final int relCount    = 2123;
+		final int nodeCount      = 2247;
+		final int relCount       = 2180;
+		final int typedNodeCount = 594;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
@@ -182,9 +183,9 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
-			"RebuildNodeIndex: 561 objects processed\r\n" +
-			"RebuildNodeIndex: 561 objects processed\r\n" +
-			"Done with (re-)indexing 561 nodes\r\n";
+			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
+			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
+			"Done with (re-)indexing " + typedNodeCount + " nodes\r\n";
 
 		final String typedRelationshipIndexRebuildOutput =
 			"Starting (re-)indexing all relationships of type ResourceAccess\r\n" +

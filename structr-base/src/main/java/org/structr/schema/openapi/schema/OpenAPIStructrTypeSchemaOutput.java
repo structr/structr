@@ -26,6 +26,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
+import java.sql.Array;
 import java.util.*;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
@@ -65,9 +66,17 @@ public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {
 	}
 
 	public OpenAPIStructrTypeSchemaOutput(final Class type, final String viewName, final int level)  {
+		final Set<String> builtInViews = Set.of( "ui", "public", "all", "custom" );
 
-		if (level > 0) {
+		// if viewName is a builtin view, we only render public view of connected nodes
+		if (level > 0 && builtInViews.contains(viewName)) {
+
 			this.putAll(new OpenAPISchemaReference(type, PropertyView.Public));
+			return;
+
+		} else if (level > 0) {
+
+			this.putAll(new OpenAPISchemaReference(type, viewName));
 			return;
 		}
 

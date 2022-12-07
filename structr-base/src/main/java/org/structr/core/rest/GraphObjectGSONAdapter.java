@@ -65,7 +65,6 @@ public class GraphObjectGSONAdapter {
 	private int outputNestingDepth                        = 3;
 	private SecurityContext securityContext               = null;
 	private Value<String> propertyView                    = null;
-	private JsonWriter writer                             = null;
 	protected boolean compactNestedProperties             = true;
 
 	public GraphObjectGSONAdapter(Value<String> propertyView, final int outputNestingDepth) {

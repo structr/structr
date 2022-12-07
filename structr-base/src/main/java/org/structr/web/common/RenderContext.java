@@ -83,10 +83,13 @@ public class RenderContext extends ActionContext {
 	private ResourceProvider resourceProvider          = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
+	private boolean isPartialRendering                 = false;
+	private String templateRootId                      = null;
+	private String templateId                          = null;
 
 	public enum EditMode {
 
-		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES;
+		NONE, WIDGET, CONTENT, RAW, DEPLOYMENT, SHAPES, SHAPES_MINIATURES
 	}
 
 	public RenderContext(final SecurityContext securityContext) {
@@ -342,6 +345,35 @@ public class RenderContext extends ActionContext {
 
 	public boolean appLibRendered() {
 		return appLibRendered;
+	}
+
+	public void setIsPartialRendering(final boolean isPartialRendering) {
+		this.isPartialRendering = isPartialRendering;
+	}
+
+	public boolean isPartialRendering() {
+		return isPartialRendering;
+	}
+
+	public void setTemplateRootId(final String uuid) {
+		this.templateRootId = uuid;
+	}
+
+	public void setTemplateId(final String uuid) {
+		this.templateId = uuid;
+	}
+
+	public boolean isTemplateRoot(final String uuid) {
+
+		if (uuid == null) {
+			return false;
+		}
+
+		return uuid.equals(this.templateRootId);
+	}
+
+	public String getTemplateId() {
+		return this.templateId;
 	}
 
 	public Map<String, GraphObject> getDataObjectsMap() {

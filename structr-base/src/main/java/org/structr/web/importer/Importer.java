@@ -104,7 +104,7 @@ public class Importer {
 	private final boolean authVisible;
 	private CommentHandler commentHandler;
 	private boolean relativeVisibility = false;
-	private boolean withTemplate = false;
+	private boolean withTemplate       = false;
 	private boolean isDeployment       = false;
 	private Document parsedDocument    = null;
 	private final String name;
@@ -662,6 +662,7 @@ public class Importer {
 			String content                   = null;
 			String id                        = null;
 			boolean isNewTemplateOrComponent = false;
+			boolean dontSetParent            = false;
 
 			if (ignoreElementNames.contains(type)) {
 
@@ -862,6 +863,29 @@ public class Importer {
 					logger.warn("Invalid template definition, missing src attribute!");
 				}
 
+			} else if ("structr:shared-template".equals(tag)) {
+
+				final String name = node.attr("name");
+				if (StringUtils.isNotBlank(name)) {
+
+					DOMNode template = Importer.findSharedComponentByName(name);
+					if (template == null) {
+
+						newNode = createNewTemplateNode(null, node.childNodes());
+
+						isNewTemplateOrComponent = true;
+						dontSetParent            = true;
+
+						// create shared component (and nothing else) from this template
+						newNode.setOwnerDocument(CreateComponentCommand.getOrCreateHiddenDocument());
+						newNode.setProperty(AbstractNode.name, name);
+					}
+
+				} else {
+
+					logger.warn("Invalid shared template definition, missing name attribute!");
+				}
+
 			} else if ("structr:component".equals(tag)) {
 
 				final String src = node.attr("src");
@@ -935,9 +959,9 @@ public class Importer {
 				}
 
 				// container for bulk setProperties()
-				final PropertyMap newNodeProperties = new PropertyMap();
+				final PropertyMap newNodeProperties      = new PropertyMap();
 				final PropertyMap deferredNodeProperties = new PropertyMap();
-				final Class newNodeType             = newNode.getClass();
+				final Class newNodeType                  = newNode.getClass();
 
 				if (isDeployment && !relativeVisibility) {
 					newNodeProperties.put(AbstractNode.visibleToPublicUsers,        publicVisible);
@@ -1188,7 +1212,11 @@ public class Importer {
 
 						// don't do same page check or hierarchy check
 						parent.getTemporaryStorage().put("import", true);
-						parent.appendChild(newNode);
+
+						if (!dontSetParent) {
+
+							parent.appendChild(newNode);
+						}
 					}
 				}
 

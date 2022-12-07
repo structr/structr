@@ -36,7 +36,7 @@ let _Elements = {
 	elementGroups: [
 		{
 			name: 'Root',
-			elements: ['html', 'content', 'comment', 'template']
+			elements: ['html', '#content', '#comment', '#template']
 		},
 		{
 			name: 'Metadata',
@@ -227,7 +227,7 @@ let _Elements = {
 		},
 		{
 			name: 't',
-			elements: ['table', 'tbody', 'td', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track']
+			elements: ['table', 'tbody', 'td', 'template', 'textarea', 'th', 'thead', 'tfoot', 'time', 'title', 'tr', 'track']
 		},
 		{
 			name: 'u-w',
@@ -486,7 +486,7 @@ let _Elements = {
 					forcedClickHandler(itemText);
 				} else {
 					let pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
-					let tagName = (itemText === 'content') ? null : itemText;
+					let tagName = itemText;
 
 					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibilityFlagsChecked());
 				}
@@ -804,7 +804,7 @@ let _Elements = {
 		let isTemplate   = (entity.type === 'Template');
 		let name         = entity.name;
 		let displayName  = getElementDisplayName(entity);
-		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content)}</span>`);
+		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content) || '&nbsp;'}</span>`);
 
 		let icon = _Elements.getContentIcon(entity);
 		let html = `

@@ -60,7 +60,7 @@ public class HttpPostFunction extends UiAdvancedFunction {
 				contentType = sources[2].toString();
 			}
 
-			// override default content type
+			// override default charset
 			if (sources.length >= 4 && sources[3] != null) {
 				charset = sources[3].toString();
 			}

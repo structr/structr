@@ -403,7 +403,7 @@ public class HttpHelper {
 		} catch (final Throwable t) {
 
 			logger.error("Unable to issue POST request to address {}, {}", new Object[] { address, t.getMessage() });
-			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getMessage(), t);
+			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
 		}
 
 		return responseData;

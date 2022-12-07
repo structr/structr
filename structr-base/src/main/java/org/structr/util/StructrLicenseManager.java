@@ -96,7 +96,7 @@ public class StructrLicenseManager implements LicenseManager {
 	public static final String HostIdMappingKey        = "hostIdValidationAttempts";
 	public static final int ServerPort                 = 5725;
 
-	private final Set<String> communityModules          = new LinkedHashSet<>(Arrays.asList("core", "rest", "ui"));
+	private final Set<String> communityModules          = new LinkedHashSet<>(Arrays.asList("base", "core", "rest", "ui"));
 	private final Set<String> modules                   = new LinkedHashSet<>(communityModules);
 	private final Set<String> classes                   = new LinkedHashSet<>();
 	private Certificate certificate                     = null;
@@ -222,7 +222,10 @@ public class StructrLicenseManager implements LicenseManager {
 			}
 		}
 
-		if (licenseExpired(endDate)) {
+		if (endDate == null) {
+			// nothing to do - was unlicensed and still is
+
+		} else if (licenseExpired(endDate)) {
 
 			final SimpleDateFormat format = new SimpleDateFormat(DatePattern);
 

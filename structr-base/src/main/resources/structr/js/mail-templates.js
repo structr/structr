@@ -123,7 +123,10 @@ let _MailTemplates = {
 
 		_MailTemplates.listMailTemplates();
 
-		_MailTemplates.mailTemplateDetailContainer.querySelector('button.save').addEventListener('click', _MailTemplates.saveMailTemplate);
+		_MailTemplates.mailTemplateDetailForm.addEventListener('submit', (e) => {
+			e.preventDefault();
+			_MailTemplates.saveMailTemplate();
+		})
 
 		Structr.unblockMenu(100);
 
@@ -239,20 +242,24 @@ let _MailTemplates = {
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {
-			pagerData.forEach(_MailTemplates.appendMailTemplate);
+			pagerData.forEach(_MailTemplates.appendMailTemplateToList);
 		}
 	},
-	appendMailTemplate: (mailTemplate) => {
+	appendMailTemplateToList: (mailTemplate) => {
 
 		_MailTemplates.showMain();
 
 		let html = _MailTemplates.templates.typeRow({ mailTemplate: mailTemplate });
-		let row = Structr.createSingleDOMElementFromHTML(html);
+		let row  = Structr.createSingleDOMElementFromHTML(html);
 
 		_MailTemplates.populateMailTemplatePagerRow(row, mailTemplate);
 		_MailTemplates.mailTemplatesList.appendChild(row);
 
 		row.addEventListener('click', () => {
+
+			// we are re-using the UI, so dispose previous editor (in this case we only have one editor, so we can simply use the kill all method)
+			_Editors.disposeAllEditors();
+
 			_MailTemplates.selectRow(mailTemplate.id);
 			_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 		});
@@ -355,6 +362,8 @@ let _MailTemplates = {
 		let editor = _Editors.getMonacoEditor(mt, 'text', document.getElementById('mail-template-text'), mailTemplateMonacoConfig);
 		_Editors.resizeVisibleEditors();
 
+		_Editors.appendEditorOptionsElement(document.querySelector('#mail-template-editor-options'));
+
 		return editor;
 	},
 	updatePreview: (text) => {
@@ -370,7 +379,7 @@ let _MailTemplates = {
 			body: JSON.stringify(data)
 		});
 
-		let $blinkTarget = $(_MailTemplates.mailTemplateDetailContainer.querySelector('button.save'));
+		let $blinkTarget = $(_MailTemplates.mailTemplateDetailContainer.querySelector('button[type=submit]'));
 
 		if (response.ok) {
 
@@ -461,13 +470,17 @@ let _MailTemplates = {
 								<iframe id="mail-template-preview"></iframe>
 							</div>
 						</div>
-			
+
+						<div class="form-row justify-between">
+							<div id="mail-template-editor-options">
+							</div>
+
+							<button type="submit" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+							</button>
+						</div>
+
 					</form>
-					<div class="actions">
-						<button class="inline-flex items-center save hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
-						</button>
-					</div>
 				</div>
 			</div>
 		`,

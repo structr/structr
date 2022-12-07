@@ -21,6 +21,7 @@ package org.structr.web.entity.dom;
 import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,12 +54,15 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.common.AsyncBuffer;
 import org.structr.web.common.EventContext;
 import org.structr.web.common.HtmlProperty;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
+import org.structr.web.entity.event.ActionMapping;
+import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.entity.html.Input;
 import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
@@ -67,6 +71,7 @@ import org.structr.web.function.ReplaceDOMChildFunction;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
+import javax.swing.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -74,6 +79,7 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.structr.web.entity.html.TemplateElement;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -88,8 +94,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static class Impl { static {
 
-		final JsonSchema schema       = SchemaService.getDynamicSchema();
-		final JsonObjectType type     = schema.addType("DOMElement");
+		final JsonSchema schema            = SchemaService.getDynamicSchema();
+		final JsonObjectType type          = schema.addType("DOMElement");
+		final JsonObjectType actionMapping = schema.addType("ActionMapping");
 
 		//type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/DOMElement"));
@@ -183,11 +190,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addBooleanProperty("data-structr-manual-reload-target", PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Identifies this element as a manual reload target, this is necessary when using repeaters as reload targets.");
 		type.addStringProperty("eventMapping",                       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("A mapping between the desired Javascript event (click, drop, dragOver, ...) and the server-side event that should be triggered: (create | update | delete | <method name>).");
 		type.addPropertyGetter("eventMapping", String.class);
-		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
-		type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
 		type.addViewProperty("_html_name", PropertyView.Ui);
-		type.addViewProperty(PropertyView.Ui, "actionElement");
-		type.addViewProperty(PropertyView.Ui, "inputs");
+		type.relate(type, "RELOADS",   Cardinality.ManyToMany, "reloadSources",     "reloadTargets");
+
+		// old relationships between action element (typically Button) and inputs (typically Input or Select elements)
+		//type.relate(type, "INPUTS",   Cardinality.OneToMany,   "actionElement",     "inputs");
+		//type.addViewProperty(PropertyView.Ui, "actionElement");
+		//type.addViewProperty(PropertyView.Ui, "inputs");
+
+		// new event action mapping, moved to ActionMapping node
+		type.addViewProperty(PropertyView.Ui, "triggeredActions");
 
 		// attributes for lazy rendering
 		type.addStringProperty("data-structr-rendering-mode",       PropertyView.Ui).setCategory(EDIT_MODE_BINDING_CATEGORY).setHint("Rendering mode, possible values are empty (default for eager rendering), 'load' to render when the DOM document has finished loading, 'delayed' like 'load' but with a fixed delay, 'visible' to render when the element comes into view and 'periodic' to render the element with periodic updates with a given interval");
@@ -202,7 +214,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		type.addStringProperty("_html_draggable", PropertyView.Html);
 		type.addStringProperty("_html_dropzone", PropertyView.Html);
 		type.addStringProperty("_html_hidden", PropertyView.Html);
-		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui);
+		type.addStringProperty("_html_id", PropertyView.Html, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("_html_lang", PropertyView.Html);
 		type.addStringProperty("_html_spellcheck", PropertyView.Html);
 		type.addStringProperty("_html_style", PropertyView.Html);
@@ -346,23 +358,34 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	default Object event(final SecurityContext securityContext, final java.util.Map<String, java.lang.Object> parameters) throws FrameworkException {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
-		final EventContext eventContext   = new EventContext();
-		String action                     = (String)parameters.get("htmlEvent");
+		final EventContext  eventContext  = new EventContext();
+		final String        event         = (String) parameters.get("htmlEvent");
+		final String        action;
 
-		if (action == null) {
+		if (event == null) {
 			throw new FrameworkException(422, "Cannot execute action without event name (htmlEvent property).");
 		}
 
-		// parse event mapping property on this node and determine event type
-		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
-		if (eventMapping != null) {
+		ActionMapping triggeredAction;
 
-			final Map<String, Object> mapping = getMappedEvents();
-			if (mapping != null) {
-
-				action = (String)mapping.get(action);
-			}
+		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
+		if (triggeredActions != null && !triggeredActions.isEmpty()) {
+			triggeredAction = triggeredActions.get(0);
+			action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
+		} else {
+			throw new FrameworkException(422, "Cannot execute action without action defined on this DOMElement: " + this);
 		}
+
+		// parse event mapping property on this node and determine event type
+//		final String eventMapping = getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+//		if (eventMapping != null) {
+//
+//			final Map<String, Object> mapping = getMappedEvents();
+//			if (mapping != null) {
+//
+//				event = (String)mapping.get(event);
+//			}
+//		}
 
 		// first thing to do: remove ID from parameters since it is only used to identify this element as event target
 		parameters.remove("id");
@@ -400,12 +423,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			case "open-tree-item":
 			case "close-tree-item":
 			case "toggle-tree-item":
-				handleTreeAction(actionContext, parameters, eventContext, action);
+				handleTreeAction(actionContext, parameters, eventContext, event);
 				break;
 
+			case "method":
 			default:
+				final String method = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "method"));
 				// execute custom method (and return the result directly)
-				return handleCustomAction(actionContext, parameters, eventContext, action);
+				return handleCustomAction(actionContext, parameters, eventContext, method != null ? method : action);
 		}
 
 		return eventContext;
@@ -488,6 +513,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final String dataTarget               = (String)parameters.get("structrTarget");
 
+
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
@@ -534,10 +560,27 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
 
-		final String dataTarget = (String)parameters.get("structrTarget");
+		// Support old and new parameters
+		final String idExpression = (String) parameters.get("structrIdExpression");
+		final String dataTarget = idExpression != null ? idExpression : (String) parameters.get("structrTarget");
+
 		if (dataTarget == null) {
 
-			throw new FrameworkException(422, "Cannot execute event without target (data-structr-target attribute).");
+			if ("method".equals(action)) {
+
+				final String methodName = (String) parameters.get("structrMethod");
+				parameters.remove("structrMethod");
+				parameters.remove("structrAction");
+				parameters.remove("structrEvent");
+				parameters.remove("htmlEvent");
+				return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
+
+			}
+
+			// call global schema method
+			//return invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
+			//throw new FrameworkException(422, "Cannot execute action without target (data-structr-target attribute).");
+
 		}
 
 		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
@@ -1082,7 +1125,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			out.append("<").append(tag);
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Class type = thisElement.getEntityType();
+			final Class type  = thisElement.getEntityType();
+			final String uuid = thisElement.getUuid();
 
 			final List<PropertyKey> htmlAttributes = new ArrayList<>();
 
@@ -1141,7 +1185,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					final boolean isFromWidget = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-from-widget"));
 
 					if (isInsertable || isFromWidget) {
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 					break;
 
@@ -1157,7 +1201,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						}
 					}
 
-					out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					out.append(" data-structr-id=\"").append(uuid).append("\"");
 					break;
 
 				case RAW:
@@ -1168,7 +1212,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				case WIDGET:
 				case DEPLOYMENT:
 
-					final String eventMapping = (String)thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
+					final String eventMapping = (String) thisElement.getProperty(StructrApp.key(DOMElement.class, "eventMapping"));
 					if (eventMapping != null) {
 
 						out.append(" ").append("data-structr-meta-event-mapping").append("=\"").append(StringEscapeUtils.escapeHtml(eventMapping)).append("\"");
@@ -1177,87 +1221,179 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case NONE:
 
-					// simple interactive elements include their own UUID when enabled
-					final Map<String, Object> mapping = thisElement.getMappedEvents();
-					if (mapping != null) {
+					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) thisElement.getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
+					if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
-						out.append(" data-structr-events=\"").append(StringUtils.join(mapping.keySet(), ",")).append("\"");
+						final ActionMapping triggeredAction = triggeredActions.get(0);
 
-						final PropertyKey<String> targetKey = StructrApp.key(DOMElement.class, "data-structr-target");
-						final String parameterName          = thisElement.getProperty(targetKey);
+						// Support for legacy action mapping (simple interactive elements)
+						// ensure backwards compatibility with frontend.js before switch to new persistence model
+						if (StringUtils.isNotBlank(uuid)) {
+							out.append(" data-structr-id=\"").append(uuid).append("\"");
+						}
+						String eventsString = null;
+						final Map<String, Object> mapping = thisElement.getMappedEvents();
+						if (mapping != null) {
+							eventsString = StringUtils.join(mapping.keySet(), ",");
+						}
 
-						if (parameterName != null) {
-
-							final String clickMapping  = (String)mapping.get("click");
-							if (clickMapping != null) {
-
-								final String value = renderContext.getRequestParameter(parameterName);
-
-								// special handling for pagination
-								switch (clickMapping) {
-
-									case "previous-page":
-										final int prev = DOMElement.intOrOne(value);
-										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
-										break;
-
-									case "next-page":
-										final int next = DOMElement.intOrOne(value);
-										out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
-										break;
-
-									case "first-page":
-										out.append(" data-").append(parameterName).append("=\"1\"");
-										break;
-
-									case "last-page":
-										// should we really count all objects?
-										out.append(" data-").append(parameterName).append("=\"1000\"");
-										break;
-
-									default:
-										break;
-								}
+						// append all stored action mapping keys as data-structr-<key> attributes
+						for (final String key : new String[] { "event", "action", "method", "dataType", "idExpression" }) {
+							final String value = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, key));
+							if (StringUtils.isNotBlank(value)) {
+								final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
+								out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
 							}
-
-							// toggle-tree-item
-							if (mapping.containsValue("toggle-tree-item")) {
-
-								final String targetValue = thisElement.getPropertyWithVariableReplacement(renderContext, targetKey);
-								final String key         = thisElement.getTreeItemSessionIdentifier(targetValue);
-								final boolean open       = thisElement.getSessionAttribute(renderContext.getSecurityContext(), key) != null;
-
-								out.append(" data-tree-item-state=\"").append(open ? "open" : "closed").append("\"");
+							if (key.equals("event")) {
+								eventsString = (String) value;
 							}
 						}
 
-						for (DOMElement element : (Iterable<? extends DOMElement>) thisElement.getProperty(StructrApp.key(DOMElement.class, "inputs"))) {
-
-							String nameAttribute = null;
-
-							if (element instanceof Input) {
-
-								element = (Input) element;
-								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Input.class, "_html_name"));
-
-							} else if (element instanceof Select) {
-
-								element = (Select) element;
-								nameAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Select.class, "_html_name"));
-							}
-
-							final String cssIdAttribute = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
-
-							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, nameAttribute);
-
-							out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(cssIdAttribute).append(")\"");
+						if (eventsString != null) {
+							out.append(" data-structr-events=\"").append(eventsString).append("\"");
 						}
 
+						// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
+						final String successBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour"));
+						final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successPartial"));
+						final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successURL"));
+						final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successEvent"));
+
+						String reloadTargetString = null;
+
+						if (StringUtils.isNotBlank(successBehaviour)) {
+
+							switch (successBehaviour) {
+								case ("partial-refresh"):
+									reloadTargetString = successPartial;
+									break;
+								case ("navigate-to-url"):
+									reloadTargetString = "url:" + successURL;
+									break;
+								case ("fire-event"):
+									reloadTargetString = "event:" + successEvent;
+									break;
+								case ("full-page-reload"):
+								default:
+									reloadTargetString = null;
+							}
+						}
+
+						final String idExpression = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "idExpression"));
+						if (StringUtils.isNotBlank(idExpression)) {
+							out.append(" data-structr-target=\"").append(idExpression).append("\"");
+						}
+
+						final String action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
+						if ("create".equals(action)) {
+							final String dataType = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "dataType"));
+							if (StringUtils.isNotBlank(dataType)) {
+								out.append(" data-structr-target=\"").append(dataType).append("\"");
+							}
+						}
+
+						if (StringUtils.isNotBlank(reloadTargetString)) {
+							out.append(" data-structr-reload-target=\"").append(reloadTargetString).append("\"");
+						}
+
+						// TODO: Implement failure handling
+						// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
+//						final String failureBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"));
+//						final String failurePartial   = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failurePartial"));
+//						final String failureURL       = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureURL"));
+//						final String failureEvent     = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureEvent"));
+
+//						{ // TODO: Migrate tree handling to new action mapping
+//							// toggle-tree-item
+//							if (mapping.containsValue("toggle-tree-item")) {
+//
+//								final String targetValue = thisElement.getPropertyWithVariableReplacement(renderContext, targetKey);
+//								final String key = thisElement.getTreeItemSessionIdentifier(targetValue);
+//								final boolean open = thisElement.getSessionAttribute(renderContext.getSecurityContext(), key) != null;
+//
+//								out.append(" data-tree-item-state=\"").append(open ? "open" : "closed").append("\"");
+//							}
+//						}
+
+
+						// TODO: Add support for multiple triggered actions.
+						//  At the moment, backend and frontend code only support one triggered action,
+						// even though the data model has a ManyToMany rel between triggerElements and triggeredActions
+						for (final ParameterMapping parameterMapping : (Iterable<? extends ParameterMapping>) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "parameterMappings"))) {
+
+							final String parameterType = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType"));
+							final String parameterName = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName"));
+							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
+
+							switch (parameterType) {
+
+								case "user-input":
+									final DOMElement element   = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement"));
+									if (element != null) {
+										final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
+										out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(elementCssId != null ? elementCssId : parameterName).append(")\"");
+									}
+									break;
+
+								case "constant-value":
+									final String constantValue = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue"));
+									// Could be 'json(...)' or a simple value
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(constantValue).append("\"");
+									break;
+
+								case "script-expression":
+									final String scriptExpression = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "scriptExpression"));
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(scriptExpression).append("\"");
+									break;
+
+								case "page-param":
+									// Name of the request parameter for pager 'page'
+									final String value = renderContext.getRequestParameter(parameterName);
+									// special handling for pagination (migrated code)
+									switch (action) {
+
+										case "prev-page":
+										case "previous-page":
+											out.append(" data-structr-target=\"").append(parameterName).append("\"");
+											final int prev = DOMElement.intOrOne(value);
+											out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(Math.max(1, prev - 1))).append("\"");
+											break;
+
+										case "next-page":
+											out.append(" data-structr-target=\"").append(parameterName).append("\"");
+											final int next = DOMElement.intOrOne(value);
+											out.append(" data-").append(parameterName).append("=\"").append(String.valueOf(next + 1)).append("\"");
+											break;
+
+										case "first-page":
+											out.append(" data-structr-target=\"").append(parameterName).append("\"");
+											out.append(" data-").append(parameterName).append("=\"1\"");
+											break;
+
+										case "last-page":
+											// should we really count all objects?
+											out.append(" data-structr-target=\"").append(parameterName).append("\"");
+											out.append(" data-").append(parameterName).append("=\"1000\"");
+											break;
+
+										default:
+											break;
+									}
+
+									break;
+								case "pagesize-param":
+									// TODO: Implement additional parameter for page size
+									// Name of the request parameter for pager 'pageSize'
+									break;
+
+								default:
+
+							}
+						}
 
 					} else if (isReloadTarget(thisElement)) {
 
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 
 						// make current object ID available in reload targets
 						final GraphObject current = renderContext.getDetailsDataObject();
@@ -1289,13 +1425,21 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
-					}
 
-					final String renderingMode = thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"));
-					if (renderingMode != null) {
-						out.append(" data-structr-id=\"").append(thisElement.getUuid()).append("\"");
+					} else if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
+
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
 
+					} else if (renderContext.isTemplateRoot(uuid)) {
+
+						// render template ID into output so it can be re-used
+						out.append(" data-structr-template-id=\"").append(renderContext.getTemplateId()).append("\"");
+
+					} else if (thisElement instanceof TemplateElement) {
+
+						// render template ID into output so it can be re-used
+						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 
 					break;
@@ -1662,11 +1806,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	public static boolean isReloadTarget(final DOMElement thisElement) {
 
-		final PropertyKey<Boolean> isManualReloadTargetKey       = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
-		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey = StructrApp.key(DOMElement.class, "reloadSources");
-		final List<DOMElement> reloadSources                     = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
+		final PropertyKey<Boolean> isManualReloadTargetKey          = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
+		final boolean isManualReloadTarget                          = thisElement.getProperty(isManualReloadTargetKey);
 
-		return thisElement.getProperty(isManualReloadTargetKey) || !reloadSources.isEmpty();
+		final PropertyKey<Iterable<DOMElement>> reloadSourcesKey    = StructrApp.key(DOMElement.class, "reloadSources");
+		final List<DOMElement> reloadSources                        = Iterables.toList(thisElement.getProperty(reloadSourcesKey));
+
+		final PropertyKey<Iterable<DOMNode>> reloadingActionsKey = StructrApp.key(DOMNode.class, "reloadingActions");
+		final List<DOMNode> reloadingActions                     = Iterables.toList(thisElement.getProperty(reloadingActionsKey));
+
+		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty();
 	}
 
 	private static int intOrOne(final String source) {
