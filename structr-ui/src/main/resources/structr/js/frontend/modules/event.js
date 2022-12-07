@@ -29,6 +29,6 @@ export class Handler {
 		// remove prefix "event:"
 		let event = reloadTarget.substring(6);
 
-		element.dispatchEvent(new CustomEvent(event, { detail: { result: parameters, status: status } }));
+		element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameters, status: status, element: element } }));
 	}
 }
