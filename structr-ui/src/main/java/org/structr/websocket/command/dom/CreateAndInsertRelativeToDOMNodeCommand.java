@@ -18,6 +18,7 @@
  */
 package org.structr.websocket.command.dom;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
@@ -26,7 +27,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
@@ -34,7 +34,7 @@ import org.w3c.dom.Document;
 
 import java.util.Map;
 
-public class CreateAndInsertRelativeToDOMNodeCommand extends AbstractCommand {
+public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(CreateAndInsertRelativeToDOMNodeCommand.class.getName());
 
@@ -52,17 +52,24 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends AbstractCommand {
 
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String pageId                  = webSocketData.getPageId();
-		final String nodeId                  = (String) nodeData.remove("nodeId");
-		final Boolean inheritVisibilityFlags = (Boolean) nodeData.remove("inheritVisibilityFlags");
 		final String tagName                 = (String) nodeData.remove("tagName");
+		final String childContent            = (String) nodeData.get("childContent");
+		final String nodeId                  = (String) nodeData.remove("nodeId");
+		final Boolean inheritVisibilityFlags = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
+		final Boolean inheritGrantees        = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
 		final String relativePosition        = (String) nodeData.remove("relativePosition");
 		final RelativePosition position;
+
+		// remove configuration elements from the nodeData so we don't set it on the node
+		nodeData.remove("childContent");
+		nodeData.remove("inheritVisibilityFlags");
+		nodeData.remove("inheritGrantees");
 
 		try {
 
 			position = RelativePosition.valueOf(relativePosition);
 
-		} catch(IllegalArgumentException iae) {
+		} catch (final IllegalArgumentException iae) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
 			return;
@@ -164,15 +171,29 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends AbstractCommand {
 
 				if (inheritVisibilityFlags) {
 
-					PropertyMap visibilityFlags = new PropertyMap();
-					visibilityFlags.put(DOMNode.visibleToAuthenticatedUsers, parentNode.getProperty(DOMNode.visibleToAuthenticatedUsers));
-					visibilityFlags.put(DOMNode.visibleToPublicUsers, parentNode.getProperty(DOMNode.visibleToPublicUsers));
+					copyVisibilityFlags(parentNode, newNode);
+				}
 
-					try {
-						newNode.setProperties(newNode.getSecurityContext(), visibilityFlags);
-					} catch (FrameworkException fex) {
+				if (inheritGrantees) {
 
-						logger.warn("Unable to inherit visibility flags for node {} from parent node {}", newNode, parentNode);
+					copyGrantees(parentNode, newNode);
+				}
+
+				// create a child text node if content is given
+				if (StringUtils.isNotBlank(childContent)) {
+
+					final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
+
+					newNode.appendChild(childNode);
+
+					if (inheritVisibilityFlags) {
+
+						copyVisibilityFlags(parentNode, childNode);
+					}
+
+					if (inheritGrantees) {
+
+						copyGrantees(parentNode, childNode);
 					}
 				}
 			}
@@ -187,5 +208,10 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends AbstractCommand {
 	@Override
 	public String getCommand() {
 		return "CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE";
+	}
+
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
 	}
 }

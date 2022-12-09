@@ -305,8 +305,6 @@ let _Dragndrop = {
 //					_Pages.reloadPreviews();
 // 					console.log('reload preview?');
 				});
-			} else {
-				return _Dragndrop.htmlElementFromPaletteDropped(tag, target, pageId);
 			}
 
 		} else {
@@ -326,20 +324,6 @@ let _Dragndrop = {
 				return true;
 			}
 		}
-	},
-	htmlElementFromPaletteDropped: function(tag, target, pageId) {
-		let nodeData = _Dragndrop.getAdditionalDataForElementCreation(tag, target.tag);
-
-		if (target.type !== 'Template' && (target.isContent || target.type === 'Comment')) {
-			if (tag === 'content' || tag === 'comment') {
-				// content element dropped on content or comment, doing nothing
-			} else {
-				Command.wrapContent(pageId, target.id, tag);
-			}
-		} else {
-			Command.createAndAppendDOMNode(pageId, target.id, tag !== 'content' ? tag : '', nodeData);
-		}
-		return false;
 	},
 	getAdditionalDataForElementCreation:function(tag, parentTag) {
 		let nodeData = {};

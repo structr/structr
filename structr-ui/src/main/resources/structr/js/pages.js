@@ -219,20 +219,20 @@ let _Pages = {
 		const isContent          = (entity.type === 'Content');
 		const hasChildren        = (entity.children && entity.children.length > 0);
 
-		let handleInsertHTMLAction = function (itemText) {
+		let handleInsertHTMLAction = (itemText) => {
 			let pageId = isPage ? entity.id : entity.pageId;
 			let tagName = itemText;
 
-			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked());
+			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
 
-		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'Before', _Elements.isInheritVisibilityFlagsChecked()); };
-		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, 'After', _Elements.isInheritVisibilityFlagsChecked()); };
+		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
+		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
 		let handleWrapInHTMLAction   = (itemText) => {
 
 			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
 
-			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked());
+			Command.wrapDOMNodeInNewDOMNode(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
@@ -266,7 +266,7 @@ let _Pages = {
 			elements.push({
 				name: 'Insert div element',
 				clickHandler: function () {
-					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked());
+					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 					return false;
 				}
 			});
@@ -2444,38 +2444,6 @@ let _Pages = {
 			_Pages.designTools.sourceEditor = monaco.editor.create(sourceEditorArea, sourceEditorConfig);
 
 		}
-	},
-
-	palette: {
-		reload: () => {
-
-			let newPalette = Structr.createSingleDOMElementFromHTML('<div id="paletteArea"></div>');
-
-			for (let group of _Elements.elementGroups) {
-
-				let groupDiv = Structr.createSingleDOMElementFromHTML('<div class="elementGroup" id="group_' + group.name + '"><h3>' + group.name + '</h3></div>');
-				newPalette.appendChild(groupDiv);
-
-				for (let elem of group.elements) {
-
-					let elemDiv = Structr.createSingleDOMElementFromHTML('<div class="draggable element" id="add_' + elem + '">' + elem + '</div>');
-					groupDiv.appendChild(elemDiv);
-				}
-			}
-
-			let oldPalette = _Pages.paletteSlideout[0].querySelector('#paletteArea');
-			oldPalette.replaceWith(newPalette);
-
-			$('.draggable.element', _Pages.paletteSlideout).draggable({
-				iframeFix: true,
-				revert: 'invalid',
-				containment: 'body',
-				helper: 'clone',
-				appendTo: '#main',
-				stack: '.node',
-				zIndex: 99
-			});
-		},
 	},
 
 	sharedComponents: {

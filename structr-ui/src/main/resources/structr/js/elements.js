@@ -488,7 +488,7 @@ let _Elements = {
 					let pageId = (entity.type === 'Page') ? entity.id : entity.pageId;
 					let tagName = itemText;
 
-					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibilityFlagsChecked());
+					Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 				}
 
 				_Elements.removeContextMenu();
@@ -623,8 +623,11 @@ let _Elements = {
 
 		repositionMenu();
 	},
-	isInheritVisibilityFlagsChecked: function () {
+	isInheritVisibilityFlagsChecked: () => {
 		return UISettings.getValueForSetting(UISettings.pages.settings.inheritVisibilityFlagsKey);
+	},
+	isInheritGranteesChecked: () => {
+		return UISettings.getValueForSetting(UISettings.pages.settings.inheritGranteesKey);
 	},
 	removeContextMenu: function() {
 		$('#add-child-dialog').remove();

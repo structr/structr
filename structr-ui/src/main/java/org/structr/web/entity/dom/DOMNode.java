@@ -707,9 +707,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			final PropertyMap properties = new PropertyMap();
 
-			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Ui).iterator(); it.hasNext();) {
-
-				final PropertyKey key = it.next();
+			for (final PropertyKey key : thisNode.getPropertyKeys(PropertyView.Ui)) {
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
@@ -723,9 +721,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 			// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
-			for (Iterator<PropertyKey> it = thisNode.getPropertyKeys(PropertyView.Html).iterator(); it.hasNext();) {
-
-				final PropertyKey key = it.next();
+			for (final PropertyKey key : thisNode.getPropertyKeys(PropertyView.Html)) {
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
@@ -738,9 +734,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			}
 
 			// also clone data-* attributes
-			for (Iterator<PropertyKey> it = thisNode.getDataPropertyKeys().iterator(); it.hasNext();) {
-
-				final PropertyKey key = it.next();
+			for (final PropertyKey key : thisNode.getDataPropertyKeys()) {
 
 				// skip blacklisted properties
 				if (cloneBlacklist.contains(key.jsonName())) {
@@ -757,13 +751,18 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 				final LinkSource linkSourceElement = (LinkSource)thisNode;
 
 				properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
-
 			}
 
 			final App app = StructrApp.getInstance(securityContext);
 
 			try {
-				return app.create(thisNode.getClass(), properties);
+
+				final DOMNode clone = app.create(thisNode.getClass(), properties);
+
+				// for clone, always copy permissions
+				thisNode.copyPermissionsTo(securityContext, clone, true);
+
+				return clone;
 
 			} catch (FrameworkException ex) {
 
