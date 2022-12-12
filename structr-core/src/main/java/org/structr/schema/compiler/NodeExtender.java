@@ -209,7 +209,7 @@ public class NodeExtender {
 
 				SourceLine line = null;
 
-				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in realtiy)
+				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in reality)
 				int lineCount = 0;
 				for (SourceLine sl : code) {
 
@@ -239,17 +239,20 @@ public class NodeExtender {
 						logger.error("code source: {} of type {} name {}", source.getUuid(), source.getClass().getSimpleName(), source.getName());
 					}
 
-					for (int i = errorLineNumber - 3; i < errorLineNumber + 3; i++) {
+					final int contextLines   = 3;
+					final String[] codeLines = sourceFile.getContent().split("\n");
 
-						if (inRange(i, size)) {
+					for (int i = errorLineNumber - contextLines; i < errorLineNumber + contextLines; i++) {
+
+						if (codeLines.length > i) {
 
 							String prefix = "  ";
 
-							if (i == errorLineNumber-1) {
+							if (i == errorLineNumber - 1) {
 								prefix = "> ";
 							}
 
-							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + code.get(i));
+							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + codeLines[i]);
 						}
 					}
 				}
