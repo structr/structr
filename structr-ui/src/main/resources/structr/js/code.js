@@ -646,10 +646,6 @@ let _Code = {
 								query:   { isBuiltinType: false },
 								content: 'custom',
 								path:    '/root/custom',
-								/*
-                                key: 'SchemaPackage',
-                                query: { parentPackage: null },
-                                */
 							},
 						},
 						{
@@ -823,30 +819,6 @@ let _Code = {
 								key:     'workingset',
 								id:      entity.id,
 								content: 'workingset',
-								path:    path + '/' + entity.id
-							},
-						});
-
-						break;
-					}
-
-					case 'SchemaPackage': {
-
-						list.push({
-							id:       path + '/' + entity.id,
-							text:     entity.name,
-							children: (entity.childPackages.length + entity.classesInPackage.length) > 0,
-							icon:     _Icons.jstree_fake_icon,
-							li_attr:  { 'data-id': entity.id },
-							data: {
-								svgIcon:   _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
-								key:       'loadmultiple', /* special key that selects a different query function for contents */
-								id:        entity.id,
-								queries:   [
-									{ type: 'SchemaPackage', query: { parentPackage: entity.id }},
-									{ type: 'SchemaNode',    query: { inPackage: entity.id }}
-								],
-								content: entity.type,
 								path:    path + '/' + entity.id
 							},
 						});
@@ -1364,11 +1336,7 @@ let _Code = {
 					break;
 
 				case 'custom':
-					_Code.displayCustomTypesContent();
-					break;
-
-				case 'SchemaPackage':
-					_Code.displayPackageContent(data);
+					_Code.displayCustomTypesContent(data);
 					break;
 
 				case 'builtin':
@@ -2047,18 +2015,38 @@ let _Code = {
 				}
 			}
 		}
+	},
+	displayCustomTypesContent: (data) => {
 
-	},
-	displayCustomTypesContent: () => {
-		_Code.codeContents.append(_Code.templates.custom());
-		_Code.activateCreateTypeOrPackageButton('#create_package', '#type-name', { type: 'SchemaPackage' });
-		_Code.activateCreateTypeOrPackageButton('#create_type',    '#type-name', { type: 'SchemaNode' });
-	},
-	displayPackageContent: (data) => {
-		Command.get(data.id, null, (entity) => {
-			_Code.codeContents.append(_Code.templates.package({ package: entity }));
-			_Code.activateCreateTypeOrPackageButton('#create_package', '#type-name', { type: 'SchemaPackage', parentPackage: entity.id });
-			_Code.activateCreateTypeOrPackageButton('#create_type',    '#type-name', { type: 'SchemaNode',    inPackage: entity.id });
+		_Code.codeContents.append(_Code.templates.customTypes());
+
+		let createTypeForm = document.querySelector('#create-type-form');
+		let typeNameInput  = document.querySelector('#type-name');
+
+		createTypeForm.addEventListener('submit', e => {
+
+			e.preventDefault();
+
+			let newTypeData = {
+				type: 'SchemaNode',
+				name: typeNameInput.value
+			};
+
+			if (newTypeData.name === '') {
+
+				blinkRed(typeNameInput);
+
+			} else {
+
+				_Code.showSchemaRecompileMessage();
+
+				Command.create(newTypeData, (entity) => {
+
+					_Code.refreshNode(data.path);
+					_Code.handleSelection(data);
+					_Code.hideSchemaRecompileMessage();
+				});
+			}
 		});
 	},
 	displayWorkingSetsContent: () => {
@@ -2497,67 +2485,9 @@ let _Code = {
 			}).on('change', changeFn).chosenSortable(changeFn);
 		});
 	},
-	activateCreateDialog: (suffix, presetValue, nodeData, elHtml) => {
-
-		let button = $('button#action-button-' + suffix);
-
-		let revertFunction = () => {
-			button.replaceWith(elHtml);
-			_Code.activateCreateDialog(suffix, presetValue, nodeData, elHtml);
-		};
-
-		button.on('click.create-object-' + suffix, () => {
-
-			button.off('click');
-			button.addClass('action-button-open');
-
-			button.append(_Code.templates.createObjectForm({ value: presetValue, suffix: suffix }));
-			$('#new-object-name-' + suffix).focus();
-			$('#new-object-name-' + suffix).on('keyup', (e) => {
-				if (e.keyCode === 27) { revertFunction(); }
-				if (e.keyCode === 13) { $('#create-button-' + suffix).click(); }
-			});
-			button.off('click.create-object-' + suffix);
-
-			$('#cancel-button-' + suffix).on('click', revertFunction);
-
-			$('#create-button-' + suffix).on('click', () => {
-				let data = Object.assign({}, nodeData);
-				data['name'] = $('#new-object-name-' + suffix).val();
-				_Code.showSchemaRecompileMessage();
-				Command.create(data, () => {
-					_Code.refreshTree();
-					_Code.clearMainArea();
-					_Code.displayCustomTypesContent();
-					_Code.hideSchemaRecompileMessage();
-				});
-			});
-		});
-	},
 	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
 
-		let typeNameInput       = document.querySelector(inputSelector);
-		let createNewTypeButton = document.querySelector(buttonSelector);
 
-		createNewTypeButton.addEventListener('click', e => {
-
-			data.name = typeNameInput.value;
-
-			_Code.showSchemaRecompileMessage();
-
-			Command.create(data, (entity) => {
-				_Code.refreshTree();
-				_Code.clearMainArea();
-				_Code.displayCustomTypesContent();
-				_Code.hideSchemaRecompileMessage();
-				//window.setTimeout(() => _Code.findAndOpenNode(data.path + '/' + entity.id, false), 1000);
-			});
-		});
-	},
-	displaySvgCreateButton: (targetId, iconSvg, suffix, name, presetValue, createData) => {
-		let html = _Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name });
-		$(targetId).append(html);
-		_Code.activateCreateDialog(suffix, presetValue, createData, html);
 	},
 	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
 
@@ -2568,9 +2498,6 @@ let _Code = {
 		targetNode.appendChild(button);
 
 		return button;
-	},
-	displayCreateTypeButton: (targetId, packageId ) => {
-		_Code.displaySvgCreateButton(targetId, _Icons.getSvgIcon('magic_wand', 14, 14, ''), 'create-type', 'Create new type', '', { type: 'SchemaNode', inPackage: packageId });
 	},
 	getEditorModeForContent: (content) => {
 		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
@@ -2999,49 +2926,17 @@ let _Code = {
 				</button>
 			</div>
 		`,
-		package: config => `
-			<h2>Package ${config.package.packageName}</h2>
-			<div class="mb-4">
-				<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type or package" autocomplete="off">
-				<div id="types-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus')}
+		customTypes: config => `
+			<h2>Custom Types</h2>
+			<form id="create-type-form">
+				<div class="flex mb-4">
+					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type name" autocomplete="off" required>
+	
+					<button type="submit" class="create-form-button accept flex items-center px-3 py-1">
+						${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green')}
 					</button>
-					<div class="dropdown-menu-container">
-
-						<div class="flex flex-col divide-x-0 divide-y">
-							<a id="create_package" title="Create Package" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Package
-							</a>
-							<a id="create_type" title="Create Type" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Type
-							</a>
-						</div>
-					</div>
 				</div>
-			</div>
-		`,
-		custom: config => `
-			<h2>Custom types</h2>
-			<div class="mb-4">
-				<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type or package" autocomplete="off">
-				<div id="types-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('circle_plus')}
-					</button>
-					<div class="dropdown-menu-container">
-
-						<div class="flex flex-col divide-x-0 divide-y">
-							<a id="create_package" title="Create Package" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Package
-							</a>
-							<a id="create_type" title="Create Type" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-								${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Type
-							</a>
-						</div>
-					</div>
-				</div>
-			</div>
+			</form>
 		`,
 		cypherProperty: config => `
 			<h2>CypherProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
