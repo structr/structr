@@ -562,7 +562,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		// Support old and new parameters
 		final String idExpression = (String) parameters.get("structrIdExpression");
-		final String dataTarget = idExpression != null ? idExpression : (String) parameters.get("structrTarget");
+		final String structrTarget = (String) parameters.get("structrTarget");
+		final String dataTarget = structrTarget != null ? structrTarget : idExpression;
 
 		if (dataTarget == null) {
 
