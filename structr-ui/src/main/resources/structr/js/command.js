@@ -707,6 +707,29 @@ let Command = {
 		return StructrWS.sendObj(obj);
 	},
 	/**
+	 * Send a REPLACE_WITH command to the server.
+	 *
+	 * The server will create a new DOM node with the given tag name and
+	 * replace the current node with the newly created node, copying all
+	 * the attributes etc.
+	 *
+	 */
+	replaceWith: (pageId, nodeId, tagName, attributes, inheritVisibilityFlags, inheritGrantees, callback) => {
+		let obj = {
+			command: 'REPLACE_WITH',
+			pageId: pageId,
+			data: {
+				nodeId: nodeId,
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				inheritGrantees: (inheritGrantees || false)
+			}
+		};
+
+		$.extend(obj.data, attributes);
+		return StructrWS.sendObj(obj, callback);
+	},
+	/**
 	 * Send a WRAP_DOM_NODE command to the server.
 	 *
 	 * The server will create a new DOM node with the given tag name and

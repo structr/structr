@@ -771,6 +771,82 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		}
 	}
 
+	public static void copyAllAttributes(final DOMNode sourceNode, final DOMNode targetNode) {
+
+		final SecurityContext securityContext = sourceNode.getSecurityContext();
+		final PropertyMap properties          = new PropertyMap();
+
+		for (final PropertyKey key : sourceNode.getPropertyKeys(PropertyView.Ui)) {
+
+			// skip blacklisted properties
+			if (cloneBlacklist.contains(key.jsonName())) {
+				continue;
+			}
+
+			// skip tagName, otherwise the target node will have mismatching type and tag
+			if ("tag".equals(key.jsonName())) {
+				continue;
+			}
+
+			if (!key.isUnvalidated()) {
+				properties.put(key, sourceNode.getProperty(key));
+			}
+		}
+
+		// htmlView is necessary for the cloning of DOM nodes - otherwise some properties won't be cloned
+		for (final PropertyKey key : sourceNode.getPropertyKeys(PropertyView.Html)) {
+
+			// skip blacklisted properties
+			if (cloneBlacklist.contains(key.jsonName())) {
+				continue;
+			}
+
+			// skip tagName, otherwise the target node will have mismatching type and tag
+			if ("tag".equals(key.jsonName())) {
+				continue;
+			}
+
+			if (!key.isUnvalidated()) {
+				properties.put(key, sourceNode.getProperty(key));
+			}
+		}
+
+		// also clone data-* attributes
+		for (final PropertyKey key : sourceNode.getDataPropertyKeys()) {
+
+			// skip blacklisted properties
+			if (cloneBlacklist.contains(key.jsonName())) {
+				continue;
+			}
+
+			if (!key.isUnvalidated()) {
+				properties.put(key, sourceNode.getProperty(key));
+			}
+		}
+
+		if (sourceNode instanceof LinkSource) {
+
+			final LinkSource linkSourceElement = (LinkSource)sourceNode;
+
+			properties.put(StructrApp.key(LinkSource.class, "linkable"), linkSourceElement.getLinkable());
+		}
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try {
+
+			// set the properties we collected above
+			targetNode.setProperties(securityContext, properties);
+
+			// for clone, always copy permissions
+			sourceNode.copyPermissionsTo(securityContext, targetNode, true);
+
+		} catch (FrameworkException ex) {
+
+			throw new DOMException(DOMException.INVALID_STATE_ERR, ex.toString());
+		}
+	}
+
 	static String getTextContent(final DOMNode thisNode) throws DOMException {
 
 		final DOMNodeList results         = new DOMNodeList();

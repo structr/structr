@@ -228,6 +228,7 @@ let _Pages = {
 
 		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
 		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
+		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
 		let handleWrapInHTMLAction   = (itemText) => {
 
 			_Dragndrop.storeTemporarilyRemovedElementUUID(entity.id);
@@ -374,6 +375,29 @@ let _Pages = {
 						name: '... div element',
 						clickHandler: function () {
 							handleWrapInHTMLAction('div');
+						}
+					}
+				]
+			});
+
+			elements.push({
+				name: 'Replace element with...',
+				elements: [
+					{
+						name: '... HTML element',
+						elements: _Elements.sortedElementGroups,
+						forcedClickHandler: handleReplaceWithAction
+					},
+					{
+						name: '... Template element',
+						clickHandler: function () {
+							handleReplaceWithAction('#template');
+						}
+					},
+					{
+						name: '... div element',
+						clickHandler: function () {
+							handleReplaceWithAction('div');
 						}
 					}
 				]
