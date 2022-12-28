@@ -1323,7 +1323,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						for (final ParameterMapping parameterMapping : (Iterable<? extends ParameterMapping>) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "parameterMappings"))) {
 
 							final String parameterType = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType"));
-							final String parameterName = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName"));
+							final String parameterName = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "parameterName"));
 							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
 
 							switch (parameterType) {
