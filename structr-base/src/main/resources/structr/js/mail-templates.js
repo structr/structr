@@ -362,6 +362,7 @@ let _MailTemplates = {
 		let editor = _Editors.getMonacoEditor(mt, 'text', document.getElementById('mail-template-text'), mailTemplateMonacoConfig);
 		_Editors.resizeVisibleEditors();
 
+		fastRemoveAllChildren(document.querySelector('#mail-template-editor-options'));
 		_Editors.appendEditorOptionsElement(document.querySelector('#mail-template-editor-options'));
 
 		return editor;

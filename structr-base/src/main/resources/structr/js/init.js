@@ -3141,8 +3141,14 @@ let UISettings = {
 		title: 'Pages',
 		settings: {
 			inheritVisibilityFlagsKey: {
-				text: 'Inherit Visibility Flags (when creating new elements from the context menu)',
+				text: 'Inherit Visibility Flags from parent node (when creating new elements from the context menu)',
 				storageKey: 'inheritVisibilityFlags_' + location.port,
+				defaultValue: true,
+				type: 'checkbox'
+			},
+			inheritGranteesKey: {
+				text: 'Inherit permissions from parent node (when creating new elements from the context menu)',
+				storageKey: 'inheritGrantees_' + location.port,
 				defaultValue: true,
 				type: 'checkbox'
 			},

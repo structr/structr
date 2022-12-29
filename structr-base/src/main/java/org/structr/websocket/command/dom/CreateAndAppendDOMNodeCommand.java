@@ -65,19 +65,19 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 		setDoTransactionNotifications(true);
 
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
-		final String parentId                = (String) nodeData.get("parentId");
+		final String tagName                 = (String) nodeData.get("tagName");
+		final String parentId                = (String) nodeData.remove("parentId");
 		final String childContent            = (String) nodeData.get("childContent");
 		final String pageId                  = webSocketData.getPageId();
-
-		Boolean inheritVisibilityFlags = (Boolean) nodeData.get("inheritVisibilityFlags");
-
-		if (inheritVisibilityFlags == null) {
-			inheritVisibilityFlags = false;
-		}
+		final Boolean inheritVisibilityFlags = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
+		final Boolean inheritGrantees        = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
 
 		// remove configuration elements from the nodeData so we don't set it on the node
+		nodeData.remove("tagName");
 		nodeData.remove("parentId");
+		nodeData.remove("childContent");
 		nodeData.remove("inheritVisibilityFlags");
+		nodeData.remove("inheritGrantees");
 
 		if (pageId != null) {
 
@@ -98,10 +98,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 			final Document document = getPage(pageId);
 			if (document != null) {
-
-				final String tagName = (String) nodeData.get("tagName");
-
-				nodeData.remove("tagName");
 
 				try (final Tx tx = StructrApp.getInstance(getWebSocket().getSecurityContext()).tx(true, true, true)) {
 
@@ -131,47 +127,16 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 						parentNode.appendChild(newNode);
 
-						for (Entry entry : nodeData.entrySet()) {
+						copyNodeData(nodeData, newNode);
 
-							final String key = (String) entry.getKey();
-							final Object val = entry.getValue();
-
-							PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(newNode.getClass(), key);
-							if (propertyKey != null) {
-
-								try {
-									Object convertedValue = val;
-
-									PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
-									if (inputConverter != null) {
-
-										convertedValue = inputConverter.convert(val);
-									}
-
-									newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(propertyKey, convertedValue));
-
-								} catch (FrameworkException fex) {
-
-									logger.warn("Unable to set node property {} of node {} to {}: {}", new Object[] { propertyKey, newNode.getUuid(), val, fex.getMessage() } );
-
-								}
-							}
-						}
-
-						PropertyMap visibilityFlags = null;
 						if (inheritVisibilityFlags) {
 
-							visibilityFlags = new PropertyMap();
-							visibilityFlags.put(DOMNode.visibleToAuthenticatedUsers, parentNode.getProperty(DOMNode.visibleToAuthenticatedUsers));
-							visibilityFlags.put(DOMNode.visibleToPublicUsers, parentNode.getProperty(DOMNode.visibleToPublicUsers));
+							copyVisibilityFlags(parentNode, newNode);
+						}
 
-							try {
-								newNode.setProperties(newNode.getSecurityContext(), visibilityFlags);
-							} catch (FrameworkException fex) {
+						if (inheritGrantees) {
 
-								logger.warn("Unable to inherit visibility flags for node {} from parent node {}", newNode, parentNode );
-
-							}
+							copyGrantees(parentNode, newNode);
 						}
 
 						// create a child text node if content is given
@@ -183,13 +148,12 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 							if (inheritVisibilityFlags) {
 
-								try {
-									childNode.setProperties(childNode.getSecurityContext(), visibilityFlags);
-								} catch (FrameworkException fex) {
+								copyVisibilityFlags(parentNode, childNode);
+							}
 
-									logger.warn("Unable to inherit visibility flags for node {} from parent node {}", childNode, newNode );
+							if (inheritGrantees) {
 
-								}
+								copyGrantees(parentNode, childNode);
 							}
 						}
 					}
@@ -204,7 +168,6 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
 				}
 
 			} else {
@@ -226,6 +189,64 @@ public class CreateAndAppendDOMNodeCommand extends AbstractCommand {
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return false;
+	}
+
+	public void copyNodeData(final Map<String, Object> nodeData, final NodeInterface targetNode) {
+
+		for (Entry entry : nodeData.entrySet()) {
+
+			final String key = (String) entry.getKey();
+			final Object val = entry.getValue();
+
+			PropertyKey propertyKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(targetNode.getClass(), key);
+			if (propertyKey != null) {
+
+				try {
+
+					Object convertedValue = val;
+
+					PropertyConverter inputConverter = propertyKey.inputConverter(SecurityContext.getSuperUserInstance());
+					if (inputConverter != null) {
+
+						convertedValue = inputConverter.convert(val);
+					}
+
+					targetNode.setProperties(targetNode.getSecurityContext(), new PropertyMap(propertyKey, convertedValue));
+
+				} catch (FrameworkException fex) {
+
+					logger.warn("Unable to set node property {} of node {} to {}: {}", new Object[] { propertyKey, targetNode.getUuid(), val, fex.getMessage() } );
+				}
+			}
+		}
+	}
+
+	public void copyVisibilityFlags(final NodeInterface sourceNode, final NodeInterface targetNode) {
+
+		PropertyMap visibilityFlags = new PropertyMap();
+		visibilityFlags.put(DOMNode.visibleToAuthenticatedUsers, sourceNode.getProperty(DOMNode.visibleToAuthenticatedUsers));
+		visibilityFlags.put(DOMNode.visibleToPublicUsers,        sourceNode.getProperty(DOMNode.visibleToPublicUsers));
+
+		try {
+
+			targetNode.setProperties(targetNode.getSecurityContext(), visibilityFlags);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to inherit visibility flags for node {} from parent node {}", targetNode, sourceNode);
+		}
+	}
+
+	public void copyGrantees(final NodeInterface sourceNode, final NodeInterface targetNode) {
+
+		try {
+
+			sourceNode.copyPermissionsTo(targetNode.getSecurityContext(), targetNode, true);
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("Unable to inherit grantees for node {} from parent node {}", targetNode, sourceNode);
+		}
 	}
 
 	// ----- public static methods -----
