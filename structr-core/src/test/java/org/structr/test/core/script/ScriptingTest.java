@@ -248,7 +248,7 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create two nodes and associate them with each other
-			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
+			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "TestSource");
 			final SchemaMethod method    = createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.grant(Structr.find('Principal')[0], 'read', 'write'); }"));
 
 			sourceNode.setProperty(SchemaNode.schemaMethods, Arrays.asList(new SchemaMethod[] { method } ));
@@ -262,7 +262,7 @@ public class ScriptingTest extends StructrTest {
 		}
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
-		final Class sourceType             = config.getNodeEntityClass("Source");
+		final Class sourceType             = config.getNodeEntityClass("TestSource");
 		Principal testUser                 = null;
 
 		// create test node as superuser
