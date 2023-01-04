@@ -103,8 +103,8 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// create two nodes and associate them with each other
-			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "Source");
-			final SchemaNode targetNode  = createTestNode(SchemaNode.class, "Target");
+			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "TestSource");
+			final SchemaNode targetNode  = createTestNode(SchemaNode.class, "TestTarget");
 
 			final List<SchemaProperty> properties = new LinkedList<>();
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testBoolean"), new NodeAttribute(SchemaProperty.propertyType, "Boolean")));
@@ -116,7 +116,7 @@ public class ScriptingTest extends StructrTest {
 			sourceNode.setProperty(SchemaNode.schemaProperties, properties);
 
 			final List<SchemaMethod> methods = new LinkedList<>();
-			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.targets = Structr.find('Target'); }")));
+			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testtargets = Structr.find('TestTarget'); }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest02"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest03"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'TEST'; }")));
@@ -128,8 +128,8 @@ public class ScriptingTest extends StructrTest {
 
 			propertyMap.put(SchemaRelationshipNode.sourceId,       sourceNode.getUuid());
 			propertyMap.put(SchemaRelationshipNode.targetId,       targetNode.getUuid());
-			propertyMap.put(SchemaRelationshipNode.sourceJsonName, "source");
-			propertyMap.put(SchemaRelationshipNode.targetJsonName, "targets");
+			propertyMap.put(SchemaRelationshipNode.sourceJsonName, "testsource");
+			propertyMap.put(SchemaRelationshipNode.targetJsonName, "testtargets");
 			propertyMap.put(SchemaRelationshipNode.sourceMultiplicity, "*");
 			propertyMap.put(SchemaRelationshipNode.targetMultiplicity, "*");
 			propertyMap.put(SchemaRelationshipNode.relationshipType, "HAS");
@@ -149,9 +149,9 @@ public class ScriptingTest extends StructrTest {
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
 
-			sourceType          = config.getNodeEntityClass("Source");
-			targetType          = config.getNodeEntityClass("Target");
-			targetsProperty     = StructrApp.key(sourceType, "targets");
+			sourceType          = config.getNodeEntityClass("TestSource");
+			targetType          = config.getNodeEntityClass("TestTarget");
+			targetsProperty     = StructrApp.key(sourceType, "testtargets");
 
 			// we need to cast to EnumProperty in order to obtain the dynamic enum type
 			testEnumProperty    = (EnumProperty)StructrApp.key(sourceType, "testEnum");
