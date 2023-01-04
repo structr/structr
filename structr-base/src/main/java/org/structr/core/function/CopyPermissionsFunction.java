@@ -60,24 +60,8 @@ public class CopyPermissionsFunction extends CoreFunction {
 				final NodeInterface sourceNode = (NodeInterface)source;
 				final NodeInterface targetNode = (NodeInterface)target;
 
-				for (final Security security : sourceNode.getIncomingRelationships(Security.class)) {
+				sourceNode.copyPermissionsTo(ctx.getSecurityContext(), targetNode, overwrite);
 
-					final Set<Permission> permissions = new HashSet();
-					final Principal principal = security.getSourceNode();
-
-					for (final String perm : security.getPermissions()) {
-						permissions.add(Permissions.valueOf(perm));
-					}
-
-					if (overwrite) {
-
-						targetNode.setAllowed(permissions, principal, ctx.getSecurityContext());
-
-					} else {
-
-						targetNode.grant(permissions, principal, ctx.getSecurityContext());
-					}
-				}
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());

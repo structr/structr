@@ -669,14 +669,15 @@ let Command = {
 	 * will create a content (#text) node.
 	 *
 	 */
-	createAndAppendDOMNode: function(pageId, parentId, tagName, attributes, inheritVisibilityFlags) {
+	createAndAppendDOMNode: (pageId, parentId, tagName, attributes, inheritVisibilityFlags, inheritGrantees) => {
 		let obj = {
 			command: 'CREATE_AND_APPEND_DOM_NODE',
 			pageId: pageId,
 			data: {
 				parentId: parentId,
 				tagName: tagName,
-				inheritVisibilityFlags: (inheritVisibilityFlags || false)
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				inheritGrantees: (inheritGrantees || false)
 			}
 		};
 		$.extend(obj.data, attributes);
@@ -689,7 +690,7 @@ let Command = {
 	 * insert it relative to the node with the given id.
 	 *
 	 */
-	createAndInsertRelativeToDOMNode: function(pageId, nodeId, tagName, relativePosition, inheritVisibilityFlags) {
+	createAndInsertRelativeToDOMNode: (pageId, nodeId, tagName, attributes, relativePosition, inheritVisibilityFlags, inheritGrantees) => {
 		let obj = {
 			command: 'CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE',
 			pageId: pageId,
@@ -697,11 +698,36 @@ let Command = {
 				nodeId: nodeId,
 				tagName: tagName,
 				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				inheritGrantees: (inheritGrantees || false),
 				relativePosition: relativePosition
 			}
 		};
 
+		$.extend(obj.data, attributes);
 		return StructrWS.sendObj(obj);
+	},
+	/**
+	 * Send a REPLACE_WITH command to the server.
+	 *
+	 * The server will create a new DOM node with the given tag name and
+	 * replace the current node with the newly created node, copying all
+	 * the attributes etc.
+	 *
+	 */
+	replaceWith: (pageId, nodeId, tagName, attributes, inheritVisibilityFlags, inheritGrantees, callback) => {
+		let obj = {
+			command: 'REPLACE_WITH',
+			pageId: pageId,
+			data: {
+				nodeId: nodeId,
+				tagName: tagName,
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				inheritGrantees: (inheritGrantees || false)
+			}
+		};
+
+		$.extend(obj.data, attributes);
+		return StructrWS.sendObj(obj, callback);
 	},
 	/**
 	 * Send a WRAP_DOM_NODE command to the server.
@@ -710,14 +736,15 @@ let Command = {
 	 * wrap the node with the given nodeId in it.
 	 *
 	 */
-	wrapDOMNodeInNewDOMNode: function(pageId, nodeId, tagName, attributes, inheritVisibilityFlags) {
+	wrapDOMNodeInNewDOMNode: (pageId, nodeId, tagName, attributes, inheritVisibilityFlags, inheritGrantees) => {
 		let obj = {
 			command: 'WRAP_DOM_NODE',
 			pageId: pageId,
 			data: {
 				nodeId: nodeId,
 				tagName: tagName,
-				inheritVisibilityFlags: (inheritVisibilityFlags || false)
+				inheritVisibilityFlags: (inheritVisibilityFlags || false),
+				inheritGrantees: (inheritGrantees || false)
 			}
 		};
 		$.extend(obj.data, attributes);

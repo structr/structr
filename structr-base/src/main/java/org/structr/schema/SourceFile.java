@@ -105,6 +105,11 @@ public class SourceFile extends SimpleJavaFileObject {
 		return getContent();
 	}
 
+	public String getClassName() {
+
+		return className;
+	}
+
 	// ----- private methods -----
 	private String getIndentation() {
 

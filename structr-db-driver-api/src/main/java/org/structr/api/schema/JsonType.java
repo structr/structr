@@ -37,6 +37,9 @@ public interface JsonType extends Comparable<JsonType> {
 	String getCategory();
 	JsonType setCategory(final String category);
 
+	String getIcon();
+	JsonType setIcon(final String icon);
+
 	boolean isAbstract();
 	JsonType setIsAbstract();
 

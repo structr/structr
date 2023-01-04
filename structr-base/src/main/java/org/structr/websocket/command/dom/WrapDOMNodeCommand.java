@@ -20,11 +20,8 @@ package org.structr.websocket.command.dom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
@@ -37,7 +34,7 @@ import java.util.Map;
  *
  *
  */
-public class WrapDOMNodeCommand extends AbstractCommand {
+public class WrapDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
 	private static final Logger logger = LoggerFactory.getLogger(WrapDOMNodeCommand.class.getName());
 
@@ -53,11 +50,16 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 
 		final Map<String, Object> nodeData   = webSocketData.getNodeData();
 		final String pageId                  = webSocketData.getPageId();
+		final String tagName                 = (String) nodeData.get("tagName");
 		final String nodeId                  = (String) nodeData.get("nodeId");
-		final Boolean inheritVisibilityFlags = (Boolean) nodeData.get("inheritVisibilityFlags");
+		final Boolean inheritVisibilityFlags = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
+		final Boolean inheritGrantees        = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
 
+		// remove configuration elements from the nodeData so we don't set it on the node
+		nodeData.remove("tagName");
 		nodeData.remove("nodeId");
 		nodeData.remove("inheritVisibilityFlags");
+		nodeData.remove("inheritGrantees");
 
 		if (pageId != null) {
 
@@ -78,9 +80,6 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 
 			final Document document = getPage(pageId);
 			if (document != null) {
-
-				final String tagName  = (String) nodeData.get("tagName");
-				nodeData.remove("tagName");
 
 				final DOMNode parentNode = (DOMNode) oldNode.getParentNode();
 
@@ -108,27 +107,19 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 
 						if (inheritVisibilityFlags) {
 
-							PropertyMap visibilityFlags = new PropertyMap();
-							visibilityFlags.put(DOMNode.visibleToAuthenticatedUsers, parentNode.getProperty(DOMNode.visibleToAuthenticatedUsers));
-							visibilityFlags.put(DOMNode.visibleToPublicUsers, parentNode.getProperty(DOMNode.visibleToPublicUsers));
-
-							try {
-								newNode.setProperties(newNode.getSecurityContext(), visibilityFlags);
-							} catch (FrameworkException fex) {
-
-								logger.warn("Unable to inherit visibility flags for node {} from parent node {}", newNode, parentNode );
-
-							}
-
+							copyVisibilityFlags(parentNode, newNode);
 						}
 
+						if (inheritGrantees) {
+
+							copyGrantees(parentNode, newNode);
+						}
 					}
 
 				} catch (DOMException dex) {
 
 					// send DOM exception
 					getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
-
 				}
 
 			} else {
@@ -147,4 +138,8 @@ public class WrapDOMNodeCommand extends AbstractCommand {
 		return "WRAP_DOM_NODE";
 	}
 
+	@Override
+	public boolean requiresEnclosingTransaction() {
+		return true;
+	}
 }

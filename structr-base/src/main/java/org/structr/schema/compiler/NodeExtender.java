@@ -50,10 +50,10 @@ public class NodeExtender {
 
 	private static final Logger logger   = LoggerFactory.getLogger(NodeExtender.class.getName());
 
-	private static final JavaCompiler compiler       = ToolProvider.getSystemJavaCompiler();
-	private static final ClassFileManager fileManager = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
-	private static final ClassLoader classLoader     = fileManager.getClassLoader(null);
-	private static final Map<String, Class> classes   = new TreeMap<>();
+	private static final JavaCompiler compiler           = ToolProvider.getSystemJavaCompiler();
+	private static final ClassFileManager fileManager    = new ClassFileManager(compiler.getStandardFileManager(null, null, null));
+	private static final ClassLoader classLoader         = fileManager.getClassLoader(null);
+	private static final Map<String, Class> classes      = new TreeMap<>();
 	private static final Map<String, String> contentsMD5 = new HashMap<>();
 
 	private List<SourceFile> sources     = null;
@@ -85,18 +85,17 @@ public class NodeExtender {
 
 		if (className != null && sourceFile != null) {
 
-			final String fqcn = JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + className;
+			final String fqcn = getFQCNForClassname(className);
 			fqcns.add(fqcn);
 
 			// skip if not changed
 			String oldMD5 = contentsMD5.get(fqcn);
 			String newMD5 = md5Hex(sourceFile.getContent());
 
-			if(!fullReload && newMD5.equals(oldMD5)){
+			if (!fullReload && newMD5.equals(oldMD5)) {
 				return false;
 			}
 
-			contentsMD5.put(fqcn, newMD5);
 			sources.add(sourceFile);
 
 			if (Settings.LogSchemaOutput.getValue()) {
@@ -132,6 +131,14 @@ public class NodeExtender {
 			logger.info("Compiling done in {} ms", System.currentTimeMillis() - t0);
 
 			if (success) {
+
+				// update MD5 hashes after compilation success
+				for (final SourceFile sf : sources) {
+
+					final String fqcn = getFQCNForClassname(sf.getClassName());
+
+					contentsMD5.put(fqcn, md5Hex(sf.getContent()));
+				}
 
 				final ClassLoader loader = fileManager.getClassLoader(null);
 
@@ -187,6 +194,10 @@ public class NodeExtender {
 		this.initiatedBySessionId = initiatedBySessionId;
 	}
 
+	private String getFQCNForClassname (final String className) {
+		return JarConfigurationProvider.DYNAMIC_TYPES_PACKAGE + "." + className;
+	}
+
 	private static class Listener implements DiagnosticListener<JavaFileObject> {
 
 		private ErrorBuffer errorBuffer = null;
@@ -209,7 +220,7 @@ public class NodeExtender {
 
 				SourceLine line = null;
 
-				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in realtiy)
+				// count newlines before the errorLineNumber to target the correct SourceLine (which can be multiple lines in reality)
 				int lineCount = 0;
 				for (SourceLine sl : code) {
 
@@ -239,17 +250,20 @@ public class NodeExtender {
 						logger.error("code source: {} of type {} name {}", source.getUuid(), source.getClass().getSimpleName(), source.getName());
 					}
 
-					for (int i = errorLineNumber - 3; i < errorLineNumber + 3; i++) {
+					final int contextLines   = 3;
+					final String[] codeLines = sourceFile.getContent().split("\n");
 
-						if (inRange(i, size)) {
+					for (int i = errorLineNumber - contextLines; i < errorLineNumber + contextLines; i++) {
+
+						if (codeLines.length > i) {
 
 							String prefix = "  ";
 
-							if (i == errorLineNumber-1) {
+							if (i == errorLineNumber - 1) {
 								prefix = "> ";
 							}
 
-							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + code.get(i));
+							logger.error(prefix + StringUtils.leftPad("" + i, 5) + ": " + codeLines[i]);
 						}
 					}
 				}

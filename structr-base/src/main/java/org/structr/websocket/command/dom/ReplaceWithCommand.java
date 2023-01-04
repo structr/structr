@@ -18,31 +18,35 @@
  */
 package org.structr.websocket.command.dom;
 
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyMap;
+import java.util.Collections;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.TransactionCommand;
+import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.Template;
+import org.w3c.dom.Document;
 
-public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
+/**
+ *
+ *
+ */
+public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(CreateAndInsertRelativeToDOMNodeCommand.class.getName());
-
-	enum RelativePosition { Before, After }
+	private static final Logger logger = LoggerFactory.getLogger(ReplaceWithCommand.class.getName());
 
 	static {
 
-		StructrWebSocket.addCommand(CreateAndInsertRelativeToDOMNodeCommand.class);
+		StructrWebSocket.addCommand(ReplaceWithCommand.class);
 	}
 
 	@Override
@@ -50,30 +54,17 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 		setDoTransactionNotifications(true);
 
-		final Map<String, Object> nodeData   = webSocketData.getNodeData();
-		final String pageId                  = webSocketData.getPageId();
-		final String tagName                 = (String) nodeData.remove("tagName");
-		final String childContent            = (String) nodeData.get("childContent");
-		final String nodeId                  = (String) nodeData.remove("nodeId");
-		final Boolean inheritVisibilityFlags = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
-		final Boolean inheritGrantees        = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
-		final String relativePosition        = (String) nodeData.remove("relativePosition");
-		final RelativePosition position;
+		final SecurityContext securityContext = getWebSocket().getSecurityContext();
+		final Map<String, Object> nodeData    = webSocketData.getNodeData();
+		final String pageId                   = webSocketData.getPageId();
+		final String tagName                  = (String) nodeData.remove("tagName");
+		final String nodeId                   = (String) nodeData.remove("nodeId");
+		final Boolean inheritVisibilityFlags  = (Boolean) nodeData.getOrDefault("inheritVisibilityFlags", false);
+		final Boolean inheritGrantees         = (Boolean) nodeData.getOrDefault("inheritGrantees", false);
 
 		// remove configuration elements from the nodeData so we don't set it on the node
-		nodeData.remove("childContent");
 		nodeData.remove("inheritVisibilityFlags");
 		nodeData.remove("inheritGrantees");
-
-		try {
-
-			position = RelativePosition.valueOf(relativePosition);
-
-		} catch (final IllegalArgumentException iae) {
-
-			getWebSocket().send(MessageBuilder.status().code(422).message("Unsupported relative position: " + relativePosition).build(), true);
-			return;
-		}
 
 		if (pageId == null) {
 
@@ -117,7 +108,6 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 		}
 
 		try {
-
 			DOMNode newNode;
 
 			if ("comment".equals(tagName)) {
@@ -151,23 +141,26 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 			if (newNode != null) {
 
-				if (RelativePosition.Before.equals(position)) {
-
-					parentNode.insertBefore(newNode, refNode);
-
-				} else {
-
-					final DOMNode nextNode = refNode.getNextSibling();
-
-					if (nextNode != null) {
-
-						parentNode.insertBefore(newNode, nextNode);
-
-					} else {
-
-						parentNode.appendChild(newNode);
-					}
+				// move all children from refNode to newNode
+				for (final DOMNode child : refNode.getChildren()) {
+					refNode.removeChild(child);
+					newNode.appendChild(child);
 				}
+
+				// replace current node with new one..
+				parentNode.replaceChild(newNode, refNode);
+
+				// copy attributes etc..
+				DOMNode.copyAllAttributes(refNode, newNode);
+
+				// Remove old node from page
+				final PropertyMap changedProperties = new PropertyMap();
+
+				changedProperties.put(StructrApp.key(DOMNode.class, "syncedNodes"), Collections.EMPTY_LIST);
+				changedProperties.put(StructrApp.key(DOMNode.class, "pageId"),      null);
+
+				refNode.setProperties(securityContext, changedProperties);
+
 
 				if (inheritVisibilityFlags) {
 
@@ -178,36 +171,20 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 					copyGrantees(parentNode, newNode);
 				}
-
-				// create a child text node if content is given
-				if (StringUtils.isNotBlank(childContent)) {
-
-					final DOMNode childNode = (DOMNode)document.createTextNode(childContent);
-
-					newNode.appendChild(childNode);
-
-					if (inheritVisibilityFlags) {
-
-						copyVisibilityFlags(parentNode, childNode);
-					}
-
-					if (inheritGrantees) {
-
-						copyGrantees(parentNode, childNode);
-					}
-				}
 			}
 
-		} catch (DOMException dex) {
+			TransactionCommand.registerNodeCallback(newNode, callback);
+
+		} catch (Exception ex) {
 
 			// send DOM exception
-			getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
+			getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
 		}
 	}
 
 	@Override
 	public String getCommand() {
-		return "CREATE_AND_INSERT_RELATIVE_TO_DOM_NODE";
+		return "REPLACE_WITH";
 	}
 
 	@Override

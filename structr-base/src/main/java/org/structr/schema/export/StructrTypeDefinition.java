@@ -75,6 +75,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected String description                                  = null;
 	protected String category                                     = null;
 	protected String summary                                      = null;
+	protected String icon                                         = null;
 	protected String name                                         = null;
 	protected T schemaNode                                        = null;
 
@@ -371,6 +372,17 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	@Override
 	public JsonType setDescription(final String description) {
 		this.description = description;
+		return this;
+	}
+
+	@Override
+	public String getIcon() {
+		return this.icon;
+	}
+
+	@Override
+	public JsonType setIcon(final String icon) {
+		this.icon = icon;
 		return this;
 	}
 
@@ -849,6 +861,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			serializedForm.put(JsonSchema.KEY_DESCRIPTION, description);
 		}
 
+		if (StringUtils.isNotBlank(icon)) {
+			serializedForm.put(JsonSchema.KEY_ICON, icon);
+		}
+
 		if (!tags.isEmpty()) {
 			serializedForm.put(JsonSchema.KEY_TAGS, tags);
 		}
@@ -1047,6 +1063,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.visibleToAuthenticatedUsers = schemaNode.getProperty(SchemaNode.defaultVisibleToAuth);
 		this.includeInOpenAPI            = schemaNode.getProperty(SchemaNode.includeInOpenAPI);
 		this.summary                     = schemaNode.getProperty(SchemaNode.summary);
+		this.icon                        = schemaNode.getProperty(SchemaNode.icon);
 		this.description                 = schemaNode.getProperty(SchemaNode.description);
 		this.category                    = schemaNode.getProperty(SchemaNode.category);
 		this.schemaNode                  = schemaNode;
@@ -1271,6 +1288,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
 		nodeProperties.put(SchemaNode.summary,           getSummary());
 		nodeProperties.put(SchemaNode.description,       getDescription());
+		nodeProperties.put(SchemaNode.icon,              getIcon());
 
 		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
@@ -1563,6 +1581,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (categoryValue != null) {
 
 			typeDefinition.setCategory(categoryValue.toString());
+		}
+
+		final Object description = source.get(JsonSchema.KEY_DESCRIPTION);
+		if (description != null) {
+
+			typeDefinition.setDescription(description.toString());
+		}
+
+		final Object icon = source.get(JsonSchema.KEY_ICON);
+		if (icon != null) {
+
+			typeDefinition.setIcon(icon.toString());
 		}
 
 		return typeDefinition;
