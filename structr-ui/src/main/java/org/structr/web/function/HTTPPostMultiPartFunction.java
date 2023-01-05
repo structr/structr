@@ -18,8 +18,6 @@
  */
 package org.structr.web.function;
 
-//
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
@@ -47,7 +45,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
-    public static final String ERROR_MESSAGE_POST    = "Usage: ${POSTMultiPart(URL, parts [, responseContentType])}. Example: ${POST('http://localhost:8082/structr/upload', '{name:\"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")}')}";
+    public static final String ERROR_MESSAGE_POST    = "Usage: ${POST_multi_part(URL, parts [, responseContentType])}. Example: ${POST('http://localhost:8082/structr/upload', '{name:\"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")}')}";
     public static final String ERROR_MESSAGE_POST_JS = "Usage: ${{Structr.POSTMultiPart(URL, parts[, responseContentType])}}. Example: ${{Structr.POST('http://localhost:8082/structr/rest/folders', '{name:\"Test\", file: find(\"AbstractFile\", \"name\", \"TestFile.txt\")}')}}";
 
     @Override
