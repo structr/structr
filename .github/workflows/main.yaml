@@ -44,7 +44,7 @@ jobs:
         with:
           version: '22.2.0'
           java-version: '11'
-          components: 'js,python'
+          components: 'python'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile and run Tests
@@ -75,9 +75,9 @@ jobs:
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.2.0'
+          version: '22.1.0'
           java-version: '11'
-          components: 'js,python'
+          components: 'python'
           github-token: ${{ secrets.GITHUB_TOKEN }}    
 
       - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
