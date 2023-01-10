@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Start Test Datenbase
+      - name: Start Test Database
         run: >-
           docker run -d --name ${{ matrix.module }}-test-${{ github.run_id }} 
           -p 7687 
