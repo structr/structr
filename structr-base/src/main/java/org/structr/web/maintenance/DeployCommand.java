@@ -1153,18 +1153,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		if (node instanceof Page) {
 
-			putData(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
-			putData(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
-			putData(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
-			putData(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
-			putData(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
-			putData(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
-			putData(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
-			putData(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
-			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
 			putData(config, "basicAuthRealm",          node.getProperty(StructrApp.key(Page.class, "basicAuthRealm")));
+			putData(config, "cacheForSeconds",         node.getProperty(StructrApp.key(Page.class, "cacheForSeconds")));
+			putData(config, "category",                node.getProperty(StructrApp.key(Page.class, "category")));
+			putData(config, "contentType",             node.getProperty(StructrApp.key(Page.class, "contentType")));
+			putData(config, "dontCache",               node.getProperty(StructrApp.key(Page.class, "dontCache")));
 			putData(config, "enableBasicAuth",         node.getProperty(StructrApp.key(Page.class, "enableBasicAuth")));
 			putData(config, "hidden",                  node.getProperty(StructrApp.key(Page.class, "hidden")));
+			putData(config, "hideConditions",          node.getProperty(StructrApp.key(Page.class, "hideConditions")));
+			putData(config, "pageCreatesRawData",      node.getProperty(StructrApp.key(Page.class, "pageCreatesRawData")));
+			putData(config, "path",                    node.getProperty(StructrApp.key(Page.class, "path")));
+			putData(config, "position",                node.getProperty(StructrApp.key(Page.class, "position")));
+			putData(config, "showConditions",          node.getProperty(StructrApp.key(Page.class, "showConditions")));
+			putData(config, "showOnErrorCodes",        node.getProperty(StructrApp.key(Page.class, "showOnErrorCodes")));
 
 		}
 

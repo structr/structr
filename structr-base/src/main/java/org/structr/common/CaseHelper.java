@@ -53,14 +53,30 @@ public class CaseHelper {
 			char c = input.charAt(i);
 
 			if (Character.isUpperCase(c)) {
+				char nextCharacter = 0;
 
-				if (i > 0) {
+				try {
 
-					out.append("_");
+					nextCharacter = input.charAt(i + 1);
 
+				} catch (IndexOutOfBoundsException ex) {
 				}
 
-				out.append(Character.toLowerCase(c));
+				Boolean nextCharacterIsUpperCase = Character.isUpperCase(nextCharacter);
+
+				if (i > 0 && !nextCharacterIsUpperCase) {
+
+					out.append("_");
+					out.append(Character.toLowerCase(c));
+
+				} else if (nextCharacterIsUpperCase) {
+
+					out.append(c);
+
+				} else {
+
+					out.append(Character.toLowerCase(c));
+				}
 
 			} else {
 

@@ -177,7 +177,7 @@ public class HttpHelper {
 		}
 	}
 
-	private static String skipBOMIfPresent (final String content) {
+	public static String skipBOMIfPresent (final String content) {
 
 		// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
@@ -186,6 +186,12 @@ public class HttpHelper {
 		}
 
 		return content;
+	}
+
+	public static CloseableHttpClient getClient(final HttpRequestBase req, final String requestCharset, final String username, final String password, final String proxyUrlParameter, final String proxyUsernameParameter, final String proxyPasswordParameter, final String cookieParameter, final Map<String, String> headers, final boolean followRedirects, final boolean validateCertificates) throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+
+		configure(req, requestCharset, username, password, proxyUrlParameter, proxyUsernameParameter, proxyPasswordParameter, cookieParameter, headers, followRedirects, validateCertificates);
+		return client;
 	}
 
 	public static String get(final String address) throws FrameworkException {
@@ -379,7 +385,7 @@ public class HttpHelper {
 
 		try {
 
-			final URI      url = URI.create(address);
+			final URI url = URI.create(address);
 			final HttpPost req = new HttpPost(url);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
@@ -402,7 +408,7 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 
-			logger.error("Unable to issue POST request to address {}, {}", new Object[] { address, t.getMessage() });
+			logger.error("Unable to issue POST request to address {}, {}", new Object[]{address, t.getMessage()});
 			throw new FrameworkException(422, "Unable to issue POST request to address " + address + ": " + t.getCause() + " " + (t.getMessage() != null ? t.getMessage() : ""), t);
 		}
 
