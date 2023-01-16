@@ -105,14 +105,6 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule();
 
-			document.addEventListener('click', e => {
-				const el = e.target;
-				const methodNameInputField = document.getElementById('method-name-input');
-				if (methodNameInputField && el != methodNameInputField && !methodNameInputField.classList.contains('hidden')) {
-					_Code.resetMethodNameInput();
-				}
-			});
-
 			let codeSearchInput = document.querySelector('#tree-search-input');
 			_Code.inSearchBox = false;
 			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
@@ -1583,11 +1575,13 @@ let _Code = {
 		});
 	},
 	resetMethodNameInput: (value) => {
+
 		const methodNameInputField = document.getElementById('method-name-input');
 		const methodNameSpan       = document.getElementById('method-name-output');
 
 		methodNameInputField.classList.add('hidden');
 		methodNameSpan.classList.remove('hidden');
+
 		if (value) {
 			methodNameSpan.innerText = methodNameInputField.value + '()';
 		} else {
@@ -1609,13 +1603,21 @@ let _Code = {
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
-			document.getElementById('method-name-input').addEventListener('keyup', (e) => {
+			let methodNameInput = document.getElementById('method-name-input');
+			methodNameInput.addEventListener('keyup', (e) => {
+
 				if (e.key === 'Escape') {
 					_Code.resetMethodNameInput();
 				} else if (e.key === 'Enter') {
 					_Code.updateMethodNameDisplay();
 				}
+
 				_Code.updateDirtyFlag(result);
+			});
+
+			methodNameInput.addEventListener('blur', (e) => {
+
+				_Code.resetMethodNameInput();
 			});
 
 			// Source Editor

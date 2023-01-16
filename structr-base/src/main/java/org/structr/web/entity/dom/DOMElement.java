@@ -21,7 +21,6 @@ package org.structr.web.entity.dom;
 import com.google.common.base.CaseFormat;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -63,15 +62,12 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.structr.web.entity.html.Input;
-import org.structr.web.entity.html.Select;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import javax.swing.*;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.net.URI;
@@ -88,6 +84,17 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String GET_HTML_ATTRIBUTES_CALL = "return (Property[]) org.apache.commons.lang3.ArrayUtils.addAll(super.getHtmlAttributes(), _html_View.properties());";
 	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
 	static final String lowercaseBodyName        = "body";
+
+	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION = "structrIdExpression";
+	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET       = "structrTarget";
+	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD       = "structrMethod";
+	static final String DATA_BINDING_PARAMETER_STRUCTRACTION       = "structrAction";
+	static final String DATA_BINDING_PARAMETER_STRUCTREVENT        = "structrEvent";
+	static final String DATA_BINDING_PARAMETER_HTMLEVENT           = "htmlEvent";
+	static final String DATA_BINDING_PARAMETER_CHILDID             = "childId";
+	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT        = "sourceObject";
+	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY      = "sourceProperty";
+
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
 	static final Gson gson                       = new GsonBuilder().create();
@@ -359,7 +366,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final ActionContext actionContext = new ActionContext(securityContext);
 		final EventContext  eventContext  = new EventContext();
-		final String        event         = (String) parameters.get("htmlEvent");
+		final String        event         = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
 		final String        action;
 
 		if (event == null) {
@@ -440,9 +447,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
-		if (parameters.containsKey("structrTarget")) {
+		if (parameters.containsKey(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET)) {
 
-			final String key = getTreeItemSessionIdentifier((String)parameters.get("structrTarget"));
+			final String key = getTreeItemSessionIdentifier((String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET));
 
 			switch (action) {
 
@@ -479,7 +486,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
 		// create new object of type?
-		final String targetType = (String)parameters.get("structrTarget");
+		final String targetType = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		if (targetType == null) {
 
 			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
@@ -497,9 +504,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute create action with target type " + targetType + ", type does not exist.");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		// convert input
 		final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, parameters);
@@ -511,7 +516,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 
 		if (dataTarget == null) {
@@ -519,9 +524,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute update action without target UUID (data-structr-target attribute).");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -538,7 +541,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -561,21 +564,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
 
 		// Support old and new parameters
-		final String idExpression = (String) parameters.get("structrIdExpression");
-		final String structrTarget = (String) parameters.get("structrTarget");
+		final String idExpression  = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
+		final String structrTarget = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		final String dataTarget = structrTarget != null ? structrTarget : idExpression;
 
 		if (dataTarget == null) {
 
 			if ("method".equals(action)) {
 
-				final String methodName = (String) parameters.get("structrMethod");
-				parameters.remove("structrMethod");
-				parameters.remove("structrAction");
-				parameters.remove("structrEvent");
-				parameters.remove("htmlEvent");
-				return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
+				final String methodName = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
 
+				removeInternalDataBindingKeys(parameters);
+
+				return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
 			}
 
 			// call global schema method
@@ -593,9 +594,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				logger.warn("Custom action has multiple targets, this is not supported yet. Returning only the result of the first target.");
 			}
 
-			// remove internal keys
-			parameters.remove("structrTarget");
-			parameters.remove("htmlEvent");
+			removeInternalDataBindingKeys(parameters);
 
 			for (final GraphObject target : targets) {
 
@@ -640,7 +639,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleAppendChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -648,7 +647,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get("childId");
+		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute append-child action without child UUID (data-child-id attribute).");
@@ -661,9 +660,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute append-child action without child (object with ID not found or not a DOMNode).");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -685,7 +682,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleRemoveChildAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -693,7 +690,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get("childId");
+		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute remove-child action without child UUID (data-child-id attribute).");
@@ -706,9 +703,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute remove-child action without child (object with ID not found or not a DOMNode).");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -730,19 +725,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleInsertHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without target UUID (data-structr-target attribute).");
 		}
 
-		final String sourceObjectId = (String)parameters.get("sourceObject");
+		final String sourceObjectId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get("sourceProperty");
+		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute insert-html action without html source property name (data-source-property).");
@@ -760,9 +755,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute insert-html action without empty html source.");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -784,14 +777,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get("structrTarget");
+		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get("childId");
+		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
@@ -804,13 +797,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
 		}
 
-		final String sourceObjectId = (String)parameters.get("sourceObject");
+		final String sourceObjectId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
 		}
 
-		final String sourceProperty = (String)parameters.get("sourceProperty");
+		final String sourceProperty = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
 		if (sourceProperty == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source property name (data-source-property).");
@@ -828,9 +821,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute replace-html action without empty html source.");
 		}
 
-		// remove internal keys
-		parameters.remove("structrTarget");
-		parameters.remove("htmlEvent");
+		removeInternalDataBindingKeys(parameters);
 
 		for (final GraphObject target : DOMElement.resolveDataTargets(actionContext, this, dataTarget)) {
 
@@ -860,7 +851,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
+	private void removeInternalDataBindingKeys(final java.util.Map<String, java.lang.Object> parameters) {
 
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRACTION);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENT);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+
+	}
 
 
 

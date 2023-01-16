@@ -1174,7 +1174,7 @@ let _Crud = {
 					StructrModel.create(item);
 					_Crud.appendRow(type, properties, item);
 				}
-				_Crud.updatePager(type, data.query_time, data.serialization_time, data.page_size, data.page, data.page_count);
+				_Crud.updatePager(type, data);
 				_Crud.replaceSortHeader(type);
 
 				if (_Crud.types[type].isRel && !_Crud.relInfo[type]) {
@@ -1329,7 +1329,7 @@ let _Crud = {
 			let importLength        = importArea.val().length;
 
 			if (importLength > maxImportCharacters) {
-				var importTooBig = 'Not starting import because it contains too many characters (' + importLength + '). The limit is ' + maxImportCharacters + '.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>';
+				let importTooBig = 'Not starting import because it contains too many characters (' + importLength + '). The limit is ' + maxImportCharacters + '.<br> Consider uploading the CSV file to the Structr filesystem and using the file-based CSV import which is more powerful than this import.<br><br>';
 
 				new MessageBuilder().error(importTooBig).title('Too much import data').requiresConfirmation().show();
 				return;
@@ -1380,34 +1380,38 @@ let _Crud = {
 			Structr.errorFromResponse(data, url, { statusCode: 400, requiresConfirmation: true });
 		}
 	},
-	updatePager: (type, qt, st, ps, p, pc) => {
+	updatePager: (type, data) => {
 
+		let pageCount   = data.page_count;
 		let softLimited = false;
 		let typeNode = $('#crud-type-detail');
 		if (typeNode.length === 0) {
 			return;
 		}
-		$('.queryTime', typeNode).text(qt);
-		$('.serTime', typeNode).text(st);
-		$('.pageSize', typeNode).val(ps);
 
-		_Crud.page[type] = p;
+		$('.queryTime', typeNode).text(data.query_time);
+		$('.serTime', typeNode).text(data.serialization_time);
+		$('.pageSize', typeNode).val(data.page_size);
+
+		_Crud.page[type] = data.page;
 		$('.page', typeNode).val(_Crud.page[type]);
 
-		if (pc === undefined) {
-			pc = _Crud.getSoftLimitedPageCount(ps);
+		if (pageCount === undefined) {
+			pageCount = _Crud.getSoftLimitedPageCount(data.page_size);
 			softLimited = true;
 		}
 
-		_Crud.pageCount = pc;
+		_Crud.pageCount = pageCount;
 		$('.pageCount', typeNode).val(_Crud.pageCount);
 
-		if (softLimited && !$('.soft-limit-warning')[0]) {
+		if (softLimited) {
 			_Crud.showSoftLimitAlert($('input.pageCount'));
+		} else {
+			_Crud.showActualResultCount($('input.pageCount'), data.result_count);
 		}
 
-		var pageLeft = $('.pageLeft', typeNode);
-		var pageRight = $('.pageRight', typeNode);
+		let pageLeft = $('.pageLeft', typeNode);
+		let pageRight = $('.pageRight', typeNode);
 
 		if (_Crud.page[type] < 2) {
 			pageLeft.attr('disabled', 'disabled').addClass('disabled');
@@ -2962,18 +2966,15 @@ let _Crud = {
 		});
 		return o;
 	},
-	getSoftLimitedPageCount: function(pageSize) {
-		return Math.ceil(_Crud.getSoftLimitedResultCount() / pageSize);
-	},
-	getSoftLimitedResultCount: function() {
-		return _Crud.resultCountSoftLimit;
-	},
-	getSoftLimitMessage: function() {
-		return 'Result count exceeds soft limit (' + _Crud.resultCountSoftLimit + '). Page count may be higher than displayed.';
-	},
-	showSoftLimitAlert: function(el) {
+	getSoftLimitedPageCount: (pageSize) => Math.ceil(_Crud.getSoftLimitedResultCount() / pageSize),
+	getSoftLimitedResultCount: () => _Crud.resultCountSoftLimit,
+	getSoftLimitMessage: () => 'Result count exceeds soft limit (' + _Crud.resultCountSoftLimit + '). Page count may be higher than displayed.',
+	showSoftLimitAlert: (el) => {
 		el.attr('style', 'background-color: #fc0 !important;');
 		el.attr('title', _Crud.getSoftLimitMessage());
+	},
+	showActualResultCount: (el, pageSize) => {
+		el.attr('title', 'Result count = ' + pageSize);
 	},
 	cssClassForKey: (key) => {
 		return '___' + key.replace(/\s/g,  '_whitespace_');

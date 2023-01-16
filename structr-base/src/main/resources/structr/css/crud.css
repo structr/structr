@@ -428,8 +428,3 @@ img.loader {
 	position: absolute;
 	right: 2rem;
 }
-
-.soft-limit-warning {
-	vertical-align: text-top;
-	margin: 0 .5rem 0 -.5rem;
-}

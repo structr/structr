@@ -573,6 +573,16 @@ let _Entities = {
 
 						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
 						_Elements.dropBlocked = false;
+
+						let userInputName = obj['_html_name'];
+						if (userInputName) {
+
+							let parameterNameInput = parentElement.querySelector('.parameter-name-input');
+							if (parameterNameInput.value === '') {
+								parameterNameInput.value = userInputName;
+							}
+						}
+
 						replaceDropzoneByInputElement(parentElement, obj);
 					}
 				});
