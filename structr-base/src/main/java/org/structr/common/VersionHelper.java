@@ -72,10 +72,10 @@ public class VersionHelper {
 			return VersionHelper.getFullVersionInfoFromModule(structrModule);
 		}
 
-		Map<String, String> structrUiModule = getComponents().get("structr-ui");
+		Map<String, String> structrBaseModule = getComponents().get("structr-base");
 
-		if (structrUiModule != null) {
-			return VersionHelper.getFullVersionInfoFromModule(structrUiModule);
+		if (structrBaseModule != null) {
+			return VersionHelper.getFullVersionInfoFromModule(structrBaseModule);
 		}
 
 		return "Could not determine version string";
