@@ -877,7 +877,7 @@ let _Pages = {
 				}
 
 				// default page
-				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/empty.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimum set of HTML elements</p></div>');
+				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimum set of HTML elements</p></div>');
 				container.append(defaultTile);
 
 				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
