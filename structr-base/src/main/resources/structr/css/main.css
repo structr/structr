@@ -2470,6 +2470,7 @@ th.center {
 
 .app-tile img {
 	width: 100%;
+	border-bottom: 1px solid var(--black-opacity-125);
 }
 
 .app-tile h4 {
