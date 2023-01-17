@@ -845,7 +845,7 @@ let _Pages = {
 			if (pageTemplates.length === 0) {
 
 				Command.createSimplePage();
-				blinkGreen(createPageButton);
+				Structr.dialogCancelBaseAction();
 
 			} else {
 
@@ -864,26 +864,24 @@ let _Pages = {
 					let tile = Structr.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
 					container.append(tile);
 
-					//let createPageButton = dom.querySelector('#' + id);
 					tile.addEventListener('click', () => {
 						Command.create({ type: 'Page' }, (page) => {
 							Structr.removeExpandedNode(page.id);
 							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-
-							blinkGreen(tile);
+							Structr.dialogCancelBaseAction();
 						});
 					});
 
 				}
 
 				// default page
-				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimum set of HTML elements</p></div>');
+				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div>');
 				container.append(defaultTile);
 
 				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
 				createSimplePageButton.addEventListener('click', () => {
 					Command.createSimplePage();
-					blinkGreen(createSimplePageButton);
+					Structr.dialogCancelBaseAction();
 				});
 			}
 		});
