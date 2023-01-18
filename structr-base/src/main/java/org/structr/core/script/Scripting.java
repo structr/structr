@@ -276,7 +276,7 @@ public class Scripting {
 					if (source == null) {
 
 						final String code = embedInFunction(snippet);
-						source = Source.newBuilder("js", code, snippet.getName()).build();
+						source = Source.newBuilder("js", code, snippet.getName()).mimeType("application/javascript+module").build();
 
 						// store in cache
 						sourceCache.put(snippet.getSource(), source);
@@ -453,7 +453,25 @@ public class Scripting {
 	}
 
 	private static String embedInFunction(final String source, final String name) {
-		return "function main() { " + source + "\n}\n" + "\n\nmain();";
+
+		StringBuilder imports = new StringBuilder();
+		String code = null;
+
+		try (Scanner scanner = new Scanner(source)) {
+
+			while (scanner.hasNextLine()) {
+				String line = scanner.nextLine();
+
+				if (line.toLowerCase().trim().startsWith("import")) {
+					imports.append(line);
+				} else if (line.length() > 0) {
+					code = line;
+					break;
+				}
+			}
+		}
+
+		return imports.toString() + '\n' + "function main() { " + code + "\n}\n" + "\n\nmain();";
 	}
 
 	// this is only public to be testable :(
