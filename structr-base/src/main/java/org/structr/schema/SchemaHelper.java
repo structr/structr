@@ -53,6 +53,7 @@ import org.structr.schema.parser.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
 import static org.structr.core.entity.SchemaMethod.source;
@@ -976,9 +977,31 @@ public class SchemaHelper {
 					views.put(viewName, view);
 				}
 
-				final Iterable<SchemaProperty> schemaProperties = schemaView.getProperty(SchemaView.schemaProperties);
+				// Direct properties
+				final Set<SchemaProperty> schemaProperties = Iterables.toSet(schemaView.getProperty(SchemaView.schemaProperties));
+
+				// Add properties inherited from superclass
+				if (entity instanceof SchemaNode) {
+
+					final SchemaNode parentNode = ((SchemaNode) entity).getProperty(SchemaNode.extendsClass);
+
+					if (parentNode != null) {
+
+						final Optional<SchemaView> possibleView = Iterables.toList(parentNode.getSchemaViews()).stream().filter(v -> v.getName().equals(viewName)).findFirst();
+
+						if (possibleView.isPresent()) {
+							schemaProperties.addAll(Iterables.toList(possibleView.get().getProperty(SchemaView.schemaProperties)));
+						}
+					}
+				}
 
 				for (final SchemaProperty property : schemaProperties) {
+
+					// Skip properties that are excluded from this view
+					final List<SchemaView> excludedViews = Iterables.toList(property.getProperty(SchemaProperty.excludedViews));
+					if (excludedViews.contains(schemaView)) {
+						continue;
+					}
 
 					if (property.getProperty(SchemaProperty.isBuiltinProperty) && !property.getProperty(SchemaProperty.isDynamic)) {
 

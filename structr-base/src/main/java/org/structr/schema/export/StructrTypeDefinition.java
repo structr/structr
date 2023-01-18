@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.*;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.View;
@@ -1932,6 +1933,47 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		if (unresolvedSuperclassName != null && this.schemaNode != null) {
 
 			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));
+
+			if (this.schemaNode instanceof SchemaNode) {
+
+				for (final SchemaView view : this.schemaNode.getSchemaViews()) {
+
+					final String nonGraphPropertiesString = view.getProperty(SchemaView.nonGraphProperties);
+					if (StringUtils.isBlank(nonGraphPropertiesString)) {
+						continue;
+					}
+
+					final List<String>         nonGraphProperties = Arrays.asList(nonGraphPropertiesString.split("[\\s,]+"));
+					final List<SchemaProperty> excludedProperties = new LinkedList<>();
+
+					final SchemaNode parentNode = ((SchemaNode) this.schemaNode).getProperty(SchemaNode.extendsClass);
+					if (parentNode != null) {
+
+						final Optional<SchemaView> possibleView = Iterables.toList(parentNode.getSchemaViews()).stream().filter(v -> v.getName().equals(view.getName())).findFirst();
+
+						if (possibleView.isPresent()) {
+
+							final List<SchemaProperty> parentProperties   = Iterables.toList(possibleView.get().getProperty(SchemaView.schemaProperties));
+
+							for (final SchemaProperty parentProperty : parentProperties) {
+
+								if (!nonGraphProperties.stream().anyMatch(s -> s.equals(parentProperty.getName()))) {
+
+									// add an exclusion here because otherwise the parent property would be automatically added
+									excludedProperties.add(parentProperty);
+								}
+							}
+
+
+						}
+					}
+
+					view.setProperty(SchemaView.excludedProperties, excludedProperties);
+
+				}
+			}
+
+
 		}
 	}
 
