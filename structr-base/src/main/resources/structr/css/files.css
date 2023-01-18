@@ -82,8 +82,7 @@
 	top: 8px;
 }
 
-#folder-contents .tile i.button,
-#folder-contents .tile .minify_file_icon {
+#folder-contents .tile i.button {
 	position: absolute;
 	bottom: 4px;
 }
@@ -93,8 +92,7 @@
 }
 
 #folder-contents .tile i.edit_file_icon,
-#folder-contents .tile i.view_icon,
-#folder-contents .tile .minify_file_icon {
+#folder-contents .tile i.view_icon {
 	left: 44px;
 }
 
@@ -135,10 +133,6 @@
 
 #folder-contents .img-tile i.key_icon {
 	left: 280px;
-}
-
-#folder-contents .tile .minify_file_icon i {
-	/*font-size: 16px ! important;*/
 }
 
 #folder-contents table th, #contents-contents table th {
@@ -294,99 +288,6 @@
 
 #files-table .folder-up {
 	padding-left: .5rem;
-}
-
-/**
- * Minification
- */
-#minify-options td {
-	padding: 6px 8px;
-}
-
-#minify-options td.minification-scrollable-cell {
-    padding: 0;
-    margin: 0;
-}
-
-.scrollable-cell-content {
-    max-height: 120px;
-    overflow-y: auto;
-    padding: 6px 8px;
-}
-
-#minify-options td.head {
-	font-weight: bold;
-	width: 110px;
-}
-
-#minify-options td input {
-	width: 40px;
-}
-
-#minify-options td.action {
-	text-align: right;
-}
-
-#minify-options td.action button {
-	margin-right: 0;
-}
-
-#minification-files {
-	width: 49%;
-	float: left;
-}
-
-#minification-source-search {
-	width: 49%;
-	float: right;
-}
-
-#minification-source-search .searchBox {
-	position: initial;
-	text-align: right;
-	margin-right: 12px;
-}
-
-#minification-source-search .clearSearchIcon {
-	margin-right: 12px;
-}
-
-#minification-source-search .searchResults {
-	height: 300px !important;
-}
-
-#minification-source-search .searchResultsTitle {
-	display: none;
-}
-
-#minify-options button img {
-	padding: 0;
-	margin: 0;
-	vertical-align: middle;
-}
-
-/**
- * Minification file search
- */
-.searchResultGroup {
-	margin: 12px;
-	padding: 8px 12px;
-	clear: both;
-	overflow: hidden;
-}
-.resourceBox {
-	background: var(--solid-white) ! important;
-	/*font-family: var(--font-open-sans) ! important;*/
-	font-size: 9pt;
-	position: relative;
-	box-shadow: 0 0 12px var(--gray-opacity-10);
-	border: 1px solid var(--black-opacity-125);
-}
-
-.searchResults h3 {
-	color: var(--gray-333);
-	clear: both;
-	margin: 0 0 2rem 0;
 }
 
 /**
