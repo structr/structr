@@ -455,7 +455,7 @@ public class Scripting {
 	private static String embedInFunction(final String source, final String name) {
 
 		StringBuilder imports = new StringBuilder();
-		String code = null;
+		StringBuilder code = new StringBuilder();
 
 		try (Scanner scanner = new Scanner(source)) {
 
@@ -465,13 +465,12 @@ public class Scripting {
 				if (line.toLowerCase().trim().startsWith("import")) {
 					imports.append(line);
 				} else if (line.length() > 0) {
-					code = line;
-					break;
+					code.append(line);
 				}
 			}
 		}
 
-		return imports.toString() + '\n' + "function main() { " + code + "\n}\n" + "\n\nmain();";
+		return imports.toString() + '\n' + "function main() { " + code.toString() + "\n}\n" + "\n\nmain();";
 	}
 
 	// this is only public to be testable :(

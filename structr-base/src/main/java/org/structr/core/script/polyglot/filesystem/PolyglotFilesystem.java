@@ -21,12 +21,21 @@ package org.structr.core.script.polyglot.filesystem;
 import org.graalvm.polyglot.io.FileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.core.property.PropertyKey;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
+import org.structr.web.property.PathProperty;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -35,13 +44,40 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public Path parsePath(URI uri) {
-		logger.info("parsePath : {}", uri);
-		return null;
+		logger.info("parsePath(uri) : {}", uri);
+
+		if (uri != null) {
+
+			return parsePath(uri.getPath());
+		} else {
+
+			return null;
+		}
 	}
 
 	@Override
 	public Path parsePath(String path) {
-		logger.info("parsePath : {}", path);
+		logger.info("parsePath(path) : {}", path);
+
+		App app = StructrApp.getInstance();
+		try (Tx tx = app.tx()) {
+
+			PropertyKey pathKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(AbstractFile.class, "path");
+			File file = (File)app.nodeQuery(File.class).and(pathKey, path).getFirst();
+
+			if (file != null) {
+
+				tx.success();
+				return file.getFileOnDisk().toPath();
+			}
+			tx.success();
+		} catch (FrameworkException ex) {
+			logger.error("Unexpected exception while trying to parse virtual filesystem path", ex);
+		}
+
+		if (path != null) {
+			return Path.of(path);
+		}
 		return null;
 	}
 
@@ -63,30 +99,30 @@ public class PolyglotFilesystem implements FileSystem {
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 		logger.info("newByteChannel : {} , {}", path, attrs);
-		return null;
+		return Files.newByteChannel(path, options, attrs);
 	}
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
 		logger.info("newDirectoryStream : {} , {}", dir, filter);
-		return null;
+		return Files.newDirectoryStream(dir, filter);
 	}
 
 	@Override
 	public Path toAbsolutePath(Path path) {
 		logger.info("toAbsolutePath : {}", path);
-		return null;
+		return path;
 	}
 
 	@Override
 	public Path toRealPath(Path path, LinkOption... linkOptions) throws IOException {
 		logger.info("toRealPath : {} , {}", path, linkOptions);
-		return null;
+		return path;
 	}
 
 	@Override
 	public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
 		logger.info("readAttributes : {} , {} , {}", path, attributes, options);
-		return null;
+		return new HashMap<>();
 	}
 }
