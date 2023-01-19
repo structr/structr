@@ -57,10 +57,9 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public Path parsePath(String path) {
-		logger.info("parsePath(path) : {}", path);
 
-		App app = StructrApp.getInstance();
-		try (Tx tx = app.tx()) {
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
 
 			PropertyKey pathKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(AbstractFile.class, "path");
 			File file = (File)app.nodeQuery(File.class).and(pathKey, path).getFirst();
@@ -70,12 +69,15 @@ public class PolyglotFilesystem implements FileSystem {
 				tx.success();
 				return file.getFileOnDisk().toPath();
 			}
+
 			tx.success();
 		} catch (FrameworkException ex) {
+
 			logger.error("Unexpected exception while trying to parse virtual filesystem path", ex);
 		}
 
 		if (path != null) {
+
 			return Path.of(path);
 		}
 		return null;
@@ -83,46 +85,40 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public void checkAccess(Path path, Set<? extends AccessMode> modes, LinkOption... linkOptions) throws IOException {
-		logger.info("checkAccess : {} , {}", path, linkOptions);
 	}
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-		logger.info("createDirectory : {}", attrs);
+		throw new IOException("Structr PolyglotFilesystem does not implement directory creation.");
 	}
 
 	@Override
 	public void delete(Path path) throws IOException {
-		logger.info("delete : {}", path);
+		throw new IOException("Structr PolyglotFilesystem does not implement deletion.");
 	}
 
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-		logger.info("newByteChannel : {} , {}", path, attrs);
 		return Files.newByteChannel(path, options, attrs);
 	}
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-		logger.info("newDirectoryStream : {} , {}", dir, filter);
 		return Files.newDirectoryStream(dir, filter);
 	}
 
 	@Override
 	public Path toAbsolutePath(Path path) {
-		logger.info("toAbsolutePath : {}", path);
 		return path;
 	}
 
 	@Override
 	public Path toRealPath(Path path, LinkOption... linkOptions) throws IOException {
-		logger.info("toRealPath : {} , {}", path, linkOptions);
 		return path;
 	}
 
 	@Override
 	public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-		logger.info("readAttributes : {} , {} , {}", path, attributes, options);
-		return new HashMap<>();
+		throw new IOException("Structr PolyglotFilesystem does not implement readAttributes.");
 	}
 }
