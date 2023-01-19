@@ -82,7 +82,6 @@ let _Crud = {
 		'position',
 		'extractedContent',
 		'indexedWords',
-		'minificationTargets',
 		'fileModificationDate',
 		'nextSiblingId'
 	],
@@ -98,7 +97,6 @@ let _Crud = {
 		'position',
 		'extractedContent',
 		'indexedWords',
-		'minificationTargets',
 		'fileModificationDate'
 	],
 	hiddenKeysForPrincipalTypes: [

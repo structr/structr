@@ -74,6 +74,7 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 
@@ -296,33 +297,27 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path componentsMetadataFile                   = source.resolve(COMPONENTS_FILE_PATH);
 			final Path templatesMetadataFile                    = source.resolve(TEMPLATES_FILE_PATH);
 			final Path actionMappingMetadataFile                = source.resolve(ACTION_MAPPING_FILE_PATH);
-			final Path actionMappingTriggeredByMetadataFile     = source.resolve(ACTION_MAPPING_TRIGGERED_BY_RELATIONSHIPS_FILE_PATH);
-			final Path actionMappingSuccessTargetMetadataFile   = source.resolve(ACTION_MAPPING_SUCCESS_TARGET_RELATIONSHIPS_FILE_PATH);
-			final Path actionMappingFailureTargetMetadataFile   = source.resolve(ACTION_MAPPING_FAILURE_TARGET_RELATIONSHIPS_FILE_PATH);
 			final Path parameterMappingMetadataFile             = source.resolve(PARAMETER_MAPPING_FILE_PATH);
-			final Path actionMappingParameterMetadataFile       = source.resolve(ACTION_MAPPING_PARAMETER_RELATIONSHIPS_FILE_PATH);
 			final Path sitesConfFile                            = source.resolve(SITES_FILE_PATH);
 			final Path schemaFolder                             = source.resolve(SCHEMA_FOLDER_PATH);
 
 			if (
-					!Files.exists(deploymentConfFile) &&
-					!Files.exists(preDeployConfFile) &&
-					!Files.exists(postDeployConfFile) &&
-					!Files.exists(grantsMetadataFile) &&
-					!Files.exists(mailTemplatesMetadataFile) &&
-					!Files.exists(widgetsMetadataFile) &&
-					!Files.exists(localizationsMetadataFile) &&
-					!Files.exists(applicationConfigurationDataMetadataFile) &&
-					!Files.exists(filesMetadataFile) &&
-					!Files.exists(pagesMetadataFile) &&
-					!Files.exists(componentsMetadataFile) &&
-					!Files.exists(templatesMetadataFile) &&
-					!Files.exists(actionMappingMetadataFile) &&
-					!Files.exists(actionMappingTriggeredByMetadataFile) &&
-					!Files.exists(parameterMappingMetadataFile) &&
-					!Files.exists(actionMappingParameterMetadataFile) &&
-					!Files.exists(sitesConfFile) &&
-					!Files.exists(schemaFolder)
+				!Files.exists(deploymentConfFile) &&
+				!Files.exists(preDeployConfFile) &&
+				!Files.exists(postDeployConfFile) &&
+				!Files.exists(grantsMetadataFile) &&
+				!Files.exists(mailTemplatesMetadataFile) &&
+				!Files.exists(widgetsMetadataFile) &&
+				!Files.exists(localizationsMetadataFile) &&
+				!Files.exists(applicationConfigurationDataMetadataFile) &&
+				!Files.exists(filesMetadataFile) &&
+				!Files.exists(pagesMetadataFile) &&
+				!Files.exists(componentsMetadataFile) &&
+				!Files.exists(templatesMetadataFile) &&
+				!Files.exists(actionMappingMetadataFile) &&
+				!Files.exists(parameterMappingMetadataFile) &&
+				!Files.exists(sitesConfFile) &&
+				!Files.exists(schemaFolder)
 			) {
 
 				throw new ImportPreconditionFailedException("Source path '" + path + "' does not contain any of the files for a structr deployment.");
@@ -389,17 +384,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			linkDeferredPages(app);
 
-			importActionMapping(actionMappingMetadataFile);
-
-			importActionMappingTriggeredByRels(actionMappingTriggeredByMetadataFile);
-
-			importActionMappingSuccessTargetRels(actionMappingSuccessTargetMetadataFile);
-
-			importActionMappingFailureTargetRels(actionMappingFailureTargetMetadataFile);
-
 			importParameterMapping(parameterMappingMetadataFile);
 
-			importActionMappingParameterRels(actionMappingParameterMetadataFile);
+			importActionMapping(actionMappingMetadataFile);
 
 			importEmbeddedApplicationData(source);
 
@@ -536,11 +523,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path localizationsConf                   = target.resolve(LOCALIZATIONS_FILE_PATH);
 			final Path widgetsConf                         = target.resolve(WIDGETS_FILE_PATH);
 			final Path actionMappingConf                   = target.resolve(ACTION_MAPPING_FILE_PATH);
-			final Path actionMappingTriggeredByRelsConf    = target.resolve(ACTION_MAPPING_TRIGGERED_BY_RELATIONSHIPS_FILE_PATH);
-			final Path actionMappingSuccessTargetRelsConf  = target.resolve(ACTION_MAPPING_SUCCESS_TARGET_RELATIONSHIPS_FILE_PATH);
-			final Path actionMappingFailureTargetRelsConf  = target.resolve(ACTION_MAPPING_FAILURE_TARGET_RELATIONSHIPS_FILE_PATH);
 			final Path parameterMappingConf                = target.resolve(PARAMETER_MAPPING_FILE_PATH);
-			final Path actionMappingParameterRelsConf      = target.resolve(ACTION_MAPPING_PARAMETER_RELATIONSHIPS_FILE_PATH);
 			final Path deploymentConfFile                  = target.resolve(DEPLOYMENT_CONF_FILE_PATH);
 			final Path applicationConfigurationData        = target.resolve(APPLICATION_CONFIGURATION_DATA_FILE_PATH);
 
@@ -570,10 +553,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Action Mapping");
 			exportActionMapping(actionMappingConf);
-			exportActionMappingTriggeredBy(actionMappingTriggeredByRelsConf);
-			exportActionMappingSuccessTarget(actionMappingSuccessTargetRelsConf);
-			exportActionMappingFailureTarget(actionMappingFailureTargetRelsConf);
-			exportActionMappingParameterRels(actionMappingParameterRelsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Pages");
 			exportPages(pages, pagesConf);
@@ -1532,6 +1511,34 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "visibleToAuthenticatedUsers", actionMapping.getProperty(ActionMapping.visibleToAuthenticatedUsers));
 				putData(entry, "visibleToPublicUsers",        actionMapping.getProperty(ActionMapping.visibleToPublicUsers));
 
+				final PropertyKey<Iterable<DOMElement>> triggerElementsKey = StructrApp.key(ActionMapping.class, "triggerElements");
+				List<DOMElement> triggerElements = Iterables.toList(actionMapping.getProperty(triggerElementsKey));
+
+				if (!triggerElements.isEmpty()) {
+					putData(entry, "triggerElements", triggerElements.stream().map(domElement -> domElement.getUuid()).collect(Collectors.toList()));
+				}
+
+				final PropertyKey<Iterable<DOMNode>> successTargetsKey = StructrApp.key(ActionMapping.class, "successTargets");
+				List<DOMNode> successTargets = Iterables.toList(actionMapping.getProperty(successTargetsKey));
+
+				if (!successTargets.isEmpty()) {
+					putData(entry, "successTargets", successTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+				}
+
+				final PropertyKey<Iterable<DOMNode>> failureTargetsKey = StructrApp.key(ActionMapping.class, "failureTargets");
+				List<DOMNode> failureTargets = Iterables.toList(actionMapping.getProperty(failureTargetsKey));
+
+				if (!failureTargets.isEmpty()) {
+					putData(entry, "failureTargets", failureTargets.stream().map(domNode -> domNode.getUuid()).collect(Collectors.toList()));
+				}
+
+				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
+				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
+
+				if (!failureTargets.isEmpty()) {
+					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
+				}
+
 				putData(entry, "event",        actionMapping.getProperty(StructrApp.key(ActionMapping.class, "event")));
 				putData(entry, "action",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "action")));
 				putData(entry, "method",       actionMapping.getProperty(StructrApp.key(ActionMapping.class, "method")));
@@ -1555,102 +1562,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	}
 
-	private void exportActionMappingTriggeredBy(final Path target) throws FrameworkException {
-
-		logger.info("Exporting action mapping TRIGGERED_BY relationships");
-
-		final List<Map<String, Object>> actionMappingTriggeredByRels = new LinkedList<>();
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final AbstractRelationship<ActionMapping, DOMElement> triggeredByRel : (List<AbstractRelationship<ActionMapping, DOMElement>>) app.relationshipQuery(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingTRIGGERED_BYDOMElement")).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				actionMappingTriggeredByRels.add(entry);
-
-				putData(entry, "id",                          triggeredByRel.getProperty(GraphObject.id));
-				putData(entry, "type",                        "ActionMappingTRIGGERED_BYDOMElement");
-				putData(entry, "visibleToAuthenticatedUsers", triggeredByRel.getProperty(GraphObject.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        triggeredByRel.getProperty(GraphObject.visibleToPublicUsers));
-
-				putData(entry, "sourceId",                    triggeredByRel.getProperty(StructrApp.key(AbstractRelationship.class, "sourceId")));
-				putData(entry, "targetId",                    triggeredByRel.getProperty(StructrApp.key(AbstractRelationship.class, "targetId")));
-
-			}
-
-			tx.success();
-		}
-
-		writeJsonToFile(target, actionMappingTriggeredByRels);
-
-	}
-
-	private void exportActionMappingSuccessTarget(final Path target) throws FrameworkException {
-
-		logger.info("Exporting action mapping SUCCESS_TARGET relationships");
-
-		final List<Map<String, Object>> actionMappingSuccessTargetRels = new LinkedList<>();
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final AbstractRelationship<ActionMapping, DOMNode> successTargetRel : (List<AbstractRelationship<ActionMapping, DOMNode>>) app.relationshipQuery(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingSUCCESS_TARGETDOMNode")).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				actionMappingSuccessTargetRels.add(entry);
-
-				putData(entry, "id",                          successTargetRel.getProperty(GraphObject.id));
-				putData(entry, "type",                        "ActionMappingSUCCESS_TARGETDOMNode");
-				putData(entry, "visibleToAuthenticatedUsers", successTargetRel.getProperty(GraphObject.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        successTargetRel.getProperty(GraphObject.visibleToPublicUsers));
-
-				putData(entry, "sourceId",                    successTargetRel.getProperty(StructrApp.key(AbstractRelationship.class, "sourceId")));
-				putData(entry, "targetId",                    successTargetRel.getProperty(StructrApp.key(AbstractRelationship.class, "targetId")));
-
-			}
-
-			tx.success();
-		}
-
-		writeJsonToFile(target, actionMappingSuccessTargetRels);
-
-	}
-
-	private void exportActionMappingFailureTarget(final Path target) throws FrameworkException {
-
-		logger.info("Exporting action mapping FAILURE_TARGET relationships");
-
-		final List<Map<String, Object>> actionMappingFailureTargetRels = new LinkedList<>();
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final AbstractRelationship<ActionMapping, DOMNode> failureTargetRel : (List<AbstractRelationship<ActionMapping, DOMNode>>) app.relationshipQuery(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingFAILURE_TARGETDOMNode")).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				actionMappingFailureTargetRels.add(entry);
-
-				putData(entry, "id",                          failureTargetRel.getProperty(GraphObject.id));
-				putData(entry, "type",                        "ActionMappingFAILURE_TARGETDOMNode");
-				putData(entry, "visibleToAuthenticatedUsers", failureTargetRel.getProperty(GraphObject.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        failureTargetRel.getProperty(GraphObject.visibleToPublicUsers));
-
-				putData(entry, "sourceId",                    failureTargetRel.getProperty(StructrApp.key(AbstractRelationship.class, "sourceId")));
-				putData(entry, "targetId",                    failureTargetRel.getProperty(StructrApp.key(AbstractRelationship.class, "targetId")));
-
-			}
-
-			tx.success();
-		}
-
-		writeJsonToFile(target, actionMappingFailureTargetRels);
-
-	}
-
 	private void exportParameterMapping(final Path target) throws FrameworkException {
 
 		logger.info("Exporting parameter mapping");
@@ -1671,10 +1582,15 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				putData(entry, "visibleToAuthenticatedUsers", parameterMapping.getProperty(ParameterMapping.visibleToAuthenticatedUsers));
 				putData(entry, "visibleToPublicUsers",        parameterMapping.getProperty(ParameterMapping.visibleToPublicUsers));
 
-				putData(entry, "parameterType",        parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType")));
-				putData(entry, "parameterName",        parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName")));
-				putData(entry, "constantValue",        parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue")));
-				putData(entry, "scriptExpression",     parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "scriptExpression")));
+				putData(entry, "parameterType",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType")));
+				putData(entry, "parameterName",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterName")));
+				putData(entry, "constantValue",    parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue")));
+				putData(entry, "scriptExpression", parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "scriptExpression")));
+
+				DOMElement inputElement = ((DOMElement) parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement")));
+				if (inputElement != null) {
+					putData(entry, "inputElement", inputElement.getUuid());
+				}
 
 
 			}
@@ -1683,39 +1599,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		writeJsonToFile(target, parameterMappings);
-	}
-
-
-	private void exportActionMappingParameterRels(final Path target) throws FrameworkException {
-
-		logger.info("Exporting action mapping PARAMETER relationships");
-
-		final List<Map<String, Object>> actionMappingParameterRels = new LinkedList<>();
-
-		final App app = StructrApp.getInstance();
-
-		try (final Tx tx = app.tx()) {
-
-			for (final AbstractRelationship<ActionMapping, ParameterMapping> parameterRel : (List<AbstractRelationship<ActionMapping, ParameterMapping>>) app.relationshipQuery(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingPARAMETERParameterMapping")).getAsList()) {
-
-				final Map<String, Object> entry = new TreeMap<>();
-				actionMappingParameterRels.add(entry);
-
-				putData(entry, "id",                          parameterRel.getProperty(GraphObject.id));
-				putData(entry, "type",                        "ActionMappingPARAMETERParameterMapping");
-				putData(entry, "visibleToAuthenticatedUsers", parameterRel.getProperty(GraphObject.visibleToAuthenticatedUsers));
-				putData(entry, "visibleToPublicUsers",        parameterRel.getProperty(GraphObject.visibleToPublicUsers));
-
-				putData(entry, "sourceId",                    parameterRel.getProperty(StructrApp.key(AbstractRelationship.class, "sourceId")));
-				putData(entry, "targetId",                    parameterRel.getProperty(StructrApp.key(AbstractRelationship.class, "targetId")));
-
-			}
-
-			tx.success();
-		}
-
-		writeJsonToFile(target, actionMappingParameterRels);
-
 	}
 
 
@@ -1791,57 +1674,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-
-	private <R extends RelationshipInterface> void importRelationshipData(final Class type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
-
-		final SecurityContext context = SecurityContext.getSuperUserInstance();
-		context.setDoTransactionNotifications(false);
-		final App app                 = StructrApp.getInstance(context);
-
-		try (final Tx tx = app.tx()) {
-
-			tx.disableChangelog();
-
-			for (final RelationshipInterface toDelete : (List<RelationshipInterface>) app.relationshipQuery(type).getAsList()) {
-				app.delete(toDelete);
-			}
-
-			for (final Map<String, Object> entry : data) {
-
-				checkOwnerAndSecurity(entry);
-
-				final PropertyMap map = PropertyMap.inputTypeToJavaType(context, type, entry);
-
-				// allow caller to insert additional data for better creation performance
-				for (final PropertyMap add : additionalData) {
-					map.putAll(add);
-				}
-
-				// don't try to set id and type properties as they are system properties
-				map.remove(StructrApp.key(GraphObject.class, "id"));
-				map.remove(StructrApp.key(GraphObject.class, "type"));
-
-				// find source and target node
-				final AbstractNode sourceNode = (AbstractNode) app.getNodeById(map.get(StructrApp.key(AbstractRelationship.class, "sourceId")));
-				final AbstractNode targetNode = (AbstractNode) app.getNodeById(map.get(StructrApp.key(AbstractRelationship.class, "targetId")));
-
-				if (sourceNode != null && targetNode != null) {
-					app.create(sourceNode, targetNode, type, map);
-				}
-
-			}
-
-			tx.success();
-
-		} catch (FrameworkException fex) {
-
-			logger.error("Unable to import {}, aborting with {}", type.getSimpleName(), fex.getMessage(), fex);
-
-			throw fex;
-		}
-	}
-
-
 	private <T extends NodeInterface> void importListData(final Class<T> type, final List<Map<String, Object>> data, final PropertyMap... additionalData) throws FrameworkException {
 
 		final SecurityContext context = SecurityContext.getSuperUserInstance();
@@ -1857,6 +1689,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			}
 
 			for (final Map<String, Object> entry : data) {
+
+				logger.debug("Importing {}", entry);
 
 				checkOwnerAndSecurity(entry);
 
@@ -2276,42 +2110,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", path);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping");
 
-			importListData(ActionMapping.class, readConfigList(path));
+			importListData(StructrApp.getConfiguration().getNodeEntityClass("ActionMapping"), readConfigList(path));
 		}
 	}
 
-	private void importActionMappingTriggeredByRels(final Path path) throws FrameworkException {
-
-		if (Files.exists(path)) {
-
-			logger.info("Reading {}", path);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping TRIGGERED_BY relationships");
-
-			importRelationshipData(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingTRIGGERED_BYDOMElement"), readConfigList(path));
-		}
-	}
-
-	private void importActionMappingSuccessTargetRels(final Path path) throws FrameworkException {
-
-		if (Files.exists(path)) {
-
-			logger.info("Reading {}", path);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping SUCCESS_TARGET relationships");
-
-			importRelationshipData(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingSUCCESS_TARGETDOMNode"), readConfigList(path));
-		}
-	}
-
-	private void importActionMappingFailureTargetRels(final Path path) throws FrameworkException {
-
-		if (Files.exists(path)) {
-
-			logger.info("Reading {}", path);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping FAILURE_TARGET relationships");
-
-			importRelationshipData(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingFAILURE_TARGETDOMNode"), readConfigList(path));
-		}
-	}
 
 	private void importParameterMapping(final Path parameterMappingPath) throws FrameworkException {
 
@@ -2320,20 +2122,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.info("Reading {}", parameterMappingPath);
 			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing parameter mapping");
 
-			importListData(ParameterMapping.class, readConfigList(parameterMappingPath));
+			importListData(StructrApp.getConfiguration().getNodeEntityClass("ParameterMapping"), readConfigList(parameterMappingPath));
 		}
 	}
 
-	private void importActionMappingParameterRels(final Path path) throws FrameworkException {
-
-		if (Files.exists(path)) {
-
-			logger.info("Reading {}", path);
-			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing action mapping PARAMETER relationships");
-
-			importRelationshipData(StructrApp.getConfiguration().getRelationshipEntityClass("ActionMappingPARAMETERParameterMapping"), readConfigList(path));
-		}
-	}
 
 	private void handleDeferredProperties() throws FrameworkException {
 

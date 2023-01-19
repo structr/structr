@@ -103,12 +103,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 								valueTypeName = valueType.getSimpleName();
 							}
 
-							// a property is disabled if it is already present in the view of a superclass
-							// (since it has to be configured there instead of locally)
-							if (parentProperties.contains(key)) {
-								_isDisabled = true;
-							}
-
+							property.put(AbstractNode.id, key.getSourceUuid());
 							property.put(AbstractNode.name, propertyName);
 							property.put(isSelected, viewProperties.contains(key));
 							property.put(isDisabled, _isDisabled);

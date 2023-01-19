@@ -2591,6 +2591,7 @@ let _Schema = {
 					if (prop.declaringClass !== entity.name) {
 
 						let property = {
+							id: prop.id,
 							name: prop.name,
 							propertyType: prop.propertyType,
 							isBuiltinProperty: true,
@@ -2602,7 +2603,7 @@ let _Schema = {
 						};
 
 						let builtinPropertyHtml = _Schema.templates.propertyBuiltin({ property: property });
-						propertiesTable.append(builtinPropertyHtml);
+						$('tbody', propertiesTable).append(builtinPropertyHtml);
 					}
 				}
 			});
@@ -2826,6 +2827,7 @@ let _Schema = {
 		}
 	},
 	views: {
+		initialViewConfig: {},
 		appendViews: (el, entity, optionalAfterSaveCallback) => {
 
 			let tableConfig = {
@@ -2984,6 +2986,9 @@ let _Schema = {
 				// store initial configuration for later comparison
 				let initialViewConfig = _Schema.views.getInfoFromRow(row, entity);
 
+				// store initial configuration for each view to be able to determine excluded properties later
+				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
+
 				chznElement.chosenSortable(function() {
 					// sort order changed
 					_Schema.views.rowChanged(row, entity, initialViewConfig);
@@ -3120,14 +3125,41 @@ let _Schema = {
 
 			return result.join(', ');
 		},
-		getInfoFromRow: (row, schemaNodeEntity) => {
+		findInheritedPropertyByName: (entity, names) => {
 
+			let inheritedProperties = [];
+
+			for (let prop of $('.builtin.schema-props tr')) {
+				let name = prop.dataset.propertyName;
+				let id   = prop.dataset.propertyId;
+				if (names.includes(name)) {
+					inheritedProperties.push({id: id});
+				}
+			}
+
+			return inheritedProperties;
+		},
+		findExcludedProperties: (entity, names, row) => {
+
+			let excludedProps = [];
+
+			let viewId = row.data('viewId');
+			let initialViewConfig = _Schema.views.initialViewConfig[viewId];
+
+			if (initialViewConfig && initialViewConfig.hasOwnProperty('nonGraphProperties')) {
+				excludedProps = _Schema.views.findInheritedPropertyByName(entity, initialViewConfig.nonGraphProperties.split(',').map(p => p.trim()).filter(p => !names.includes(p)));
+			}
+
+			return excludedProps;
+		},
+		getInfoFromRow: (row, schemaNodeEntity) => {
 			let sortedAttrs = $('.view.property-attrs', row).sortedVals();
 
 			return {
 				name: $('.view.property-name', row).val(),
 				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
 				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
+				excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, row),
 				sortOrder: sortedAttrs.join(',')
 			};
 		},
@@ -5544,7 +5576,7 @@ let _Schema = {
 			</div>
 		`,
 		propertyBuiltin: config => `
-			<tr data-property-name="${config.property.name}">
+			<tr data-property-name="${config.property.name}" data-property-id="${config.property.id}">
 				<td>${escapeForHtmlAttributes(config.property.declaringClass)}</td>
 				<td>${escapeForHtmlAttributes(config.property.name)}</td>
 				<td>${config.property.propertyType}</td>
