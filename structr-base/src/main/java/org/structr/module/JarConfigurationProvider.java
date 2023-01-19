@@ -583,7 +583,11 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 				// register view and properties only when they weren't defined in declaring superclass
 				// or were defined by an interface or a non-dynamic class
-				if (type.equals(declaringClass) || declaringClass.isInterface() || !declaringClass.getName().startsWith("org.structr.dynamic")) {
+				if (type.equals(declaringClass)
+					|| declaringClass.isInterface()
+					|| !declaringClass.getName().startsWith("org.structr.dynamic")
+					|| type.getInterfaces().length > 0
+				) {
 					registerPropertySet(type, view.name(), keys);
 				}
 
