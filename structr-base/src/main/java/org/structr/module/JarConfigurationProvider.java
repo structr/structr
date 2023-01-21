@@ -587,6 +587,12 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					|| declaringClass.isInterface()
 					|| !declaringClass.getName().startsWith("org.structr.dynamic")
 					|| type.getInterfaces().length > 0
+					|| view.name().equals(PropertyView.All)
+					|| view.name().equals(PropertyView.Custom)
+					|| view.name().equals(PropertyView.Html)
+					|| view.name().equals(PropertyView.Public)
+					|| view.name().equals(PropertyView.Private)
+					|| view.name().equals(PropertyView.Protected)
 				) {
 					registerPropertySet(type, view.name(), keys);
 				}
