@@ -122,11 +122,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String COMPONENTS_FILE_PATH                                  = "components.json";
 	private final static String TEMPLATES_FILE_PATH                                   = "templates.json";
 	private final static String ACTION_MAPPING_FILE_PATH                              = "events/action-mapping.json";
-	private final static String ACTION_MAPPING_TRIGGERED_BY_RELATIONSHIPS_FILE_PATH   = "events/action-mapping-triggered-by-relationships.json";
-	private final static String ACTION_MAPPING_SUCCESS_TARGET_RELATIONSHIPS_FILE_PATH = "events/action-mapping-success-target-relationships.json";
-	private final static String ACTION_MAPPING_FAILURE_TARGET_RELATIONSHIPS_FILE_PATH = "events/action-mapping-failure-target-relationships.json";
 	private final static String PARAMETER_MAPPING_FILE_PATH                           = "events/parameter-mapping.json";
-	private final static String ACTION_MAPPING_PARAMETER_RELATIONSHIPS_FILE_PATH      = "events/action-mapping-parameter-relationships.json";
 	private final static String SITES_FILE_PATH                                       = "sites.json";
 	private final static String SCHEMA_FOLDER_PATH                                    = "schema";
 	private final static String COMPONENTS_FOLDER_PATH                                = "components";
@@ -597,7 +593,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			// set group grants for created files
 			final String groupName = Settings.DeploymentFileGroupName.getValue("");
 			if (StringUtils.isNotBlank(groupName)) {
-				setFileGroupRecursivly(groupName, target);
+				setFileGroupRecursively(groupName, target);
 			}
 
 			// config import order is "users, grants, pages, components, templates"
@@ -611,8 +607,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			customHeaders.put("end", new Date(endTime).toString());
 			customHeaders.put("duration", duration);
-
-
 
 			logger.info("Export to {} done. (Took {})", target.toString(), duration);
 
@@ -637,23 +631,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// log collected warnings at the end so they dont get lost
 			for (final String logText : deferredLogTexts) {
+
 				logger.info(logText);
 			}
 		}
 	}
 
-	private void setFileGroupRecursivly(String groupName, Path target) throws IOException {
+	private void setFileGroupRecursively(String groupName, Path target) throws IOException {
 
 		try {
 
-			UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
-			GroupPrincipal group = lookupService.lookupPrincipalByGroupName(groupName);
+			final UserPrincipalLookupService lookupService = FileSystems.getDefault().getUserPrincipalLookupService();
+			final GroupPrincipal group                     = lookupService.lookupPrincipalByGroupName(groupName);
+
 			Files.walkFileTree(target, new GroupAddFileVisitor(group));
 
 		} catch (Exception ex) {
+
 			logger.warn("can't set group {} for deployment export files: {}", groupName, ex.getMessage());
 		}
-
 	}
 
 	private void exportFiles(final Path target, final Path configTarget) throws FrameworkException {
@@ -688,7 +684,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			tx.success();
 
 		} catch (IOException ioex) {
+
 			logger.warn("", ioex);
+		}
+
+		try {
+
+			logger.info("Cleaning up files");
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Cleaning up files");
+
+			FileCleanupVisitor fiv = new FileCleanupVisitor(target, config);
+			Files.walkFileTree(target, fiv);
+
+		} catch (IOException ioex) {
+
+			logger.warn("Exception while cleaning up files", ioex);
 		}
 
 		writeJsonToFile(configTarget, config);
@@ -730,7 +740,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
+	protected void exportFile(final Path target, final File file, final Map<String, Object> config) throws IOException {
 
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
@@ -1159,7 +1169,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
+	protected void exportFileConfiguration(final AbstractFile abstractFile, final Map<String, Object> config) {
 
 		putData(config, "id",                          abstractFile.getProperty(AbstractFile.id));
 		putData(config, "visibleToPublicUsers",        abstractFile.isVisibleToPublicUsers());
