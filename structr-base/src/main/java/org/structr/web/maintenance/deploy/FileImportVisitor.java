@@ -56,12 +56,11 @@ import static org.structr.core.graph.NodeInterface.name;
 public class FileImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());
-	private Map<String, Object> metadata    = null;
-	private SecurityContext securityContext = null;
-	private Path basePath                   = null;
-	private App app                         = null;
-	private List<File> deferredFiles        = null;
-	private Map<String, Folder> folderCache = null;
+	protected Map<String, Object> metadata    = null;
+	protected SecurityContext securityContext = null;
+	protected Path basePath                   = null;
+	protected App app                         = null;
+	protected Map<String, Folder> folderCache = null;
 
 	public FileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
 
@@ -69,14 +68,15 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.basePath        = basePath;
 		this.metadata        = metadata;
 		this.app             = StructrApp.getInstance(this.securityContext);
-		this.deferredFiles   = new ArrayList<>();
 		this.folderCache     = new HashMap<>();
+
 	}
 
 	@Override
 	public FileVisitResult preVisitDirectory(final Path dir, final BasicFileAttributes attrs) throws IOException {
 
 		if (!basePath.equals(dir)) {
+
 			createFolder(dir);
 		}
 
@@ -107,11 +107,11 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	}
 
 	// ----- private methods -----
-	private Folder getExistingFolder(final String path) throws FrameworkException {
+	protected Folder getExistingFolder(final String path) throws FrameworkException {
 
 		if (this.folderCache.containsKey(path)) {
 
-			return  this.folderCache.get(path);
+			return this.folderCache.get(path);
 
 		} else {
 
@@ -125,7 +125,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		}
 	}
 
-	private void createFolder(final Path folderObj) {
+	protected void createFolder(final Path folderObj) {
 
 		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
 
@@ -145,6 +145,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			// load properties from files.json
 			final PropertyMap properties = getConvertedPropertiesForFileOrFolder(folderPath);
 			if (properties != null) {
+
 				folderProperties.putAll(properties);
 			}
 
@@ -163,13 +164,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			tx.success();
 
 		} catch (Exception ex) {
-			logger.error("Error occured while importing folder " + folderObj, ex);
+
+			logger.error("Error occurred while importing folder " + folderObj, ex);
 		}
 	}
 
-	private void createFile(final Path path, final String fileName) throws IOException {
+	protected void createFile(final Path path, final String fileName) throws IOException {
 
-		boolean deferFile  = false;
 		String newFileUuid = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -187,24 +188,19 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				Object minificationSources = null;
-				if (rawProperties.containsKey("minificationSources")) {
-					deferFile = true;
-					minificationSources = rawProperties.remove("minificationSources");
-				}
-
 				final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 
-				Folder parent = null;
+				Folder parent    = null;
+				boolean skipFile = false;
 
 				if (!basePath.equals(path.getParent())) {
+
 					final String parentPath  = harmonizeFileSeparators("/", basePath.relativize(path.getParent()).toString());
 					parent = getExistingFolder(parentPath);
 				}
 
-				boolean skipFile         = false;
 
 				if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
 
@@ -269,13 +265,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 				if (file != null) {
 
-					if (deferFile) {
-						deferredFiles.add(file);
-						rawProperties.put("minificationSources", minificationSources);
-					} else {
-						file.unlockSystemPropertiesOnce();
-						file.setProperties(securityContext, fileProperties);
-					}
+					file.unlockSystemPropertiesOnce();
+					file.setProperties(securityContext, fileProperties);
 				}
 
 				if (newFileUuid != null) {
@@ -329,7 +320,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		}
 	}
 
-	private Map<String, Object> getRawPropertiesForFileOrFolder(final String path) throws FrameworkException {
+	protected Map<String, Object> getRawPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
 		final Object data = metadata.get(path);
 		if (data != null && data instanceof Map) {
@@ -340,7 +331,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	private PropertyMap getConvertedPropertiesForFileOrFolder(final String path) throws FrameworkException {
+	protected PropertyMap getConvertedPropertiesForFileOrFolder(final String path) throws FrameworkException {
 
 		final Map<String, Object> data = getRawPropertiesForFileOrFolder(path);
 		if (data != null) {
@@ -351,7 +342,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		return null;
 	}
 
-	private PropertyMap convertRawPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
+	protected PropertyMap convertRawPropertiesForFileOrFolder(final Map<String, Object> data) throws FrameworkException {
 
 		DeployCommand.checkOwnerAndSecurity(data, false);
 
@@ -359,7 +350,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 	}
 
-	private String harmonizeFileSeparators(final String... sources) {
+	protected String harmonizeFileSeparators(final String... sources) {
 
 		final StringBuilder buf = new StringBuilder();
 
