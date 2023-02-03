@@ -393,14 +393,18 @@ public class HttpHelper {
 			req.setEntity(new StringEntity(requestBody, charset));
 
 			final CloseableHttpResponse response = client.execute(req);
+			final HttpEntity responseEntity = response.getEntity();
 
-			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+			String content = null;
+			if (responseEntity != null) {
+				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+			}
 
 			content = skipBOMIfPresent(content);
 
 			responseData.put("body", content);
-
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+
 			for (final Header header : response.getAllHeaders()) {
 
 				responseData.put(header.getName(), header.getValue());
@@ -449,14 +453,18 @@ public class HttpHelper {
 			req.setEntity(new StringEntity(requestBody, charset));
 
 			final CloseableHttpResponse response = client.execute(req);
+			final HttpEntity responseEntity = response.getEntity();
 
-			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+			String content = null;
+			if (responseEntity != null) {
+				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+			}
 
 			content = skipBOMIfPresent(content);
 
 			responseData.put("body", content);
-
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
+
 			for (final Header header : response.getAllHeaders()) {
 
 				responseData.put(header.getName(), header.getValue());
@@ -498,8 +506,12 @@ public class HttpHelper {
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
 			final CloseableHttpResponse response = client.execute(req);
+			final HttpEntity responseEntity = response.getEntity();
 
-			String content = IOUtils.toString(response.getEntity().getContent(), charset(response));
+			String content = null;
+			if (responseEntity != null) {
+				content = IOUtils.toString(responseEntity.getContent(), charset(response));
+			}
 
 			content = skipBOMIfPresent(content);
 
