@@ -29,7 +29,9 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
+import org.structr.core.graph.Tx;
 import org.structr.rest.common.Stats;
 import org.structr.rest.service.HttpService;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -61,9 +63,17 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws ServletException, IOException {
 
 		try {
-			final Authenticator auth = getConfig().getAuthenticator();
-			// Ensure CORS settings apply by letting the authenticator examine the request.
-			auth.initializeAndExamineRequest(request, response);
+
+			// isolate request authentication in a transaction
+			try (final Tx tx = StructrApp.getInstance().tx()) {
+
+				final Authenticator auth = getConfig().getAuthenticator();
+
+				// Ensure CORS settings apply by letting the authenticator examine the request.
+				auth.initializeAndExamineRequest(request, response);
+
+				tx.success();
+			}
 
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");

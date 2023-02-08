@@ -576,13 +576,26 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 			for (final Map.Entry<Field, View> entry : views.entrySet()) {
 
-				final Field field        = entry.getKey();
-				final View view          = entry.getValue();
-				final PropertyKey[] keys = view.properties();
+				final Field field          = entry.getKey();
+				final View view            = entry.getValue();
+				final PropertyKey[] keys   = view.properties();
+				final Class declaringClass = field.getDeclaringClass();
 
-				// register field in view for entity class and declaring superclass
-				registerPropertySet(field.getDeclaringClass(), view.name(), keys);
-				registerPropertySet(type, view.name(), keys);
+				// register view and properties only when they weren't defined in declaring superclass
+				// or were defined by an interface or a non-dynamic class
+				if (type.equals(declaringClass)
+					|| declaringClass.isInterface()
+					|| !declaringClass.getName().startsWith("org.structr.dynamic")
+					|| type.getInterfaces().length > 0
+					|| view.name().equals(PropertyView.All)
+					|| view.name().equals(PropertyView.Custom)
+					|| view.name().equals(PropertyView.Html)
+					|| view.name().equals(PropertyView.Public)
+					|| view.name().equals(PropertyView.Private)
+					|| view.name().equals(PropertyView.Protected)
+				) {
+					registerPropertySet(type, view.name(), keys);
+				}
 
 				for (final PropertyKey propertyKey : keys) {
 
