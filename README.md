@@ -54,4 +54,4 @@ You can submit issues (bugs, feature requests etc.) on the [issue-tracker](https
 
 ## Copyright and License
 
-Copyright 2010-2022 Structr GmbH
+Copyright 2010-2023 Structr GmbH
