@@ -30,8 +30,8 @@ import java.util.Date;
 
 public class DateAddFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_add(date, year[, month[, day[, hour[, minute[, second]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}";
-	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_add(date, year[, month[, day[, hour[, minute[, second]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT    = "Usage: ${date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}. Example: ${date_add(this.createdDate, 1, -1, 0, 0, 0, 0)}";
+	public static final String ERROR_MESSAGE_DATE_FORMAT_JS = "Usage: ${{Structr.date_add(date, years[, months[, days[, hours[, minutes[, seconds]]]]])}}. Example: ${{Structr.date_add(Structr.this.createdDate, 1, -1, 0, 0, 0, 0)}}";
 
 	@Override
 	public String getName() {
@@ -40,7 +40,7 @@ public class DateAddFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "date, year[, month[, day[, hour[, minute[, second]]]]]";
+		return "date, years[, months[, days[, hours[, minutes[, seconds]]]]]";
 	}
 
 	@Override
