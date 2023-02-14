@@ -28,14 +28,12 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
-import org.structr.web.property.PathProperty;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 

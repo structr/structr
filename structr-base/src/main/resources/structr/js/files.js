@@ -247,19 +247,22 @@ let _Files = {
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 
 				if (entity.isTemplate) {
+
 					elements.push({
 						icon: _Icons.getSvgIcon('pencil_edit'),
 						name: 'Edit source',
-						clickHandler: function () {
+						clickHandler: () => {
 							_Files.editFile(entity);
 							return false;
 						}
 					});
+
 				} else {
+
 					elements.push({
 						icon: _Icons.getSvgIcon('pencil_edit'),
 						name: 'Edit Image',
-						clickHandler: function () {
+						clickHandler: () => {
 							_Files.editImage(entity);
 							return false;
 						}
@@ -267,10 +270,11 @@ let _Files = {
 				}
 
 			} else {
+
 				elements.push({
 					icon: _Icons.getSvgIcon('pencil_edit'),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
-					clickHandler: function () {
+					clickHandler: () => {
 						_Files.editFile(entity);
 						return false;
 					}
@@ -1266,7 +1270,7 @@ let _Files = {
 			});
 		});
 	},
-	editFile: (file) => {
+	editFile: (file, hasBeenWarned = false) => {
 
 		let parent = Structr.node(file.id);
 
@@ -1279,79 +1283,105 @@ let _Files = {
 			_Files.selectedElements = parent;
 		}
 
-		Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
+		let hasFileAboveThreshold = false;
 
-		dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
-
-		let filteredFileIds = [];
+		let filteredFileModels = [];
 		if (_Files.selectedElements && _Files.selectedElements.length > 1 && parent.hasClass('selected')) {
+
 			for (let el of _Files.selectedElements) {
 				let modelObj = StructrModel.obj(Structr.getId(el));
 				if (modelObj && modelObj.isFolder !== true) {
-					filteredFileIds.push(modelObj.id);
+					filteredFileModels.push(modelObj);
 				}
 			}
+
 		} else {
+
 			let modelObj = StructrModel.obj(file.id);
 			if (!modelObj) {
 				modelObj = StructrModel.create(file);
 			}
 			if (modelObj && modelObj.isFolder !== true) {
-				filteredFileIds.push(file.id);
+				filteredFileModels.push(file);
 			}
 		}
 
-		let filesTabs     = document.getElementById('files-tabs');
-		let filesTabsUl   = filesTabs.querySelector('ul');
-		let loadedEditors = 0;
+		let fileThresholdKB = 500;
 
-		for (let uuid of filteredFileIds) {
+		for (let fileModel of filteredFileModels) {
+			if (fileModel.size > fileThresholdKB * 1024) {
+				hasFileAboveThreshold = true;
+			}
+		}
 
-			Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+		if (hasBeenWarned === false && hasFileAboveThreshold === true) {
 
-				loadedEditors++;
-
-				let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-				let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
-
-				filesTabsUl.appendChild(tab);
-				filesTabs.appendChild(editorContainer);
-
-				_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
-
-				tab.addEventListener('click', (e) => {
-					e.stopPropagation();
-
-					// prevent activating the current tab
-					if (!tab.classList.contains('active')) {
-
-						// set all other tabs inactive and this one active
-						for (let tab of filesTabsUl.querySelectorAll('li')) {
-							tab.classList.remove('active');
-						}
-						tab.classList.add('active');
-
-						// hide all editors and show this one
-						for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
-							otherEditorContainer.style.display = 'none';
-						}
-						editorContainer.style.display = 'block';
-
-						// clear all other tabs before editing this one to ensure correct height
-						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-							fastRemoveAllChildren(editor);
-						}
-
-						_Files.editFileWithMonaco(entity, $(editorContainer));
-					}
-
-					return false;
-				});
-
-				if (file.id === entity.id) {
-					tab.click();
+			Structr.confirmationPromiseNonBlockUI(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(answer => {
+				if (answer === true) {
+					_Files.editFile(file, true);
 				}
-			});
+			})
+
+		} else {
+
+			Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
+
+			dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
+
+			let filesTabs     = document.getElementById('files-tabs');
+			let filesTabsUl   = filesTabs.querySelector('ul');
+			let loadedEditors = 0;
+
+			for (let fileModel of filteredFileModels) {
+
+				let uuid = fileModel.id;
+
+				Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+
+					loadedEditors++;
+
+					let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+					let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+
+					filesTabsUl.appendChild(tab);
+					filesTabs.appendChild(editorContainer);
+
+					_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
+
+					tab.addEventListener('click', (e) => {
+						e.stopPropagation();
+
+						// prevent activating the current tab
+						if (!tab.classList.contains('active')) {
+
+							// set all other tabs inactive and this one active
+							for (let tab of filesTabsUl.querySelectorAll('li')) {
+								tab.classList.remove('active');
+							}
+							tab.classList.add('active');
+
+							// hide all editors and show this one
+							for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+								otherEditorContainer.style.display = 'none';
+							}
+							editorContainer.style.display = 'block';
+
+							// clear all other tabs before editing this one to ensure correct height
+							for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+								fastRemoveAllChildren(editor);
+							}
+
+							_Files.editFileWithMonaco(entity, $(editorContainer));
+						}
+
+						return false;
+					});
+
+					if (file.id === entity.id) {
+						tab.click();
+					}
+				});
+			}
 		}
 	},
 	markFileEditorTabAsChanged: (id, hasChanges) => {
