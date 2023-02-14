@@ -76,12 +76,6 @@
 	font-size: 48px;
 }
 
-#folder-contents .tile i.fa.fa-plug {
-	font-size: 18px;
-	left: 26px;
-	top: 8px;
-}
-
 #folder-contents .tile i.button {
 	position: absolute;
 	bottom: 4px;
@@ -140,9 +134,7 @@
 	padding-left: 1rem;
 }
 
-#folder-contents .thumbnail,
-#folder-contents .thumbnail .file,
-#folder-contents .thumbnail i.fa-file-image-o {
+#folder-contents .thumbnail {
 	color: var(--gray-aaa);
 }
 
@@ -164,8 +156,6 @@
 
 #folder-contents .nodeHover, .image.nodeHover {
 	color: var(--gray-333) ! important;
-	/*background: var(--structr-light-green) ! important;*/
-	/*border: 1px solid transparent;*/
 	z-index: 1;
 }
 
@@ -174,7 +164,7 @@
 }
 
 #folder-contents table th:nth-child(1) {
-	width: 3%;
+	width: 24px;
 }
 
 #folder-contents table th:nth-child(2) {
@@ -190,7 +180,7 @@
 }
 
 #folder-contents table th:nth-child(5) {
-	width: 17%;
+	width: calc(20% - 24px);
 }
 
 #folder-contents table th:nth-child(6) {
@@ -203,10 +193,6 @@
 
 #files-table {
 	margin-bottom: 1rem;
-}
-
-#files-table tbody {
-	/*border-top: 1px solid var(--gray-ccc) !important;*/
 }
 
 #files-table tr:nth-child(even) {
@@ -235,33 +221,13 @@
 	color: var(--gray-ddd);
 }
 
-/*#files-table tbody tr:hover td.id {*/
-/*	color: var(--solid-white);*/
-/*}*/
-
 #files-table tbody tr td .node {
 	min-width: 6rem;
 	padding-right: .5rem;
 }
 
-#files-table tbody tr td input {
-	/*margin-top: .75rem;*/
-	/*min-width: 10rem;*/
-}
-
 #files-table td.file-icon {
-	/*width: 1rem;*/
 	cursor: pointer;
-}
-
-#files-table td.file-icon i.fa {
-	/*width: 1rem;*/
-	/*padding: .5rem 0;*/
-}
-
-#files-table td.file-icon i.fa.fa-plug {
-	font-size: 1rem;
-	left: 1rem;
 }
 
 #files-table td {
@@ -284,10 +250,6 @@
 
 #files-table .file, #files-table .folder {
 	margin: 0;
-}
-
-#files-table .folder-up {
-	padding-left: .5rem;
 }
 
 /**

@@ -327,7 +327,7 @@ let _Pages = {
 		if (entity.type === 'Div' && !hasChildren) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: () => {
 					_Entities.editEmptyDiv(entity);
@@ -342,7 +342,7 @@ let _Pages = {
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon('duplicate'),
 				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
@@ -406,7 +406,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.getSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon('duplicate'),
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);
@@ -556,7 +556,7 @@ let _Pages = {
 		if (!isPage && entity.parent !== null) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
@@ -572,7 +572,7 @@ let _Pages = {
 		if (isPage || !entity.parent) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {

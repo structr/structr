@@ -108,18 +108,30 @@ public class ValueExpression extends Expression {
 		// evaluate dot syntax
 		if (keyword.startsWith(".")) {
 
-			final String key = keyword.substring(1);
+			Object extractedValue = value;
 
-			if (value instanceof GraphObject) {
+			final String[] keys = keyword.split("\\.");
 
-				// use evaluation depth > 0 so that any data key that is registered in the
-				// context can NOT be used
-				return ctx.getReferencedProperty(entity, key, value, 1, hints, row, column);
+			for (final String key : keys) {
 
-			} else if (value instanceof Map) {
+				if (key.length() == 0) {
+					continue;
+				}
 
-				return ((Map)value).get(key);
+				if (value instanceof GraphObject) {
+
+					// use evaluation depth > 0 so that any data key that is registered in the
+					// context can NOT be used
+					extractedValue = ctx.getReferencedProperty(entity, key, value, 1, hints, row, column);
+
+				} else if (value instanceof Map) {
+
+					extractedValue = ((Map)extractedValue).get(key);
+				}
 			}
+
+
+			return extractedValue;
 		}
 
 		return value;

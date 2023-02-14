@@ -107,7 +107,7 @@ let _Contents = {
 					element: $(itemTypeSelect).parent(),
 					after: true,
 					css: {
-						marginLeft: '-1rem',
+						marginLeft: '-.75rem',
 						marginRight: '1rem'
 					}
 				});
@@ -174,7 +174,7 @@ let _Contents = {
 		if (isContentItem) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: function () {
 					_Contents.editItem(entity);
@@ -198,7 +198,7 @@ let _Contents = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
@@ -303,18 +303,16 @@ let _Contents = {
 
 		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, (folders) => {
 
-			let list = [];
-
-			for (let d of folders) {
-				let childCount = (d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : '';
-				list.push({
+			let list = folders.map(d => {
+				return {
 					id: d.id,
-					text: (d.name ? d.name : '[unnamed]') + childCount,
+					text: (d.name ? d.name : '[unnamed]') + ((d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : ''),
 					children: d.isContentContainer && d.childContainers.length > 0,
-					icon: 'fa fa-folder-o',
+					icon: _Icons.jstree_fake_icon,
+					data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) },
 					path: d.path
-				});
-			}
+				};
+			});
 
 			callback(list);
 
@@ -382,7 +380,7 @@ let _Contents = {
 			<table id="files-table" class="stripe">
 				<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>
 				<tbody id="files-table-body">
-					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon"><i class="fa fa-folder-o"></i></td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td><td></td></tr>` : '')}
+					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 				</tbody>
 			</table>
 		`);
@@ -441,24 +439,21 @@ let _Contents = {
 		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
 
 		let row   = $('#' + rowId);
-		let icon  = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 		let title = (d.name ? d.name : '[unnamed]');
 
-		if (d.isContentContainer) {
-
-			row.append('<td class="file-icon"><i class="fa ' + icon + '"></i></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="folder" class="node container flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + d.name + '</b><div class="icons-container flex items-center"></div></div></td>');
-
-		} else {
-
-			row.append('<td class="file-icon"><a href="javascript:void(0)"><i class="fa ' + icon + '"></i></a></td>');
-			row.append('<td><div id="id_' + d.id + '" data-structr_type="item" class="node item flex items-center justify-between"><b title="' + escapeForHtmlAttributes(title) + '" class="name_ leading-8 truncate">' + (d.name ? d.name : '[unnamed]') + '</b><div class="icons-container flex items-center"></div></td>');
-		}
-
-		row.append('<td>' + size + '</td>');
-		row.append('<td class="truncate">' + d.type + '</td>');
-		row.append('<td class="truncate">' + (d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '') + '</td>');
-		row.append('<td class="truncate">' + moment(d.lastModifiedDate).calendar() + '</td>');
+		row.append(`
+			<td class="file-icon">${_Icons.getSvgIcon((d.isContentContainer ? 'folder-closed-icon' : 'file-empty'), 16, 16)}</td>
+			<td>
+				<div id="id_${d.id}" data-structr_type="${(d.isContentContainer ? 'folder' : 'item')}" class="node ${(d.isContentContainer ? 'container' : 'item')} flex items-center justify-between">
+					<b title="${escapeForHtmlAttributes(title)}" class="name_ leading-8 truncate">${(d.name ? d.name : '[unnamed]')}</b>
+					<div class="icons-container flex items-center"></div>
+				</div>
+			</td>
+			<td>${size}</td>
+			<td class="truncate">${d.type}</td>
+			<td class="truncate">${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
+			<td class="truncate">${moment(d.lastModifiedDate).calendar()}</td>
+		`);
 
 		// Change working dir by click on folder icon
 		$('#id_' + d.id + '.container').parent().prev().on('click', function(e) {
@@ -475,7 +470,6 @@ let _Contents = {
 					} else {
 						$('#' + d.id + '_anchor').click();
 					}
-
 				});
 
 			} else {
@@ -888,7 +882,7 @@ let _Contents = {
 							<tbody>
 								${data.result.map(d => `
 									<tr>
-										<td><i class="fa ${_Contents.getIcon(d)}"></i> ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+										<td>${_Icons.getSvgIcon((d.isContentContainer ? 'folder-closed-icon' : 'file-empty'), 16, 16)} ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
 										<td><a href="#results${d.id}">${d.name}</a></td>
 										<!--td>${d.size}</td-->
 									</tr>
@@ -899,9 +893,6 @@ let _Contents = {
 				}
 			}
 		});
-	},
-	getIcon: (file) => {
-		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
 	},
 	appendEditContentItemIcon: (parent, d) => {
 

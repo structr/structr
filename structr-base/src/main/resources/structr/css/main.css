@@ -3235,44 +3235,8 @@ i.fa {
 	font-size: 16px;
 }
 
-i.fa-file-archive-o {
-	color: orange;
-}
-
-i.fa-folder, i.fa-folder-open, i.fa-sitemap {
+i.fa-sitemap {
 	color: var(--color-folder);
-}
-
-i.fa-file-o,
-i.fa-file-text-o {
-	color: var(--gray-666);
-}
-
-i.fa-file-powerpoint-o,
-i.fa-file-pdf-o,
-i.fa.jar {
-	color: var(--icon-color-red);
-}
-
-i.fa.eps,
-i.fa.ps,
-i.fa-file-word-o {
-	color: var(--icon-color-dark-blue);
-}
-
-i.fa-file-image-o,
-i.fa-file-excel-o {
-	color: var(--icon-color-dark-green);
-}
-
-i.fa-picture-o {
-	/*font-size: 10pt;*/
-	color: var(--icon-color-dark-green);
-}
-
-i.fa-trash-o {
-	color: var(--gray-888);
-	/*font-size: 14pt;*/
 }
 
 .ui-tooltip {
@@ -3420,7 +3384,6 @@ i.fa-trash-o {
 	display: flex;
 }
 
-.menu-entry-container > svg,
 .menu-entry-container > i {
 	margin-right: 0.5rem;
 }
@@ -3820,14 +3783,14 @@ input#element-class {
 	width: 48px;
 	text-align: center;
 }
-.image-editor-menubar i {
+.image-editor-menubar i, .image-editor-menubar svg {
 	margin-right: 2px;
 	padding: 8px;
 	color: var(--gray-333);
 	background-color: var(--light-gray-delete-d3);
 }
 
-.image-editor-menubar i:hover {
+.image-editor-menubar i:hover, .image-editor-menubar svg:hover {
 	cursor: pointer;
 	color: var(--gray-666);
 	background-color: var(--gray-ddd);
@@ -4526,6 +4489,9 @@ table.props td.__value {
 .justify-end {
 	justify-content: flex-end;
 }
+.justify-around {
+	justify-content: space-around;
+}
 .h-4 {
 	height: 1rem;
 }
@@ -4555,6 +4521,9 @@ table.props td.__value {
 }
 .m-2 {
 	margin: .5rem;
+}
+.-mr-2 {
+	margin-right: -.5rem;
 }
 .mr-0 {
 	margin-right: 0;
@@ -4631,13 +4600,13 @@ table.props td.__value {
 .mb-8 {
 	margin-bottom: 2rem;
 }
-.mx-4 {
-	margin-top: 1rem;
-	margin-bottom: 1rem;
-}
 .my-2 {
 	margin-top: .5rem;
 	margin-bottom: .5rem;
+}
+.my-4 {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
 }
 .my-8 {
 	margin-top: 2rem;
@@ -4752,12 +4721,6 @@ table.props td.__value {
 }
 .whitespace-nowrap {
 	white-space: nowrap;
-}
-.justify-between {
-	justify-content: space-between;
-}
-.justify-around {
-	justify-content: space-around;
 }
 .align-baseline {
 	vertical-align: baseline;

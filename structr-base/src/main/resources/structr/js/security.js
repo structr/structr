@@ -131,7 +131,7 @@ let _Security = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {

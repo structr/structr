@@ -113,7 +113,7 @@ let _Code = {
 
 			$('#tree-forward-button').on('click', _Code.pathLocationForward);
 			$('#tree-back-button').on('click', _Code.pathLocationBackward);
-			$('#cancel-search-button').on('click', _Code.cancelSearch);
+			$('.clearSearchIcon').on('click', _Code.cancelSearch);
 
 			$(window).on('keydown.search', function(e) {
 				if (_Code.searchIsActive()) {
@@ -677,10 +677,11 @@ let _Code = {
 					id:       path + '/searchresults',
 					text:     'Search Results',
 					children: true,
-					icon:     'fa fa-search',
+					icon:     _Icons.jstree_fake_icon,
 					data: {
 						key: 'searchresults',
-						path: path + '/searchresults'
+						path: path + '/searchresults',
+						svgIcon: _Icons.getSvgIcon('magnifying-glass', 16, 24)
 					},
 					state: {
 						opened: true
@@ -2658,10 +2659,12 @@ let _Code = {
 		let text      = input.val();
 		let threshold = _Code.searchThreshold;
 
+		let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
+
 		if (text.length >= threshold) {
-			$('#cancel-search-button').show();
+			clearSearchIcon.classList.add('block');
 		} else {
-			$('#cancel-search-button').hide();
+			clearSearchIcon.classList.remove('block');
 		}
 
 		if (text.length >= threshold || (_Code.searchTextLength >= threshold && text.length <= _Code.searchTextLength)) {
@@ -2888,14 +2891,16 @@ let _Code = {
 			</div>
 		`,
 		functions: config => `
-			<div class="tree-search-container" id="tree-search-container">
-				<i id="cancel-search-button" class="cancel-search-button hidden fa fa-remove"></i>
-				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-back-button" title="Back" disabled>
-					<i class="fa fa-caret-left"></i>
+			<div class="tree-search-container flex" id="tree-search-container">
+				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
+					${_Icons.getSvgIcon('chevron-left-filled', 12, 12)}
 				</button>
-				<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
-				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green" id="tree-forward-button" title="Forward" disabled>
-					<i class="fa fa-caret-right"></i>
+				<div class="relative">
+					<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
+					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				</div>
+				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
+					${_Icons.getSvgIcon('chevron-right-filled', 12, 12)}
 				</button>
 			</div>
 		`,
