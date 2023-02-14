@@ -4526,6 +4526,9 @@ table.props td.__value {
 .justify-end {
 	justify-content: flex-end;
 }
+.justify-around {
+	justify-content: space-around;
+}
 .h-4 {
 	height: 1rem;
 }
@@ -4631,13 +4634,13 @@ table.props td.__value {
 .mb-8 {
 	margin-bottom: 2rem;
 }
-.mx-4 {
-	margin-top: 1rem;
-	margin-bottom: 1rem;
-}
 .my-2 {
 	margin-top: .5rem;
 	margin-bottom: .5rem;
+}
+.my-4 {
+	margin-top: 1rem;
+	margin-bottom: 1rem;
 }
 .my-8 {
 	margin-top: 2rem;
@@ -4752,12 +4755,6 @@ table.props td.__value {
 }
 .whitespace-nowrap {
 	white-space: nowrap;
-}
-.justify-between {
-	justify-content: space-between;
-}
-.justify-around {
-	justify-content: space-around;
 }
 .align-baseline {
 	vertical-align: baseline;

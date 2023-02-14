@@ -841,20 +841,31 @@ let _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
+
 				_Files.folderContents.append(`
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
 
+				$('#parent-file-link').on('click', (e) => {
+
+					if (parentId !== '#') {
+						$('#' + parentId + '_anchor').click();
+					}
+				});
+
 			} else if (_Files.isViewModeActive('tiles')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
+
 			} else if (_Files.isViewModeActive('img')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
@@ -887,7 +898,7 @@ let _Files = {
 			});
 		}
 	},
-	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
+	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
 		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
@@ -904,6 +915,7 @@ let _Files = {
 		let imgSw   = $('#switch-img');
 
 		let layoutSwitchFunction = function() {
+
 			let state = $(this).hasClass('inactive');
 
 			if (state) {
