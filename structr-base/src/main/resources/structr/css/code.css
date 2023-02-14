@@ -68,10 +68,6 @@
 	background-color: var(--main-background);
 }
 
-#code-context .code-favorite .fa-remove {
-	color: var(--gray-ddd);
-}
-
 #code-contents .schema-props {
 	table-layout: auto;
 	border: none;

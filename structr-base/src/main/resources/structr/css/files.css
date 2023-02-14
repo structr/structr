@@ -76,12 +76,6 @@
 	font-size: 48px;
 }
 
-#folder-contents .tile i.fa.fa-plug {
-	font-size: 18px;
-	left: 26px;
-	top: 8px;
-}
-
 #folder-contents .tile i.button {
 	position: absolute;
 	bottom: 4px;
@@ -140,9 +134,7 @@
 	padding-left: 1rem;
 }
 
-#folder-contents .thumbnail,
-#folder-contents .thumbnail .file,
-#folder-contents .thumbnail i.fa-file-image-o {
+#folder-contents .thumbnail {
 	color: var(--gray-aaa);
 }
 
@@ -236,11 +228,6 @@
 
 #files-table td.file-icon {
 	cursor: pointer;
-}
-
-#files-table td.file-icon i.fa.fa-plug {
-	font-size: 1rem;
-	left: 1rem;
 }
 
 #files-table td {

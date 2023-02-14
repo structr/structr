@@ -31,14 +31,8 @@
 	padding-left: 1rem;
 }
 
-#contents-contents .thumbnail,
-#contents-contents .thumbnail .file,
-#contents-contents .thumbnail i.fa-file-image-o {
+#contents-contents .thumbnail {
 	color: var(--gray-aaa);
-}
-
-#contents-contents .thumbnail i.fa-file-image-o {
-	/*font-size: 16px;*/
 }
 
 #contents-contents .thumbnailZoom {

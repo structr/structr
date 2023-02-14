@@ -249,7 +249,7 @@ let _Files = {
 				if (entity.isTemplate) {
 
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit source',
 						clickHandler: () => {
 							_Files.editFile(entity);
@@ -260,7 +260,7 @@ let _Files = {
 				} else {
 
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit Image',
 						clickHandler: () => {
 							_Files.editImage(entity);
@@ -272,7 +272,7 @@ let _Files = {
 			} else {
 
 				elements.push({
-					icon: _Icons.getSvgIcon('pencil_edit'),
+					icon: _Icons.getMenuSvgIcon('pencil_edit'),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: () => {
 						_Files.editFile(entity);
@@ -306,7 +306,7 @@ let _Files = {
 
 			if (_Files.displayingFavorites) {
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star-remove'),
+					icon: _Icons.getMenuSvgIcon('favorite-star-remove'),
 					name: 'Remove from Favorites',
 					clickHandler: function () {
 
@@ -324,7 +324,7 @@ let _Files = {
 			} else if (entity.isFavoritable) {
 
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star'),
+					icon: _Icons.getMenuSvgIcon('favorite-star'),
 					name: 'Add to Favorites',
 					clickHandler: function () {
 
@@ -361,7 +361,7 @@ let _Files = {
 
 				elements.push({
 					name: 'Download File',
-					icon: _Icons.getSvgIcon('download-icon'),
+					icon: _Icons.getMenuSvgIcon('download-icon'),
 					clickHandler: () => {
 						// do not make the click handler async because it would return a promise instead of the boolean
 
@@ -422,7 +422,7 @@ let _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
@@ -1234,7 +1234,10 @@ let _Files = {
 
 		el.append(`
 			<div class="image-editor-menubar">
-				<div><i class="fa fa-crop"></i><br>Crop</div>
+				<div class="crop-action">
+					${_Icons.getSvgIcon('image-crop')}
+					<br>Crop
+				</div>
 			</div>
 			<div><img id="image-editor" class="orientation-' + image.orientation + '" src="${ imagePath }"></div>
 		`);
@@ -1269,7 +1272,7 @@ let _Files = {
 			}, 500);
 		});
 
-		$('.fa-crop', el).on('click', function() {
+		$('.crop-action', el).on('click', function() {
 
 			$('#image-editor').cropper({
 				crop: function(e) {

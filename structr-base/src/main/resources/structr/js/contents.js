@@ -174,7 +174,7 @@ let _Contents = {
 		if (isContentItem) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: function () {
 					_Contents.editItem(entity);
@@ -198,7 +198,7 @@ let _Contents = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
@@ -439,7 +439,6 @@ let _Contents = {
 		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
 
 		let row   = $('#' + rowId);
-		let icon  = d.isContentContainer ? 'fa-folder-o' : _Contents.getIcon(d);
 		let title = (d.name ? d.name : '[unnamed]');
 
 		row.append(`
@@ -883,7 +882,7 @@ let _Contents = {
 							<tbody>
 								${data.result.map(d => `
 									<tr>
-										<td><i class="fa ${_Contents.getIcon(d)}"></i> ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+										<td>${_Icons.getSvgIcon((d.isContentContainer ? 'folder-closed-icon' : 'file-empty'), 16, 16)} ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
 										<td><a href="#results${d.id}">${d.name}</a></td>
 										<!--td>${d.size}</td-->
 									</tr>
@@ -894,9 +893,6 @@ let _Contents = {
 				}
 			}
 		});
-	},
-	getIcon: (file) => {
-		return (file.isContentContainer ? 'fa-folder-o' : 'fa-file-o');
 	},
 	appendEditContentItemIcon: (parent, d) => {
 
