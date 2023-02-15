@@ -1189,33 +1189,42 @@ let _Dashboard = {
 
 					<div class="tab-content" id="dashboard-server-log">
 
-						<div id="dashboard-server-log-controls">
+						<div id="dashboard-server-log-controls" class="pb-4">
 
-							<label>Refresh Interval:</label>
-							<select id="dashboard-server-log-refresh-interval">
-								<option value="10000">10s</option>
-								<option value="5000">5s</option>
-								<option value="2000">2s</option>
-								<option value="1000">1s</option>
-								<option value="-1">manual</option>
-							</select>
+							<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
+									${_Icons.getSvgIcon('settings-cog')}
+								</button>
 
-							<span class="dashboard-spacer"></span>
+								<div class="dropdown-menu-container" style="display: none;">
+									<div class="font-bold pt-4 pb-2">Server Log Settings</div>
+									<div class="editor-setting flex items-center p-1">
 
-							<label>Number of lines: </label>
-							<input id="dashboard-server-log-lines" type="number" class="w-16">
+										<label class="flex-grow">Refresh Interval</label>
 
-							<span class="dashboard-spacer"></span>
+										<select id="dashboard-server-log-refresh-interval" class="w-28">
+											<option value="10000">10s</option>
+											<option value="5000">5s</option>
+											<option value="2000">2s</option>
+											<option value="1000">1s</option>
+											<option value="-1">manual</option>
+										</select>
+									</div>
 
-							<label>Truncate lines at: </label>
-							<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+									<div class="editor-setting flex items-center p-1">
+										<label class="flex-grow">Number of lines</label>
+										<input id="dashboard-server-log-lines" type="number" class="w-16">
+									</div>
 
-							<span class="dashboard-spacer"></span>
+									<div class="editor-setting flex items-center p-1">
+										<label class="flex-grow">Truncate lines at</label>
+										<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+									</div>
+								</div>
+							</div>
 
 							<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
 							<button id="dashboard-server-log-copy" class="action">Copy</button>
-
-							<span class="dashboard-spacer"></span>
 
 							<span id="dashboard-server-log-feedback"></span>
 						</div>
