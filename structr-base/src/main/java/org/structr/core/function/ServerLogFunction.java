@@ -30,8 +30,8 @@ import java.nio.charset.Charset;
 
 public class ServerLogFunction extends AdvancedScriptingFunction {
 
-	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines=50])}. Example: ${serverlog(200)}";
-	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{Structr.serverlog([n=50])}}. Example: ${{Structr.serverlog(200)}}";
+	public static final String ERROR_MESSAGE_SERVERLOG = "Usage: ${serverlog([lines = 50])}. Example: ${serverlog(200)}";
+	public static final String ERROR_MESSAGE_SERVERLOG_JS = "Usage: ${{Structr.serverlog([lines = 50])}}. Example: ${{Structr.serverlog(200)}}";
 
 	private static final Logger logger = LoggerFactory.getLogger(ServerLogFunction.class.getName());
 
@@ -42,21 +42,26 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 
 	@Override
 	public String getSignature() {
-		return "[ lines=50 ]";
+		return "[ lines = 50, [ truncateLinesAfter ] ]";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		int lines = 50;
+		int lines              = 50;
+		int truncateLinesAfter = -1;
 
 		if (sources != null && sources.length > 0 && sources[0] instanceof Number) {
 
 			lines = ((Number)sources[0]).intValue();
-
 		}
 
-		return getServerLog(lines);
+		if (sources != null && sources.length > 1 && sources[1] instanceof Number) {
+
+			truncateLinesAfter = ((Number)sources[1]).intValue();
+		}
+
+		return getServerLog(lines, truncateLinesAfter);
 	}
 
 	@Override
@@ -69,7 +74,7 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 		return "Returns the last n lines from the server log file";
 	}
 
-	public static String getServerLog(final int numberOfLines) {
+	public static String getServerLog(final int numberOfLines, final Integer truncateLinesAfter) {
 
 		int lines = numberOfLines;
 
@@ -82,20 +87,30 @@ public class ServerLogFunction extends AdvancedScriptingFunction {
 				final StringBuilder sb = new StringBuilder();
 
 				while (lines > 0) {
-					final String line = reader.readLine();
+
+					String line = reader.readLine();
 
 					if (line == null) {
+
 						lines = 0;
+
 					} else {
+
+						if (truncateLinesAfter > 0 && line.length() > truncateLinesAfter) {
+
+							line = line.substring(0, truncateLinesAfter).concat("[...]");
+						}
+
 						sb.insert(0, line.concat("\n"));
+
 						lines--;
 					}
-
 				}
 
 				return sb.toString();
 
 			} catch (IOException ex) {
+
 				logger.warn("", ex);
 			}
 		}

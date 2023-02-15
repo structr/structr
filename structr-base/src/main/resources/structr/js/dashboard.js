@@ -664,9 +664,11 @@ let _Dashboard = {
 		'server-log': {
 			refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
 			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
+			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
 			intervalID: undefined,
 			timeIntervalSelect: undefined,
 			numberOfLinesInput: undefined,
+			truncateLinesAfterInput: undefined,
 			copyButton: undefined,
 			manualRefreshButton: undefined,
 			feedbackElement: undefined,
@@ -681,28 +683,30 @@ let _Dashboard = {
 			},
 			init: () => {
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect  = document.querySelector('#dashboard-server-log-refresh-interval');
-				_Dashboard.tabs['server-log'].numberOfLinesInput  = document.querySelector('#dashboard-server-log-lines');
-				_Dashboard.tabs['server-log'].manualRefreshButton = document.querySelector('#dashboard-server-log-manual-refresh');
-				_Dashboard.tabs['server-log'].feedbackElement     = document.querySelector('#dashboard-server-log-feedback');
-				_Dashboard.tabs['server-log'].textarea            = document.querySelector('#dashboard-server-log textarea');
+				_Dashboard.tabs['server-log'].timeIntervalSelect      = document.querySelector('#dashboard-server-log-refresh-interval');
+				_Dashboard.tabs['server-log'].numberOfLinesInput      = document.querySelector('#dashboard-server-log-lines');
+				_Dashboard.tabs['server-log'].truncateLinesAfterInput = document.querySelector('#dashboard-server-truncate-lines');
+				_Dashboard.tabs['server-log'].manualRefreshButton     = document.querySelector('#dashboard-server-log-manual-refresh');
+				_Dashboard.tabs['server-log'].feedbackElement         = document.querySelector('#dashboard-server-log-feedback');
+				_Dashboard.tabs['server-log'].textarea                = document.querySelector('#dashboard-server-log textarea');
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect.value = LSWrapper.getItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000);
+				let initServerLogInput = (element, lsKey, defaultValue, successFn) => {
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect.addEventListener('change', () => {
-					LSWrapper.setItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].timeIntervalSelect.value);
+					element.value = LSWrapper.getItem(lsKey, defaultValue);
 
-					_Dashboard.tabs['server-log'].updateRefreshInterval();
-					blinkGreen(_Dashboard.tabs['server-log'].timeIntervalSelect);
-				});
+					element.addEventListener('change', () => {
 
-				_Dashboard.tabs['server-log'].numberOfLinesInput.value = LSWrapper.getItem(_Dashboard.tabs['server-log'].numberOfLinesKey, 300);
+						LSWrapper.setItem(lsKey, element.value);
 
-				_Dashboard.tabs['server-log'].numberOfLinesInput.addEventListener('change', () => {
-					LSWrapper.setItem(_Dashboard.tabs['server-log'].numberOfLinesKey, _Dashboard.tabs['server-log'].numberOfLinesInput.value);
+						successFn?.();
 
-					blinkGreen(_Dashboard.tabs['server-log'].numberOfLinesInput);
-				});
+						blinkGreen(element);
+					});
+				};
+
+				initServerLogInput(_Dashboard.tabs['server-log'].timeIntervalSelect, _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
+				initServerLogInput(_Dashboard.tabs['server-log'].numberOfLinesInput, _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
+				initServerLogInput(_Dashboard.tabs['server-log'].truncateLinesAfterInput, _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
 
 				let copyButton                = document.querySelector('#dashboard-server-log-copy');
 				copyButton.addEventListener('click', async () => {
@@ -735,7 +739,7 @@ let _Dashboard = {
 
 					_Dashboard.tabs['server-log'].feedbackElement.textContent = 'Refreshing server log...';
 
-					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].numberOfLinesInput.value, (a) => {
+					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].numberOfLinesInput.value, _Dashboard.tabs['server-log'].truncateLinesAfterInput.value, (a) => {
 
 						_Dashboard.tabs['server-log'].textarea.textContent = a[0].result;
 
@@ -1199,7 +1203,12 @@ let _Dashboard = {
 							<span class="dashboard-spacer"></span>
 
 							<label>Number of lines: </label>
-							<input id="dashboard-server-log-lines" type="number">
+							<input id="dashboard-server-log-lines" type="number" class="w-16">
+
+							<span class="dashboard-spacer"></span>
+
+							<label>Truncate lines at: </label>
+							<input id="dashboard-server-truncate-lines" type="number" class="w-16">
 
 							<span class="dashboard-spacer"></span>
 

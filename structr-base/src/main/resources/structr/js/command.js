@@ -1429,15 +1429,17 @@ let Command = {
 	},
 	/**
      * Requests log snapshot from the server.
-     *
      */
-    getServerLogSnapshot: function(numberOfLines, callback) {
+    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, callback) => {
+
 		let obj  = {
             command: 'SERVER_LOG',
             data: {
-                numberOfLines: numberOfLines
+				numberOfLines:      numberOfLines,
+				truncateLinesAfter: truncateLinesAfter
             }
         };
+
         return StructrWS.sendObj(obj, callback);
     }
 };

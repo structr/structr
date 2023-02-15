@@ -185,10 +185,6 @@
 	margin-left: 1rem;
 }
 
-#dashboard-server-log-lines {
-	width: 64px;
-}
-
 #dashboard-server-log textarea {
 	height: calc(100% - 5rem);
 	width: 100%;
