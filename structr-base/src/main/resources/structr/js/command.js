@@ -1430,16 +1430,19 @@ let Command = {
 	/**
      * Requests log snapshot from the server.
      */
-    getServerLogSnapshot: (numberOfLines, truncateLinesAfter, callback) => {
+    getServerLogSnapshot: (numberOfLines, truncateLinesAfter) => {
 
-		let obj  = {
-            command: 'SERVER_LOG',
-            data: {
-				numberOfLines:      numberOfLines,
-				truncateLinesAfter: truncateLinesAfter
-            }
-        };
+		return new Promise((resolve, reject) => {
 
-        return StructrWS.sendObj(obj, callback);
+			let obj  = {
+				command: 'SERVER_LOG',
+				data: {
+					numberOfLines:      numberOfLines,
+					truncateLinesAfter: truncateLinesAfter
+				}
+			};
+
+			StructrWS.sendObj(obj, resolve);
+		});
     }
 };

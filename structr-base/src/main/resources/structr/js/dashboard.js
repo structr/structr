@@ -321,11 +321,13 @@ let _Dashboard = {
 				});
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
+
 				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
 						_Dashboard.tabs['deployment'].deployFromZIPFileUpload(deploymentFileInput, zipContentPath);
+
 					} else {
 
 						let downloadUrl = deploymentUrlInput.value;
@@ -666,13 +668,6 @@ let _Dashboard = {
 			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
 			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
 			intervalID: undefined,
-			timeIntervalSelect: undefined,
-			numberOfLinesInput: undefined,
-			truncateLinesAfterInput: undefined,
-			copyButton: undefined,
-			manualRefreshButton: undefined,
-			feedbackElement: undefined,
-			textArea: undefined,
 			textAreaHasFocus: false,
 			scrollEnabled: true,
 			onShow: async () => {
@@ -681,54 +676,60 @@ let _Dashboard = {
 			onHide: async () => {
 				_Dashboard.tabs['server-log'].stop();
 			},
+			getTimeIntervalSelect: () => document.querySelector('#dashboard-server-log-refresh-interval'),
+			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-truncate-lines'),
+			getNumberOfLinesInput: () => document.querySelector('#dashboard-server-log-lines'),
+			getServerLogTextarea: () => document.querySelector('#dashboard-server-log textarea'),
+			getManualRefreshButton: () => document.querySelector('#dashboard-server-log-manual-refresh'),
+			setFeedback: (message) => {
+				let el = document.querySelector('#dashboard-server-log-feedback');
+				if (el) {
+					// textContent creates a new node, not 100% efficient if there already is a node... but gc should sort that out
+					el.textContent = message;
+				}
+			},
 			init: () => {
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect      = document.querySelector('#dashboard-server-log-refresh-interval');
-				_Dashboard.tabs['server-log'].numberOfLinesInput      = document.querySelector('#dashboard-server-log-lines');
-				_Dashboard.tabs['server-log'].truncateLinesAfterInput = document.querySelector('#dashboard-server-truncate-lines');
-				_Dashboard.tabs['server-log'].manualRefreshButton     = document.querySelector('#dashboard-server-log-manual-refresh');
-				_Dashboard.tabs['server-log'].feedbackElement         = document.querySelector('#dashboard-server-log-feedback');
-				_Dashboard.tabs['server-log'].textarea                = document.querySelector('#dashboard-server-log textarea');
+				let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 
 				let initServerLogInput = (element, lsKey, defaultValue, successFn) => {
 
 					element.value = LSWrapper.getItem(lsKey, defaultValue);
 
-					element.addEventListener('change', () => {
+					element.addEventListener('change', (e) => {
 
-						LSWrapper.setItem(lsKey, element.value);
+						LSWrapper.setItem(lsKey, e.target.value);
 
 						successFn?.();
 
-						blinkGreen(element);
+						blinkGreen(e.target);
 					});
 				};
 
-				initServerLogInput(_Dashboard.tabs['server-log'].timeIntervalSelect, _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
-				initServerLogInput(_Dashboard.tabs['server-log'].numberOfLinesInput, _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
-				initServerLogInput(_Dashboard.tabs['server-log'].truncateLinesAfterInput, _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(), _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
+				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(), _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
 
-				let copyButton                = document.querySelector('#dashboard-server-log-copy');
-				copyButton.addEventListener('click', async () => {
-					await navigator.clipboard.writeText(_Dashboard.tabs['server-log'].textarea.textContent);
+				document.querySelector('#dashboard-server-log-copy').addEventListener('click', async () => {
+					await navigator.clipboard.writeText(textarea.textContent);
 				});
 
-				_Dashboard.tabs['server-log'].manualRefreshButton.addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
+				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
 
-				_Dashboard.tabs['server-log'].textarea.addEventListener('focus', () => {
+				textarea.addEventListener('focus', () => {
 					_Dashboard.tabs['server-log'].textAreaHasFocus = true;
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+					_Dashboard.tabs['server-log'].setFeedback('Text area has focus, refresh disabled until focus lost.');
 				});
 
-				_Dashboard.tabs['server-log'].textarea.addEventListener('blur', () => {
+				textarea.addEventListener('blur', () => {
 					_Dashboard.tabs['server-log'].textAreaHasFocus = false;
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = '';
+					_Dashboard.tabs['server-log'].setFeedback('');
 				});
 
-				_Dashboard.tabs['server-log'].textarea.addEventListener('scroll', (event) => {
-					let textarea      = event.target;
-					let maxScroll     = textarea.scrollHeight - 4;
-					let currentScroll = (textarea.scrollTop + textarea.offsetHeight);
+				textarea.addEventListener('scroll', (event) => {
+
+					let maxScroll     = event.target.scrollHeight - 4;
+					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
 					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
 				});
@@ -737,18 +738,19 @@ let _Dashboard = {
 
 				if (false === _Dashboard.tabs['server-log'].textAreaHasFocus) {
 
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = 'Refreshing server log...';
+					_Dashboard.tabs['server-log'].setFeedback('Refreshing server log...');
 
-					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].numberOfLinesInput.value, _Dashboard.tabs['server-log'].truncateLinesAfterInput.value, (a) => {
+					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].getNumberOfLinesInput().value, _Dashboard.tabs['server-log'].getTruncateLinesAfterInput().value).then(log => {
 
-						_Dashboard.tabs['server-log'].textarea.textContent = a[0].result;
+						let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
+						textarea.textContent = log[0].result;
 
 						if (_Dashboard.tabs['server-log'].scrollEnabled) {
-							_Dashboard.tabs['server-log'].textarea.scrollTop = _Dashboard.tabs['server-log'].textarea.scrollHeight;
+							textarea.scrollTop = textarea.scrollHeight;
 						}
 
 						window.setTimeout(() => {
-							_Dashboard.tabs['server-log'].feedbackElement.textContent = '';
+							_Dashboard.tabs['server-log'].setFeedback('');
 						}, 250);
 					});
 				}
@@ -757,13 +759,17 @@ let _Dashboard = {
 
 				_Dashboard.tabs['server-log'].stop();
 
-				let timeInMs = _Dashboard.tabs['server-log'].timeIntervalSelect.value;
+				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
+				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
 
 				if (timeInMs > 0) {
-					_Dashboard.tabs['server-log'].manualRefreshButton.classList.add('hidden');
+
+					manualRefreshButton.classList.add('hidden');
 					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
+
 				} else {
-					_Dashboard.tabs['server-log'].manualRefreshButton.classList.remove('hidden');
+
+					manualRefreshButton.classList.remove('hidden');
 				}
 			},
 			start: () => {
@@ -1037,7 +1043,7 @@ let _Dashboard = {
 							<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
 							<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
 							<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
-							<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
+							<tr><td class="key">Groups</td><td>${config.meObj.groups.map(g => g.name).join(', ')}</td></tr>
 						</table>
 
 					</div>
