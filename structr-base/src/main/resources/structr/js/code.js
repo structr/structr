@@ -2649,8 +2649,27 @@ let _Code = {
 		let forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
 		let backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
 
-		$('#tree-forward-button').prop('disabled', forwardDisabled);
-		$('#tree-back-button').prop('disabled', backDisabled);
+		let forwardButton = document.querySelector('#tree-forward-button');
+		if (forwardButton) {
+			forwardButton.disabled = forwardDisabled;
+
+			if (forwardDisabled) {
+				forwardButton.classList.add('icon-lightgrey');
+			} else {
+				forwardButton.classList.remove('icon-lightgrey');
+			}
+		}
+
+		let backButton = document.querySelector('#tree-back-button');
+		if (backButton) {
+			backButton.disabled = backDisabled;
+
+			if (backDisabled) {
+				backButton.classList.add('icon-lightgrey');
+			} else {
+				backButton.classList.remove('icon-lightgrey');
+			}
+		}
 	},
 	doSearch: () => {
 

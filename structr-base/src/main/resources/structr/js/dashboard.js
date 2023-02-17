@@ -77,13 +77,15 @@ let _Dashboard = {
 			dashboardUiConfig.meObj = meData.result;
 			let deployResponse   = await fetch(Structr.deployRoot + '?mode=test');
 
-			dashboardUiConfig.deployServletAvailable       = (deployResponse.status == 200);
+			dashboardUiConfig.deploymentServletAvailable   = (deployResponse.status == 200);
 			dashboardUiConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportPrefixKey);
 			dashboardUiConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportAppendTimestampKey, true);
 			dashboardUiConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipDataExportAppendTimestamp, true);
 
 			Structr.mainContainer.innerHTML = _Dashboard.templates.main(dashboardUiConfig);
 			Structr.functionBar.innerHTML   = _Dashboard.templates.functions();
+
+			Structr.activateCommentsInElement(Structr.mainContainer);
 
 			UISettings.showSettingsForCurrentModule();
 
@@ -321,11 +323,13 @@ let _Dashboard = {
 				});
 
 				document.getElementById('do-app-import-from-zip').addEventListener('click', () => {
+
 				    let zipContentPath = deploymentZipConentPathInput?.value ?? null;
 
 					if (deploymentFileInput && deploymentFileInput.files.length > 0) {
 
 						_Dashboard.tabs['deployment'].deployFromZIPFileUpload(deploymentFileInput, zipContentPath);
+
 					} else {
 
 						let downloadUrl = deploymentUrlInput.value;
@@ -431,6 +435,9 @@ let _Dashboard = {
 						});
 					}
 				});
+			},
+			getDeploymentServletMessage: (message) => {
+				return `<span class="deployment-warning" data-comment="The DeplyomentServlet can be activated via the config servlet or via structr.conf." data-comment-config='{"insertAfter":true}'>${message}</span>`;
 			},
 			deploy: async (mode, location) => {
 
@@ -664,13 +671,8 @@ let _Dashboard = {
 		'server-log': {
 			refreshTimeIntervalKey: 'dashboardLogRefreshTimeInterval' + location.port,
 			numberOfLinesKey: 'dashboardNumberOfLines' + location.port,
+			truncateLinesAfterKey: 'dashboardTruncateLinesAfter' + location.port,
 			intervalID: undefined,
-			timeIntervalSelect: undefined,
-			numberOfLinesInput: undefined,
-			copyButton: undefined,
-			manualRefreshButton: undefined,
-			feedbackElement: undefined,
-			textArea: undefined,
 			textAreaHasFocus: false,
 			scrollEnabled: true,
 			onShow: async () => {
@@ -679,52 +681,60 @@ let _Dashboard = {
 			onHide: async () => {
 				_Dashboard.tabs['server-log'].stop();
 			},
+			getTimeIntervalSelect: () => document.querySelector('#dashboard-server-log-refresh-interval'),
+			getTruncateLinesAfterInput: () => document.querySelector('#dashboard-server-truncate-lines'),
+			getNumberOfLinesInput: () => document.querySelector('#dashboard-server-log-lines'),
+			getServerLogTextarea: () => document.querySelector('#dashboard-server-log textarea'),
+			getManualRefreshButton: () => document.querySelector('#dashboard-server-log-manual-refresh'),
+			setFeedback: (message) => {
+				let el = document.querySelector('#dashboard-server-log-feedback');
+				if (el) {
+					// textContent creates a new node, not 100% efficient if there already is a node... but gc should sort that out
+					el.textContent = message;
+				}
+			},
 			init: () => {
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect  = document.querySelector('#dashboard-server-log-refresh-interval');
-				_Dashboard.tabs['server-log'].numberOfLinesInput  = document.querySelector('#dashboard-server-log-lines');
-				_Dashboard.tabs['server-log'].manualRefreshButton = document.querySelector('#dashboard-server-log-manual-refresh');
-				_Dashboard.tabs['server-log'].feedbackElement     = document.querySelector('#dashboard-server-log-feedback');
-				_Dashboard.tabs['server-log'].textarea            = document.querySelector('#dashboard-server-log textarea');
+				let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect.value = LSWrapper.getItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000);
+				let initServerLogInput = (element, lsKey, defaultValue, successFn) => {
 
-				_Dashboard.tabs['server-log'].timeIntervalSelect.addEventListener('change', () => {
-					LSWrapper.setItem(_Dashboard.tabs['server-log'].refreshTimeIntervalKey, _Dashboard.tabs['server-log'].timeIntervalSelect.value);
+					element.value = LSWrapper.getItem(lsKey, defaultValue);
 
-					_Dashboard.tabs['server-log'].updateRefreshInterval();
-					blinkGreen(_Dashboard.tabs['server-log'].timeIntervalSelect);
+					element.addEventListener('change', (e) => {
+
+						LSWrapper.setItem(lsKey, e.target.value);
+
+						successFn?.();
+
+						blinkGreen(e.target);
+					});
+				};
+
+				initServerLogInput(_Dashboard.tabs['server-log'].getTimeIntervalSelect(), _Dashboard.tabs['server-log'].refreshTimeIntervalKey, 1000, _Dashboard.tabs['server-log'].updateRefreshInterval);
+				initServerLogInput(_Dashboard.tabs['server-log'].getNumberOfLinesInput(), _Dashboard.tabs['server-log'].numberOfLinesKey, 1000);
+				initServerLogInput(_Dashboard.tabs['server-log'].getTruncateLinesAfterInput(), _Dashboard.tabs['server-log'].truncateLinesAfterKey, -1);
+
+				document.querySelector('#dashboard-server-log-copy').addEventListener('click', async () => {
+					await navigator.clipboard.writeText(textarea.textContent);
 				});
 
-				_Dashboard.tabs['server-log'].numberOfLinesInput.value = LSWrapper.getItem(_Dashboard.tabs['server-log'].numberOfLinesKey, 300);
+				_Dashboard.tabs['server-log'].getManualRefreshButton().addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
 
-				_Dashboard.tabs['server-log'].numberOfLinesInput.addEventListener('change', () => {
-					LSWrapper.setItem(_Dashboard.tabs['server-log'].numberOfLinesKey, _Dashboard.tabs['server-log'].numberOfLinesInput.value);
-
-					blinkGreen(_Dashboard.tabs['server-log'].numberOfLinesInput);
-				});
-
-				let copyButton                = document.querySelector('#dashboard-server-log-copy');
-				copyButton.addEventListener('click', async () => {
-					await navigator.clipboard.writeText(_Dashboard.tabs['server-log'].textarea.textContent);
-				});
-
-				_Dashboard.tabs['server-log'].manualRefreshButton.addEventListener('click', _Dashboard.tabs['server-log'].updateLog);
-
-				_Dashboard.tabs['server-log'].textarea.addEventListener('focus', () => {
+				textarea.addEventListener('focus', () => {
 					_Dashboard.tabs['server-log'].textAreaHasFocus = true;
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = 'Text area has focus, refresh disabled until focus lost.';
+					_Dashboard.tabs['server-log'].setFeedback('Text area has focus, refresh disabled until focus lost.');
 				});
 
-				_Dashboard.tabs['server-log'].textarea.addEventListener('blur', () => {
+				textarea.addEventListener('blur', () => {
 					_Dashboard.tabs['server-log'].textAreaHasFocus = false;
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = '';
+					_Dashboard.tabs['server-log'].setFeedback('');
 				});
 
-				_Dashboard.tabs['server-log'].textarea.addEventListener('scroll', (event) => {
-					let textarea      = event.target;
-					let maxScroll     = textarea.scrollHeight - 4;
-					let currentScroll = (textarea.scrollTop + textarea.offsetHeight);
+				textarea.addEventListener('scroll', (event) => {
+
+					let maxScroll     = event.target.scrollHeight - 4;
+					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
 					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
 				});
@@ -733,18 +743,19 @@ let _Dashboard = {
 
 				if (false === _Dashboard.tabs['server-log'].textAreaHasFocus) {
 
-					_Dashboard.tabs['server-log'].feedbackElement.textContent = 'Refreshing server log...';
+					_Dashboard.tabs['server-log'].setFeedback('Refreshing server log...');
 
-					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].numberOfLinesInput.value, (a) => {
+					Command.getServerLogSnapshot(_Dashboard.tabs['server-log'].getNumberOfLinesInput().value, _Dashboard.tabs['server-log'].getTruncateLinesAfterInput().value).then(log => {
 
-						_Dashboard.tabs['server-log'].textarea.textContent = a[0].result;
+						let textarea = _Dashboard.tabs['server-log'].getServerLogTextarea();
+						textarea.textContent = log[0].result;
 
 						if (_Dashboard.tabs['server-log'].scrollEnabled) {
-							_Dashboard.tabs['server-log'].textarea.scrollTop = _Dashboard.tabs['server-log'].textarea.scrollHeight;
+							textarea.scrollTop = textarea.scrollHeight;
 						}
 
 						window.setTimeout(() => {
-							_Dashboard.tabs['server-log'].feedbackElement.textContent = '';
+							_Dashboard.tabs['server-log'].setFeedback('');
 						}, 250);
 					});
 				}
@@ -753,13 +764,17 @@ let _Dashboard = {
 
 				_Dashboard.tabs['server-log'].stop();
 
-				let timeInMs = _Dashboard.tabs['server-log'].timeIntervalSelect.value;
+				let timeInMs            = _Dashboard.tabs['server-log'].getTimeIntervalSelect().value;
+				let manualRefreshButton = _Dashboard.tabs['server-log'].getManualRefreshButton();
 
 				if (timeInMs > 0) {
-					_Dashboard.tabs['server-log'].manualRefreshButton.classList.add('hidden');
+
+					manualRefreshButton.classList.add('hidden');
 					_Dashboard.tabs['server-log'].intervalID = window.setInterval(_Dashboard.tabs['server-log'].updateLog, timeInMs);
+
 				} else {
-					_Dashboard.tabs['server-log'].manualRefreshButton.classList.remove('hidden');
+
+					manualRefreshButton.classList.remove('hidden');
 				}
 			},
 			start: () => {
@@ -1033,7 +1048,7 @@ let _Dashboard = {
 							<tr><td class="key">E-Mail</td><td>${config.meObj.eMail || ''}</td></tr>
 							<tr><td class="key">Working Directory</td><td>${config.meObj.workingDirectory ? config.meObj.workingDirectory.name : ''}</td></tr>
 							<tr><td class="key">Session ID(s)</td><td>${config.meObj.sessionIds.join('<br>')}</td></tr>
-							<tr><td class="key">Groups</td><td>${config.meObj.groups.map(function(g) { return g.name; }).join(', ')}</td></tr>
+							<tr><td class="key">Groups</td><td>${config.meObj.groups.map(g => g.name).join(', ')}</td></tr>
 						</table>
 
 					</div>
@@ -1106,22 +1121,22 @@ let _Dashboard = {
 
 							<div>
 								<h3>Import application from URL or upload a ZIP file</h3>
-								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeploymentServlet</code> is not running.</span>')}
+								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
-									<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<input type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
+									<input type="text" id="deployment-url-input" placeholder="Download URL of ZIP file for app import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									<input type="text" id="deployment-zip-content" placeholder="Path to the webapp folder inside the ZIP file, leave blank for default" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									<input type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
 								</div>
 							</div>
 
 							<div>
 								<h3>Export application and download as ZIP file</h3>
-								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not running.</span>')}
+								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
-									<input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}">
-									<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
-									<button class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+									<input type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}">
+									<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+									<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
 								</div>
 							</div>
 
@@ -1155,25 +1170,25 @@ let _Dashboard = {
 
 							<div>
 								<h3>Import data from URL or upload a ZIP file</h3>
-								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Deployment via URL is not possible because <code>DeployServlet</code> is not running.</span>')}
+								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
-									<input type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<input type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deployServletAvailable ? '' : 'disabled')}>
-									<button id="do-data-import-from-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
+									<input type="text" id="data-deployment-url-input" placeholder="Download URL of ZIP file for data import" name="downloadUrl" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									<input type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
+									<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
 								</div>
 							</div>
 
 							<div>
 								<h3>Export data and download as ZIP file</h3>
-								${(config.deployServletAvailable ? '' : '<span class="deployment-warning">Export and download data as ZIP file is not possible because <code>DeployServlet</code> is not running.</span>')}
+								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
-									<input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deployServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}">
+									<input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}">
 									<select id="zip-data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple">
 										<optgroup label="Custom Types" class="custom-types"></optgroup>
 										<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 									</select>
-									<label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deployServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
-									<button id="do-data-export-to-zip" class="action ${(config.deployServletAvailable ? '' : 'disabled')}" ${(config.deployServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
+									<label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+									<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
 								</div>
 							</div>
 						</div>
@@ -1185,28 +1200,42 @@ let _Dashboard = {
 
 					<div class="tab-content" id="dashboard-server-log">
 
-						<div id="dashboard-server-log-controls">
+						<div id="dashboard-server-log-controls" class="pb-4">
 
-							<label>Refresh Interval:</label>
-							<select id="dashboard-server-log-refresh-interval">
-								<option value="10000">10s</option>
-								<option value="5000">5s</option>
-								<option value="2000">2s</option>
-								<option value="1000">1s</option>
-								<option value="-1">manual</option>
-							</select>
+							<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
+									${_Icons.getSvgIcon('settings-cog')}
+								</button>
 
-							<span class="dashboard-spacer"></span>
+								<div class="dropdown-menu-container" style="display: none;">
+									<div class="font-bold pt-4 pb-2">Server Log Settings</div>
+									<div class="editor-setting flex items-center p-1">
 
-							<label>Number of lines: </label>
-							<input id="dashboard-server-log-lines" type="number">
+										<label class="flex-grow">Refresh Interval</label>
 
-							<span class="dashboard-spacer"></span>
+										<select id="dashboard-server-log-refresh-interval" class="w-28">
+											<option value="10000">10s</option>
+											<option value="5000">5s</option>
+											<option value="2000">2s</option>
+											<option value="1000">1s</option>
+											<option value="-1">manual</option>
+										</select>
+									</div>
+
+									<div class="editor-setting flex items-center p-1">
+										<label class="flex-grow">Number of lines</label>
+										<input id="dashboard-server-log-lines" type="number" class="w-16">
+									</div>
+
+									<div class="editor-setting flex items-center p-1">
+										<label class="flex-grow">Truncate lines at</label>
+										<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+									</div>
+								</div>
+							</div>
 
 							<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
 							<button id="dashboard-server-log-copy" class="action">Copy</button>
-
-							<span class="dashboard-spacer"></span>
 
 							<span id="dashboard-server-log-feedback"></span>
 						</div>

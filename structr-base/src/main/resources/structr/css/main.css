@@ -4627,6 +4627,9 @@ table.props td.__value {
 .w-24 {
 	width: 6rem;
 }
+.w-28 {
+	width: 7rem;
+}
 .w-40 {
 	width: 10rem;
 }
@@ -4669,6 +4672,9 @@ table.props td.__value {
 }
 .pb-2 {
 	padding-bottom: .5rem;
+}
+.pb-4 {
+	padding-bottom: 1rem;
 }
 .p-0 {
 	padding: 0;
