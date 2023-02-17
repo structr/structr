@@ -2761,7 +2761,7 @@ let _Crud = {
 			let isCollection = _Crud.isCollection(key, type);
 			let relatedType  = _Crud.relatedType(key, type);
 
-			if (!readOnly && !isCollection && !relatedType) {
+			if (!readOnly && !isCollection && (!relatedType || _Crud.relInfo[type])) {
 				table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
 				let cell = $('.' + _Crud.cssClassForKey(key), table);
 				if (node && node.id) {
