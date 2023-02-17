@@ -2224,7 +2224,14 @@ let Structr = {
 					}
 				};
 
-				let elCommentConfig = el.dataset['commentConfig'] || {};
+				let elCommentConfig = {};
+				if (el.dataset['commentConfig']) {
+					try {
+						elCommentConfig = JSON.parse(el.dataset['commentConfig']);
+					} catch (e) {
+						console.log('Failed parsing comment config');
+					}
+				}
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
