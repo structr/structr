@@ -434,8 +434,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			case "method":
 			default:
-				final String method = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "method"));
 				// execute custom method (and return the result directly)
+				final String method = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
 				return handleCustomAction(actionContext, parameters, eventContext, method != null ? method : action);
 		}
 
@@ -1242,7 +1242,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 						// append all stored action mapping keys as data-structr-<key> attributes
 						for (final String key : new String[] { "event", "action", "method", "dataType", "idExpression" }) {
-							final String value = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, key));
+							final String value = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, key));
 							if (StringUtils.isNotBlank(value)) {
 								final String keyHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, key);
 								out.append(" data-structr-" + keyHyphenated + "=\"").append(value).append("\"");
