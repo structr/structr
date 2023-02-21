@@ -40,6 +40,7 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.html.A;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Div;
 import org.structr.web.entity.html.Head;
