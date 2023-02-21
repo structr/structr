@@ -1194,6 +1194,12 @@ public class Importer {
 						if (commentHandler != null) {
 
 							commentHandler.handleComment(page, newNode, instructions, true);
+
+							if (newNodeProperties.containsKey(AbstractNode.id)) {
+
+								// id of the newNode was changed => if a pagelink instruction was present, we need to update it because the node itself was not yet updated
+								DeployCommand.updateDeferredPagelink(newNode.getUuid(), newNodeProperties.get(AbstractNode.id));
+							}
 						}
 					}
 

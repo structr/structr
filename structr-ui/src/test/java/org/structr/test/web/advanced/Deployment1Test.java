@@ -462,4 +462,55 @@ public class Deployment1Test extends DeploymentTestBase {
 		// test
 		compare(calculateHash(), true, false);
 	}
+
+	@Test
+	public void test21PageLinks() {
+
+		String pageId = null;
+		String a_uuid = null;
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final Page page       = Page.createNewPage(securityContext,   "test02");
+			pageId                = page.getUuid();
+			final Html html       = createElement(page, page, "html");
+			final Head head       = createElement(page, html, "head");
+			createElement(page, head, "title", "test11");
+
+			final Body body       = createElement(page, html, "body");
+
+			// create a link which links to same page
+			{
+				final A a = createElement(page, body, "a");
+				createElement(page, a, "a", "link to self");
+				a.setLinkable(page);
+
+				a_uuid = a.getUuid();
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		doImportExportRoundtrip(true, true, null);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final A a = (A)app.getNodeById(A.class, a_uuid);
+
+			assertNotNull("A element was not created!", a);
+			assertNotNull("A has no linked page!", a.getLinkable());
+
+			assertEquals("A element is not linked to page it should be linked to", pageId, a.getLinkable().getUuid());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+	}
 }
