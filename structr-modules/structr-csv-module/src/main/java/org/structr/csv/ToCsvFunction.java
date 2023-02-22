@@ -112,6 +112,26 @@ public class ToCsvFunction extends CsvFunction {
 				return "";
 			}
 
+			// validate/fix quoteChar parameter
+			if (quoteChar.length() == 0) {
+
+				throw new IllegalArgumentException("quoteChar is empty - unable to create CSV");
+
+			} else if (quoteChar.length() > 1) {
+
+				logger.info("to_csv(): quoteChar is more than one character ('{}'), first character will be used ('{}')", quoteChar, quoteChar.charAt(0));
+			}
+
+			// validate/fix delimiterChar parameter
+			if (delimiterChar.length() == 0) {
+
+				throw new IllegalArgumentException("delimiterChar is empty - unable to create CSV");
+
+			} else if (delimiterChar.length() > 1) {
+
+				logger.info("to_csv(): delimiterChar is more than one character ('{}'), first character will be used ('{}')", delimiterChar, delimiterChar.charAt(0));
+			}
+
 			try {
 
 				final StringWriter writer = new StringWriter();
