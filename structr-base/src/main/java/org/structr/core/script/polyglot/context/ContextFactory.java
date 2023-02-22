@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
+import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
@@ -36,6 +37,8 @@ public abstract class ContextFactory {
 	// javascript context builder
 	private static final Context.Builder jsBuilder = Context.newBuilder("js")
 				.engine(engine)
+				.allowIO(true)
+				.fileSystem(new PolyglotFilesystem())
 				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
