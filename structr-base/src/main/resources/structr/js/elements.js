@@ -514,7 +514,7 @@ let _Elements = {
 				}
 
 				let menuEntry        = $('<li class="element-group-switch"></li>');
-				let menuEntryContent = $('<span class="menu-entry-container">' + (element.icon || '') + '</span>');
+				let menuEntryContent = $('<span class="menu-entry-container items-center">' + (element.icon || '') + '</span>');
 				let menuEntryText    = $('<span class="menu-entry-text">' + element.name + '</span>');
 
 				for (let cls of (element.classes || [])) {
@@ -532,7 +532,8 @@ let _Elements = {
 				}
 
 				if (element.elements) {
-					menuEntryContent.append('<i class="fa fa-caret-right pull-right"></i>');
+
+					menuEntryContent.append(_Icons.getSvgIcon('chevron-right-filled', 10, 10, ['icon-grey', '-mr-2']));
 
 					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
@@ -661,7 +662,7 @@ let _Elements = {
 	appendSecurityContextMenuItems: (elements, entity, supportsSubtree) => {
 
 		let securityMenu = {
-			icon: _Icons.getSvgIcon('visibility-lock-locked'),
+			icon: _Icons.getMenuSvgIcon('visibility-lock-locked'),
 			name: 'Security',
 			elements: [
 				{

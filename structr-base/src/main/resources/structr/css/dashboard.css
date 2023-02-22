@@ -166,27 +166,8 @@
 	cursor: pointer;
 }
 
-#dashboard .chosen-container .chosen-choices li.search-choice {
-	/*padding: 1px 20px 1px 5px;*/
-	/*margin: 2px 5px 2px 0;*/
-
-}
-
 #dashboard .chosen-container .chosen-choices li.search-choice .search-choice-close {
 	top: .25rem;
-}
-
-#dashboard-server-log-controls {
-	font-size: 1rem;
-	height: 4rem;
-}
-
-#dashboard-server-log-controls button {
-	margin-left: 1rem;
-}
-
-#dashboard-server-log-lines {
-	width: 64px;
 }
 
 #dashboard-server-log textarea {

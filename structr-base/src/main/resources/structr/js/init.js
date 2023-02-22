@@ -252,11 +252,11 @@ $(function() {
 		// ctrl-u / cmd-u: show generated source in schema or code area
 		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 
-			event.preventDefault();
-
 			let elements = document.querySelectorAll('.generated-source');
 
 			if (elements.length > 0) {
+
+				event.preventDefault();
 
 				for (let el of elements) {
 
@@ -899,38 +899,6 @@ let Structr = {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
-	// tempInfo: (text, autoclose) => {
-	//
-	// 	window.clearTimeout(Structr.dialogTimeoutId);
-	//
-	// 	if (text) {
-	// 		$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
-	// 	}
-	//
-	// 	if (autoclose) {
-	// 		Structr.dialogTimeoutId = window.setTimeout(() => {
-	// 			$.unblockUI({
-	// 				fadeOut: 25
-	// 			});
-	// 		}, 3000);
-	// 	}
-	//
-	// 	$('#tempInfoBox .closeButton').on('click', function(e) {
-	// 		e.stopPropagation();
-	// 		window.clearTimeout(Structr.dialogTimeoutId);
-	// 		$.unblockUI({
-	// 			fadeOut: 25
-	// 		});
-	// 		dialogBtn.children(':not(.closeButton)').remove();
-	//
-	// 		Structr.focusSearchField();
-	// 	});
-	//
-	// 	$.blockUI({
-	// 		message: $('#tempInfoBox'),
-	// 		css: Structr.defaultBlockUICss
-	// 	});
-	// },
 	reconnectDialog: () => {
 
 		let restoreDialogText = '';
@@ -2256,7 +2224,14 @@ let Structr = {
 					}
 				};
 
-				let elCommentConfig = el.dataset['commentConfig'] || {};
+				let elCommentConfig = {};
+				if (el.dataset['commentConfig']) {
+					try {
+						elCommentConfig = JSON.parse(el.dataset['commentConfig']);
+					} catch (e) {
+						console.log('Failed parsing comment config');
+					}
+				}
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);

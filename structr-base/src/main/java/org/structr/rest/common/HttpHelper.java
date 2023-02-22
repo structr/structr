@@ -179,7 +179,7 @@ public class HttpHelper {
 
 	public static String skipBOMIfPresent (final String content) {
 
-		// Skip BOM to workaround this Jsoup bug: https://github.com/jhy/jsoup/issues/348
+		// Skip BOM to work around this Jsoup bug: https://github.com/jhy/jsoup/issues/348
 		if (content != null && content.length() > 1 && content.charAt(0) == 65279) {
 			charset = "UTF-8";
 			return content.substring(1);
@@ -232,9 +232,7 @@ public class HttpHelper {
 
 			final CloseableHttpResponse resp = client.execute(req);
 
-			content = IOUtils.toString(resp.getEntity().getContent(), charset(resp));
-
-			content = skipBOMIfPresent(content);
+			content = skipBOMIfPresent(IOUtils.toString(resp.getEntity().getContent(), charset(resp)));
 
 		} catch (final Throwable t) {
 			throw new FrameworkException(422, "Unable to fetch content from address " + address + ": " + t.getMessage(), t);
@@ -289,10 +287,7 @@ public class HttpHelper {
 			final CloseableHttpResponse response = client.execute(req);
 
 			responseHeaders.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
-			for (final Header header : response.getAllHeaders()) {
-
-				responseHeaders.put(header.getName(), header.getValue());
-			}
+			addHeaders(responseHeaders, response);
 
 		} catch (final Throwable t) {
 
@@ -338,12 +333,9 @@ public class HttpHelper {
 			content = skipBOMIfPresent(content);
 
 			responseData.put("body", content);
-
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
-			for (final Header header : response.getAllHeaders()) {
 
-				responseData.put(header.getName(), header.getValue());
-			}
+			addHeaders(responseData, response);
 
 		} catch (final Throwable t) {
 
@@ -405,10 +397,7 @@ public class HttpHelper {
 			responseData.put("body", content);
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
 
-			for (final Header header : response.getAllHeaders()) {
-
-				responseData.put(header.getName(), header.getValue());
-			}
+			addHeaders(responseData, response);
 
 		} catch (final Throwable t) {
 
@@ -465,10 +454,7 @@ public class HttpHelper {
 			responseData.put("body", content);
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
 
-			for (final Header header : response.getAllHeaders()) {
-
-				responseData.put(header.getName(), header.getValue());
-			}
+			addHeaders(responseData, response);
 
 		} catch (final Throwable t) {
 
@@ -516,12 +502,9 @@ public class HttpHelper {
 			content = skipBOMIfPresent(content);
 
 			responseData.put("body", content);
-
 			responseData.put("status", Integer.toString(response.getStatusLine().getStatusCode()));
-			for (final Header header : response.getAllHeaders()) {
 
-				responseData.put(header.getName(), header.getValue());
-			}
+			addHeaders(responseData, response);
 
 		} catch (final Throwable t) {
 
@@ -631,6 +614,18 @@ public class HttpHelper {
 
 		} catch (final Throwable t) {
 			throw new FrameworkException(422, "Unable to fetch file content from address " + address + ": " + t.getMessage());
+		}
+	}
+
+	private static void addHeaders(final Map<String, String> map, final HttpResponse response) {
+		for (final Header header : response.getAllHeaders()) {
+
+			final String key = header.getName();
+			if (map.containsKey(key)) {
+				map.put(key, String.join(System.lineSeparator(), map.get(key), header.getValue()));
+			} else {
+				map.put(header.getName(), header.getValue());
+			}
 		}
 	}
 

@@ -247,19 +247,22 @@ let _Files = {
 			if (entity.isImage && contentType !== 'text/svg' && !contentType.startsWith('image/svg')) {
 
 				if (entity.isTemplate) {
+
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit source',
-						clickHandler: function () {
+						clickHandler: () => {
 							_Files.editFile(entity);
 							return false;
 						}
 					});
+
 				} else {
+
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit Image',
-						clickHandler: function () {
+						clickHandler: () => {
 							_Files.editImage(entity);
 							return false;
 						}
@@ -267,10 +270,11 @@ let _Files = {
 				}
 
 			} else {
+
 				elements.push({
-					icon: _Icons.getSvgIcon('pencil_edit'),
+					icon: _Icons.getMenuSvgIcon('pencil_edit'),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
-					clickHandler: function () {
+					clickHandler: () => {
 						_Files.editFile(entity);
 						return false;
 					}
@@ -302,7 +306,7 @@ let _Files = {
 
 			if (_Files.displayingFavorites) {
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star-remove'),
+					icon: _Icons.getMenuSvgIcon('favorite-star-remove'),
 					name: 'Remove from Favorites',
 					clickHandler: function () {
 
@@ -320,7 +324,7 @@ let _Files = {
 			} else if (entity.isFavoritable) {
 
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star'),
+					icon: _Icons.getMenuSvgIcon('favorite-star'),
 					name: 'Add to Favorites',
 					clickHandler: function () {
 
@@ -357,7 +361,7 @@ let _Files = {
 
 				elements.push({
 					name: 'Download File',
-					icon: _Icons.getSvgIcon('download-icon'),
+					icon: _Icons.getMenuSvgIcon('download-icon'),
 					clickHandler: () => {
 						// do not make the click handler async because it would return a promise instead of the boolean
 
@@ -418,7 +422,7 @@ let _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
@@ -837,20 +841,31 @@ let _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
+
 				_Files.folderContents.append(`
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
 
+				$('#parent-file-link').on('click', (e) => {
+
+					if (parentId !== '#') {
+						$('#' + parentId + '_anchor').click();
+					}
+				});
+
 			} else if (_Files.isViewModeActive('tiles')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
+
 			} else if (_Files.isViewModeActive('img')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
@@ -883,7 +898,7 @@ let _Files = {
 			});
 		}
 	},
-	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
+	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
 		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
@@ -900,6 +915,7 @@ let _Files = {
 		let imgSw   = $('#switch-img');
 
 		let layoutSwitchFunction = function() {
+
 			let state = $(this).hasClass('inactive');
 
 			if (state) {
@@ -1218,7 +1234,10 @@ let _Files = {
 
 		el.append(`
 			<div class="image-editor-menubar">
-				<div><i class="fa fa-crop"></i><br>Crop</div>
+				<div class="crop-action">
+					${_Icons.getSvgIcon('image-crop')}
+					<br>Crop
+				</div>
 			</div>
 			<div><img id="image-editor" class="orientation-' + image.orientation + '" src="${ imagePath }"></div>
 		`);
@@ -1253,7 +1272,7 @@ let _Files = {
 			}, 500);
 		});
 
-		$('.fa-crop', el).on('click', function() {
+		$('.crop-action', el).on('click', function() {
 
 			$('#image-editor').cropper({
 				crop: function(e) {
@@ -1266,7 +1285,7 @@ let _Files = {
 			});
 		});
 	},
-	editFile: (file) => {
+	editFile: (file, hasBeenWarned = false) => {
 
 		let parent = Structr.node(file.id);
 
@@ -1279,79 +1298,105 @@ let _Files = {
 			_Files.selectedElements = parent;
 		}
 
-		Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
+		let hasFileAboveThreshold = false;
 
-		dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
-
-		let filteredFileIds = [];
+		let filteredFileModels = [];
 		if (_Files.selectedElements && _Files.selectedElements.length > 1 && parent.hasClass('selected')) {
+
 			for (let el of _Files.selectedElements) {
 				let modelObj = StructrModel.obj(Structr.getId(el));
 				if (modelObj && modelObj.isFolder !== true) {
-					filteredFileIds.push(modelObj.id);
+					filteredFileModels.push(modelObj);
 				}
 			}
+
 		} else {
+
 			let modelObj = StructrModel.obj(file.id);
 			if (!modelObj) {
 				modelObj = StructrModel.create(file);
 			}
 			if (modelObj && modelObj.isFolder !== true) {
-				filteredFileIds.push(file.id);
+				filteredFileModels.push(file);
 			}
 		}
 
-		let filesTabs     = document.getElementById('files-tabs');
-		let filesTabsUl   = filesTabs.querySelector('ul');
-		let loadedEditors = 0;
+		let fileThresholdKB = 500;
 
-		for (let uuid of filteredFileIds) {
+		for (let fileModel of filteredFileModels) {
+			if (fileModel.size > fileThresholdKB * 1024) {
+				hasFileAboveThreshold = true;
+			}
+		}
 
-			Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+		if (hasBeenWarned === false && hasFileAboveThreshold === true) {
 
-				loadedEditors++;
-
-				let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-				let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
-
-				filesTabsUl.appendChild(tab);
-				filesTabs.appendChild(editorContainer);
-
-				_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
-
-				tab.addEventListener('click', (e) => {
-					e.stopPropagation();
-
-					// prevent activating the current tab
-					if (!tab.classList.contains('active')) {
-
-						// set all other tabs inactive and this one active
-						for (let tab of filesTabsUl.querySelectorAll('li')) {
-							tab.classList.remove('active');
-						}
-						tab.classList.add('active');
-
-						// hide all editors and show this one
-						for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
-							otherEditorContainer.style.display = 'none';
-						}
-						editorContainer.style.display = 'block';
-
-						// clear all other tabs before editing this one to ensure correct height
-						for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-							fastRemoveAllChildren(editor);
-						}
-
-						_Files.editFileWithMonaco(entity, $(editorContainer));
-					}
-
-					return false;
-				});
-
-				if (file.id === entity.id) {
-					tab.click();
+			Structr.confirmationPromiseNonBlockUI(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(answer => {
+				if (answer === true) {
+					_Files.editFile(file, true);
 				}
-			});
+			})
+
+		} else {
+
+			Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
+
+			dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
+
+			let filesTabs     = document.getElementById('files-tabs');
+			let filesTabsUl   = filesTabs.querySelector('ul');
+			let loadedEditors = 0;
+
+			for (let fileModel of filteredFileModels) {
+
+				let uuid = fileModel.id;
+
+				Command.get(uuid, 'id,type,name,contentType,isTemplate', (entity) => {
+
+					loadedEditors++;
+
+					let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+					let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+
+					filesTabsUl.appendChild(tab);
+					filesTabs.appendChild(editorContainer);
+
+					_Files.markFileEditorTabAsChanged(entity.id, _Files.fileHasUnsavedChanges[entity.id]);
+
+					tab.addEventListener('click', (e) => {
+						e.stopPropagation();
+
+						// prevent activating the current tab
+						if (!tab.classList.contains('active')) {
+
+							// set all other tabs inactive and this one active
+							for (let tab of filesTabsUl.querySelectorAll('li')) {
+								tab.classList.remove('active');
+							}
+							tab.classList.add('active');
+
+							// hide all editors and show this one
+							for (let otherEditorContainer of filesTabs.querySelectorAll('div.content-tab-editor')) {
+								otherEditorContainer.style.display = 'none';
+							}
+							editorContainer.style.display = 'block';
+
+							// clear all other tabs before editing this one to ensure correct height
+							for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
+								fastRemoveAllChildren(editor);
+							}
+
+							_Files.editFileWithMonaco(entity, $(editorContainer));
+						}
+
+						return false;
+					});
+
+					if (file.id === entity.id) {
+						tab.click();
+					}
+				});
+			}
 		}
 	},
 	markFileEditorTabAsChanged: (id, hasChanges) => {

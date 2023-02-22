@@ -36,7 +36,7 @@ let _Widgets = {
 		let elements = [];
 
 		elements.push({
-			icon: _Icons.getSvgIcon('pencil_edit'),
+			icon: _Icons.getMenuSvgIcon('pencil_edit'),
 			name: 'Edit',
 			clickHandler: function () {
 
@@ -60,7 +60,7 @@ let _Widgets = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {

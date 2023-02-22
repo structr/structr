@@ -275,4 +275,32 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 			}
 		}
 	}
+
+	@Override
+	public boolean removeMember(String key) {
+		final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(node.getClass(), key);
+
+		if (node instanceof GraphObjectMap) {
+
+			if (((GraphObjectMap) node).containsKey(propKey)) {
+
+				((GraphObjectMap) node).remove(propKey);
+				return true;
+			} else {
+
+				return false;
+			}
+		} else {
+
+			try {
+
+				node.removeProperty(propKey);
+			} catch (FrameworkException ex) {
+
+				throw new RuntimeException(ex);
+			}
+		}
+
+		return false;
+	}
 }

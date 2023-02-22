@@ -46,8 +46,11 @@ public class ServerLogCommand extends AbstractCommand {
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
-		int numberOfLines = webSocketData.getNodeDataIntegerValue("numberOfLines") != null ? webSocketData.getNodeDataIntegerValue("numberOfLines") : 20;
-		final String log = ServerLogFunction.getServerLog(numberOfLines);
+
+		int numberOfLines      = webSocketData.getNodeDataIntegerValue("numberOfLines") != null ? webSocketData.getNodeDataIntegerValue("numberOfLines") : 20;
+		int truncateLinesAfter = webSocketData.getNodeDataIntegerValue("truncateLinesAfter") != null ? webSocketData.getNodeDataIntegerValue("truncateLinesAfter") : -1;
+
+		final String log = ServerLogFunction.getServerLog(numberOfLines, truncateLinesAfter);
 
 		try {
 
