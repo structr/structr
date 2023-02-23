@@ -789,7 +789,7 @@ let Structr = {
 		}
 		message.show();
 	},
-	getErrorMessageFromResponse: (response, useHtml = true) => {
+	getErrorMessageFromResponse: (response, useHtml = true, url) => {
 
 		let errorText = '';
 
@@ -844,7 +844,7 @@ let Structr = {
 	},
 	errorFromResponse: (response, url, additionalParameters) => {
 
-		let errorText = Structr.getErrorMessageFromResponse(response);
+		let errorText = Structr.getErrorMessageFromResponse(response, true, url);
 
 		let message = new MessageBuilder().error(errorText);
 
@@ -2064,7 +2064,7 @@ let Structr = {
 
 							if (data.nodeType === 'SchemaMethod') {
 
-								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-methods-${obj.id}` : `globals--${obj.id}`;
+								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
 
 								builder.specialInteractionButton('Go to method', function(btn) {
 									window.location.href = '#code';
@@ -2447,7 +2447,7 @@ let Structr = {
 
 		dialogText.html(`<div class="flex items-start">
 			<div class="flex-grow">
-				<h3>Sprite Icons</h3>
+				<h3>Sprite Icons (DEPRECATED!)</h3>
 				<table>
 					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
 				</table>
@@ -2598,12 +2598,11 @@ let _TreeHelper = {
 			}
 		};
 
-
-
 		let setSvgFolderIcon = (nodeId, newStateIsOpen) => {
-			let node = $(tree).jstree().get_node(nodeId);
 
+			let node   = $(tree).jstree().get_node(nodeId);
 			let anchor = document.getElementById(node.a_attr.id);
+
 			if (anchor) {
 
 				let from = 'folder-closed-icon';
@@ -2622,6 +2621,13 @@ let _TreeHelper = {
 				}
 
 				_Icons.updateSvgIconInElement(anchor, from, to);
+
+			} else {
+
+				// node was not yet created
+				if (newStateIsOpen) {
+					node.data.svgIcon = _Icons.getSvgIcon('folder-open-icon');
+				}
 			}
 		};
 
