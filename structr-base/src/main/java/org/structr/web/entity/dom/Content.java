@@ -640,6 +640,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 						}
 						hasDollar    = false;
 						hasBackslash = false;
+						hasSlash = false;
 						break;
 
 					case '/':
