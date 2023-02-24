@@ -786,7 +786,11 @@ let _Crud = {
 			customToggleIconClasses: ['icon-blue', 'ml-1']
 		});
 
-		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + Structr.rootUrl + type + '">/' + type + '</a></div>');
+		const endpointURL = Structr.rootUrl + type
+			+ '?' + Structr.getRequestParameterName('pageSize') + '=' + _Crud.pageSize[type]
+			+ '&' + Structr.getRequestParameterName('page')     + '=' + _Crud.page[type];
+
+		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + endpointURL + '">' + endpointURL + '</a></div>');
 
 		return $('.pager', el);
 	},
