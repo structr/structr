@@ -709,7 +709,7 @@ public class UiAuthenticator implements Authenticator {
 							}
 
 							response.resetBuffer();
-							response.setHeader("Location", Settings.applicationRootPath.getValue() + uriBuilder.build().toString());
+							response.setHeader("Location", Settings.ApplicationRootPath.getValue() + uriBuilder.build().toString());
 							response.setStatus(HttpServletResponse.SC_FOUND);
 							response.flushBuffer();
 

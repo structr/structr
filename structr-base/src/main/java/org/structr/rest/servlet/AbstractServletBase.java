@@ -89,6 +89,6 @@ public abstract class AbstractServletBase extends HttpServlet {
 
 	public static String prefixLocation (final String location) {
 
-		return Settings.applicationRootPath.getValue() + ((location.startsWith("/") ? "" : "/") + location);
+		return Settings.ApplicationRootPath.getValue() + ((location.startsWith("/") ? "" : "/") + location);
 	}
 }

@@ -984,7 +984,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 				// redirect to setup wizard
 				response.resetBuffer();
-				response.setHeader("Location", Settings.applicationRootPath.getValue() + "/structr/config");
+				response.setHeader("Location", Settings.ApplicationRootPath.getValue() + "/structr/config");
 				response.setStatus(HttpServletResponse.SC_FOUND);
 				response.flushBuffer();
 
