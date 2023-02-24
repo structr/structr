@@ -326,10 +326,14 @@ let _VirtualTypes = {
 			_VirtualTypes.virtualTypeDetail.style.display = null;
 		});
 	},
-	updateResourceLink: function (virtualType) {
+	updateResourceLink: (virtualType) => {
+
 		let resourceLink = _VirtualTypes.virtualTypeDetail.querySelector('.resource-link a');
-		resourceLink.setAttribute('href' , Structr.rootUrl + virtualType.name + '?' + Structr.getRequestParameterName('pageSize') + '=1');
-		resourceLink.textContent = '/' + virtualType.name;
+
+		let endpointURL  = `${Structr.rootUrl + virtualType.name}?${Structr.getRequestParameterName('pageSize')}=1`;
+
+		resourceLink.setAttribute('href', endpointURL);
+		resourceLink.textContent = endpointURL;
 	},
 	listVirtualProperties: (properties) => {
 
@@ -485,8 +489,10 @@ let _VirtualTypes = {
 				</div>
 			
 				<div id="virtual-type-detail" class="resourceBox" style="display: none;">
-					<div class="resource-link"><a target="_blank" href="">/</a></div>
-					<h2>Virtual Type</h2>
+					<div class="flex justify-between">
+						<h2>Virtual Type</h2>
+						<div class="resource-link"><a target="_blank" href="">/</a></div>
+					</div>
 					<table id="virtual-type-detail-table">
 						<thead><tr>
 							<th class="position" data-info-text="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
@@ -525,8 +531,8 @@ let _VirtualTypes = {
 							</tbody>
 						</table>
 			
-						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							<i class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i> New Virtual Property
+						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green inline-flex items-center">
+							${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2', 'icon-green'])} New Virtual Property
 						</button>
 					</div>
 				</div>

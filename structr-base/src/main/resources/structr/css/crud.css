@@ -421,10 +421,3 @@ img.loader {
 .resourceBox .pager {
 	margin: 1rem;
 }
-
-.resource-link {
-	top: 1.75rem;
-	display: block;
-	position: absolute;
-	right: 2rem;
-}
