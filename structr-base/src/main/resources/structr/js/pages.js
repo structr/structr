@@ -1232,7 +1232,7 @@ let _Pages = {
 					${_Icons.getSvgIcon('browser-page', 16, 16, 'typeIcon')}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
-						${(entity.position ? ` <span class="position_">${entity.position}</span>` : '')}
+						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
