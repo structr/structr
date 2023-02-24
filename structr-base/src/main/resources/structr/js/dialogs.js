@@ -216,7 +216,7 @@ let _Dialogs = {
 		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
 			let val = entity[inputEl.name];
-			if (val) {
+			if (val != undefined && val != null) {
 				if (inputEl.type === 'checkbox') {
 					inputEl.checked = val;
 				} else {
