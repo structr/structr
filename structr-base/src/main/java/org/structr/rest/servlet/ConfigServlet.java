@@ -618,7 +618,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		final Tag head = doc.block("head");
 
-		final String applicationRootPath = Settings.applicationRootPath.getValue();
+		final String applicationRootPath = Settings.ApplicationRootPath.getValue();
 
 		head.block("title").text(TITLE);
 		head.empty("meta").attr(new Attr("http-equiv", "Content-Type"), new Attr("content", "text/html;charset=utf-8"));

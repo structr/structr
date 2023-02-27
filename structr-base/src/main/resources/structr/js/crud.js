@@ -375,7 +375,6 @@ let _Crud = {
 	showLoadingMessageAfterDelay: (message, delay) => {
 
 		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
-
 	},
 	showMessageAfterDelay: (message, delay) => {
 
@@ -393,7 +392,6 @@ let _Crud = {
 			`);
 
 		}, delay);
-
 	},
 	removeMessage: () => {
 		$('#crud-type-detail .crud-message').remove();
@@ -406,7 +404,7 @@ let _Crud = {
 		let crudRight = document.querySelector('#crud-type-detail');
 		fastRemoveAllChildren(crudRight);
 
-		_Crud.showLoadingMessageAfterDelay('Loading schema information for type <b>' + type + '</b>', 500);
+		_Crud.showLoadingMessageAfterDelay(`Loading schema information for type <b>${type}</b>`, 500);
 
 		_Crud.getProperties(type, () => {
 
@@ -414,13 +412,11 @@ let _Crud = {
 
 			fastRemoveAllChildren(crudRight);
 
-			let buttonsHtml = _Crud.templates.typeButtons({ type: type });
-
-			Structr.functionBar.querySelector('#crud-buttons').innerHTML = buttonsHtml;
+			Structr.functionBar.querySelector('#crud-buttons').innerHTML = _Crud.templates.typeButtons({ type: type });;
 
 			_Crud.determinePagerData(type);
 
-			let pagerNode = _Crud.addPager(type, $(crudRight));
+			let pagerNode = _Crud.addPager(type, crudRight);
 
 			crudRight.insertAdjacentHTML('beforeend', '<table class="crud-table"><thead><tr></tr></thead><tbody></tbody></table><div id="query-info">Query: <span class="queryTime"></span> s &nbsp; Serialization: <span class="serTime"></span> s</div>');
 
@@ -562,13 +558,13 @@ let _Crud = {
 		$('#crud-left .crud-type').removeClass('active');
 		$('#crud-left .crud-type[data-type="' + selectedType + '"]').addClass('active');
 
-		var $crudTypesList = $('#crud-types-list');
-		var $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
+		let $crudTypesList             = $('#crud-types-list');
+		let $selectedElementInTypeList = $('.crud-type[data-type="' + selectedType + '"]', $crudTypesList);
 
 		if ($selectedElementInTypeList && $selectedElementInTypeList.length > 0) {
-			var positionOfList = $crudTypesList.position().top;
-			var scrollTopOfList = $crudTypesList.scrollTop();
-			var positionOfElement = $selectedElementInTypeList.position().top;
+			let positionOfList    = $crudTypesList.position().top;
+			let scrollTopOfList   = $crudTypesList.scrollTop();
+			let positionOfElement = $selectedElementInTypeList.position().top;
 			$crudTypesList.animate({scrollTop: positionOfElement + scrollTopOfList - positionOfList });
 		} else {
 			$crudTypesList.animate({scrollTop: 0});
@@ -576,16 +572,18 @@ let _Crud = {
 
 	},
 	filterTypes: (filterVal) => {
-		$('#crud-types-list .crud-type').each(function (i, el) {
-			let $el = $(el);
-			if ($el.data('type').toLowerCase().indexOf(filterVal) === -1) {
-				$el.addClass('hidden');
+		console.log(filterVal);
+
+		for (let el of document.querySelectorAll('#crud-types-list .crud-type')) {
+
+			if (el.dataset['type'].toLowerCase().indexOf(filterVal) === -1) {
+				el.classList.add('hidden');
 			} else {
-				$el.removeClass('hidden');
+				el.classList.remove('hidden');
 			}
-		});
+		}
 	},
-	updateRecentTypeList: function (selectedType) {
+	updateRecentTypeList: (selectedType) => {
 
 		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
@@ -614,7 +612,7 @@ let _Crud = {
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 	},
-	removeRecentType: function (typeToRemove) {
+	removeRecentType: (typeToRemove) => {
 
 		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
@@ -626,13 +624,15 @@ let _Crud = {
 
 		_Crud.updateRecentTypeList();
 	},
-	updateUrl: function(type) {
+	updateUrl: (type) => {
 
 		if (type) {
 			_Crud.type = type;
 			_Crud.storeType();
 			_Crud.storePagerData();
+			_Crud.updateResourceLink(type);
 		}
+
 		_Crud.searchField.focus();
 	},
 	/**
@@ -695,31 +695,31 @@ let _Crud = {
 	 * Return true if the combination of the given property key
 	 * and the given type is a collection
 	 */
-	isCollection: function(key, type) {
+	isCollection: (key, type) => {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
 	},
-	isFunctionProperty: function(key, type) {
+	isFunctionProperty: (key, type) => {
 		return ("org.structr.core.property.FunctionProperty" === _Crud.keys[type][key].className);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
-	isEnum: function(key, type) {
+	isEnum: (key, type) => {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
-	readOnly: function(key, type) {
+	readOnly: (key, type) => {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].readOnly);
 	},
 	/**
 	 * Return the related type of the given property key
 	 * of the given type
 	 */
-	relatedType: function(key, type) {
+	relatedType: (key, type) => {
 
 		if (key && type && _Crud.keys[type] && _Crud.keys[type][key]) {
 
@@ -761,34 +761,47 @@ let _Crud = {
 			_Crud.pageSize[type] = urlParam('pageSize') ? urlParam('pageSize') : (_Crud.defaultPageSize ? _Crud.defaultPageSize : 10);
 		}
 
-		el.append(`
-			<div class="pager" style="clear: both">
-				<button class="pageLeft">&lt; Prev</button>
-				Page <input class="page" type="text" size="3" value="${_Crud.page[type]}"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="${nvl(_Crud.pageCount, 0)}">
-				Page Size: <input class="pageSize" type="text" size="3" value="${_Crud.pageSize[type]}">
-				View: <select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
+		el.insertAdjacentHTML('beforeend', `
+			<div class="flex items-center justify-between">
+				<div class="pager whitespace-nowrap">
+					<button class="pageLeft">&lt; Prev</button>
+					Page <input class="page" type="text" size="3" value="${_Crud.page[type]}"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="${nvl(_Crud.pageCount, 0)}">
+					Page Size: <input class="pageSize" type="text" size="3" value="${_Crud.pageSize[type]}">
+					View: <select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${Object.keys(_Crud.availableViews[type]).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`)}
+					</select>
+				</div>
+
+				<div class="resource-link mr-4">
+					<a target="_blank" href=""></a>
+				</div>
 			</div>
 		`);
 
-		let select = $('select.view', el);
-		for (let view in _Crud.availableViews[type]) {
-			let selected = '';
-			if (_Crud.view[type] === view) {
-				selected = ' selected';
-			}
-			select.append('<option' + selected + '>' + view + '</option>');
-		}
-
 		Structr.appendInfoTextToElement({
-			element: select,
+			element: el.querySelector('select.view'),
 			text: 'The attributes of the given view are fetched. Attributes can still be hidden using the "Configure columns" dialog. id and type are always shown first.',
 			insertAfter: true,
 			customToggleIconClasses: ['icon-blue', 'ml-1']
 		});
 
-		el.append('<div class="resource-link">Endpoint URL (opens in new window): <a target="_blank" href="' + Structr.rootUrl + type + '">/' + type + '</a></div>');
+		Structr.appendInfoTextToElement({
+			element: el.querySelector('.resource-link'),
+			text: "View the REST output in a new tab.",
+			css: { marginLeft: "2px" },
+			offsetX: -300,
+			offsetY: 10
+		});
 
 		return $('.pager', el);
+	},
+	updateResourceLink: (type) => {
+
+		let resourceLink = document.querySelector('#crud-type-detail .resource-link a');
+		let endpointURL  = `${Structr.rootUrl}${type}/${_Crud.view[type]}?${Structr.getRequestParameterName('pageSize')}=${_Crud.pageSize[type]}&${Structr.getRequestParameterName('page')}=${_Crud.page[type]}`;
+
+		resourceLink.setAttribute('href', endpointURL);
+		resourceLink.textContent = endpointURL;
 	},
 	storeType: () => {
 		LSWrapper.setItem(_Crud.crudTypeKey, _Crud.type);
@@ -2761,7 +2774,7 @@ let _Crud = {
 			let isCollection = _Crud.isCollection(key, type);
 			let relatedType  = _Crud.relatedType(key, type);
 
-			if (!readOnly && !isCollection && !relatedType) {
+			if (!readOnly && !isCollection && (!relatedType || _Crud.relInfo[type])) {
 				table.append('<tr><td class="key"><label for="' + key + '">' + key + '</label></td><td class="__value ' + _Crud.cssClassForKey(key) + '"></td>');
 				let cell = $('.' + _Crud.cssClassForKey(key), table);
 				if (node && node.id) {

@@ -124,6 +124,17 @@ let _Icons = {
 		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use href="#${id}"></use></svg>`;
 	},
 
+	getMenuSvgIcon: (id, width = 16, height = 16, optionalClasses = [], title = '') => {
+
+		if (Array.isArray(optionalClasses)) {
+			optionalClasses.push('mr-2');
+		} else if (typeof optionalClasses === 'string') {
+			optionalClasses += optionalClasses + ' mr-2';
+		}
+
+		return _Icons.getSvgIcon(id, width, height, optionalClasses, title);
+	},
+
 	updateSvgIconInElement: (element, from, to) => {
 
 		let use = element.querySelector(`use[*|href="#${from}"]`);

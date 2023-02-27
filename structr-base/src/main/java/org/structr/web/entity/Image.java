@@ -291,11 +291,6 @@ public interface Image extends File {
 			return existingThumbnail;
 		}
 
-		if (originalContentType != null && (originalContentType.startsWith("image/svg") || (originalContentType.startsWith("image/") && originalContentType.endsWith("icon")))) {
-
-			return thisImage;
-		}
-
 		// Do not create thumbnails if this transaction is set to read-only
 		if (securityContext.isReadOnlyTransaction()) {
 

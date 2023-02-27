@@ -118,11 +118,11 @@ public class ValueExpression extends Expression {
 					continue;
 				}
 
-				if (value instanceof GraphObject) {
+				if (extractedValue instanceof GraphObject) {
 
 					// use evaluation depth > 0 so that any data key that is registered in the
 					// context can NOT be used
-					extractedValue = ctx.getReferencedProperty(entity, key, value, 1, hints, row, column);
+					extractedValue = ctx.getReferencedProperty(entity, key, extractedValue, 1, hints, row, column);
 
 				} else if (value instanceof Map) {
 

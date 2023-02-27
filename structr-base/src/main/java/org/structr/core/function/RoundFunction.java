@@ -63,6 +63,10 @@ public class RoundFunction extends AdvancedScriptingFunction {
 
 		if (sources.length == 2) {
 
+			if (sources[0] == null) {
+				return null;
+			}
+
 			if (sources[1] == null) {
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
 				return usage(ctx.isJavaScriptContext());

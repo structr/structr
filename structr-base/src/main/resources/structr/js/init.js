@@ -252,11 +252,11 @@ $(function() {
 		// ctrl-u / cmd-u: show generated source in schema or code area
 		if ((code === 'KeyU' || keyCode === 85) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 
-			event.preventDefault();
-
 			let elements = document.querySelectorAll('.generated-source');
 
 			if (elements.length > 0) {
+
+				event.preventDefault();
 
 				for (let el of elements) {
 
@@ -789,7 +789,7 @@ let Structr = {
 		}
 		message.show();
 	},
-	getErrorMessageFromResponse: (response, useHtml = true) => {
+	getErrorMessageFromResponse: (response, useHtml = true, url) => {
 
 		let errorText = '';
 
@@ -844,7 +844,7 @@ let Structr = {
 	},
 	errorFromResponse: (response, url, additionalParameters) => {
 
-		let errorText = Structr.getErrorMessageFromResponse(response);
+		let errorText = Structr.getErrorMessageFromResponse(response, true, url);
 
 		let message = new MessageBuilder().error(errorText);
 
@@ -899,38 +899,6 @@ let Structr = {
 			$('.tick', btn).fadeOut();
 		}, 1000);
 	},
-	// tempInfo: (text, autoclose) => {
-	//
-	// 	window.clearTimeout(Structr.dialogTimeoutId);
-	//
-	// 	if (text) {
-	// 		$('#tempInfoBox .infoHeading').html('<i class="' + _Icons.getFullSpriteClass(_Icons.information_icon) + '"></i> ' + text);
-	// 	}
-	//
-	// 	if (autoclose) {
-	// 		Structr.dialogTimeoutId = window.setTimeout(() => {
-	// 			$.unblockUI({
-	// 				fadeOut: 25
-	// 			});
-	// 		}, 3000);
-	// 	}
-	//
-	// 	$('#tempInfoBox .closeButton').on('click', function(e) {
-	// 		e.stopPropagation();
-	// 		window.clearTimeout(Structr.dialogTimeoutId);
-	// 		$.unblockUI({
-	// 			fadeOut: 25
-	// 		});
-	// 		dialogBtn.children(':not(.closeButton)').remove();
-	//
-	// 		Structr.focusSearchField();
-	// 	});
-	//
-	// 	$.blockUI({
-	// 		message: $('#tempInfoBox'),
-	// 		css: Structr.defaultBlockUICss
-	// 	});
-	// },
 	reconnectDialog: () => {
 
 		let restoreDialogText = '';
@@ -2096,7 +2064,7 @@ let Structr = {
 
 							if (data.nodeType === 'SchemaMethod') {
 
-								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-methods-${obj.id}` : `globals--${obj.id}`;
+								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
 
 								builder.specialInteractionButton('Go to method', function(btn) {
 									window.location.href = '#code';
@@ -2256,7 +2224,14 @@ let Structr = {
 					}
 				};
 
-				let elCommentConfig = el.dataset['commentConfig'] || {};
+				let elCommentConfig = {};
+				if (el.dataset['commentConfig']) {
+					try {
+						elCommentConfig = JSON.parse(el.dataset['commentConfig']);
+					} catch (e) {
+						console.log('Failed parsing comment config');
+					}
+				}
 
 				// base config is overridden by the defaults parameter which is overridden by the element config
 				let infoConfig = Object.assign(config, defaults, elCommentConfig);
@@ -2472,7 +2447,7 @@ let Structr = {
 
 		dialogText.html(`<div class="flex items-start">
 			<div class="flex-grow">
-				<h3>Sprite Icons</h3>
+				<h3>Sprite Icons (DEPRECATED!)</h3>
 				<table>
 					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
 				</table>
@@ -2623,12 +2598,11 @@ let _TreeHelper = {
 			}
 		};
 
-
-
 		let setSvgFolderIcon = (nodeId, newStateIsOpen) => {
-			let node = $(tree).jstree().get_node(nodeId);
 
+			let node   = $(tree).jstree().get_node(nodeId);
 			let anchor = document.getElementById(node.a_attr.id);
+
 			if (anchor) {
 
 				let from = 'folder-closed-icon';
@@ -2647,6 +2621,13 @@ let _TreeHelper = {
 				}
 
 				_Icons.updateSvgIconInElement(anchor, from, to);
+
+			} else {
+
+				// node was not yet created
+				if (newStateIsOpen) {
+					node.data.svgIcon = _Icons.getSvgIcon('folder-open-icon');
+				}
 			}
 		};
 

@@ -33,6 +33,8 @@ public interface RestWriter {
 	public SecurityContext getSecurityContext();
 	public int getPageSize();
 	public void setPageSize(final int pageSize);
+	public int getPage();
+	public void setPage(final int page);
 
 	public RestWriter beginDocument(final String baseUrl, final String propertyView) throws IOException;
 	public RestWriter endDocument() throws IOException;

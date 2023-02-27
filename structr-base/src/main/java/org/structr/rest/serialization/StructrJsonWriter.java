@@ -36,6 +36,7 @@ public class StructrJsonWriter implements RestWriter {
 	private JsonWriter writer               = null;
 	private Writer rawWriter                = null;
 	private int pageSize                    = -1;
+	private int page                        = 1;
 
 	public StructrJsonWriter(final SecurityContext securityContext, final Writer writer) {
 
@@ -165,4 +166,13 @@ public class StructrJsonWriter implements RestWriter {
 	public int getPageSize() {
 		return pageSize;
 	}
+
+	@Override
+	public void setPage(final int page) {
+		this.page = page;
+	}
+
+	@Override
+	public int getPage() { return page; }
+
 }

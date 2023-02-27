@@ -30,6 +30,8 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE    = "Usage: ${set_session_attribute(key, value)}. Example: ${set_session_attribute(\"do_no_track\", true)}";
 	public static final String ERROR_MESSAGE_SET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.set_session_attribute(key, value)}}. Example: ${{Structr.set_session_attribute(\"do_not_track\", true)}}";
 
+	private int retryCount = 0;
+
 	@Override
 	public String getName() {
 		return "set_session_attribute";
@@ -57,6 +59,14 @@ public class SetSessionAttributeFunction extends UiAdvancedFunction {
 
 			return "";
 
+		} catch (IllegalStateException ex) {
+
+			// retry
+			if (retryCount < 3) {
+				retryCount++;
+				return apply(ctx, caller, sources);
+			}
+			throw ex;
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments

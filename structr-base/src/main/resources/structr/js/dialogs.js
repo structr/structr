@@ -216,7 +216,7 @@ let _Dialogs = {
 		for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
 
 			let val = entity[inputEl.name];
-			if (val) {
+			if (val != undefined && val != null) {
 				if (inputEl.type === 'checkbox') {
 					inputEl.checked = val;
 				} else {
@@ -653,7 +653,7 @@ let _Dialogs = {
 		includeInFrontendExport: config => `
 			<div class="mb-2 flex items-center">
 				<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport">
-				<label for="includeInFrontendExport" data-comment-config="{insertAfter:true}" data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
+				<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
 			</div>
 		`,
 		fileOptions: config => `
@@ -691,7 +691,7 @@ let _Dialogs = {
 
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary">
-							<label for="useAsJavascriptLibrary" data-comment-config="{insertAfter:true}" data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
+							<label for="useAsJavascriptLibrary" data-comment-config='{"insertAfter":true}' data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
 						</div>
 					</div>
 				</div>

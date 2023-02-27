@@ -249,7 +249,7 @@ let _Files = {
 				if (entity.isTemplate) {
 
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit source',
 						clickHandler: () => {
 							_Files.editFile(entity);
@@ -260,7 +260,7 @@ let _Files = {
 				} else {
 
 					elements.push({
-						icon: _Icons.getSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon('pencil_edit'),
 						name: 'Edit Image',
 						clickHandler: () => {
 							_Files.editImage(entity);
@@ -272,7 +272,7 @@ let _Files = {
 			} else {
 
 				elements.push({
-					icon: _Icons.getSvgIcon('pencil_edit'),
+					icon: _Icons.getMenuSvgIcon('pencil_edit'),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: () => {
 						_Files.editFile(entity);
@@ -306,7 +306,7 @@ let _Files = {
 
 			if (_Files.displayingFavorites) {
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star-remove'),
+					icon: _Icons.getMenuSvgIcon('favorite-star-remove'),
 					name: 'Remove from Favorites',
 					clickHandler: function () {
 
@@ -324,7 +324,7 @@ let _Files = {
 			} else if (entity.isFavoritable) {
 
 				elements.push({
-					icon: _Icons.getSvgIcon('favorite-star'),
+					icon: _Icons.getMenuSvgIcon('favorite-star'),
 					name: 'Add to Favorites',
 					clickHandler: function () {
 
@@ -361,7 +361,7 @@ let _Files = {
 
 				elements.push({
 					name: 'Download File',
-					icon: _Icons.getSvgIcon('download-icon'),
+					icon: _Icons.getMenuSvgIcon('download-icon'),
 					clickHandler: () => {
 						// do not make the click handler async because it would return a promise instead of the boolean
 
@@ -422,7 +422,7 @@ let _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon('trashcan'),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
@@ -841,20 +841,31 @@ let _Files = {
 			_Files.insertBreadCrumbNavigation(parents, nodePath, id);
 
 			if (_Files.isViewModeActive('list')) {
+
 				_Files.folderContents.append(`
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr><td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><a href="#" class="folder-up">..</a></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
 
+				$('#parent-file-link').on('click', (e) => {
+
+					if (parentId !== '#') {
+						$('#' + parentId + '_anchor').click();
+					}
+				});
+
 			} else if (_Files.isViewModeActive('tiles')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
+
 			} else if (_Files.isViewModeActive('img')) {
+
 				if (!isRootFolder) {
 					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
@@ -887,7 +898,7 @@ let _Files = {
 			});
 		}
 	},
-	insertLayoutSwitches: function (id, parentId, nodePath, parents) {
+	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
 		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
 
@@ -904,6 +915,7 @@ let _Files = {
 		let imgSw   = $('#switch-img');
 
 		let layoutSwitchFunction = function() {
+
 			let state = $(this).hasClass('inactive');
 
 			if (state) {
@@ -1222,7 +1234,10 @@ let _Files = {
 
 		el.append(`
 			<div class="image-editor-menubar">
-				<div><i class="fa fa-crop"></i><br>Crop</div>
+				<div class="crop-action">
+					${_Icons.getSvgIcon('image-crop')}
+					<br>Crop
+				</div>
 			</div>
 			<div><img id="image-editor" class="orientation-' + image.orientation + '" src="${ imagePath }"></div>
 		`);
@@ -1257,7 +1272,7 @@ let _Files = {
 			}, 500);
 		});
 
-		$('.fa-crop', el).on('click', function() {
+		$('.crop-action', el).on('click', function() {
 
 			$('#image-editor').cropper({
 				crop: function(e) {

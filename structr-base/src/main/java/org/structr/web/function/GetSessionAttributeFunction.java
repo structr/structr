@@ -32,6 +32,8 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE    = "Usage: ${get_session_attribute(key)}. Example: ${get_session_attribute(\"do_no_track\")}";
 	public static final String ERROR_MESSAGE_GET_SESSION_ATTRIBUTE_JS = "Usage: ${{Structr.get_session_attribute(key)}}. Example: ${{Structr.get_session_attribute(\"do_not_track\")}}";
 
+	private int retryCount = 0;
+
 	@Override
 	public String getName() {
 		return "get_session_attribute";
@@ -59,6 +61,14 @@ public class GetSessionAttributeFunction extends UiAdvancedFunction {
 
 			return null;
 
+		} catch (IllegalStateException ex) {
+
+			// retry
+			if (retryCount < 3) {
+				retryCount++;
+				return apply(ctx, caller, sources);
+			}
+			throw ex;
 		} catch (ArgumentNullException pe) {
 
 			// silently ignore null arguments

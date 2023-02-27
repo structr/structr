@@ -141,8 +141,9 @@ public abstract class StreamingWriter {
 		final int softLimit               = securityContext.getSoftLimit(pageSize);
 		long actualResultCount            = 0L;
 
-		// make pageSize available to nested serializers
+		// make pageSize and page available to nested serializers
 		rootWriter.setPageSize(pageSize);
+		rootWriter.setPage(page);
 
 		rootWriter.beginDocument(baseUrl, propertyView.get(securityContext));
 		rootWriter.beginObject();

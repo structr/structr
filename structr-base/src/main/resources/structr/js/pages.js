@@ -327,7 +327,7 @@ let _Pages = {
 		if (entity.type === 'Div' && !hasChildren) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon('pencil_edit'),
 				name: 'Edit',
 				clickHandler: () => {
 					_Entities.editEmptyDiv(entity);
@@ -342,7 +342,7 @@ let _Pages = {
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon('duplicate'),
 				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
@@ -406,7 +406,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.getSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon('duplicate'),
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);
@@ -556,7 +556,7 @@ let _Pages = {
 		if (!isPage && entity.parent !== null) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
@@ -572,7 +572,7 @@ let _Pages = {
 		if (isPage || !entity.parent) {
 
 			elements.push({
-				icon: _Icons.getSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon('trashcan'),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Delete ' + entity.type,
 				clickHandler: () => {
@@ -1232,7 +1232,7 @@ let _Pages = {
 					${_Icons.getSvgIcon('browser-page', 16, 16, 'typeIcon')}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
-						${(entity.position ? ` <span class="position_">${entity.position}</span>` : '')}
+						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
