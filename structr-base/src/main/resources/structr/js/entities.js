@@ -1304,7 +1304,7 @@ let _Entities = {
 
 					// populate collection properties with first page
 					for (let key of collectionProperties) {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, 1, tabView);
 					}
 				}
 
@@ -1314,14 +1314,14 @@ let _Entities = {
 			});
 		});
 	},
-	displayCollectionPager: (tempNodeCache, entity, key, page) => {
+	displayCollectionPager: (tempNodeCache, entity, key, page, container) => {
 
 		let pageSize = 10, resultCount;
 
-		let cell = $('.value.' + key + '_');
+		let cell = $('.value.' + key + '_', container);
 		cell.css('height', '60px');
 
-		fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page, {
+		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'
 			}
@@ -1358,14 +1358,14 @@ let _Entities = {
 
 				if (page > 1) {
 					pageUpButton.removeClass('disabled').on('click', () => {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1, container);
 						return false;
 					});
 				}
 
 				if ((!resultCount && data.result.length > 0) || page < Math.ceil(resultCount/pageSize)) {
 					pageDownButton.removeClass('disabled').on('click', () => {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1, container);
 						return false;
 					});
 				}
