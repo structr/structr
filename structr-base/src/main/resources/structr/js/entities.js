@@ -294,29 +294,37 @@ let _Entities = {
 		});
 
 		addParameterMappingButton.addEventListener('click', e => {
-			Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
-				getAndAppendParameterMapping(parameterMapping.id);
+
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+				actionMapping = result.triggeredActions[0];
+				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+					getAndAppendParameterMapping(parameterMapping.id);
+				});
 			});
+
 		});
 
 		addParameterMappingForTypeButton.addEventListener('click', e => {
 
-			Command.getSchemaInfo(dataTypeSelect.value, result => {
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+				actionMapping = result.triggeredActions[0];
+				Command.getSchemaInfo(dataTypeSelect.value, result => {
 
-				let properties = result.filter(property => !property.system);
-				//console.log(properties); return;
+					let properties = result.filter(property => !property.system);
+					//console.log(properties); return;
 
-				for (const property of properties) {
+					for (const property of properties) {
 
-					Command.create({
-						type: 'ParameterMapping',
-						parameterName: property.jsonName,
-						actionMapping: actionMapping.id
-					}, (parameterMapping) => {
-						getAndAppendParameterMapping(parameterMapping.id);
-					});
+						Command.create({
+							type: 'ParameterMapping',
+							parameterName: property.jsonName,
+							actionMapping: actionMapping.id
+						}, (parameterMapping) => {
+							getAndAppendParameterMapping(parameterMapping.id);
+						});
 
-				}
+					}
+				});
 			});
 
 		});
