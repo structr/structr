@@ -272,13 +272,13 @@ let _Dashboard = {
 
 					if (daysLeft <= 0) {
 
-						config.customToggleIcon        = 'error-sign-icon-filled';
+						config.customToggleIcon        = _Icons.iconErrorRedFilled;
 						config.customToggleIconClasses = ['icon-red', 'ml-2'];
 						config.text = "Your Structr <b>license has expired</b>. Upon restart the Community edition will be loaded.";
 
 					} else if (daysLeft <= 7) {
 
-						config.customToggleIcon        = 'warning-sign-icon-filled';
+						config.customToggleIcon        = _Icons.iconWarningYellowFilled;
 						config.customToggleIconClasses = ['ml-2'];
 						config.text = "Your Structr <b>license will expire in less than a week</b>. After that the Community edition will be loaded.";
 
@@ -1204,7 +1204,7 @@ let _Dashboard = {
 
 							<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
-									${_Icons.getSvgIcon('settings-cog')}
+									${_Icons.getSvgIcon(_Icons.iconSettingsCog)}
 								</button>
 
 								<div class="dropdown-menu-container" style="display: none;">
@@ -1302,7 +1302,7 @@ let _Dashboard = {
 							<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
 
 							<button id="refresh-event-log" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 							</button>
 						</div>
 
@@ -1327,7 +1327,7 @@ let _Dashboard = {
 						<div id="running-threads-options" class="flex items-center mb-4">
 
 							<button id="refresh-running-threads" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 							</button>
 
 						</div>

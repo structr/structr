@@ -45,15 +45,6 @@
 	text-align: left;
 }
 
-/*#localization-detail .edit:hover, #localization-detail .save:hover, #localization-detail .discard:hover, #localization-detail .discard:hover {*/
-/*    cursor: pointer;*/
-/*    opacity: 0.6;*/
-/*}*/
-
-/*#localization-detail-table .___locale {*/
-/*    width: 50px;*/
-/*}*/
-
 #localization-pager {
 	display: inline-block;
 }

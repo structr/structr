@@ -131,7 +131,7 @@ let _Security = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
@@ -231,7 +231,7 @@ let _Security = {
 				</select>
 			
 				<button class="action add_group_icon inline-flex items-center" id="add-group-button">
-					${_Icons.getSvgIcon('group-add', 16, 16, 'mr-2')}
+					${_Icons.getSvgIcon(_Icons.iconGroupAdd, 16, 16, 'mr-2')}
 					<span>Add Group</span>
 				</button>
 			</div>
@@ -245,7 +245,7 @@ let _Security = {
 				</select>
 			
 				<button class="action add_user_icon inline-flex items-center" id="add-user-button">
-					${_Icons.getSvgIcon('user-add', 16, 16, 'mr-2')}
+					${_Icons.getSvgIcon(_Icons.iconUserAdd, 16, 16, 'mr-2')}
 					<span>Add User</span>
 				</button>
 			</div>
@@ -255,7 +255,7 @@ let _Security = {
 				<div id="add-resource-access-grant" class="flex items-center">
 					<input type="text" size="20" id="resource-signature" placeholder="Signature" class="mr-2">
 					<button class="action add_grant_icon button inline-flex items-center">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add Grant
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add Grant
 					</button>
 				</div>
 			
@@ -306,13 +306,13 @@ let _Security = {
 			<div class="flex items-center">
 				<div id="add-cors-setting" class="flex items-center">
 					<input type="text" size="20" id="cors-setting-request-uri" placeholder="Request URI Path" class="mr-2">
-					<button class="action add_grant_icon button inline-flex items-center">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add CORS Setting
+					<button class="action add_cors_setting_button button inline-flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add CORS Setting
 					</button>
 				</div>
 			
 				<div id="filter-cors-settings" class="flex items-center">
-					<input type="text" class="filter" data-attribute="request-uri" placeholder="Filter/Search...">
+					<input type="text" class="filter" data-attribute="requestUri" placeholder="Filter/Search...">
 				</div>
 			</div>
 			
@@ -369,7 +369,7 @@ let _UsersAndGroups = {
 			}
 		}, null, 'id,isUser,name,type,isAdmin', undefined, true);
 
-		userPager.cleanupFunction = function () {
+		userPager.cleanupFunction = () => {
 			fastRemoveAllChildren(_Security.userList);
 		};
 
@@ -385,7 +385,7 @@ let _UsersAndGroups = {
 		let userElement = $(`
 			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
 				<div class="node-container flex items-center">
-					<i class="typeIcon typeIcon-nochildren ${_UsersAndGroups.getIconForPrincipal(user)}"></i><b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
+					${_Icons.getIconForPrincipal(user)}<b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -394,14 +394,6 @@ let _UsersAndGroups = {
 		_UsersAndGroups.makeDraggable(userElement);
 
 		return userElement;
-	},
-	getIconForPrincipal: (principal) => {
-		return _Icons.getFullSpriteClass(
-			principal.isGroup ?
-				((principal.type === 'LDAPGroup') ? _Icons.group_link_icon : _Icons.group_icon)
-				:
-				((principal.isAdmin === true) ? _Icons.user_red_icon : ((principal.type === 'LDAPUser') ? _Icons.user_orange_icon : _Icons.user_icon))
-		);
 	},
 	prevAnimFrameReqId_updateUserElementAfterModelChange: undefined,
 	updateUserElementAfterModelChange: (user) => {
@@ -412,9 +404,9 @@ let _UsersAndGroups = {
 
 			for (let userEl of document.querySelectorAll('.' + _UsersAndGroups.userNodeClassPrefix + user.id)) {
 
-				let icon = userEl.querySelector('.typeIcon');
+				let icon = userEl.querySelector('svg.typeIcon');
 				if (icon) {
-					icon.setAttribute('class', 'typeIcon typeIcon-nochildren ' + _UsersAndGroups.getIconForPrincipal(user));
+					_Icons.replaceSvgElementWithRawSvg(icon, _Icons.getIconForPrincipal(user));
 				}
 
 				let userName = userEl.querySelector('.name_');
@@ -447,7 +439,7 @@ let _UsersAndGroups = {
 			node.addEventListener('dblclick', dblclickHandler);
 		}
 	},
-	appendMembersToGroup: function(members, group, groupDiv) {
+	appendMembersToGroup: (members, group, groupDiv) => {
 
 		for (let member of members) {
 
@@ -513,6 +505,7 @@ let _UsersAndGroups = {
 		}
 	},
 	isGroupAlreadyShown: (group, groupEl) => {
+
 		if (groupEl.length === 0) {
 			return false;
 		}
@@ -521,6 +514,7 @@ let _UsersAndGroups = {
 		if (containerGroupId === group.id) {
 			return true;
 		}
+
 		return _UsersAndGroups.isGroupAlreadyShown(group, groupEl.parent().closest('.group'));
 	},
 	refreshGroups: async () => {
@@ -560,14 +554,14 @@ let _UsersAndGroups = {
 		groupPager.setIsPaused(false);
 		groupPager.refresh();
 	},
-	createGroupElement: function (group) {
+	createGroupElement: (group) => {
 
 		let displayName = ((group.name) ? group.name : '[unnamed]');
 
 		let groupElement = $(`
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
-					<i class="typeIcon ${(group.members.length > 0 ? 'typeIcon-nochildren ' : '')}${_UsersAndGroups.getIconForPrincipal(group)}"></i><b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					${_Icons.getIconForPrincipal(group)}<b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -618,13 +612,9 @@ let _UsersAndGroups = {
 
 			for (let groupEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
 
-				let icon = groupEl.querySelector('.typeIcon');
+				let icon = groupEl.querySelector('svg.typeIcon');
 				if (icon) {
-					let newClassString = 'typeIcon ' + _UsersAndGroups.getIconForPrincipal(group);
-					if (group.members.length == 0) {
-						newClassString += ' typeIcon-nochildren';
-					}
-					icon.setAttribute('class', newClassString);
+					_Icons.replaceSvgElementWithRawSvg(icon, _Icons.getIconForPrincipal(group));
 				}
 
 				let groupName = groupEl.querySelector('.name_');
@@ -716,12 +706,15 @@ let _ResourceAccessGrants = {
 	refreshResourceAccesses: () => {
 
 		if (Structr.isInMemoryDatabase === undefined) {
+			// this is loaded from the env resource, thus reload after a bit
 			window.setTimeout(() => {
 				_ResourceAccessGrants.refreshResourceAccesses();
 			}, 500);
+
+			return;
 		}
 
-		let pagerTransportFunction = Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
+		let pagerTransportFunction = false && Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
 
 		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
 		_Security.resourceAccesses.html(resourceAccessHtml);
@@ -757,7 +750,7 @@ let _ResourceAccessGrants = {
 				if (key === 'flags') {
 					return (filterAttrs[key] === true) ? 'n.flags > 0' : 'n.flags >= 0';
 				} else {
-					return 'n.' + key + ' =~ "(?i).*' + filterAttrs[key] + '.*"';
+					return `n.${key} =~ "(?i).*${filterAttrs[key]}.*"`;
 				}
 			}).join(' AND ');
 		}
@@ -820,10 +813,7 @@ let _ResourceAccessGrants = {
 
 		Command.create(grantData, callback);
 	},
-	deleteResourceAccess: (resourceAccess) => {
-		_Entities.deleteNode(null, resourceAccess);
-	},
-	getVerbFromKey: function(key = '') {
+	getVerbFromKey: (key = '') => {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
 	},
 	mask: {
@@ -874,11 +864,13 @@ let _ResourceAccessGrants = {
 				arr.push('Should <b>not</b> be set because the grant itself is visible to public users. Every authenticated user can also see the grant which is probably not intended.<br><br>This might have a <b>security impact</b> as the resource is accessible with the <b>' + _ResourceAccessGrants.getVerbFromKey(key) + '</b> method (<b>but not the data</b> behind that resource)!<br><br><b>Quick Fix</b>: Remove the visibleToPublicUsers flag from this grant.');
 				flagWarningTexts[key] = arr;
 			}
+
 			if (flagIsSet && disabledBecauseNotPublic) {
 				let arr = flagSanityInfos[key] || [];
 				arr.push('Active for public users but grant can not be seen by public users.<br><br>This has no security-impact and is probably only misconfigured.');
 				flagSanityInfos[key] = arr;
 			}
+
 			if (flagIsSet && disabledBecauseNoAuthAccess) {
 				let arr = flagSanityInfos[key] || [];
 				arr.push('Active for authenticated users but grant can not be seen by authenticated users or a group.<br><br>This has no security-impact and is probably only misconfigured.');
@@ -915,20 +907,19 @@ let _ResourceAccessGrants = {
 		let actionsCol = $('td.actions', tr);
 		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
 
-		actionsCol.append(_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
+		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
 
 		$('.delete-resource-access', tr).on('click', (e) => {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;
-			_ResourceAccessGrants.deleteResourceAccess(resourceAccess);
+			_Entities.deleteNode(null, resourceAccess);
 		});
-
 
 		if (hasAuthFlag && hasNonAuthFlag) {
 			Structr.appendInfoTextToElement({
 				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
 				element: $('.title-cell b', tr),
-				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIcon: _Icons.iconWarningYellowFilled,
 				customToggleIconClasses: [],
 				css: {
 					float:'right',
@@ -941,7 +932,7 @@ let _ResourceAccessGrants = {
 			Structr.appendInfoTextToElement({
 				text: flagWarningTexts[key].join('<br><br>'),
 				element: $('input[data-key=' + key + ']', tr),
-				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIcon: _Icons.iconWarningYellowFilled,
 				customToggleIconClasses: [],
 				css: { position: 'absolute' },
 				insertAfter: true
@@ -953,7 +944,7 @@ let _ResourceAccessGrants = {
 				Structr.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
-					customToggleIcon: 'error-sign-icon-filled',
+					customToggleIcon: _Icons.iconErrorRedFilled,
 					customToggleIconClasses: ['icon-red'],
 					css: { position: 'absolute' },
 					insertAfter: true
@@ -1015,7 +1006,7 @@ let _ResourceAccessGrants = {
 		});
 	},
 	updateResourcesAccessRow: function (id, blinkGreen = true) {
-		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', function(obj) {
+		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', (obj) => {
 			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
 		});
 	}
@@ -1025,23 +1016,12 @@ _CorsSettings = {
 
 	refreshCorsSettings: () => {
 
-		// if (Structr.isInMemoryDatabase === undefined) {
-		// 	window.setTimeout(() => {
-		// 		_CorsSettings.refreshCorsSettings();
-		// 	}, 500);
-		// }
-
 		let corsSettingsHtml = _Security.templates.corsSettings({});
 		_Security.corsSettings.html(corsSettingsHtml);
 
 		Structr.activateCommentsInElement(_Security.corsSettings[0]);
 
-		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings), true, 'CorsSetting', undefined, (corsSettings) => {
-			for (let corsSetting of corsSettings) {
-				let corsSettingModelObj = StructrModel.create(corsSetting);
-				_CorsSettings.appendCorsSettingToElement(corsSettingModelObj);
-			}
-		}, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', undefined, true);
+		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings), true, 'CorsSetting', undefined, null, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', undefined, true);
 
 		csPager.cleanupFunction = () => {
 			$('#corsSettingsTable tbody tr').remove();
@@ -1051,7 +1031,7 @@ _CorsSettings = {
 		csPager.setIsPaused(false);
 		csPager.refresh();
 
-		$('.add_grant_icon', _Security.corsSettings).on('click', function (e) {
+		$('.add_cors_setting_button', _Security.corsSettings).on('click', function (e) {
 			_CorsSettings.addCorsSetting(e);
 		});
 
@@ -1063,25 +1043,28 @@ _CorsSettings = {
 	},
 	appendCorsSettingToElement: (corsSetting) => {
 
-		let trHtml = `<tr id="id_${corsSetting.id}" class="cors-setting"><td class="title-cell"><b>${corsSetting.requestUri}</b></td>
-			<td>${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
-			<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
-			<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
-			<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>
-			<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders || ''}"></td>
-			<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials || ''}"></td>
-			<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders || ''}"></td>
-			</td>`;
+		let trHtml = `
+			<tr id="id_${corsSetting.id}" class="cors-setting">
+				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
+				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
+				<td><input type="text" class="cors-accepted-origins" data-attr-key="acceptedOrigins" size="16" value="${corsSetting.acceptedOrigins || ''}"></td>
+				<td><input type="text" class="cors-max-age" data-attr-key="maxAge" size="4" value="${corsSetting.maxAge || ''}"></td>
+				<td><input type="text" class="cors-allow-methods" data-attr-key="allowMethods" size="16" value="${corsSetting.allowMethods || ''}"></td>
+				<td><input type="text" class="cors-allow-headers" data-attr-key="allowHeaders" size="16" value="${corsSetting.allowHeaders || ''}"></td>
+				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials || ''}"></td>
+				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders || ''}"></td>
+			</tr>
+		`;
 
-		$('#corsSettingsTable').append(trHtml);
+		$('#corsSettingsTable tbody').append(trHtml);
 
-		$('#id_' + corsSetting.id + ' .delete-cors-setting').on('click', (e) => {
+		$(`#id_${corsSetting.id} .delete-cors-setting`).on('click', (e) => {
 			e.stopPropagation();
 			corsSetting.name = corsSetting.requestUri;
-			_CorsSettings.deleteCorsSetting(corsSetting);
+			_Entities.deleteNode(null, corsSetting);
 		});
 
-		document.querySelectorAll('#id_' + corsSetting.id + ' input[type="text"]').forEach(inp => {
+		document.querySelectorAll(`#id_${corsSetting.id} input[type="text"]`).forEach(inp => {
 			inp.addEventListener('blur', e => {
 				e.stopPropagation();
 				_Entities.setPropertyWithFeedback(corsSetting, inp.dataset.attrKey, inp.value, $(inp), inp);
@@ -1094,25 +1077,25 @@ _CorsSettings = {
 
 		let inp = $('#cors-setting-request-uri');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_grant_icon', _Security.corsSettings).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_cors_setting_button', _Security.corsSettings).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		let reEnableInput = () => {
-			$('.add_grant_icon', _Security.corsSettings).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			$('.add_cors_setting_button', _Security.corsSettings).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
 		let requestUri = inp.val();
 		if (requestUri) {
-			_CorsSettings.createCorsSetting(requestUri, () => {
+			_CorsSettings.createCorsSetting(requestUri, (obj) => {
 				reEnableInput();
 				inp.val('');
+				_CorsSettings.appendCorsSettingToElement(obj);
 			});
 		} else {
 			reEnableInput();
 			blinkRed(inp);
 		}
 		window.setTimeout(reEnableInput, 250);
-		_CorsSettings.refreshCorsSettings();
 	},
 	createCorsSetting: (requestUri, callback, additionalData) => {
 		let corsSettingData = {
@@ -1125,8 +1108,5 @@ _CorsSettings = {
 		}
 
 		Command.create(corsSettingData, callback);
-	},
-	deleteCorsSetting: (corsSetting) => {
-		_Entities.deleteNode(null, corsSetting);
 	}
 };

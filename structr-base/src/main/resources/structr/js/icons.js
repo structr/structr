@@ -27,90 +27,142 @@ let _Icons = {
 		});
 	},
 
-	application_form_add: 'icon/application_form_add.png',
-	add_icon: 'icon/add.png',
-	delete_icon: 'icon/delete.png',
-	delete_disabled_icon: 'icon/delete_gray.png',
-	add_brick_icon: 'icon/brick_add.png',
-	delete_brick_icon: 'icon/brick_delete.png',
-	edit_icon: 'icon/pencil.png',
-	wrench_icon: 'icon/wrench.png',
-	collapsed_icon: 'icon/tree_arrow_right.png',
-	expanded_icon: 'icon/tree_arrow_down.png',
-	link_icon: 'icon/link.png',
-	key_icon: 'icon/key.png',
-	cross_icon: 'icon/cross.png',
-	tick_icon: 'icon/tick.png',
-	grey_cross_icon: 'icon/cross_small_grey.png',
-	page_white_stack_icon: 'icon/page_white_stack.png',
-	database_gear_icon: 'icon/database_gear.png',
-	view_detail_icon: 'icon/application_view_detail.png',
-	calendar_icon: 'icon/calendar.png',
-	add_grey_icon: 'icon/add_grey.png',
-	page_icon: 'icon/page.png',
-	page_white_icon: 'icon/page_white.png',
-	button_icon: 'icon/button.png',
-	clone_icon: 'icon/page_copy.png',
-	group_icon: 'icon/group.png',
-	group_add_icon: 'icon/group_add.png',
-	group_link_icon: 'icon/group_link.png',
-	user_icon: 'icon/user.png',
-	user_gray_icon: 'icon/user_gray.png',
-	user_green_icon: 'icon/user_green.png',
-	user_orange_icon: 'icon/user_orange.png',
-	user_red_icon: 'icon/user_red.png',
-	user_suit_icon: 'icon/user_suit.png',
-	user_add_icon: 'icon/user_add.png',
-	user_delete_icon: 'icon/user_delete.png',
-	compress_icon: 'icon/compress.png',
-	accept_icon: 'icon/accept.png',
-	push_file_icon: 'icon/page_white_get.png',
-	pull_file_icon: 'icon/page_white_put.png',
-	exec_icon: 'icon/control_play_blue.png',
-	exec_blue_icon: 'icon/control_play.png',
-	arrow_undo_icon: 'icon/arrow_undo.png',
-	information_icon: 'icon/information.png',
-	help_icon: 'icon/help.png',
-	refresh_icon: 'icon/arrow_refresh.png',
-	error_icon: 'icon/error.png',
-	exclamation_icon: 'icon/exclamation.png',
-	pull_page_icon: 'icon/pull_page.png',
-	wand_icon: 'icon/wand.png',
-	toggle_icon: 'icon/arrow_switch.png',
-	widget_icon: 'icon/layout.png',
-	folder_icon: 'icon/folder.png',
-	add_widget_icon: 'icon/layout_add.png',
-	content_icon: 'icon/page_white.png',
-	active_content_icon: 'icon/page_yellow.png',
-	delete_content_icon: 'icon/page_white_delete.png',
-	template_icon: 'icon/layout_content.png',
-	comp_templ_icon: 'icon/layout_yellow.png',
-	active_template_icon: 'icon/layout_yellow.png',
-	icon_shared_template: 'icon/layout_yellow.png',
-	comment_icon: 'icon/comment.png',
-	repeater_icon: 'icon/bricks.png',
-	brick_icon: 'icon/brick.png',
-	comp_icon: 'icon/brick_yellow.png',
-	search_icon: 'icon/zoom.png',
-	star_icon: 'icon/star.png',
-	image_icon: 'icon/image.png',
-	arrow_up_down: 'icon/arrow_up_down.png',
-	book_icon: 'icon/book_open.png',
-	import_icon: 'icon/table_lightning.png',
-	connect_icon: 'icon/connect.png',
-	package_icon: 'icon/package.png',
-	report_icon: 'icon/report.png',
+	/* fake icon to use as placeholder */
+	nonExistentEmptyIcon:       'this-is-empty',
 
-	collapsedClass: 'svg-collapsed',
-	expandedClass: 'svg-expanded',
+	/* SVG-in-CSS icons */
+	collapsedClass:             'svg-collapsed',
+	expandedClass:              'svg-expanded',
+	monacoGlyphMarginClassName: 'monaco-editor-warning-glyph',
 
-	jstree_fake_icon: 'this-is-empty',
+	/* SVG element icons */
+	iconEditionEnterprise:    'edition-enterprise',
+	iconEditionSmallBusiness: 'edition-small-business',
+	iconEditionBasic:         'edition-basic',
+	iconEditionCommunity:     'edition-community',
 
-	getSvgIcon: (id, width = 16, height = 16, optionalClasses, title = '') => {
+	iconDOMTreePage:          'dom-page',
+	iconDOMTreeElement:       'dom-block',
+	iconDOMContentElement:    'dom-content',
+	iconDOMTemplateElement:   'dom-template',
+	iconDOMCommentElement:    'dom-comment',
+	iconDOMTreeActiveElement: 'dom-active-element',
 
-		/**
-		 * SVG Icons are all loaded in index.html and can be used anywhere using this function
-		 **/
+	iconSecurityRegularUser: 'user-normal',
+	iconSecurityAdminUser:   'user-normal',	// possibly 'user-admin' but color-change to red is preferred at the moment
+	iconSecurityLDAPUser:    'user-ldap',
+	iconSecurityGroup:       'user-group',
+	iconSecurityLDAPGroup:   'user-group-ldap',
+	iconGroupAdd:            'group-add',
+	iconUserAdd:             'user-add',
+
+	iconFilesStack:           'file-stack',
+	iconCreateFile:           'file_add',
+	iconCreateFolder:         'folder_add',
+	iconFavoritesFolder:      'folder_star',
+	iconCropImage:            'image-crop',
+	iconFolderOpen:           'folder-open-icon',
+	iconFolderClosed:         'folder-closed-icon',
+	iconMountedFolderOpen:    'folder-link-open-icon',
+	iconMountedFolderClosed:  'folder-link-closed-icon',
+	iconFileTypeImage:        'file-image',
+	iconFileTypeEmpty:        'file-empty',
+	iconFileTypePDF:          'file-pdf',
+	iconFileTypeCertificate:  'file-certificate',
+	iconFileTypeBinary:       'file-terminal',
+	iconFileTypeXML:          'file-xml',
+	iconFileTypeCSV:          'file-csv',
+	iconFileTypeArchive:      'file-archive',
+	iconFileTypeWord:         'file-word',
+	iconFileTypeExcel:        'file-excel',
+	iconFileTypePresentation: 'file-presentation',
+	iconFileTypeText:         'file-text',
+	iconFileTypeScripting:    'file-code',
+
+	iconSchemaNodeDefault:       'file-code',
+	iconSchemaMethods:           'code-icon',
+	iconSchemaNodeSchemaMethod:  'circle-empty',
+	iconSchemaNodeStaticMethod:  'static-method',
+	iconSchemaNodeJavaMethod:    'circle-empty',
+	iconSchemaViews:             'tv-icon',
+	iconSchemaView:              'view-icon',
+	iconSchemaRelationship:      'chain-link',
+	iconSchemaPropertyMagic:     'magic_wand',
+	iconSchemaPropertyArray:     'array-property',
+	iconSchemaPropertyNumeric:   'numeric-property',
+	iconSchemaPropertyBoolean:   'boolean-property',
+	iconSchemaPropertyCypher:    'database-icon',
+	iconSchemaPropertyDate:      'date-property',
+	iconSchemaPropertyDouble:    'double-property',
+	iconSchemaPropertyEnum:      'enum-property',
+	iconSchemaPropertyFunction:  'function-property',
+	iconSchemaPropertyString:    'string-property',
+	iconSchemaPropertyEncrypted: 'encrypted-property',
+	iconRecentlyUsed:            'folder_clock',
+
+	iconFlowSymbol:              'circle-empty',
+
+	iconStructrLogo:         'structr-logo',
+	iconHamburgerMenu:       'hamburger-icon',
+	iconCrossIcon:           'close-dialog-x',
+	iconMaximizeDialog:      'maximize-dialog-arrows',
+	iconMinimizeDialog:      'minimize-dialog-arrows',
+	iconMagicWand:           'magic_wand',
+	iconPencilEdit:          'pencil_edit',
+	iconFolderRemove:        'folder-remove',
+	iconTrashcan:            'trashcan',
+	iconCheckmarkBold:       'checkmark_bold',
+	iconKebabMenu:           'kebab_icon',
+	iconVisibilityKey:       'visibility-lock-key',
+	iconVisibilityOpen:      'visibility-lock-open',
+	iconVisibilityLocked:    'visibility-lock-locked',
+	iconAddToFavorites:      'favorite-star',
+	iconRemoveFromFavorites: 'favorite-star-remove',
+	iconClone:               'duplicate',
+	iconAdd:                 'circle_plus',
+	iconListAdd:             'list_add',
+	iconInfo:                'info-icon',
+	iconInvertSelection:     'arrows-shuffle',
+	iconDatetime:            'datetime-icon',
+	iconTypeVisibility:      'eye-in-square',
+	iconEyeOpen:             'eye_open',
+	iconGlobe:               'globe-icon',
+	iconOpenInNewPage:       'link_external',
+	iconListWithCog:         'list-cog',
+	iconSearch:              'magnifying-glass',
+	iconMicrophone:          'microphone-icon',
+	iconNetwork:             'network-icon',
+	iconRefreshArrows:       'refresh-arrows',
+	iconClipboardPencil:     'registration-templates',
+	iconResetArrow:          'reset-arrow',
+	iconPasswordReset:       'reset-password-templates',
+	iconRunButton:           'run_button',
+	iconSettingsCog:         'settings-cog',
+	iconSettingsWrench:      'wrench',
+	iconSliders:             'sliders-icon',
+	iconSnapshots:           'snapshots-icon',
+	iconSwagger:             'swagger-logo-bw',
+	iconTextSettings:        'text-settings',
+	iconUIConfigSettings:    'ui_configuration_settings',
+	iconExportAsCSV:         'database-download-icon',
+	iconImportFromCSV:       'database-upload-icon',
+	iconStructrSSmall:       'structr-s-small',
+	iconChevronLeft:         'chevron-left',
+	iconChevronRight:        'chevron-right',
+	iconChevronLeftFilled:   'chevron-left-filled',
+	iconChevronRightFilled:  'chevron-right-filled',
+	iconDatabase:            'database-icon-color',
+	iconErrorRedFilled:      'error-sign-icon-filled',
+	iconWarningYellowFilled: 'warning-sign-icon-filled',
+	iconSuccessGreenFilled:  'success-sign-icon-filled',
+	iconInfoBlueFilled:      'info-sign-icon-filled',
+	iconWaitingSpinner:      'waiting-spinner',
+
+	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
+		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);
+	},
+	getSvgIconWithID: (id, href, width = 16, height = 16, optionalClasses = [], title = '') => {
+
 		let classString = '';
 
 		if (Array.isArray(optionalClasses)) {
@@ -121,9 +173,8 @@ let _Icons = {
 			// ignore
 		}
 
-		return `<svg width="${width}" height="${height}" class="${classString}"><title>${title}</title><use href="#${id}"></use></svg>`;
+		return `<svg ${id ? `id="${id}"` : ''} width="${width}" height="${height}" class="${classString}"><title>${title}</title><use href="#${href}"></use></svg>`;
 	},
-
 	getMenuSvgIcon: (id, width = 16, height = 16, optionalClasses = [], title = '') => {
 
 		if (Array.isArray(optionalClasses)) {
@@ -134,7 +185,6 @@ let _Icons = {
 
 		return _Icons.getSvgIcon(id, width, height, optionalClasses, title);
 	},
-
 	updateSvgIconInElement: (element, from, to) => {
 
 		let use = element.querySelector(`use[*|href="#${from}"]`);
@@ -146,7 +196,12 @@ let _Icons = {
 		use.setAttribute('href', '#' + to);
 		return true;
 	},
+	replaceSvgElementWithRawSvg: (element, html) => {
 
+		let dummy = document.createElement('div');
+		dummy.innerHTML = html;
+		element.replaceWith(dummy.firstChild);
+	},
 	getSvgIconFromSvgElement: (element) => {
 
 		let use = element.querySelector(`use[*|href]`);
@@ -157,130 +212,34 @@ let _Icons = {
 
 		return use.getAttribute('href').slice(1);
 	},
-
 	hasSvgIcon: (element, icon) => {
 
 		let use = element.querySelector(`use[*|href="#${icon}"]`);
 
 		return (use !== null);
 	},
-
 	getSvgIconClassesForColoredIcon: (customClasses = []) => {
 		return [...customClasses].concat(['opacity-80', 'hover:opacity-100', 'cursor-pointer']);
 	},
-
 	getSvgIconClassesNonColorIcon: (customClasses = []) => {
 		return [...customClasses].concat(['icon-inactive', 'hover:icon-active', 'cursor-pointer']);
 	},
-
-	getFullSpriteClass: (key) => {
-
-		return 'sprite ' + _Icons.getSpriteClassOnly(key);
-	},
-
-	updateSpriteClassTo: (el, newSpriteClass) => {
-
-		el.classList.remove(...[...el.classList].filter((c) => c.startsWith('sprite-')));
-		el.classList.add(newSpriteClass);
-	},
-	getSpriteClassOnly: function (key) {
-
-		switch (key) {
-			case _Icons.application_form_add:         return 'sprite-application_form_add';
-			case _Icons.add_icon:                     return 'sprite-add';
-			case _Icons.delete_icon:                  return 'sprite-delete';
-			case _Icons.delete_disabled_icon:         return 'sprite-delete_gray';
-			case _Icons.add_brick_icon:               return 'sprite-brick_add';
-			case _Icons.delete_brick_icon:            return 'sprite-brick_delete';
-			case _Icons.edit_icon:                    return 'sprite-pencil';
-			case _Icons.wrench_icon:                  return 'sprite-wrench';
-			case _Icons.collapsed_icon:               return 'sprite-tree_arrow_right';
-			case _Icons.expanded_icon:                return 'sprite-tree_arrow_down';
-			case _Icons.link_icon:                    return 'sprite-link';
-			case _Icons.key_icon:                     return 'sprite-key';
-			case _Icons.cross_icon:                   return 'sprite-cross';
-			case _Icons.tick_icon:                    return 'sprite-tick';
-			case _Icons.grey_cross_icon:              return 'sprite-cross_small_grey';
-			case _Icons.page_white_stack_icon:        return 'sprite-page_white_stack';
-			case _Icons.view_detail_icon:             return 'sprite-application_view_detail';
-			case _Icons.calendar_icon:                return 'sprite-calendar';
-			case _Icons.add_grey_icon:                return 'sprite-add_grey';
-			case _Icons.page_icon:                    return 'sprite-page';
-			case _Icons.page_white_icon:              return 'sprite-page_white';
-			case _Icons.button_icon:                  return 'sprite-button';
-			case _Icons.clone_icon:                   return 'sprite-page_copy';
-			case _Icons.group_icon:                   return 'sprite-group';
-			case _Icons.group_add_icon:               return 'sprite-group_add';
-			case _Icons.group_link_icon:              return 'sprite-group_link';
-			case _Icons.user_icon:                    return 'sprite-user';
-			case _Icons.user_gray_icon:               return 'sprite-user_gray';
-			case _Icons.user_green_icon:              return 'sprite-user_green';
-			case _Icons.user_orange_icon:             return 'sprite-user_orange';
-			case _Icons.user_red_icon:                return 'sprite-user_red';
-			case _Icons.user_suit_icon:               return 'sprite-user_suit';
-			case _Icons.user_add_icon:                return 'sprite-user_add';
-			case _Icons.user_delete_icon:             return 'sprite-user_delete';
-			case _Icons.compress_icon:                return 'sprite-compress';
-			case _Icons.accept_icon:                  return 'sprite-accept';
-			case _Icons.push_file_icon:               return 'sprite-page_white_get';
-			case _Icons.pull_file_icon:               return 'sprite-page_white_put';
-			case _Icons.exec_blue_icon:               return 'sprite-control_play_blue';
-			case _Icons.exec_icon:                    return 'sprite-control_play';
-			case _Icons.arrow_undo_icon:              return 'sprite-arrow_undo';
-			case _Icons.information_icon:             return 'sprite-information';
-			case _Icons.help_icon:                    return 'sprite-help';
-			case _Icons.refresh_icon:                 return 'sprite-arrow_refresh';
-			case _Icons.error_icon:                   return 'sprite-error';
-			case _Icons.exclamation_icon:             return 'sprite-exclamation';
-			case _Icons.pull_page_icon:               return 'sprite-pull_page';
-			case _Icons.wand_icon:                    return 'sprite-wand';
-			case _Icons.toggle_icon:                  return 'sprite-arrow_switch';
-			case _Icons.widget_icon:                  return 'sprite-layout';
-			case _Icons.folder_icon:                  return 'sprite-folder';
-			case _Icons.add_widget_icon:              return 'sprite-layout_add';
-			case _Icons.content_icon:                 return 'sprite-page_white';
-			case _Icons.active_content_icon:          return 'sprite-page_yellow';
-			case _Icons.delete_content_icon:          return 'sprite-page_white_delete';
-			case _Icons.template_icon:                return 'sprite-layout_content';
-			case _Icons.active_template_icon:         return 'sprite-layout_yellow';
-			case _Icons.icon_shared_template:         return 'sprite-layout_yellow';
-			case _Icons.comment_icon:                 return 'sprite-comment';
-			case _Icons.repeater_icon:                return 'sprite-bricks';
-			case _Icons.brick_icon:                   return 'sprite-brick';
-			case _Icons.comp_icon:                    return 'sprite-brick_yellow';
-			case _Icons.search_icon:                  return 'sprite-zoom';
-			case _Icons.star_icon:                    return 'sprite-star';
-			case _Icons.image_icon:                   return 'sprite-image';
-			case _Icons.arrow_up_down:                return 'sprite-arrow_up_down';
-			case _Icons.book_icon:                    return 'sprite-book_open';
-			case _Icons.import_icon:                  return 'sprite-table_lightning';
-			case _Icons.connect_icon:                 return 'sprite-connect';
-			case _Icons.package_icon:                 return 'sprite-package';
-			case _Icons.report_icon:                  return 'sprite-report';
-
-			default:                                  return 'sprite-error';
-		}
-
-	},
 	getImageOrIcon: (image) => {
+
 		if (image.contentType && image.contentType.startsWith('image/svg')) {
-			return _Icons.getImageMarkup(image.path);
+			return `<img class="icon" src="${image.path}">`;
 		}
 
 		if (image.tnSmall) {
-			return _Icons.getImageMarkup(image.tnSmall.path);
+			return `<img class="icon" src="${image.tnSmall.path}">`;
 		}
 
-		return _Icons.getSvgIcon('file-image');
-	},
-	getImageMarkup: function (path) {
-		return '<img class="icon" src="' + path + '">';
+		return _Icons.getSvgIcon(_Icons.iconFileTypeImage);
 	},
 	getFileIconSVG: (file) => {
 
-		// let fileName    = file.name;
 		let contentType = file.contentType;
-		let result      = 'file-empty';
+		let result      = _Icons.iconFileTypeEmpty;
 
 		if (contentType) {
 
@@ -288,93 +247,242 @@ let _Icons = {
 
 				case 'application/pdf':
 				case 'application/postscript':
-					result = 'file-pdf';
+					result = _Icons.iconFileTypePDF;
 					break;
 
 				case 'application/x-pem-key':
 				case 'application/pkix-cert+pem':
 				case 'application/x-iwork-keynote-sffkey':
-					result = 'file-certificate';
+					result = _Icons.iconFileTypeCertificate;
 					break;
 
 				case 'application/octet-stream':
-					result = 'file-terminal';
+					result = _Icons.iconFileTypeBinary;
+					break;
+
+				case 'application/xml':
+				case 'text/xml':
+					result = _Icons.iconFileTypeXML;
+					break;
+
+				case 'text/csv':
+					result = _Icons.iconFileTypeCSV;
 					break;
 
 				case 'application/x-shellscript':
 				case 'application/javascript':
-				case 'application/xml':
 				case 'text/html':
-				case 'text/xml':
-					result = 'file-code';
+					result = _Icons.iconFileTypeScripting;
 					break;
 
 				case 'application/java-archive':
 				case 'application/zip':
 				case 'application/rar':
 				case 'application/x-bzip':
-					result = 'file-archive';
+					result = _Icons.iconFileTypeArchive;
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.wordprocessingml.document':
 				case 'application/vnd.oasis.opendocument.text':
 				case 'application/msword':
-					result = 'file-word';
+					result = _Icons.iconFileTypeWord;
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':
 				case 'application/vnd.oasis.opendocument.spreadsheet':
 				case 'application/vnd.ms-excel':
-					result = 'file-excel';
+					result = _Icons.iconFileTypeExcel;
 					break;
 
 				case 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
 				case 'application/vnd.oasis.opendocument.chart':
-					result = 'file-presentation';
+					result = _Icons.iconFileTypePresentation;
 					break;
 
 				default:
 					if (contentType.startsWith('image/')) {
-						result = 'file-image';
+						result = _Icons.iconFileTypeImage;
 					} else if (contentType.startsWith('text/')) {
-						result = 'file-text';
+						result = _Icons.iconFileTypeText;
 					}
 			}
-
-			// if (fileName && fileName.contains('.')) {
-			//
-			// 	let fileExtensionPosition = fileName.lastIndexOf('.') + 1;
-			// 	let fileExtension = fileName.substring(fileExtensionPosition);
-			//
-			// 	// add file extension css class to control colors
-			// 	result = fileExtension + ' ' + result;
-			// }
 		}
 
 		return _Icons.getSvgIcon(result);
 	},
-	getFolderIconSVG: (d) => {
-		return (d.isMounted) ? 'folder-link-closed-icon' : 'folder-closed-icon'
-	},
+	getAccessControlIconId: (entity) => {
 
+		let iconId = _Icons.iconVisibilityKey;
+
+		if (true === entity.visibleToPublicUsers && true === entity.visibleToAuthenticatedUsers) {
+
+			iconId = _Icons.iconVisibilityOpen;
+
+		} else if (false === entity.visibleToPublicUsers &&  false === entity.visibleToAuthenticatedUsers) {
+
+			iconId = _Icons.iconVisibilityLocked;
+		}
+
+		return iconId;
+	},
+	getFolderIconSVG: (d) => {
+		return (d.isMounted) ? _Icons.iconMountedFolderClosed : _Icons.iconFolderClosed
+	},
 	getIconForEdition: (edition) => {
 		switch (edition) {
 			case 'Enterprise':
-				return 'edition-enterprise';
+				return _Icons.iconEditionEnterprise;
 
 			case 'Small Business':
-				return 'edition-small-business';
+				return _Icons.iconEditionSmallBusiness;
 
 			case 'Basic':
-				return 'edition-basic';
+				return _Icons.iconEditionBasic;
 
 			case 'Community':
 			default:
-				return 'edition-community';
+				return _Icons.iconEditionCommunity;
 		}
 	},
+	getIconForPrincipal: (principal) => {
 
-	getHtmlForIcon: function (icon) {
-		return '<i class="' + _Icons.getFullSpriteClass(icon) + '"></i>';
+		if (principal.isGroup) {
+
+			if (principal.type === 'LDAPGroup') {
+				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPGroup, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
+			} else {
+				return _Icons.getSvgIcon(_Icons.iconSecurityGroup, 16, 16, ['typeIcon', 'mr-2']);
+			}
+
+		} else {
+
+			if (principal.isAdmin) {
+				return _Icons.getSvgIcon(_Icons.iconSecurityAdminUser, 16, 16, ['typeIcon', 'icon-red', 'mr-2']);
+			} else if (principal.type === 'LDAPUser') {
+				return _Icons.getSvgIcon(_Icons.iconSecurityLDAPUser, 16, 16, ['typeIcon', 'icon-orange', 'mr-2']);
+			} else {
+				return _Icons.getSvgIcon(_Icons.iconSecurityRegularUser, 16, 16, ['typeIcon', 'mr-2']);
+			}
+		}
+	},
+	getIconForSchemaNodeType: (entity) => {
+
+		let icon              = _Icons.iconSchemaNodeDefault;
+		let additionalClasses = [];
+
+		switch (entity.type) {
+
+			case 'SchemaMethod':
+
+				switch (entity.codeType) {
+					case 'java':
+						icon = _Icons.iconSchemaNodeSchemaMethod;
+						additionalClasses.push('icon-red');
+						break;
+					default:
+						if (entity.isStatic) {
+							icon = _Icons.iconSchemaNodeStaticMethod;
+							additionalClasses.push('icon-blue');
+						} else {
+							icon = _Icons.iconSchemaNodeSchemaMethod;
+							additionalClasses.push('icon-blue');
+						}
+						break;
+				}
+				break;
+
+			case 'SchemaProperty':
+				icon = _Icons.getIconForSchemaPropertyType(entity.propertyType);
+				break;
+
+			case 'SchemaView':
+				icon = _Icons.iconSchemaView;
+				break;
+
+			case 'SchemaRelationshipNode':
+				icon = _Icons.iconSchemaRelationship;
+				break;
+		}
+
+		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses);
+	},
+	getIconForSchemaPropertyType: (propertyType) => {
+
+		switch (propertyType) {
+
+			case 'Custom':
+			case "IdNotion":
+			case "Notion":
+				return _Icons.iconSchemaPropertyMagic;
+
+			case "IntegerArray":
+			case "StringArray":
+				return _Icons.iconSchemaPropertyArray;
+
+			case 'Integer':
+			case "Long":
+				return _Icons.iconSchemaPropertyNumeric;
+
+			case 'Boolean':      return _Icons.iconSchemaPropertyBoolean;
+			case "Cypher":       return _Icons.iconSchemaPropertyCypher;
+			case 'Date':         return _Icons.iconSchemaPropertyDate;
+			case "Double":       return _Icons.iconSchemaPropertyDouble;
+			case "Enum":         return _Icons.iconSchemaPropertyEnum;
+			case "Function":     return _Icons.iconSchemaPropertyFunction;
+			case 'String':       return _Icons.iconSchemaPropertyString;
+			case 'Encrypted':    return _Icons.iconSchemaPropertyEncrypted;
+			default:             return _Icons.iconSchemaRelationship;
+		}
+
+		return _Icons.iconSchemaPropertyString;
+	},
+	getSvgIconForContentNode: (content, initialClasses = []) => {
+
+		let isComment    = (content.type === 'Comment');
+		let isTemplate   = (content.type === 'Template');
+		let isComponent  = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
+		let isActiveNode = (typeof content.isActiveNode === "function") ? content.isActiveNode() : false;
+
+		if (isComment) {
+
+			return _Icons.getSvgIcon(_Icons.iconDOMCommentElement, 16, 16, ['icon-grey', ...initialClasses]);
+
+		} else if (isTemplate) {
+
+			if (isComponent) {
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+			} else if (isActiveNode) {
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+			} else {
+				return _Icons.getSvgIcon(_Icons.iconDOMTemplateElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+			}
+
+		} else {
+
+			if (isComponent) {
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+			} else if (isActiveNode) {
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-yellow', ...initialClasses]);
+			} else {
+				return _Icons.getSvgIcon(_Icons.iconDOMContentElement, 16, 16, ['icon-grey', 'fill-transparent', ...initialClasses]);
+			}
+		}
+	},
+	getSvgIconForElementNode: (element, initialClasses = []) => {
+		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
+		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
+
+		if (isActiveNode) {
+
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeActiveElement, 16, 16, ['typeIcon', ...initialClasses]);
+
+		} else if (isComponent) {
+
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-yellow', ...initialClasses]);
+
+		} else {
+
+			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses]);
+		}
 	}
 };

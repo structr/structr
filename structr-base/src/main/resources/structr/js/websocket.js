@@ -508,12 +508,15 @@ let StructrWS = {
 
 						if (synced && synced.length) {
 
-							// Change icon
+							// Update icon
 							for (let syncedId of synced) {
 								let syncedEl = Structr.node(syncedId);
 								if (syncedEl && syncedEl.length) {
-									let icon = entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity);
-									syncedEl.children('.typeIcon').attr('class', 'typeIcon ' + _Icons.getFullSpriteClass(icon));
+									let newIcon = entity.isContent ? _Icons.getSvgIconForContentNode(entity, ['typeIcon', 'typeIcon-nochildren']) : _Icons.getSvgIconForElementNode(entity);
+									let existingIcon = syncedEl.children('.typeIcon');
+									if (existingIcon.length) {
+										_Icons.replaceSvgElementWithRawSvg(existingIcon[0], newIcon)
+									}
 									_Entities.removeExpandIcon(syncedEl);
 								}
 							}

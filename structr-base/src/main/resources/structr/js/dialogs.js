@@ -757,24 +757,24 @@ let _Dialogs = {
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
-					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path">
-					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter">
-					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">
 					<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope">
-					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
 				</div>
 
 				<div class="mb-3">
@@ -975,8 +975,13 @@ let _Dialogs = {
 						<label class="block mb-2" for="password-attempts-input" data-comment="The number of failed login attempts for this user. Depending on the configuration a user is blocked after a certain number of failed login attempts. The user must then reset their password (if allowed via the configuration) or this counter must be reset by an admin.<br><br>Before that threshold is reached, the counter is reset on each successful login.">Failed Login Attempts</label>
 						<input type="text" id="password-attempts-input" name="passwordAttempts">
 					</div>
+					
+					<div class="option-tile">
+						<label class="block mb-2" for="confirmation-key" data-comment="Used for self-registration and password reset. If a confirmation key is set, log in via password is prevented.">Confirmation Key</label>
+						<input type="text" id="confirmation-key" name="confirmationKey">
+					</div>
 				</div>
-			
+
 				${_Dialogs.templates.customPropertiesPartial(config)}
 
 			</div>

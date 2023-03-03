@@ -149,7 +149,7 @@ let _MailTemplates = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Mail Template',
 			clickHandler: () => {
@@ -477,7 +477,7 @@ let _MailTemplates = {
 							</div>
 
 							<button type="submit" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+								${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save
 							</button>
 						</div>
 
@@ -494,13 +494,13 @@ let _MailTemplates = {
 				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)" class="mr-2">
 			
 				<button type="submit" form="create-mail-template-form" class="action btn inline-flex items-center" id="create-mail-template">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Mail Template
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Mail Template
 				</button>
 			</form>
 			
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('magic_wand', 16, 16, '')}
+					${_Icons.getSvgIcon(_Icons.iconMagicWand)}
 				</button>
 				<div class="dropdown-menu-container">
 			
@@ -514,13 +514,13 @@ let _MailTemplates = {
 			
 					<div class="row">
 						<a id="create-registration-templates" class="flex items-center py-1">
-							${_Icons.getSvgIcon('registration-templates', 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
+							${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
 						</a>
 					</div>
 			
 					<div class="row">
 						<a id="create-reset-password-templates" class="flex items-center py-1">
-							${_Icons.getSvgIcon('reset-password-templates', 16, 16, 'mr-2')} Create default "Reset Password" mail templates
+							${_Icons.getSvgIcon(_Icons.iconPasswordReset, 16, 16, 'mr-2')} Create default "Reset Password" mail templates
 						</a>
 					</div>
 				</div>

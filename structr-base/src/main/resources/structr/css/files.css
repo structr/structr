@@ -81,31 +81,6 @@
 	bottom: 4px;
 }
 
-#folder-contents .tile .push_icon {
-	left: 24px;
-}
-
-#folder-contents .tile i.edit_file_icon,
-#folder-contents .tile i.view_icon {
-	left: 44px;
-}
-
-#folder-contents .tile i.edit_props_icon {
-	left: 64px;
-}
-
-#folder-contents .img-tile i.edit_props_icon {
-	left: 260px;
-}
-
-#folder-contents .tile i.edit_icon {
-	left: 44px;
-}
-
-#folder-contents .img-tile i.edit_icon {
-	left: 240px;
-}
-
 #folder-contents .tile img.tn {
 	max-width: 64px;
 	max-height: 48px;
@@ -114,19 +89,6 @@
 #folder-contents .img-tile img.tn {
 	max-width: 296px;
 	max-height: 296px;
-}
-
-#folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
-	top: 4px;
-	right: 4px;
-}
-
-#folder-contents .tile i.key_icon {
-	left: 84px;
-}
-
-#folder-contents .img-tile i.key_icon {
-	left: 280px;
 }
 
 #folder-contents table th, #contents-contents table th {
@@ -322,11 +284,6 @@ table#csv-import {
 
 table#csv-import td {
 	padding: 0 0 12px 0;
-}
-
-table#csv-import label {
-	display: inline-block;
-	min-width: 120px !important;
 }
 
 div#types-container div.type-mapping {
