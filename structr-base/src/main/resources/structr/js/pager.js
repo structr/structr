@@ -131,7 +131,7 @@ let _Pager = {
 				isExactPager = (inExactKeys.length === 0);
 			}
 
-			if (!pager.isPaused()) {
+			if (pager.isPaused() === false) {
 
 				if (typeof optionalTransportFunction === "function") {
 
@@ -141,7 +141,7 @@ let _Pager = {
 
 					// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
 					if (pager.type === 'Page') {
-						filterAttrs['!name'] = '__ShadowDocument__';
+						filterAttrs['!type'] = 'ShadowDocument';
 					}
 
 					Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
