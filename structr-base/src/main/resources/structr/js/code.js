@@ -2997,12 +2997,12 @@ let _Code = {
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-source">
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
-							<h4>Read Function</h4>
+							<h4 class="py-2 font-semibold">Read Function</h4>
 							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+								<h4 class="py-2 font-semibold" data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
 									Write Function
 								</h4>
 							</div>
@@ -3013,7 +3013,7 @@ let _Code = {
 
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-api">
 						<div>
-							<h4 class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
+							<h4 class="py-2 font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
 						</div>
 						<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 					</div>
@@ -3179,10 +3179,12 @@ let _Code = {
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-				<div class="mb-4">
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Type hint</label>
+				<div class="mb-4 grid grid-cols-4 gap-4">
+					<div class="col-span-3"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div class="col-span-2"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3195,21 +3197,19 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="mt-2 mb-4 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-2 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
 				</div>
 
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2">
-						<div class="mt-4"><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					<div class="mt-2 grid grid-cols-3 gap-4">
+						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
 					</div>
 				</div>
 			</div>
