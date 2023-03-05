@@ -1605,8 +1605,8 @@ let Structr = {
 		let insertAfter        = config.insertAfter || false;
 		let offsetX            = config.offsetX || 0;
 		let offsetY            = config.offsetY || 0;
-		let width              = config.width || 16;
-		let height             = config.height || 16;
+		let width              = config.width || 12;
+		let height             = config.height || 12;
 
 		let createdElements = [];
 
@@ -2220,7 +2220,7 @@ let Structr = {
 					element: el,
 					css: {
 						'margin': '0 4px',
-						'vertical-align': 'top'
+						//'vertical-align': 'top'
 					}
 				};
 
