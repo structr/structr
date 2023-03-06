@@ -131,7 +131,7 @@ let _Pager = {
 				isExactPager = (inExactKeys.length === 0);
 			}
 
-			if (!pager.isPaused()) {
+			if (pager.isPaused() === false) {
 
 				if (typeof optionalTransportFunction === "function") {
 
@@ -141,7 +141,7 @@ let _Pager = {
 
 					// Filter out the special page named __ShadowDocument__ to allow displaying hidden pages in the admin UI
 					if (pager.type === 'Page') {
-						filterAttrs['!name'] = '__ShadowDocument__';
+						filterAttrs['!type'] = 'ShadowDocument';
 					}
 
 					Command.query(pager.type, _Pager.pageSize[id], _Pager.page[id], _Pager.sortKey[id], _Pager.sortOrder[id], filterAttrs, pager.internalCallback, isExactPager, view, customView);
@@ -217,13 +217,13 @@ let Pager = function (id, el, rootOnly, type, view, callback, prepend, startPaus
 
 		let pagerHtml = `
 			<div class="pager pager${this.id} flex items-center">
-				${_Icons.getSvgIcon('chevron-left', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageLeft', 'mr-1']))}
+				${_Icons.getSvgIcon(_Icons.iconChevronLeft, 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageLeft', 'mr-1']))}
 				<span class="pageWrapper">
 					<input class="pageNo" value="${_Pager.page[this.id]}">
 					<span class="of">of</span>
 					<input readonly="readonly" class="readonly pageCount" type="text" size="2">
 				</span>
-				${_Icons.getSvgIcon('chevron-right', 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageRight', 'ml-1']))}
+				${_Icons.getSvgIcon(_Icons.iconChevronRight, 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageRight', 'ml-1']))}
 				<span class="ml-2 mr-1">Items:</span>
 				<select class="pageSize mr-4 hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${[5, 10, 25, 50, 100].map((pageSize) => `<option${(_Pager.pageSize[this.id] === pageSize ? ' selected' : '')}>${pageSize}</option>`).join('')}

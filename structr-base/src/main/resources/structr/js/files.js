@@ -229,7 +229,8 @@ let _Files = {
 		}
 
 		if (!fileNode.hasClass('selected')) {
-			for (let selNode of document.querySelectorAll('.node.selected')) {
+
+			for (let selNode of selectedElements) {
 				selNode.classList.remove('selected');
 			}
 			fileNode.addClass('selected');
@@ -249,7 +250,7 @@ let _Files = {
 				if (entity.isTemplate) {
 
 					elements.push({
-						icon: _Icons.getMenuSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 						name: 'Edit source',
 						clickHandler: () => {
 							_Files.editFile(entity);
@@ -260,7 +261,7 @@ let _Files = {
 				} else {
 
 					elements.push({
-						icon: _Icons.getMenuSvgIcon('pencil_edit'),
+						icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 						name: 'Edit Image',
 						clickHandler: () => {
 							_Files.editImage(entity);
@@ -272,7 +273,7 @@ let _Files = {
 			} else {
 
 				elements.push({
-					icon: _Icons.getMenuSvgIcon('pencil_edit'),
+					icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: () => {
 						_Files.editFile(entity);
@@ -286,7 +287,7 @@ let _Files = {
 
 		elements.push({
 			name: 'Basic',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
 				return false;
 			}
@@ -294,7 +295,7 @@ let _Files = {
 
 		elements.push({
 			name: 'Properties',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 				return false;
 			}
@@ -306,9 +307,9 @@ let _Files = {
 
 			if (_Files.displayingFavorites) {
 				elements.push({
-					icon: _Icons.getMenuSvgIcon('favorite-star-remove'),
+					icon: _Icons.getMenuSvgIcon(_Icons.iconRemoveFromFavorites),
 					name: 'Remove from Favorites',
-					clickHandler: function () {
+					clickHandler: () => {
 
 						for (let el of selectedElements) {
 							let id = Structr.getId(el);
@@ -324,9 +325,9 @@ let _Files = {
 			} else if (entity.isFavoritable) {
 
 				elements.push({
-					icon: _Icons.getMenuSvgIcon('favorite-star'),
+					icon: _Icons.getMenuSvgIcon(_Icons.iconAddToFavorites),
 					name: 'Add to Favorites',
-					clickHandler: function () {
+					clickHandler: () => {
 
 						for (let el of selectedElements) {
 							let obj = StructrModel.obj(Structr.getId(el));
@@ -342,6 +343,7 @@ let _Files = {
 			}
 
 			if (fileCount === 1) {
+
 				elements.push({
 					name: 'Copy Download URL',
 					clickHandler: () => {
@@ -378,19 +380,19 @@ let _Files = {
 			if (fileCount === 1 && _Files.isArchive(entity)) {
 				elements.push({
 					name: 'Unpack archive',
-					clickHandler: function () {
+					clickHandler: () => {
 						_Files.unpackArchive(entity);
 						return false;
 					}
 				});
 			}
 
-			Structr.performModuleDependendAction(function () {
+			Structr.performModuleDependendAction(() => {
 				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
-						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
+						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
 						name: 'Import CSV',
-						clickHandler: function () {
+						clickHandler: () => {
 							Importer.importCSVDialog(entity, false);
 							return false;
 						}
@@ -398,12 +400,12 @@ let _Files = {
 				}
 			});
 
-			Structr.performModuleDependendAction(function () {
+			Structr.performModuleDependendAction(() => {
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
-						// icon: '<i class="' + _Icons.getFullSpriteClass(_Icons.import_icon) + '"></i>',
+						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
 						name: 'Import XML',
-						clickHandler: function () {
+						clickHandler: () => {
 							Importer.importXMLDialog(entity, false);
 							return false;
 						}
@@ -422,18 +424,14 @@ let _Files = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
 
 				if (isMultiSelect) {
 
-					let files = [];
-
-					for (let el of selectedElements) {
-						files.push(Structr.entityFromElement(el));
-					}
+					let files = [...selectedElements].map(el => Structr.entityFromElement(el));
 
 					_Entities.deleteNodes(this, files, true, () => {
 						_Files.refreshTree();
@@ -500,15 +498,15 @@ let _Files = {
 						id: 'favorites',
 						text: 'Favorite Files',
 						children: false,
-						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('favorite-star', 18, 24) },
+						icon: _Icons.nonExistentEmptyIcon,
+						data: { svgIcon: _Icons.getSvgIcon(_Icons.iconAddToFavorites, 18, 24) },
 					},
 					{
 						id: 'root',
 						text: '/',
 						children: true,
-						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
+						icon: _Icons.nonExistentEmptyIcon,
+						data: { svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24) },
 						path: '/',
 						state: {
 							opened: true
@@ -661,7 +659,7 @@ let _Files = {
 					id: d.id,
 					text:  d.name || '[unnamed]',
 					children: d.foldersCount > 0,
-					icon: _Icons.jstree_fake_icon,
+					icon: _Icons.nonExistentEmptyIcon,
 					data: { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
 					path: d.path
 				};
@@ -780,15 +778,23 @@ let _Files = {
 
 			$('#folder-contents-container > button').addClass('disabled').attr('disabled', 'disabled');
 
-			_Files.folderContents.append(`<div class="folder-path truncate">${_Icons.getSvgIcon('favorite-star')} Favorite Files</div>`);
+			_Files.folderContents.append(`<div class="folder-path truncate">${_Icons.getSvgIcon(_Icons.iconAddToFavorites)} Favorite Files</div>`);
 
 			if (_Files.isViewModeActive('list')) {
 
 				_Files.folderContents.append(`
 					<table id="files-table" class="stripe">
-						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
-						<tbody id="files-table-body">
-						</tbody>
+						<thead>
+							<tr>
+								<th class="icon">&nbsp;</th>
+								<th>Name</th>
+								<th></th>
+								<th>Size</th>
+								<th>Type</th>
+								<th>Owner</th>
+							</tr>
+						</thead>
+						<tbody id="files-table-body"></tbody>
 					</table>
 				`);
 			}
@@ -846,7 +852,7 @@ let _Files = {
 					<table id="files-table" class="stripe">
 						<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th></th><th>Size</th><th>Type</th><th>Owner</th></tr></thead>
 						<tbody id="files-table-body">
-							${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
+							${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 						</tbody>
 					</table>
 				`);
@@ -861,13 +867,13 @@ let _Files = {
 			} else if (_Files.isViewModeActive('tiles')) {
 
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 
 			} else if (_Files.isViewModeActive('img')) {
 
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</div><b title="..">..</b></div></div>`);
 				}
 			}
 		}
@@ -900,7 +906,7 @@ let _Files = {
 	},
 	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
-		let checkmark = _Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2');
+		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2');
 
 		_Files.folderContents.prepend(`
 			<div id="switches" class="absolute flex top-4 right-2">
@@ -1061,8 +1067,6 @@ let _Files = {
 
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
-		} else {
-			_Files.handleFile(div, d);
 		}
 
 		div.draggable({
@@ -1086,7 +1090,7 @@ let _Files = {
 				_Files.selectedElements = $('.node.selected');
 				if (_Files.selectedElements.length > 1) {
 					_Files.selectedElements.removeClass('selected');
-					return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
+					return $(`<i>${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')}</i>`);
 				}
 				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
@@ -1120,21 +1124,13 @@ let _Files = {
 	},
 	handleFolder: function(div, d) {
 
-		if (Structr.isModulePresent('cloud')) {
-			div.append('<i title="Sync folder \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '"></i>');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, true);
-				return false;
-			});
-		}
-
 		div.droppable({
 			accept: '.folder, .file, .image',
 			greedy: true,
 			hoverClass: 'nodeHover',
 			tolerance: 'pointer',
 			drop: function(e, ui) {
-
+				console.log('a')
 				e.preventDefault();
 				e.stopPropagation();
 
@@ -1168,22 +1164,12 @@ let _Files = {
 			}
 		});
 	},
-	handleFile: function(div, d) {
-
-		if (Structr.isModulePresent('cloud') && !_Files.isViewModeActive('img')) {
-			div.append('<i title="Sync file \'' + d.name + '\' to remote instance" class="push_icon button ' + _Icons.getFullSpriteClass(_Icons.push_file_icon) + '" />');
-			div.children('.push_icon').on('click', function() {
-				Structr.pushDialog(d.id, false);
-				return false;
-			});
-		}
-	},
 	unpackArchive: (d) => {
 
 		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
 		$('#tempInfoBox .closeButton').hide();
 		$('#tempInfoBox .infoMsg').append(`
-			<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>
+			<div class="flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>
 			<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>
 		`);
 
@@ -1192,7 +1178,7 @@ let _Files = {
 			css: Structr.defaultBlockUICss
 		});
 
-		var closed = false;
+		let closed = false;
 		window.setTimeout(function() {
 			$('#tempInfoBox .closeButton').show().on('click', function () {
 				closed = true;
@@ -1202,18 +1188,26 @@ let _Files = {
 			});
 		}, 500);
 
-		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, function (data) {
+		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, (data) => {
+
 			if (data.success === true) {
+
 				_Files.refreshTree();
+
 				let message = "Extraction of '" + data.filename + "' finished successfully. ";
+
 				if (closed) {
+
 					new MessageBuilder().success(message).requiresConfirmation("Close").show();
+
 				} else {
-					$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.accept_icon) + '"></i> ' + message);
+
+					$('#tempInfoBox .infoMsg').html(`<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} ${message}</div>`);
 				}
 
 			} else {
-				$('#tempInfoBox .infoMsg').html('<i class="' + _Icons.getFullSpriteClass(_Icons.error_icon) + '"></i> Extraction failed');
+
+				$('#tempInfoBox .infoMsg').html(`<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed</div>`);
 			}
 		});
 	},
@@ -1235,7 +1229,7 @@ let _Files = {
 		el.append(`
 			<div class="image-editor-menubar">
 				<div class="crop-action">
-					${_Icons.getSvgIcon('image-crop')}
+					${_Icons.getSvgIcon(_Icons.iconCropImage)}
 					<br>Crop
 				</div>
 			</div>
@@ -1617,22 +1611,6 @@ let _Files = {
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
-	// appendCSVImportDialogIcon: function(parent, file) {
-	//
-	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this CSV file" />');
-	// 	$('.import_icon', parent).on('click', function() {
-	// 		Importer.importCSVDialog(file, false);
-	// 		return false;
-	// 	});
-	// },
-	// appendXMLImportDialogIcon: function(parent, file) {
-	//
-	// 	parent.append(' <i class="import_icon button ' + _Icons.getFullSpriteClass(_Icons.import_icon) + '" title="Import this XML file" />');
-	// 	$('.import_icon', parent).on('click', function() {
-	// 		Importer.importXMLDialog(file, false);
-	// 		return false;
-	// 	});
-	// },
 	displaySearchResultsForURL: async (url, searchString) => {
 
 		let content = $('#folder-contents');
@@ -1836,7 +1814,7 @@ let _Files = {
 					</select>
 
 					<button class="action button inline-flex items-center" id="add-folder-button">
-						${_Icons.getSvgIcon('folder_add', 16, 16, ['mr-2'])}
+						${_Icons.getSvgIcon(_Icons.iconCreateFolder, 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
 
@@ -1846,12 +1824,12 @@ let _Files = {
 					</select>
 
 					<button class="action button inline-flex items-center" id="add-file-button">
-						${_Icons.getSvgIcon('file_add', 16, 16, ['mr-2'])}
+						${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, ['mr-2'])}
 						<span>Add</span>
 					</button>
 
 					<button class="mount_folder button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="mount-folder-dialog-button">
-						${_Icons.getSvgIcon('folder-link-open-icon', 16, 16, ['mr-2'])}
+						${_Icons.getSvgIcon(_Icons.iconMountedFolderOpen, 16, 16, ['mr-2'])}
 						Mount Folder
 					</button>
 				</div>
@@ -1859,7 +1837,7 @@ let _Files = {
 
 			<div class="searchBox module-dependend" data-structr-module="text-search">
 				<input id="files-search-box" class="search" name="search" placeholder="Search...">
-				${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,
 		mountDialog: config => `

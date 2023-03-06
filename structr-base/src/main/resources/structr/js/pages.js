@@ -221,7 +221,7 @@ let _Pages = {
 
 		let handleInsertHTMLAction = (itemText) => {
 			let pageId = isPage ? entity.id : entity.pageId;
-			let tagName = itemText;
+			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
@@ -327,7 +327,7 @@ let _Pages = {
 		if (entity.type === 'Div' && !hasChildren) {
 
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 				name: 'Edit',
 				clickHandler: () => {
 					_Entities.editEmptyDiv(entity);
@@ -342,7 +342,7 @@ let _Pages = {
 		if (!isPage && hasParentAndParentIsNotPage || parentIsShadowPage) {
 
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
 				clickHandler: function () {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
@@ -406,7 +406,7 @@ let _Pages = {
 
 		if (isPage) {
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('duplicate'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone Page',
 				clickHandler: function () {
 					Command.clonePage(entity.id);
@@ -556,7 +556,7 @@ let _Pages = {
 		if (!isPage && entity.parent !== null) {
 
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
 				clickHandler: function () {
@@ -572,9 +572,9 @@ let _Pages = {
 		if (isPage || !entity.parent) {
 
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('trashcan'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
-				name: 'Delete ' + entity.type,
+				name: `Delete ${entity.type}`,
 				clickHandler: () => {
 
 					if (isContent) {
@@ -583,19 +583,7 @@ let _Pages = {
 
 					} else {
 
-						_Entities.deleteNode(undefined, entity, true, () => {
-
-							if (entity.syncedNodesIds && entity.syncedNodesIds.length) {
-
-								for (let id of entity.syncedNodesIds) {
-
-									let el = Structr.nodeContainer(id);
-									if (el) {
-										_Icons.updateSpriteClassTo(el.children('i.typeIcon')[0], _Icons.getSpriteClassOnly(_Icons.brick_icon));
-									}
-								}
-							}
-						});
+						_Entities.deleteNode(undefined, entity, true);
 					}
 					return false;
 				}
@@ -767,7 +755,7 @@ let _Pages = {
 		/*
 		var bulkEditingHelper = $(
 			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
-			+ '<i class="icon ' + _Icons.getFullSpriteClass(_Icons.wand_icon) + '" />'
+			+ _Icons.getSvgIcon(_Icons.iconMagicWand)
 			+ '</button>');
 		pPager.appendFilterElements(bulkEditingHelper);
 		bulkEditingHelper.on('click', e => {
@@ -1132,9 +1120,9 @@ let _Pages = {
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.properties());
 				let propertiesContainer = document.querySelector('#center-pane .properties-container');
 
-				_Schema.getTypeInfo(obj.type, function(typeInfo) {
+				_Schema.getTypeInfo(obj.type, (typeInfo) => {
 
-					_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, function(properties) {
+					_Entities.listProperties(obj, 'ui', $(propertiesContainer), typeInfo, (properties) => {
 
 						// make container visible when custom properties exist
 						if (Object.keys(properties).length > 0) {
@@ -1229,7 +1217,7 @@ let _Pages = {
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
-					${_Icons.getSvgIcon('browser-page', 16, 16, 'typeIcon')}
+					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						<span class="position_">${(entity.position ? entity.position : '')}</span>
@@ -1271,7 +1259,7 @@ let _Pages = {
 
 		if (!(icon && icon.length)) {
 
-			icon = $(_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon([pagePreviewIconClass, 'node-action-icon', 'mr-1'])));
+			icon = $(_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon([pagePreviewIconClass, 'node-action-icon', 'mr-1'])));
 			parent.append(icon);
 
 			icon.on('click', (e) => {
@@ -1534,7 +1522,7 @@ let _Pages = {
 							<td><div class="key-column allow-break">${escapeForHtmlAttributes(res.key)}</div></td>
 							<td class="domain-column">${res.domain}</td>
 							<td class="locale-column">${((res.localization !== null) ? res.localization.locale : res.locale)}</td>
-							<td class="input"><input class="localized-value" placeholder="...">${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'delete', 'mr-2', 'ml-2']))}</td>
+							<td class="input"><input class="localized-value" placeholder="...">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'delete', 'mr-2', 'ml-2']))}</td>
 						</tr>`
 					);
 					let input     = row.querySelector('input.localized-value');
@@ -1622,7 +1610,7 @@ let _Pages = {
 			}
 
 			let displayName = getElementDisplayName(entity);
-			let iconClass   = (entity.isDOMNode) ? _Icons.getFullSpriteClass(entity.isContent ? _Elements.getContentIcon(entity) : _Elements.getElementIcon(entity)) : 'fa fa-file-code-o';
+			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, ['mr-2']) : _Icons.getSvgIconForElementNode(entity, ['mr-2'])) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, ['mr-2']);
 			let detailHtml  = '';
 
 			if (entity.type === 'Content') {
@@ -1647,7 +1635,7 @@ let _Pages = {
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
 						<div class="node-selector"></div>
-						<i class="typeIcon ${iconClass}"></i><span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
 					<table>
@@ -1738,7 +1726,6 @@ let _Pages = {
 						+ '.structr-editable-area { background-color: #ffe; -moz-box-shadow: 0 0 5px #888; -webkit-box-shadow: 0 0 5px yellow; box-shadow: 0 0 5px #888; }\n'
 						+ '.structr-editable-area-active { background-color: #ffe; border: 1px solid orange ! important; color: #333; }\n'
 						+ '.link-hover { border: 1px solid #00c; }\n'
-						//+ '.edit_icon, .add_icon, .delete_icon, .close_icon, .key_icon {  cursor: pointer; heigth: 16px; width: 16px; vertical-align: top; float: right;  position: relative;}\n'
 						/**
 						 * Fix for bug in Chrome preventing the modal dialog background
 						 * from being displayed if a page is shown in the preview which has the
@@ -2480,8 +2467,9 @@ let _Pages = {
 				_Pages.componentsSlideout.append(`
 					<div id="newComponentDropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
-							<i class="m-2 active ${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>
-							<i class="m-2 inactive ${_Icons.getFullSpriteClass(_Icons.add_grey_icon)}"></i> Drop element here to create a new shared component
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green']))}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+							Drop element here to create a new shared component
 						</div>
 					</div>
 				`);
@@ -2544,7 +2532,11 @@ let _Pages = {
 
 				_Pages.unattachedNodes.removeElementsFromUI();
 
-				_Pages.unusedElementsTree.append(`<button class="btn disabled flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="delete-all-unattached-nodes" disabled><span>Loading</span>${_Icons.getSvgIcon('waiting-spinner', 24, 24, ['ml-2'])}</button>`);
+				_Pages.unusedElementsTree.append(`
+					<button class="btn disabled flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green" id="delete-all-unattached-nodes" disabled>
+						<span>Loading</span>${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['ml-2'])}
+					</button>
+				`);
 
 				let btn = $('#delete-all-unattached-nodes');
 				btn.on('click', function() {
@@ -2564,7 +2556,7 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2']) + ' Delete all (' + count + ')');
+						btn.html(`${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`);
 						btn.removeClass('disabled');
 						btn.addClass('hover:bg-gray-100');
 						btn.prop('disabled', false);
@@ -2611,7 +2603,7 @@ let _Pages = {
 							let div = Structr.createSingleDOMElementFromHTML(`
 								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										${_Icons.getSvgIcon('browser-page', 16, 16)}<b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon(_Icons.iconDomTreePageIcon, 16, 16, ['icon-grey'])}<b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);
@@ -2708,7 +2700,7 @@ let _Pages = {
 			let subFolderEl = Structr.createSingleDOMElementFromHTML(`
 				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
-						${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+						${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
 					</div>
 				</div>
 			`);
@@ -2720,7 +2712,7 @@ let _Pages = {
 				e.stopPropagation();
 				e.preventDefault();
 
-				let folderIsOpen = _Icons.hasSvgIcon(nodeContainer, 'folder-open-icon');
+				let folderIsOpen = _Icons.hasSvgIcon(nodeContainer, _Icons.iconFolderOpen);
 
 				if (!folderIsOpen) {
 
@@ -2732,7 +2724,7 @@ let _Pages = {
 						node.remove();
 					}
 
-					_Icons.updateSvgIconInElement(nodeContainer, 'folder-open-icon', 'folder-closed-icon');
+					_Icons.updateSvgIconInElement(nodeContainer, _Icons.iconFolderOpen, _Icons.iconFolderClosed);
 				}
 
 				return false;
@@ -2750,7 +2742,7 @@ let _Pages = {
 
 			Command.get(folder.id, 'id,name,hasParent,files,folders', (node) => {
 
-				_Icons.updateSvgIconInElement(folderEl, 'folder-closed-icon', 'folder-open-icon');
+				_Icons.updateSvgIconInElement(folderEl, _Icons.iconFolderClosed, _Icons.iconFolderOpen);
 
 				for (let subFolder of node.folders) {
 					_Pages.linkableDialog.appendFolder(entityToLinkTo, folderEl, subFolder);
@@ -2848,21 +2840,21 @@ let _Pages = {
 
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('circle_plus')}
+							${_Icons.getSvgIcon(_Icons.iconAdd)}
 						</button>
 						<div class="dropdown-menu-container">
 
 							<div class="flex flex-col divide-x-0 divide-y">
 								<a id="create_page" title="Create Page" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon('circle_plus', 16, 16, 'mr-2')} Create Page
+									${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'mr-2')} Create Page
 								</a>
 
 								<a id="import_page" title="Import Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon('file_add', 16, 16, 'mr-2')} Import Page
+									${_Icons.getSvgIcon(_Icons.iconCreateFile, 16, 16, 'mr-2')} Import Page
 								</a>
 
 								<!--a id="add_template" title="Add Template" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-									${_Icons.getSvgIcon('magic_wand')} Add Template
+									${_Icons.getSvgIcon(_Icons.iconMagicWand)} Add Template
 								</a-->
 							</div>
 						</div>
@@ -2886,7 +2878,7 @@ let _Pages = {
 					<div class="localizations-inputs flex">
 						<select id="localization-preview-page" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
 						<input class="locale" placeholder="Locale">
-						<button class="refresh action button flex items-center">${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh</button>
+						<button class="refresh action button flex items-center">${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh</button>
 					</div>
 
 					<div class="results"></div>
@@ -3003,7 +2995,7 @@ let _Pages = {
 
 				<div class="inline-info">
 					<div class="inline-info-icon">
-						${_Icons.getSvgIcon('info-icon', 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
 					<div class="inline-info-text">
 						Here you can define actions to modify data objects in the backend like create, update or delete.<br><br>
@@ -3029,7 +3021,7 @@ let _Pages = {
 
 				<div class="inline-info">
 					<div class="inline-info-icon">
-						${_Icons.getSvgIcon('info-icon', 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
 					<div class="inline-info-text">
 						A repeater is a node in the tree that is repeatedly displayed for each element of the result set.<br><br>
@@ -3069,7 +3061,7 @@ let _Pages = {
 			<div class="content-container security-container">
 				<div class="inline-info">
 					<div class="inline-info-icon">
-						${_Icons.getSvgIcon('info-icon', 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
 					<div class="inline-info-text">
 						The Access Control and Visibility dialog provides access to the security settings of a node. In this dialog, you can set, edit or remove the owner of the node, set visibility flags and configure security relationships.

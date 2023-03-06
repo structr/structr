@@ -756,7 +756,7 @@ let _Favorites = new (function () {
 					let id = favorite.id;
 					_Favorites.menu.insertAdjacentHTML('beforeend',`
 						<li id="tab-${id}" data-id="${id}" class="button">${favorite.favoriteContext}&nbsp;&nbsp;
-							<i title="Close" id="button-close-${id}" class="${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
+							${_Icons.getSvgIconWithID(`button-close-${id}`, _Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-grey']), 'Close')}
 						</li>
 					`);
 

@@ -480,8 +480,8 @@ let _Flows = {
 						id: 'root',
 						text: 'Flows',
 						children: true,
-						icon: _Icons.jstree_fake_icon,
-						data: { type: "root", svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
+						icon: _Icons.nonExistentEmptyIcon,
+						data: { type: "root", svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24) },
 						path: '/',
 						state: {
 							opened: true,
@@ -518,10 +518,10 @@ let _Flows = {
 				id: d.id,
 				text: d.name ? d.name.split('.').pop() : '[unnamed]',
 				children: false,
-				icon: _Icons.jstree_fake_icon,
+				icon: _Icons.nonExistentEmptyIcon,
 				data: {
 					type: d.type,
-					svgIcon: _Icons.getSvgIcon('circle-empty', 16, 24, _Icons.getSvgIconClassesForColoredIcon(['icon-blue']))
+					svgIcon: _Icons.getSvgIcon(_Icons.iconFlowSymbol, 16, 24, _Icons.getSvgIconClassesForColoredIcon(['icon-blue']))
 				}
 			};
 		};
@@ -539,8 +539,8 @@ let _Flows = {
 					let newFolder = {
 						id: ('/' + traversedPath.join('/')),
 						text: p,
-						icon: _Icons.jstree_fake_icon,
-						data: { svgIcon: _Icons.getSvgIcon('folder-open-icon', 16, 24) },
+						icon: _Icons.nonExistentEmptyIcon,
+						data: { svgIcon: _Icons.getSvgIcon(_Icons.iconFolderOpen, 16, 24) },
 						children: [],
 						state: {
 							opened: true,
@@ -800,12 +800,12 @@ let _Flows = {
 				<input class="mr-2" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
 				
 				<button id="create-new-flow" class="action inline-flex items-center">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
 				</button>
 			</div>
 			
 			<button class="delete_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Delete flow
+				${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Delete flow
 			</button>
 			
 			<label class="mr-4">
@@ -820,15 +820,15 @@ let _Flows = {
 			</label>
 			
 			<button class="run_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				${_Icons.getSvgIcon('run_button', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-2']))} Run
+				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-2']))} Run
 			</button>
 			
 			<button class="reset_view_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon('reset-arrow', 16, 16, 'mr-2')} Reset view
+				${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset view
 			</button>
 			
 			<button class="layout_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
-				${_Icons.getSvgIcon('magic_wand', 16, 16, 'mr-2')} Layout
+				${_Icons.getSvgIcon(_Icons.iconMagicWand, 16, 16, 'mr-2')} Layout
 			</button>
 		`,
 	}

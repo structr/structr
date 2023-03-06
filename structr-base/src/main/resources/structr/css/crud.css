@@ -222,17 +222,12 @@
 	width: calc(100% - 3rem);
 }
 
-.crud-table tr td .array-attr i.remove {
+.crud-table tr td .array-attr svg.remove {
 	vertical-align: middle;
     margin: 7px 0 6px 2px;
 	position: absolute;
 	top: .25rem;
 	right: .3rem;
-}
-
-.crud-table tr td .array-attr i.remove:hover {
-	cursor: pointer;
-	opacity: .8;
 }
 
 .resourceBox th i {

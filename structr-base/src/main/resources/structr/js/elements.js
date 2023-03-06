@@ -322,13 +322,12 @@ let _Elements = {
 
 		let id          = entity.id;
 		let displayName = getElementDisplayName(entity);
-		let icon        = _Elements.getElementIcon(entity);
 
 		let html = `
 			<div id="id_${id}" class="${elementClasses.join(' ')}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
-					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)}"></i>
+					${_Icons.getSvgIconForElementNode(entity)}
 					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${displayName !== entity.type.toLowerCase() ? '<span class="class-id-attrs">&nbsp;&nbsp;' + entity.type.toLowerCase() + '</span>': ''}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -533,9 +532,9 @@ let _Elements = {
 
 				if (element.elements) {
 
-					menuEntryContent.append(_Icons.getSvgIcon('chevron-right-filled', 10, 10, ['icon-grey', '-mr-2']));
+					menuEntryContent.append(_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 10, 10, ['icon-grey', '-mr-2']));
 
-					var subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+					let subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
 					menuEntry.append(subListElement);
 					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend);
 				}
@@ -654,7 +653,7 @@ let _Elements = {
 		// no context menu found
 		return [];
 	},
-	appendContextMenuSeparator: function (elements) {
+	appendContextMenuSeparator: (elements) => {
 		if (elements[elements.length - 1] !== '|') {
 			elements.push('|');
 		}
@@ -662,12 +661,12 @@ let _Elements = {
 	appendSecurityContextMenuItems: (elements, entity, supportsSubtree) => {
 
 		let securityMenu = {
-			icon: _Icons.getMenuSvgIcon('visibility-lock-locked'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconVisibilityLocked),
 			name: 'Security',
 			elements: [
 				{
 					name: 'Access Control and Visibility',
-					clickHandler: function() {
+					clickHandler: () => {
 						_Entities.showAccessControlDialog(entity);
 						return false;
 					}
@@ -681,14 +680,14 @@ let _Elements = {
 			elements: [
 				{
 					name: 'Make element visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
 						return false;
 					}
 				},
 				{
 					name: 'Make element invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
 						return false;
 					}
@@ -701,14 +700,14 @@ let _Elements = {
 				'|',
 				{
 					name: 'Make subtree visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
 						return false;
 					}
 				},
 				{
 					name: 'Make subtree invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
 						return false;
 					}
@@ -810,17 +809,15 @@ let _Elements = {
 		let displayName  = getElementDisplayName(entity);
 		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content) || '&nbsp;'}</span>`);
 
-		let icon = _Elements.getContentIcon(entity);
 		let html = `
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
-					<i class="typeIcon ${_Icons.getFullSpriteClass(icon)} typeIcon-nochildren"></i>
+					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', 'typeIcon-nochildren'])}
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>`;
-
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
@@ -857,26 +854,14 @@ let _Elements = {
 
 		return div;
 	},
-	getContentIcon:function(content) {
-		let isComment = (content.type === 'Comment');
-		let isTemplate = (content.type === 'Template');
-		let isComponent = content.sharedComponentId || (content.syncedNodesIds && content.syncedNodesIds.length);
-		let isActiveNode = (typeof content.isActiveNode === "function") ? content.isActiveNode() : false;
-
-		return isComment ? _Icons.comment_icon : ((isTemplate && isComponent) ? _Icons.icon_shared_template : (isTemplate ? (isActiveNode ? _Icons.active_template_icon : _Icons.template_icon) : (isComponent ? _Icons.active_content_icon : (isActiveNode ? _Icons.active_content_icon : _Icons.content_icon))));
-	},
-	getElementIcon:function(element) {
-		let isComponent  = element.sharedComponentId || (element.syncedNodesIds && element.syncedNodesIds.length);
-		let isActiveNode = (typeof element.isActiveNode === "function") ? element.isActiveNode() : false;
-
-		return (isActiveNode ? _Icons.repeater_icon : (isComponent ? _Icons.comp_icon : _Icons.brick_icon));
-	},
 	openEditContentDialog: (entity) => {
 
-		Structr.dialog('Edit content of ' + (entity.name ? entity.name : entity.id), function() {}, function() {}, ['popup-dialog-with-editor']);
+		Structr.dialog(`Edit content of ${entity.name ? entity.name : entity.id}`, () => {}, () => {}, ['popup-dialog-with-editor']);
 
-		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		dialogBtn.append(`
+			<button id="saveFile" disabled="disabled" class="disabled">Save</button>
+			<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>
+		`);
 		dialog.append('<div class="editor h-full"></div>');
 
 		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
@@ -920,7 +905,7 @@ let _Elements = {
 						return;
 					}
 
-					Command.patch(entity.id, text1, text2, function () {
+					Command.patch(entity.id, text1, text2, () => {
 						Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 						dialogSaveButton.disabled = true;
 						dialogSaveButton.classList.add('disabled');
@@ -990,8 +975,12 @@ let _Elements = {
 		buttonArea.insertAdjacentHTML('beforeend', `<button id="editorSave" disabled="disabled" class="disabled">Save</button>`);
 		let saveButton = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
 
+		const availableContentTypes = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
 		infoArea.insertAdjacentHTML('beforeend', `
-			<label for="contentTypeSelect">Content-Type: </label><select class="contentType_" id="contentTypeSelect"></select>
+			<label for="contentTypeSelect">Content-Type: </label>
+			<select class="contentType_" id="contentTypeSelect">
+				${availableContentTypes.map(type => `<option ${(type === entity.contentType ? 'selected' : '')} value="${type}">${type}</option>`).join('')}
+			</select>
 			<span class="editor-info"></span>
 		`);
 
@@ -1046,12 +1035,11 @@ let _Elements = {
 
 		if (entity.isFavoritable) {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<i title="Add to favorites" class="add-to-favorites ${_Icons.getFullSpriteClass(_Icons.star_icon)}"></i>`);
-			let addToFavs = buttonArea.querySelector('.add-to-favorites');
+			buttonArea.insertAdjacentHTML('beforeend', _Icons.getSvgIcon(_Icons.iconAddToFavorites, 16, 16, ['add-to-favorites']));
 
-			addToFavs.addEventListener('click', () => {
+			buttonArea.querySelector('.add-to-favorites').addEventListener('click', (e) => {
 				Command.favorites('add', entity.id, () => {
-					blinkGreen(addToFavs);
+					blinkGreen(e.target.closest('.add-to-favorites'));
 				});
 			});
 		}
@@ -1064,27 +1052,21 @@ let _Elements = {
 			centralEditorMonacoConfig.saveFn(editor, entity);
 		});
 
-		const values = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+		infoArea.querySelector('#contentTypeSelect').addEventListener('change', (e) => {
 
-		let select = infoArea.querySelector('#contentTypeSelect');
-		values.forEach((type) => {
-			select.insertAdjacentHTML('beforeend', `<option ${(type === entity.contentType ? 'selected' : '')} value="${type}">${type}</option>`);
-		});
-		select.addEventListener('change', (e) => {
+			contentType = e.target.value;
 
-			contentType = select.value;
-
-			entity.setProperty('contentType', contentType, false, function() {
+			entity.setProperty('contentType', contentType, false, () => {
 
 				_Editors.updateMonacoEditorLanguage(editor, contentType);
 
-				blinkGreen(select);
+				blinkGreen(e.target);
 			});
 		});
 
 		editor.focus();
 	},
-	getSuggestedWidgets: function(entity, callback) {
+	getSuggestedWidgets: (entity, callback) => {
 
 		if (entity.isPage || entity.isContent) {
 
@@ -1092,28 +1074,25 @@ let _Elements = {
 
 		} else {
 
-			var clickHandler = function(element, item) {
-				Command.get(item.id, undefined, function(result) {
+			let clickHandler = (element, item) => {
+				Command.get(item.id, undefined, (result) => {
 					_Widgets.insertWidgetIntoPage(result, entity, entity.pageId);
 				});
 			};
 
-			var classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
-			var htmlId  = entity._html_id;
-			var tag     = entity.tag;
+			let classes = entity._html_class && entity._html_class.length ? entity._html_class.split(' ') : [];
 
-			Command.getSuggestions(htmlId, entity.name, tag, classes, function(result) {
-				let data = [];
-				if (result && result.length) {
-					result.forEach(function (r) {
-						data.push({
-							id: r.id,
-							name: r.name,
-							source: r.source,
-							clickHandler: clickHandler
-						});
-					});
-				}
+			Command.getSuggestions(entity._html_id, entity.name, entity.tag, classes, (result) => {
+
+				let data = (result ?? []).map(r => {
+					return {
+						id: r.id,
+						name: r.name,
+						source: r.source,
+						clickHandler: clickHandler
+					}
+				});
+
 				callback(data);
 			});
 		}

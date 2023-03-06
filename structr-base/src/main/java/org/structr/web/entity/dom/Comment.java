@@ -55,7 +55,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		String _content = comment.getContent();
 
 		// Avoid rendering existing @structr comments since those comments are
-		// created depending on the visiblity settings of individual nodes. If
+		// created depending on the visibility settings of individual nodes. If
 		// those comments are rendered, there will be duplicates in a round-
 		// trip export/import test.
 		if (!_content.contains("@structr:")) {

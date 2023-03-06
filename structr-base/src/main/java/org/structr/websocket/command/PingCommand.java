@@ -28,14 +28,10 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket heartbeat command, keeps the websocket connection open.
  *
  * Checks validity of session id.
- *
- *
  */
 public class PingCommand extends AbstractCommand {
 
@@ -74,8 +70,6 @@ public class PingCommand extends AbstractCommand {
 
 		}
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {

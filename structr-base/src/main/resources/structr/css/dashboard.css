@@ -56,11 +56,6 @@
 	vertical-align: top;
 }
 
-#params i.button.sprite-delete {
-	margin-left: 2px;
-	vertical-align: sub;
-}
-
 .global-method {
 	padding: 1rem .5rem;
 }

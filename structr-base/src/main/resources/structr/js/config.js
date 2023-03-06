@@ -37,7 +37,7 @@ function createNewEntry(e) {
 
 function appendInfoTextToElement (text, el, css) {
 
-	let toggleElement = $(`<span>${_Icons.getSvgIcon('info-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
+	let toggleElement = $(`<span>${_Icons.getSvgIcon(_Icons.iconInfo, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
 	if (css) {
 		toggleElement.css(css);
 	}
@@ -77,7 +77,7 @@ let _Search = {
 			let searchUiHTML = Structr.createSingleDOMElementFromHTML(`
 				<div id="search-container">
 					<input id="search-box" placeholder="Search config...">
-					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 
@@ -656,7 +656,7 @@ _Config = {
 		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
 		messageDiv.html(`
 			<div class="flex items-center justify-center">
-				${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b>
+				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${messageTitle}</b>
 			</div>
 			<br>
 			${messageText}

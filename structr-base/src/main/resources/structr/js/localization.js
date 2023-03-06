@@ -141,7 +141,7 @@ let _Localization = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Localization',
 			clickHandler: () => {
@@ -671,13 +671,13 @@ let _Localization = {
 					</form>
 					<div>
 						<button id="localization-fields-save" title="Save" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save
 						</button>
 					</div>
 			
 					<div class="mt-8">
 						<button id="add-new-translation" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add translation
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add translation
 						</button>
 					</div>
 					<table id="localization-detail-table" class="props">
@@ -705,7 +705,7 @@ let _Localization = {
 					<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
 				
 					<button type="submit" form="create-localization-form" class="action inline-flex items-center">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-white mr-2')} Create new localization key
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-white mr-2')} Create new localization key
 					</button>
 				</div>
 			</form>
@@ -740,8 +740,8 @@ let _Localization = {
 				</td>
 				<td class="actions text-center">
 					<div class="flex items-center justify-center">
-						${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
-						${_Icons.getSvgIcon('trashcan', 20, 20,       _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
+						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
+						${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
 					</div>
 				</td>
 			</tr>

@@ -100,6 +100,10 @@ let StructrModel = {
 
 			obj = new StructrResourceAccess(data);
 
+		} else if (data.isCorsSetting) {
+
+			obj = new StructrCorsSetting(data);
+
 		} else if (data.isGroup) {
 
 			obj = new StructrGroup(data, refId);
@@ -148,7 +152,6 @@ let StructrModel = {
 		}
 
 		return obj;
-
 	},
 	/**
 	 * Create a new model object from data - if it already exists update all keys in the dataset.
@@ -173,7 +176,6 @@ let StructrModel = {
 		}
 
 		obj.append(refId);
-
 	},
 	/**
 	 * Check expand status
@@ -203,6 +205,7 @@ let StructrModel = {
 	 * activate the tab to the left before removing it.
 	 */
 	del: function(id) {
+
 		if (!id) {
 			return;
 		}
@@ -214,7 +217,7 @@ let StructrModel = {
 
 		// Let element handle its own removal from the UI
 		// Especially (but not only) important for users/groups. Those are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
-		// therefor we let the object itself handle its removal in this case.
+		// therefore we let the object itself handle its removal in this case.
 		var obj = StructrModel.obj(id);
 		if (obj && obj.remove) {
 			obj.remove();
@@ -225,7 +228,6 @@ let StructrModel = {
 				graphBrowser.graph.dropElement(id);
 			} catch (e) {}
 		}
-
 	},
 	/**
 	 * Update the model with the given data.
@@ -272,11 +274,9 @@ let StructrModel = {
 
 			// call callback anyway even if there is no obj
 			StructrModel.callCallback(data.callback, obj);
-
 		}
 
 		return obj;
-
 	},
 	updateKey: function(id, key, value) {
 		var obj = StructrModel.obj(id);
@@ -284,7 +284,6 @@ let StructrModel = {
 		if (obj) {
 			obj[key] = value;
 		}
-
 	},
 	/**
 	 * Refresh the object's UI representation with
@@ -420,20 +419,18 @@ let StructrModel = {
 			let iconEl = element.children('.typeIcon');
 			if (element.hasClass('element')) {
 
-				icon = _Elements.getElementIcon(obj);
-
+				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? ['typeIcon-nochildren'] : []);
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('content')) {
 
-				icon = _Elements.getContentIcon(obj);
-
+				icon   = _Icons.getSvgIconForContentNode(obj, ['typeIcon', 'typeIcon-nochildren']);
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('file')) {
 
-				icon = _Icons.getFileIconSVG(obj);
-				// TODO: correctly update to: _Icons.getFileIconSVG(d)
+				icon   = _Icons.getFileIconSVG(obj);
+				iconEl = element.closest('tr').children('td.file-icon').find('svg');
 
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
@@ -450,22 +447,7 @@ let StructrModel = {
 			}
 
 			if (icon && iconEl.length) {
-				_Icons.updateSpriteClassTo(iconEl[0], _Icons.getSpriteClassOnly(icon));
-			}
-
-			// check if key icon needs to be displayed (in case of nodes not visible to public/auth users)
-			let keyIcon = element.children('.key_icon');
-			if (!keyIcon.length) {
-				// Images have a special subnode containing the icons
-				keyIcon = $('.icons', element).children('.key_icon');
-			}
-			let isProtected = !obj.visibleToPublicUsers || !obj.visibleToAuthenticatedUsers;
-			if (isProtected) {
-				keyIcon.css('display', 'inline-block');
-				keyIcon.addClass('donthide');
-			} else {
-				keyIcon.hide();
-				keyIcon.removeClass('donthide');
+				_Icons.replaceSvgElementWithRawSvg(iconEl[0], icon);
 			}
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
@@ -772,6 +754,33 @@ StructrResourceAccess.prototype.remove = function() {
 };
 
 /**************************************
+ * Structr CorsSetting
+ **************************************/
+
+function StructrCorsSetting(data) {
+	StructrModel.copyDataToObject(data, this);
+}
+
+StructrCorsSetting.prototype.save = function() {
+	StructrModel.save(this.id);
+};
+
+StructrCorsSetting.prototype.setProperty = function(key, value, recursive, callback) {
+	Command.setProperty(this.id, key, value, recursive, callback);
+};
+
+StructrCorsSetting.prototype.append = function() {
+	if (Structr.isModuleActive(_Security)) {
+		_CorsSettings.appendCorsSettingToElement(this);
+	}
+};
+
+StructrCorsSetting.prototype.remove = function() {
+};
+
+
+
+/**************************************
  * Structr Page
  **************************************/
 
@@ -995,35 +1004,14 @@ StructrContent.prototype.remove = function() {
 StructrContent.prototype.append = function(refId) {
 
 	if (Structr.isModuleActive(_Pages)) {
-		var id = this.id;
-		var parentId;
 
-		var parent;
-		if (this.parent) {
-			parentId = this.parent.id;
-			parent = Structr.node(parentId);
-		}
-
-		var refNode = refId ? Structr.node(refId) : undefined;
-		var div = _Elements.appendContentElement(this, refNode);
+		let refNode = refId ? Structr.node(refId) : undefined;
+		let div     = _Elements.appendContentElement(this, refNode);
 		if (!div) {
 			return;
 		}
 
 		StructrModel.expand(div, this);
-
-//		if (parent) {
-//
-//			$('.button', div).on('mousedown', function(e) {
-//				e.stopPropagation();
-//			});
-//
-//			$('.delete_icon', div).replaceWith('<i title="Remove content element from parent ' + parentId + '" class="delete_icon button ' + _Icons.getFullSpriteClass(_Icons.delete_content_icon) + '" />');
-//			$('.delete_icon', div).on('click', function(e) {
-//				e.stopPropagation();
-//				Command.removeChild(id);
-//			});
-//		}
 
 		_Entities.setMouseOver(div);
 	}

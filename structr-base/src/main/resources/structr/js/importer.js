@@ -97,11 +97,11 @@ let Importer = {
 
 			Command.fileImport('list', null, function (jobs) {
 
-				var table = $('#importer-jobs-table');
-				var tbody = $('tbody', table);
+				let table = $('#importer-jobs-table');
+				let tbody = $('tbody', table);
 				tbody.empty();
 
-				var imports = jobs[0].imports;
+				let imports = jobs[0].imports;
 
 				if (imports.length) {
 
@@ -121,23 +121,23 @@ let Importer = {
 
 	},
 	createRowForJob: function (job) {
-		return $('<tr><td>' + job.jobId + '</td><td>' + job.jobtype + '</td><td>' + job.username + '</td>' + Importer.createJobInfoHTML(job) + '<td>' + job.status + '</td><td>' + Importer.createActionButtons(job) + '</td></tr>');
+		return $(`<tr><td>${job.jobId}</td><td>${job.jobtype}</td><td>${job.username}</td>${Importer.createJobInfoHTML(job)}<td>${job.status}</td><td>${Importer.createActionButtons(job)}</td></tr>`);
 	},
 	createJobInfoHTML:function(job) {
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
-				return '<td>' + job.fileUuid + '</td><td>' + job.filepath + '</td><td>' + job.filesize + '</td><td>' + job.processedChunks + '</td>';
+				return `<td>${job.fileUuid}</td><td>${job.filepath}</td><td>${job.filesize}</td><td>${job.processedChunks}</td>`;
 
 			case 'SCRIPT':
-				return '<td colspan=4 class="' + (job.jobName.length === 0 ? 'placeholderText' : '') + '">' + job.jobName + '</td>';
+				return `<td colspan=4 class="${job.jobName.length === 0 ? 'placeholderText' : ''}">${job.jobName}</td>`;
 
 			default:
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
 		}
 	},
 	createActionButtons: function (job) {
-		var actionHtml = '';
+		let actionHtml = '';
 
 		switch (job.jobtype) {
 			case 'XML':
@@ -169,7 +169,7 @@ let Importer = {
 		return actionHtml;
 	},
 	createActionButton: function (action, jobId, content) {
-		return '<button class="import-job-action" data-action="' + action + '" data-job-id="' + jobId + '">' + content + '</button>';
+		return `<button class="import-job-action" data-action="${action}" data-job-id="${jobId}">${content}</button>`;
 	},
 
 	initializeButtons: function(start, next, prev, close) {
@@ -194,7 +194,6 @@ let Importer = {
 
 			dialogCancelButton.on('click', Importer.unload);
 		}
-
 	},
 	restoreButtons: function() {
 		dialogCancelButton.removeClass('hidden');
@@ -204,36 +203,28 @@ let Importer = {
 		$('#csv-configurations').remove();
 		$('#xml-configurations').remove();
 	},
-	updateConfigSelector: function(elem, importType) {
+	updateConfigSelector: (elem, importType) => {
 
-		Command.getApplicationConfigurationDataNodesGroupedByUser(importType + '-import', function(grouped) {
+		Command.getApplicationConfigurationDataNodesGroupedByUser(importType + '-import', (grouped) => {
 
 			elem.empty();
-			elem.append('<option selected value="" disabled>--- Select configuration to load ---</option>');
-
-			grouped.forEach(function(group) {
-
-				var optGroup = $('<optgroup label="' + group.ownerName + '"></optgroup>');
-				elem.append(optGroup);
-
-				group.configs.forEach(function(cfg) {
-
-					optGroup.append('<option value="' + cfg.id + '">' + cfg.name + '</option>');
-				});
-			});
+			elem.append(`
+				<option selected value="" disabled>--- Select configuration to load ---</option>
+				${grouped.map(group => `<optgroup label="${group.label}">${group.configs.map(cfg => `<option value="${cfg.id}">${cfg.name}</option>`).join('')}</optgroup>`).join('')}
+			`);
 
 			Importer.configSelectorChangeHandler(elem, importType);
 		});
 
 	},
-	saveImportConfiguration: function (elem, importType, configuration) {
+	saveImportConfiguration: (elem, importType, configuration) => {
 
-		var inputElem = $('#' + importType + '-config-name-input');
-		var name = inputElem.val();
+		let inputElem = $('#' + importType + '-config-name-input');
+		let name = inputElem.val();
 
 		if (name && name.length) {
 
-			Command.createApplicationConfigurationDataNode(importType + '-import', name, JSON.stringify(configuration), function(data) {
+			Command.createApplicationConfigurationDataNode(importType + '-import', name, JSON.stringify(configuration), (data) => {
 
 				if (!data.error) {
 
@@ -253,11 +244,11 @@ let Importer = {
 			Structr.error('Import configuration layout name is required.');
 		}
 	},
-	updateImportConfiguration: function (elem, configuration) {
+	updateImportConfiguration: (elem, configuration) => {
 
-		var selectedConfig = elem.val();
+		let selectedConfig = elem.val();
 
-		Command.setProperty(selectedConfig, 'content', JSON.stringify(configuration), false, function(data) {
+		Command.setProperty(selectedConfig, 'content', JSON.stringify(configuration), false, (data) => {
 
 			if (!data.error) {
 
@@ -271,7 +262,7 @@ let Importer = {
 			}
 		});
 	},
-	loadImportConfiguration: function(elem, callback) {
+	loadImportConfiguration: (elem, callback) => {
 
 		try {
 			Command.getApplicationConfigurationDataNode(elem.val(), callback);
@@ -280,13 +271,12 @@ let Importer = {
 			console.log(e);
 		}
 	},
-	configSelectorChangeHandler: function(elem, importType) {
+	configSelectorChangeHandler: (elem, importType) => {
 
-		var updateImportConfigButton = $('#update-' + importType + '-config-button');
-		var loadImportConfigButton   = $('#load-' + importType + '-config-button');
-		var deleteImportConfigButton = $('#delete-' + importType + '-config-button');
-
-		var selectedOption = $(':selected:not(:disabled)', elem);
+		let updateImportConfigButton = $('#update-' + importType + '-config-button');
+		let loadImportConfigButton   = $('#load-' + importType + '-config-button');
+		let deleteImportConfigButton = $('#delete-' + importType + '-config-button');
+		let selectedOption           = $(':selected:not(:disabled)', elem);
 
 		if (selectedOption.length === 0) {
 
@@ -298,7 +288,7 @@ let Importer = {
 
 			Structr.enableButton(loadImportConfigButton);
 
-			var username = selectedOption.closest('optgroup').prop('label');
+			let username = selectedOption.closest('optgroup').prop('label');
 
 			if (username !== 'null' && username !== StructrWS.me.username) {
 				Structr.disableButton(updateImportConfigButton);
@@ -309,17 +299,17 @@ let Importer = {
 			}
 		}
 	},
-	deleteImportConfiguration: function(elem, importType) {
+	deleteImportConfiguration: (elem, importType) => {
 
-		Command.deleteNode(elem.val(), false, function() {
+		Command.deleteNode(elem.val(), false, () => {
 			Importer.updateConfigSelector(elem, importType);
 			blinkGreen(elem);
 		});
 	},
 	importCSVDialog: function(file) {
 
-		// define datastructure here to be able to use it in callbacks etc. below
-		var mixedMappingConfig = {
+		// define data structure here to be able to use it in callbacks etc. below
+		let mixedMappingConfig = {
 			availableProperties: {},
 			mappedTypes: {}
 		};
@@ -330,10 +320,9 @@ let Importer = {
 
 		Importer.initializeButtons(true, false, false, true);
 
-		let html = Importer.templates.dialogConfigurations({type: 'csv'});
-		dialogMeta.append(html);
+		dialogMeta.append(Importer.templates.dialogConfigurations({type: 'csv'}));
 
-		var importConfigSelector = $('#load-csv-config-selector');
+		let importConfigSelector = $('#load-csv-config-selector');
 		importConfigSelector.on('change', function () {
 			Importer.configSelectorChangeHandler(importConfigSelector, 'csv');
 		});
@@ -347,26 +336,26 @@ let Importer = {
 
 				if (data && data.content) {
 
-					var config = JSON.parse(data.content).config;
+					let config = JSON.parse(data.content).config;
 
 					if (!config.version) {
 						// initial version, no reversal needed
 
 					} else if (config.version === 2) {
 
-						var reversedTransforms = {};
-						Object.keys(config.transforms).forEach(function(k) {
+						let reversedTransforms = {};
+						for (let k in config.transforms) {
 							reversedTransforms[config.mappings[k]] = config.transforms[k];
-						});
+						}
 
 						config.transforms = reversedTransforms;
 
 						// New version - reverse mappings/transforms so we can display them
-						var reversedMappings = {};
+						let reversedMappings = {};
 
-						Object.keys(config.mappings).forEach(function(k) {
+						for (let k in config.mappings) {
 							reversedMappings[config.mappings[k]] = k;
-						});
+						}
 
 						config.mappings = reversedMappings;
 					}
@@ -396,11 +385,10 @@ let Importer = {
 
 							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
 							Importer.customTypesOnly = true;
-
 						}
 					}
 
-					// update storage datastructure before triggering events..
+					// update storage data structure before triggering events..
 					if (importType === 'graph') {
 						mixedMappingConfig.mappedTypes = config.mixedMappingConfig;
 					}
@@ -414,13 +402,13 @@ let Importer = {
 
 		$('#update-csv-config-button').on('click', function() {
 
-			var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+			let configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 			if (configInfo.errors.length > 0) {
 
-				configInfo.errors.forEach(function(e) {
+				for (let e of configInfo.errors) {
 					new MessageBuilder().title(e.title).error(e.message).show();
-				});
+				}
 
 			} else {
 
@@ -430,13 +418,13 @@ let Importer = {
 
 		$('#save-csv-config-button').on('click', function() {
 
-			var configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
+			let configInfo = Importer.collectCSVImportConfigurationInfo(mixedMappingConfig.mappedTypes);
 
 			if (configInfo.errors.length > 0) {
 
-				configInfo.errors.forEach(function(e) {
+				for (let e of configInfo.errors){
 					new MessageBuilder().title(e.title).error(e.message).show();
-				});
+				}
 
 			} else {
 
@@ -449,7 +437,7 @@ let Importer = {
 		});
 
 		// load first lines to display a sample of the data
-		$.post(Structr.rootUrl + 'File/' + file.id + '/getFirstLines', {}, function(data) {
+		fetch(Structr.rootUrl + 'File/' + file.id + '/getFirstLines', { method: 'POST' }).then(response => response.json()).then(data => {
 
 			if (data && data.result) {
 
@@ -473,10 +461,9 @@ let Importer = {
 	formatImportTypeSelectorDialog: function(file, mixedMappingConfig) {
 
 		let importType = $('input[name=import-type]:checked').val();
-		let html       = Importer.templates['dialogTargetTypeSelect_' + importType]();
 
 		$('#import-dialog-type-container').empty();
-		$('#import-dialog-type-container').append(html);
+		$('#import-dialog-type-container').append(Importer.templates['dialogTargetTypeSelect_' + importType]());
 
 		switch (importType) {
 
@@ -490,9 +477,9 @@ let Importer = {
 				break;
 		}
 	},
-	formatNodeOrRelImportDialog: function(file) {
+	formatNodeOrRelImportDialog: (file) => {
 
-		var targetTypeSelector = $('#target-type-select');
+		let targetTypeSelector = $('#target-type-select');
 
 		Importer.updateSchemaTypeCache(targetTypeSelector);
 
@@ -518,17 +505,17 @@ let Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 	},
-	updateSchemaTypeCache: function(targetTypeSelector) {
+	updateSchemaTypeCache: (targetTypeSelector) => {
 
 		if (!Importer.schemaTypeCachePopulated) {
 
-			$.get(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+			fetch(Structr.rootUrl + 'AbstractSchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
 
 				if (data && data.result) {
 
 					Importer.clearSchemaTypeCache();
 
-					data.result.forEach(function(res) {
+					for (let res of data.result) {
 
 						if (res.type === 'SchemaRelationshipNode') {
 
@@ -539,7 +526,7 @@ let Importer = {
 							Importer.schemaTypeCache['graphTypes'].push(res);
 							Importer.schemaTypeCache['nodeTypes'].push(res);
 						}
-					});
+					}
 
 					Importer.updateSchemaTypeSelector(targetTypeSelector);
 
@@ -547,71 +534,63 @@ let Importer = {
 				}
 			});
 		}
-
 	},
-	updateSchemaTypeSelector: function(typeSelect) {
+	updateSchemaTypeSelector: (typeSelect) => {
 
-		var importType = $('input[name=import-type]:checked').val();
+		let importType = $('input[name=import-type]:checked').val();
 
 		$('option[disabled!=disabled]', typeSelect).remove();
 		typeSelect.val("");
 
-		var data = Importer.getSchemaTypeSelectorData(importType);
+		let data = Importer.getSchemaTypeSelectorData(importType);
 
-		data.forEach(function(name) {
-
-			typeSelect.append('<option value="' + name + '">' + name + '</option>');
-		});
-
+		typeSelect.append(data.map(name => `<option value="${name}">${name}</option>`).join(''));
 	},
-	getSchemaTypeSelectorData: function(importType = "") {
+	getSchemaTypeSelectorData: (importType = "") => {
 
 		let allTypeData = Importer.schemaTypeCache[importType + "Types"];
 
 		if ((importType === 'node' || importType === 'graph') && Importer.customTypesOnly === true) {
-			allTypeData = allTypeData.filter((t) => {
-				return t.isBuiltinType === false;
-			});
+			allTypeData = allTypeData.filter(t => t.isBuiltinType === false);
 		}
 
-		return allTypeData.map((t) => { return t.name; });
-
+		return allTypeData.map(t => t.name);
 	},
-	clearSchemaTypeCache: function() {
+	clearSchemaTypeCache: () => {
 
 		Importer.schemaTypeCache = {
 			nodeTypes: [],
 			relTypes: [],
 			graphTypes: []
 		};
-
 	},
 	updateMapping: function(file, data) {
 
-		var targetTypeSelector = $('#target-type-select');
-		var propertySelector   = $('#property-select');
-		var type               = targetTypeSelector.val();
+		let targetTypeSelector = $('#target-type-select');
+		let propertySelector   = $('#property-select');
+		let type               = targetTypeSelector.val();
 
 		// dont do anything if there is no type set
 		if (!type) {
 			return;
-		};
+		}
 
 		// clear current mapping list
 		propertySelector.empty();
 
-		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
-
-			delimiter: $('#delimiter').val(),
-			quoteChar: $('#quote-char').val(),
-			recordSeparator: $('#record-separator').val()
-
-		}), function(csvHeaders) {
+		fetch(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', {
+			method: 'POST',
+			body: JSON.stringify({
+				delimiter: $('#delimiter').val(),
+				quoteChar: $('#quote-char').val(),
+				recordSeparator: $('#record-separator').val()
+			})
+		}).then(response => response.json()).then(csvHeaders => {
 
 			propertySelector.append('<h3>Select Mapping</h3>');
 			propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
-			var helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
+			let helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
 			Structr.appendInfoTextToElement({
 				text: helpText,
 				element: $('th.transform-head', propertySelector),
@@ -622,8 +601,8 @@ let Importer = {
 
 			if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 
-				var names      = [];
-				var typeConfig = {};
+				let names      = [];
+				let typeConfig = {};
 
 				if (data) {
 					typeConfig['properties'] = data.mappings;
@@ -634,8 +613,8 @@ let Importer = {
 
 					$('#start-import').off('click').on('click', function() {
 
-						var configInfo = Importer.collectCSVImportConfigurationInfo();
-						var allowImport = (configInfo.errors.length === 0);
+						let configInfo = Importer.collectCSVImportConfigurationInfo();
+						let allowImport = (configInfo.errors.length === 0);
 
 						if (!allowImport) {
 
@@ -645,7 +624,10 @@ let Importer = {
 
 						} else {
 
-							$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+							fetch(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', {
+								method: 'POST',
+								body: JSON.stringify(configInfo.config)
+							});
 						}
 					});
 				});
@@ -654,19 +636,19 @@ let Importer = {
 	},
 	collectCSVImportConfigurationInfo: function (mixedMappings) {
 
-		var info = {
+		let info = {
 			errors: []
 		};
 
 		// collect mappings and transforms
-		var mappings   = {};
-		var transforms = {};
+		let mappings   = {};
+		let transforms = {};
 
 		$('select.attr-mapping').each(function(i, elem) {
 
-			var e     = $(elem);
-			var name  = e.prop('name');
-			var value = e.val();
+			let e     = $(elem);
+			let name  = e.prop('name');
+			let value = e.val();
 
 			if (value && value.length) {
 				if (!mappings[value]) {
@@ -678,14 +660,14 @@ let Importer = {
 					});
 				}
 
-				var transform = $('input#transform' + i).val();
+				let transform = $('input#transform' + i).val();
 				if (transform && transform.length) {
 					transforms[value] = transform;
 				}
 			}
 		});
 
-		var importType = $('input[name=import-type]:checked').val();
+		let importType = $('input[name=import-type]:checked').val();
 		if (importType === 'rel' && (!mappings.sourceId || !mappings.targetId) ) {
 			info.errors.push({
 				title: "Relationship Import Error",
@@ -713,9 +695,9 @@ let Importer = {
 
 		return info;
 	},
-	displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) {
+	displayImportPropertyMapping: (type, inputProperties, rowContainer, names, displayTransformInput, typeConfig, onLoadComplete, onSelect) => {
 
-		var config = {
+		let config = {
 			type: type,
 			inputProperties: inputProperties,
 			rowContainer: rowContainer,
@@ -729,9 +711,9 @@ let Importer = {
 
 		Importer.displayImportPropertyMappingWithConfig(config);
 	},
-	displayImportPropertyMappingWithConfig: function(config) {
+	displayImportPropertyMappingWithConfig: (config) => {
 
-		var blacklist = [
+		let blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
@@ -741,27 +723,27 @@ let Importer = {
 			blacklist.push('id');
 		};
 
-		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		fetch(Structr.rootUrl + '_schema/' + config.type + '/all').then(response => response.json()).then(typeInfo => {
 
 			if (typeInfo && typeInfo.result) {
 
 				// sort by name
-				typeInfo.result.sort(function(a, b) {
+				typeInfo.result.sort((a, b) => {
 					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
 				});
 
-				var mapping = {};
+				let mapping = {};
 
-				config.inputProperties.forEach(function(inputPropertyName, i) {
+				for (let [i, inputPropertyName] of Object.entries(config.inputProperties)) {
 
-					var options        = '';
-					var selectedString = '';
-					var select         = $('select#key' + i);
-					var longestMatch   = 0;
+					let options        = '';
+					let selectedString = '';
+					let select         = $('select#key' + i);
+					let longestMatch   = 0;
 					config.names[i]    = inputPropertyName;
 
 					// create drop-down list with pre-selected options
-					typeInfo.result.forEach(function(info) {
+					for (let info of typeInfo.result) {
 
 						if (blacklist.indexOf(info.jsonName) === -1) {
 
@@ -776,36 +758,28 @@ let Importer = {
 								selectedString = '';
 							}
 
-							options += '<option' + selectedString + '>' + info.jsonName + '</option>';
+							options += `<option${selectedString}>${info.jsonName}</option>`;
 						}
-					});
+					}
 
 					// display selection
-					config.rowContainer.append(
-						'<tr>' +
-							'<td class="key">' + inputPropertyName + '</td>' +
-							(config.displayTransformInput ?
-								'<td class="transform"><input type="text" name="' +
-								inputPropertyName +
-								'" id="transform' +
-								i +
-								'" value="' +
-								(config.typeConfig && config.typeConfig.mappings && config.typeConfig.mappings[inputPropertyName] ? config.typeConfig.mappings[inputPropertyName] : '') +
-								'" /></td>' : ''
-							) +
-							'<td>' +
-								'<select class="attr-mapping" name="' + inputPropertyName +'" id="key' + i + '">' +
-									'<option value="">-- skip --</option>' +
-									options +
-								'</select>' +
-							'</td>' +
-						'</tr>'
-					);
+					config.rowContainer.append(`
+						<tr>
+							<td class="key">${inputPropertyName}</td>
+							${config.displayTransformInput ? `<td class="transform"><input type="text" name="${inputPropertyName}" id="transform${i}" value="${config.typeConfig && config.typeConfig.mappings && config.typeConfig.mappings[inputPropertyName] ? config.typeConfig.mappings[inputPropertyName] : ''}" /></td>` : ''}
+							<td>
+								<select class="attr-mapping" name="${inputPropertyName}" id="key${i}">
+									<option value="">-- skip --</option>
+									${options}
+								</select>
+							</td>
+						</tr>
+					`);
 
 					if (config.onSelect && typeof config.onSelect === "function") {
 						select.on('change', config.onSelect);
 					}
-				});
+				}
 
 				if (config.onLoadComplete && typeof config.onLoadComplete === "function") {
 					config.onLoadComplete(mapping);
@@ -828,9 +802,9 @@ let Importer = {
 
 		return false;
 	},
-	importXMLDialog: function(file) {
+	importXMLDialog: (file) => {
 
-		var configuration = {};
+		let configuration = {};
 
 		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
 
@@ -839,7 +813,7 @@ let Importer = {
 		let html = Importer.templates.dialogConfigurations({type: 'xml'});
 		dialogMeta.append(html);
 
-		var importConfigSelector = $('#load-xml-config-selector');
+		let importConfigSelector = $('#load-xml-config-selector');
 		importConfigSelector.on('change', function () {
 			Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
 		});
@@ -853,7 +827,7 @@ let Importer = {
 
 				if (data && data.content) {
 
-					var config = JSON.parse(data.content);
+					let config = JSON.parse(data.content);
 
 					Object.keys(config).forEach(function(k) {
 						configuration[k] = config[k];
@@ -875,7 +849,27 @@ let Importer = {
 			});
 		});
 
-		dialog.append('<div id="xml-import"></div>');
+		dialog.append(`
+			<div id="xml-import">
+				<div id="left">
+					<h2>Document Structure</h2>
+					<div class="xml-mapping">
+						<table>
+							<thead id="structure"></thead>
+						</table>
+					</div>
+				</div>
+				<div id="right">
+					<div id="xml-config">
+						<p class="hint">
+							Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />
+							Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.
+						</p>
+					</div>
+				</div>
+				<div style="clear: both;"></div>
+			</div>
+		`);
 
 		$('#cancel-button').on('click', function() {
 			// close dialog
@@ -886,7 +880,7 @@ let Importer = {
 		});
 
 		$('#next-element').on('click', function() {
-			var elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
+			let elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
 			if (elem && elem.get(0)) {
 				elem.get(0).scrollIntoView(false);
 				elem.click();
@@ -894,16 +888,19 @@ let Importer = {
 		});
 
 		$('#prev-element').on('click', function() {
-			var elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
+			let elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
 			if (elem && elem.get(0)) {
 				elem.get(0).scrollIntoView(false);
 				elem.click();
 			}
 		});
 
-		$('#start-import').off('click').on('click', function() {
+		$('#start-import').off('click').on('click', async () => {
 
-			$.post(Structr.rootUrl + 'File/' + file.id + '/doXMLImport', JSON.stringify(configuration), function(data) {});
+			await fetch(Structr.rootUrl + 'File/' + file.id + '/doXMLImport', {
+				method: 'POST',
+				body: JSON.stringify(configuration)
+			});
 		});
 
 		$('#save-xml-config-button').on('click', function() {
@@ -918,131 +915,122 @@ let Importer = {
 			Importer.deleteImportConfiguration(importConfigSelector, 'xml');
 		});
 
-		var container = $('#xml-import');
-
-		container.append('<div id="left"><h2>Document Structure</h2><div class="xml-mapping"><table><thead id="structure"></thead></table></div></div><div id="right"><div id="xml-config"></div></div>');
-		container.append('<div style="clear: both;"></div>');
-
-		var xmlConfig = $('#xml-config');
-
-		xmlConfig.append(
-			'<p class="hint">' +
-			'Please click one of the XML elements on the left to configure the XML import for that element.<br /><br />' +
-			'Use the &laquo;Next&raquo; and &laquo;Prev&raquo; buttons below to step through the XML elements.' +
-			'</p>');
-
-		$.post(Structr.rootUrl + 'File/' + file.id + '/getXMLStructure', {}, function(data) {
+		let xmlConfig = $('#xml-config');
+		fetch(Structr.rootUrl + 'File/' + file.id + '/getXMLStructure', { method: 'POST' }).then(response => response.json()).then(data => {
 
 			if (data && data.result) {
 
-				var structure  = JSON.parse(data.result);
-				var attributes = {};
+				let structure  = JSON.parse(data.result);
+				let attributes = {};
 
 				function buildTree(htmlElement, parentKey, treeElement, path, level) {
 
-					Object.keys(treeElement).forEach(function(key) {
+					for (let key in treeElement) {
 
 						// store attributes
 						if (key === '::attributes') {
+
 							if (!attributes[parentKey]) {
 								attributes[parentKey] = {};
 							}
-							var map = attributes[parentKey];
-							treeElement[key].forEach(function(attr) {
+							let map = attributes[parentKey];
+
+							for (let attr of treeElement[key]) {
 								map[attr] = 1;
-							});
-							return;
-						}
+							}
 
+						} else {
 
-						var hasChildren = Object.keys(treeElement[key]).length > 1;
-						var localPath   = path + '/' + key;
+							let hasChildren = Object.keys(treeElement[key]).length > 1;
+							let localPath   = path + '/' + key;
 
-						htmlElement.append(
-							'<tr><td data-name="' + localPath + '" data-level="' + level + '"' +
-							' class="xml-mapping" ' +
-							' style="padding-left: ' + (level * 30) + 'px;">' +
-							_Icons.getHtmlForIcon(_Icons.collapsed_icon) +
-							'&nbsp;&nbsp;' + key + '</td></tr>'
-						);
+							htmlElement.append(
+								`<tr>
+									<td data-name="${localPath}" data-level="${level}" class="xml-mapping"  style="padding-left: ${level * 2}rem;">
+										${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 8, 8, ['mr-2'])}${key}
+									</td>
+								</tr>`
+							);
 
-						$('td[data-name="' + localPath + '"]').on('click', function() {
+							$('td[data-name="' + localPath + '"]').on('click', function() {
 
-							$('td.xml-mapping').removeClass('selected');
-							$(this).addClass('selected');
+								$('td.xml-mapping').removeClass('selected');
+								$(this).addClass('selected');
 
-							xmlConfig.empty();
-							xmlConfig.append('<h2>&nbsp;</h2>');
-							xmlConfig.append('<div id="config"></div>');
+								xmlConfig.empty();
+								xmlConfig.append('<h2>&nbsp;</h2>');
+								xmlConfig.append('<div id="config"></div>');
 
-							var config = $('#config');
-							config.append('<label>Select action:</label>');
-							config.append('<select id="action-select" class="xml-config-select"></select>');
+								let config = $('#config');
+								config.append('<label>Select action:</label>');
+								config.append('<select id="action-select" class="xml-config-select"></select>');
 
-							var action = $('#action-select');
-							action.append('<option value="">Skip</option>');
-							action.append('<option value="ignore">Ignore branch</option>');
-							action.append('<option value="createNode">Create node</option>');
-							action.append('<option value="setProperty">Set property</option>');
+								let action = $('#action-select');
+								action.append('<option value="">Skip</option>');
+								action.append('<option value="ignore">Ignore branch</option>');
+								action.append('<option value="createNode">Create node</option>');
+								action.append('<option value="setProperty">Set property</option>');
 
-							config.append('<div id="options"></div>');
-							var options = $('#options');
+								config.append('<div id="options"></div>');
+								let options = $('#options');
 
-							action.on('change', function() {
+								action.on('change', function() {
 
-								// remove dialog options
-								$('#options').empty();
+									// remove dialog options
+									$('#options').empty();
 
-								switch ($(this).val()) {
-									case "createNode":
-										Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
-										break;
-									case "setProperty":
-										Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
-										break;
-									case "ignore":
-										// reset configuration
-										configuration[localPath] = { action: 'ignore' };
-										Importer.updateStructureSelector(localPath);
-										break;
+									switch ($(this).val()) {
+										case "createNode":
+											Importer.showCreateNodeOptions(options, key, localPath, structure, configuration, attributes, hasChildren);
+											break;
+										case "setProperty":
+											Importer.showSetPropertyOptions(options, key, localPath, structure, configuration, attributes);
+											break;
+										case "ignore":
+											// reset configuration
+											configuration[localPath] = { action: 'ignore' };
+											Importer.updateStructureSelector(localPath);
+											break;
 
-									default:
-										configuration[localPath] = {};
-										Importer.updateStructureSelector(localPath);
-										break;
+										default:
+											configuration[localPath] = {};
+											Importer.updateStructureSelector(localPath);
+											break;
+									}
+								});
+
+								// activate elements for existing configuration
+								let typeConfig = configuration[localPath];
+								if (typeConfig && typeConfig.action) {
+
+									$('#action-select').val(typeConfig.action).trigger('change');
 								}
 							});
 
-							// activate elements for existing configuration
-							var typeConfig = configuration[localPath];
-							if (typeConfig && typeConfig.action) {
+							let value = treeElement[key];
+							if (value) {
 
-								$('#action-select').val(typeConfig.action).trigger('change');
+								buildTree(htmlElement, key, value, localPath, level + 1);
 							}
-						});
-
-						var value = treeElement[key];
-						if (value) {
-
-							buildTree(htmlElement, key, value, localPath, level + 1);
 						}
-					});
+					}
 				}
 
 				buildTree($('#structure'), '', structure, '', 0);
 			}
 		});
+
 	},
-	hasRoot: function(configuration) {
-		var hasRoot = false;
-		Object.keys(configuration).forEach(function(k) {
-			var typeConfig = configuration[k];
+	hasRoot: (configuration) => {
+		let hasRoot = false;
+		for (let k in configuration) {
+			let typeConfig = configuration[k];
 			hasRoot |= typeConfig && typeConfig.isRoot;
-		});
+		}
 		return hasRoot;
 	},
-	isRoot: function(configuration, path) {
-		var typeConfig = configuration[path];
+	isRoot: (configuration, path) => {
+		let typeConfig = configuration[path];
 		return typeConfig && typeConfig.isRoot;
 	},
 	setRoot: function(configuration, path) {
@@ -1053,23 +1041,22 @@ let Importer = {
 			}
 		});
 	},
-	getParentType: function(path, configuration) {
+	getParentType: (path, configuration) => {
 
-		var parts = path.split('/');
-		var index = parts.length;
+		let parts = path.split('/');
+		let index = parts.length;
 
 		while (--index >= 0) {
 
-			var fullPath = parts.slice(0, index).join('/');
+			let fullPath = parts.slice(0, index).join('/');
 			if (configuration[fullPath] && configuration[fullPath].type) {
 				return configuration[fullPath].type;
 			}
 		}
 
 		return undefined;
-
 	},
-	showCreateNodeOptions: function(el, key, path, structure, configuration, attributes, hasChildren) {
+	showCreateNodeOptions: (el, key, path, structure, configuration, attributes, hasChildren) => {
 
 		if (!configuration[path]) {
 			configuration[path] = {};
@@ -1077,35 +1064,32 @@ let Importer = {
 
 		configuration[path].action = 'createNode';
 
-		var isRoot  = Importer.isRoot(configuration, path);
-		var hasRoot = Importer.hasRoot(configuration);
+		let isRoot  = Importer.isRoot(configuration, path);
+		let hasRoot = Importer.hasRoot(configuration);
 
 		if (!hasRoot) {
 			Importer.setRoot(configuration, path);
 			isRoot = true;
 		}
 
-		el.append('<label>Select type:</label>');
-		el.append('<select id="type-select" class="xml-config-select"><option>-- select --</option></select>');
+		el.append(`
+			<label>Select type:</label>
+			<select id="type-select" class="xml-config-select">
+				<option>-- select --</option>
+			</select>
+			${(!isRoot) ? '<div id="non-root-options"></div>' : ''}
+			<div id="property-select"></div>
+		`);
 
-		if (!isRoot) {
-			el.append('<div id="non-root-options"></div>');
-		}
+		let typeSelector     = $('#type-select');
+		let propertySelector = $('#property-select');
+		let typeConfig       = configuration[path];
 
-		el.append('<div id="property-select"></div>');
-
-		var typeSelector     = $('#type-select');
-		var propertySelector = $('#property-select');
-		var typeConfig       = configuration[path];
-
-		$.get(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name', function(data) {
+		fetch(Structr.rootUrl + 'SchemaNode?' + Structr.getRequestParameterName('sort') + '=name').then(response => response.json()).then(data => {
 
 			if (data && data.result) {
 
-				data.result.forEach(function(r) {
-
-					typeSelector.append('<option value="' + r.name + '">' + r.name + '</option>');
-				});
+				typeSelector.append(data.result.map(r => `<option value="${r.name}">${r.name}</option>`).join(''));
 
 				// trigger select event when an element is already configured
 				if (typeConfig && typeConfig.type) {
@@ -1116,23 +1100,22 @@ let Importer = {
 
 		typeSelector.on('change', function(e) {
 
-			var type  = $(this).val();
-			var names = [];
+			let type  = $(this).val();
+			let names = [];
 
 			Importer.updateStructureSelector(key, path, type);
 
 			if (!isRoot) {
 
-				var parentType = Importer.getParentType(path, configuration);
+				let parentType = Importer.getParentType(path, configuration);
 				if (parentType) {
 
-					var nonRoot    = $('#non-root-options');
+					let nonRoot    = $('#non-root-options');
 
 					nonRoot.empty();
-					nonRoot.append('<label>Select property name:</label>');
-					nonRoot.append('<select id="name-select" class="xml-config-select"></select>');
+					nonRoot.append('<div><label>Select property name:</label><select id="name-select" class="xml-config-select"></select></div>');
 
-					var nameSelect    = $('#name-select');
+					let nameSelect    = $('#name-select');
 
 					//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
 					Importer.fetchPropertyList(parentType, typeConfig, '', nameSelect, function() {
@@ -1145,9 +1128,9 @@ let Importer = {
 
 					}, function() {
 
-						var option       = nameSelect.children(':selected');
-						var isCollection = $(option).data('isCollection');
-						var value        = $(option).val();
+						let option       = nameSelect.children(':selected');
+						let isCollection = $(option).data('isCollection');
+						let value        = $(option).val();
 
 						if (value && value.length) {
 
@@ -1160,17 +1143,16 @@ let Importer = {
 
 					}, function(info, selectedString) {
 						if (info.type === type) {
-							nameSelect.append('<option ' + selectedString + ' data-is-collection="' + info.isCollection + '">' + info.jsonName + '</option>');
+							nameSelect.append(`<option ${selectedString} data-is-collection="${info.isCollection}">${info.jsonName}</option>`);
 						}
 					});
 
 					// allow text content of a node to be stored
 					if (!hasChildren) {
 
-						nonRoot.append('<label>Select property for text content:</label>');
-						nonRoot.append('<select id="content-select" class="xml-config-select"></select>');
+						nonRoot.append('<div><label>Select property for text content:</label><select id="content-select" class="xml-config-select"></select></div>');
 
-						var contentSelect = $('#content-select');
+						let contentSelect = $('#content-select');
 
 						//fetchPropertyList(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
 						Importer.fetchPropertyList(type, typeConfig, '', contentSelect, function() {
@@ -1184,21 +1166,21 @@ let Importer = {
 
 						}, function() {
 
-							var value = contentSelect.val();
+							let value = contentSelect.val();
 							if (value && value.length) {
 
 								configuration[path].content = value;
 							}
 
 						}, function(info, selectedString) {
+
 							if (info.type === 'String') {
 								contentSelect.append('<option ' + selectedString + '">' + info.jsonName + '</option>');
 							}
 						});
 					}
 
-					nonRoot.append('<label>Use batching for this type</label>');
-					nonRoot.append('<input type="checkbox" id="batching-checkbox" />');
+					nonRoot.append('<div><label>Use batching for this type</label><input type="checkbox" id="batching-checkbox"></div>');
 
 					if (configuration['batchType'] === type) {
 						$('#batching-checkbox').prop('checked', true);
@@ -1215,19 +1197,24 @@ let Importer = {
 			}
 
 			propertySelector.empty();
-			propertySelector.append('<h3>Attribute mapping</h3>');
-			propertySelector.append('<div class="attr-mapping"><table><tbody id="row-container"></tbody></table></div>');
+			propertySelector.append(`
+				<h3>Attribute mapping</h3>
+				<div class="attr-mapping">
+					<table>
+						<tbody id="row-container"></tbody>
+					</table>
+				</div>
+			`);
 
-			var rowContainer    = $('#row-container');
-			var inputProperties = [];
+			let rowContainer    = $('#row-container');
+			let inputProperties = [];
 			if (attributes[key]) {
 				inputProperties = Object.keys(attributes[key]);
 			}
 
-			//displayImportPropertyMapping: function(type, inputProperties, rowContainer, names, callback) {
-			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[path], function(mapping) {
+			Importer.displayImportPropertyMapping(type, inputProperties, rowContainer, names, false, configuration[path], (mapping) => {
 
-				var typeConfig = configuration[path];
+				let typeConfig = configuration[path];
 				if (!typeConfig) {
 
 					typeConfig = {};
@@ -1238,27 +1225,27 @@ let Importer = {
 				typeConfig.type       = type;
 				typeConfig.properties = {};
 
-				Object.keys(mapping).forEach(function(mappedKey) {
+				for (let mappedKey of Object.keys(mapping)) {
 					typeConfig.properties[mappedKey] = mapping[mappedKey];
-				});
+				}
 
 			}, function() {
 
 				// on select
-				var select = $(this);
-				var name   = select.attr('name');
-				var value  = select.val();
+				let select = $(this);
+				let name   = select.attr('name');
+				let value  = select.val();
 
 				if (name && name.length) {
 
-					var typeConfig = configuration[path];
+					let typeConfig = configuration[path];
 					typeConfig.properties[name] = value;
 				}
 			});
 
 		});
 	},
-	showSetPropertyOptions: function(el, key, path, structure, configuration, attributes) {
+	showSetPropertyOptions: (el, key, path, structure, configuration, attributes) => {
 
 		if (!configuration[path]) {
 			configuration[path] = {};
@@ -1266,7 +1253,7 @@ let Importer = {
 
 		configuration[path].action = 'setProperty';
 
-		var parentType = Importer.getParentType(path, configuration);
+		let parentType = Importer.getParentType(path, configuration);
 		if (!parentType) {
 
 			el.append('<p class="hint">Action &laquo;setProperty&raquo; cannot be used without enclosing &laquo;createNode&raquo; action.</p>');
@@ -1276,19 +1263,19 @@ let Importer = {
 			el.append('<label>Select property for text content:</label>');
 			el.append('<select id="text-select" class="xml-config-select"><option value="">--- ignore ---</option></select>');
 
-			var textSelect = $('#text-select');
-			var typeConfig = configuration[path];
+			let textSelect = $('#text-select');
+			let typeConfig = configuration[path];
 
-			Importer.fetchPropertyList(parentType, typeConfig, '', textSelect, function() {
+			Importer.fetchPropertyList(parentType, typeConfig, '', textSelect, () => {
 
 				// trigger select event when an element is already configured
 				if (typeConfig && typeConfig.propertyName) {
 					textSelect.val(typeConfig.propertyName).trigger('change');
 				}
 
-			}, function() {
+			}, () => {
 
-				var value = textSelect.val();
+				let value = textSelect.val();
 
 				if (value && value.length) {
 					configuration[path].propertyName = value;
@@ -1297,50 +1284,49 @@ let Importer = {
 			});
 		}
 	},
-	fetchPropertyList: function(type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) {
+	fetchPropertyList: (type, typeConfig, key, select, loadCallback, changeCallback, appendCallback) => {
 
-		var blacklist = [
+		let blacklist = [
 			'id', 'owner', 'ownerId', 'base', 'type', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
 		];
 
-		$.get(Structr.rootUrl + '_schema/' + type + '/all', function(typeInfo) {
+		fetch(Structr.rootUrl + '_schema/' + type + '/all').then(response => response.json()).then(typeInfo => {
 
 			if (typeInfo && typeInfo.result) {
 
 				// sort by name
-				typeInfo.result.sort(function(a, b) {
+				typeInfo.result.sort((a, b) => {
 					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
 				});
 
-				var selectedString = '';
-				var longestMatch   = 0;
+				let selectedString = '';
+				let longestMatch   = 0;
 
 				// create drop-down list with pre-selected options
-				typeInfo.result.forEach(function(info) {
+				for (let info of typeInfo.result) {
 
 					// skip names that are blacklisted
-					if (blacklist.indexOf(info.jsonName) >= 0) {
-						return;
+					if (blacklist.indexOf(info.jsonName) === -1) {
+
+						// match with longest target property wins
+						if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
+
+							selectedString = ' selected="selected"';
+							longestMatch   = info.jsonName.length;
+
+						} else {
+							selectedString = '';
+						}
+
+						if (appendCallback && typeof appendCallback === 'function') {
+							appendCallback(info, selectedString);
+						} else {
+							select.append(`<option${selectedString}>${info.jsonName}</option>`);
+						}
 					}
-
-					// match with longest target property wins
-					if (Importer.checkSelection(typeConfig, key, info.jsonName) && info.jsonName.length > longestMatch) {
-
-						selectedString = ' selected="selected"';
-						longestMatch   = info.jsonName.length;
-
-					} else {
-						selectedString = '';
-					}
-
-					if (appendCallback && typeof appendCallback === 'function') {
-						appendCallback(info, selectedString);
-					} else {
-						select.append('<option' + selectedString + '>' + info.jsonName + '</option>');
-					}
-				});
+				}
 
 				// onChange callback
 				if (changeCallback && typeof changeCallback === 'function') {
@@ -1354,19 +1340,22 @@ let Importer = {
 			}
 		});
 	},
-	updateStructureSelector: function(key, path, value) {
-		var elem = $('td.xml-mapping[data-name="' + path + '"]');
+	updateStructureSelector: (key, path, value) => {
+
+		let elem = $('td.xml-mapping[data-name="' + path + '"]');
 		elem.empty();
+
 		if (value && value.length) {
-			elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + value + '</b>');
+			elem.append(`<b>${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 8, 8, ['mr-2'])}${value}</b>`);
 		} else if (key && key.length) {
-			elem.append(_Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + key);
+			elem.append(`${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 8, 8, ['mr-2'])}${key}`);
 		}
 	},
-	updateStructureSelectorForSetProperty: function(key, path, propertyName) {
-		var elem = $('td.xml-mapping[data-name="' + path + '"]');
+	updateStructureSelectorForSetProperty: (key, path, propertyName) => {
+
+		let elem = $('td.xml-mapping[data-name="' + path + '"]');
 		elem.empty();
-		elem.append('<b>' + _Icons.getHtmlForIcon(_Icons.collapsed_icon) + '&nbsp;&nbsp;' + propertyName + '</b>');
+		elem.append(`<b>${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 8, 8, ['mr-2'])}${propertyName}</b>`);
 	},
 
 
@@ -1376,21 +1365,7 @@ let Importer = {
 	/* BEGIN NEW MIXED DATA IMPORT DIALOG */
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-	formatMixedImportDialog: function(file, mixedMappingConfig) {
+	formatMixedImportDialog: (file, mixedMappingConfig) => {
 
 		Structr.appendInfoTextToElement({
 			text: "Use the select box labelled &quot;Add target type..&quot; to add type mappings.",
@@ -1400,7 +1375,7 @@ let Importer = {
 			}
 		});
 
-		var targetTypeSelector = $('#target-type-select');
+		let targetTypeSelector = $('#target-type-select');
 		let customOnlyCheckbox = $('input#target-type-custom-only');
 
 		if (Importer.customTypesOnly) {
@@ -1422,20 +1397,23 @@ let Importer = {
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 		// collect CSV headers to use
-		$.post(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', JSON.stringify({
-
-			delimiter: $('#delimiter').val(),
-			quoteChar: $('#quote-char').val(),
-			recordSeparator: $('#record-separator').val()
-
-		}), function(csvHeaders) {
+		fetch(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', {
+			method: 'POST',
+			body: JSON.stringify({
+				delimiter: $('#delimiter').val(),
+				quoteChar: $('#quote-char').val(),
+				recordSeparator: $('#record-separator').val()
+			})
+		}).then(response => response.json()).then(csvHeaders => {
 
 			if (csvHeaders && csvHeaders.result && csvHeaders.result.headers) {
 
-				csvHeaders.result.headers.forEach(p => mixedMappingConfig.availableProperties[p] = {
-					name: p,
-					matched: false
-				});
+				for (let p of csvHeaders.result.headers) {
+					mixedMappingConfig.availableProperties[p] = {
+						name: p,
+						matched: false
+					}
+				}
 
 				Importer.displayMixedMappingConfiguration(mixedMappingConfig);
 
@@ -1448,32 +1426,32 @@ let Importer = {
 
 					targetTypeSelector.val('');
 				});
-
 			}
 		});
 	},
-	removeMixedTypeMapping: function(id, mixedMapping) {
+	removeMixedTypeMapping: (id, mixedMapping) => {
 
 		// remove "matched" flag
-		Object.keys(mixedMapping.mappedTypes[id].properties).forEach(key => {
+		for (let key of Object.keys(mixedMapping.mappedTypes[id].properties)) {
 			mixedMapping.availableProperties[key].matched = false;
-		});
+		}
 
 		delete mixedMapping.mappedTypes[id];
 
 		Importer.displayMixedMappingConfiguration(mixedMapping);
 	},
-	updateMixedMapping: function(id, file, data, mixedMappingConfig) {
+	updateMixedMapping: (id, file, data, mixedMappingConfig) => {
 
-		var targetTypeSelector = $('#target-type-select');
-		var matchingContainer  = $('#matching-properties-' + id);
-		var availableContainer = $('#available-properties-' + id);
-		var type               = targetTypeSelector.val();
+		let targetTypeSelector = $('#target-type-select');
+		let matchingContainer  = $('#matching-properties-' + id);
+		let availableContainer = $('#available-properties-' + id);
+		let type               = targetTypeSelector.val();
+		let typeConfig         = {};
 
 		// dont do anything if there is no type set
 		if (!type) {
 			return;
-		};
+		}
 
 		// add type to mixed mapping config
 		mixedMappingConfig.mappedTypes[id] = {
@@ -1486,14 +1464,12 @@ let Importer = {
 		availableContainer.empty();
 		matchingContainer.empty();
 
-		var typeConfig = {};
-
 		if (data) {
 			typeConfig['properties'] = data.mappings;
 			typeConfig['mappings']   = data.transforms;
-		};
+		}
 
-		var config = {
+		let config = {
 			type: type,
 			availablePropertyContainer: availableContainer,
 			matchingPropertyContainer: matchingContainer,
@@ -1502,24 +1478,27 @@ let Importer = {
 			typeConfig: typeConfig,
 			mixedMappingConfig: mixedMappingConfig,
 			displayMatchingPropertiesOnly: true,
-			onLoadComplete: function() {
+			onLoadComplete: () => {
 
 				$('#start-import').off('click').on('click', function() {
 
-					var configInfo = Importer.collectCSVImportConfigurationInfo();
-					var allowImport = (configInfo.errors.length === 0);
+					let configInfo = Importer.collectCSVImportConfigurationInfo();
+					let allowImport = (configInfo.errors.length === 0);
 
 					if (!allowImport) {
 
-						configInfo.errors.forEach(function(e) {
+						for (let e of configInfo.errors) {
 							new MessageBuilder().title(e.title).error(e.message).show();
-						});
+						}
 
 					} else {
 
 						configInfo.config.mixedMappings = mixedMappingConfig.mappedTypes;
 
-						$.post(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', JSON.stringify(configInfo.config));
+						fetch(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', {
+							method: 'POST',
+							body: JSON.stringify(configInfo.config)
+						});
 					}
 				})
 			}
@@ -1527,9 +1506,9 @@ let Importer = {
 
 		Importer.updateAdvancedImportPropertyMapping(config);
 	},
-	updateAdvancedImportPropertyMapping: function(config) {
+	updateAdvancedImportPropertyMapping: (config) => {
 
-		var blacklist = [
+		let blacklist = [
 			'owner', 'ownerId', 'base', 'type', 'relType', 'createdBy', 'deleted', 'hidden', 'createdDate', 'lastModifiedDate',
 			'visibleToPublicUsers', 'visibleToAuthenticatedUsers', 'visibilityStartDate', 'visibilityEndDate',
 			'lastModifiedBy', 'createdBy', 'grantees', 'structrChangeLog'
@@ -1537,9 +1516,9 @@ let Importer = {
 
 		if ($('input[name=import-type]:checked').val() === 'rel') {
 			blacklist.push('id');
-		};
+		}
 
-		$.get(Structr.rootUrl + '_schema/' + config.type + '/all', function(typeInfo) {
+		fetch(Structr.rootUrl + '_schema/' + config.type + '/all').then(response => response.json()).then(typeInfo => {
 
 			if (typeInfo && typeInfo.result) {
 
@@ -1548,15 +1527,14 @@ let Importer = {
 					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
 				});
 
-				var mapping = config.mixedMappingConfig;
+				let mapping = config.mixedMappingConfig;
 
-				Object.keys(mapping.availableProperties).forEach(function(key, i) {
+				Object.keys(mapping.availableProperties).forEach((key, i) => {
 
-					let inputProperty = mapping.availableProperties[key];
-
-					var inputPropertyName = inputProperty.name;
-					var longestMatch      = 0;
-					var matchFound        = false;
+					let inputProperty     = mapping.availableProperties[key];
+					let inputPropertyName = inputProperty.name;
+					let longestMatch      = 0;
+					let matchFound        = false;
 					config.names[i]       = inputPropertyName;
 
 					// create drop-down list with pre-selected options
@@ -1567,7 +1545,7 @@ let Importer = {
 							// match with longest target property wins
 							if (Importer.checkSelection(config.typeConfig, inputPropertyName, info.jsonName) && info.jsonName.length > longestMatch) {
 
-								var mappedType = mapping.mappedTypes[config.type];
+								let mappedType = mapping.mappedTypes[config.type];
 
 								mappedType.properties[inputPropertyName] = info.jsonName;
 								longestMatch                             = info.jsonName.length;
@@ -1593,11 +1571,10 @@ let Importer = {
 			}
 		});
 	},
-	displayMixedMappingConfiguration: function(mixedMapping) {
+	displayMixedMappingConfiguration: (mixedMapping) => {
 
 		let availableProperties = $('#available-properties');
 		let mappedTypes         = $('#types-container');
-		let options             = '<option>Add relationship</option>';
 
 		availableProperties.empty();
 		mappedTypes.empty();
@@ -1607,46 +1584,36 @@ let Importer = {
 			let property = mixedMapping.availableProperties[key];
 
 			if (property.matched === false) {
-				availableProperties.append('<span>' + property.name + '</span>');
+				availableProperties.append(`<span>${property.name}</span>`);
 			}
 		}
 
-		for (let key of Object.keys(mixedMapping.mappedTypes)) {
+		let options = `
+			<option>Add relationship</option>
+			${Object.keys(mixedMapping.mappedTypes).map(key => `<option>${key}</option>`).join('')}
+		`;
 
-			options += '<option>' + key + '</option>';
-		}
-
-		for (let key of Object.keys(mixedMapping.mappedTypes)) {
+		for (let key in mixedMapping.mappedTypes) {
 
 			let mappedType = mixedMapping.mappedTypes[key];
 
-			let html = Importer.templates.snippetTypeContainer({ type: mappedType.name, id: mappedType.name });
-			mappedTypes.append(html);
+			mappedTypes.append(Importer.templates.snippetTypeContainer({ type: mappedType.name, id: mappedType.name }));
 
 			let propertyContainer     = $('#matching-properties-' + mappedType.name);
 			let relationshipContainer = $('#relationships-' + mappedType.name);
 
-			for (let propertyName of Object.keys(mappedType.properties)) {
+			propertyContainer.append(Object.keys(mappedType.properties).map(propertyName => Importer.templates.snippetMappingRow({ name: propertyName })).join(''));
+			relationshipContainer.append(mappedType.relationships.map(propertyName => Importer.templates.snippetMappingRow({ name: propertyName })).join(''));
 
-				let html = Importer.templates.snippetMappingRow({ name: propertyName });
-				propertyContainer.append(html);
-			}
-
-			for (let propertyName of mappedType.relationships) {
-
-				let html = Importer.templates.snippetMappingRow({ name: propertyName });
-				relationshipContainer.append(html);
-			}
-
-			$('#remove-button-' + mappedType.name).off('click').on('click', function(e) {
+			$('#remove-button-' + mappedType.name).off('click').on('click', () => {
 				Importer.removeMixedTypeMapping(mappedType.name, mixedMapping);
 			});
 
 			let addRelationshipContainer = $('#add-relationship-' + mappedType.name);
 
-			addRelationshipContainer.append('<select class="add-selector" id="' + mappedType.name + '-related-to">' + options + '</select>');
+			addRelationshipContainer.append(`<select class="add-selector" id="${mappedType.name}-related-to">${options}</select>`);
 
-			$('#' + mappedType.name + '-related-to').off('change').on('change', function(e) {
+			$(`#${mappedType.name}-related-to`).off('change').on('change', function(e) {
 
 				mappedType.relationships.push($(this).val());
 				Importer.displayMixedMappingConfiguration(mixedMapping);
@@ -1680,7 +1647,7 @@ let Importer = {
 			<div class="flex flex-grow">
 			
 				<button class="refresh flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+					${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 				</button>
 			
 				<div class="button-and-input inline-flex items-center">
@@ -1692,7 +1659,7 @@ let Importer = {
 					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
 
 					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel
 					</button>
 
 				</div>
@@ -1720,7 +1687,7 @@ let Importer = {
 					<tbody>
 						<tr id="options-row1">
 							<td valign="top">
-								<label>Delimiter:</label>
+								<label class="inline-block min-w-36">Delimiter:</label>
 								<select id="delimiter" class="import-option">
 									<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
 									<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
@@ -1728,7 +1695,7 @@ let Importer = {
 								</select>
 							</td>
 							<td valign="top">
-								<label>Quote character:</label>
+								<label class="inline-block min-w-36">Quote character:</label>
 								<select id="quote-char" class="import-option">
 									<option ${(config.qc === '' ? 'selected' : '')}></option>
 									<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
@@ -1736,7 +1703,7 @@ let Importer = {
 								</select>
 							</td>
 							<td valign="top">
-								<label>Record separator:</label>
+								<label class="inline-block min-w-36">Record separator:</label>
 								<select id="record-separator" class="import-option">
 									<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
 									<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
@@ -1744,25 +1711,32 @@ let Importer = {
 								</select>
 							</td>
 							<td valign="top">
-								<label>Commit interval:</label>
+								<label class="inline-block min-w-36">Commit interval:</label>
 								<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
 							</td>
 						</tr>
 						<tr id="options-row2">
 							<td valign="top">
-								<label>Import type:</label><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
-								<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship<br>
-								<label></label><input type="radio" name="import-type" value="graph" ${(config.importType === 'graph' ? 'checked' : '')}> Mixed
+								<div class="flex">
+									<div class="min-w-36">Import type:</div>
+									<div class="flex flex-col">
+										<label class="inline-block"><input type="radio" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node</label>
+										<label class="pl-36"><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship</label>
+										<label class="pl-36"><input type="radio" name="import-type" value="graph" ${(config.importType === 'graph' ? 'checked' : '')}> Mixed</label>
+									</div>
+								</div>
 							</td>
 							<td valign="top">
-								<input type="checkbox" id="rfc4180-mode" /><label for="rfc4180-mode">RFC4180 mode</label><br>
-								<input type="checkbox" id="strict-quotes" /><label for="strict-quotes">Strict quotes</label><br>
-								<input type="checkbox" id="ignore-invalid" /><label for="ignore-invalid">Ignore invalid lines</label><br>
-								<input type="checkbox" id="distinct" /><label for="distinct">Skip duplicates</label>
+								<div class="flex flex-col">
+									<label><input type="checkbox" id="rfc4180-mode">RFC4180 mode</label>
+									<label><input type="checkbox" id="strict-quotes">Strict quotes</label>
+									<label><input type="checkbox" id="ignore-invalid">Ignore invalid lines</label>
+									<label><input type="checkbox" id="distinct">Skip duplicates</label>
+								</div>
 							</td>
 							<td colspan="2" valign="top">
-								<label for="range">Line range:</label>
-								<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
+								<label class="inline-block min-w-36" for="range">Line range:</label>
+								<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10">
 							</td>
 						</tr>
 					</tbody>
@@ -1811,77 +1785,6 @@ let Importer = {
 				<div id="add-relationship-${config.type}">
 				</div>
 			</div>
-		`,
-		wizardCSV: config => `
-			<div>
-				<div id="sample">
-					<h3>Data Sample</h3>
-					<pre class="csv-preview">${config.data.result.lines}</pre>
-				</div>
-				<h3>Import Options</h3>
-				<table id="csv-import">
-					<tbody>
-						<tr id="options-row1">
-							<td>
-								<label for="delimiter">Delimiter:</label>
-								<select id="delimiter" class="import-option">
-									<option ${(config.delim === ',' ? 'selected' : '')}>,</option>
-									<option ${(config.delim === ';' ? 'selected' : '')}>;</option>
-									<option ${(config.delim === '|' ? 'selected' : '')}>|</option>
-								</select>
-							</td>
-							<td>
-								<label for="quote-char">Quote character:</label>
-								<select id="quote-char" class="import-option">
-									<option ${(config.qc === '' ? 'selected' : '')}></option>
-									<option ${(config.qc === '"' ? 'selected' : '')}>&quot;</option>
-									<option ${(config.qc === '\'' ? 'selected' : '')}>\'</option>
-								</select>
-							</td>
-							<td>
-								<label for="record-separator">Record separator:</label>
-								<select id="record-separator" class="import-option">
-									<option ${(config.data.result.separator ===    'LF' ? 'selected' : '')}>LF</option>
-									<option ${(config.data.result.separator ===    'CR' ? 'selected' : '')}>CR</option>
-									<option ${(config.data.result.separator === 'CR+LF' ? 'selected' : '')}>CR+LF</option>
-								</select>
-							</td>
-						</tr>
-						<tr id="options-row2">
-							<td>
-								<label for="commit-interval">Commit interval:</label>
-								<input type="number" id="commit-interval" value="1000" placeholder="1000" title="Enter 0 to disable periodic commit.">
-							</td>
-							<td>
-								<input type="checkbox" id="strict-quotes" /><label for="strict-quotes">Strict Quotes</label><br>
-								<input type="checkbox" id="ignore-invalid" /><label for="ignore-invalid">Ignore invalid lines</label>
-							</td>
-							<td>
-								<label for="range">Line range:</label>
-								<input type="text" id="range" title="Enter range (0-100)." placeholder="e.g. 1-100 or 1,2,3-10" />
-							</td>
-						</tr>
-						<tr id="options-row3">
-							<td>
-								<label for="import-type">Import type:</label><input type="radio" id="import-type" name="import-type" value="node" ${(config.importType === 'node' ? 'checked' : '')}> Node<br>
-								<label></label><input type="radio" name="import-type" value="rel" ${(config.importType === 'rel' ? 'checked' : '')}> Relationship
-							</td>
-							<td>
-								<label for="distinct">Skip duplicates:</label>
-								<input type="checkbox" id="distinct" /><br>
-							</td>
-							<td>
-							</td>
-						</tr>
-					</tbody>
-				</table>
-				<h3>Select target type</h3>
-				<select id="target-type-select" name="targetType">
-					<option value="" disabled="disabled" selected="selected">Select target type..</option>
-				</select>
-				<span><input type="checkbox" id="target-type-custom-only" checked><label for="target-type-custom-only">Only show custom types</label></span>
-				<div id="property-select"></div>
-			</div>
-		`,
+		`
 	}
 };

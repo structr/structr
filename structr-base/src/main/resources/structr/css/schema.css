@@ -109,11 +109,6 @@
 	background-color: var(--input-background);
 }
 
-#schema-show-overlays {
-	/*margin-left:16px;*/
-	/*margin-top:0;*/
-}
-
 #node-type-selector, #rel-type-selector, #saved-layout-selector {
 	margin-right: 1rem;
 	min-width: 20rem;
@@ -128,23 +123,10 @@
 	margin-right: 8px;
 }
 
-#expand-all, #compact-all {
-	padding: 2px 4px ! important;
-	margin: 0 6px 4px 4px ! important;
-	height: 24px;
-}
-
-#expand-all img, #compact-all img {
-	margin: 0 ! important;
-	border: 0 ! important;
-	vertical-align: top;
-}
-
 .schema-props {
 	background-color: var(--solid-white);
 	width: 100%;
 	border-collapse: collapse;
-	/*border: 1px solid var(--black-opacity-125);*/
 }
 
 #methods-container {
@@ -193,7 +175,6 @@
 }
 
 .related-attrs .cardinality {
-	/*font-size: x-small;*/
 	font-style: initial;
 	font-weight: bold;
 	position: relative;
@@ -224,7 +205,6 @@
 	font-style: italic;
 	padding-top: 5px;
 	padding-bottom: 6px;
-	/*font-size: 1.1em;*/
 }
 
 #schema-graph .label {
@@ -258,40 +238,9 @@
 	z-index: 9999;
 }
 
-#relationship-label {
-	width: 98%;
-	/*font-size: 1em;*/
-	border: none;
-	background: transparent;
-}
-
-
-.schema.expanded .property-name,
-.schema.expanded .property-type,
-.schema.expanded .property-dbname,
-.schema.expanded .property-format,
-.schema.expanded .property-code,
-.schema.expanded .property-comment,
-.schema.expanded .property-attrs,
-.schema.expanded .property-default,
-#relationship-label {
-	border: none;
-	background: transparent;
-}
-
-.schema.expanded tr, .schema.expanded .schema-props, .schema-prop-localizations {
-	background: transparent ! important;
-}
-
-.schema.expanded td {
-	border: none ! important;
-}
-
 .schema b,
 .schema-details b {
-	/*font-size: 1.5em;*/
 	display: inline-block;
-	/*margin: 2px 0;*/
 }
 
 .schema b:hover,
@@ -305,7 +254,6 @@
 .schema-details .localization-locale:hover,
 .schema-details .localization-name:hover {
 	cursor: text;
-	/*box-shadow: 2px 0 var(--solid-black);*/
 	color: var(--gray-222);
 	background-color: var(--very-very-light-yellow);
 	-webkit-box-shadow: 0 0 5px yellow;
@@ -320,7 +268,6 @@
 .schema-details .new-name,
 .schema-details .new-relationshipType,
 .schema .new-name {
-	/*font-size: 1.3em;*/
 	margin: -2px 0 -2px 0;
 }
 
@@ -333,47 +280,11 @@
 }
 
 .schema.compact .new-name {
-	/*font-size: 1.3em;*/
 	margin: -3px 0 -3px 0;
-}
-
-.schema .type-icon {
-	display: inline;
-}
-
-.schema .icon {
-	position: absolute;
-	right: 6px;
-	top: 6px;
-	cursor: pointer;
-}
-
-.schema .edit {
-	right: 2rem;
 }
 
 .schema.light b {
 	color: var(--gray-999);
-}
-
-#schema-tools, #sync-schema, #show-snapshots, #schema-display-options, #global-schema-methods {
-	/*margin: 0 0 4px 12px;*/
-}
-
-#saved-layout-selector-main {
-	/*margin-right: -2px;*/
-	/*margin-left: 10px;*/
-	/*padding: 2px 2px 3px 2px;*/
-	/*border: 1px solid var(--black-opacity-125);*/
-	/*color: var(--gray-222);*/
-	/*vertical-align: middle;*/
-	/*line-height: 1.3em;*/
-	/*height: 25px;*/
-	/*margin-top: -2px;*/
-}
-
-.schema-visibility-table th {
-	position: relative;
 }
 
 .schema-visibility-table .toggle-column-header {
@@ -382,28 +293,9 @@
 	padding-left: .5rem;
 }
 
-.schema-visibility-table th .invert-icon {
-	position: absolute;
-	right: 1.5rem;
-	top: .675rem;
-	cursor: pointer;
-	/*margin-left: 4rem;*/
-}
-
 .schema-visibility-table td:first-child {
 	text-align: center;
 }
-
-.schema-visibility-table th .toggle-all-types {
-	position: absolute;
-	right: 0;
-	top: .675rem;
-}
-
-#ggist-url {
-	margin-left: 12px;
-}
-
 
 .sliderLabel {
 	padding-top: 10px;
@@ -413,14 +305,6 @@
 	padding: 2px 4px;
 }
 
-.schema-details .add-icon, #code-main .add-icon {
-	margin: 4px 0 2px 4px;
-}
-
-.schema-details .preview-icon, #code-main .preview-icon {
-	margin-left: 2px;
-}
-
 .schema b {
 	margin: 0 3.5rem;
 	display: block;
@@ -428,37 +312,9 @@
 	font-weight: 500;
 }
 
-.schema .icon {
-	display: none;
-}
-
-.schema:hover .icon {
-	display: inline-block;
-}
-
 .schema .extends-class {
 	text-align: center;
 	display: none;
-}
-
-.schema .icon.delete {
-	/*margin-right: .5rem;*/
-}
-
-.schema .icon.delete:hover {
-	opacity: .6;
-}
-
-.schema hr {
-	display: none;
-}
-
-#edit-parent-class {
-	cursor: pointer;
-}
-
-#edit-parent-class.disabled {
-	cursor: not-allowed;
 }
 
 .edge-style.active {
@@ -476,16 +332,8 @@
 	flex-direction: column;
 }
 
-#inheritance-tree .icon {
-	display: none;
-}
-
 #inheritance-tree .jstree-default .jstree-node {
 	position: relative;
-}
-
-#inheritance-tree a.jstree-hovered .icon {
-	display: inline-block;
 }
 
 #inheritance-tree .jstree-anchor {
