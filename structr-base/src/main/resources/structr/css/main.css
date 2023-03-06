@@ -236,7 +236,7 @@ button.yesButton, button.noButton {
 	color: var(--medium-blue);
 }
 .icon-yellow {
-	color: var(--light-yellow);
+	color: var(--color-folder);
 }
 .icon-white {
 	color: var(--solid-white);
@@ -261,7 +261,7 @@ button.yesButton, button.noButton {
 	fill: var(--medium-blue);
 }
 .fill-yellow {
-	fill: var(--light-yellow);
+	fill: var(--color-folder);
 }
 .fill-white {
 	fill: var(--solid-white);

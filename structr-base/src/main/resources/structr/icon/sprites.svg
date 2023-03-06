@@ -479,11 +479,10 @@
 
 
 	<!-- icons for pages tree -->
-	<symbol id="dom-page" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-		<path d="M3.75 23.25H20.25C21.0784 23.25 21.75 22.5784 21.75 21.75V8.121C21.7499 7.72345 21.592 7.3422 21.311 7.061L15.439 1.189C15.1578 0.907982 14.7765 0.750085 14.379 0.75H3.75C2.933 0.75 2.25 1.433 2.25 2.25V21.75C2.25 22.567 2.933 23.25 3.75 23.25Z"></path>
-		<path d="M21.75 8.25H15.75C15.3522 8.25 14.9706 8.09196 14.6893 7.81066C14.408 7.52936 14.25 7.14782 14.25 6.75V0.75"></path>
+	<symbol id="dom-page" viewBox="0 0 24 24" stroke-width="1.5px" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+		<rect x="1.51" y="2.253" width="21" height="19.5" rx="1.5" ry="1.5"></rect>
+		<line x1="1.51" y1="6.753" x2="22.51" y2="6.753"></line>
 	</symbol>
-
 	<symbol id="browser-page" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<line x1="8.75" y1="6.5" x2="8.75" y2="22"></line>
 		<line x1="4" y1="10.75" x2="5.5" y2="10.75"></line>
@@ -495,21 +494,17 @@
 		<line x1="0.75" y1="6.5" x2="23.25" y2="6.5"></line>
 	</symbol>
 	<symbol id="dom-block" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-		<polygon points="22.5,8.5 22.5,18 12,22.5 1.5,18 1.5,7.5 12,12 22.5,7.5"></polygon>
-		<path d="M7.5,3V6c0,.828,2.015,1.5,4.5,1.5s4.5-.672,4.5-1.5V3"></path>
-		<path d="M1.5,7.5 7.5,4.65V6c0,.828,2.015,1.5,4.5,1.5s4.5-.672,4.5-1.5V4.65 L22.5,7.5 L12,12 L1.5,7.5"></path>
-		<line x1="12" y1="22.5" x2="12" y2="12"></line>
-		<ellipse cx="12" cy="3" rx="4.5" ry="1.5"></ellipse>
+		<path d="M1.817,4.524l9.1-3.568a2.936,2.936,0,0,1,2.162,0l9.1,3.568A1.763,1.763,0,0,1,23.25,6.186V17.814a1.763,1.763,0,0,1-1.067,1.662l-9.1,3.569a2.956,2.956,0,0,1-2.162,0l-9.1-3.569A1.763,1.763,0,0,1,.75,17.814V6.186A1.763,1.763,0,0,1,1.817,4.524Z"></path>
+		<path d="M12 9.353L1.104 5.081" ></path>
+		<path d="M12 9.353L22.896 5.081"></path>
+		<path d="M12 23.25L12 9.353"></path>
 	</symbol>
 	<symbol id="dom-comment" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M12.75.75A10.485,10.485,0,0,0,3.833,16.775L.75,23.25l6.474-3.083A10.5,10.5,0,1,0,12.75.75Z"></path>
 	</symbol>
-	<symbol id="dom-template" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+	<symbol id="dom-template" viewBox="0 0 24 24" stroke-width="1.5px" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<rect x="0.75" y="2" width="22.5" height="20" rx="1.5"></rect>
-		<rect x="4" y="9" width="16" height="3.5" rx="0.75"></rect>
-		<rect x="4" y="15.5" width="5" height="3.5" rx="0.75"></rect>
-		<line x1="12" y1="15.5" x2="20" y2="15.5"></line>
-		<line x1="12" y1="19" x2="20" y2="19"></line>
+		<line x1="8.75" y1="6.5" x2="8.75" y2="22"></line>
 		<line x1="0.75" y1="6.5" x2="23.25" y2="6.5"></line>
 	</symbol>
 	<symbol id="dom-content" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -519,23 +514,14 @@
 		<path d="M6.75 11.25L12 11.25"></path>
 	</symbol>
 	<!-- non-trivial color icon -->
-	<symbol id="dom-active-element"  xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-		<path stroke="none" fill="#5ded61" d="M16.966 4.78699C17.129 4.8848 17.2638 5.02317 17.3574 5.18861C17.451 5.35405 17.5001 5.54092 17.5 5.73099V10.37L12 13.908L6.5 10.37V5.73099C6.49986 5.54092 6.54898 5.35405 6.64257 5.18861C6.73616 5.02317 6.87102 4.8848 7.034 4.78699L11.434 2.14699C11.605 2.0444 11.8006 1.9902 12 1.9902C12.1994 1.9902 12.395 2.0444 12.566 2.14699L16.966 4.78699Z"></path>
-		<path stroke="none" fill="#aaf6ac" d="M9.034 6.62799L14.68 3.41599L12.566 2.14699C12.395 2.0444 12.1994 1.9902 12 1.9902C11.8006 1.9902 11.605 2.0444 11.434 2.14699L7.034 4.78699C6.87102 4.8848 6.73616 5.02317 6.64257 5.18861C6.54898 5.35405 6.49986 5.54092 6.5 5.73099V10.37L9.034 12V6.62799Z"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M12 8.408V13.908"></path>
-		<path stroke="none" fill="#ff6974" d="M22.5 13.583L17.5 10.37L12 13.908V19.17L16.905 22.325C17.0825 22.4391 17.289 22.4998 17.5 22.4998C17.711 22.4998 17.9175 22.4391 18.095 22.325L22.495 19.495C22.6489 19.3948 22.7753 19.2577 22.8627 19.0961C22.95 18.9345 22.9955 18.7537 22.995 18.57V14.508C22.9961 14.3248 22.9513 14.1442 22.8649 13.9827C22.7784 13.8211 22.653 13.6838 22.5 13.583V13.583Z"></path>
-		<path stroke="none" fill="#ff364d" d="M12 13.908V19.17L14.264 20.623L14.269 15.269L19.629 11.74L17.5 10.37L12 13.908Z"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M17.5 17.208V22.5"></path>
-		<path stroke="none" fill="#fae83f" d="M6.5 10.37L1.505 13.583C1.35106 13.6832 1.22466 13.8203 1.13732 13.9819C1.04998 14.1435 1.00449 14.3243 1.005 14.508V18.57C1.00449 18.7537 1.04998 18.9345 1.13732 19.0961C1.22466 19.2577 1.35106 19.3948 1.505 19.495L5.905 22.325C6.08246 22.4391 6.28901 22.4998 6.5 22.4998C6.71099 22.4998 6.91754 22.4391 7.095 22.325L12 19.17V13.908L6.5 10.37Z"></path>
-		<path stroke="none" fill="#f8f0a4" d="M3.561 15.444L9.034 12L6.5 10.37L1.505 13.583C1.35106 13.6832 1.22466 13.8203 1.13732 13.9819C1.04998 14.1435 1.00449 14.3243 1.005 14.508V18.57C1.00449 18.7537 1.04998 18.9345 1.13732 19.0961C1.22466 19.2577 1.35106 19.3948 1.505 19.495L3.561 20.817V15.444Z"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M6.5 17.208L1.131 13.987"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M6.5 17.208V22.5"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M12 8.408L6.641 5.192"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M17.359 5.192L12 8.408"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M22.869 13.987L17.5 17.208"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M16.966 4.78699C17.129 4.8848 17.2638 5.02317 17.3574 5.18861C17.451 5.35405 17.5001 5.54092 17.5 5.73099V10.37L12 13.908L6.5 10.37V5.73099C6.49986 5.54092 6.54898 5.35405 6.64257 5.18861C6.73616 5.02317 6.87102 4.8848 7.034 4.78699L11.434 2.14699C11.605 2.0444 11.8006 1.9902 12 1.9902C12.1994 1.9902 12.395 2.0444 12.566 2.14699L16.966 4.78699Z"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M17.5 17.208L12 13.908L17.5 10.37L22.5 13.583C22.6539 13.6832 22.7803 13.8203 22.8677 13.9819C22.955 14.1435 23.0005 14.3243 23 14.508V18.57C23.0005 18.7537 22.955 18.9345 22.8677 19.0961C22.7803 19.2577 22.6539 19.3948 22.5 19.495L18.1 22.325C17.9225 22.4391 17.716 22.4998 17.505 22.4998C17.294 22.4998 17.0875 22.4391 16.91 22.325L12 19.17V13.908"></path>
-		<path stroke-linecap="round" stroke-linejoin="round" d="M12 13.908V19.17L7.1 22.325C6.92254 22.4391 6.71599 22.4998 6.505 22.4998C6.29401 22.4998 6.08746 22.4391 5.91 22.325L1.51 19.495C1.35421 19.396 1.22583 19.2594 1.13671 19.0977C1.04758 18.9361 1.00057 18.7546 1 18.57V14.508C0.999492 14.3243 1.04498 14.1435 1.13232 13.9819C1.21966 13.8203 1.34606 13.6832 1.5 13.583L6.5 10.37L12 13.908ZM12 13.908L6.5 17.208"></path>
+	<symbol id="dom-active-element" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M1.104 5.081L12 9.353L22.896 5.081L12 0.809L1.104 5.081" stroke="none" style="fill: var(--icon-color-dark-green)"></path>
+		<path d="M1.104 5.081L12 9.353L12 23.25L1.104 18.978L1.104 5.081" stroke="none" style="fill: var(--light-red)"></path>
+		<path d="M12 9.353L22.896 5.081L22.896 18.978L12 23.25L12 9.353" stroke="none" style="fill: var(--color-folder);"></path>
+		<path d="M12 23.25L12 9.353"></path>
+		<path d="M12 9.353L22.896 5.081"></path>
+		<path d="M12 9.353L1.104 5.081"></path>
+		<path d="M1.817,4.524l9.1-3.568a2.936,2.936,0,0,1,2.162,0l9.1,3.568A1.763,1.763,0,0,1,23.25,6.186V17.814a1.763,1.763,0,0,1-1.067,1.662l-9.1,3.569a2.956,2.956,0,0,1-2.162,0l-9.1-3.569A1.763,1.763,0,0,1,.75,17.814V6.186A1.763,1.763,0,0,1,1.817,4.524Z" fill="transparent"></path>
 	</symbol>
 
 	<!-- more non-trivial color icons -->
