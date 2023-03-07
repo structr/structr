@@ -37,6 +37,7 @@ import org.structr.messaging.implementation.mqtt.entity.MQTTClient;
 import org.structr.messaging.implementation.mqtt.function.MQTTPublishFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTSubscribeTopicFunction;
 import org.structr.messaging.implementation.mqtt.function.MQTTUnsubscribeTopicFunction;
+import org.structr.messaging.implementation.pulsar.PulsarClient;
 import org.structr.module.StructrModule;
 import org.structr.schema.SourceFile;
 import org.structr.schema.action.Actions;
@@ -191,6 +192,27 @@ public class MessageEngineModule implements StructrModule {
 
 			}
 
+			for (final PulsarClient client : app.nodeQuery(PulsarClient.class).andType(PulsarClient.class).sort(PulsarClient.name).getAsList()) {
+
+				final Map<String, Object> entry = new TreeMap<>();
+
+				entry.put("type",client.getType());
+				entry.put("name", client.getProperty(KafkaClient.name));
+
+				entry.put("servers", client.getServers());
+				entry.put("enabled", client.getEnabled());
+
+				List<String> subIds = new ArrayList<>();
+				for (MessageSubscriber sub : client.getSubscribers()) {
+					subIds.add(sub.getUuid());
+				}
+
+				entry.put("subscribers", subIds);
+
+				entities.add(entry);
+
+			}
+
 			tx.success();
 		}
 
@@ -230,6 +252,10 @@ public class MessageEngineModule implements StructrModule {
 						app.delete(toDelete);
 					}
 
+					for (final PulsarClient toDelete : app.nodeQuery(PulsarClient.class).getAsList()) {
+						app.delete(toDelete);
+					}
+
 					for (final MQTTClient toDelete : app.nodeQuery(MQTTClient.class).getAsList()) {
 						app.delete(toDelete);
 					}
@@ -257,6 +283,11 @@ public class MessageEngineModule implements StructrModule {
 							case "KafkaClient":
 								map = PropertyMap.inputTypeToJavaType(context, KafkaClient.class, entry);
 								client = app.create(KafkaClient.class, map);
+								client.setSubscribers(getSubscribersByIds(subIds));
+								break;
+							case "PulsarClient":
+								map = PropertyMap.inputTypeToJavaType(context, PulsarClient.class, entry);
+								client = app.create(PulsarClient.class, map);
 								client.setSubscribers(getSubscribersByIds(subIds));
 								break;
 							case "MQTTClient":

@@ -10,6 +10,10 @@
 	<artifactId>structr-messaging-engine-module</artifactId>
 	<packaging>jar</packaging>
 
+	<properties>
+		<pulsar.version>2.11.0</pulsar.version>
+	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>${project.groupId}</groupId>
@@ -47,6 +51,13 @@
 			<groupId>org.apache.kafka</groupId>
 			<artifactId>kafka-clients</artifactId>
 			<version>3.2.0</version>
+		</dependency>
+
+		<!-- Pulsar -->
+		<dependency>
+			<groupId>org.apache.pulsar</groupId>
+			<artifactId>pulsar-client</artifactId>
+			<version>${pulsar.version}</version>
 		</dependency>
 
 		<!-- Tests -->
