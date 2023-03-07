@@ -109,7 +109,7 @@ public interface KafkaClient extends MessageClient {
 
 				} catch (Throwable t) {
 					final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
-					logger.error("Unable to initialize Kafka clients: {}", t.getMessage());
+					logger.error("Unable to initialize Kafka clients. " + t);
 				}
 			});
 
@@ -208,7 +208,7 @@ public interface KafkaClient extends MessageClient {
 			}
 		} catch (JsonSyntaxException | KafkaException ex) {
 			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
-			logger.error("Could not refresh Kafka configuration: " + ex.getLocalizedMessage());
+			logger.error("Could not refresh Kafka configuration. " + ex);
 		}
 	}
 
@@ -259,7 +259,7 @@ public interface KafkaClient extends MessageClient {
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
-			logger.error("Exception while trying to generate KafkaClient configuration: ", ex);
+			logger.error("Exception while trying to generate KafkaClient configuration. " + ex);
 		}
 
 		return props;
@@ -307,12 +307,12 @@ public interface KafkaClient extends MessageClient {
 
 			} catch (KafkaException ex) {
 
-				logger.info("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. Check for configuration faults. " + ex.getLocalizedMessage());
+				logger.info("Could not setup consumer for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. Check for configuration faults. " + ex);
 				try {Thread.sleep(1000);} catch (InterruptedException iex) {}
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Could not refresh KafkaConsumer configuration: ", ex);
+				logger.error("Could not refresh KafkaConsumer configuration. " + ex);
 			}
 		}
 
@@ -330,7 +330,7 @@ public interface KafkaClient extends MessageClient {
 
 			} catch (FrameworkException ex) {
 
-				logger.error("Exception while trying to evaluate KafkaClient groupId: ", ex);
+				logger.error("Exception while trying to evaluate KafkaClient groupId. " + ex);
 				return false;
 			}
 		}
@@ -365,7 +365,7 @@ public interface KafkaClient extends MessageClient {
 					}
 
 				} catch (KafkaException ex) {
-					logger.error("Could not update consumer subscriptions for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex.getLocalizedMessage());
+					logger.error("Could not update consumer subscriptions for KafkaClient " + client.getUuid() + ", triggered by ConsumerWorker Thread. " + ex);
 				}
 			}
 
@@ -421,7 +421,7 @@ public interface KafkaClient extends MessageClient {
 									try {
 										forwardReceivedMessage(client, record.topic(), record.value());
 									} catch (FrameworkException e) {
-										logger.error("Could not process records in ConsumerWorker: " + e.getMessage());
+										logger.error("Could not process records in ConsumerWorker: " + e);
 									}
 								});
 
@@ -447,7 +447,7 @@ public interface KafkaClient extends MessageClient {
 
 				} catch (FrameworkException | NotInTransactionException ex) {
 					// Terminate thread since client became stale or invalid
-					logger.warn("Exception in ConsumerWorker for KafkaClient: " + ex.getLocalizedMessage());
+					logger.error("Exception in ConsumerWorker for KafkaClient. " + ex);
 				} catch (IllegalStateException ex) {
 					// Main thread has shut down driver, since this worker only does reads, we can safely shutdown
 				}
