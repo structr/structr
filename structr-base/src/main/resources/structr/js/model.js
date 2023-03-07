@@ -424,7 +424,12 @@ let StructrModel = {
 
 			} else if (element.hasClass('content')) {
 
-				icon   = _Icons.getSvgIconForContentNode(obj, ['typeIcon', 'typeIcon-nochildren']);
+				let iconClasses = ['typeIcon'];
+				if (!obj.children || obj.children.length === 0) {
+					iconClasses.push('typeIcon-nochildren')
+				}
+
+				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses);
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('file')) {
