@@ -276,7 +276,8 @@ public class Scripting {
 					if (source == null) {
 
 						final String code = embedInFunction(snippet);
-						source = Source.newBuilder("js", code, snippet.getName()).mimeType("application/javascript+module").build();
+
+						source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 						// store in cache
 						sourceCache.put(snippet.getSource(), source);
@@ -446,34 +447,34 @@ public class Scripting {
 
 		if (snippet.embed()) {
 
-			return embedInFunction(snippet.getSource(), snippet.getName());
+			final String transpiledSource;
+			// Regex that matches import statements
+			final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
+
+			if (importPattern.matcher(snippet.getSource()).find()) {
+
+				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
+				final String importStatements = String.join("\n", partitionedScript.get(true));
+				final String code = String.join("\n", partitionedScript.get(false));
+
+				StringBuilder reassembledScript = new StringBuilder();
+				reassembledScript
+						.append(importStatements).append("\n")
+						.append("function main() {\n")
+						.append(code)
+						.append("\n}\n\nmain();");
+				transpiledSource = reassembledScript.toString();
+				// Change mimetype to module since import statements have been found.
+				snippet.setMimeType("application/javascript+module");
+			} else {
+
+				transpiledSource = "function main() {\n" + snippet.getSource() + "\n}\n\nmain();";
+			}
+
+			snippet.setCodeSource(transpiledSource);
 		}
 
-		return snippet.getSource();
-	}
-
-	private static String embedInFunction(final String source, final String name) {
-
-		// Regex that matches import statements
-		final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
-
-		if (importPattern.matcher(source).find()) {
-
-			final Map<Boolean, List<String>> partitionedScript = source.lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
-			final String importStatements = String.join("\n", partitionedScript.get(true));
-			final String code = String.join("\n", partitionedScript.get(false));
-
-			StringBuilder reassembledScript = new StringBuilder();
-			reassembledScript
-					.append(importStatements).append("\n")
-					.append("function main() {\n")
-					.append(code)
-					.append("\n}\n\nmain();");
-			return reassembledScript.toString();
-		} else {
-
-			return "function main() {\n" + source + "\n}\n\nmain();";
-		}
+		return snippet.getCodeSource();
 	}
 
 	// this is only public to be testable :(
