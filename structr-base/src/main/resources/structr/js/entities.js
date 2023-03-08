@@ -2039,8 +2039,9 @@ let _Entities = {
 					<select id="${owner_select_id}"></select>
 				</div>
 				<h3>Visibility</h3>
-				${allowRecursive ? '<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>' : ''}
-				<div class="security-container"></div>
+				<div class="security-container">
+					${allowRecursive ? '<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>' : ''}
+				</div>
 				<h3>Access Rights</h3>
 				<table class="props" id="principals">
 					<thead>
