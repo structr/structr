@@ -276,7 +276,7 @@ public class Scripting {
 					if (source == null) {
 
 						final String code = embedInFunction(snippet);
-						source = Source.newBuilder("js", code, snippet.getName()).build();
+						source = Source.newBuilder("js", code, snippet.getName()).mimeType("application/javascript+module").build();
 
 						// store in cache
 						sourceCache.put(snippet.getSource(), source);
@@ -453,7 +453,27 @@ public class Scripting {
 	}
 
 	private static String embedInFunction(final String source, final String name) {
-		return "function main() { " + source + "\n}\n" + "\n\nmain();";
+
+		// Regex that matches import statements
+		final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
+
+		if (importPattern.matcher(source).find()) {
+
+			final Map<Boolean, List<String>> partitionedScript = source.lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
+			final String importStatements = String.join("\n", partitionedScript.get(true));
+			final String code = String.join("\n", partitionedScript.get(false));
+
+			StringBuilder reassembledScript = new StringBuilder();
+			reassembledScript
+					.append(importStatements).append("\n")
+					.append("function main() {\n")
+					.append(code)
+					.append("\n}\n\nmain();");
+			return reassembledScript.toString();
+		} else {
+
+			return "function main() {\n" + source + "\n}\n\nmain();";
+		}
 	}
 
 	// this is only public to be testable :(

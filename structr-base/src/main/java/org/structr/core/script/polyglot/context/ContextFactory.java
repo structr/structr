@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
+import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
@@ -44,6 +45,8 @@ public abstract class ContextFactory {
 				//.option("inspect", "4242")
 				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
 				.allowExperimentalOptions(true)
+				.fileSystem(new PolyglotFilesystem())
+				.allowIO(true)
 				.option("js.foreign-object-prototype", "true")
 				.option("js.ecmascript-version", "latest");
 
