@@ -120,19 +120,18 @@ let _Dialogs = {
 
 				textContentContainer.classList.remove('hidden');
 
-				let textArea = textContentContainer.querySelector('#content-input');
-
-				let child = entity.children[0];
+				let child    = entity.children[0];
+				let modelObj = StructrModel.obj(child.id) ?? child;
 
 				let populateDialog = (child) => {
 					_Dialogs.populateInputFields($(textContentContainer), child);
 					_Dialogs.registerDeferredSimpleInputChangeHandlers($(textContentContainer), child, true);
 				};
 
-				if (!child.content) {
-					Command.get(child.id, 'id,type,content', populateDialog);
+				if (!modelObj.content) {
+					Command.get(modelObj.id, 'id,type,content', populateDialog);
 				} else {
-					populateDialog(child);
+					populateDialog(modelObj);
 				}
 			}
 		}
