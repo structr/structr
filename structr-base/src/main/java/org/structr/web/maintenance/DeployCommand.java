@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.maintenance;
@@ -113,6 +113,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	private final static String PRE_DEPLOY_CONF_FILE_PATH                             = "pre-deploy.conf";
 	private final static String POST_DEPLOY_CONF_FILE_PATH                            = "post-deploy.conf";
 	private final static String GRANTS_FILE_PATH                                      = "security/grants.json";
+	private final static String CORS_SETTINGS_FILE_PATH                               = "security/cors-settings.json";
 	private final static String MAIL_TEMPLATES_FILE_PATH                              = "mail-templates.json";
 	private final static String WIDGETS_FILE_PATH                                     = "widgets.json";
 	private final static String LOCALIZATIONS_FILE_PATH                               = "localizations.json";
@@ -284,6 +285,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path preDeployConfFile                        = source.resolve(PRE_DEPLOY_CONF_FILE_PATH);
 			final Path postDeployConfFile                       = source.resolve(POST_DEPLOY_CONF_FILE_PATH);
 			final Path grantsMetadataFile                       = source.resolve(GRANTS_FILE_PATH);
+			final Path corsSettingsMetadataFile                 = source.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path mailTemplatesMetadataFile                = source.resolve(MAIL_TEMPLATES_FILE_PATH);
 			final Path widgetsMetadataFile                      = source.resolve(WIDGETS_FILE_PATH);
 			final Path localizationsMetadataFile                = source.resolve(LOCALIZATIONS_FILE_PATH);
@@ -302,6 +304,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				!Files.exists(preDeployConfFile) &&
 				!Files.exists(postDeployConfFile) &&
 				!Files.exists(grantsMetadataFile) &&
+				!Files.exists(corsSettingsMetadataFile) &&
 				!Files.exists(mailTemplatesMetadataFile) &&
 				!Files.exists(widgetsMetadataFile) &&
 				!Files.exists(localizationsMetadataFile) &&
@@ -361,6 +364,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			importResourceAccessGrants(grantsMetadataFile);
+
+			importCorsSettings(corsSettingsMetadataFile);
 
 			importMailTemplates(mailTemplatesMetadataFile, source);
 
@@ -510,6 +515,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			final Path mailTemplatesFolder = Files.createDirectories(target.resolve(MAIL_TEMPLATES_FOLDER_PATH));
 
 			final Path grantsConf                          = target.resolve(GRANTS_FILE_PATH);
+			final Path corsSettingsConf                    = target.resolve(CORS_SETTINGS_FILE_PATH);
 			final Path filesConf                           = target.resolve(FILES_FILE_PATH);
 			final Path sitesConf                           = target.resolve(SITES_FILE_PATH);
 			final Path pagesConf                           = target.resolve(PAGES_FILE_PATH);
@@ -561,6 +567,9 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Resource Access Grants");
 			exportResourceAccessGrants(grantsConf);
+
+			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting CORS Settings");
+			exportCorsSettings(corsSettingsConf);
 
 			publishProgressMessage(DEPLOYMENT_EXPORT_STATUS, "Exporting Schema");
 			exportSchema(schemaFolder);
@@ -1005,6 +1014,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 
 		writeSortedCompactJsonToFile(target, grants, null);
+	}
+
+	private void exportCorsSettings(final Path target) throws FrameworkException {
+
+		logger.info("Exporting CORS Settings");
+
+		final List<Map<String, Object>> corsSettings = new LinkedList<>();
+		final App app                           = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			for (final CorsSetting corsSetting : app.nodeQuery(CorsSetting.class).sort(CorsSetting.requestUri).getAsList()) {
+
+				final Map<String, Object> entry = new LinkedHashMap<>();
+				corsSettings.add(entry);
+
+				putData(entry, "id",               corsSetting.getProperty(CorsSetting.id));
+				putData(entry, "requestUri",       corsSetting.getProperty(StructrApp.key(CorsSetting.class, "requestUri")));
+				putData(entry, "acceptedOrigins",  corsSetting.getProperty(StructrApp.key(CorsSetting.class, "acceptedOrigins")));
+				putData(entry, "maxAge",           corsSetting.getProperty(StructrApp.key(CorsSetting.class, "maxAge")));
+				putData(entry, "allowMethods",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowMethods")));
+				putData(entry, "allowHeaders",     corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowHeaders")));
+				putData(entry, "allowCredentials", corsSetting.getProperty(StructrApp.key(CorsSetting.class, "allowCredentials")));
+				putData(entry, "exposeHeaders",    corsSetting.getProperty(StructrApp.key(CorsSetting.class, "exposeHeaders")));
+			}
+
+			tx.success();
+		}
+
+		writeSortedCompactJsonToFile(target, corsSettings, null);
 	}
 
 	private void exportSchema(final Path targetFolder) throws FrameworkException {
@@ -1834,6 +1873,17 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				deferredLogTexts.add(text + "\n\n" + grantMessagesText);
 				publishWarningMessage("Found grants.json file without visibility and grantees", htmlText + "<br><br>" + grantMessagesHtml);
 			}
+		}
+	}
+
+	private void importCorsSettings(final Path corsSettingsMetadataFile) throws FrameworkException {
+
+		if (Files.exists(corsSettingsMetadataFile)) {
+
+			logger.info("Reading {}", corsSettingsMetadataFile);
+			publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing CORS Settings");
+
+			importListData(CorsSetting.class, readConfigList(corsSettingsMetadataFile));
 		}
 	}
 

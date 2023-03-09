@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Entities = {
@@ -30,7 +30,7 @@ let _Entities = {
 	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2') + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2') + (activeLabel ? ' ' + activeLabel : ''));
 		} else {
 			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
 		}
@@ -44,17 +44,17 @@ let _Entities = {
 
 		Command.children(id);
 	},
-	deleteNodes: function(button, entities, recursive, callback) {
+	deleteNodes: (button, entities, recursive, callback) => {
 
 		if ( !Structr.isButtonDisabled(button) ) {
 
-			let confirmationHtml = '<p>Delete the following objects' + (recursive ? ' (all folders recursively) ' : '') + '?</p>';
+			let confirmationHtml = `<p>Delete the following objects ${recursive ? '(all folders recursively) ' : ''}?</p>`;
 
 			let nodeIds = [];
 
 			for (let entity of entities) {
 
-				confirmationHtml += '<strong>' + entity.name + '</strong> [' + entity.id + ']<br>';
+				confirmationHtml += `<strong>${entity.name}</strong> [${entity.id}]<br>`;
 				nodeIds.push(entity.id);
 			}
 
@@ -75,7 +75,7 @@ let _Entities = {
 	deleteNode: (button, entity, recursive, callback) => {
 
 		if ( !Structr.isButtonDisabled(button) ) {
-			Structr.confirmation('<p>Delete ' + entity.type + ' <strong>' + (entity.name || '') + '</strong> [' + entity.id + ']' + (recursive ? ' recursively' : '') + '?</p>',
+			Structr.confirmation(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`,
 				function() {
 					Command.deleteNode(entity.id, recursive);
 					$.unblockUI({
@@ -92,7 +92,7 @@ let _Entities = {
 
 		if ( !Structr.isButtonDisabled(button) ) {
 
-			Structr.confirmation('<p>Delete Relationship</p><p>(' + entity.sourceId + ')-[' + entity.type + ']->(' + entity.targetId + ')' + (recursive ? ' recursively' : '') + '?</p>',
+			Structr.confirmation(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`,
 				function() {
 					Command.deleteRelationship(entity.id, recursive);
 					$.unblockUI({
@@ -294,29 +294,37 @@ let _Entities = {
 		});
 
 		addParameterMappingButton.addEventListener('click', e => {
-			Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
-				getAndAppendParameterMapping(parameterMapping.id);
+
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+				actionMapping = result.triggeredActions[0];
+				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+					getAndAppendParameterMapping(parameterMapping.id);
+				});
 			});
+
 		});
 
 		addParameterMappingForTypeButton.addEventListener('click', e => {
 
-			Command.getSchemaInfo(dataTypeSelect.value, result => {
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+				actionMapping = result.triggeredActions[0];
+				Command.getSchemaInfo(dataTypeSelect.value, result => {
 
-				let properties = result.filter(property => !property.system);
-				//console.log(properties); return;
+					let properties = result.filter(property => !property.system);
+					//console.log(properties); return;
 
-				for (const property of properties) {
+					for (const property of properties) {
 
-					Command.create({
-						type: 'ParameterMapping',
-						parameterName: property.jsonName,
-						actionMapping: actionMapping.id
-					}, (parameterMapping) => {
-						getAndAppendParameterMapping(parameterMapping.id);
-					});
+						Command.create({
+							type: 'ParameterMapping',
+							parameterName: property.jsonName,
+							actionMapping: actionMapping.id
+						}, (parameterMapping) => {
+							getAndAppendParameterMapping(parameterMapping.id);
+						});
 
-				}
+					}
+				});
 			});
 
 		});
@@ -701,21 +709,6 @@ let _Entities = {
 			}
 		};
 
-	},
-	appendRowWithInputField: function(entity, el, key, label, typeInfo) {
-		el.append('<tr><td class="key">' + label + '</td><td class="value"><input class="' + key + '_" name="' + key + '" value="' + (entity[key] ? escapeForHtmlAttributes(entity[key]) : '') + '"></td><td><i id="null_' + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></td></tr>');
-		var inp = $('[name="' + key + '"]', el);
-		_Entities.activateInput(inp, entity.id, entity.pageId, typeInfo);
-		var nullIcon = $('#null_' + key, el);
-		nullIcon.on('click', function() {
-			Command.setProperty(entity.id, key, null, false, function() {
-				inp.val(null);
-				blinkGreen(inp);
-				Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
-			});
-		});
-
-		_Entities.appendSchemaHint($('.key:last', el), key, typeInfo);
 	},
 	appendSchemaHint: function (el, key, typeInfo) {
 
@@ -1118,7 +1111,7 @@ let _Entities = {
 					}
 
 					// custom dialog tab?
-					let hasCustomDialog = _Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+					_Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
@@ -1202,19 +1195,21 @@ let _Entities = {
 
 		for (let view of views) {
 
-			ul.append('<li id="tab-' + view + '">' + texts[view] + '</li>');
+			ul.append(`<li id="tab-${view}">${texts[view]}</li>`);
 
-			contentEl.append('<div class="propTabContent" id="tabView-' + view + '"></div>');
+			contentEl.append(`<div class="propTabContent" id="tabView-${view}"></div>`);
 
 			let tab = $('#tab-' + view);
 
 			tab.on('click', function(e) {
 				e.stopPropagation();
-				var self = $(this);
+
+				let self = $(this);
 				contentEl.children('div').hide();
 				$('li', ul).removeClass('active');
 				self.addClass('active');
-				var tabView = $('#tabView-' + view);
+
+				let tabView = $('#tabView-' + view);
 				fastRemoveAllChildren(tabView[0]);
 				tabView.show();
 				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
@@ -1227,9 +1222,7 @@ let _Entities = {
 			});
 		}
 	},
-	getNullIconForKey: (key) => {
-		return '<i id="' + _Entities.null_prefix + key + '" class="nullIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i>';
-	},
+	getNullIconForKey: (key) => _Icons.getSvgIconWithID(`${_Entities.null_prefix}${key}`, _Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['nullIcon', 'icon-grey'])),
 	listProperties: (entity, view, tabView, typeInfo, callback) => {
 
 		_Entities.getSchemaProperties(entity.type, view, (properties) => {
@@ -1296,7 +1289,7 @@ let _Entities = {
 
 					// populate collection properties with first page
 					for (let key of collectionProperties) {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, 1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, 1, tabView);
 					}
 				}
 
@@ -1306,14 +1299,14 @@ let _Entities = {
 			});
 		});
 	},
-	displayCollectionPager: (tempNodeCache, entity, key, page) => {
+	displayCollectionPager: (tempNodeCache, entity, key, page, container) => {
 
 		let pageSize = 10, resultCount;
 
-		let cell = $('.value.' + key + '_');
+		let cell = $('.value.' + key + '_', container);
 		cell.css('height', '60px');
 
-		fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/' + key + '?' + Structr.getRequestParameterName('pageSize') + '=' + pageSize + '&' + Structr.getRequestParameterName('page') + '=' + page, {
+		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
 			headers: {
 				Accept: 'application/json; charset=utf-8; properties=id,name'
 			}
@@ -1350,14 +1343,14 @@ let _Entities = {
 
 				if (page > 1) {
 					pageUpButton.removeClass('disabled').on('click', () => {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page-1, container);
 						return false;
 					});
 				}
 
 				if ((!resultCount && data.result.length > 0) || page < Math.ceil(resultCount/pageSize)) {
 					pageDownButton.removeClass('disabled').on('click', () => {
-						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1);
+						_Entities.displayCollectionPager(tempNodeCache, entity, key, page+1, container);
 						return false;
 					});
 				}
@@ -1386,10 +1379,10 @@ let _Entities = {
 								$('.remove', nodeEl).on('click', (e) => {
 
 									e.preventDefault();
-									Command.removeFromCollection(entity.id, key, node.id, function() {
+									Command.removeFromCollection(entity.id, key, node.id, () => {
 										nodeEl.remove();
 										blinkGreen(cell);
-										Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" has been removed from property "' + key + '".', 'success', 2000, 1000);
+										Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
 									return false;
 								});
@@ -1403,35 +1396,45 @@ let _Entities = {
 	createPropertyTable: function(heading, keys, res, entity, view, container, typeInfo, tempNodeCache) {
 
 		if (heading) {
-			container.append('<h2>' + heading + '</h2>');
+			container.append(`<h2>${heading}</h2>`);
 		}
-		container.append('<table class="props ' + view + ' ' + res['id'] + '_"></table>');
-		var propsTable = $('table:last', container);
-		var focusAttr = 'class';
-		var id = entity.id;
+		container.append(`<table class="props ${view} ${res['id']}_"></table>`);
+		let propsTable = $('table:last', container);
+		let focusAttr  = 'class';
+		let id         = entity.id;
 
 		if (view === '_html_') {
 			keys.sort();
 		}
 
-		$(keys).each(function(i, key) {
+		for (let key of keys) {
+
+			let valueCell    = undefined;
+			let isReadOnly   = false;
+			let isSystem     = false;
+			let isBoolean    = false;
+			let isDate       = false;
+			let isPassword   = false;
+			let isRelated    = false;
+			let isCollection = false;
+			let isMultiline  = false;
 
 			if (view === '_html_') {
 
-				var display = false;
-				_Elements.mostUsedAttrs.forEach(function(mostUsed) {
+				let showKeyInitially = false;
+				for (let mostUsed of _Elements.mostUsedAttrs) {
 					if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
-						display = true;
+						showKeyInitially = true;
 						focusAttr = mostUsed.focus ? mostUsed.focus : focusAttr;
 					}
-				});
+				}
 
 				// Always show non-empty, non 'data-structr-' attributes
 				if (res[key] !== null && key.indexOf('data-structr-') !== 0) {
-					display = true;
+					showKeyInitially = true;
 				}
 
-				var displayKey = key;
+				let displayKey = key;
 				if (key.indexOf('data-') !== 0) {
 					if (key.indexOf('_html_') === 0) {
 						displayKey = displayKey.substring(6);
@@ -1440,39 +1443,32 @@ let _Entities = {
 					}
 				}
 
-				if (display || key === '_html_class' || key === '_html_id') {
-					propsTable.append('<tr><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td>' + _Entities.getNullIconForKey(key) + '</td></tr>');
+				if (showKeyInitially || key === '_html_class' || key === '_html_id') {
+					propsTable.append(`<tr><td class="key">${displayKey}</td><td class="value ${key}_">${formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				} else if (key !== 'id') {
-					propsTable.append('<tr class="hidden"><td class="key">' + displayKey + '</td><td class="value ' + key + '_">' + formatValueInputField(key, res[key]) + '</td><td>' + _Entities.getNullIconForKey(key) + '</td></tr>');
+					propsTable.append(`<tr class="hidden"><td class="key">${displayKey}</td><td class="value ${key}_">${formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				}
+				valueCell = $(`.value.${key}_`, propsTable);
 
 			} else {
 
-				var isReadOnly   = false;
-				var isSystem     = false;
-				var isBoolean    = false;
-				var isDate       = false;
-				var isPassword   = false;
-				var isRelated    = false;
-				var isCollection = false;
-				var isMultiline  = false;
-
-				var row = $('<tr><td class="key">' + formatKey(key) + '</td><td class="value ' + key + '_"></td><td>' + _Entities.getNullIconForKey(key) + '</td></tr>');
+				let row = $(`<tr><td class="key">${formatKey(key)}</td><td class="value ${key}_"></td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				propsTable.append(row);
-				var cell = $('.value.' + key + '_', propsTable);
+				valueCell = $(`.value.${key}_`, propsTable);
 
 				if (!typeInfo[key]) {
-					cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+
+					valueCell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 
 				} else {
 
-					var type = typeInfo[key].type;
+					let type = typeInfo[key].type;
 
-					isReadOnly = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
-					isSystem = typeInfo[key].system;
-					isPassword = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
+					isReadOnly  = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+					isSystem    = typeInfo[key].system;
+					isPassword  = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 					isMultiline = (typeInfo[key].format === 'multi-line');
-					isRelated = typeInfo[key].relatedType;
+					isRelated   = typeInfo[key].relatedType;
 					if (isRelated) {
 						isCollection = typeInfo[key].isCollection;
 					}
@@ -1484,19 +1480,19 @@ let _Entities = {
 
 					if (!key.startsWith('_html_')) {
 						if (isBoolean) {
-							cell.removeClass('value').append('<input type="checkbox" class="' + key + '_">');
-							var checkbox = $(propsTable.find('input[type="checkbox"].' + key + '_'));
+							valueCell.removeClass('value').append(`<input type="checkbox" class="${key}_">`);
+							let checkbox = $(propsTable.find(`input[type="checkbox"].${key}_`));
 
-							var val = res[key];
+							let val = res[key];
 							if (val) {
 								checkbox.prop('checked', true);
 							}
 							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
 								checkbox.on('change', function() {
-									var checked = checkbox.prop('checked');
-									_Entities.setProperty(id, key, checked, false, function(newVal) {
+									let checked = checkbox.prop('checked');
+									_Entities.setProperty(id, key, checked, false, (newVal) => {
 										if (val !== newVal) {
-											blinkGreen(cell);
+											blinkGreen(valueCell);
 										}
 										checkbox.prop('checked', newVal);
 										val = newVal;
@@ -1508,7 +1504,7 @@ let _Entities = {
 
 						} else if (isDate && !isReadOnly) {
 
-							cell.append('<input class="dateField" name="' + key + '" type="text" value="' + (res[key] || '') + '" data-date-format="' + typeInfo[key].format + '">');
+							valueCell.append(`<input class="dateField" name="${key}" type="text" value="${res[key] || ''}" data-date-format="${typeInfo[key].format}">`);
 
 						} else if (isRelated) {
 
@@ -1516,20 +1512,20 @@ let _Entities = {
 
 								if (!isCollection) {
 
-									var nodeId = res[key].id || res[key];
+									let nodeId = res[key].id || res[key];
 
 									tempNodeCache.registerCallback(nodeId, nodeId, function(node) {
 
-										_Entities.appendRelatedNode(cell, node, function(nodeEl) {
+										_Entities.appendRelatedNode(valueCell, node, function(nodeEl) {
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
-												_Entities.setProperty(id, key, null, false, function(newVal) {
+												_Entities.setProperty(id, key, null, false, (newVal) => {
 													if (!newVal) {
 														nodeEl.remove();
-														blinkGreen(cell);
-														Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" has been removed from property "' + key + '".', 'success', 2000, 1000);
+														blinkGreen(valueCell);
+														Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 													} else {
-														blinkRed(cell);
+														blinkRed(valueCell);
 													}
 												});
 												return false;
@@ -1542,75 +1538,78 @@ let _Entities = {
 								}
 							}
 
-							cell.append('<i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '" />');
-							$('.add', cell).on('click', function() {
-								Structr.dialog('Add ' + typeInfo[key].type, function() {
-								}, function() {
-									//_Entities.showProperties(entity);
-								});
+							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])))
+							$('.add', valueCell).on('click', function() {
+								Structr.dialog(`Add ${typeInfo[key].type}`, () => {}, () => {});
 								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
 							});
 
 						} else {
-							cell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+							valueCell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 						}
 					}
-				}
-
-				if (isSystem || isReadOnly || isBoolean) {
-					$('i.nullIcon', row).remove();
 				}
 			}
 
 			_Entities.appendSchemaHint($('.key:last', propsTable), key, typeInfo);
 
-			var nullIcon = $('#' + _Entities.null_prefix + key, container);
-			nullIcon.on('click', function() {
+			let nullIconId = `#${_Entities.null_prefix}${key}`;
 
-				var key = $(this).prop('id').substring(_Entities.null_prefix.length);
-				var input    = $('.' + key + '_').find('input');
-				var textarea = $('.' + key + '_').find('textarea');
+			if (isSystem || isReadOnly || isBoolean) {
 
-				_Entities.setProperty(id, key, null, false, function(newVal) {
-					if (!newVal) {
-						if (key.indexOf('_custom_html_') === -1) {
-							blinkGreen(cell);
-							Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
-						} else {
-							nullIcon.closest('tr').remove();
-							Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
-						}
+				container[0].querySelector(nullIconId).remove();
 
-						if (key === 'name') {
-							var entity = StructrModel.objects[id];
-							if (!_Entities.isContentElement(entity)) {
-								entity.name = entity.tag ? entity.tag : '[' + entity.type + ']';
+			} else {
+
+				container[0].querySelector(nullIconId).addEventListener('click', (e) => {
+
+					let icon     = e.target.closest(nullIconId);
+					let key      = icon.id.substring(_Entities.null_prefix.length);
+					let input    = $(`.${key}_`).find('input');
+					let textarea = $(`.${key}_`).find('textarea');
+
+					_Entities.setProperty(id, key, null, false, (newVal) => {
+
+						if (!newVal) {
+							if (key.indexOf('_custom_html_') === -1) {
+								blinkGreen(valueCell);
+								Structr.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
+							} else {
+								icon.closest('tr').remove();
+								Structr.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 							}
-							StructrModel.refresh(id);
+
+							if (key === 'name') {
+								let entity = StructrModel.objects[id];
+								if (!_Entities.isContentElement(entity)) {
+									entity.name = entity.tag ?? `[${entity.type}]`;
+								}
+								StructrModel.refresh(id);
+							}
+							if (isRelated) {
+								valueCell.empty();
+							}
+
+						} else {
+
+							blinkRed(input);
 						}
-						if (isRelated) {
-							cell.empty();
+
+						if (!isRelated) {
+							input.val(newVal);
+							textarea.val(newVal);
 						}
-						if (isBoolean) {
-							input.prop('checked', false);
-						}
-					} else {
-						blinkRed(input);
-					}
-					if (!isRelated) {
-						input.val(newVal);
-						textarea.val(newVal);
-					}
+					});
 				});
-			});
-		});
+			}
+		}
 
 		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
 		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
-
 		if (view === '_html_') {
-			$('input[name="_html_' + focusAttr + '"]', propsTable).focus();
+
+			$(`input[name="_html_${focusAttr}"]`, propsTable).focus();
 
 			container.append(`
 				<div class="flex items-center mt-4 mb-4">
@@ -1618,6 +1617,7 @@ let _Entities = {
 					<button class="add-custom-attribute hover:bg-gray-100 focus:border-gray-666 active:border-green mr-2">Add custom property</button>
 				</div>
 			`);
+
 			$('.show-all', container).on('click', function() {
 
 				propsTable.addClass('show-all');
@@ -1666,7 +1666,7 @@ let _Entities = {
 
 						Command.setProperty(id, newKey, val, false, () => {
 							blinkGreen(exitedInput);
-							Structr.showAndHideInfoBoxMessage('New property "' + newKey + '" has been added and saved with value "' + val + '".', 'success', 2000, 1000);
+							Structr.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
 							valInput.name = newKey;
@@ -1679,7 +1679,7 @@ let _Entities = {
 
 								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
-									Structr.showAndHideInfoBoxMessage('Custom HTML property "' + key + '" has been removed', 'success', 2000, 1000);
+									Structr.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 								});
 							});
 
@@ -1705,19 +1705,25 @@ let _Entities = {
 		$('tr:visible:odd', container).css({'background-color': '#f6f6f6'});
 		$('tr:visible:even', container).css({'background-color': '#fff'});
 	},
-	displaySearch: function(id, key, type, el, isCollection) {
+	displaySearch: (id, key, type, el, isCollection) => {
 
-		el.append('<div class="searchBox searchBoxDialog"><input class="search" name="search" size="20" placeholder="Search"><i class="clearSearchIcon ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>');
-		var searchBox = $('.searchBoxDialog', el);
-		var search = $('.search', searchBox);
-		window.setTimeout(function() {
+		el.append(`
+			<div class="searchBox searchBoxDialog flex justify-end">
+				<input class="search" name="search" size="20" placeholder="Search">
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+			</div>
+		`);
+
+		let searchBox = $('.searchBoxDialog', el);
+		let search = $('.search', searchBox);
+		window.setTimeout(() => {
 			search.focus();
 		}, 250);
 
 		search.keyup(function(e) {
 			e.preventDefault();
 
-			var searchString = $(this).val();
+			let searchString = $(this).val();
 			if (searchString && searchString.length && e.keyCode === 13) {
 
 				$('.clearSearchIcon', searchBox).show().on('click', function() {
@@ -1728,45 +1734,53 @@ let _Entities = {
 					}
 				});
 
-				$('.result-box', el).remove();
-				var box = $('<div class="result-box"></div>');
-				el.append(box);
+				$('.searchResults', el).remove();
+				el.append('<div class="searchResults"><div class="result-box"></div></div>');
+				let box = el.find('.result-box');
 
-				var resultHandler = function(nodes) {
+				let resultHandler = (nodes) => {
 
-					nodes.forEach(function(node) {
+					for (let node of nodes) {
 
-						if (node.path && node.path.indexOf('/._structr_thumbnails/') === 0) {
-							return;
+						if (!node.path || node.path.indexOf('/._structr_thumbnails/') !== 0) {
+
+							let displayName = node.title || node.name || node.id;
+							box.append(`<div title="${escapeForHtmlAttributes(displayName)}" " class="_${node.id} node element abbr-ellipsis abbr-120">${displayName}</div>`);
+							$('._' + node.id, box).on('click', function() {
+
+								let nodeEl = $(this);
+
+								if (isCollection) {
+
+									_Entities.addToCollection(id, node.id, key, () => {
+
+										blinkGreen(nodeEl);
+
+										if (Structr.isModuleActive(_Pages)) {
+											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
+										}
+										if (Structr.isModuleActive(_Contents)) {
+											_Contents.refreshTree();
+										}
+										if (Structr.isModuleActive(_Files)) {
+											_Files.refreshTree();
+										}
+									});
+
+								} else {
+
+									Command.setProperty(id, key, node.id, false, () => {
+
+										if (Structr.isModuleActive(_Pages)) {
+											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
+										}
+
+										dialogCancelButton.click();
+									});
+								}
+							});
 						}
-
-						var displayName = node.title || node.name || node.id;
-						box.append('<div title="' + escapeForHtmlAttributes(displayName) + '" " class="_' + node.id + ' node element abbr-ellipsis abbr-120">' + displayName + '</div>');
-						$('._' + node.id, box).on('click', function() {
-
-							var nodeEl = $(this);
-
-							if (isCollection) {
-
-								_Entities.addToCollection(id, node.id, key, function() {
-
-									blinkGreen(nodeEl);
-
-									if (Structr.isModuleActive(_Contents)) {
-										_Contents.refreshTree();
-									}
-									if (Structr.isModuleActive(_Files)) {
-										_Files.refreshTree();
-									}
-								});
-
-							} else {
-								Command.setProperty(id, key, node.id, false, function() {
-									dialogCancelButton.click();
-								});
-							}
-						});
-					});
+					}
 				};
 
 				if (searchString.trim() === '*') {
@@ -1788,14 +1802,12 @@ let _Entities = {
 				} else {
 					search.val('');
 				}
-
 			}
 
 			return false;
-
 		});
 	},
-	clearSearch: function(el) {
+	clearSearch: (el) => {
 		if (_Entities.clearSearchResults(el)) {
 			$('.clearSearchIcon').hide().off('click');
 			$('.search').val('');
@@ -1803,8 +1815,8 @@ let _Entities = {
 			$('#resourceBox', $(Structr.mainContainer)).show();
 		}
 	},
-	clearSearchResults: function(el) {
-		var searchResults = $('.searchResults', el);
+	clearSearchResults: (el) => {
+		let searchResults = $('.searchResults', el);
 		if (searchResults.length) {
 			searchResults.remove();
 			$('.searchResultsTitle').remove();
@@ -1864,10 +1876,15 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	appendRelatedNode: function(cell, node, onDelete) {
-		var displayName = _Crud.displayName(node);
-		cell.append('<div title="' + escapeForHtmlAttributes(displayName) + '" class="_' + node.id + ' node ' + (node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')) + ' ' + node.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
-		var nodeEl = $('._' + node.id, cell);
+	appendRelatedNode: (cell, node, onDelete) => {
+		let displayName = _Crud.displayName(node);
+		cell.append(`
+			<div title="${escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')} ${node.id}_">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
+			</div>
+		`);
+		let nodeEl = $('._' + node.id, cell);
 
 		nodeEl.on('click', function(e) {
 			e.preventDefault();
@@ -1881,15 +1898,15 @@ let _Entities = {
 	},
 	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
 
-		var input = $(el);
-		var oldVal = input.val();
-		var relId = input.parent().attr('rel_id');
-		var objId = relId ? relId : id;
-		var key = input.prop('name');
+		let input = $(el);
+		let oldVal = input.val();
+		let relId = input.parent().attr('rel_id');
+		let objId = relId ? relId : id;
+		let key = input.prop('name');
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
-			input.closest('.array-attr').find('i.remove').off('click').on('click', function(el) {
+			input.closest('.array-attr').find('svg.remove').off('click').on('click', function(el) {
 				let cell = input.closest('.value');
 				if (cell.length === 0) {
 					cell = input.closest('.__value');
@@ -1958,7 +1975,7 @@ let _Entities = {
 						input.val(newVal);
 						valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal + '"': 'empty value';
 					}
-					Structr.showAndHideInfoBoxMessage('Updated property "' + key + '"' + (!isPassword ? ' with ' + valueMsg + '' : ''), 'success', 2000, 200);
+					Structr.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg + '' : ''}`, 'success', 2000, 200);
 
 					if (onUpdateCallback) {
 						onUpdateCallback();
@@ -1985,7 +2002,7 @@ let _Entities = {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
 				valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
-				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg + '.', 'success', 2000, 200);
+				Structr.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
 
 				if (onUpdateCallback) {
 					onUpdateCallback();
@@ -2000,19 +2017,6 @@ let _Entities = {
 			Command.getProperty(id, key, callback);
 		});
 	},
-	appendAccessControlIcon: function(parent, entity) {
-
-		let isProtected = !entity.visibleToPublicUsers || !entity.visibleToAuthenticatedUsers;
-
-		let keyIcon = $('.key_icon', parent);
-		if (!(keyIcon && keyIcon.length)) {
-
-			keyIcon = $('<i title="Access Control and Visibility" class="key_icon button ' + (isProtected ? 'donthide ' : '') + _Icons.getFullSpriteClass(_Icons.key_icon) + '" ' + (isProtected ? 'style="display: inline-block;"' : '') + '/>');
-			parent.append(keyIcon);
-
-			_Entities.bindAccessControl(keyIcon, entity);
-		}
-	},
 	bindAccessControl: function(btn, entity) {
 
 		btn.on('click', function(e) {
@@ -2023,29 +2027,50 @@ let _Entities = {
 	accessControlDialog: (entity, el, typeInfo) => {
 
 		let id = entity.id;
+		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin';
 
 		let handleGraphObject = (entity) => {
 
-			let owner_select_id = 'owner_select_' + id;
-			el.append('<h3>Owner</h3><div><select id="' + owner_select_id + '"></select></div>');
-			el.append('<h3>Visibility</h3>');
-
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
+			let owner_select_id = 'owner_select_' + id;
+			el.append(`
+				<h3>Owner</h3>
+				<div>
+					<select id="${owner_select_id}"></select>
+				</div>
+				<h3>Visibility</h3>
+				${allowRecursive ? '<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>' : ''}
+				<div class="security-container"></div>
+				<h3>Access Rights</h3>
+				<table class="props" id="principals">
+					<thead>
+						<tr>
+							<th>Name</th>
+							<th>Read</th>
+							<th>Write</th>
+							<th>Delete</th>
+							<th>Access Control</th>
+							${allowRecursive ? '<th></th>' : ''}
+						</tr>
+					</thead>
+					<tbody>
+						<tr id="new">
+							<td>
+								<select style="z-index: 999" id="newPrincipal"><option></option></select>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+							${allowRecursive ? '<td></td>' : ''}
+						</tr>
+					</tbody>
+				</table>
+			`);
 
-			if (allowRecursive) {
-				el.append('<div><input id="recursive" type="checkbox" name="recursive"><label for="recursive">Apply visibility switches recursively</label></div><br>');
-			}
-
-			let securityContainer = el.append('<div class="security-container"></div>');
-
+			let securityContainer = el.find('.security-container');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
-
-			el.append('<h3>Access Rights</h3>');
-			el.append('<table class="props" id="principals"><thead><tr><th>Name</th><th>Read</th><th>Write</th><th>Delete</th><th>Access Control</th>' + (allowRecursive ? '<th></th>' : '') + '</tr></thead><tbody></tbody></table');
-
-			var tb = $('#principals tbody', el);
-			tb.append('<tr id="new"><td><select style="z-index: 999" id="newPrincipal"><option></option></select></td><td></td><td></td><td></td><td></td>' + (allowRecursive ? '<td></td>' : '') + '</tr>');
 
 			fetch(Structr.rootUrl + entity.id + '/in').then(async response => {
 
@@ -2064,7 +2089,7 @@ let _Entities = {
 
 						let principalId = result.principalId;
 						if (principalId) {
-							Command.get(principalId, 'id,name,isGroup', (p) => {
+							Command.get(principalId, requiredAttributesForPrincipals, (p) => {
 								_Entities.addPrincipal(entity, p, permissions, allowRecursive, el);
 							});
 						}
@@ -2074,31 +2099,25 @@ let _Entities = {
 
 			let ownerSelect   = $('#' + owner_select_id, el);
 			let granteeSelect = $('#newPrincipal', el);
-			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), {float: 'right'});
+			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), { float: 'right' });
 
-			Command.getByType('Principal', null, null, 'name', 'asc', 'id,name,isGroup', false, (principals) => {
+			Command.getByType('Principal', null, null, 'name', 'asc', requiredAttributesForPrincipals, false, (principals) => {
 
 				let ownerOptions        = '';
 				let granteeGroupOptions = '';
 				let granteeUserOptions  = '';
 
-				if (entity.owner) {
-					// owner is first entry
-					ownerOptions += '<option value="' + entity.owner.id + '" data-type="User">' + entity.owner.name + '</option>';
-				} else {
+				if (!entity.owner) {
 					ownerOptions += '<option></option>';
 				}
 
 				for (let p of principals) {
 
 					if (p.isGroup) {
-						granteeGroupOptions += '<option value="' + p.id + '" data-type="Group">' + p.name + '</option>';
+						granteeGroupOptions += _Entities.templateForPrincipalOption(p);
 					} else {
-						granteeUserOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
-
-						if (!entity.owner || entity.owner.id !== p.id) {
-							ownerOptions += '<option value="' + p.id + '" data-type="User">' + p.name + '</option>';
-						}
+						granteeUserOptions  += _Entities.templateForPrincipalOption(p);
+						ownerOptions        += _Entities.templateForPrincipalOption(p, (entity.owner?.id === p.id));
 					}
 				}
 
@@ -2109,10 +2128,9 @@ let _Entities = {
 					if (!state.id || state.disabled) {
 						return state.text;
 					}
+					let icon = _Icons.getIconForPrincipal(JSON.parse(state.element.dataset.principal));
 
-					let icon = (state.element.dataset['type'] === 'Group') ? _Icons.group_icon : _Icons.user_icon ;
-
-					return $('<span class="' + (isSelection ? 'select-selection-with-icon' : 'select-result-with-icon') + '"><i class="typeIcon ' + _Icons.getFullSpriteClass(icon) + '"></i> ' + state.text + '</span>');
+					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} ${state.text}</span>`);
 				};
 
 				ownerSelect.select2({
@@ -2120,13 +2138,9 @@ let _Entities = {
 					placeholder: 'Owner',
 					width: '300px',
 					style: 'text-align:left;',
-					dropdownParent: el,
-					templateResult: (state) => {
-						return templateOption(state, false);
-					},
-					templateSelection: (state) => {
-						return templateOption(state, true);
-					}
+					dropdownParent: $('body'),
+					templateResult: (state) => templateOption(state, false),
+					templateSelection: (state) => templateOption(state, true)
 				}).on('select2:unselecting', function(e) {
 					e.preventDefault();
 
@@ -2146,19 +2160,18 @@ let _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					dropdownParent: el,
-					templateResult: (state) => {
-						return templateOption(state, false);
-					}
+					dropdownParent: $('body'),
+					templateResult: (state) => templateOption(state, false)
 				}).on('select2:select', function(e) {
 
 					let data = e.params.data;
-					let pId = data.id;
-					let rec = $('#recursive', el).is(':checked');
+					let pId  = data.id;
+					let rec  = $('#recursive', el).is(':checked');
+
 					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
-					Command.get(pId, 'id,name,isGroup', function(p) {
-						_Entities.addPrincipal(entity, p, {read: true}, allowRecursive, el);
+					Command.get(pId, requiredAttributesForPrincipals, (p) => {
+						_Entities.addPrincipal(entity, p, { read: true }, allowRecursive, el);
 					});
 				});
 
@@ -2174,7 +2187,8 @@ let _Entities = {
 			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		}
 	},
-	showAccessControlDialog: function(entity) {
+	templateForPrincipalOption: (p, selected = false) => `<option value="${p.id}" data-principal="${escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>${p.name}</option>`,
+	showAccessControlDialog: (entity) => {
 
 		let id = entity.id;
 
@@ -2184,11 +2198,12 @@ let _Entities = {
 			visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
 		};
 
-		Structr.dialog('Access Control and Visibility', function() {
-		}, function() {
+		Structr.dialog('Access Control and Visibility', () => {}, () => {
+
 			if (Structr.isModuleActive(_Crud)) {
 
-				let handleGraphObject = function(entity) {
+				let handleGraphObject = (entity) => {
+
 					if ((!entity.owner && initialObj.owner !== null) || initialObj.ownerId !== entity.owner.id) {
 						_Crud.refreshCell(id, "owner", entity.owner, entity.type, initialObj.ownerId);
 					}
@@ -2211,19 +2226,21 @@ let _Entities = {
 	},
 	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
 
-		$('#newPrincipal option[value="' + principal.id + '"]', container).remove();
+		$(`#newPrincipal option[value="${principal.id}"]`, container).css({
+			display: 'none'
+		});
 		$('#newPrincipal', container).trigger('chosen:updated');
 
 		if ($('#principals ._' + principal.id, container).length > 0) {
 			return;
 		}
 
-		let row = $('<tr class="_' + principal.id + '"><td><i class="typeIcon ' + _Icons.getFullSpriteClass((principal.isGroup ? _Icons.group_icon : _Icons.user_icon)) + '"></i> <span class="name">' + principal.name + '</span></td></tr>');
+		let row = $(`<tr class="_${principal.id}"><td><div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.name}</span></div></td></tr>`);
 		$('#new', container).after(row);
 
-		['read', 'write', 'delete', 'accessControl'].forEach(function(perm) {
+		for (let perm of ['read', 'write', 'delete', 'accessControl']) {
 
-			row.append('<td><input class="' + perm + '" type="checkbox" data-permission="' + perm + '"' + (permissions[perm] ? ' checked="checked"' : '') + '"></td>');
+			row.append(`<td><input class="${perm}" type="checkbox" data-permission="${perm}"${permissions[perm] ? ' checked="checked"' : ''}"></td>`);
 
 			$('.' + perm, row).on('dblclick', function() {
 				return false;
@@ -2237,14 +2254,15 @@ let _Entities = {
 
 				if (!$('input:checked', row).length) {
 
-					$('#newPrincipal', container).append('<option value="' + principal.id + '">' + principal.name + '</option>');
+					$('#newPrincipal', container).append(_Entities.templateForPrincipalOption(principal));
 					$('#newPrincipal', container).trigger('chosen:updated');
 
 					row.remove();
 				}
+
 				let recursive = $('#recursive', container).is(':checked');
 
-				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, function() {
+				Command.setPermission(entity.id, principal.id, permissions[perm] ? 'revoke' : 'grant', perm, recursive, () => {
 
 					permissions[perm] = !permissions[perm];
 					checkbox.prop('checked', permissions[perm]);
@@ -2254,7 +2272,7 @@ let _Entities = {
 					blinkGreen(checkbox.parent());
 				});
 			});
-		});
+		}
 
 		if (allowRecursive) {
 
@@ -2266,11 +2284,9 @@ let _Entities = {
 
 				button.setAttribute('disabled', 'disabled');
 
-				let permissions = [].map.call(row[0].querySelectorAll('input:checked'), (i) => {
-					return i.dataset.permission;
-				}).join(',');
+				let permissions = [...row[0].querySelectorAll('input:checked')].map(i => i.dataset.permission).join(',');
 
-				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, function() {
+				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, () => {
 
 					button.removeAttribute('disabled');
 					blinkGreen(row);
@@ -2312,7 +2328,7 @@ let _Entities = {
 				}
 			}
 
-			keyIcon = $(_Icons.getSvgIcon(_Entities.getNewAccessControlIconId(entity), 16, 16, iconClasses));
+			keyIcon = $(_Icons.getSvgIcon(_Icons.getAccessControlIconId(entity), 16, 16, iconClasses));
 			parent.append(keyIcon);
 
 			_Entities.bindAccessControl(keyIcon, entity);
@@ -2321,21 +2337,6 @@ let _Entities = {
 		keyIcon[0].dataset['onlyShowWhenProtected'] = onlyShowWhenProtected;
 
 		return keyIcon;
-	},
-	getNewAccessControlIconId: (entity) => {
-
-		let iconId = 'visibility-lock-key';
-
-		if (true === entity.visibleToPublicUsers && true === entity.visibleToAuthenticatedUsers) {
-
-			iconId = 'visibility-lock-open';
-
-		} else if (false === entity.visibleToPublicUsers &&  false === entity.visibleToAuthenticatedUsers) {
-
-			iconId = 'visibility-lock-locked';
-		}
-
-		return iconId;
 	},
 	updateNewAccessControlIconInElement: (entity, element) => {
 
@@ -2354,7 +2355,7 @@ let _Entities = {
 		}
 		if (svgKeyIcon) {
 
-			let newIconId = _Entities.getNewAccessControlIconId(entity);
+			let newIconId = _Icons.getAccessControlIconId(entity);
 
 			// replace only href to keep bindings intact
 			let use = svgKeyIcon.querySelector(':scope > use');
@@ -2376,7 +2377,7 @@ let _Entities = {
 		let icon = $('.' + contextMenuIconClass, parent);
 
 		if (!(icon && icon.length)) {
-			icon = $(_Icons.getSvgIcon('kebab_icon', 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			icon = $(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
 			parent.append(icon);
 		}
 
@@ -2446,7 +2447,7 @@ let _Entities = {
 
 		el.children('.typeIcon').addClass('typeIcon-nochildren');
 	},
-	makeSelectable: function(el) {
+	makeSelectable: (el) => {
 		let node = $(el).closest('.node');
 		if (!node || !node.children) {
 			return;
@@ -2457,7 +2458,7 @@ let _Entities = {
 			}
 		});
 	},
-	setMouseOver: function(el, allowClick, syncedNodesIds) {
+	setMouseOver: (el, allowClick, syncedNodesIds) => {
 
 		let node = $(el).closest('.node');
 		if (!node || !node.children) {
@@ -2602,7 +2603,7 @@ let _Entities = {
 			});
 		}
 	},
-	expandRecursively: function(ids) {
+	expandRecursively: (ids) => {
 		if (!ids || ids.length === 0) {
 			return;
 		}
@@ -2624,7 +2625,7 @@ let _Entities = {
 		}
 	},
 	scrollTimer: undefined,
-	highlightElement:function(el) {
+	highlightElement: (el) => {
 
 		if (el) {
 			el.addClass('nodeSelected');
@@ -2951,8 +2952,8 @@ let _Entities = {
 
 				<div class="col-span-2 hidden event-options options-properties options-any">
 					<h3>Parameter Mapping
-						<i class="m-2 add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon('circle_plus',16,16,[], 'Add parameter')}</i>
-						<i class="m-2 add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon('list_add',16,16,[], 'Add parameters for all properties')}</i>
+						<i class="m-2 add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
+						<i class="m-2 add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
 					</h3>
 
 					<div class="event-options options-properties options-create options-update parameter-mappings-container"></div>
@@ -3060,8 +3061,8 @@ let _Entities = {
 						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
 						<div class="element-dropzone link-existing-element-dropzone">
 							<div class="info-icon h-16 flex items-center justify-center">
-								<i class="m-2 active align-middle">${_Icons.getSvgIcon('circle_plus')}</i>
-								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon('circle_plus')}</i> Drag and drop existing form input element here 
+								<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing form input element here 
 							</div>
 						</div>
 					</div>
@@ -3080,7 +3081,7 @@ let _Entities = {
 					
 					<div class="option-tile">
 						<label class="hidden block mb-2">Actions</label>
-						<i class="block mt-4 cursor-pointer parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
+						<i class="block mt-4 cursor-pointer parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
 					</div>
 
 				</div>
@@ -3088,15 +3089,15 @@ let _Entities = {
 				<!--div class="event-options options-properties options-create options-update">
 					<div id="link-existing-element-dropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
-							<i class="m-2 active">${_Icons.getSvgIcon('circle_plus')}</i>
-							<i class="m-2 inactive">${_Icons.getSvgIcon('circle_plus')}</i> Drop existing input or select elements here
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])} Drop existing input or select elements here
 						</div>
 					</div>
 				</div>
 
 				<div class="event-options options-properties options-update">
-					<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new input</button>
-					<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green"><i class="${_Icons.getFullSpriteClass(_Icons.add_brick_icon)} mr-2"></i> Create new select</button>
+					<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new input</button>
+					<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new select</button>
 				</div-->
 				
 			</div>
@@ -3123,7 +3124,7 @@ let _Entities = {
 					</div>
 					<div class="option-tile flat">
 						<label class="hidden mb-1">Actions</label>
-						<i class="block mt-2 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon('trashcan')}</i>
+						<i class="block mt-2 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
 					</div>
 				</div>
 
@@ -3141,7 +3142,7 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 	} else if (obj.constructor === Object) {
 
 		let displayName = _Crud.displayName(obj);
-		return '<div title="' + escapeForHtmlAttributes(displayName) + '" id="_' + obj.id + '" class="node ' + (obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')) + ' ' + obj.id + '_"><span class="abbr-ellipsis abbr-80">' + displayName + '</span><i class="remove ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '"></i></div>';
+		return `<div title="${escapeForHtmlAttributes(displayName)}" id="_${obj.id}" class="node ${obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')} ${obj.id}_"><span class="abbr-ellipsis abbr-80">${displayName}</span>${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['remove'])}</div>`;
 
 	} else if (obj.constructor === Array) {
 
@@ -3155,30 +3156,30 @@ function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
 
 function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
 
-	let html            = '';
-	let readonlyHTML    = (isReadOnly ? ' readonly class="readonly"' : '');
-	let inputTypeHTML   = (isPassword ? 'password' : 'text');
-	let removeIconClass = _Icons.getFullSpriteClass(_Icons.grey_cross_icon);
+	let html           = '';
+	let readonlyHTML   = (isReadOnly ? ' readonly class="readonly"' : '');
+	let inputTypeHTML  = (isPassword ? 'password' : 'text');
+	let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
 
 	for (let value of values) {
 
 		if (isMultiline) {
 
-			html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password">' + value + '</textarea><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
+			html += `<div class="array-attr relative"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password">${value}</textarea>${removeIconHTML}</div>`;
 
 		} else {
 
-			html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value="' + value + '"' + readonlyHTML + ' autocomplete="new-password"><i title="Remove single value" class="remove ' + removeIconClass + '"></i></div>';
+			html += `<div class="array-attr relative"><input name="${key}" type="${inputTypeHTML}" value="${value}"${readonlyHTML} autocomplete="new-password">${removeIconHTML}</div>`;
 		}
 	}
 
 	if (isMultiline) {
 
-		html += '<div class="array-attr"><textarea rows="4" name="' + key + '"' + readonlyHTML + ' autocomplete="new-password"></textarea></div>';
+		html += `<div class="array-attr"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password"></textarea></div>`;
 
 	} else {
 
-		html += '<div class="array-attr"><input name="' + key + '" type="' + inputTypeHTML + '" value=""' + readonlyHTML + ' autocomplete="new-password"></div>';
+		html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" value=""${readonlyHTML} autocomplete="new-password"></div>`;
 	}
 
 	return html;
@@ -3188,10 +3189,10 @@ function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword
 
 	if (isMultiline) {
 
-		return '<textarea rows="4" name="' + key + '"' + (isReadOnly ? ' readonly class="readonly"' : '') + ' autocomplete="new-password">' + value + '</textarea>';
+		return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="new-password">${value}</textarea>`;
 
 	} else {
 
-		return '<input name="' + key + '" type="' + (isPassword ? 'password' : 'text') + '" value="' + value + '"' + (isReadOnly ? 'readonly class="readonly"' : '') + ' autocomplete="new-password">';
+		return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
 	}
 }

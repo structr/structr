@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -272,13 +272,13 @@ let _Dashboard = {
 
 					if (daysLeft <= 0) {
 
-						config.customToggleIcon        = 'error-sign-icon-filled';
+						config.customToggleIcon        = _Icons.iconErrorRedFilled;
 						config.customToggleIconClasses = ['icon-red', 'ml-2'];
 						config.text = "Your Structr <b>license has expired</b>. Upon restart the Community edition will be loaded.";
 
 					} else if (daysLeft <= 7) {
 
-						config.customToggleIcon        = 'warning-sign-icon-filled';
+						config.customToggleIcon        = _Icons.iconWarningYellowFilled;
 						config.customToggleIconClasses = ['ml-2'];
 						config.text = "Your Structr <b>license will expire in less than a week</b>. After that the Community edition will be loaded.";
 
@@ -1204,7 +1204,7 @@ let _Dashboard = {
 
 							<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
-									${_Icons.getSvgIcon('settings-cog')}
+									${_Icons.getSvgIcon(_Icons.iconSettingsCog)}
 								</button>
 
 								<div class="dropdown-menu-container" style="display: none;">
@@ -1302,7 +1302,7 @@ let _Dashboard = {
 							<input id="event-type-page-size" class="mr-8" type="number" size="3" value="100">
 
 							<button id="refresh-event-log" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 							</button>
 						</div>
 
@@ -1327,7 +1327,7 @@ let _Dashboard = {
 						<div id="running-threads-options" class="flex items-center mb-4">
 
 							<button id="refresh-running-threads" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Refresh
+								${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 							</button>
 
 						</div>

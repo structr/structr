@@ -1,19 +1,19 @@
 /**
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 .folder-path {
@@ -81,31 +81,6 @@
 	bottom: 4px;
 }
 
-#folder-contents .tile .push_icon {
-	left: 24px;
-}
-
-#folder-contents .tile i.edit_file_icon,
-#folder-contents .tile i.view_icon {
-	left: 44px;
-}
-
-#folder-contents .tile i.edit_props_icon {
-	left: 64px;
-}
-
-#folder-contents .img-tile i.edit_props_icon {
-	left: 260px;
-}
-
-#folder-contents .tile i.edit_icon {
-	left: 44px;
-}
-
-#folder-contents .img-tile i.edit_icon {
-	left: 240px;
-}
-
 #folder-contents .tile img.tn {
 	max-width: 64px;
 	max-height: 48px;
@@ -114,19 +89,6 @@
 #folder-contents .img-tile img.tn {
 	max-width: 296px;
 	max-height: 296px;
-}
-
-#folder-contents .tile i.delete_icon, #folder-contents .tile i.remove_favorite_icon {
-	top: 4px;
-	right: 4px;
-}
-
-#folder-contents .tile i.key_icon {
-	left: 84px;
-}
-
-#folder-contents .img-tile i.key_icon {
-	left: 280px;
 }
 
 #folder-contents table th, #contents-contents table th {
@@ -322,11 +284,6 @@ table#csv-import {
 
 table#csv-import td {
 	padding: 0 0 12px 0;
-}
-
-table#csv-import label {
-	display: inline-block;
-	min-width: 120px !important;
 }
 
 div#types-container div.type-mapping {

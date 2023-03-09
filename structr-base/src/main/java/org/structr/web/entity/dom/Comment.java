@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.web.entity.dom;
@@ -55,7 +55,7 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 		String _content = comment.getContent();
 
 		// Avoid rendering existing @structr comments since those comments are
-		// created depending on the visiblity settings of individual nodes. If
+		// created depending on the visibility settings of individual nodes. If
 		// those comments are rendered, there will be duplicates in a round-
 		// trip export/import test.
 		if (!_content.contains("@structr:")) {

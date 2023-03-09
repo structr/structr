@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -276,7 +276,8 @@ public class Scripting {
 					if (source == null) {
 
 						final String code = embedInFunction(snippet);
-						source = Source.newBuilder("js", code, snippet.getName()).mimeType("application/javascript+module").build();
+
+						source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
 						// store in cache
 						sourceCache.put(snippet.getSource(), source);
@@ -446,31 +447,34 @@ public class Scripting {
 
 		if (snippet.embed()) {
 
-			return embedInFunction(snippet.getSource(), snippet.getName());
-		}
+			final String transpiledSource;
+			// Regex that matches import statements
+			final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 
-		return snippet.getSource();
-	}
+			if (importPattern.matcher(snippet.getSource()).find()) {
 
-	private static String embedInFunction(final String source, final String name) {
+				final Map<Boolean, List<String>> partitionedScript = snippet.getSource().lines().collect(Collectors.partitioningBy(x -> importPattern.matcher(x).find()));
+				final String importStatements = String.join("\n", partitionedScript.get(true));
+				final String code = String.join("\n", partitionedScript.get(false));
 
-		StringBuilder imports = new StringBuilder();
-		StringBuilder code = new StringBuilder();
+				StringBuilder reassembledScript = new StringBuilder();
+				reassembledScript
+						.append(importStatements).append("\n")
+						.append("function main() {\n")
+						.append(code)
+						.append("\n}\n\nmain();");
+				transpiledSource = reassembledScript.toString();
+				// Change mimetype to module since import statements have been found.
+				snippet.setMimeType("application/javascript+module");
+			} else {
 
-		try (Scanner scanner = new Scanner(source)) {
-
-			while (scanner.hasNextLine()) {
-				String line = scanner.nextLine();
-
-				if (line.toLowerCase().trim().startsWith("import")) {
-					imports.append(line);
-				} else if (line.length() > 0) {
-					code.append(line);
-				}
+				transpiledSource = "function main() {\n" + snippet.getSource() + "\n}\n\nmain();";
 			}
+
+			snippet.setCodeSource(transpiledSource);
 		}
 
-		return imports.toString() + '\n' + "function main() { " + code.toString() + "\n}\n" + "\n\nmain();";
+		return snippet.getCodeSource();
 	}
 
 	// this is only public to be testable :(

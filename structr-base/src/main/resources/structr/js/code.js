@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -517,7 +517,7 @@ let _Code = {
 	addRecentlyUsedEntity: (entity, path, fromStorage) => {
 
 		let name      = _Code.getDisplayNameInRecentsForType(entity);
-		let iconSvg   = _Code.getIconForNodeType(entity);
+		let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
 		let localPath = path;
 
 		// don't add search results to recently used elements (we cannot construct the path)
@@ -592,10 +592,10 @@ let _Code = {
 					id:       path + '/globals',
 					text:     'Global Methods',
 					children: true,
-					icon:     _Icons.jstree_fake_icon,
+					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'globals' },
 					data: {
-						svgIcon: _Icons.getSvgIcon('globe-icon', 16, 24),
+						svgIcon: _Icons.getSvgIcon(_Icons.iconGlobe, 16, 24),
 						key:     'SchemaMethod',
 						query:   { schemaNode: null },
 						content: 'globals',
@@ -606,10 +606,10 @@ let _Code = {
 					id:       path + '/openapi',
 					text:     'OpenAPI - Swagger UI',
 					children: (_Code.availableTags.length > 0),
-					icon:     _Icons.jstree_fake_icon,
+					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'openapi' },
 					data: {
-						svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 18, 24),
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 18, 24),
 						key:     'openapi',
 						content: 'openapi',
 						path:    path + '/openapi'
@@ -618,10 +618,10 @@ let _Code = {
 				{
 					id:      '/root',
 					text:    'Types',
-					icon:    _Icons.jstree_fake_icon,
+					icon:    _Icons.nonExistentEmptyIcon,
 					li_attr: { 'data-id': 'root' },
 					data: {
-						svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24),
+						svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24),
 						key:     'root',
 						path:    '/root'
 					},
@@ -630,10 +630,10 @@ let _Code = {
 							id:       '/root/custom',
 							text:     'Custom',
 							children: true,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': 'custom' },
 							data: {
-								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 								key:     'SchemaNode',
 								query:   { isBuiltinType: false },
 								content: 'custom',
@@ -644,10 +644,10 @@ let _Code = {
 							id:       '/root/builtin',
 							text:     'Built-In',
 							children: true,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': 'builtin' },
 							data: {
-								svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24),
+								svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24),
 								key:     'SchemaNode',
 								query:   { isBuiltinType: true },
 								content: 'builtin',
@@ -658,10 +658,10 @@ let _Code = {
 							id:       '/root/workingsets',
 							text:     'Working Sets',
 							children: true,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': 'workingsets' },
 							data: {
-								svgIcon: _Icons.getSvgIcon('folder_star', 16, 24),
+								svgIcon: _Icons.getSvgIcon(_Icons.iconFavoritesFolder, 16, 24),
 								key: 'workingsets',
 								content: 'workingsets',
 								path: '/root/workingsets'
@@ -677,11 +677,11 @@ let _Code = {
 					id:       path + '/searchresults',
 					text:     'Search Results',
 					children: true,
-					icon:     _Icons.jstree_fake_icon,
+					icon:     _Icons.nonExistentEmptyIcon,
 					data: {
 						key: 'searchresults',
 						path: path + '/searchresults',
-						svgIcon: _Icons.getSvgIcon('magnifying-glass', 16, 24)
+						svgIcon: _Icons.getSvgIcon(_Icons.iconSearch, 16, 24)
 					},
 					state: {
 						opened: true
@@ -775,7 +775,7 @@ let _Code = {
 			// skip HTML entities
 			if (entity?.category !== 'html') {
 
-				let icon = _Code.getIconForNodeType(entity);
+				let icon = _Icons.getIconForSchemaNodeType(entity);
 
 				switch (entity.type) {
 
@@ -785,10 +785,10 @@ let _Code = {
 							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: false,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': entity.id },
 							data: {
-								svgIcon: _Icons.getSvgIcon('swagger-logo-bw', 16, 24),
+								svgIcon: _Icons.getSvgIcon(_Icons.iconSwagger, 16, 24),
 								name:    entity.name,
 								key:     entity.type,
 								id:      entity.id,
@@ -805,10 +805,10 @@ let _Code = {
 							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: entity.children.length > 0,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': entity.id },
 							data: {
-								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? 'folder_clock' : 'folder-closed-icon'), 16, 24),
+								svgIcon: _Icons.getSvgIcon((entity.name === _WorkingSets.recentlyUsedName ? _Icons.iconRecentlyUsed : _Icons.iconFolderClosed), 16, 24),
 								key:     'workingset',
 								id:      entity.id,
 								content: 'workingset',
@@ -825,7 +825,7 @@ let _Code = {
 							id:       path + '/' + entity.id,
 							text:     entity.name,
 							children: _Code.getChildElementsForSchemaNode(entity, path + '/' + entity.id),
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr:  { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
@@ -846,7 +846,7 @@ let _Code = {
 							id:       path + '/' + entity.name,
 							text:     name,
 							children: false,
-							icon:     _Icons.jstree_fake_icon,
+							icon:     _Icons.nonExistentEmptyIcon,
 							li_attr: { 'data-id': entity.id },
 							data: {
 								svgIcon: icon,
@@ -873,7 +873,7 @@ let _Code = {
 								id:       path + '/' + entity.id,
 								text:     name + (' (' + (entity.propertyType || '') + ')'),
 								children: false,
-								icon:     _Icons.jstree_fake_icon,
+								icon:     _Icons.nonExistentEmptyIcon,
 								li_attr:  { 'data-id': entity.id, style: 'color: #aaa;' },
 								data: {
 									svgIcon: icon,
@@ -899,7 +899,7 @@ let _Code = {
 								id:       path + '/' + entity.id,
 								text:     name,
 								children: hasVisibleChildren,
-								icon:     _Icons.jstree_fake_icon,
+								icon:     _Icons.nonExistentEmptyIcon,
 								li_attr:  { 'data-id': entity.id },
 								data: {
 									svgIcon: icon,
@@ -934,10 +934,10 @@ let _Code = {
 				id:       path + '/properties',
 				text:     'Local Properties',
 				children: (entity.schemaProperties.length > 0),
-				icon:     _Icons.jstree_fake_icon,
+				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'properties' },
 				data:     {
-					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
 					key:     'SchemaProperty',
 					id:      entity.id,
 					type:    entity.name,
@@ -950,10 +950,10 @@ let _Code = {
 				id:       path + '/remoteproperties',
 				text:     'Related Properties',
 				children: ((entity.relatedTo.length + entity.relatedFrom.length) > 0),
-				icon:     _Icons.jstree_fake_icon,
+				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'remoteproperties' },
 				data:     {
-					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
 					key:     'remoteproperties',
 					id:      entity.id,
 					type:    entity.name,
@@ -965,10 +965,10 @@ let _Code = {
 				id:       path + '/views',
 				text:     'Views',
 				children: (entity.schemaViews.length > 0),
-				icon:     _Icons.jstree_fake_icon,
+				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'views' },
 				data:     {
-					svgIcon: _Icons.getSvgIcon('tv-icon', 16, 24),
+					svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaViews, 16, 24),
 					key:     'SchemaView',
 					id:      entity.id,
 					type:    entity.name,
@@ -981,10 +981,10 @@ let _Code = {
 				id:       path + '/methods',
 				text:     'Methods',
 				children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
-				icon:     _Icons.jstree_fake_icon,
+				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'methods' },
 				data:     {
-					svgIcon: _Icons.getSvgIcon('code-icon', 16, 24),
+					svgIcon: _Icons.getSvgIcon(_Icons.iconSchemaMethods, 16, 24),
 					key:     'SchemaMethod',
 					id:      entity.id,
 					type:    entity.name,
@@ -997,10 +997,10 @@ let _Code = {
 				id:       path + '/inheritedproperties',
 				text:     'Inherited Properties',
 				children: true,
-				icon:     _Icons.jstree_fake_icon,
+				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'inheritedproperties' },
 				data:     {
-					svgIcon: _Icons.getSvgIcon('sliders-icon', 16, 24),
+					svgIcon: _Icons.getSvgIcon(_Icons.iconSliders, 16, 24),
 					key:     'inheritedproperties',
 					id:      entity.id,
 					type:    entity.name,
@@ -1194,78 +1194,6 @@ let _Code = {
 
 		return displayName;
 	},
-	getIconForNodeType: (entity) => {
-
-		let icon = 'file-code';
-		let additionalClasses = [];
-
-		switch (entity.type) {
-
-			case 'SchemaMethod':
-
-				switch (entity.codeType) {
-					case 'java':
-						icon = 'circle-empty';
-						additionalClasses.push('icon-red');
-						break;
-					default:
-						if (entity.isStatic) {
-							icon = 'static-method';
-							additionalClasses.push('icon-blue');
-						} else {
-							icon = 'circle-empty';
-							additionalClasses.push('icon-blue');
-						}
-						break;
-				}
-				break;
-
-			case 'SchemaProperty':
-				icon = _Code.getIconForPropertyType(entity.propertyType);
-				break;
-
-			case 'SchemaView':
-				icon = 'view-icon';
-				break;
-
-			case 'SchemaRelationshipNode':
-				icon = 'chain-link';
-				break;
-		}
-
-		return _Icons.getSvgIcon(icon, 16, 24, additionalClasses);
-	},
-	getIconForPropertyType: (propertyType) => {
-
-		switch (propertyType) {
-
-			case "Custom":
-			case "IdNotion":
-			case "Notion":
-				return 'magic_wand';
-
-			case "IntegerArray":
-			case "StringArray":
-				return 'array-property';
-
-			case 'Integer':
-			case "Long":
-				return 'numeric-proprety';
-
-			case 'Boolean':      return 'boolean-property';
-			case "Cypher":       return 'database-icon';
-			case 'Date':         return 'date-property';
-			case "Double":       return 'double-property';
-			case "Enum":         return 'enum-property';
-			case "Function":     return 'function-property';
-
-			case 'String':       return 'string-property';
-			case 'Encrypted':    return 'encrypted-property';
-			default:             return 'chain-link';
-		}
-
-		return 'string-property';
-	},
 	hasVisibleChildren: (id, entity) => {
 
 		let hasVisibleChildren = false;
@@ -1449,16 +1377,16 @@ let _Code = {
 				});
 			};
 
-			let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+			let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
 
-			let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 			});
 
 			// delete button
 			if (!entity.isPartOfBuiltInSchema) {
-				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
-					_Code.deleteSchemaEntity(result, 'Delete type ' + result.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
+				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
+					_Code.deleteSchemaEntity(entity, 'Delete type ' + entity.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
 				});
 			}
 
@@ -1527,15 +1455,15 @@ let _Code = {
 						});
 					};
 
-					let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
+					let saveButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save', _Code.runCurrentEntitySaveAction);
 
-					let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+					let cancelButton = _Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 					});
 
 					// delete button
 					if (!entity.isPartOfBuiltInSchema) {
-						_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete relationship ' + entity.relationshipType, () => {
+						_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete relationship ' + entity.relationshipType, () => {
 							_Code.deleteSchemaEntity(entity, 'Delete relationship ' + entity.relationshipType + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
 						});
 					}
@@ -1751,9 +1679,9 @@ let _Code = {
 
 			let buttons = $('#method-buttons');
 
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save method', _Code.runCurrentEntitySaveAction);
 
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 				_Code.additionalDirtyChecks = [];
 				_Editors.disposeEditorModel(result.id, 'source');
 				_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
@@ -1761,14 +1689,14 @@ let _Code = {
 			});
 
 			// delete button
-			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
+			_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete method', () => {
 				_Code.deleteSchemaEntity(result, 'Delete method ' + result.name + '?', 'Note: Builtin methods will be restored in their initial configuration', data);
 			});
 
 			// run button
 			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
 
-				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon('run_button', 14, 14, ''), 'run', 'Run method', () => {
+				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
 				});
 			}
@@ -1897,7 +1825,7 @@ let _Code = {
 
 			if (workingSet.name === _WorkingSets.recentlyUsedName) {
 
-				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'clear', 'Clear', function() {
+				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'clear', 'Clear', function() {
 					_WorkingSets.clearRecentlyUsed(function() {
 						_Code.refreshTree();
 					});
@@ -1907,7 +1835,7 @@ let _Code = {
 
 			} else {
 
-				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'remove', 'Remove', function() {
+				_Code.displaySvgActionButton('#working-set-content', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'remove', 'Remove', function() {
 					_WorkingSets.deleteSet(data.id, function() {
 						_Code.refreshNode('/workingsets');
 						_Code.findAndOpenNode('/workingsets');
@@ -2330,15 +2258,15 @@ let _Code = {
 
 		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
-		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
+		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save property', _Code.runCurrentEntitySaveAction);
 
-		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+		_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 			_Code.revertFormData(property);
 		});
 
 		if (!property.schemaNode.isBuiltinType) {
 
-			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
+			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
 				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', data);
 			});
 		}
@@ -2414,15 +2342,15 @@ let _Code = {
 		let buttons = $('#view-buttons');
 		buttons.prepend(_Code.templates.viewOptions({ view: view }));
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 			_Code.revertFormData(view);
 			_Code.displayViewSelect(view);
 		});
 
 		// delete button
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon('trashcan', 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
+		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
 			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', data);
 		});
 
@@ -2748,7 +2676,7 @@ let _Code = {
 
 		dialogBtn.prepend(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon('run_button', 16, 18, 'mr-2')}
+				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
 		`);
@@ -2760,7 +2688,7 @@ let _Code = {
 				<div id="params">
 					<h3 class="heading-narrow">Parameters</h3>
 					<div>
-						${_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'add-param-action']), 'Add parameter')}
 					</div>
 				</div>
 				<h3>Method output</h3>
@@ -2784,7 +2712,7 @@ let _Code = {
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
 					<input class="param-value" placeholder="Parameter value">
-					${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
 				</div>
 			`);
 
@@ -2912,14 +2840,14 @@ let _Code = {
 		functions: config => `
 			<div class="tree-search-container flex" id="tree-search-container">
 				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
-					${_Icons.getSvgIcon('chevron-left-filled', 12, 12)}
+					${_Icons.getSvgIcon(_Icons.iconChevronLeftFilled, 12, 12)}
 				</button>
 				<div class="relative">
 					<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
-					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
-					${_Icons.getSvgIcon('chevron-right-filled', 12, 12)}
+					${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 12, 12)}
 				</button>
 			</div>
 		`,
@@ -2945,10 +2873,10 @@ let _Code = {
 			</div>
 			<div class="flex justify-between mt-3">
 				<button id="cancel-button-${config.suffix}" type="button" class="create-form-button cancel flex items-center px-3 py-1">
-					${_Icons.getSvgIcon('close-dialog-x', 14, 14, 'icon-red')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red')}
 				</button>
 				<button id="create-button-${config.suffix}" type="button" class="create-form-button accept flex items-center px-3 py-1">
-					${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green')}
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green')}
 				</button>
 			</div>
 		`,
@@ -2959,7 +2887,7 @@ let _Code = {
 					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type name" autocomplete="off" required>
 	
 					<button type="submit" class="create-form-button accept flex items-center px-3 py-1">
-						${_Icons.getSvgIcon('checkmark_bold', 14, 14, 'icon-green')}
+						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green')}
 					</button>
 				</div>
 			</form>
@@ -2997,12 +2925,12 @@ let _Code = {
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-source">
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
-							<h4>Read Function</h4>
+							<h4 class="py-2 font-semibold">Read Function</h4>
 							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+								<h4 class="py-2 font-semibold" data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
 									Write Function
 								</h4>
 							</div>
@@ -3013,7 +2941,7 @@ let _Code = {
 
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-api">
 						<div>
-							<h4 class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
+							<h4 class="py-2 font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
 						</div>
 						<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 					</div>
@@ -3105,7 +3033,7 @@ let _Code = {
 
 				<label class="font-semibold">Parameters</label>
 				<button id="add-parameter-button">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green']), 'Add parameter')}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green']), 'Add parameter')}
 				</button>
 
 				<div>
@@ -3140,7 +3068,7 @@ let _Code = {
 						</div>
 
 						<div class="method-parameter-property method-parameter-delete flex items-center justify-center">
-							${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
+							${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'ml-2']))}
 						</div>
 					</div>
 				</div>
@@ -3179,10 +3107,12 @@ let _Code = {
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-				<div class="mb-4">
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Type hint</label>
+				<div class="mb-4 grid grid-cols-4 gap-4">
+					<div class="col-span-3"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div class="col-span-2"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3195,21 +3125,19 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="mt-2 mb-4 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-2 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
 				</div>
 
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2">
-						<div class="mt-4"><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					<div class="mt-2 grid grid-cols-3 gap-4">
+						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
 					</div>
 				</div>
 			</div>
@@ -3219,7 +3147,7 @@ let _Code = {
 				${config.iconSvg ? config.iconSvg : ''}
 				${config.iconClass ? `<i class="${config.iconClass} flex-none"></i>` : ''}
 				<div class="truncate flex-grow">${config.name}</div>
-				${_Icons.getSvgIcon('close-dialog-x', 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recently-used']))}
 			</div>
 		`,
 		root: config => `
@@ -3318,7 +3246,7 @@ let _WorkingSets = {
 			let workingSets = [];
 			let recent;
 
-			for (var layout of result) {
+			for (let layout of result) {
 
 				if (!layout.owner || layout.owner.name === StructrWS.me.username) {
 
@@ -3333,8 +3261,7 @@ let _WorkingSets = {
 
 					if (layout.name === _WorkingSets.recentlyUsedName) {
 
-						data.icon = _Icons.image_icon;
-						recent    = data;
+						recent = data;
 
 					} else {
 

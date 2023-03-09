@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -245,7 +245,7 @@ let _VirtualTypes = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Virtual Type',
 			clickHandler: () => {
@@ -532,7 +532,7 @@ let _VirtualTypes = {
 						</table>
 			
 						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green inline-flex items-center">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2', 'icon-green'])} New Virtual Property
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2', 'icon-green'])} New Virtual Property
 						</button>
 					</div>
 				</div>
@@ -545,7 +545,7 @@ let _VirtualTypes = {
 				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required class="mr-2">
 			
 				<button type="submit" form="create-virtual-type-form" class="btn action inline-flex items-center" id="create-virtual-type">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Virtual Type
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Virtual Type
 				</button>
 
 			</form>
@@ -562,8 +562,8 @@ let _VirtualTypes = {
 				<td><input class="property" data-property="visibleToPublicUsers" type="checkbox" checked></td>
 				<td><input class="property" data-property="visibleToAuthenticatedUsers" type="checkbox" checked></td>
 				<td class="actions">
-					${_Icons.getSvgIcon('checkmark_bold', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
-					${_Icons.getSvgIcon('trashcan',       20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
 				</td>
 			</tr>
 		`,

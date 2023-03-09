@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var ignoreKeyUp;
@@ -21,6 +21,7 @@ var dialog, dialogBox, dialogMsg, dialogBtn, dialogTitle, dialogMeta, dialogText
 
 $(function() {
 
+	document.body.innerHTML = Structr.templates.mainBody();
 	_Icons.preloadSVGIcons();
 
 	$.blockUI.defaults.overlayCSS.opacity        = .6;
@@ -350,7 +351,7 @@ let Structr = {
 			entry = pathEntries.shift();
 		}
 
-	    return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
+	    return `${(prefix.length ? '/' : '')}${prefix.join('/')}${rootUrl}`;
 	},
 	getRequestParameterName: (key) => {
 
@@ -607,7 +608,6 @@ let Structr = {
 			Structr.resize();
 
 		}, 1000);
-
 	},
 	dialog: (text, callbackOk, callbackCancel, customClasses) => {
 
@@ -649,9 +649,9 @@ let Structr = {
 
 		dimensions.text = text;
 		LSWrapper.setItem(Structr.dialogDataKey, JSON.stringify(dimensions));
-
 	},
 	dialogCancelBaseAction: () => {
+
 		dialogText.empty();
 		$.unblockUI({
 			fadeOut: 25
@@ -664,6 +664,7 @@ let Structr = {
 		LSWrapper.removeItem(Structr.dialogDataKey);
 	},
 	focusSearchField: () => {
+
 		let activeModule = Structr.getActiveModule();
 		if (activeModule) {
 			let searchField = activeModule.searchField;
@@ -883,7 +884,7 @@ let Structr = {
 		}
 	},
 	loaderIcon: (element, css) => {
-		let icon = $(_Icons.getSvgIcon('waiting-spinner', 24, 24));
+		let icon = $(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24));
 		element.append(icon);
 		if (css) {
 			icon.css(css);
@@ -891,10 +892,10 @@ let Structr = {
 		return icon;
 	},
 	updateButtonWithSpinnerAndText: (btn, html) => {
-		btn.attr('disabled', 'disabled').addClass('disabled').html(html + _Icons.getSvgIcon('waiting-spinner', 20, 20, 'ml-2'));
+		btn.attr('disabled', 'disabled').addClass('disabled').html(html + _Icons.getSvgIcon(_Icons.iconWaitingSpinner, 20, 20, 'ml-2'));
 	},
 	updateButtonWithSuccessIcon: (btn, html) => {
-		btn.attr('disabled', null).removeClass('disabled').html(html + _Icons.getSvgIcon('checkmark_bold', 16, 16, 'tick icon-green ml-2'));
+		btn.attr('disabled', null).removeClass('disabled').html(html + _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'tick icon-green ml-2'));
 		window.setTimeout(() => {
 			$('.tick', btn).fadeOut();
 		}, 1000);
@@ -911,19 +912,17 @@ let Structr = {
 			<div id="tempErrorBox" class="dialog block">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
-						${_Icons.getSvgIcon('warning-sign-icon-filled', 16, 16, 'mr-2')}
+						${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')}
 						<b>Connection lost or timed out.</b>
 					</div>
 
-					<div>
-						Don't reload the page!
-					</div>
+					<div>Don't reload the page!</div>
 
 					${restoreDialogText}
 
 					<div class="flex items-center">
 						<span>Trying to reconnect...</span>
-						${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'ml-2')}
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'ml-2')}
 					</div>
 				</div>
 				<div class="errorMsg"></div>
@@ -1010,7 +1009,7 @@ let Structr = {
 		} else if (!Structr.modules[name]) {
 			Structr.modules[name] = module;
 		} else {
-			new MessageBuilder().error("Cannot register module '" + name + "' a second time - ignoring attempt.").show();
+			new MessageBuilder().error(`Cannot register module '${name}' a second time - ignoring attempt.`).show();
 		}
 	},
 	getActiveModuleName: () => {
@@ -1250,7 +1249,7 @@ let Structr = {
 
 				if (!Structr.isInMemoryDatabase) {
 
-					dbInfoEl.html(`<span>${_Icons.getSvgIcon('database-icon-color', 16, 16, [], driverName)}</span>`);
+					dbInfoEl.html(`<span>${_Icons.getSvgIcon(_Icons.iconDatabase, 16, 16, [], driverName)}</span>`);
 
 				} else {
 
@@ -1481,7 +1480,14 @@ let Structr = {
 		};
 	},
 	updateMainHelpLink: (newUrl) => {
-		$('#main-help a').attr('href', newUrl);
+		let helpLink = document.querySelector('#main-help a');
+		if (helpLink) {
+			helpLink.setAttribute('href', newUrl);
+
+			if (helpLink.children.length === 0) {
+				helpLink.innerHTML = _Icons.getSvgIcon(_Icons.iconInfo, 16, 16);
+			}
+		}
 	},
 	isButtonDisabled: (button) => {
 		return $(button).data('disabled');
@@ -1600,13 +1606,13 @@ let Structr = {
 		let toggleElementClass = config.class || undefined;
 		let elementCss         = config.elementCss || {};
 		let helpElementCss     = config.helpElementCss || {};
-		let customToggleIcon   = config.customToggleIcon || 'info-icon';
+		let customToggleIcon   = config.customToggleIcon || _Icons.iconInfo;
 		let customToggleIconClasses = config.customToggleIconClasses || ['icon-blue'];
 		let insertAfter        = config.insertAfter || false;
 		let offsetX            = config.offsetX || 0;
 		let offsetY            = config.offsetY || 0;
-		let width              = config.width || 16;
-		let height             = config.height || 16;
+		let width              = config.width || 12;
+		let height             = config.height || 12;
 
 		let createdElements = [];
 
@@ -2220,7 +2226,7 @@ let Structr = {
 					element: el,
 					css: {
 						'margin': '0 4px',
-						'vertical-align': 'top'
+						//'vertical-align': 'top'
 					}
 				};
 
@@ -2261,7 +2267,7 @@ let Structr = {
 		});
 	},
 	showLoadingSpinner: () => {
-		Structr.blockUiGeneric('<div id="structr-loading-spinner">' + _Icons.getSvgIcon('waiting-spinner', 36, 36) + '</div>');
+		Structr.blockUiGeneric('<div id="structr-loading-spinner">' + _Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36) + '</div>');
 	},
 	hideLoadingSpinner: () => {
 		Structr.unblockUiGeneric();
@@ -2271,7 +2277,7 @@ let Structr = {
 		let messageTitle = title || 'Executing Task';
 		let messageText  = text || 'Please wait until the operation has finished...';
 
-		$('#tempInfoBox .infoMsg').html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
+		$('#tempInfoBox .infoMsg').html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
 
 		$('#tempInfoBox .closeButton').hide();
 		Structr.blockUiGeneric($('#tempInfoBox'), timeout || 500);
@@ -2289,7 +2295,7 @@ let Structr = {
 
 		let pageBlockerDiv = $('<div id="' + Structr.nonBlockUIBlockerId +'"></div>');
 		let messageDiv     = $('<div id="' + Structr.nonBlockUIBlockerContentId +'"></div>');
-		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
+		messageDiv.html(`<div class="flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${messageTitle}</b></div><br>${messageText}`);
 
 		$('body').append(pageBlockerDiv);
 		$('body').append(messageDiv);
@@ -2373,7 +2379,7 @@ let Structr = {
 				if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
 					answerFunction(e, false);
 				}
-			})
+			});
 
 			let body = document.querySelector('body');
 			body.appendChild(pageBlockerDiv);
@@ -2398,7 +2404,6 @@ let Structr = {
 			case 'crud':           return 'https://docs.structr.com/docs/data';
 
 			case 'contents':
-			case 'crawler':
 			case 'mail-templates':
 			case 'virtual-types':
 			case 'localization':
@@ -2445,20 +2450,15 @@ let Structr = {
 
 		Structr.dialog('Icons');
 
-		dialogText.html(`<div class="flex items-start">
-			<div class="flex-grow">
-				<h3>Sprite Icons (DEPRECATED!)</h3>
-				<table>
-					${Object.keys(_Icons).filter((key) => (typeof _Icons[key] === "string")).map((key) => `<tr><td>${key}</td><td><i class="${_Icons.getFullSpriteClass(_Icons[key])}"></i></td></tr>`).join('')}
-				</table>
-			</div>
-
-			<div class="flex-grow">
-				<h3>SVG Icons</h3>
-				<table>
-					${[...document.querySelectorAll('body > svg > symbol')].map(el => `<tr><td>${el.id}</td><td>${_Icons.getSvgIcon(el.id, 24, 24)}</td></tr>`).join('')}
-				</table>
-			</div>
+		dialogText.html(`<div>
+			<h3>SVG Icons</h3>
+			<table>
+				${[...document.querySelectorAll('body > svg > symbol')].map(el => el.id).sort().map(id => 
+					`<tr>
+						<td>${id}</td>
+						<td>${_Icons.getSvgIcon(id, 24, 24)}</td>
+					</tr>`).join('')}
+			</table>
 		</div>`);
 	},
 	isImage: (contentType) => {
@@ -2541,6 +2541,181 @@ let Structr = {
 		}
 
 		key = requestAnimationFrame(callback);
+	},
+
+	templates: {
+		mainBody: config => `
+			<div id="info-area" class="blockMsg"></div>
+			<div id="header">
+
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
+
+				<div id="menu" class="menu">
+					<ul>
+						<li class="submenu-trigger" data-toggle="popup" data-target="#submenu">
+
+							${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 10, 10, ['icon-white'])}
+
+							<ul id="submenu">
+								<li data-name="Dashboard"><a id="dashboard_" href="#dashboard" data-activate-module="dashboard">Dashboard</a></li>
+								<li data-name="Graph"><a id="graph_" href="#graph" data-activate-module="graph">Graph</a></li>
+								<li data-name="Contents"><a id="contents_" href="#contents" data-activate-module="contents">Contents</a></li>
+								<li data-name="Pages"><a id="pages_" href="#pages" data-activate-module="pages">Pages</a></li>
+								<li data-name="Files"><a id="files_" href="#files" data-activate-module="files">Files</a></li>
+								<li data-name="Security"><a id="security_" href="#security" data-activate-module="security">Security</a></li>
+								<li data-name="Schema"><a id="schema_" href="#schema" data-activate-module="schema">Schema</a></li>
+								<li data-name="Code"><a id="code_" href="#code" data-activate-module="code">Code</a></li>
+								<li data-name="Flows" class="module-dependend" data-structr-module="api-builder"><a id="flows_" href="#flows" data-activate-module="flows">Flows</a></li>
+								<li data-name="Data"><a id="crud_" href="#crud" data-activate-module="crud">Data</a></li>
+								<li data-name="Importer"><a id="importer_" href="#importer" data-activate-module="importer">Importer</a></li>
+								<li data-name="Localization"><a id="localization_" href="#localization" data-activate-module="localization">Localization</a></li>
+								<li data-name="Virtual Types" class="module-dependend" data-structr-module="api-builder"><a id="virtual-types_" href="#virtual-types" data-activate-module="virtual-types">Virtual Types</a></li>
+								<li data-name="Mail Templates" class="edition-dependend" data-structr-edition="Enterprise"><a id="mail-templates_" href="#mail-templates" data-activate-module="mail-templates">Mail Templates</a></li>
+								<li data-name="Login"><a id="logout_" href="javascript:void(0)">Login</a></li>
+							</ul>
+						</li>
+					</ul>
+				</div>
+				<div class="structr-instance-info">
+					<div class="structr-instance">
+						<span class="structr-instance-db"></span>
+						<span class="structr-instance-name"></span>
+						<span class="structr-instance-stage"></span>
+						<span class="structr-instance-maintenance"></span>
+					</div>
+					<div class="structr-version flex items-center h-4"></div>
+				</div>
+				<div id="main-help">
+					<a target="_blank" href="https://support.structr.com/knowledge-graph"></a>
+				</div>
+			</div>
+
+			<div class="hidden" id="structr-console"></div>
+			<div class="hidden" id="structr-favorites"></div>
+
+			<div id="function-bar"></div>
+			<div id="main"></div>
+
+			<div id="login" class="dialog">
+
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+
+				<form id="loginForm" action="javascript:void(0)">
+					<table class="username-password">
+						<tr>
+							<td><label for="usernameField">Username:</label></td>
+							<td><input id="usernameField" type="text" name="username" autofocus autocomplete="username" required></td>
+						</tr>
+						<tr>
+							<td><label for="passwordField">Password:</label></td>
+							<td><input id="passwordField" type="password" name="password" autocomplete="current-password" required></td>
+						</tr>
+						<tr>
+							<td colspan="2" class="btn">
+								<span id="errorText"></span>
+							</td>
+						</tr>
+						<tr class="username-pw">
+							<td colspan="2" class="btn">
+								<button id="loginButton" name="login" class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
+								</button>
+							</td>
+						</tr>
+					</table>
+				</form>
+
+				<form id="two-factor-form" action="javascript:void(0)">
+					<div id="two-factor" style="display:none;">
+						<div id="two-factor-qr-code" style="display:none;">
+							<div><img></div>
+							<div id="two-factor-qr-info">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
+						</div>
+						<table>
+							<tr>
+								<td>
+									<label for="twoFactorTokenField">Two-Factor Code:</label>
+								</td>
+								<td>
+									<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
+									<input id="twoFactorCodeField" type="text" name="twoFactorCode" required>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2" class="btn">
+									<span id="errorText-two-factor"></span>
+								</td>
+							</tr>
+							<tr>
+								<td colspan="2" class="btn">
+									<button id="loginButtonTFA" name="login" class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+										${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login 2FA
+									</button>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</form>
+			</div>
+
+			<div id="confirmation" class="dialog">
+				<div class="confirmationText mb-4"></div>
+				<button class="yesButton hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, ['icon-green', 'mr-2'])} Yes
+				</button>
+				<button class="noButton hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, ['icon-red', 'mr-2'])} No
+				</button>
+			</div>
+
+			<div id="infoBox" class="dialog">
+				<div id="infoText"></div>
+				<div class="dialogBtn">
+					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
+				</div>
+			</div>
+
+			<div id="tempInfoBox" class="dialog">
+				<div class="infoHeading"></div>
+				<div class="infoMsg"></div>
+				<div class="dialogBtn">
+					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
+				</div>
+			</div>
+
+			<div id="errorBox" class="dialog">
+				<div class="errorText"></div>
+				<div class="errorMsg"></div>
+				<div class="dialogBtn">
+					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
+				</div>
+			</div>
+
+			<div id="dialogBox" class="dialog">
+				<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">
+					${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}
+				</i>
+				<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">
+					${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}
+				</i>
+				<i title="Close" id="closeDialog" class="window-icon close">
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}
+				</i>
+				<h2 class="dialogTitle"></h2>
+				<div class="dialogHeaderWrapper"></div>
+				<div class="dialogTextWrapper">
+					<div class="dialogText"></div>
+				</div>
+				<div class="dialogMsg"></div>
+				<!--<button id="dialogOkButton">Save</button>-->
+				<div class="dialogMeta"></div>
+				<div class="dialogBtn flex">
+					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
+				</div>
+			</div>
+
+			<div id="menu-area"></div>
+		`
 	}
 };
 
@@ -2605,13 +2780,16 @@ let _TreeHelper = {
 
 			if (anchor) {
 
-				let from = 'folder-closed-icon';
-				let to   = 'folder-open-icon';
+				let from = _Icons.iconFolderClosed;
+				let to   = _Icons.iconFolderOpen;
 
 				let currentIcon = _Icons.getSvgIconFromSvgElement(anchor);
-				if (currentIcon === 'folder-link-open-icon' || currentIcon === 'folder-link-closed-icon') {
-					from = 'folder-link-closed-icon';
-					to   = 'folder-link-open-icon';
+
+				if (currentIcon === _Icons.iconMountedFolderOpen || currentIcon === _Icons.iconMountedFolderClosed) {
+					from = _Icons.iconMountedFolderClosed;
+					to   = _Icons.iconMountedFolderOpen;
+				} else if (currentIcon !== from && currentIcon !== to) {
+//					return;
 				}
 
 				if (newStateIsOpen === false) {
@@ -2624,9 +2802,16 @@ let _TreeHelper = {
 
 			} else {
 
-				// node was not yet created
-				if (newStateIsOpen) {
-					node.data.svgIcon = _Icons.getSvgIcon('folder-open-icon');
+				// no anchor found
+				if (node.data.svgIcon) {
+					if (
+						node.data.svgIcon.contains(_Icons.iconFolderOpen) || node.data.svgIcon.contains(_Icons.iconFolderClosed) ||
+						node.data.svgIcon.contains(_Icons.iconMountedFolderOpen) || node.data.svgIcon.contains(_Icons.iconMountedFolderClosed)
+					) {
+						if (newStateIsOpen) {
+							node.data.svgIcon = _Icons.getSvgIcon(_Icons.iconFolderOpen);
+						}
+					}
 				}
 			}
 		};
@@ -3045,7 +3230,7 @@ let UISettings = {
 
 			let dropdown = Structr.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-					${_Icons.getSvgIcon('ui_configuration_settings')}
+					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
 				</button>
 				<div class="dropdown-menu-container" style=display: none;"></div>
 			</div>`);

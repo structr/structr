@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 let _Widgets = {
@@ -36,7 +36,7 @@ let _Widgets = {
 		let elements = [];
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('pencil_edit'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 			name: 'Edit',
 			clickHandler: function () {
 
@@ -60,7 +60,7 @@ let _Widgets = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {
@@ -367,7 +367,7 @@ let _Widgets = {
 		let newParent  = $('#' + idString + '_folder');
 
 		if (newParent.length === 0) {
-			_Widgets.appendFolderElement(parent, idString, _Icons.folder_icon, title);
+			_Widgets.appendFolderElement(parent, idString, title);
 			newParent = $('#' + idString + '_folder');
 		}
 
@@ -375,7 +375,7 @@ let _Widgets = {
 
 		return parent;
 	},
-	appendFolderElement: (parent, id, icon, name) => {
+	appendFolderElement: (parent, id, name) => {
 
 		parent.append(`
 			<div class="relative mt-1 mb-1">
@@ -395,7 +395,6 @@ let _Widgets = {
 	},
 	appendWidgetElement: function(widget, remote, el) {
 
-		let icon   = _Icons.widget_icon;
 		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
 		let div    = Structr.node(widget.id);
 
@@ -416,8 +415,6 @@ let _Widgets = {
 			div = Structr.node(widget.id);
 		}
 
-		let iconsContainer = div.children('.node-container').children('.icons-container');
-
 		div.draggable({
 			iframeFix: true,
 			revert: 'invalid',
@@ -430,16 +427,18 @@ let _Widgets = {
 
 		_Entities.setMouseOver(div, false);
 
+		let iconsContainer = div.children('.node-container').children('.icons-container');
+
 		if (remote) {
 
 			div.children('b.name_').off('click').css({cursor: 'move'});
 
-			let eyeIcon = $(_Icons.getSvgIcon('eye_open', 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
-			iconsContainer.append(eyeIcon);
-
-			eyeIcon.on('click', () => {
-				_Widgets.editWidget(widget, false);
-			});
+			// let eyeIcon = $(_Icons.getSvgIcon(_Icons.iconEyeOpen, 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
+			// iconsContainer.append(eyeIcon);
+			//
+			// eyeIcon.on('click', () => {
+			// 	_Widgets.editWidget(widget, false);
+			// });
 
 		} else {
 
@@ -880,14 +879,15 @@ let _Widgets = {
 
 	templates: {
 		slideout: config => `
-			${_Icons.getSvgIcon('circle_plus', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
+			${_Icons.getSvgIcon(_Icons.iconAdd, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['add_widgets_icon'], 'Create Widget'))}
 
 			<div class="inner">
 
 				<div class="tab-group${config.localCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.localWidgetsCollapsedKey}">
 					<a href="javascript:void(0);" class="tab-group-toggle">
 						<h3 class="flex items-center">
-							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i>
+							<i title="Collapse Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Local Widgets
 						</h3>
 					</a>
 
@@ -899,13 +899,14 @@ let _Widgets = {
 				<div class="tab-group${config.remoteCollapsed ? ' collapsed' : ''}" data-key="${_Widgets.remoteWidgetsCollapsedKey}">
 					<a href="javascript:void(0);" class="tab-group-toggle">
 						<h3 class="flex items-center">
-							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i><i title="Expand Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
+							<i title="Expand Elements" class="expanded expand_icon_svg ${_Icons.expandedClass}"></i>
+							<i title="Collapse Elements" class="collapsed expand_icon_svg ${_Icons.collapsedClass}"></i> Remote Widgets
 						</h3>
 					</a>
 
 					<div class="tab-group-content">
 						<div class="flex items-center mb-4" id="widget-server-selector-container">
-							${_Icons.getSvgIcon('list-cog', 20, 20, _Icons.getSvgIconClassesNonColorIcon(['edit-widget-servers', 'ml-1', 'mr-8'], 'Edit Widget Servers'))}
+							${_Icons.getSvgIcon(_Icons.iconListWithCog, 20, 20, _Icons.getSvgIconClassesNonColorIcon(['edit-widget-servers', 'ml-1', 'mr-8'], 'Edit Widget Servers'))}
 
 							<input placeholder="Filter..." size="10" id="remoteWidgetsFilter">
 						</div>
@@ -1020,7 +1021,7 @@ let _Widgets = {
 					<div></div>
 					<div>
 						<button id="save-widget-server" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('checkmark_bold', 14, 14, ['icon-green', 'mr-2'])} Save
+							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Save
 						</button>
 					</div>
 				</div>
@@ -1044,7 +1045,7 @@ let _Widgets = {
 					return `
 						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="name" value="${s.name}">` : `${s.name}`}</div>
 						<div data-acdn-id="${s.id}">${s.editable !== false ? `<input data-key="content" value="${s.content}">` : `${s.content}`}</div>
-						<div data-acdn-id="${s.id}" class="text-center">${s.editable !== false ? `${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Delete')}` : ''}</div>
+						<div data-acdn-id="${s.id}" class="text-center">${s.editable !== false ? `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Delete')}` : ''}</div>
 					`;
 				}).join('')}
 			</div>

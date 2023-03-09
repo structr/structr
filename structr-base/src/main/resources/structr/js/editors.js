@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
@@ -244,7 +244,7 @@ let _Editors = {
 								options: {
 									isWholeLine: (fromLine === toLine &&  fromCol === toCol),
 									className: 'monaco-editor-warning-line',
-									glyphMarginClassName: _Icons.getFullSpriteClass(_Icons.error_icon) + ' force-sprite-size',
+									glyphMarginClassName: _Icons.monacoGlyphMarginClassName,
 									glyphMarginHoverMessage: {
 										value: '[' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '] __Scripting error:__ \n\n ' + message,
 									}
@@ -538,7 +538,7 @@ let _Editors = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon('microphone-icon', 18, 18)}</button>`);
+			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconMicrophone, 18, 18)}</button>`);
 
 			let speechToTextButton = buttonArea.querySelector('.speechToText');
 			let speechBtn          = $(speechToTextButton);
@@ -767,7 +767,7 @@ let _Editors = {
 		let dropdown = Structr.createSingleDOMElementFromHTML(`
 			<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="top" data-wants-fixed="true">
-					${_Icons.getSvgIcon('text-settings')}
+					${_Icons.getSvgIcon(_Icons.iconTextSettings)}
 				</button>
 				
 				<div class="dropdown-menu-container" style="display: none;">

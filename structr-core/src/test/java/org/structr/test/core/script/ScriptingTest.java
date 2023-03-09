@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1328,9 +1328,9 @@ public class ScriptingTest extends StructrTest {
 			//assertEquals("Invalid if(equal(round())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(245, round(2.45e2, 8)), \"true\", \"false\")}"));
 
 			// round with null
-			assertEquals("Invalid round() result", "10",                                              Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
-			assertEquals("Invalid round() result with null value", "",                                Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull)}"));
-			assertEquals("Invalid round() result with null value", RoundFunction.ERROR_MESSAGE_ROUND, Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull, this.alwaysNull)}"));
+			assertEquals("Invalid round() result", "10",               Scripting.replaceVariables(ctx, testOne, "${round(\"10\")}"));
+			assertEquals("Invalid round() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull)}"));
+			assertEquals("Invalid round() result with null value", "", Scripting.replaceVariables(ctx, testOne, "${round(this.alwaysNull, this.alwaysNull)}"));
 
 			// if + equal + max
 			assertEquals("Invalid if(equal(max())) result", "true",  Scripting.replaceVariables(ctx, testOne, "${if(equal(\"2\", max(\"1.9\", \"2\")), \"true\", \"false\")}"));

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -139,7 +139,15 @@ public class TransactionCommand {
 			}
 
 			// 2. fetch all types of entities modified in this tx
-			Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+			final Set<String> synchronizationKeys = modificationQueue.getSynchronizationKeys();
+
+			if (securityContext != null && securityContext.uuidWasSetManually()) {
+
+				if (synchronizationKeys != null) {
+
+					synchronizationKeys.add("id");
+				}
+			}
 
 			// we need to protect the validation and indexing part of every transaction
 			// from being entered multiple times in the presence of validators

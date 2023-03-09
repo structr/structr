@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -38,7 +38,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class PolyglotFilesystem implements FileSystem {
-	private static Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);
+	private static final Logger logger = LoggerFactory.getLogger(PolyglotFilesystem.class);
 
 	@Override
 	public Path parsePath(URI uri) {
@@ -87,12 +87,12 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public void createDirectory(Path dir, FileAttribute<?>... attrs) throws IOException {
-		throw new IOException("Structr PolyglotFilesystem does not implement directory creation.");
+		Files.createDirectory(dir, attrs);
 	}
 
 	@Override
 	public void delete(Path path) throws IOException {
-		throw new IOException("Structr PolyglotFilesystem does not implement deletion.");
+		Files.delete(path);
 	}
 
 	@Override
@@ -117,6 +117,6 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-		throw new IOException("Structr PolyglotFilesystem does not implement readAttributes.");
+		return Files.readAttributes(path, attributes, options);
 	}
 }

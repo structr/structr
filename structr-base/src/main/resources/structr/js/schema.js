@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -729,8 +729,8 @@ let _Schema = {
 									<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
 										<b>${entity.name}</b>
 										<div class="icons-container flex items-center">
-											${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
-											${(entity.isBuiltinType ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
+											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
+											${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
 										</div>
 									</div>
 								`);
@@ -751,15 +751,18 @@ let _Schema = {
 										_Schema.makeAttrEditable(node, 'name');
 									});
 
-									node[0].querySelector('.delete-type-icon').addEventListener('click', () => {
-										Structr.confirmation(
-											`<h3>Delete schema node '${entity.name}'?</h3><p>This will delete all incoming and outgoing schema relationships as well, but no data will be removed.</p>`,
-											async () => {
-												$.unblockUI({ fadeOut: 25 });
+									node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
+										let confirm = await Structr.confirmationPromiseNonBlockUI(`
+											<h3>Delete schema node '${entity.name}'?</h3>
+											<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+										`);
 
-												await _Schema.deleteNode(entity.id);
-											}
-										);
+										if (confirm === true) {
+
+											$.unblockUI({fadeOut: 25});
+
+											await _Schema.deleteNode(entity.id);
+										}
 									});
 								}
 
@@ -1410,8 +1413,8 @@ let _Schema = {
 								cssClass: "label rel-type",
 								label: `<div id="rel_${res.id}" class="flex items-center">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
-											${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']))}
-											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon'])))}
+											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']))}
+											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon'])))}
 										</div>`,
 								location: .5,
 								id: "label"
@@ -1437,7 +1440,7 @@ let _Schema = {
 						Structr.appendInfoTextToElement({
 							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
 							element: $('span', relTypeOverlay),
-							customToggleIcon: 'warning-sign-icon-filled',
+							customToggleIcon: _Icons.iconWarningYellowFilled,
 							customToggleIconClasses: ['ml-2'],
 							appendToElement: $('#schema-container')
 						});
@@ -1651,7 +1654,7 @@ let _Schema = {
 				text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
 				element: el,
 				insertAfter: true,
-				customToggleIcon: 'warning-sign-icon-filled',
+				customToggleIcon: _Icons.iconWarningYellowFilled,
 				customToggleIconClasses: ['ml-2'],
 				helpElementCss: {
 					fontSize: '9pt'
@@ -4500,7 +4503,15 @@ let _Schema = {
 				<div class="tab" data-name="${visType.caption}">
 					<table class="props schema-visibility-table">
 						<tr>
-							<th class="toggle-column-header"><input type="checkbox" title="Toggle all" class="toggle-all-types"><i class="invert-all-types invert-icon ${_Icons.getFullSpriteClass(_Icons.toggle_icon)}" title="Invert all"></i> Visible</th>
+							<th class="toggle-column-header">
+								<div class="flex items-center gap-3">
+									<span>Visible</span>
+									<div class="flex items-center gap-1">
+										${_Icons.getSvgIcon(_Icons.iconInvertSelection, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'invert-all-types', 'invert-icon']), 'Invert all')}
+										<input type="checkbox" title="Toggle all" class="toggle-all-types">
+									</div>
+								</div>
+							</th>
 							<th>Type</th>
 						</tr>
 						${schemaNodes.filter(schemaNode => visType.filterFn(schemaNode)).map(schemaNode => {
@@ -4528,7 +4539,7 @@ let _Schema = {
 				});
 			}
 
-			for (let invertAllCb of contentEl.querySelectorAll('i.invert-all-types')) {
+			for (let invertAllCb of contentEl.querySelectorAll('.invert-all-types')) {
 
 				invertAllCb.addEventListener('click', () => {
 
@@ -4678,19 +4689,19 @@ let _Schema = {
 
 					let icons = `
 						<div class="flex items-center icons-container absolute right-0 top-1">
-							${(idForClassname ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon'])) : '')}
-							${(idForClassname && isCustomType ? _Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
+							${(idForClassname ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'node-action-icon', 'edit-type-icon'])) : '')}
+							${(idForClassname && isCustomType ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'node-action-icon', 'delete-type-icon'])) : '')}
 						</div>
 					`;
 
 					let $newLi               = $(`<li data-id="${classnameToId[classname]}">${classname}${icons}</li>`).appendTo($newUl);
 					let requiredSubTypeCount = printClassTree($newLi, classTree[classname]);
-					let iconId               = (Object.keys(classTree[classname]).length > 0) ? 'folder-open-icon' : 'folder-closed-icon';
+					let iconId               = (Object.keys(classTree[classname]).length > 0) ? _Icons.iconFolderOpen : _Icons.iconFolderClosed;
 
 					let data = {
 						opened: true,
 						hidden: (showBuiltinTypes === false && isCustomType === false && requiredSubTypeCount === 0),
-						icon: _Icons.jstree_fake_icon,
+						icon: _Icons.nonExistentEmptyIcon,
 						svgIcon: _Icons.getSvgIcon(iconId, 16, 24),
 						requiredIfBuiltinTypesHidden: (isCustomType || requiredSubTypeCount > 0),
 						subs: requiredSubTypeCount
@@ -4765,7 +4776,10 @@ let _Schema = {
 
 				for (let delIcon of document.querySelectorAll('#inheritance-tree .delete-type-icon')) {
 
-					delIcon.addEventListener('click', async () => {
+					delIcon.addEventListener('click', async (e) => {
+
+						// otherwise the node on the canvas is focused and ESC does not work
+						e.stopPropagation();
 
 						let nodeId = delIcon.closest('li').dataset['id'];
 						if (nodeId) {
@@ -4775,6 +4789,7 @@ let _Schema = {
 							`);
 
 							if (confirm === true) {
+
 								$.unblockUI({fadeOut: 25});
 
 								await _Schema.deleteNode(nodeId);
@@ -5189,24 +5204,24 @@ let _Schema = {
 					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type" autocomplete="off">
 
 					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Add
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
-							${_Icons.getSvgIcon('globe-icon', 16, 16, '')} Global Methods
+							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, '')} Global Methods
 						</button>
 					</div>
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('network-icon', 16, 16, '')} Display
+							${_Icons.getSvgIcon(_Icons.iconNetwork, 16, 16, '')} Display
 						</button>
 
 						<div class="dropdown-menu-container">
 							<div class="row">
 								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
-									${_Icons.getSvgIcon('eye-in-square', 16, 16, 'mr-2')} Type Visibility
+									${_Icons.getSvgIcon(_Icons.iconTypeVisibility, 16, 16, 'mr-2')} Type Visibility
 								</a>
 							</div>
 
@@ -5263,14 +5278,14 @@ let _Schema = {
 
 							<div class="row">
 								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
-									${_Icons.getSvgIcon('reset-arrow', 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
 								</a>
 							</div>
 						</div>
 					</div>
 
 					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon('snapshots-icon', 16, 16, '')} Snapshots</button>
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, '')} Snapshots</button>
 
 						<div class="dropdown-menu-container">
 							<div class="heading-row">
@@ -5301,7 +5316,7 @@ let _Schema = {
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon('settings-cog', 16, 16, '')} Admin
+							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, '')} Admin
 						</button>
 
 						<div class="dropdown-menu-container">
@@ -5331,7 +5346,7 @@ let _Schema = {
 							</div>
 							<div class="row flex items-center">
 								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Rebuild all indexes
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
 								</button>
 								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
 							</div>
@@ -5341,14 +5356,14 @@ let _Schema = {
 							</div>
 							<div class="row flex items-center">
 								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon('refresh-arrows', 16, 16, 'mr-2')} Flush Caches
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
 								</button>
 								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
 							</div>
 
 							<div class="row flex items-center">
 								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon('trashcan', 16, 16, 'mr-2 icon-red')} Clear Schema
+									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
 								</button>
 								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
 							</div>
@@ -5376,7 +5391,7 @@ let _Schema = {
 							extends
 							${(true === config.type.isBuiltinType) ? `<select disabled><option>${config.type.extendsClass.name}</option></select>` : '<select class="extends-class-select" data-property="extendsClass"></select>' }
 
-							${config.type.extendsClass ? _Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
+							${config.type.extendsClass ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
 						</div>
 					` : ''}
 				</div>
@@ -5542,10 +5557,10 @@ let _Schema = {
 		schemaActionButtons: config => `
 			<div>
 				<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('checkmark_bold', 16, 16, ['icon-green', 'mr-2'])} ${(config?.saveButtonText ?? 'Save')}
+					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} ${(config?.saveButtonText ?? 'Save')}
 				</button>
 				<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16, ['icon-red', 'mr-2'])} ${(config?.discardButtonText ?? 'Discard')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['icon-red', 'mr-2'])} ${(config?.discardButtonText ?? 'Discard')}
 				</button>
 			</div>
 		`,
@@ -5568,10 +5583,10 @@ let _Schema = {
 				<div class="fake-td name-col"><input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}"></div>
 				<div class="fake-td isstatic-col"><input type="checkbox" class="action property-isStatic" value="${config.method.isStatic}"></div>
 				<div class="fake-td actions-col">
-					${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
-					${_Icons.getSvgIcon('duplicate', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${config.isNew ? '' : _Icons.getSvgIcon('trashcan', 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
+					${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
 				</div>
 			</div>
 		`,
@@ -5619,8 +5634,8 @@ let _Schema = {
 				<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
 				<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
 				<td class="centered actions-col">
-					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon('trashcan', 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
 				</td>
 			</tr>
 		`,
@@ -5636,7 +5651,7 @@ let _Schema = {
 				<td class="centered"><input class="indexed" type="checkbox"></td>
 				<td><input class="property-default" size="10" type="text"></td>
 				<td class="centered">
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Remove')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Remove')}
 				</td>
 			</tr>
 		`,
@@ -5648,8 +5663,8 @@ let _Schema = {
 					<span class="edit-schema-object" data-object-id="${config.relatedNodeId}">${config.relatedNodeType}</span>
 				</td>
 				<td class="centered">
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${_Icons.getSvgIcon('reset-arrow', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'reset-action']))}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'reset-action']))}
 				</td>
 			</tr>
 		`,
@@ -5665,10 +5680,10 @@ let _Schema = {
 					<div class="fake-tr">
 						<div class="fake-td actions-col flex justify-end">
 							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-								${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} Discard all
+								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
 							</button>
 							<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-								${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} Save all
+								${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} Save all
 							</button>
 						</div>
 					</div>
@@ -5683,24 +5698,24 @@ let _Schema = {
 		addMethodsDropdown: config => `
 			<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}
 				</button>
 				<div class="dropdown-menu-container">
 					<div class="flex flex-col divide-x-0 divide-y">
 						<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 						</a>
 						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onCreate
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
 						</a>
 						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterCreate
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
 						</a>
 						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add onSave
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
 						</a>
 						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
-							${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add afterSave
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
 					</div>
 				</div>
@@ -5708,7 +5723,7 @@ let _Schema = {
 		`,
 		addMethodDropdown: config => `
 			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
-				${_Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2')} Add method
+				${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 			</button>
 		`,
 		schemaTable: config => `
@@ -5719,12 +5734,12 @@ let _Schema = {
 				<tbody></tbody>
 				<tfoot>
 					<th colspan=${config.cols.length} class="actions-col">
-						${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+						${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
 						<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon('close-dialog-x', 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}
+							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}
 						</button>
 						<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon('checkmark_bold', 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}
+							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}
 						</button>
 					</th>
 				</tfoot>
@@ -5778,11 +5793,11 @@ let _Schema = {
 				</td>
 				<td class="view-properties-select"></td>
 				<td class="centered actions-col">
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${_Icons.getSvgIcon('trashcan', 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
 
-					<a href="/structr/rest/${config.type.name}/${config.view.name}" target="_blank">
-						${_Icons.getSvgIcon('link_external', 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview (with pageSize=1)')}
+					<a href="/structr/rest/${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
+						${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview in new tab (with pageSize=1)')}
 					</a>
 				</td>
 			</tr>
@@ -5794,7 +5809,7 @@ let _Schema = {
 				</td>
 				<td class="view-properties-select"></td>
 				<td class="centered actions">
-					${_Icons.getSvgIcon('close-dialog-x', 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 				</td>
 			</tr>
 		`,
@@ -5802,7 +5817,7 @@ let _Schema = {
 			<div>
 				<div class="inline-info">
 					<div class="inline-info-icon">
-						${_Icons.getSvgIcon('info-icon', 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
 					<div class="inline-info-text">
 						To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
@@ -5819,7 +5834,7 @@ let _Schema = {
 			<div>
 				<div class="inline-info">
 					<div class="inline-info-icon">
-						${_Icons.getSvgIcon('info-icon', 24, 24)}
+						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
 					</div>
 					<div class="inline-info-text">
 						Working Sets are identical to layouts. Removing an element from a group removes it from the layout
@@ -5831,7 +5846,7 @@ let _Schema = {
 					<span id="add-to-new-group"></span>
 				</div>
 
-				${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon('circle_plus', 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+				${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
 
 			</div>
 		`,

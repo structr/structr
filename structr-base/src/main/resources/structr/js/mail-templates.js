@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -149,7 +149,7 @@ let _MailTemplates = {
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Mail Template',
 			clickHandler: () => {
@@ -477,7 +477,7 @@ let _MailTemplates = {
 							</div>
 
 							<button type="submit" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								${_Icons.getSvgIcon('checkmark_bold', 12, 12, 'icon-green mr-2')} Save
+								${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save
 							</button>
 						</div>
 
@@ -494,13 +494,13 @@ let _MailTemplates = {
 				<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create mail templates for" id="mail-template-locale-preselect" type="text" size="10" placeholder="Locale(s)" class="mr-2">
 			
 				<button type="submit" form="create-mail-template-form" class="action btn inline-flex items-center" id="create-mail-template">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} New Mail Template
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Mail Template
 				</button>
 			</form>
 			
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('magic_wand', 16, 16, '')}
+					${_Icons.getSvgIcon(_Icons.iconMagicWand)}
 				</button>
 				<div class="dropdown-menu-container">
 			
@@ -514,13 +514,13 @@ let _MailTemplates = {
 			
 					<div class="row">
 						<a id="create-registration-templates" class="flex items-center py-1">
-							${_Icons.getSvgIcon('registration-templates', 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
+							${_Icons.getSvgIcon(_Icons.iconClipboardPencil, 16, 16, 'mr-2')} Create default "Self-Registration" mail templates
 						</a>
 					</div>
 			
 					<div class="row">
 						<a id="create-reset-password-templates" class="flex items-center py-1">
-							${_Icons.getSvgIcon('reset-password-templates', 16, 16, 'mr-2')} Create default "Reset Password" mail templates
+							${_Icons.getSvgIcon(_Icons.iconPasswordReset, 16, 16, 'mr-2')} Create default "Reset Password" mail templates
 						</a>
 					</div>
 				</div>

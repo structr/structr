@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 function createNewEntry(e) {
@@ -37,7 +37,7 @@ function createNewEntry(e) {
 
 function appendInfoTextToElement (text, el, css) {
 
-	let toggleElement = $(`<span>${_Icons.getSvgIcon('info-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
+	let toggleElement = $(`<span>${_Icons.getSvgIcon(_Icons.iconInfo, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
 	if (css) {
 		toggleElement.css(css);
 	}
@@ -77,7 +77,7 @@ let _Search = {
 			let searchUiHTML = Structr.createSingleDOMElementFromHTML(`
 				<div id="search-container">
 					<input id="search-box" placeholder="Search config...">
-					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 				</div>
 			`);
 
@@ -656,7 +656,7 @@ _Config = {
 		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
 		messageDiv.html(`
 			<div class="flex items-center justify-center">
-				${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<b>${messageTitle}</b>
+				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${messageTitle}</b>
 			</div>
 			<br>
 			${messageText}

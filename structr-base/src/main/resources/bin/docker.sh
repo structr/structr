@@ -18,6 +18,19 @@ if [ "$AGREE_TO_STRUCTR_PRIVACY_POLICY" != "yes" ]; then
 	exit 1
 fi
 
+function fileEndsWithNewline() {
+    [[ $(tail -c1 "$1" | wc -l) -gt 0 ]]
+}
+
+addEmptyLineToConfig() {
+  local _STRUCTR_HOME="${1}"
+
+  if ! fileEndsWithNewline "${_STRUCTR_HOME}/structr.conf"
+  then
+    echo -e "\n" >> "${_STRUCTR_HOME}/structr.conf"
+  fi
+}
+
 addDefaultConfigEntry() {
 	local SETTING="${1}"
 	local VALUE="${2}"
@@ -81,6 +94,7 @@ unset STRUCTR_MAX_HEAP
 
 # application settings
 touch "${_STRUCTR_HOME}/structr.conf"
+addEmptyLineToConfig "${_STRUCTR_HOME}"
 addDefaultConfigEntry "setup.wizard.completed" "true" "${_STRUCTR_HOME}"
 
 # Add structr conf entries from environment variables

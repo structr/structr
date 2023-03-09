@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -26,7 +26,7 @@ $(document).ready(function() {
 
 	$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
 		e.stopPropagation();
-		_Crud.removeRecentType($(this).closest('div').data('type'));
+		_Crud.removeRecentType($(this).closest('div[data-type]'));
 	});
 
 	$(document).on('change', '#crudTypeFilterSettings input', function(e) {
@@ -374,7 +374,7 @@ let _Crud = {
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: (message, delay) => {
 
-		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
+		_Crud.showMessageAfterDelay(`${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<span>${message} - please stand by</span>`, delay);
 	},
 	showMessageAfterDelay: (message, delay) => {
 
@@ -572,7 +572,6 @@ let _Crud = {
 
 	},
 	filterTypes: (filterVal) => {
-		console.log(filterVal);
 
 		for (let el of document.querySelectorAll('#crud-types-list .crud-type')) {
 
@@ -605,15 +604,16 @@ let _Crud = {
 
 			recentTypesList.innerHTML = recentTypes.map(type => `
 				<div class="crud-type flex items-center${(selectedType === type ? ' active' : '')}" data-type="${type}">
-					${type}${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
+					${type}${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['flex-none', 'icon-grey', 'remove-recent-type']))}
 				</div>
 			`).join('');
 		}
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 	},
-	removeRecentType: (typeToRemove) => {
+	removeRecentType: (recentTypeElement) => {
 
+		let typeToRemove = recentTypeElement.data('type');
 		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes) {
@@ -622,7 +622,7 @@ let _Crud = {
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
-		_Crud.updateRecentTypeList();
+		recentTypeElement.remove();
 	},
 	updateUrl: (type) => {
 
@@ -635,10 +635,6 @@ let _Crud = {
 
 		_Crud.searchField.focus();
 	},
-	/**
-	 * Read the schema from the _schema REST resource and call 'callback'
-	 * after the schema is loaded.
-	 */
 	loadSchema: async () => {
 
 		_Crud.showLoadingMessageAfterDelay('Loading data', 100);
@@ -742,15 +738,9 @@ let _Crud = {
 
 		console.log(`Unknown relatedType for ${type}.${key}`);
 	},
-	/**
-	 * Return the format information stored about the given property key
-	 */
 	getFormat: (key, type) => {
 		return _Crud.keys[type][key].format;
 	},
-	/**
-	 * Append a pager for the given type to the given DOM element.
-	 */
 	addPager: (type, el) => {
 
 		if (!_Crud.page[type]) {
@@ -763,16 +753,24 @@ let _Crud = {
 
 		el.insertAdjacentHTML('beforeend', `
 			<div class="flex items-center justify-between">
-				<div class="pager whitespace-nowrap">
-					<button class="pageLeft">&lt; Prev</button>
-					Page <input class="page" type="text" size="3" value="${_Crud.page[type]}"><button class="pageRight">Next &gt;</button> of <input class="readonly pageCount" readonly="readonly" size="3" value="${nvl(_Crud.pageCount, 0)}">
-					Page Size: <input class="pageSize" type="text" size="3" value="${_Crud.pageSize[type]}">
-					View: <select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${Object.keys(_Crud.availableViews[type]).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`)}
+
+				<div class="pager whitespace-nowrap flex items-center">
+					${_Icons.getSvgIcon(_Icons.iconChevronLeft, 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageLeft', 'mr-1']))}
+					<span class="pageWrapper">
+						<input class="pageNo" type="text" size="3" value="${_Crud.page[type]}">
+						<span class="of">of</span>
+						<input readonly="readonly" class="readonly pageCount" type="text" size="3" value="${nvl(_Crud.pageCount, 0)}">
+					</span>
+					${_Icons.getSvgIcon(_Icons.iconChevronRight, 14, 14, _Icons.getSvgIconClassesNonColorIcon(['pageRight', 'ml-1']))}
+					<span class="ml-2 mr-1">Page Size:</span>
+					<input class="pageSize" type="text" value="${_Crud.pageSize[type]}">
+					<span class="ml-2 mr-1">View:</span>
+					<select class="view hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${Object.keys(_Crud.availableViews[type]).map(view => `<option${(_Crud.view[type] === view) ? ' selected' : ''}>${view}</option>`).join('')}
 					</select>
 				</div>
 
-				<div class="resource-link mr-4">
+				<div class="resource-link mr-4 flex items-center">
 					<a target="_blank" href=""></a>
 				</div>
 			</div>
@@ -788,8 +786,7 @@ let _Crud = {
 		Structr.appendInfoTextToElement({
 			element: el.querySelector('.resource-link'),
 			text: "View the REST output in a new tab.",
-			css: { marginLeft: "2px" },
-			offsetX: -300,
+			customToggleIconClasses: ['icon-blue', 'ml-1'],
 			offsetY: 10
 		});
 
@@ -854,7 +851,7 @@ let _Crud = {
 
 				th.innerHTML = '<div class="flex items-center">Actions</div>';
 
-				let configIcon = Structr.createSingleDOMElementFromHTML(_Icons.getSvgIcon('ui_configuration_settings', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2'])));
+				let configIcon = Structr.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2'])));
 
 				th.firstChild.appendChild(configIcon);
 
@@ -938,7 +935,7 @@ let _Crud = {
 				let sortKey = key;
 				th.innerHTML = `
 					<a class="${((_Crud.sort[type] === key) ? 'column-sorted-active' : '')}" href="${_Crud.sortAndPagingParameters(type, sortKey, newOrder, _Crud.pageSize[type], _Crud.page[type])}#${type}">${key}</a>
-					${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgrey', 'cursor-pointer']), 'Hide column ' + key)}
 				`;
 
 				if (_Crud.isCollection(key, type)) {
@@ -1211,7 +1208,7 @@ let _Crud = {
 					if (!isRetry) {
 						_Crud.list(type, url, true);
 					} else {
-						_Crud.showMessageAfterDelay(_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
+						_Crud.showMessageAfterDelay(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2') + ' View is too large - please select different view', 1);
 					}
 
 				} else {
@@ -1405,7 +1402,7 @@ let _Crud = {
 		$('.pageSize', typeNode).val(data.page_size);
 
 		_Crud.page[type] = data.page;
-		$('.page', typeNode).val(_Crud.page[type]);
+		$('.pageNo', typeNode).val(_Crud.page[type]);
 
 		if (pageCount === undefined) {
 			pageCount = _Crud.getSoftLimitedPageCount(data.page_size);
@@ -1440,7 +1437,7 @@ let _Crud = {
 	},
 	activatePagerElements: (type, pagerNode) => {
 
-		$('.page', pagerNode).on('keypress', function(e) {
+		$('.pageNo', pagerNode).on('keypress', function(e) {
 			if (e.keyCode === 13) {
 				_Crud.page[type] = $(this).val();
 				_Crud.refreshList(type);
@@ -1464,8 +1461,8 @@ let _Crud = {
 			_Crud.refreshList(type);
 		});
 
-		var pageLeft = $('.pageLeft', pagerNode);
-		var pageRight = $('.pageRight', pagerNode);
+		let pageLeft  = $('.pageLeft', pagerNode);
+		let pageRight = $('.pageRight', pagerNode);
 
 		pageLeft.on('click', function() {
 			pageRight.removeAttr('disabled').removeClass('disabled');
@@ -1484,9 +1481,9 @@ let _Crud = {
 		});
 
 	},
-	deActivatePagerElements: function(pagerNode) {
+	deActivatePagerElements: (pagerNode) => {
 
-		$('.page', pagerNode).off('keypress');
+		$('.pageNo', pagerNode).off('keypress');
 		$('.pageSize', pagerNode).off('keypress');
 		$('.pageLeft', pagerNode).off('click');
 		$('.pageRight', pagerNode).off('click');
@@ -1858,8 +1855,8 @@ let _Crud = {
 
 			let actions = $(`
 				<td class="actions">
-					${_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'edit']))}
-					${_Icons.getSvgIcon('trashcan', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Remove')}
+					${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'edit']))}
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-1', 'icon-red', 'delete']), 'Remove')}
 				</td>
 			`);
 
@@ -1942,7 +1939,7 @@ let _Crud = {
 					});
 				}
 			} else if (propertyType === 'Date') {
-				cell.html(nvl(formatValue(value), _Icons.getSvgIcon('datetime-icon', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+				cell.html(nvl(formatValue(value), _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
 
 				if (!readOnly) {
 					var format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
@@ -2057,7 +2054,7 @@ let _Crud = {
 
 			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
 
-			cell.append(_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+			cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 
 			$('.add', cell).on('click', function() {
 
@@ -2094,7 +2091,7 @@ let _Crud = {
 
 				if (simpleType) {
 
-					cell.append(_Icons.getSvgIcon('circle_plus', 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
+					cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 					$('.add', cell).on('click', function() {
 						if (!dialogBox.is(':visible') || !isRel) {
 							_Crud.dialog('Add ' + simpleType + ' to ' + key, function() { }, function() { });
@@ -2116,7 +2113,7 @@ let _Crud = {
 		}
 
 		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
-			cell.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
+			cell.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
 
 			$('.crud-clear-value', cell).on('click', function(e) {
 				e.preventDefault();
@@ -2189,7 +2186,7 @@ let _Crud = {
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
-				nodeEl.prepend(_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])));
+				nodeEl.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])));
 			} else if (insertFakeInput) {
 				nodeEl.append('<input type="hidden" name="' + key + '" value="' + node.id + '" /></div>');
 			}
@@ -2324,7 +2321,7 @@ let _Crud = {
 				url = Structr.rootUrl + type + '/public' + _Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1) + searchPart;
 			}
 
-			searchResults.append(`<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">${_Icons.getSvgIcon('waiting-spinner', 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</div>`);
+			searchResults.append(`<div id="placeholderFor${type}" class="searchResultGroup resourceBox flex items-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')} Searching for "${searchString}" in ${type}</div>`);
 
 			fetch(url).then(async response => {
 
@@ -2366,7 +2363,7 @@ let _Crud = {
 	},
 	noResults: (searchResults, type) => {
 
-		searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox">No results for ' + type.capitalize() + '</div>');
+		searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox">No results for ${type.capitalize()}</div>`);
 		window.setTimeout(() => {
 			$('#resultsFor' + type).fadeOut('fast');
 		}, 1000);
@@ -2374,11 +2371,11 @@ let _Crud = {
 	},
 	searchResult: function(searchResults, type, node, onClickCallback) {
 		if (!$('#resultsFor' + type, searchResults).length) {
-			searchResults.append('<div id="resultsFor' + type + '" class="searchResultGroup resourceBox"><h3>' + type.capitalize() + '</h3></div>');
+			searchResults.append(`<div id="resultsFor${type}" class="searchResultGroup resourceBox"><h3>${type.capitalize()}</h3></div>`);
 		}
 		let displayName = _Crud.displayName(node);
 		let title = 'name: ' + node.name + '\nid: ' + node.id  + '' + ' \ntype: ' + node.type;
-		$('#resultsFor' + type, searchResults).append('<div title="' + escapeForHtmlAttributes(title) + '" class="_' + node.id + ' node abbr-ellipsis abbr-120">' + displayName + '</div>');
+		$('#resultsFor' + type, searchResults).append(`<div title="${escapeForHtmlAttributes(title)}" class="_${node.id} node abbr-ellipsis abbr-120">${displayName}</div>`);
 
 		let nodeEl = $('#resultsFor' + type + ' ._' + node.id, searchResults);
 		if (node.isImage) {
@@ -2402,7 +2399,7 @@ let _Crud = {
 		el.append(`
 			<div class="searchBox searchBoxDialog flex justify-end">
 				<input class="search" name="search" size="20" placeholder="Search">
-				${_Icons.getSvgIcon('close-dialog-x', 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`);
 		var searchBox = $('.searchBoxDialog', el);
@@ -3009,7 +3006,7 @@ let _Crud = {
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 			
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon('wrench')}
+									${_Icons.getSvgIcon(_Icons.iconSettingsWrench)}
 								</button>
 								
 								<div class="dropdown-menu-container" style="width: 17rem;">
@@ -3071,22 +3068,22 @@ let _Crud = {
 			
 			<div class="searchBox">
 				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
-				${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,
 		typeButtons: config => `
 			<div id="crud-buttons" class="flex items-center">
 				<button class="action inline-flex items-center" id="create${config.type}">
-					${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} Create new ${config.type}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Create new ${config.type}
 				</button>
 				<button id="export${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('database-download-icon', 16, 16, ['mr-2', 'icon-gray'])} Export as CSV
+					${_Icons.getSvgIcon(_Icons.iconExportAsCSV, 16, 16, ['mr-2', 'icon-grey'])} Export as CSV
 				</button>
 				<button id="import${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('database-upload-icon', 16, 16, ['mr-2', 'icon-gray'])} Import CSV
+					${_Icons.getSvgIcon(_Icons.iconImportFromCSV, 16, 16, ['mr-2', 'icon-grey'])} Import CSV
 				</button>
 				<button id="delete${config.type}" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('trashcan', 16, 16, ['mr-2', 'icon-red'])} <span>Delete <b>all</b> objects of this type</span>
+					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2', 'icon-red'])} <span>Delete <b>all</b> objects of this type</span>
 				</button>
 				<label for="exact_type_${config.type}" class="exact-type-checkbox-label"><input id="exact_type_${config.type}" class="exact-type-checkbox" type="checkbox"> Exclude subtypes</label>
 			</div>

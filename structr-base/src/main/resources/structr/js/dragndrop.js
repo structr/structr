@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 /**
@@ -66,15 +66,17 @@ let _Dragndrop = {
 
 					if (targetId === 'root') {
 
-						Command.setProperty(sourceId, 'parent', null, false, function() {
+						Command.setProperty(sourceId, 'parent', null, false, () => {
 							$(ui.draggable).remove();
 
 							let activeModule = Structr.getActiveModule();
 							if (typeof activeModule.refreshTree === 'function') {
 								activeModule.refreshTree();
 							}
+
 							return true;
 						});
+
 						return;
 
 					} else if (targetId === 'favorites') {
@@ -164,7 +166,9 @@ let _Dragndrop = {
 
 				let hlp = helperEl.clone();
 				hlp.find('.node').remove();
-				hlp.find('.expand_icon').removeClass(_Icons.getSpriteClassOnly(_Icons.expanded_icon)).addClass(_Icons.getSpriteClassOnly(_Icons.collapsed_icon));
+
+				// toggle expand icon in helper (only from expanded to collapsed)
+				hlp.find('.expand_icon_svg').removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 				return hlp;
 			},
 			zIndex: 99,
@@ -458,13 +462,41 @@ let _Dragndrop = {
 		return true;
 	},
 	contentItemDropped: function(source, target) {
+
 		if (source.id === target.id) {
 			return false;
 		}
 
-		Command.appendContentItem(source.id, target.id, function() {
-			_Contents.refreshTree();
-		});
+		if (_Contents.selectedElements.length > 1) {
+
+			let nodeIds = [..._Contents.selectedElements].map(el => Structr.getId(el));
+
+			$.each(_Contents.selectedElements, function(i, contentEl) {
+
+				let contentId = Structr.getId(contentEl);
+
+				if (contentId === target.id) {
+					return false;
+				}
+
+				Command.appendContentItem(contentId, target.id, () => {
+					if (refreshTimeout) {
+						window.clearTimeout(refreshTimeout);
+					}
+					refreshTimeout = window.setTimeout(() => {
+						_Contents.refreshTree();
+						refreshTimeout = 0;
+					}, 100);
+				});
+			});
+			_Contents.selectedElements = [];
+
+		} else {
+
+			Command.appendContentItem(source.id, target.id, function() {
+				_Contents.refreshTree();
+			});
+		}
 
 		return true;
 	},

@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 var graphBrowser, mode, colors = [], c = 0;
@@ -909,71 +909,87 @@ let _Graph = {
 		_Entities.showProperties(clickedEdge.data.edge);
 	},
 	renderNodeExpanderInfoButton: function(colorKey, label){
-		var button =
-			'<div class="nodeExpander-infobutton">' +
-				'<div class="circle" style="background-color: ' + (color[colorKey] || '#e5e5e5')+ '"></div>' + label +
-			'</div>';
-		return button;
+		return `
+			<div class="nodeExpander-infobutton">
+				<div class="circle" style="background-color: ${color[colorKey] || '#e5e5e5'}"></div>
+				${label}
+			</div>
+		`;
 	},
-	renderNodeTooltip: function(node){
-		var tooltip =
-			"<div class='tooltipArrowUp'></div>" +
-			"<div class='graphTooltip'>" +
-				"<div class='tooltipHeader'>" +
-					_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close') +
-					"<p class='tooltipTitle'>" + node.label + "</p>" +
-				"</div>" +
-				"<div class='tooltipContent' style='border-top: solid " + color[node.nodeType] + " 4px;'>" +
-					"<div class='tooltipBody'>" +
-						 "<table class='tooltipTable'>" +
-							"<tbody>" +
-								"<tr>" +
-									"<td class='tooltipTableLabel'>Id: </td><td class='graphTooltipSelectable'>" + node.id + "</td>" +
-								"</tr><tr>" +
-									"<td class='tooltipTableLabel'>Type: </td><td class='graphTooltipSelectable'>" + node.nodeType + "</td>" +
-								"</tr>" +
-							"</tbody>" +
-						"</table>" +
-					"</div>" +
-					"<div id='tooltipFooter" + node.id + "' class='tooltipFooter'>" +
-						"<div><button id='tooltipBtnProps' value='" + node.id + "'>Properties</button>" +
-						"<button id='tooltipBtnDrop' value='" + node.id + "'>Remove</button>" +
-						"<button id='tooltipBtnDel' value='" + node.id + "'>Delete</button></div>" +
-					"</div>" +
-				"</div>" +
-			"</div>";
+	renderNodeTooltip: (node) => {
 		graphBrowser.hideExpandButtons();
-		return tooltip;
+
+		return `
+			<div class='tooltipArrowUp'></div>
+			<div class='graphTooltip'>
+				<div class='tooltipHeader'>
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close')}
+					<p class='tooltipTitle'>${node.label}</p>
+				</div>
+				<div class='tooltipContent' style='border-top: solid ${color[node.nodeType]} 4px;'>
+					<div class='tooltipBody'>
+						<table class='tooltipTable'>
+							<tbody>
+								<tr>
+									<td class='tooltipTableLabel'>Id:</td>
+									<td class='graphTooltipSelectable'>${node.id}</td>
+								</tr>
+								<tr>
+									<td class='tooltipTableLabel'>Type:</td>
+									<td class='graphTooltipSelectable'>${node.nodeType}</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+					<div id='tooltipFooter${node.id}' class='tooltipFooter'>
+						<div>
+							<button id='tooltipBtnProps' value='${node.id}'>Properties</button>
+							<button id='tooltipBtnDrop' value='${node.id}'>Remove</button>
+							<button id='tooltipBtnDel' value='${node.id}'>Delete</button>
+						</div>
+					</div>
+				</div>
+			</div>
+		`;
 	},
-	renderEdgeTooltip: function(edge){
-		var tooltip =
-			"<div class='tooltipArrowUp'></div>" +
-			"<div class='graphTooltip'>" +
-				"<div class='tooltipHeader'>" +
-					"<p class='tooltipTitle'>" + edge.label + "</p>" +
-					_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close') +
-				"</div>" +
-				"<div class='tooltipBody'>" +
-					"<table class='tooltipTable'>" +
-						"<tbody>" +
-							"<tr>" +
-								"<td class='tooltipTableLabel'>Id: </td><td class='graphTooltipSelectable'>" + edge.id + "</td>" +
-							"</tr><tr>" +
-								"<td class='tooltipTableLabel'>relType: </td><td class='graphTooltipSelectable'>" + edge.relType + "</td>" +
-							"</tr><tr>" +
-								"<td class='tooltipTableLabel'>Source: </td><td class='graphTooltipSelectable'>" + edge.source + "</td>" +
-							"</tr><tr>" +
-								"<td class='tooltipTableLabel'>Target: </td><td class='graphTooltipSelectable edgeTableEl'>" + edge.target + "</td>" +
-							"</tr>" +
-						"</tbody>" +
-					"</table>" +
-				"</div>" +
-				"<div id='edgeTooltipFooter' class='tooltipFooter'>" +
-					"<div><button id='tooltipBtnProps' value='" + edge.id + "'>Properties</button>" +
-					"<button id='tooltipBtnDel' value='" + edge.id + "'>Delete</button></div>" +
-				"</div>" +
-			"</div>";
-		return tooltip;
+	renderEdgeTooltip: (edge) => {
+		return `
+			<div class='tooltipArrowUp'></div>
+			<div class='graphTooltip'>
+				<div class='tooltipHeader'>
+					<p class='tooltipTitle'>${edge.label}</p>
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close')}
+				</div>
+				<div class='tooltipBody'>
+					<table class='tooltipTable'>
+						<tbody>
+							<tr>
+								<td class='tooltipTableLabel'>Id: </td>
+								<td class='graphTooltipSelectable'>${edge.id}</td>
+							</tr>
+							<tr>
+								<td class='tooltipTableLabel'>relType: </td>
+								<td class='graphTooltipSelectable'>${edge.relType}</td>
+							</tr>
+							<tr>
+								<td class='tooltipTableLabel'>Source: </td>
+								<td class='graphTooltipSelectable'>${edge.source}</td>
+							</tr>
+							<tr>
+								<td class='tooltipTableLabel'>Target: </td>
+								<td class='graphTooltipSelectable edgeTableEl'>${edge.target}</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<div id='edgeTooltipFooter' class='tooltipFooter'>
+					<div>
+						<button id='tooltipBtnProps' value='${edge.id}'>Properties</button>
+						<button id='tooltipBtnDel' value='${edge.id}'>Delete</button>
+					</div>
+				</div>
+			</div>
+		`;
 	},
 
 	templates: {
@@ -986,7 +1002,7 @@ let _Graph = {
 			
 			<!--	<div id="cypher-params">-->
 			<!--		<h3>Cypher Parameters</h3>-->
-			<!--		<i id="add-cypher-parameter" class="${_Icons.getFullSpriteClass(_Icons.add_icon)}"></i>-->
+			<!--		${_Icons.getSvgIcon(_Icons.iconAdd, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['icon-green']))} -->
 			<!--	</div>-->
 			
 			<!--	<div><h3>Saved Queries</h3></div>-->
@@ -1002,26 +1018,26 @@ let _Graph = {
 			<div class="query-box rest flex mr-4">
 				<div class="relative">
 					<input class="search" name="rest" size="39" placeholder="REST query" autocomplete="off">
-					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear REST')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear REST')}
 				</div>
 				<a class="icon" id="exec-rest">
-					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
+					${_Icons.getSvgIcon(_Icons.iconRunButton, 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
 
 			<div class="query-box cypher flex mr-4">
 				<div class="relative max-h-5">
 					<textarea class="search min-h-5 min-w-64" name="cypher" cols="39" rows="1" placeholder="Cypher query"></textarea>
-					${_Icons.getSvgIcon('close-dialog-x', 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Cypher')}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Cypher')}
 				</div>
 				<a class="icon" id="exec-cypher">
-					${_Icons.getSvgIcon('run_button', 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
+					${_Icons.getSvgIcon(_Icons.iconRunButton, 24, 24, _Icons.getSvgIconClassesNonColorIcon())}
 				</a>
 			</div>
 
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon('sliders-icon')} Display Settings
+					${_Icons.getSvgIcon(_Icons.iconSliders)} Display Settings
 				</button>
 			
 				<div class="dropdown-menu-container">

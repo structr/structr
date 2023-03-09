@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -31,7 +31,7 @@ let _Contents = {
 	containerPage: 1,
 	currentContentContainerKey: 'structrCurrentContentContainer_' + location.port,
 	contentsResizerLeftKey: 'structrContentsResizerLeftKey_' + location.port,
-	// selectedElements: [],
+	selectedElements: [],
 
 	init: function() {
 		Structr.makePagesMenuDroppable();
@@ -112,25 +112,6 @@ let _Contents = {
 					}
 				});
 			}
-
-			// _Contents.searchField = $('.search', $(functionBar));
-			// _Contents.searchField.focus();
-			//
-			// _Contents.searchField.keyup(function(e) {
-			//
-			// 	var searchString = $(this).val();
-			// 	if (searchString && searchString.length && e.keyCode === 13) {
-			//
-			// 		$('.clearSearchIcon').show().on('click', function() {
-			// 			_Contents.clearSearch();
-			// 		});
-			//
-			// 		_Contents.fulltextSearch(searchString);
-			//
-			// 	} else if (e.keyCode === 27 || searchString === '') {
-			// 		_Contents.clearSearch();
-			// 	}
-			// });
 		};
 		initFunctionBar(); // run async (do not await) so it can execute while jstree is initialized
 
@@ -171,13 +152,65 @@ let _Contents = {
 
 		let elements = [];
 
-		if (isContentItem) {
+		let selectedElements = document.querySelectorAll('.node.selected');
+
+		// there is a difference when right-clicking versus clicking the kebab icon
+		let contentNode = div;
+		if (contentNode.hasClass('icons-container')) {
+			contentNode = div.closest('.node');
+		} else if (!contentNode.hasClass('node')) {
+			contentNode = div.find('.node');
+		}
+
+		if (!contentNode.hasClass('selected')) {
+
+			for (let selNode of document.querySelectorAll('.node.selected')) {
+				selNode.classList.remove('selected');
+			}
+			contentNode.addClass('selected');
+
+			selectedElements = document.querySelectorAll('.node.selected');
+		}
+
+		let isMultiSelect = selectedElements.length > 1;
+
+
+		if (isContentItem && isMultiSelect === false) {
 
 			elements.push({
-				icon: _Icons.getMenuSvgIcon('pencil_edit'),
+				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
 				name: 'Edit',
-				clickHandler: function () {
+				clickHandler: () => {
 					_Contents.editItem(entity);
+					return false;
+				}
+			});
+		}
+
+		// TODO: Inheriting types do not have containers as UI-view attribute
+		let containers = entity?.containers ?? [entity.parent];
+		if (_Contents.currentContentContainer?.id && containers.length > 0) {
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconFolderRemove),
+				name: 'Remove from container',
+				clickHandler: () => {
+
+					let removePromises = [...selectedElements].map(el => new Promise((resolve, reject) => {
+
+						let node = StructrModel.obj(Structr.getId(el));
+
+						if (node.isContentContainer) {
+							_Entities.setProperty(node.id, 'parent', null, false, resolve);
+						} else {
+							_Entities.setProperty(node.id, 'containers', containers.filter(c => c.id !== _Contents.currentContentContainer.id), false, resolve);
+						}
+					}));
+
+					Promise.all(removePromises).then(values => {
+						_Contents.refreshTree();
+					});
+
 					return false;
 				}
 			});
@@ -185,34 +218,34 @@ let _Contents = {
 
 		elements.push({
 			name: 'Properties',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
 				return false;
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		if (!isMultiSelect) {
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+			_Elements.appendContextMenuSeparator(elements);
+
+			_Elements.appendSecurityContextMenuItems(elements, entity);
+		}
 
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
-			icon: _Icons.getMenuSvgIcon('trashcan'),
+			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
-			name: 'Delete ' + entity.type,
+			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
 			clickHandler: () => {
 
-				if (isContentContainer) {
+				let nodesToDelete = [...selectedElements].map(el => Structr.entityFromElement(el));
 
-                    _Entities.deleteNode(this, entity, true, function() {
-                        _Contents.refreshTree();
-                    });
+				// deleting recursively does not make sense and can not work because it is a n:m relationship
+				_Entities.deleteNodes(null, nodesToDelete, false, () => {
+					_Contents.refreshTree();
+				});
 
-                } else if (isContentItem) {
-
-                    _Entities.deleteNode(this, entity);
-                }
 				return false;
 			}
 		});
@@ -241,8 +274,10 @@ let _Contents = {
 					id: 'root',
 					text: '/',
 					children: true,
-					icon: _Icons.jstree_fake_icon,
-					data: { svgIcon: _Icons.getSvgIcon('structr-s-small', 18, 24) },
+					icon: _Icons.nonExistentEmptyIcon,
+					data: {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24)
+					},
 					path: '/',
 					state: {
 						opened: true,
@@ -270,17 +305,7 @@ let _Contents = {
 
 		_Contents.contentsContents.children().hide();
 
-		var url;
-		if (searchString.contains(' ')) {
-			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1';
-			searchString.split(' ').forEach(function(str, i) {
-				url = url + '&name=' + str;
-			});
-		} else {
-			url = Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1&name=' + searchString;
-		}
-
-		_Contents.displaySearchResultsForURL(url);
+		_Contents.displaySearchResultsForURL(Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1' + searchString.split(' ').map((str) => '&name=' + str));
 	},
 	clearSearch: () => {
 		Structr.mainContainer.querySelector('.search').value = '';
@@ -291,15 +316,12 @@ let _Contents = {
 
 		_Contents.currentContentContainer = LSWrapper.getItem(_Contents.currentContentContainerKey);
 		callback();
-
 	},
 	load: function(id, callback) {
 
-		let filter = null;
-
-		if (id) {
-			filter = {parent: id};
-		}
+		let filter = {
+			parent: (id ? id : null)
+		};
 
 		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, (folders) => {
 
@@ -308,8 +330,10 @@ let _Contents = {
 					id: d.id,
 					text: (d.name ? d.name : '[unnamed]') + ((d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : ''),
 					children: d.isContentContainer && d.childContainers.length > 0,
-					icon: _Icons.jstree_fake_icon,
-					data: { svgIcon: _Icons.getSvgIcon('folder-closed-icon', 16, 24) },
+					icon: _Icons.nonExistentEmptyIcon,
+					data: {
+						svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24)
+					},
 					path: d.path
 				};
 			});
@@ -319,7 +343,6 @@ let _Contents = {
 			_TreeHelper.makeDroppable(_Contents.contentTree, list);
 
 		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
-
 	},
 	setWorkingDirectory: (id) => {
 
@@ -380,7 +403,7 @@ let _Contents = {
 			<table id="files-table" class="stripe">
 				<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>
 				<tbody id="files-table-body">
-					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon('folder-closed-icon', 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
+					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
 				</tbody>
 			</table>
 		`);
@@ -442,7 +465,7 @@ let _Contents = {
 		let title = (d.name ? d.name : '[unnamed]');
 
 		row.append(`
-			<td class="file-icon">${_Icons.getSvgIcon((d.isContentContainer ? 'folder-closed-icon' : 'file-empty'), 16, 16)}</td>
+			<td class="file-icon">${_Icons.getSvgIcon((d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty), 16, 16)}</td>
 			<td>
 				<div id="id_${d.id}" data-structr_type="${(d.isContentContainer ? 'folder' : 'item')}" class="node ${(d.isContentContainer ? 'container' : 'item')} flex items-center justify-between">
 					<b title="${escapeForHtmlAttributes(title)}" class="name_ leading-8 truncate">${(d.name ? d.name : '[unnamed]')}</b>
@@ -507,19 +530,24 @@ let _Contents = {
 					e.preventDefault();
 					e.stopPropagation();
 
-					let self        = $(this);
-					let itemId      = Structr.getId(ui.draggable);
-					let containerId = Structr.getId(self);
+					let targetContainerId = Structr.getId($(this));
+					let elements          = (_Contents.selectedElements.length > 0) ? [..._Contents.selectedElements] : [ui.draggable];
+					let movePromises      = elements.map(el => new Promise((resolve, reject) => {
 
-					if (!(itemId === containerId)) {
-						let nodeData = {};
-						nodeData.id = itemId;
+						let node = StructrModel.obj(Structr.getId(el));
 
-						_Entities.addToCollection(itemId, containerId, 'containers', function() {
-							$(ui.draggable).remove();
-							_Contents.refreshTree();
-						});
-					}
+						if (node.isContentContainer) {
+							_Entities.setProperty(node.id, 'parent', targetContainerId, false, resolve);
+						} else {
+							_Entities.addToCollection(node.id, targetContainerId, 'containers', resolve);
+						}
+					}));
+
+					Promise.all(movePromises).then(values => {
+						$(ui.draggable).remove();
+						_Contents.refreshTree();
+					});
+
 					return false;
 				}
 			});
@@ -558,11 +586,11 @@ let _Contents = {
 			},
 			helper: function(event) {
 				let helperEl = $(this);
-				// _Contents.selectedElements = $('.node.selected');
-				// if (_Contents.selectedElements.length > 1) {
-				// 	_Contents.selectedElements.removeClass('selected');
-				// 	return $('<i class="node-helper ' + _Icons.getFullSpriteClass(_Icons.page_white_stack_icon) + '"></i>');
-				// }
+				_Contents.selectedElements = $('.node.selected');
+				if (_Contents.selectedElements.length > 1) {
+					_Contents.selectedElements.removeClass('selected');
+					return $(`<i>${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')}</i>`);
+				}
 				let hlp = helperEl.clone();
 				hlp.find('.button').remove();
 				return hlp;
@@ -572,6 +600,7 @@ let _Contents = {
 		if (!d.isContentContainer) {
 			_Contents.appendEditContentItemIcon(iconsContainer, d);
 		}
+
 		_Entities.appendContextMenuIcon(iconsContainer, d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.setMouseOver(div);
@@ -596,15 +625,15 @@ let _Contents = {
 	},
 	editItem: function(item) {
 
-		Structr.dialog('Edit ' + item.name, function() {
-		}, function() {
-		});
+		Structr.dialog('Edit ' + item.name, () => {}, () => {});
 
-		Command.get(item.id, null, function(entity) {
+		Command.get(item.id, null, (entity) => {
 
-			dialogBtn.append('<button id="saveItem" disabled="disabled" class="action disabled"> Save </button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="action disabled"> Save and close</button>');
-			dialogBtn.append('<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>');
+			dialogBtn.append(`
+				<button id="saveItem" disabled="disabled" class="action disabled">Save</button>
+				<button id="saveAndClose" disabled="disabled" class="action disabled">Save and close</button>
+				<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>
+			`);
 
 			dialogSaveButton = $('#saveItem', dialogBtn);
 			saveAndClose     = $('#saveAndClose', dialogBtn);
@@ -614,7 +643,7 @@ let _Contents = {
 
 				let props = Object.values(properties);
 
-				props.forEach(function(prop) {
+				for (let prop of props) {
 
 					let isRelated    = 'relatedType' in prop;
 					let key          = prop.jsonName;
@@ -623,23 +652,29 @@ let _Contents = {
 					let isSystem     = prop.system       || false;
 					let oldVal       = entity[key];
 
-					dialogText.append('<div id="prop-' + key + '" class="prop"><label for="' + key + '"><h3>' + formatKey(key) + '</h3></label></div>');
+					dialogText.append(`<div id="prop-${key}" class="prop"><label for="${key}"><h3>${formatKey(key)}</h3></label></div>`);
 					let div = $('#prop-' + key);
 
 					if (prop.type === 'Boolean') {
 
-						div.removeClass('value').append('<div class="value-container"><input type="checkbox" class="' + key + '_"></div>');
+						div.removeClass('value').append(`<div class="value-container"><input type="checkbox" class="${key}_"></div>`);
 						let checkbox = div.find('input[type="checkbox"].' + key + '_');
-						Command.getProperty(entity.id, key, function(val) {
+
+						Command.getProperty(entity.id, key, (val) => {
+
 							if (val) {
 								checkbox.prop('checked', true);
 							}
+
 							if ((!isReadOnly || StructrWS.isAdmin) && !isSystem) {
+
 								checkbox.on('change', function() {
-									var checked = checkbox.prop('checked');
+									let checked = checkbox.prop('checked');
 									_Contents.checkValueHasChanged(oldVal, checked || false, [dialogSaveButton, saveAndClose]);
 								});
+
 							} else {
+
 								checkbox.prop('disabled', 'disabled');
 								checkbox.addClass('readOnly');
 								checkbox.addClass('disabled');
@@ -653,7 +688,7 @@ let _Contents = {
 
 						valueInput.on('change', function(e) {
 							if (e.keyCode !== 27) {
-								Command.get(entity.id, key, function(newEntity) {
+								Command.get(entity.id, key, (newEntity) => {
 									_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 								});
 							}
@@ -661,13 +696,19 @@ let _Contents = {
 
 					} else if (isRelated) {
 
-						let relatedNodesList = $('<div class="value-container related-nodes"> <i class="add ' + _Icons.getFullSpriteClass(_Icons.add_grey_icon) + '"></i> </div>');
+						let relatedNodesList = $(`
+							<div class="value-container related-nodes">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green', 'cursor-pointer']))}
+							</div>
+						`);
 						div.append(relatedNodesList);
+
 						$(relatedNodesList).children('.add').on('click', function() {
-							Structr.dialog('Add ' + prop.type, function() {
-							}, function() {
+
+							Structr.dialog('Add ' + prop.type, () => {}, () => {
 								_Contents.editItem(item);
 							});
+
 							_Entities.displaySearch(entity.id, key, prop.type, dialogText, isCollection);
 						});
 
@@ -679,21 +720,27 @@ let _Contents = {
 
 								let nodeId = entity[key].id || entity[key];
 
-								Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+								Command.get(nodeId, 'id,type,tag,isContent,content,name', (node) => {
 
-									_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+									_Entities.appendRelatedNode(relatedNodes, node, (nodeEl) => {
 
 										$('.remove', nodeEl).on('click', function(e) {
 											e.preventDefault();
-											_Entities.setProperty(entity.id, key, null, false, function(newVal) {
+
+											_Entities.setProperty(entity.id, key, null, false, (newVal) => {
+
 												if (!newVal) {
+
 													blinkGreen(relatedNodes);
-													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+													Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
 													nodeEl.remove();
+
 												} else {
+
 													blinkRed(relatedNodes);
 												}
 											});
+
 											return false;
 										});
 									});
@@ -703,18 +750,20 @@ let _Contents = {
 
 								entity[key].forEach(function(obj) {
 
-									var nodeId = obj.id || obj;
+									let nodeId = obj.id || obj;
 
-									Command.get(nodeId, 'id,type,tag,isContent,content,name', function(node) {
+									Command.get(nodeId, 'id,type,tag,isContent,content,name', (node) => {
 
-										_Entities.appendRelatedNode(relatedNodes, node, function(nodeEl) {
+										_Entities.appendRelatedNode(relatedNodes, node, (nodeEl) => {
+
 											$('.remove', nodeEl).on('click', function(e) {
 												e.preventDefault();
+
 												Command.removeFromCollection(entity.id, key, node.id, function() {
-													var nodeEl = $('._' + node.id, relatedNodes);
+													let nodeEl = $('._' + node.id, relatedNodes);
 													nodeEl.remove();
 													blinkGreen(relatedNodes);
-													Structr.showAndHideInfoBoxMessage('Related node "' + (node.name || node.id) + '" was removed from property "' + key + '".', 'success', 2000, 1000);
+													Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
 												});
 												return false;
 											});
@@ -727,22 +776,25 @@ let _Contents = {
 					} else {
 
 						if (prop.contentType && prop.contentType === 'text/html') {
-							div.append('<div class="value-container edit-area">' + (oldVal || '') + '</div>');
+
+							div.append(`<div class="value-container edit-area">${oldVal || ''}</div>`);
 							let editArea = $('.edit-area', div);
+
 							editArea.trumbowyg({
 								//btns: ['strong', 'em', '|', 'insertImage'],
 								//autogrow: true
 							}).on('tbwchange', function() {
-								Command.get(entity.id, key, function(newEntity) {
+								Command.get(entity.id, key, (newEntity) => {
 									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 								});
 							}).on('tbwpaste', function() {
-								Command.get(entity.id, key, function(newEntity) {
+								Command.get(entity.id, key, (newEntity) => {
 									_Contents.checkValueHasChanged(newEntity[key], editArea.trumbowyg('html') || null, [dialogSaveButton, saveAndClose]);
 								});
 							});
 
 						} else {
+
 							div.append('<div class="value-container"></div>');
 							let valueContainer = $('.value-container', div);
 							let valueInput;
@@ -752,15 +804,14 @@ let _Contents = {
 
 							valueInput.on('keyup', function(e) {
 								if (e.keyCode !== 27) {
-									Command.get(entity.id, key, function(newEntity) {
+									Command.get(entity.id, key, (newEntity) => {
 										_Contents.checkValueHasChanged(newEntity[key], valueInput.val() || null, [dialogSaveButton, saveAndClose]);
 									});
 								}
 							});
 						}
 					}
-
-				});
+				}
 
 			}, true);
 
@@ -771,49 +822,45 @@ let _Contents = {
 				e.preventDefault();
 				e.stopPropagation();
 
-				_Entities.getSchemaProperties(entity.type, 'custom', function(properties) {
+				_Entities.getSchemaProperties(entity.type, 'custom', (properties) => {
 
 					let props = Object.values(properties);
 
-					props.forEach(function(prop) {
+					for (let prop of props) {
 
 						let key = prop.jsonName;
+						let newVal;
+						let oldVal = entity[key];
 
-						var newVal;
-						var oldVal = entity[key];
-
-						if (true) {
-
-							if (prop.contentType && prop.contentType === 'text/html') {
-								newVal = $('#prop-' + key + ' .edit-area').trumbowyg('html') || null;
-							} else if (prop.propertyType === 'Boolean') {
-								newVal = $('#prop-' + key + ' .value-container input').prop('checked') || false;
+						if (prop.contentType && prop.contentType === 'text/html') {
+							newVal = $('#prop-' + key + ' .edit-area').trumbowyg('html') || null;
+						} else if (prop.propertyType === 'Boolean') {
+							newVal = $('#prop-' + key + ' .value-container input').prop('checked') || false;
+						} else {
+							if (prop.format === 'multi-line') {
+								newVal = $('#prop-' + key + ' .value-container textarea').val() || null;
 							} else {
-								if (prop.format === 'multi-line') {
-									newVal = $('#prop-' + key + ' .value-container textarea').val() || null;
-								} else {
-									newVal = $('#prop-' + key + ' .value-container input').val() || null;
-								}
-							}
-
-							if (!prop.relatedType && newVal !== oldVal) {
-
-								Command.setProperty(entity.id, key, newVal, false, function() {
-
-									oldVal = newVal;
-									dialogSaveButton.prop("disabled", true).addClass('disabled');
-									saveAndClose.prop("disabled", true).addClass('disabled');
-
-									// update title in list
-									if (key === 'title') {
-										var f = $('#row' + entity.id + ' .item-title b');
-										f.text(newVal);
-										blinkGreen(f);
-									}
-								});
+								newVal = $('#prop-' + key + ' .value-container input').val() || null;
 							}
 						}
-					});
+
+						if (!prop.relatedType && newVal !== oldVal) {
+
+							Command.setProperty(entity.id, key, newVal, false, () => {
+
+								oldVal = newVal;
+								dialogSaveButton.prop("disabled", true).addClass('disabled');
+								saveAndClose.prop("disabled", true).addClass('disabled');
+
+								// update title in list
+								if (key === 'title') {
+									let f = $('#row' + entity.id + ' .item-title b');
+									f.text(newVal);
+									blinkGreen(f);
+								}
+							});
+						}
+					}
 
 					setTimeout(function() {
 						refreshBtn.click();
@@ -882,7 +929,7 @@ let _Contents = {
 							<tbody>
 								${data.result.map(d => `
 									<tr>
-										<td>${_Icons.getSvgIcon((d.isContentContainer ? 'folder-closed-icon' : 'file-empty'), 16, 16)} ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
+										<td>${_Icons.getSvgIcon((d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty), 16, 16)} ${d.type}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
 										<td><a href="#results${d.id}">${d.name}</a></td>
 										<!--td>${d.size}</td-->
 									</tr>
@@ -901,7 +948,7 @@ let _Contents = {
 		let icon = $('.' + iconClass, parent);
 		if (!(icon && icon.length)) {
 
-			icon = $(_Icons.getSvgIcon('pencil_edit', 16, 16, _Icons.getSvgIconClassesNonColorIcon([iconClass, 'node-action-icon'])));
+			icon = $(_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon([iconClass, 'node-action-icon'])));
 			parent.append(icon);
 
 			icon.on('click', (e) => {
@@ -944,7 +991,7 @@ let _Contents = {
 					</select>
 			
 					<button class="action add_container_icon button inline-flex items-center" id="add-container-button">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Container</span>
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} <span>Add Content Container</span>
 					</button>
 				</button>
 			
@@ -954,17 +1001,10 @@ let _Contents = {
 					</select>
 
 					<button class="action add_item_icon button inline-flex items-center" id="add-item-button">
-						${_Icons.getSvgIcon('circle_plus', 16, 16, ['mr-2'])} <span>Add Content Item</span>
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} <span>Add Content Item</span>
 					</button>
-			
 				</div>
-			
 			</div>
-			
-			<!--div class="searchBox module-dependend" data-structr-module="text-search">
-				<input class="search" name="search" placeholder="Search...">
-				<i class="clearSearchIcon ${_Icons.getFullSpriteClass(_Icons.grey_cross_icon)}"></i>
-			</div -->
 		`,
 	}
 };
