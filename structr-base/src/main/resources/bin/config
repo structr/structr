@@ -21,4 +21,9 @@ JAVA_OPTS="-Djava.awt.headless=true -Djava.net.preferIPv4Stack=true -Djava.net.p
 MAIN_CLASS="org.structr.Server"
 DISPLAY_NAME="${project.build.finalName}.jar"
 PID_FILE="server.pid"
-export LOG_FILE="logs/server.log"
+
+if [ -z "$REPLICA" ]; then
+	export LOG_FILE="logs/server.log"
+else
+	export LOG_FILE="logs/server.${REPLICA}.log"
+fi

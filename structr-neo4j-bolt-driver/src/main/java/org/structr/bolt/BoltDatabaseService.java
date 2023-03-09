@@ -196,7 +196,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
-				
+
 				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
 				return beginTx(1);
 			} catch (ClientException cex) {
@@ -510,6 +510,16 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
+	public void removeNodeFromCache(final Identity id) {
+		NodeWrapper.expunge(unwrap(id));
+	}
+
+	@Override
+	public void removeRelationshipFromCache(final Identity id) {
+		RelationshipWrapper.expunge(unwrap(id));
+	}
+
+	@Override
 	public void cleanDatabase() {
 
 		final String tenantId = getTenantIdentifier();
@@ -797,6 +807,11 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		this.supportsRelationshipIndexes     = versionNumber >= parseVersionString("4.3.0");
 		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
 		this.supportsReactive                = versionNumber >= parseVersionString("4.0.0");
+	}
+
+	@Override
+	public Identity identify(long id) {
+		return new BoltIdentity(id);
 	}
 
 	// ----- nested classes -----

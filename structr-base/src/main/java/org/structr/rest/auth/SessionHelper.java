@@ -122,6 +122,7 @@ public class SessionHelper {
 		try {
 
 			for (final Principal p : query.getAsList()) {
+
 				p.removeSessionId(sessionId);
 			}
 

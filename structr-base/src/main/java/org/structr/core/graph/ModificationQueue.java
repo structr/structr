@@ -56,9 +56,11 @@ public class ModificationQueue {
 	private final Collection<ModificationEvent> modificationEvents                          = new ArrayDeque<>(1000);
 	private final Map<String, TransactionPostProcess> postProcesses                         = new LinkedHashMap<>();
 	private final Set<String> alreadyPropagated                                             = new LinkedHashSet<>();
+	private final Set<Long> ids                                                             = new LinkedHashSet<>();
 	private final Set<String> synchronizationKeys                                           = new TreeSet<>();
 	private boolean doUpateChangelogIfEnabled                                               = true;
 	private CallbackCounter counter                                                         = null;
+	private boolean hasChanges                                                              = false;
 	private long changelogUpdateTime                                                        = 0L;
 	private long outerCallbacksTime                                                         = 0L;
 	private long innerCallbacksTime                                                         = 0L;
@@ -234,13 +236,18 @@ public class ModificationQueue {
 
 	public void clear() {
 
+		hasChanges = false;
+
 		// clear collections afterwards
 		alreadyPropagated.clear();
 		modifications.clear();
 		modificationEvents.clear();
+		ids.clear();
 	}
 
 	public void create(final Principal user, final NodeInterface node) {
+
+		this.hasChanges = true;
 
 		getState(node).create();
 
@@ -251,6 +258,8 @@ public class ModificationQueue {
 	}
 
 	public <S extends NodeInterface, T extends NodeInterface> void create(final Principal user, final RelationshipInterface relationship) {
+
+		this.hasChanges = true;
 
 		getState(relationship).create();
 
@@ -273,18 +282,33 @@ public class ModificationQueue {
 	}
 
 	public void modifyOwner(NodeInterface node) {
+
+		this.ids.add(node.getNode().getId().getId());
+		this.hasChanges = true;
+
 		getState(node).modifyOwner();
 	}
 
 	public void modifySecurity(NodeInterface node) {
+
+		this.ids.add(node.getNode().getId().getId());
+		this.hasChanges = true;
+
 		getState(node).modifySecurity();
 	}
 
 	public void modifyLocation(NodeInterface node) {
+
+		this.ids.add(node.getNode().getId().getId());
+		this.hasChanges = true;
+
 		getState(node).modifyLocation();
 	}
 
 	public void modify(final Principal user, final NodeInterface node, final PropertyKey key, final Object previousValue, final Object newValue) {
+
+		this.ids.add(node.getNode().getId().getId());
+		this.hasChanges = true;
 
 		getState(node).modify(user, key, previousValue, newValue);
 
@@ -295,6 +319,9 @@ public class ModificationQueue {
 
 	public void modify(final Principal user, RelationshipInterface relationship, PropertyKey key, Object previousValue, Object newValue) {
 
+		this.ids.add(relationship.getRelationship().getId().getId());
+		this.hasChanges = true;
+
 		getState(relationship).modify(user, key, previousValue, newValue);
 
 		if (key != null && key.requiresSynchronization()) {
@@ -303,6 +330,9 @@ public class ModificationQueue {
 	}
 
 	public void delete(final Principal user, final NodeInterface node) {
+
+		this.ids.add(node.getNode().getId().getId());
+		this.hasChanges = true;
 
 		getState(node).delete(false);
 
@@ -313,6 +343,9 @@ public class ModificationQueue {
 	}
 
 	public void delete(final Principal user, final RelationshipInterface relationship, final boolean passive) {
+
+		this.ids.add(relationship.getRelationship().getId().getId());
+		this.hasChanges = true;
 
 		getState(relationship).delete(passive);
 
@@ -490,6 +523,14 @@ public class ModificationQueue {
 		stats.put("changes",             getSize());
 
 		return stats;
+	}
+
+	public boolean hasChanges() {
+		return this.hasChanges;
+	}
+
+	public Set<Long> getIds() {
+		return this.ids;
 	}
 
 	// ----- private methods -----

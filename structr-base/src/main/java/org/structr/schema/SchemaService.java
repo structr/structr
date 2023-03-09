@@ -93,7 +93,7 @@ public class SchemaService implements Service {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
-		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true);
+		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
 
 	public static JsonSchema getDynamicSchema() {
@@ -104,7 +104,7 @@ public class SchemaService implements Service {
 		return graphQLSchema;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean fullReload, final boolean notifyCluster) {
 
 		final ConfigurationProvider config = StructrApp.getConfiguration();
 		final App app                      = StructrApp.getInstance();
@@ -150,8 +150,12 @@ public class SchemaService implements Service {
 						final NodeExtender nodeExtender                            = new NodeExtender(initiatedBySessionId, fullReload);
 						final Set<String> dynamicViews                             = new LinkedHashSet<>();
 
-						// collect auto-generated schema nodes
-						SchemaService.ensureBuiltinTypesExist(app);
+						// only create built-in types if we have exclusive database access
+						if (Services.getInstance().hasExclusiveDatabaseAccess()) {
+
+							// collect auto-generated schema nodes
+							SchemaService.ensureBuiltinTypesExist(app);
+						}
 
 						// collect list of schema nodes
 						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
@@ -401,6 +405,9 @@ public class SchemaService implements Service {
 				// compiling done
 				compiling.set(false);
 
+				if (notifyCluster && Settings.ClusterModeEnabled.getValue(false) == true) {
+					Services.getInstance().broadcastSchemaChange();
+				}
 			}
 		}
 

@@ -53,7 +53,6 @@ import org.structr.schema.parser.*;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
 import static org.structr.core.entity.SchemaMethod.source;
@@ -296,9 +295,9 @@ public class SchemaHelper {
 		return type;
 	}
 
-	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload) {
+	public static ServiceResult reloadSchema(final ErrorBuffer errorBuffer, final String initiatedBySessionId, final boolean forceFullReload, final boolean notifyCluster) {
 
-		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload);
+		final ServiceResult res = SchemaService.reloadSchema(errorBuffer, initiatedBySessionId, forceFullReload, notifyCluster);
 
 		if (!errorBuffer.hasError()) {
 

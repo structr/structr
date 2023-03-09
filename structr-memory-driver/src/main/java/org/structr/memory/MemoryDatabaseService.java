@@ -59,6 +59,14 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	@Override
+	public void removeNodeFromCache(final Identity id) {
+	}
+
+	@Override
+	public void removeRelationshipFromCache(final Identity id) {
+	}
+
+	@Override
 	public void cleanDatabase() {
 
 		nodes.clear();
@@ -470,6 +478,11 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 
 	void updateCache(final MemoryRelationship relationship) {
 		relationships.updateCache(relationship);
+	}
+
+	@Override
+	public Identity identify(long id) {
+		return null;
 	}
 
 	// ----- nested classes -----

@@ -45,6 +45,7 @@ import java.io.File;
 public class NodeService implements SingletonService {
 
 	private static final Logger logger      = LoggerFactory.getLogger(NodeService.class.getName());
+	private StructrServices servicesParent  = null;
 	private DatabaseService databaseService = null;
 	private Index<Node> nodeIndex           = null;
 	private Index<Relationship> relIndex    = null;
@@ -66,6 +67,8 @@ public class NodeService implements SingletonService {
 
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+
+		this.servicesParent = services;
 
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 		String errorMessage         = null;
@@ -212,7 +215,7 @@ public class NodeService implements SingletonService {
 
 	public void createAdminUser() {
 
-		if (!Services.isTesting()) {
+		if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
 
 			// do two very quick count queries to determine the number of Structr nodes in the database
 			final CountResult count           = getInitialCounts();

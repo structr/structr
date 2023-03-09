@@ -41,12 +41,16 @@ public interface DatabaseService {
 	 * service was initialized successfully.
 	 *
 	 * @param serviceName the name of the service
+	 * @param version the service version
+	 * @param instanceName the instance name
 	 *
 	 * @return whether the service was initialized successfully
 	 */
 	boolean initialize(final String serviceName, final String version, final String instanceName);
 	void shutdown();
 	void clearCaches();
+	void removeNodeFromCache(final Identity id);
+	void removeRelationshipFromCache(final Identity id);
 	void cleanDatabase();
 	void deleteNodesByLabel(final String label);
 
@@ -93,6 +97,7 @@ public interface DatabaseService {
 
 	// utils
 	CountResult getNodeAndRelationshipCount();
+	Identity identify(final long id);
 
 	// native
 	<T> T execute(final NativeQuery<T> nativeQuery);

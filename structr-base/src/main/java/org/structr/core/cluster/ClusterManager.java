@@ -1,0 +1,151 @@
+package org.structr.core.cluster;
+
+import org.jgroups.JChannel;
+import org.jgroups.Message;
+import org.jgroups.Receiver;
+import org.jgroups.View;
+import org.jgroups.protocols.BARRIER;
+import org.jgroups.protocols.FD_ALL;
+import org.jgroups.protocols.FD_SOCK;
+import org.jgroups.protocols.FILE_PING;
+import org.jgroups.protocols.FRAG2;
+import org.jgroups.protocols.MERGE3;
+import org.jgroups.protocols.RSVP;
+import org.jgroups.protocols.TCP;
+import org.jgroups.protocols.UNICAST3;
+import org.jgroups.protocols.VERIFY_SUSPECT;
+import org.jgroups.protocols.pbcast.GMS;
+import org.jgroups.protocols.pbcast.NAKACK2;
+import org.jgroups.protocols.pbcast.STABLE;
+import org.jgroups.stack.Protocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ *
+ */
+public class ClusterManager {
+
+	private static final Logger logger   = LoggerFactory.getLogger(ClusterManager.class);
+	private final String clusterName     = "structr";
+	private final boolean loggingEnabled = false;
+	private JChannel channel;
+	private String name;
+
+	public void start(final BroadcastReceiver receiver) throws Exception {
+
+		System.setProperty("jgroups.bind_addr",     "match-interface:eth1");
+		System.setProperty("jgroups.external_addr", "match-interface:eth1");
+
+		final Protocol[] prot_stack = {
+			new TCP(),
+			new FILE_PING().setValue("location", "/var/lib/structr/logs/cluster-discovery"),
+			new MERGE3(),
+			new FD_SOCK(),
+			new FD_ALL(),
+			new VERIFY_SUSPECT(),
+			new BARRIER(),
+			new NAKACK2(),
+			new UNICAST3(),
+			new RSVP(),
+			new STABLE(),
+			new GMS(),
+			new FRAG2()
+		};
+
+		logger.info("Connecting to cluster {}..", clusterName);
+
+		name    = receiver.getNodeName();
+		channel = new JChannel(prot_stack).name(name).setReceiver(new InternalReceiver(receiver)).connect(clusterName);
+
+		// we are not interested in our own messages
+		channel.setDiscardOwnMessages(true);
+
+		logger.info("Connected to cluster {}.", channel.clusterName());
+	}
+
+	public boolean isConnected() {
+		return channel.isConnected();
+	}
+
+	public boolean isCoordinator() {
+
+		final View view = channel.getView();
+
+		// are we the coordinator of this cluster?
+		return channel.getAddress().equals(view.getCoord());
+	}
+
+	public void broadcast(final String msg, final Object payload) throws Exception {
+		this.broadcast(msg, payload, false);
+	}
+
+	public void broadcast(final String msg, final Object payload, final boolean waitForDelivery) throws Exception {
+
+		final Message message = new Message(null, new StructrMessage(msg, payload));
+
+		if (waitForDelivery) {
+
+			// force the send() method to wait for delivery
+			message.setFlag(Message.Flag.RSVP);
+		}
+
+		if (loggingEnabled) {
+			logger.info("[{}] sending {}", name, msg);
+		}
+
+		channel.send(message);
+
+		if (loggingEnabled) {
+			logger.info("[{}] {} sent.", name, msg);
+		}
+	}
+
+	private class InternalReceiver implements Receiver {
+
+		private final BroadcastReceiver receiver;
+
+		protected InternalReceiver(final BroadcastReceiver receiver) {
+			this.receiver = receiver;
+		}
+
+		@Override
+		public void receive(final Message msg) {
+
+			try {
+
+				if (loggingEnabled) {
+					logger.info("[{}] msg from {}", name, msg.src());
+				}
+
+				final Object data = msg.getObject();
+				if (data instanceof StructrMessage) {
+
+					final StructrMessage message = msg.getObject();
+
+					receiver.receive(msg.getSrc().toString(), message);
+
+				} else {
+
+					logger.warn("[{}] received unknown message of type {} from {}", name, data.getClass().getSimpleName(), msg.src());
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+
+		public void viewAccepted(final View v) {
+
+			try {
+
+				if (loggingEnabled) {
+					logger.info("[{}] new view: {}", name, v);
+				}
+
+			} catch (Throwable t) {
+				t.printStackTrace();
+			}
+		}
+	}
+}

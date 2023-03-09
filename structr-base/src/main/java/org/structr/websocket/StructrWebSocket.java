@@ -170,11 +170,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 		// parse web socket data from JSON
 		final WebSocketMessage webSocketData = gson.fromJson(data, WebSocketMessage.class);
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		final String command = webSocketData.getCommand();
-		final Class type = commandSet.get(command);
+		final App app                        = StructrApp.getInstance(securityContext);
+		final String command                 = webSocketData.getCommand();
+		final Class type                     = commandSet.get(command);
 
 		final String sessionIdFromMessage = webSocketData.getSessionId();
 
@@ -452,7 +450,9 @@ public class StructrWebSocket implements WebSocketListener {
 
 	private void authenticate(final String sessionId, final boolean isPing) {
 
-		final Principal user = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
+		final Services services = Services.getInstance();
+		final String nodeName   = services.getNodeName();
+		final Principal user    = AuthHelper.getPrincipalForSessionId(sessionId, isPing);
 
 		if (user != null) {
 
@@ -460,7 +460,10 @@ public class StructrWebSocket implements WebSocketListener {
 
 				synchronized (this) {
 
-					final boolean sessionValid = !SessionHelper.isSessionTimedOut(SessionHelper.getSessionBySessionId(sessionId));
+					final HttpSession session  = SessionHelper.getSessionBySessionId(sessionId);
+					final boolean sessionValid = !SessionHelper.isSessionTimedOut(session);
+
+					//logger.info("[{}]: session from cache: {}, valid? {}", nodeName, session, sessionValid);
 
 					if (sessionValid) {
 

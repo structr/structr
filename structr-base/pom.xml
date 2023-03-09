@@ -516,6 +516,11 @@
 			<version>21.0</version>
 			<scope>compile</scope>
 		</dependency>
+	 <dependency>
+	  <groupId>org.jgroups</groupId>
+	  <artifactId>jgroups</artifactId>
+	  <version>4.0.10.Final</version>
+	 </dependency>
 	</dependencies>
 
 	<build>

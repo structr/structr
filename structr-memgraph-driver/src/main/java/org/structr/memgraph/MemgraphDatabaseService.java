@@ -222,7 +222,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 		final Map<String, Object> parameters = new HashMap<>();
 		final StringBuilder buf              = new StringBuilder();
-		final String tenantId         = getTenantIdentifier();
+		final String tenantId                = getTenantIdentifier();
 
 		buf.append("MATCH (u:NodeInterface:Principal");
 
@@ -675,6 +675,15 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	}
 
 	@Override
+	public void removeNodeFromCache(final Identity id) {
+		NodeWrapper.expunge(unwrap(id));
+	}
+
+	@Override
+	public void removeRelationshipFromCache(final Identity id) {
+		RelationshipWrapper.expunge(unwrap(id));
+	}
+	@Override
 	public void cleanDatabase() {
 
 		final String tenantId = getTenantIdentifier();
@@ -914,6 +923,11 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		}
 
 		return 0;
+	}
+
+	@Override
+	public Identity identify(long id) {
+		return new BoltIdentity(id);
 	}
 
 	// ----- nested classes -----

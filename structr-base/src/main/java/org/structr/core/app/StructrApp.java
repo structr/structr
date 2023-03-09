@@ -156,7 +156,6 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final NodeInterface node) {
-		removeNodeFromCache(node);
 		command(DeleteNodeCommand.class).execute(node);
 	}
 
@@ -172,7 +171,6 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final RelationshipInterface relationship) {
-		removeRelFromCache(relationship);
 		command(DeleteRelationshipCommand.class).execute(relationship);
 	}
 
@@ -649,37 +647,5 @@ public class StructrApp implements App {
 		}
 
 		return relUuidMap.get(uuid);
-	}
-
-	private synchronized void removeNodeFromCache(final NodeInterface node) {
-
-		if (node != null) {
-
-			final String uuid = node.getUuid();
-			if (uuid != null) {
-
-				if (nodeUuidMap == null) {
-
-					nodeUuidMap = new FixedSizeCache<>("Node UUID cache", Settings.UuidCacheSize.getValue());
-				}
-
-			}
-		}
-	}
-
-	private synchronized void removeRelFromCache(final RelationshipInterface rel) {
-
-		if (rel != null) {
-
-			final String uuid = rel.getUuid();
-			if (uuid != null) {
-
-				if (relUuidMap == null) {
-
-					relUuidMap = new FixedSizeCache<>("Relationship UUID cache", Settings.UuidCacheSize.getValue());
-				}
-
-			}
-		}
 	}
 }

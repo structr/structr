@@ -18,13 +18,16 @@
  */
 package org.structr.core.graph;
 
+import java.util.ArrayList;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.StructrTransactionListener;
 
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.structr.core.Services;
 
 /**
  *
@@ -75,7 +78,10 @@ public class Tx implements AutoCloseable {
 
 		if (success && guard.compareAndSet(false, true)) {
 
-			boolean retry  = true;
+			final List<Long> ids = new ArrayList<>();
+			boolean hasChanges   = false;
+			boolean retry        = true;
+
 			while (retry) {
 
 				retry = false;
@@ -97,6 +103,12 @@ public class Tx implements AutoCloseable {
 							}
 						}
 
+						hasChanges = modificationQueue.hasChanges();
+						if (hasChanges) {
+
+							ids.addAll(modificationQueue.getIds());
+						}
+
 						modificationQueue.updateChangelog();
 						modificationQueue.clear();
 					}
@@ -109,6 +121,13 @@ public class Tx implements AutoCloseable {
 			}
 
 			guard.set(false);
+
+			// only for clustering
+			if (hasChanges) {
+
+				// send broadcast
+				Services.getInstance().broadcastDataChange(ids);
+			}
 		}
 	}
 

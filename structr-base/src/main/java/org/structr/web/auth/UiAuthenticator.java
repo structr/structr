@@ -175,6 +175,12 @@ public class UiAuthenticator implements Authenticator {
 		// expose Structr edition
 		response.setHeader("X-Structr-Edition", Services.getInstance().getEdition());
 
+		// expose cluster node replica number
+		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+
+			response.setHeader("X-Structr-Cluster-Node", Services.getInstance().getNodeName());
+		}
+
 		return securityContext;
 	}
 
@@ -414,6 +420,8 @@ public class UiAuthenticator implements Authenticator {
 
 		if  (user != null) {
 
+			Services.getInstance().broadcastLogin(user);
+
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
@@ -432,6 +440,8 @@ public class UiAuthenticator implements Authenticator {
 		try {
 			final Principal user = getUser(request, false);
 			if (user != null) {
+
+				Services.getInstance().broadcastLogout(user);
 
 				AuthHelper.doLogout(request, user);
 			}

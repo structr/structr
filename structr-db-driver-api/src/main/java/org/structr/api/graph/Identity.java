@@ -22,4 +22,5 @@ package org.structr.api.graph;
  */
 public interface Identity extends Comparable {
 
+	long getId();
 }

@@ -33,5 +33,6 @@ public interface StructrServices {
 	DatabaseService getDatabaseService();
 	LicenseManager getLicenseManager();
 	String getInstanceName();
+	boolean hasExclusiveDatabaseAccess();
 	String getVersion();
 }

@@ -31,7 +31,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.api.util.CountResult;
 import org.structr.common.Permission;
-import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
@@ -60,8 +59,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.structr.common.Permissions;
+import org.structr.core.cluster.ClusterManager;
+import org.structr.core.cluster.BroadcastReceiver;
+import org.structr.core.cluster.StructrMessage;
+import org.structr.core.entity.Principal;
+import org.structr.schema.SchemaHelper;
 
-public class Services implements StructrServices {
+public class Services implements StructrServices, BroadcastReceiver {
 
 	private static final Logger logger                 = LoggerFactory.getLogger(Services.class.getName());
 
@@ -85,10 +90,13 @@ public class Services implements StructrServices {
 	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
 	private LicenseManager licenseManager                       = null;
 	private ConfigurationProvider configuration                 = null;
+	private boolean isClusterStarted                            = true;
+	private boolean isClusterCoordinator                        = true;
 	private boolean initializationDone                          = false;
 	private boolean overridingSchemaTypesAllowed                = true;
 	private boolean shuttingDown                                = false;
 	private boolean shutdownDone                                = false;
+	private ClusterManager clusterManager;
 
 	private Services() { }
 
@@ -123,7 +131,7 @@ public class Services implements StructrServices {
 		boolean allowedVersion         = foundVersion.toString().startsWith(expectedVersion.toString());
 
 		if (!allowedVersion) {
-			
+
 			logger.warn("Java Runtime Version mismatch; expected GraalVM version {}, found {}", expectedVersion, foundVersion);
 
 			boolean enforceRuntime = Settings.EnforceRuntime.getValue();
@@ -177,7 +185,7 @@ public class Services implements StructrServices {
 					if (serviceClass.equals(NodeService.class)) {
 
 						logger.debug("(Re-)Started NodeService, (re-)compiling dynamic schema");
-						SchemaService.reloadSchema(new ErrorBuffer(), null, true);
+						SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
 					}
 
 				}
@@ -204,7 +212,7 @@ public class Services implements StructrServices {
 	private void initialize() {
 
 		// read structr.conf
-		final File configFile       = new File(Settings.ConfigFileName);
+		final File configFile = new File(Settings.ConfigFileName);
 
 		if (Services.isTesting()) {
 
@@ -293,28 +301,46 @@ public class Services implements StructrServices {
 		// opportunity to modify the default configuration
 		getConfigurationProvider();
 
-		// do simple heap size check
-		final Runtime runtime = Runtime.getRuntime();
-		final long max        = runtime.maxMemory() / 1024 / 1024 / 1024;
-		final int processors  = runtime.availableProcessors();
+		// adjust configuration base on available memory etc.
+		checkAvailableMemory();
 
-		logger.info("{} processors available, {} GB max heap memory", processors, max);
-		if (max < 8) {
+		// join cluster if enabled
+		joinCluster();
 
-			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
-			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+		// start registered services
+		startServices();
 
-			// reduce fetch size
-			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
+		// initialize permissions for ownerless nodes
+		initializePermissionsForOwnerlessNodes();
 
-			if (Settings.FetchSize.getValue() > maxFetchSize) {
+		// register shutdown hook
+		registerShutdownHook();
 
-				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
-				Settings.FetchSize.setValue(maxFetchSize);
+		// create admin users in all services that are active
+		for (final NodeService nodeService : getServices(NodeService.class).values()) {
 
-				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Map.of("key", Settings.FetchSize.getKey(), "value", maxFetchSize));
-			}
+			nodeService.createAdminUser();
 		}
+
+		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
+		logger.info("---------------- Initialization complete ----------------");
+
+		setOverridingSchemaTypesAllowed(false);
+
+		initializationDone = true;
+
+		// run initialization callbacks
+		runInitializationCallbacks();
+
+		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
+			new SystemInfoSender().start();
+		}
+
+		// if we are cluster coordinator, signal completion
+		this.broadcastStartupComplete();
+	}
+
+	private void startServices() {
 
 		final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 
@@ -345,6 +371,124 @@ public class Services implements StructrServices {
 		}
 
 		logger.info("{} service(s) processed", serviceCache.size());
+	}
+
+	private void checkAvailableMemory() {
+
+		// do simple heap size check
+		final Runtime runtime = Runtime.getRuntime();
+		final long max        = runtime.maxMemory() / 1024 / 1024 / 1024;
+		final int processors  = runtime.availableProcessors();
+
+		logger.info("{} processors available, {} GB max heap memory", processors, max);
+
+		if (max < 8) {
+
+			logger.warn("Maximum heap size is smaller than recommended, this can lead to problems with large databases!");
+			logger.warn("Please configure AT LEAST 8 GBs of heap memory using -Xmx8g.");
+
+			// reduce fetch size
+			final int maxFetchSize = (max < 1) ? 1_000 : 10_000;
+
+			if (Settings.FetchSize.getValue() > maxFetchSize) {
+
+				logger.info("Reducing fetch size setting '{}' to {} to reduce low-memory performance problems", Settings.FetchSize.getKey(), maxFetchSize);
+				Settings.FetchSize.setValue(maxFetchSize);
+
+				RuntimeEventLog.systemInfo("Reducing fetch size setting to reduce low-memory performance problems", Map.of("key", Settings.FetchSize.getKey(), "value", maxFetchSize));
+			}
+		}
+	}
+
+	private void joinCluster() {
+
+		// Connect to cluster if enabled
+		if (Settings.ClusterModeEnabled.getValue(false) == true) {
+
+			logger.info("Cluster mode enabled.");
+
+			// assume we are not coordinator initially
+			this.isClusterCoordinator = false;
+
+			try {
+
+				clusterManager = new ClusterManager();
+				clusterManager.start(this);
+
+				// wait for a connection
+				while (!clusterManager.isConnected()) {
+					try { Thread.sleep(100); } catch (Throwable t) {}
+				}
+
+				this.isClusterCoordinator = clusterManager.isCoordinator();
+				if (!this.isClusterCoordinator) {
+
+					this.isClusterStarted = false;
+
+					logger.info("Waiting for cluster coordinator to complete startup..");
+
+					final long startTime = System.currentTimeMillis();
+
+					// wait for coordinator to start
+					while (!this.isClusterStarted) {
+
+						try { Thread.sleep(2000); } catch (Throwable t) {}
+
+						// if cluster is not started after 5 minutes, we abort the process
+						if (System.currentTimeMillis() > (startTime + (5 * 60 * 1000))) {
+
+							logger.info("Timeout waiting for cluster startup, 5 minutes have passed, aborting.");
+
+							// hard exit
+							System.exit(2);
+						}
+					}
+
+					logger.info("Cluster coordinator has completed startup, continuing.");
+
+				} else {
+
+					logger.info("I am cluster coordinator, continuing startup.");
+
+				}
+
+			} catch (Exception ex) {
+
+				logger.warn("Unable to connect to cluster: {}, disabling cluster mode.", ex.getMessage());
+
+				Settings.ClusterModeEnabled.setValue(false);
+			}
+		}
+	}
+
+	private void runInitializationCallbacks() {
+
+		// only run initialization callbacks if Structr was started with
+		// a configuration file, i.e. when this is NOT this first start.
+		try {
+			final ExecutorService service = Executors.newSingleThreadExecutor();
+			service.submit(new Runnable() {
+
+				@Override
+				public void run() {
+
+					try { Thread.sleep(100); } catch (Throwable ignore) {}
+
+					// call initialization callbacks from a different thread
+					for (final InitializationCallback callback : singletonInstance.callbacks) {
+						callback.initializationDone();
+					}
+				}
+
+			}).get();
+
+		} catch (Throwable t) {
+			logger.warn("Exception while executing post-initialization tasks", t);
+		}
+	}
+
+	private void registerShutdownHook() {
+
 		logger.info("Registering shutdown hook.");
 
 		// register shutdown hook
@@ -356,12 +500,9 @@ public class Services implements StructrServices {
 				shutdown();
 			}
 		});
+	}
 
-		// create admin users in all services that are active
-		for (final NodeService nodeService : getServices(NodeService.class).values()) {
-
-			nodeService.createAdminUser();
-		}
+	private void initializePermissionsForOwnerlessNodes() {
 
 		// read permissions for ownerless nodes
 		final String configForOwnerlessNodes = Settings.OwnerlessNodes.getValue();
@@ -388,40 +529,6 @@ public class Services implements StructrServices {
 
 			// default
 			permissionsForOwnerlessNodes.add(Permission.read);
-		}
-
-		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
-		logger.info("---------------- Initialization complete ----------------");
-
-		setOverridingSchemaTypesAllowed(false);
-
-		initializationDone = true;
-
-		// only run initialization callbacks if Structr was started with
-		// a configuration file, i.e. when this is NOT this first start.
-		try {
-			final ExecutorService service = Executors.newSingleThreadExecutor();
-			service.submit(new Runnable() {
-
-				@Override
-				public void run() {
-
-					try { Thread.sleep(100); } catch (Throwable ignore) {}
-
-					// call initialization callbacks from a different thread
-					for (final InitializationCallback callback : singletonInstance.callbacks) {
-						callback.initializationDone();
-					}
-				}
-
-			}).get();
-
-		} catch (Throwable t) {
-			logger.warn("Exception while executing post-initialization tasks", t);
-		}
-
-		if (licenseManager != null && !Settings.DisableSendSystemInfo.getValue(false)) {
-			new SystemInfoSender().start();
 		}
 	}
 
@@ -1007,6 +1114,11 @@ public class Services implements StructrServices {
 		return VersionHelper.getVersion();
 	}
 
+	@Override
+	public boolean hasExclusiveDatabaseAccess() {
+		return this.isClusterCoordinator;
+	}
+
 	// ----- static methods -----
 	/**
 	 * Tries to parse the given String to an int value, returning
@@ -1087,7 +1199,7 @@ public class Services implements StructrServices {
 			if (result.isSuccess()) {
 
 				// reload schema..
-				SchemaService.reloadSchema(new ErrorBuffer(), null, true);
+				SchemaService.reloadSchema(new ErrorBuffer(), null, true, false);
 			}
 
 			return result;
@@ -1217,6 +1329,114 @@ public class Services implements StructrServices {
 		if (licenseManager != null) {
 			licenseManager.refresh(false);
 		}
+	}
+
+	private void broadcastMessageToCluster(final String type, final Object payload) {
+		this.broadcastMessageToCluster(type, payload, false);
+	}
+
+	private void broadcastMessageToCluster(final String type, final Object payload, final boolean waitForDelivery) {
+
+		if (this.clusterManager != null) {
+
+			try {
+
+				this.clusterManager.broadcast(type, payload, waitForDelivery);
+
+			} catch (Exception ex) {
+
+				ex.printStackTrace();
+			}
+
+		} else {
+
+			logger.info("Cannot broadcast {}, channel is null!", type);
+		}
+	}
+
+	// ----- interface BroadcastReceiver -----
+	public void broadcastDataChange(final List<Long> ids) {
+		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
+	}
+
+	public void broadcastLogin(final Principal user) {
+		try {
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	public void broadcastLogout(final Principal user) {
+		try {
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	public void broadcastSchemaChange() {
+		try {
+			Services.getInstance().broadcastMessageToCluster("schema-changed", null);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	public void broadcastStartupComplete() {
+		try {
+			Services.getInstance().broadcastMessageToCluster("startup-complete", null);
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
+	}
+
+	@Override
+	public void receive(final String sender, final StructrMessage message) {
+
+		final String type = message.getType();
+
+		logger.info("Recieved message of type {} from {}", type, sender);
+
+		switch (type) {
+
+			case "schema-changed":
+
+				// only react to these changes if the cluster is started
+				if (this.isClusterStarted) {
+					SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
+				}
+				break;
+
+			case "data-changed":
+
+				if (this.isClusterStarted) {
+					this.removeFromCache(message.getPayloadAsList());
+				}
+				break;
+
+			case "startup-complete":
+
+				this.isClusterStarted = true;
+				break;
+		}
+	}
+
+	public void removeFromCache(final List<Long> ids) {
+
+		final DatabaseService db = getDatabaseService();
+
+		// db.identity() converts a long ID into an Identity object
+		ids.stream().map(db::identify).forEach(id -> {
+			db.removeNodeFromCache(id);
+			db.removeRelationshipFromCache(id);
+		});
+
+	}
+
+	@Override
+	public String getNodeName() {
+		return "cluster-node-" + System.getenv("REPLICA");
 	}
 
 	// ----- nested classes -----

@@ -44,6 +44,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.core.Services;
 
 public class LoginCommand extends AbstractCommand {
 
@@ -94,11 +95,15 @@ public class LoginCommand extends AbstractCommand {
 					user = auth.doLogin(getWebSocket().getRequest(), username, password);
 
 					tx.setSecurityContext(SecurityContext.getInstance(user, AccessMode.Backend));
+
 				} else {
+
 					getWebSocket().send(MessageBuilder.status().code(403).build(), false);
 				}
 
 				if (user != null) {
+
+					Services.getInstance().broadcastLogin(user);
 
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 

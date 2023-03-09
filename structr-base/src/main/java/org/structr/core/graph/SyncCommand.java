@@ -772,7 +772,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		// build schema
 		try (final Tx tx = app.tx()) {
 
-			SchemaHelper.reloadSchema(new ErrorBuffer(), securityContext.getSessionId(), true);
+			SchemaHelper.reloadSchema(new ErrorBuffer(), securityContext.getSessionId(), true, true);
 			tx.success();
 
 		} catch (FrameworkException fex) {

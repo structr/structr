@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import org.structr.core.Services;
 
 /**
  * Utility class for authentication.
@@ -246,6 +247,10 @@ public class AuthHelper {
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
+
+		if (user != null) {
+			Services.getInstance().broadcastLogin(user);
+		}
 
 		if (request.getSession(false) == null) {
 			SessionHelper.newSession(request);
