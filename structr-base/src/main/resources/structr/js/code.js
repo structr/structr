@@ -1,19 +1,19 @@
 /*
- * Copyright (C) 2010-2022 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
  * Structr is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
+ * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 3 of the
  * License, or (at your option) any later version.
  *
  * Structr is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
+ * GNU General Public License for more details.
  *
- * You should have received a copy of the GNU Affero General Public License
+ * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 $(document).ready(function() {
@@ -2925,12 +2925,12 @@ let _Code = {
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-source">
 
 						<div id="read-code-container" class="mb-4 flex flex-col h-1/2">
-							<h4>Read Function</h4>
+							<h4 class="py-2 font-semibold">Read Function</h4>
 							<div class="editor flex-grow" data-property="readFunction" data-recompile="false"></div>
 						</div>
 						<div id="write-code-container" class="mb-4 flex flex-col h-1/2">
 							<div>
-								<h4 data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
+								<h4 class="py-2 font-semibold" data-comment="To retrieve the parameter passed to the write function, use &lt;code&gt;Structr.get('value');&lt;/code&gt; in a JavaScript context or the keyword &lt;code&gt;value&lt;/code&gt; in a StructrScript context.">
 									Write Function
 								</h4>
 							</div>
@@ -2941,7 +2941,7 @@ let _Code = {
 
 					<div class="tab function-property-tab-content flex flex-col flex-grow" id="tabView-api">
 						<div>
-							<h4 class="font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
+							<h4 class="py-2 font-semibold" data-comment="Write an OpenAPI schema for your return type here.">Return Type</h4>
 						</div>
 						<div class="editor flex-grow" data-property="openAPIReturnType"></div>
 					</div>
@@ -3107,10 +3107,12 @@ let _Code = {
 				<div id="default-buttons" class="mb-4">
 					<div id="property-actions"></div>
 				</div>
-				<div class="mb-4">
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Type hint</label>
+				<div class="mb-4 grid grid-cols-4 gap-4">
+					<div class="col-span-3"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
+					<div class="col-span-2"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
+					<div class="col-span-1"><label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3123,21 +3125,19 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="mt-2 mb-4 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div class="mt-2 mb-4"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
+					<div class="col-span-2 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
 				</div>
 
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Options</label>
 					</div>
-					<div class="mt-2">
-						<div class="mt-4"><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div class="mt-4"><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+					<div class="mt-2 grid grid-cols-3 gap-4">
+						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
+						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
+						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
+						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
+						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
 					</div>
 				</div>
 			</div>
