@@ -54,9 +54,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                      = null;
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
+	private boolean isNeo4jVersion4                               = false;
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
-	private boolean supportsReactive                              = false;
+	private int neo4jMajorVersion                                 = -1;
 	private String errorMessage                                   = null;
 	private String databaseUrl                                    = null;
 	private String databasePath                                   = null;
@@ -78,7 +79,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
 		final String databaseName = Settings.ConnectionDatabaseName.getPrefixedValue(serviceName);
-		String databaseDriverUrl  = ((databaseUrl.indexOf("://") == -1) ? "bolt://" + databaseUrl : databaseUrl);
+		String databaseDriverUrl  = (!databaseUrl.contains("://") ? "bolt://" + databaseUrl : databaseUrl);
 
 		// build list of supported query languages
 		supportedQueryLanguages.add("application/x-cypher-query");
@@ -184,7 +185,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			try {
 
-				if (supportsReactive) {
+				if (isNeo4jVersion4) {
 
 					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
 
@@ -196,7 +197,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				sessions.set(session);
 
 			} catch (ServiceUnavailableException ex) {
-				
+
 				logger.warn("ServiceUnavailableException in BoltDataBaseService.beginTx(). Retrying with timeout.");
 				return beginTx(1);
 			} catch (ClientException cex) {
@@ -215,7 +216,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			try {
 
-				if (supportsReactive) {
+				if (isNeo4jVersion4) {
 
 					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig), timeoutInSeconds);
 
@@ -464,15 +465,36 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	@Override
 	public void updateIndexConfiguration(final Map<String, Map<String, IndexConfig>> schemaIndexConfigSource, final Map<String, Map<String, IndexConfig>> removedClassesSource, final boolean createOnly) {
 
-		if (supportsIdempotentIndexCreation) {
+		switch (neo4jMajorVersion) {
 
-			// idempotent index update, no need to check for existance first
-			new Neo4IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+			case 5:
+				// cannot use db.indexes(), replaced by SHOW INDEXES call
+				new Neo5IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				break;
 
-		} else {
+			case 4:
+				if (supportsIdempotentIndexCreation) {
 
-			// non-idempotent index update, need to check for existance first
-			new Neo3IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+					// idempotent index update, no need to check for existance first
+					new Neo4IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+
+				} else {
+
+					logger.warn("This driver does not support index creation on Neo4j 4.0.x databases. Performance will be impacted.");
+				}
+				break;
+
+			case 3:
+
+				// non-idempotent index update, need to check for existance first
+				new Neo3IndexUpdater(this, supportsRelationshipIndexes).updateIndexConfiguration(schemaIndexConfigSource, removedClassesSource, createOnly);
+				break;
+
+			default:
+
+				// not supported
+				logger.warn("This driver does not support index creation on Neo4j " + neo4jMajorVersion + ".x databases. Performance will be impacted.");
+				break;
 		}
 	}
 
@@ -702,7 +724,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			case NewDBIndexesFormat:
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
-				return supportsReactive;
+				return isNeo4jVersion4;
 		}
 
 		return false;
@@ -794,9 +816,10 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 		logger.info("Neo4j version is {}", versionString);
 
+		neo4jMajorVersion = Long.valueOf(versionNumber / 10000000000000000L).intValue();
+
 		this.supportsRelationshipIndexes     = versionNumber >= parseVersionString("4.3.0");
 		this.supportsIdempotentIndexCreation = versionNumber >= parseVersionString("4.1.3");
-		this.supportsReactive                = versionNumber >= parseVersionString("4.0.0");
 	}
 
 	// ----- nested classes -----
@@ -954,7 +977,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	 * @param version
 	 * @return a numerical representation of the version string
 	 */
-	private long parseVersionString(final String version) {
+	private static long parseVersionString(final String version) {
 
 		final String[] parts = version.replaceAll("[^0-9.]", "").split("\\.");
 		final int num        = 4; // 4 components
