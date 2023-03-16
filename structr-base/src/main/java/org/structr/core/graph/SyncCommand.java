@@ -719,7 +719,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 									if (currentObject != null) {
 
-										if (uuidPropertyName.equals(currentKey) && currentObject instanceof Node) {
+										if (uuidPropertyName.equals(currentKey)) {
 
 											final String uuid = (String)obj;
 											currentObject.setId(uuid);
