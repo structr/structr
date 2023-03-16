@@ -32,6 +32,10 @@ public class StructrMessage implements Serializable {
 	private String type    = null;
 	private Object payload = null;
 
+	public StructrMessage(final String type) {
+		this(type, null);
+	}
+
 	public StructrMessage(final String type, final Object payload) {
 
 		this.type    = type;

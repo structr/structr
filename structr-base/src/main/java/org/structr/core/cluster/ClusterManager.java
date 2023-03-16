@@ -18,26 +18,29 @@
  */
 package org.structr.core.cluster;
 
+import org.jgroups.Address;
 import org.jgroups.JChannel;
 import org.jgroups.Message;
+import org.jgroups.ObjectMessage;
 import org.jgroups.Receiver;
 import org.jgroups.View;
 import org.jgroups.protocols.BARRIER;
 import org.jgroups.protocols.FD_ALL;
 import org.jgroups.protocols.FD_SOCK;
-import org.jgroups.protocols.FILE_PING;
 import org.jgroups.protocols.FRAG2;
 import org.jgroups.protocols.MERGE3;
 import org.jgroups.protocols.RSVP;
 import org.jgroups.protocols.TCP;
 import org.jgroups.protocols.UNICAST3;
 import org.jgroups.protocols.VERIFY_SUSPECT;
+import org.jgroups.protocols.kubernetes.KUBE_PING;
 import org.jgroups.protocols.pbcast.GMS;
 import org.jgroups.protocols.pbcast.NAKACK2;
 import org.jgroups.protocols.pbcast.STABLE;
 import org.jgroups.stack.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 
 /**
  *
@@ -56,8 +59,11 @@ public class ClusterManager {
 		System.setProperty("jgroups.external_addr", "match-interface:eth1");
 
 		final Protocol[] prot_stack = {
-			new TCP(),
-			new FILE_PING().setValue("location", "/var/lib/structr/files/cluster-discovery"),
+			new TCP().setBindPort(7800),
+			new KUBE_PING()
+				.setValue("namespace",  System.getenv("NAMESPACE"))
+				.setValue("masterHost", System.getenv("KUBERNETES_SERVICE_HOST"))
+				.setValue("masterPort", 443),
 			new MERGE3(),
 			new FD_SOCK(),
 			new FD_ALL(),
@@ -94,13 +100,21 @@ public class ClusterManager {
 		return channel.getAddress().equals(view.getCoord());
 	}
 
+	public void requestCoordinatorStatus() throws Exception {
+
+		final View view     = channel.getView();
+		final Address coord = view.getCoord();
+
+		channel.send(new ObjectMessage(coord, new StructrMessage("status-requested")));
+	}
+
 	public void broadcast(final String msg, final Object payload) throws Exception {
 		this.broadcast(msg, payload, false);
 	}
 
 	public void broadcast(final String msg, final Object payload, final boolean waitForDelivery) throws Exception {
 
-		final Message message = new Message(null, new StructrMessage(msg, payload));
+		final Message message = new ObjectMessage(null, new StructrMessage(msg, payload));
 
 		if (waitForDelivery) {
 

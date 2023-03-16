@@ -405,7 +405,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 		// Connect to cluster if enabled
 		if (Settings.ClusterModeEnabled.getValue(false) == true) {
 
-			logger.info("Cluster mode enabled.");
+			logger.info("Cluster mode enabled");
 
 			// assume we are not coordinator initially
 			this.isClusterCoordinator = false;
@@ -425,36 +425,41 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 					this.isClusterStarted = false;
 
-					logger.info("Waiting for cluster coordinator to complete startup..");
-
 					final long startTime = System.currentTimeMillis();
+
+					logger.info("Waiting for cluster coordinator to complete startup..");
 
 					// wait for coordinator to start
 					while (!this.isClusterStarted) {
 
-						try { Thread.sleep(2000); } catch (Throwable t) {}
+						logger.info("Requesting cluster coordinator status");
+
+						// make coordinator send its startup status
+						clusterManager.requestCoordinatorStatus();
+
+						try { Thread.sleep(5000); } catch (Throwable t) {}
 
 						// if cluster is not started after 5 minutes, we abort the process
 						if (System.currentTimeMillis() > (startTime + (5 * 60 * 1000))) {
 
-							logger.info("Timeout waiting for cluster startup, 5 minutes have passed, aborting.");
+							logger.info("Timeout waiting for cluster startup, 5 minutes have passed, aborting");
 
 							// hard exit
 							System.exit(2);
 						}
 					}
 
-					logger.info("Cluster coordinator has completed startup, continuing.");
+					logger.info("Cluster coordinator has completed startup, continuing");
 
 				} else {
 
-					logger.info("I am cluster coordinator, continuing startup.");
+					logger.info("I am cluster coordinator, continuing startup");
 
 				}
 
 			} catch (Exception ex) {
 
-				logger.warn("Unable to connect to cluster: {}, disabling cluster mode.", ex.getMessage());
+				logger.warn("Unable to connect to cluster: {}, disabling cluster mode", ex.getMessage());
 
 				Settings.ClusterModeEnabled.setValue(false);
 			}
@@ -567,7 +572,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		if (!shutdownDone) {
 
-			logger.info("Shutting down...");
+			logger.info("Shutting down..");
 
 			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
 			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
@@ -1418,6 +1423,15 @@ public class Services implements StructrServices, BroadcastReceiver {
 			case "startup-complete":
 
 				this.isClusterStarted = true;
+				break;
+
+			case "status-requested":
+
+				// send status update so other
+				if (this.isClusterCoordinator && this.initializationDone) {
+					this.broadcastMessageToCluster("startup-complete", null);
+				}
+
 				break;
 		}
 	}
