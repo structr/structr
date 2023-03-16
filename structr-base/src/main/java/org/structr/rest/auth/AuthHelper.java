@@ -115,7 +115,7 @@ public class AuthHelper {
 			throw new AuthenticationException(STANDARD_ERROR_MSG);
 		}
 
-		if (superuserName.equals(value) && superUserPwd.equals(password)) {
+		if (value.equals(superuserName) && password.equals(superUserPwd)) {
 
 			principal = new SuperUser();
 
