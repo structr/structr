@@ -2010,6 +2010,21 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
+			// create_or_update()
+			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid3);
+			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid3 + "'), 'name')}"));
+			assertEquals("Invalid create_or_update() result",        newUuid3, Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'New Name')}"));
+			assertEquals("Invalid create_or_update() result",  "New Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid3 + "'), 'name')}"));
+			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid4);
+			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
+			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid5);
+			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid5 + "'), 'name')}"));
+			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
+			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid6);
+			assertEquals("Invalid create_or_update() result", "de_DE", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid6 + "'), 'locale')}"));
+
 			// sleep
 			final long t0 = System.currentTimeMillis();
 			Scripting.replaceVariables(ctx, null, "${sleep(1000)}");
