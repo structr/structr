@@ -1341,12 +1341,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 								case "constant-value":
 									final String constantValue = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "constantValue"));
 									// Could be 'json(...)' or a simple value
-									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(constantValue).append("\"");
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(escapeForHtmlAttributes(constantValue)).append("\"");
 									break;
 
 								case "script-expression":
 									final String scriptExpression = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "scriptExpression"));
-									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(scriptExpression).append("\"");
+									out.append(" data-").append(nameAttributeHyphenated).append("=\"").append(escapeForHtmlAttributes(scriptExpression)).append("\"");
 									break;
 
 								case "page-param":
