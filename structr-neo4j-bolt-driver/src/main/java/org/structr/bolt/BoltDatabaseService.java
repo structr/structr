@@ -54,7 +54,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private Properties globalGraphProperties                      = null;
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
-	private boolean isNeo4jVersion4                               = false;
 	private boolean supportsRelationshipIndexes                   = false;
 	private boolean supportsIdempotentIndexCreation               = false;
 	private int neo4jMajorVersion                                 = -1;
@@ -185,7 +184,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			try {
 
-				if (isNeo4jVersion4) {
+				if (neo4jMajorVersion >= 4) {
 
 					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig));
 
@@ -216,7 +215,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 
 			try {
 
-				if (isNeo4jVersion4) {
+				if (neo4jMajorVersion >= 4) {
 
 					session = new ReactiveSessionTransaction(this, driver.rxSession(sessionConfig), timeoutInSeconds);
 
@@ -724,7 +723,7 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			case NewDBIndexesFormat:
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
-				return isNeo4jVersion4;
+				return neo4jMajorVersion >= 4;
 		}
 
 		return false;
