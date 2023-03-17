@@ -1837,8 +1837,13 @@ button.enabled, button.active {
 }
 
 .node .class-id-attrs,
+.menu-entry-html .class-id-attrs,
 .node .linkable {
 	color: var(--gray-888);
+}
+
+.menu-entry-html .class-id-attrs {
+	cursor: text;
 }
 
 .node .linkable {
@@ -3208,7 +3213,7 @@ i.fa-sitemap {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
-	width: 16rem;
+	min-width: 16rem;
 	z-index: 99999;
 	position: relative;
 }
@@ -3230,7 +3235,7 @@ i.fa-sitemap {
 	z-index: 99999;
 }
 
-#add-child-dialog li:hover {
+#add-child-dialog li:hover:not(.preview-context-menu) {
 	background-color: var(--structr-green);
 	color: var(--solid-black);
 	z-index: 99999;
@@ -4376,6 +4381,15 @@ table.props td.__value {
 }
 .w-40 {
 	width: 10rem;
+}
+.w-60 {
+	width: 15rem;
+}
+.w-72 {
+	width: 18rem;
+}
+.w-96 {
+	width: 24rem;
 }
 .w-full {
 	width: 100%;
