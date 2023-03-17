@@ -242,6 +242,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				buf.append(escapeForHtml(thisNode.getContent()));
 
 				return;
+			} else if (EditMode.CONTENT.equals(edit)) {
+
 			}
 
 			if (!thisNode.shouldBeRendered(renderContext)) {
@@ -310,7 +312,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 				if (handler.isEmpty()) {
 
-					out.append("--- empty ---");
+					//out.append("--- empty ---");
 				}
 
 				if (inBody && !("text/javascript".equals(_contentType) && !("text/css".equals(_contentType)))) {
