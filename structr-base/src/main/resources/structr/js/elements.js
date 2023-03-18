@@ -141,7 +141,7 @@ let _Elements = {
 		{
 			elements: ['label'],
 			attrs: ['for', 'form', 'style'],
-			focus: 'for'
+			focus: 'class'
 		},
 		{
 			elements: ['style'],
@@ -442,6 +442,11 @@ let _Elements = {
 		let windowWidth  = $(window).width();
 		let windowHeight = $(window).height();
 
+		if (entity.offset) {
+			x += entity.offset.x;
+			y += entity.offset.y;
+		}
+
 		if (e.pageX > (windowWidth / 2)) {
 			leftOrRight = 'right';
 		}
@@ -459,7 +464,7 @@ let _Elements = {
 			top: y + 'px'
 		});
 
-		let registerContextMenuItemClickHandler = function (el, contextMenuItem) {
+		let registerContextMenuItemClickHandler = (el, contextMenuItem) => {
 
 			el.on('mouseup', function(e) {
 				e.stopPropagation();
@@ -467,7 +472,7 @@ let _Elements = {
 				let preventClose = true;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
-					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem);
+					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem, e);
 				}
 
 				if (!preventClose) {
@@ -476,7 +481,7 @@ let _Elements = {
 			});
 		};
 
-		let registerPlaintextContextMenuItemHandler = function (el, itemText, forcedClickHandler) {
+		let registerPlaintextContextMenuItemHandler = (el, itemText, forcedClickHandler) => {
 
 			el.on('mouseup', function (e) {
 				e.stopPropagation();
@@ -494,7 +499,7 @@ let _Elements = {
 			});
 		};
 
-		let addContextMenuElements = function (ul, element, hidden, forcedClickHandler, prepend) {
+		let addContextMenuElements = (ul, element, hidden, forcedClickHandler, prepend) => {
 
 			if (hidden) {
 				ul.addClass('hidden');
@@ -514,16 +519,28 @@ let _Elements = {
 
 				let menuEntry        = $('<li class="element-group-switch"></li>');
 				let menuEntryContent = $('<span class="menu-entry-container items-center">' + (element.icon || '') + '</span>');
-				let menuEntryText    = $('<span class="menu-entry-text">' + element.name + '</span>');
 
 				for (let cls of (element.classes || [])) {
 					menuEntry.addClass(cls);
 				}
 
-				menuEntryContent.append(menuEntryText);
+				if (element.html) {
+					let menuEntryHtml   = $('<span class="menu-entry-html">' + element.html + '</span>');
+					menuEntryContent.append(menuEntryHtml);
+
+					// if (element.changeHandler) {
+					// 	menuEntryField[0].querySelector('span > input').addEventListener('change', element.changeHandler);
+					// }
+
+				} else if (element.name) {
+					let menuEntryText = $('<span class="menu-entry-text">' + element.name + '</span>');
+					menuEntryContent.append(menuEntryText);
+				}
+
 				menuEntry.append(menuEntryContent);
 
 				registerContextMenuItemClickHandler(menuEntry, element);
+
 				if (prepend) {
 					ul.prepend(menuEntry);
 				} else {
@@ -640,6 +657,8 @@ let _Elements = {
 			return _Widgets.getContextMenuElements(div, entity);
 		} else if (entity.type === _Pages.localizations.wrapperTypeForContextMenu) {
 			return _Pages.localizations.getContextMenuElements(div, entity);
+		} else if (entity.type === _Pages.previews.wrapperTypeForContextMenu) {
+			return _Pages.previews.getContextMenuElements(div, entity);
 		}
 
 		// 2. dedicated context menu for module

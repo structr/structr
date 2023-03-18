@@ -266,7 +266,7 @@ let _Pages = {
 		if (!isPage && !isContent) {
 			elements.push({
 				name: 'Insert div element',
-				clickHandler: function () {
+				clickHandler: () => {
 					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 					return false;
 				}
@@ -1691,11 +1691,88 @@ let _Pages = {
 		selectedElementOrigSource: null,
 		activePreviewPageId: null,
 		activePreviewHighlightElementId: null,
+		wrapperTypeForContextMenu: 'PreviewElement',
 
-		findDroppablesInIframe: function (iframeDocument, id) {
-			var droppables = iframeDocument.find('[data-structr-id]');
+		getContextMenuElements: (div, entityWrapper) => {
+
+			const entity = entityWrapper.entity;
+
+			let elements = [];
+
+			elements.push({
+				classes: ['preview-context-menu', 'w-96'],
+				icon: entity.isContent ? _Icons.getSvgIconForContentNode(entity) : _Icons.getSvgIconForElementNode(entity),
+				html: entity.tag + (entity._html_id ? ' <span class="class-id-attrs _html_id">#' + entity._html_id + '</span>' : '') + (entity._html_class ? '<span class="class-id-attrs _html_class">.' + entity._html_class.split(' ').join('.') + '</span>' : '')
+					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
+					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
+				clickHandler: (el, item, e) => {
+					e.stopPropagation();
+
+					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
+					classInputField?.addEventListener('keydown', (e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							Command.setProperty(entity.id, '_html_class', classInputField.value);
+						} else if (e.key === 'Escape') {
+							restoreDisplay();
+						}
+					});
+
+					const idInputField    = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_id"]');
+					idInputField?.addEventListener('keydown', (e) => {
+						if (e.key === 'Enter') {
+							e.preventDefault();
+							Command.setProperty(entity.id, '_html_id', idInputField.value);
+						} else if (e.key === 'Escape') {
+							restoreDisplay();
+						}
+					});
+
+					const restoreDisplay = () => {
+						classInputField?.classList.add('hidden');
+						idInputField?.classList.add('hidden');
+						document.querySelector('.class-id-attrs._html_class')?.classList.remove('hidden');
+						document.querySelector('.class-id-attrs._html_id')?.classList.remove('hidden');
+
+					};
+
+					const clickedEl = e.target.closest('.class-id-attrs');
+
+					if (clickedEl && clickedEl.classList.contains('_html_class')) {
+						clickedEl.classList.add('hidden');
+						classInputField?.classList.remove('hidden');
+						classInputField?.focus();
+						classInputField?.addEventListener('change', () => {
+							Command.setProperty(entity.id, '_html_class', classInputField.value);
+						});
+						return true; // don't close
+					} else if (clickedEl && clickedEl.classList.contains('_html_id')) {
+						clickedEl.classList.add('hidden');
+						idInputField?.classList.remove('hidden');
+						idInputField?.focus();
+						idInputField?.addEventListener('change', () => {
+							Command.setProperty(entity.id, '_html_id', idInputField.value);
+						});
+						return true; // don't close
+					} else {
+						if (!e.target.closest('.context-menu-input-field-' + entity.id)) {
+							restoreDisplay();
+						}
+						return true; // don't close
+					}
+				}
+
+			});
+
+			_Elements.appendContextMenuSeparator(elements);
+
+			return elements;
+		},
+
+		findDroppablesInIframe: (iframeDocument, id) => {
+			let droppables = iframeDocument.find('[data-structr-id]');
 			if (droppables.length === 0) {
-				var html = iframeDocument.find('html');
+				const html = iframeDocument.find('html');
 				html.attr('data-structr-id', id);
 				html.addClass('structr-element-container');
 			}
@@ -1703,7 +1780,7 @@ let _Pages = {
 			return droppables;
 		},
 
-		previewIframeLoaded: function (iframe, highlightElementId) {
+		previewIframeLoaded: (iframe, highlightElementId) => {
 
 			let designToolsActive = false;
 			if (LSWrapper.getItem(_Pages.activeTabRightKey) === 'paletteTab') {
@@ -1816,6 +1893,8 @@ let _Pages = {
 
 					var el = $(element);
 
+					//element.addEventListener('click', () => { _Elements.removeContextMenu(); });
+
 //					_Dragndrop.makeDroppable(el, highlightElementId);
 
 					var structrId = el.attr('data-structr-id');
@@ -1824,6 +1903,26 @@ let _Pages = {
 						var offsetTop = -30;
 						var offsetLeft = 0;
 						el.on({
+							contextmenu: (e) => {
+								e.stopPropagation();
+
+								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
+
+								Command.get(structrId, null, (data) => {
+									const entity = StructrModel.createFromData(data);
+									_Elements.activateContextMenu(e, el,
+										{
+											type: 'PreviewElement',
+											entity: entity,
+											offset: {
+												x: iframe.getBoundingClientRect().x + el[0].getBoundingClientRect().x - e.clientX,
+												y: iframe.getBoundingClientRect().y + el[0].getBoundingClientRect().y - e.clientY + el[0].getBoundingClientRect().height + 12
+											}
+										});
+								}, 'ui');
+
+								return false;
+							},
 							click: function(e) {
 								e.stopPropagation();
 								var self = $(this);
@@ -1836,11 +1935,15 @@ let _Pages = {
 								_Entities.deselectAllElements();
 //								_Pages.databinding.displayDataBinding(structrId);
 
+								console.log('Clicked on', e.target);
+
 								if (!Structr.node(structrId)) {
+									console.log('_Pages.expandTreeNode(', structrId,');');
 									_Pages.expandTreeNode(structrId);
 								} else {
 									var treeEl = Structr.node(structrId);
 									if (treeEl && !selected) {
+										console.log('_Entities.highlightElement(', treeEl	,');');
 										_Entities.highlightElement(treeEl);
 									}
 								}
@@ -2044,6 +2147,8 @@ let _Pages = {
 							}
 
 							previewEl?.classList.add('structr-element-container-selected');
+
+							doc.addEventListener('click', () => { _Elements.removeContextMenu(); });
 						}
 
 						iframe.src = _Pages.previews.getUrlForPreview(pageObj);

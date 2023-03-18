@@ -2601,7 +2601,7 @@ let _Entities = {
 
 			_Entities.ensureExpanded(el, (childNodes) => {
 				_Entities.expandAll(ids.slice(1), lastId);
-			});
+			}, true);
 		}
 	},
 	expandRecursively: (ids) => {

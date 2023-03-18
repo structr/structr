@@ -57,7 +57,7 @@
 }
 
 #pagesPagerFilters input[type=text] {
-	width: 3rem;
+	width: 7rem;
 	margin-right: .5rem;
 }
 #pagesPagerFilters input[type=text][data-attribute="category"] {
