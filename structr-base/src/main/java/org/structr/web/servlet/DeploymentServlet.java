@@ -58,7 +58,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-//~--- classes ----------------------------------------------------------------
 /**
  * Servlet to handle upload and download of application and data deployment files.
  */
@@ -83,10 +82,9 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	public DeploymentServlet() {
 	}
 
-	//~--- methods --------------------------------------------------------
 	@Override
 	public void configureServletHolder(final ServletHolder servletHolder) {
-		MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
+		final MultipartConfigElement multipartConfigElement = new MultipartConfigElement("", MEGABYTE * Settings.UploadMaxFileSize.getValue(), MEGABYTE * Settings.UploadMaxRequestSize.getValue(), (int)MEGABYTE);
 		servletHolder.getRegistration().setMultipartConfig(multipartConfigElement);
 	}
 
