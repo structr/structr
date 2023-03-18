@@ -1342,20 +1342,23 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	private void broadcastMessageToCluster(final String type, final Object payload, final boolean waitForDelivery) {
 
-		if (this.clusterManager != null) {
+		if (Settings.ClusterModeEnabled.getValue(false)) {
 
-			try {
+			if (this.clusterManager != null) {
 
-				this.clusterManager.broadcast(type, payload, waitForDelivery);
+				try {
 
-			} catch (Exception ex) {
+					this.clusterManager.broadcast(type, payload, waitForDelivery);
 
-				ex.printStackTrace();
+				} catch (Exception ex) {
+
+					ex.printStackTrace();
+				}
+
+			} else {
+
+				logger.info("Cannot broadcast {}, channel is null!", type);
 			}
-
-		} else {
-
-			logger.info("Cannot broadcast {}, channel is null!", type);
 		}
 	}
 
@@ -1400,9 +1403,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 	public void receive(final String sender, final StructrMessage message) {
 
 		final String type = message.getType();
-
-		logger.info("Recieved message of type {} from {}", type, sender);
-
 		switch (type) {
 
 			case "schema-changed":
