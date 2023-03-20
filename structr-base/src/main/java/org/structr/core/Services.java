@@ -1116,7 +1116,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	@Override
 	public boolean hasExclusiveDatabaseAccess() {
-		return clusterManager.isCoordinator();
+		return clusterManager == null || clusterManager.isCoordinator();
 	}
 
 	// ----- static methods -----
@@ -1423,7 +1423,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			case "status-requested":
 
 				// send status update so other
-				if (clusterManager.isCoordinator() && this.initializationDone) {
+				if (clusterManager != null && clusterManager.isCoordinator() && this.initializationDone) {
 					this.broadcastMessageToCluster("startup-complete", null);
 				}
 
