@@ -1615,7 +1615,7 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = entity.content;
+				detailHtml = escapeTags(entity.content);
 
 			} else if (entity.type === 'Template') {
 
