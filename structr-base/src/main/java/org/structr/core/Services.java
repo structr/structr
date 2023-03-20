@@ -91,7 +91,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private LicenseManager licenseManager                       = null;
 	private ConfigurationProvider configuration                 = null;
 	private boolean isClusterStarted                            = true;
-	private boolean isClusterCoordinator                        = true;
 	private boolean initializationDone                          = false;
 	private boolean overridingSchemaTypesAllowed                = true;
 	private boolean shuttingDown                                = false;
@@ -407,9 +406,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Cluster mode enabled");
 
-			// assume we are not coordinator initially
-			this.isClusterCoordinator = false;
-
 			try {
 
 				clusterManager = new ClusterManager();
@@ -420,8 +416,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 					try { Thread.sleep(100); } catch (Throwable t) {}
 				}
 
-				this.isClusterCoordinator = clusterManager.isCoordinator();
-				if (!this.isClusterCoordinator) {
+				if (!clusterManager.isCoordinator()) {
 
 					this.isClusterStarted = false;
 
@@ -1121,7 +1116,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 	@Override
 	public boolean hasExclusiveDatabaseAccess() {
-		return this.isClusterCoordinator;
+		return clusterManager.isCoordinator();
 	}
 
 	// ----- static methods -----
@@ -1428,7 +1423,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			case "status-requested":
 
 				// send status update so other
-				if (this.isClusterCoordinator && this.initializationDone) {
+				if (clusterManager.isCoordinator() && this.initializationDone) {
 					this.broadcastMessageToCluster("startup-complete", null);
 				}
 
