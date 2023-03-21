@@ -83,7 +83,7 @@ public class FlowComparison extends FlowCondition implements DataSource, Deploya
 				} else if (data instanceof Number && value instanceof Number) {
 
 					data = ((Number)data).doubleValue();
-					value = ((Number)data).doubleValue();
+					value = ((Number)value).doubleValue();
 				}
 
 				Comparable c = (Comparable) data;
