@@ -253,8 +253,11 @@ public interface PulsarClient extends MessageClient {
         public void invalidateConsumer() {
             try {
 
-                this.consumer.close();
-                this.consumer = null;
+                if (this.consumer != null) {
+                    
+                    this.consumer.close();
+                    this.consumer = null;
+                }
             } catch (PulsarClientException ex) {
 
                 logger.error("Could not close pulsar consumer. " + ex);
