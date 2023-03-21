@@ -27,6 +27,7 @@ public class Snippet {
 	private String codeSource = null;
 	private String name       = null;
 	private String source     = null;
+	private String transcribedSource = null;
 	private String mimeType   = "application/javascript";
 	private boolean embed     = true;
 	private int startRow      = 0;
@@ -76,4 +77,12 @@ public class Snippet {
 	public String getMimeType() { return mimeType; }
 
 	public void setMimeType(final String mimeType) { this.mimeType = mimeType; }
+
+	public String getTranscribedSource() {
+		return this.transcribedSource;
+	}
+
+	public void setTranscribedSource(final String transcribedSource) {
+		this.transcribedSource = transcribedSource;
+	}
 }

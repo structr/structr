@@ -468,13 +468,13 @@ public class Scripting {
 				snippet.setMimeType("application/javascript+module");
 			} else {
 
-				transpiledSource = "function main() {\n" + snippet.getSource() + "\n}\n\nmain();";
+				transpiledSource = "function main() {" + snippet.getSource() + "\n}\n\nmain();";
 			}
 
-			snippet.setCodeSource(transpiledSource);
+			snippet.setTranscribedSource(transpiledSource);
 		}
 
-		return snippet.getCodeSource();
+		return snippet.getTranscribedSource();
 	}
 
 	// this is only public to be testable :(

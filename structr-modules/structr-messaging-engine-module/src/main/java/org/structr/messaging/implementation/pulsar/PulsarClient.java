@@ -278,6 +278,11 @@ public interface PulsarClient extends MessageClient {
         private List<String> getSubTopics() {
             List<String> aggregatedTopics = new ArrayList<>();
 
+            if (thisClient == null) {
+
+                return aggregatedTopics;
+            }
+
             thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
                 String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
                 if (topic != null) {
@@ -299,7 +304,7 @@ public interface PulsarClient extends MessageClient {
                     pulsarClient = null;
                 }
 
-                pulsarClient =  org.apache.pulsar.client.api.PulsarClient.builder()
+                pulsarClient = org.apache.pulsar.client.api.PulsarClient.builder()
                         .serviceUrl(String.join(",", thisClient.getServers()))
                         .build();
 
