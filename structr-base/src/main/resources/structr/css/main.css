@@ -3285,7 +3285,7 @@ i.fa-sitemap {
 }
 
 #add-child-dialog ul.left ul.left {
-	left: 16rem;
+	left: calc(16.5rem - 1px);
 }
 
 #add-child-dialog ul.top ul.top {

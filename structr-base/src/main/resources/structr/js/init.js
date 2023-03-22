@@ -2068,26 +2068,18 @@ let Structr = {
 
 							let builder = new MessageBuilder().uniqueClass(`n${data.nodeId}${data.nodeType}${data.row}${data.column}`).incrementsUniqueCount(true).title(`Scripting error in ${title}`).warning(location).requiresConfirmation();
 
-							if (data.nodeType === 'SchemaMethod') {
+							if (data.nodeType === 'SchemaMethod' || data.nodeType === 'SchemaProperty') {
 
 								let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
 
-								builder.specialInteractionButton('Go to method', function(btn) {
+								builder.specialInteractionButton(`Go to ${data.nodeType === 'SchemaMethod' ? 'method' : 'property'}`, () => {
+
 									window.location.href = '#code';
+
 									window.setTimeout(() => {
 										_Code.findAndOpenNode(pathToOpen, false);
 									}, 1000);
-								}, 'Dismiss');
 
-							} else if (data.nodeType === 'SchemaProperty') {
-
-								let pathToOpen = (obj.schemaNode) ? `custom--${obj.schemaNode.id}-properties-${obj.id}` : `globals--${obj.id}`;
-
-								builder.specialInteractionButton('Go to property', function(btn) {
-									window.location.href = '#code';
-									window.setTimeout(function() {
-										_Code.findAndOpenNode(pathToOpen, false);
-									}, 1000);
 								}, 'Dismiss');
 
 							} else {
