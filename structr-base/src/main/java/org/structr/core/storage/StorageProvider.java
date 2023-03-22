@@ -16,23 +16,17 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.util;
+package org.structr.core.storage;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.SeekableByteChannel;
 
-public abstract class FileUtils {
+public interface StorageProvider {
+	InputStream getInputStream();
+	OutputStream getOutputStream();
+	SeekableByteChannel getSeekableByteChannel();
 
-    public static Long getSize(final File file) {
-
-        try {
-
-            return Files.size(file.toPath());
-        } catch (IOException e) {
-
-            throw new RuntimeException(e);
-        }
-    }
-
+	void delete();
+	long size();
 }

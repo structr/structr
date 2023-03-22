@@ -25,8 +25,8 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.util.Base64;
-import org.structr.util.FileUtils;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
@@ -71,7 +71,6 @@ public class ChunkCommand extends AbstractCommand {
 
 					logger.debug("Raw data: {}", rawData);
 
-//                                        data = Base64.decodeBase64(((String)rawData).getBytes("UTF-8"));
 					data = Base64.decode(((String) rawData));
 
 					logger.debug("Decoded data: {}", data);
@@ -107,7 +106,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), FileUtils.getSize(file.getFileOnDisk())});
+				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), StorageProviderFactory.getStreamProvider(file).size()});
 
 			}
 

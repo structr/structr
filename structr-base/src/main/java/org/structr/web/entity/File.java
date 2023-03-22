@@ -48,6 +48,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
@@ -68,8 +69,7 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.nio.file.Files;
-import java.nio.file.Path;
+
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -169,15 +169,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
 		getOutputStream2.setReturnType(FileOutputStream.class.getName());
 
-		type.addMethod("getFileOnDisk")
-			.setReturnType(java.io.File.class.getName())
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this);");
-
-		type.addMethod("getFileOnDisk")
-			.setReturnType(java.io.File.class.getName())
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);")
-			.addParameter("doCreate", "boolean");
-
 		type.addMethod("doCSVImport")
 			.setReturnType(java.lang.Long.class.getName())
 			.addParameter("ctx", SecurityContext.class.getName())
@@ -242,9 +233,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
-	java.io.File getFileOnDisk(final boolean doCreate);
-	java.io.File getFileOnDisk();
-
 	boolean isTemplate();
 
 	void notifyUploadCompletion();
@@ -302,20 +290,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		// only delete mounted files
 		if (!thisFile.isExternal()) {
 
-			java.io.File toDelete = thisFile.getFileOnDisk(false);
-
-			try {
-
-				if (toDelete.exists() && toDelete.isFile()) {
-
-					toDelete.delete();
-				}
-
-			} catch (Throwable t) {
-
-				final Logger logger = LoggerFactory.getLogger(File.class);
-				logger.debug("Exception while trying to delete file {}: {}", toDelete.getPath(), t.getMessage());
-			}
+			StorageProviderFactory.getStreamProvider(thisFile).delete();
 		}
 	}
 
@@ -392,13 +367,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 
 	static String getFormattedSize(final File thisFile) {
-		try {
-
-			return FileUtils.byteCountToDisplaySize(Files.size(thisFile.getFileOnDisk().toPath()));
-		} catch (IOException ex) {
-
-			throw new RuntimeException(ex);
-		}
+		return FileUtils.byteCountToDisplaySize(
+				StorageProviderFactory.getStreamProvider(thisFile).size()
+		);
 	}
 
 	static void increaseVersion(final File thisFile) throws FrameworkException {
@@ -419,11 +390,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	static InputStream getInputStream(final File thisFile) {
 
 		final Logger logger = LoggerFactory.getLogger(File.class);
-		final java.io.File fileOnDisk = thisFile.getFileOnDisk();
 
 		try {
 
-			final FileInputStream fis             = new FileInputStream(fileOnDisk);
+			final InputStream is = StorageProviderFactory.getStreamProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();
 
 			if (thisFile.isTemplate()) {
@@ -440,10 +410,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 				if (!editModeActive) {
 
-					final String content = IOUtils.toString(fis, "UTF-8");
+					final String content = IOUtils.toString(is, "UTF-8");
 
 					// close input stream here
-					fis.close();
+					is.close();
 
 					try {
 
@@ -473,10 +443,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 			}
 
-			return fis;
+			return is;
 
 		} catch (IOException ex) {
-			logger.warn("Unable to open input stream for {}: {}", fileOnDisk.getPath(), ex.getMessage());
+			logger.warn("Unable to open input stream for {}: {}", thisFile.getPath(), ex.getMessage());
 		}
 
 		return null;
@@ -509,23 +479,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 
-	}
-
-	static java.io.File getFileOnDisk(final File thisFile) {
-		return thisFile.getFileOnDisk(true);
-	}
-
-	static java.io.File getFileOnDisk(final File thisFile, final boolean create) {
-
-		final Folder parentFolder = thisFile.getParent();
-		if (parentFolder != null) {
-
-			return parentFolder.getFileOnDisk(thisFile, "", create);
-
-		} else {
-
-			return AbstractFile.defaultGetFileOnDisk(thisFile, create);
-		}
 	}
 
 	static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) {
@@ -832,27 +785,30 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		final Folder previousParent     = (Folder)thisFile.getProperty(key);
 		final Folder newParent          = (Folder)value;
-		final java.io.File previousFile = thisFile.getFileOnDisk(false);
+		final java.io.File previousFile = null;
 		java.io.File newFile            = null;
 
 		if (newParent != null && !newParent.equals(previousParent)) {
 
-			newFile = newParent.getFileOnDisk(thisFile, "", false);
+			//newFile = newParent.getFileOnDisk(thisFile, "", false);
 		}
 
 		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
 
 			final Logger logger = LoggerFactory.getLogger(File.class);
 
-			try {
+			//try {
 
 				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
 
-				Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
+				//ToDo: Implement equivalent system for new storage providers.
+				//Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
 
+			/*
 			} catch (IOException ioex) {
 				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
+			 */
 		}
 	}
 

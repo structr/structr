@@ -18,8 +18,6 @@
  */
 package org.structr.web.entity;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -37,7 +35,6 @@ import org.structr.core.property.PropertyMap;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 
-import java.io.IOException;
 import java.net.URI;
 
 
@@ -86,8 +83,6 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 		type.overrideMethod("getImages",      false, "return " + Folder.class.getName() + ".getImages(this);");
 		type.overrideMethod("isMounted",      false, "return " + Folder.class.getName() + ".isMounted(this);");
 
-		type.overrideMethod("getFileOnDisk",  false, "return " + Folder.class.getName() + ".getFileOnDisk(this, arg0, arg1, arg2);");
-
 		// ContextAwareEntity
 		type.overrideMethod("getEntityContextPath",  false, "return getPath();");
 
@@ -108,8 +103,6 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 		type.addViewProperty(PropertyView.Ui, "images");
 
 	}}
-
-	java.io.File getFileOnDisk(final File file, final String path, final boolean create);
 
 	String getMountTarget();
 	String getMountTargetFileType();
@@ -159,42 +152,6 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 
 	static Iterable<Image> getImages(final Folder thisFolder) {
 		return Iterables.map(s -> (Image)s, Iterables.filter((AbstractFile value) -> value instanceof Image, thisFolder.getChildren()));
-	}
-
-	public static java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
-
-		final String _mountTarget = thisFolder.getMountTarget();
-		final Folder parentFolder = thisFolder.getParent();
-
-		if (_mountTarget != null) {
-
-			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
-			final java.io.File fileOnDisk = new java.io.File(fullPath);
-
-			fileOnDisk.getParentFile().mkdirs();
-
-			if (create && !thisFolder.isExternal()) {
-
-				try {
-
-					fileOnDisk.createNewFile();
-
-				} catch (IOException ioex) {
-
-					final Logger logger = LoggerFactory.getLogger(Folder.class);
-					logger.error("Unable to create file {}: {}", file, ioex.getMessage());
-				}
-			}
-
-			return fileOnDisk;
-
-		} else if (parentFolder != null) {
-
-			return parentFolder.getFileOnDisk(file, thisFolder.getProperty(Folder.name) + "/" + path, create);
-		}
-
-		// default implementation (store in UUID-indexed tree)
-		return AbstractFile.defaultGetFileOnDisk(file, create);
 	}
 
 	static String removeDuplicateSlashes(final String src) {

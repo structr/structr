@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -224,7 +224,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 			if (file instanceof File) {
 
-				final Number s = FileUtils.getSize(((File)file).getFileOnDisk());
+				final Number s = StorageProviderFactory.getStreamProvider(file).size();
 				if (s != null) {
 
 					size = s.longValue();
