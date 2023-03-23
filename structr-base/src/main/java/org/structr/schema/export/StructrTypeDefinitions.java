@@ -503,10 +503,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		// nothing to do for this set, these types can simply be created without problems
-		//System.out.println(typesOnlyInStructrSchema);
-
-
 		// find detailed differences in the intersection of both schemas
 		for (final String name : bothTypes) {
 
@@ -516,8 +512,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			// compare types
 			localType.diff(otherType);
 		}
-
-		// the same must be done for global methods and relationships!
 	}
 
 	private Map<String, StructrTypeDefinition> getMappedTypes() {

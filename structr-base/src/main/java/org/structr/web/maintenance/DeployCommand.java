@@ -31,7 +31,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.GraphObject;
 import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -1062,7 +1061,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				// move global schema methods to files
 				final List<Map<String, Object>> globalSchemaMethods = schema.getGlobalMethods();
 
-				if (globalSchemaMethods.size() > 0) {
+				if (!globalSchemaMethods.isEmpty()) {
 
 					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
 
@@ -1100,8 +1099,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						}
 					}
 
-					final boolean hasFunctionProperties = (functionProperties.size() > 0);
-					final boolean hasMethods = (typeDef.getMethods().size() > 0);
+					final boolean hasFunctionProperties = !functionProperties.isEmpty();
+					final boolean hasMethods            = !typeDef.getMethods().isEmpty();
 
 					if (hasFunctionProperties || hasMethods) {
 
@@ -1139,12 +1138,12 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 								final StructrMethodDefinition method = (StructrMethodDefinition)m;
 
-								final String methodName              = method.getName();
-								final String methodSource            = method.getSource();
-
-								final Path methodSourceFile  = methodsFolder.resolve(methodName);
+								final String uniqueMethodName = method.getUniqueName();
+								final String methodSource     = method.getSource();
+								final Path methodSourceFile   = methodsFolder.resolve(uniqueMethodName);
 
 								if (methodSource != null) {
+
 									writeStringToFile(methodSourceFile, methodSource);
 									method.setSource("./" + targetFolder.relativize(methodSourceFile).toString());
 								}
@@ -2395,17 +2394,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 										for (final Object m : typeDef.getMethods()) {
 
 											final StructrMethodDefinition method = (StructrMethodDefinition)m;
-											final String methodName              = method.getName();
+											final String uniqueMethodName        = method.getUniqueName();
 
 											if (method.getSource() != null) {
 
-												final Path methodSourceFile = methodsFolder.resolve(methodName);
-
+												// new export name includes the number of parameters
+												final Path methodSourceFile = methodsFolder.resolve(uniqueMethodName);
 												if (Files.exists(methodSourceFile)) {
+
 													method.setSource(new String(Files.readAllBytes(methodSourceFile)));
+
 												} else {
-													method.setSource(null);
-													DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+
+													// fallback to allow import of exports with the unsuffixed method name
+													final Path methodSourceFileFallback = methodsFolder.resolve(method.getName());
+													if (Files.exists(methodSourceFileFallback)) {
+
+														method.setSource(new String(Files.readAllBytes(methodSourceFileFallback)));
+
+													} else {
+
+														method.setSource(null);
+														DeployCommand.addMissingSchemaFile(schemaFolder.relativize(methodSourceFile).toString());
+													}
 												}
 											}
 										}

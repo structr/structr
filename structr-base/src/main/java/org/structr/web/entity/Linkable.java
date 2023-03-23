@@ -28,7 +28,6 @@ import java.net.URI;
 
 /**
  *
- *
  */
 public interface Linkable extends NodeInterface {
 
@@ -53,12 +52,4 @@ public interface Linkable extends NodeInterface {
 	String getBasicAuthRealm();
 
 	public String getPath();
-
-	/*
-	public static final Property<List<LinkSource>> linkingElements = new StartNodes<>("linkingElements", ResourceLink.class, new PropertyNotion(GraphObject.id));
-	public static final Property<Boolean> enableBasicAuth          = new BooleanProperty("enableBasicAuth").defaultValue(false).indexed();
-	public static final Property<String> basicAuthRealm            = new StringProperty("basicAuthRealm");
-
-	public static final org.structr.common.View uiView = new org.structr.common.View(Linkable.class, PropertyView.Ui, linkingElements, enableBasicAuth, basicAuthRealm);
-	*/
 }

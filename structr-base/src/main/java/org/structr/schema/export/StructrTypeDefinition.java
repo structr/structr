@@ -1025,13 +1025,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			final String typeName = extendsClass.getName();
 
 			if (schemaNodes.containsKey(typeName)) {
-			
+
 				this.baseTypeReference = root.getId().resolve("definitions/" + typeName);
 
 			} else {
 
 				this.baseTypeReference = StructrApp.getSchemaBaseURI().resolve("definitions/" + typeName);
 			}
+
+		} else {
+
+			// fallback to internal base type
+			final String extendsClassInternal = schemaNode.getProperty(SchemaNode.extendsClassInternal);
+			if (extendsClassInternal != null) {
+
+				final String typeName = resolveParameterizedType(extendsClassInternal);
+
+				this.baseTypeReference = StructrApp.getSchemaBaseURI().resolve("definitions/" + typeName);
+			}
+
 		}
 
 		// $implements
@@ -1217,11 +1229,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 					if (StringUtils.isNotBlank(typeName)) {
 
-						final Class internal  = StructrApp.getConfiguration().getNodeEntityClass(typeName);
-						if (internal != null) {
-
-							nodeProperties.put(SchemaNode.extendsClassInternal, getParameterizedType(internal, parameters));
-						}
+						nodeProperties.put(SchemaNode.extendsClassInternal, getParameterizedType(typeName, parameters));
 					}
 				}
 			}
@@ -1261,14 +1269,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					if (superclass != null) {
 
 						interfaces.add(superclass.getName());
-
-					} else {
-
-						logger.warn("Unable to resolve built-in type {} against Structr schema", implementedInterface);
-
-						SchemaService.blacklist(name);
-
-						StructrApp.resolveSchemaId(implementedInterface);
 					}
 				}
 			}
@@ -1674,12 +1674,12 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	private String getParameterizedType(final Class type, final String queryString) {
+	private String getParameterizedType(final String type, final String queryString) {
 
 		final StringBuilder buf           = new StringBuilder();
 		final List<String> typeParameters = new LinkedList<>();
 
-		buf.append(type.getName());
+		buf.append(type);
 
 		if (queryString != null) {
 

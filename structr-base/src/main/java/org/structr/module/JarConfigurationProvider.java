@@ -552,6 +552,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 			classesForInterface.add(type);
+
+			// recurse for interfaces
+			registerEntityType(interfaceClass);
 		}
 
 		try {

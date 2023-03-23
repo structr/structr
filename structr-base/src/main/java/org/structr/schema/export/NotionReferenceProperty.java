@@ -127,7 +127,7 @@ class NotionReferenceProperty extends StructrReferenceProperty {
 				break;
 		}
 
-		if (this.properties.size() > 0) {
+		if (!this.properties.isEmpty()) {
 			map.put(JsonSchema.KEY_PROPERTIES, this.properties);
 		}
 

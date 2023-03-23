@@ -124,6 +124,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		return parent;
 	}
 
+	public String getUniqueName() {
+		return name + "." + this.parameters.size();
+	}
+
 	@Override
 	public String getName() {
 		return name;
@@ -553,9 +557,6 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		return map;
-	}
-
-	void initializeReferences() {
 	}
 
 	String getSignature() {

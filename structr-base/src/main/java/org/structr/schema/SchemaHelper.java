@@ -2250,10 +2250,6 @@ public class SchemaHelper {
 		return false;
 	}
 
-	private static boolean hasType(final String fqcn) {
-		return SchemaHelper.classForName(fqcn) != null;
-	}
-
 	private static String cleanTypeName(final String src) {
 		return StringUtils.substringBefore(src, "<");
 	}

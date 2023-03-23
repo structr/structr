@@ -456,7 +456,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		if (propertyType != null) {
 
 			final boolean isDate   = source.containsKey(JsonSchema.KEY_FORMAT) && JsonSchema.FORMAT_DATE_TIME.equals(source.get(JsonSchema.KEY_FORMAT));
-			final boolean isEnum   = source.containsKey(JsonSchema.KEY_ENUM);
+			final boolean isEnum   = source.containsKey(JsonSchema.KEY_ENUM) || source.containsKey(JsonSchema.KEY_FQCN);
 
 			switch (propertyType) {
 
@@ -529,7 +529,15 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 						if (reference != null && reference instanceof String) {
 
 							final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
-							newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "object", refName);
+
+							if (source.containsKey(JsonSchema.KEY_PROPERTIES)) {
+
+								newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "object", refName);
+
+							} else {
+
+								newProperty = new IdNotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "object", refName);
+							}
 						}
 					}
 					break;
@@ -548,7 +556,15 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 								if (reference != null && reference instanceof String) {
 
 									final String refName = StructrPropertyDefinition.getPropertyNameFromJsonPointer(reference.toString());
-									newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+
+									if (source.containsKey(JsonSchema.KEY_PROPERTIES)) {
+
+										newProperty = new NotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+
+									} else {
+
+										newProperty = new IdNotionReferenceProperty(parent, name, (String)source.get(JsonSchema.KEY_REFERENCE), "array", refName);
+									}
 								}
 
 							} else if (items.containsKey(JsonSchema.KEY_TYPE)) {

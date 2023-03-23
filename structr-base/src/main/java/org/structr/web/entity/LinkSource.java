@@ -64,24 +64,4 @@ public interface LinkSource extends DOMElement {
 
 	Linkable getLinkable();
 	void setLinkable(final Linkable linkable) throws FrameworkException;
-
-	//public static final Property<Linkable> linkable = new EndNode<>("linkable", ResourceLink.class, new PropertyNotion(AbstractNode.name));
-	//public static final Property<String> linkableId = new EntityIdProperty("linkableId", linkable);
-
-	/*
-	// ----- interface Syncable -----
-	@Override
-	public List<GraphObject> getSyncData() throws FrameworkException {
-
-		final List<GraphObject> data = super.getSyncData();
-
-		data.add(getProperty(linkable));
-
-		for (final ResourceLink link : getRelationships(ResourceLink.class)) {
-			data.add(link);
-		}
-
-		return data;
-	}
-	*/
 }
