@@ -2134,12 +2134,14 @@ let _Entities = {
 					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} ${state.text}</span>`);
 				};
 
+				let dropdownParent = (dialogBox && dialogBox.is(':visible')) ? dialogBox : $('body');
+
 				ownerSelect.select2({
 					allowClear: true,
 					placeholder: 'Owner',
 					width: '300px',
 					style: 'text-align:left;',
-					dropdownParent: $('body'),
+					dropdownParent: dropdownParent,
 					templateResult: (state) => templateOption(state, false),
 					templateSelection: (state) => templateOption(state, true)
 				}).on('select2:unselecting', function(e) {
@@ -2161,7 +2163,7 @@ let _Entities = {
 				granteeSelect.select2({
 					placeholder: 'Select Group/User',
 					width: '100%',
-					dropdownParent: $('body'),
+					dropdownParent: dropdownParent,
 					templateResult: (state) => templateOption(state, false)
 				}).on('select2:select', function(e) {
 
