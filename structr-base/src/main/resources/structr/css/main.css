@@ -3213,7 +3213,7 @@ i.fa-sitemap {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
-	min-width: 16rem;
+	min-width: 16.5rem;
 	z-index: 99999;
 	position: relative;
 }
@@ -3285,7 +3285,7 @@ i.fa-sitemap {
 }
 
 #add-child-dialog ul.left ul.left {
-	left: calc(16.5rem - 1px);
+	left: 16.5rem;
 }
 
 #add-child-dialog ul.top ul.top {
