@@ -319,15 +319,17 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 			}
 
 			final String destTypeName = destType.getName();
-			if (destTypeName == "org.structr.core.graph.NodeInterface" || destTypeName == "org.structr.flow.impl.FlowContainer" ) {
-				ConfigurationProvider configuration = StructrApp.getConfiguration();
-				Class typeClass = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
-				destType = typeClass;
 
+			if ("org.structr.core.graph.NodeInterface".equals(destTypeName) || "org.structr.flow.impl.FlowContainer".equals(destTypeName)) {
+
+				final ConfigurationProvider configuration = StructrApp.getConfiguration();
+
+				destType = configuration.getNodeEntityClass(AbstractNode.class.getSimpleName());
 				if (destType == null) {
-					Map<String, Class> interfaces = configuration.getInterfaces();
-					destType = interfaces.get(AbstractNode.class.getSimpleName());
-				};
+
+					final Map<String, Class> interfaces = configuration.getInterfaces();
+					destType = interfaces.get(AbstractNode.class.getName());
+				}
 			}
 
 			items.putAll(new OpenAPIStructrTypeSchemaOutput(destType, viewName, level + 1));

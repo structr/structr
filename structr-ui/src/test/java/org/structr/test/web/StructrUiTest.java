@@ -132,7 +132,7 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@BeforeMethod()
+	@BeforeMethod
 	public void cleanDatabase() {
 
 		if (!first) {
@@ -165,6 +165,8 @@ public abstract class StructrUiTest {
 				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
 
 			}
+
+			System.out.println("###### cleaning database done");
 		}
 
 		first = false;

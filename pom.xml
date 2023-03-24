@@ -53,11 +53,11 @@
 		<maven.compiler.target>11</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:4.3</test.neo4j.version>
+		<test.neo4j.version>neo4j:5.5</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
-		<test.forkCount>1</test.forkCount>
+		<test.forkCount>8</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 	</properties>
 

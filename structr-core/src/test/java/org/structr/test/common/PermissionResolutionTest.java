@@ -49,8 +49,6 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void test01SimplePermissionResolution() {
 
-		cleanDatabaseAndSchema();
-
 		SchemaRelationshipNode rel = null;
 		PropertyKey key            = null;
 		Principal user1            = null;
@@ -241,8 +239,6 @@ public class PermissionResolutionTest extends StructrTest {
 	@Test
 	public void testPermissionResolutionWithSelfRelationship() {
 
-		cleanDatabaseAndSchema();
-
 		final App app = StructrApp.getInstance();
 		String uuid   = null;
 
@@ -326,8 +322,6 @@ public class PermissionResolutionTest extends StructrTest {
 
 	@Test
 	public void testPermissionResolutionWithSelfRelationshipAndInheritance() {
-
-		cleanDatabaseAndSchema();
 
 		final App app = StructrApp.getInstance();
 		String uuid   = null;
@@ -420,8 +414,6 @@ public class PermissionResolutionTest extends StructrTest {
 
 	@Test
 	public void testSchemaGrants() {
-
-		cleanDatabaseAndSchema();
 
 		final App app    = StructrApp.getInstance();
 		String uuid      = null;

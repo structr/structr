@@ -51,8 +51,6 @@ public class CustomPermissionQueriesTest extends StructrTest {
 		// don't run tests that depend on Cypher being available in the backend
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			this.cleanDatabaseAndSchema();
-
 			final Class<Principal> principalType = StructrApp.getConfiguration().getNodeEntityClass("Principal");
 			Principal user1                      = null;
 			Class type1                          = null;

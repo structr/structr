@@ -43,7 +43,6 @@ import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.*;
-import static org.testng.AssertJUnit.fail;
 
 import java.io.File;
 import java.io.RandomAccessFile;
@@ -53,6 +52,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -77,6 +77,24 @@ public abstract class StructrRestTestBase {
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
 	public void setup(@Optional String testDatabaseConnection) {
+
+		final Set<String> htmlTypes = Set.of(
+			"A", "Abbr", "Address", "Area", "Article", "Aside", "Audio", "B", "Base", "Bdi", "Bdo", "Blockquote", "Body", "Br", "Button", "Canvas", "Caption", "Cdata", "Cite", "Code",
+			"Col", "Colgroup", "Command", "Comment", "Component", "Content", "ContentContainer", "ContentItem", "CssDeclaration", "CssRule", "CssSelector", "CssSemanticClass","Data",
+			"Datalist", "Dd", "Del", "Details", "Dfn", "Dialog", "Div", "Dl", "Dt", "Em", "Embed", "Fieldset", "Figcaption", "Figure", "Footer", "Form", "G", "H1", "H2", "H3", "H4",
+			"H5", "H6", "Head", "Header", "Hgroup", "Hr", "Html", "I", "Iframe", "Img", "Input", "Ins", "Kbd", "Keygen", "Label", "Legend", "Li", "Link", "Main", "Map", "Mark", "Menu",
+			"Meta", "Meter", "Nav", "Noscript", "Object", "Ol", "Optgroup", "Option", "Output", "P", "Param", "Person", "Picture", "Pre", "Progress", "Q", "Rp", "Rt", "Ruby", "S","Samp",
+			"Script", "Section", "Select", "Slot", "Small", "Source", "Span", "Strong", "Style", "Sub", "Summary", "Sup", "Table", "Tbody", "Td", "Template", "TemplateElement", "Textarea",
+			"Tfoot", "Th", "Thead", "Time", "Title", "Tr", "Track", "U", "Ul", "Var", "Video", "Wbr", "Widget"
+		);
+
+		final Set<String> uiTypes = Set.of(
+			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
+			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
+		);
+
+		SchemaService.getBlacklist().addAll(htmlTypes);
+		SchemaService.getBlacklist().addAll(uiTypes);
 
 		final long timestamp = System.nanoTime();
 

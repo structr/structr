@@ -29,5 +29,6 @@ public enum DatabaseFeature {
 	SpatialQueries,
 	AuthenticationRequired,
 	RelationshipIndexes,
-	NewDBIndexesFormat
+	NewDBIndexesFormat,
+	ShowIndexesQuery
 }

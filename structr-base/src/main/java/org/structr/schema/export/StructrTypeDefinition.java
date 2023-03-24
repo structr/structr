@@ -87,6 +87,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract boolean isBlacklisted(final Set<String> blacklist);
 
 	@Override
 	public String toString() {

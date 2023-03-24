@@ -539,7 +539,7 @@ public class StructrApp implements App {
 			} else {
 
 				// next try: interface
-				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				final Class iface = config.getInterfaces().get(type.getName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
