@@ -673,7 +673,7 @@ let _Elements = {
 		return [];
 	},
 	appendContextMenuSeparator: (elements) => {
-		if (elements[elements.length - 1] !== '|') {
+		if (elements[elements.length - 1] !== '|' && elements.length > 0) {
 			elements.push('|');
 		}
 	},

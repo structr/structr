@@ -349,7 +349,7 @@ let _Flows = {
 				}
 
 				if (id !== null) {
-					persistence.deleteNode({
+					await persistence.deleteNode({
 						type: type,
 						id: id
 					});
@@ -362,6 +362,7 @@ let _Flows = {
 
 				// display flow canvas
 				flowsCanvas.innerHTML = '<div id="nodeEditor" class="node-editor"></div>';
+				_Flows.refreshTree(() => {});
 			};
 
 			handleDeletion();
@@ -526,7 +527,7 @@ let _Flows = {
 			};
 		};
 
-		let createFolder = function(path, list) {
+		let createFolder = function(path, list, data = {}) {
 			// Consume path to navigate to logical root in list
 			let listRoot = list;
 			let traversedPath = [];
@@ -540,7 +541,10 @@ let _Flows = {
 						id: ('/' + traversedPath.join('/')),
 						text: p,
 						icon: _Icons.nonExistentEmptyIcon,
-						data: { svgIcon: _Icons.getSvgIcon(_Icons.iconFolderOpen, 16, 24) },
+						data: {
+						    ...{ svgIcon: _Icons.getSvgIcon(_Icons.iconFolderOpen, 16, 24) },
+						    ...data
+						},
 						children: [],
 						state: {
 							opened: true,
@@ -560,7 +564,7 @@ let _Flows = {
 		let displayFunctionPackage = function(result) {
 
 			for (const d of result) {
-				createFolder(d.effectiveName.split('.'), list);
+				createFolder(d.effectiveName.split('.'), list, d);
 			}
 
 			$(flowsTree).jstree(true).sort(list, true);
