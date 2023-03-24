@@ -374,7 +374,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		ActionMapping triggeredAction;
 
-		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
+		final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) StructrApp.getInstance().get(DOMElement.class, this.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
 		if (triggeredActions != null && !triggeredActions.isEmpty()) {
 			triggeredAction = triggeredActions.get(0);
 			action = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "action"));
@@ -1224,7 +1224,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case NONE:
 
-					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>) thisElement.getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
+					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>)	StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
 					if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
 						final ActionMapping triggeredAction = triggeredActions.get(0);
