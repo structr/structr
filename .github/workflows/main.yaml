@@ -48,7 +48,7 @@ jobs:
           -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
           -e NEO4J_dbms_memory_heap_maxSize=4G 
           -e NEO4J_dbms_memory_pagecache_size=4G neo4j:${{ matrix.neo4jVersion }} && 
-          echo "ASSIGNED_PORT_${{ matrix.structrModuleVariable }}_${{ matrix.neo4jVersionVariable }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-${{ matrix.neo4jVersionVariable }}-test-${{ github.run_id }}" >> $GITHUB_ENV
+          echo "ASSIGNED_PORT_${{ matrix.structrModuleVariable }}_${{ matrix.neo4jVersionVariable }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-${{ matrix.neo4jVersionVariable }}-test-${{ github.run_id }})" >> $GITHUB_ENV
 
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
