@@ -56,7 +56,7 @@ jobs:
         run:  >-
           mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
           cd ${{ matrix.module }} && 
-          mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${ASSIGNED_PORT_${{ matrix.variableName }}_neo4j_${{ matrix.neo4jVersion }}_${{ github.run_id }}}"
+          mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${"ASSIGNED_PORT_${{ matrix.variableName }}_neo4j_${{ matrix.neo4jVersion }}_${{ github.run_id }}"}"
 
       - name: Stop Test Database
         if: always()
