@@ -168,10 +168,9 @@ public class StructrTest {
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
-		do {
+		while (!services.isInitialized()) {
 			try { Thread.sleep(100); } catch (Throwable t) {}
-
-		} while (!services.isInitialized());
+		}
 
 		securityContext = SecurityContext.getSuperUserInstance();
 		app = StructrApp.getInstance(securityContext);

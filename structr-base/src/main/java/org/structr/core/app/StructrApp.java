@@ -538,8 +538,8 @@ public class StructrApp implements App {
 
 			} else {
 
-				// next try: interface
-				final Class iface = config.getInterfaces().get(type.getName());
+				// next try: interface created from SchemaNode (org.structr.dynamic)
+				final Class iface = config.getInterfaces().get("org.structr.dynamic." + type.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);

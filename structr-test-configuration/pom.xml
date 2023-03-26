@@ -15,37 +15,6 @@
 
 	<profiles>
 		<profile>
-			<id>test-in-memory-database</id>
-			<activation>
-				<property>
-					<name>database</name>
-					<value>in-memory</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.0.0</version>
-						<configuration>
-							<includes>
-								<include>**/*Test.java</include>
-							</includes>
-							<argLine>-Xms4g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
-							<reuseForks>false</reuseForks>
-							<forkCount>${test.forkCount}</forkCount>
-							<skipTests>${skipTests}</skipTests>
-							<rerunFailingTestsCount>2</rerunFailingTestsCount>
-							<systemPropertyVariables>
-								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
-							</systemPropertyVariables>
-						</configuration>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-		<profile>
 			<id>test-neo4j</id>
 			<activation>
 				<activeByDefault>true</activeByDefault>
@@ -142,6 +111,37 @@
 								</configuration>
 							</execution>
 						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+		<profile>
+			<id>test-in-memory-database</id>
+			<activation>
+				<property>
+					<name>database</name>
+					<value>in-memory</value>
+				</property>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-surefire-plugin</artifactId>
+						<version>3.0.0</version>
+						<configuration>
+							<includes>
+								<include>**/*Test.java</include>
+							</includes>
+							<argLine>-Xms4g -Xmx4g -Duser.timezone=UTC -Djava.system.class.loader=org.structr.StructrClassLoader</argLine>
+							<reuseForks>false</reuseForks>
+							<forkCount>${test.forkCount}</forkCount>
+							<skipTests>${skipTests}</skipTests>
+							<rerunFailingTestsCount>2</rerunFailingTestsCount>
+							<systemPropertyVariables>
+								<testDatabaseDriver>org.structr.memory.MemoryDatabaseService</testDatabaseDriver>
+							</systemPropertyVariables>
+						</configuration>
 					</plugin>
 				</plugins>
 			</build>

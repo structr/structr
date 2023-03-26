@@ -18,6 +18,8 @@
  */
 package org.structr.bolt.factory;
 
+import org.structr.api.DatabaseFeature;
+import org.structr.api.DatabaseService;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
@@ -55,7 +57,16 @@ public class SpatialQueryFactory extends AbstractQueryFactory<AdvancedCypherQuer
 				return false;
 			}
 
-			buf.append("distance(point({latitude:");
+			final DatabaseService db = this.index.getDatabaseService();
+			if (db.supportsFeature(DatabaseFeature.NewDistanceFunction)) {
+
+				buf.append("point.distance(point({latitude:");
+
+			} else {
+
+				buf.append("distance(point({latitude:");
+			}
+
 			buf.append(coords[0]);
 			buf.append(",longitude:");
 			buf.append(coords[1]);

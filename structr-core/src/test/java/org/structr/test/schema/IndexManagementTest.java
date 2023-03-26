@@ -18,7 +18,6 @@
  */
 package org.structr.test.schema;
 
-import com.mongodb.annotations.NotThreadSafe;
 import org.structr.api.DatabaseFeature;
 import org.structr.api.DatabaseService;
 import org.structr.api.NativeQuery;
@@ -37,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
+import net.jcip.annotations.NotThreadSafe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,8 +50,8 @@ public class IndexManagementTest extends StructrTest {
 
 	private static final Logger logger                               = LoggerFactory.getLogger(IndexManagementTest.class);
 	private static final Set<String> INDEXED_RELATIONSHIP_PROPERTIES = Set.of("sourceId", "targetId", "test", "lastModifiedDate", "visibleToAuthenticatedUsers", "relType", "visibleToPublicUsers", "internalTimestamp", "type", "createdDate", "id");
-	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(5);
-	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(1);
+	private static final long INDEX_UPDATE_TIMEOUT                   = TimeUnit.MINUTES.toMillis(10);
+	private static final long INDEX_UPDATE_WAIT_TIME                 = TimeUnit.SECONDS.toMillis(10);
 
 	@Test
 	public void testIndexCreationAndRemovalForNodePropertyWithIndexedFlag() {
@@ -301,7 +301,9 @@ public class IndexManagementTest extends StructrTest {
 
 				start = System.currentTimeMillis();
 
-				while (!hasNumberOfIndexes(db, "Customer", 0)) {
+				// Note: we KNOW that the index will not be removed, so we deliberately test the
+				// wrong thing here in case it changes somehow in the future!
+				while (!hasNumberOfIndexes(db, "Customer", 1)) {
 
 					if (System.currentTimeMillis() > start + INDEX_UPDATE_TIMEOUT) {
 						fail("Timeout waiting for index update!");

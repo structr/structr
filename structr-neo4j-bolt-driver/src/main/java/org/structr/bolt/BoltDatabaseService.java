@@ -724,6 +724,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			case SpatialQueries:
 				return true;
 
+			case NewDistanceFunction:
+				return neo4jMajorVersion >= 5;
+
 			case AuthenticationRequired:
 				return true;
 
