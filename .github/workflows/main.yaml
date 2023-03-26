@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         neo4jVersion: [3.5, 4.4, 5]
-        modules: [structr-base, structr-ui, structr-core, structr-rest, structr-db-driver-api, structr-memgraph-driver, structr-memory-driver, structr-modules, structr-neo4j-bolt-driver]
+        module: [structr-base, structr-ui, structr-core, structr-rest, structr-db-driver-api, structr-memgraph-driver, structr-memory-driver, structr-modules, structr-neo4j-bolt-driver]
         include:
           - module: structr-base
             variableName: BASE
