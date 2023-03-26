@@ -42,7 +42,7 @@ jobs:
           -e NEO4J_ACCEPT_LICENSE_AGREEMENT=yes 
           -e NEO4J_dbms_memory_heap_maxSize=4G 
           -e NEO4J_dbms_memory_pagecache_size=4G neo4j:${{ matrix.neo4jVersion }} && 
-          echo "ASSIGNED_PORT_${{ matrix.variableName }}_neo4j_${{ matrix.neo4jVersion }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-neo4j_${{ matrix.neo4jVersion }}-test-${{ github.run_id }})" >> $GITHUB_ENV
+          echo "ASSIGNED_PORT_${{ matrix.variableName }}_${{ job.container.id }}_${{ github.run_id }}=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "7687/tcp") 0).HostPort}}' ${{ matrix.module }}-neo4j_${{ matrix.neo4jVersion }}-test-${{ github.run_id }})" >> $GITHUB_ENV
 
       - name: Install GraalVM
         uses: graalvm/setup-graalvm@v1
@@ -56,7 +56,7 @@ jobs:
         run:  >-
           mvn clean install -DskipTests -DskipDist -DskipDocker -DskipDeb -DskipDockerTestDB && 
           cd ${{ matrix.module }} && 
-          mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${"ASSIGNED_PORT_${{ matrix.variableName }}_neo4j_${{ matrix.neo4jVersion }}_${{ github.run_id }}"}"
+          mvn install -DskipDockerTestDB -Denv.testDatabaseConnection="bolt://localhost:${"ASSIGNED_PORT_${{ matrix.variableName }}_${{ job.container.id }}_${{ github.run_id }}"}"
 
       - name: Stop Test Database
         if: always()
