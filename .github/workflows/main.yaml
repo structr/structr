@@ -66,7 +66,7 @@ jobs:
 
       - name: Stop Test Database
         if: always()
-        run:  docker stop ${{ matrix.module }}-neo4j_${{ matrix.neo4jVersion }}-test-${{ github.run_id }}
+        run:  docker stop ${{ matrix.module }}-${{ matrix.neo4jVersionVariable }}-test-${{ github.run_id }}
 
   build-and-deploy:
     runs-on: self-hosted
