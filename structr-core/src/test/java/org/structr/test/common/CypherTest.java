@@ -688,8 +688,6 @@ public class CypherTest extends StructrTest {
 
 		if (Services.getInstance().getDatabaseService().supportsFeature(DatabaseFeature.QueryLanguage, "application/x-cypher-query")) {
 
-			cleanDatabaseAndSchema();
-
 			try (final Tx tx = app.tx()) {
 
 				final JsonSchema schema      = StructrSchema.createFromDatabase(app);
@@ -757,7 +755,7 @@ public class CypherTest extends StructrTest {
 			tests.put("MATCH (true) RETURN { a: 1, b: 2, c: 3 } LIMIT 1",                                                                             "[{\"a\":1,\"b\":2,\"c\":3}]");
 
 			try (final Tx tx = app.tx()) {
-				
+
 				for (final Entry<String, String> test : tests.entrySet()) {
 
 					final String query = test.getKey();

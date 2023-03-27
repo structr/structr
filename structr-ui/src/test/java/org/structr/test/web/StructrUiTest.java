@@ -96,13 +96,9 @@ public abstract class StructrUiTest {
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized
-		do {
-			try {
-				Thread.sleep(100);
-			} catch (Throwable t) {
-			}
-
-		} while (!services.isInitialized());
+		while (!services.isInitialized()) {
+			try { Thread.sleep(100); } catch (Throwable t) {}
+		}
 
 		securityContext = SecurityContext.getSuperUserInstance();
 
@@ -132,7 +128,7 @@ public abstract class StructrUiTest {
 		System.out.println("######################################################################################");
 	}
 
-	@BeforeMethod()
+	@BeforeMethod
 	public void cleanDatabase() {
 
 		if (!first) {
@@ -165,6 +161,8 @@ public abstract class StructrUiTest {
 				logger.error("Exception while trying to create built-in schema for tenant identifier {}: {}", randomTenantId, t.getMessage());
 
 			}
+
+			System.out.println("###### cleaning database done");
 		}
 
 		first = false;
@@ -657,7 +655,7 @@ public abstract class StructrUiTest {
 	protected void setupDatabaseConnection(String testDatabaseConnection) {
 
 		// use database driver from system property, default to MemoryDatabaseService
-		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_DATABASE_DRIVER));
+		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
 		Settings.ConnectionPassword.setValue("admin");
 		if (StringUtils.isBlank(testDatabaseConnection)) {

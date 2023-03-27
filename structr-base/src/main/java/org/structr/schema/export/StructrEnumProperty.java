@@ -34,12 +34,19 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.schema.JsonProperty;
+import org.structr.api.schema.JsonType;
+import org.structr.schema.SchemaService;
 
 /**
  *
  *
  */
 public class StructrEnumProperty extends StructrStringProperty implements JsonEnumProperty {
+
+	private static final Logger logger = LoggerFactory.getLogger(StructrEnumProperty.class);
 
 	protected Set<String> enums = new LinkedHashSet<>();
 	protected String fqcn       = null;
@@ -96,19 +103,12 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		super.deserialize(source);
 
-		final Object enumValues = source.get(JsonSchema.KEY_ENUM);
-		final Object typeValue  = source.get(JsonSchema.KEY_FQCN);
+		final List<String> enumValues = getListOrNull(source.get(JsonSchema.KEY_ENUM));
+		final Object typeValue        = source.get(JsonSchema.KEY_FQCN);
 
-		if (enumValues != null) {
+		if (enumValues != null && !enumValues.isEmpty()) {
 
-			if (enumValues instanceof List) {
-
-				enums.addAll((List)enumValues);
-
-			} else {
-
-				throw new IllegalStateException("Invalid enum values for property " + name + ", expected array.");
-			}
+			enums.addAll((List)enumValues);
 
 		} else if (typeValue != null && typeValue instanceof String) {
 
@@ -116,7 +116,35 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 
 		} else {
 
-			throw new IllegalStateException("Missing enum values for property " + name);
+			logger.warn("Missing enum values of {}.{}, trying to find information in the local schema.", this.parent.getName(), this.name);
+
+			final String typeName = this.parent.getName();
+			if (typeName != null) {
+
+				final JsonSchema builtInSchema = SchemaService.getDynamicSchema();
+				final JsonType type            = builtInSchema.getType(typeName);
+
+				if (type != null) {
+
+					final Set<JsonProperty> properties = type.getProperties();
+					for (final JsonProperty prop : properties) {
+
+						if (this.name.equals(prop.getName())) {
+
+							if (prop instanceof StructrEnumProperty) {
+
+								StructrEnumProperty e = (StructrEnumProperty)prop;
+
+								this.fqcn = e.fqcn;
+							}
+						}
+					}
+				}
+			}
+
+			if (this.fqcn == null) {
+				throw new IllegalStateException("Missing enum values for property " + name);
+			}
 		}
 	}
 
@@ -126,6 +154,8 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 		super.deserialize(schemaNodes, schemaProperty);
 
 		setEnums(schemaProperty.getEnumDefinitions().toArray(new String[0]));
+
+		this.fqcn = schemaProperty.getFqcn();
 	}
 
 	@Override
@@ -150,5 +180,16 @@ public class StructrEnumProperty extends StructrStringProperty implements JsonEn
 	@Override
 	protected Type getTypeToSerialize() {
 		return Type.Enum;
+	}
+
+	// ----- private methods -----
+	private List<String> getListOrNull(final Object o) {
+
+		if (o instanceof List) {
+
+			return (List<String>)o;
+		}
+
+		return null;
 	}
 }

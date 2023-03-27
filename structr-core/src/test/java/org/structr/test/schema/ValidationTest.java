@@ -57,8 +57,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testUUIDValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			// test 31 characters
@@ -238,8 +236,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testSchemaNodeNameValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class, "lowercase");
@@ -340,8 +336,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testGlobalUniqueness() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class, new NodeAttribute<>(AbstractNode.name, "Test"));
@@ -392,8 +386,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testConcurrentValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final int count = 100;
 
@@ -479,8 +471,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testConcurrentValidationWithInheritance() {
-
-		this.cleanDatabaseAndSchema();
 
 		final int count = 100;
 
@@ -580,8 +570,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testConcurrentValidationOnDynamicProperty() {
 
-		this.cleanDatabaseAndSchema();
-
 		final int count = 100;
 
 		try (final Tx tx = app.tx()) {
@@ -665,8 +653,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testNamePropertyValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		// The goal of this test is to ensure that validation
 		// only includes actual derived classes.
 
@@ -700,8 +686,6 @@ public class ValidationTest extends StructrTest {
 	// ----- string property validation tests -----
 	@Test
 	public void testEmptyStringPropertyValidationWithEmptyStrings() {
-
-		this.cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -759,8 +743,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testEmptyStringPropertyValidationWithNulls() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
@@ -806,8 +788,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testStringPropertyUniqueness() {
-
-		this.cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -868,8 +848,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testInheritedStringPropertyUniqueness() {
-
-		this.cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -935,8 +913,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testStringPropertyUniquenessAgain() {
-
-		this.cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1004,8 +980,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testStringPropertyNotNull() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
@@ -1051,8 +1025,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testStringPropertyRegexMatch() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName  = "regex";
 		final Class testType  = createTypeWithProperty("Test", keyName, "String([a-zA-Z0-9]+)");
 		final PropertyKey key = StructrApp.key(testType, keyName);
@@ -1084,8 +1056,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testArrayPropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName  = "stringArray";
 		final Class testType  = createTypeWithProperty("Test", keyName, "+String[]");
 		final PropertyKey key = StructrApp.key(testType, keyName);
@@ -1113,8 +1083,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testArrayPropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "stringArray";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "String[]!");
@@ -1172,8 +1140,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testBooleanPropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notNull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Boolean");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1203,8 +1169,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testBooleanPropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Boolean!");
@@ -1247,8 +1211,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDatePropertyUniquenessValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Date!");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1289,8 +1251,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDatePropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Date");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1323,8 +1283,6 @@ public class ValidationTest extends StructrTest {
 	// ----- double property validation tests -----
 	@Test
 	public void testDoublePropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Double!");
@@ -1365,8 +1323,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Double");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1399,8 +1355,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation1() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([1,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1422,8 +1376,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testDoublePropertyRangeValidation2() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1447,8 +1399,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation3() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double([0.0,0.5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1470,8 +1420,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testDoublePropertyRangeValidation4() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1495,8 +1443,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testDoublePropertyRangeValidation5() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Double(]0.0,0.5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1518,8 +1464,6 @@ public class ValidationTest extends StructrTest {
 	// ----- enum property validation tests -----
 	@Test
 	public void testEnumPropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Enum(one, two, three)!");
@@ -1562,8 +1506,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testEnumPropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Enum(one, two, three)");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1593,8 +1535,6 @@ public class ValidationTest extends StructrTest {
 	// ----- int property validation tests -----
 	@Test
 	public void testIntPropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Integer!");
@@ -1635,8 +1575,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Integer");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1669,8 +1607,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation1() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([1,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1688,8 +1624,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testIntPropertyRangeValidation3() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer([0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1709,8 +1643,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testIntPropertyRangeValidation4() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1726,8 +1658,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testIntPropertyRangeValidation5() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Integer(]0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1745,8 +1675,6 @@ public class ValidationTest extends StructrTest {
 	// ----- long property validation tests -----
 	@Test
 	public void testLongPropertyUniquenessValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		final String keyName                = "unique";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "Long!");
@@ -1787,8 +1715,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyNotNullValidation() {
 
-		this.cleanDatabaseAndSchema();
-
 		final String keyName                = "notnull";
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", keyName, "+Long");
 		final PropertyKey key               = StructrApp.key(testType, keyName);
@@ -1821,8 +1747,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation1() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([1,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1840,8 +1764,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testLongPropertyRangeValidation3() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long([0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1861,8 +1783,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testLongPropertyRangeValidation4() {
 
-		this.cleanDatabaseAndSchema();
-
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5])");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
 
@@ -1878,8 +1798,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testLongPropertyRangeValidation5() {
-
-		this.cleanDatabaseAndSchema();
 
 		final Class<NodeInterface> testType = createTypeWithProperty("Test", "range1", "+Long(]0,5[)");
 		final PropertyKey range1            = StructrApp.key(testType, "range1");
@@ -1897,8 +1815,6 @@ public class ValidationTest extends StructrTest {
 	// schema relationship node validation
 	@Test
 	public void testSchemaRelationshipNodeValidation() {
-
-		this.cleanDatabaseAndSchema();
 
 		try (final Tx tx = app.tx()) {
 
@@ -2021,8 +1937,6 @@ public class ValidationTest extends StructrTest {
 	@Test
 	public void testCompoundUniqueness() {
 
-		this.cleanDatabaseAndSchema();
-
 		try (final Tx tx = app.tx()) {
 
 			app.create(SchemaNode.class,
@@ -2131,8 +2045,6 @@ public class ValidationTest extends StructrTest {
 
 	@Test
 	public void testSchemaGrantAndGroupUniqueness() {
-
-		this.cleanDatabaseAndSchema();
 
 		// test that two identical SchemaGrant objects (identical SchemaNode and Principal) throw an error
 		try (final Tx tx = app.tx()) {

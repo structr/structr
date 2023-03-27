@@ -31,6 +31,7 @@ import org.structr.core.property.PropertyMap;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -181,6 +182,11 @@ public class StructrNodeTypeDefinition extends StructrTypeDefinition<SchemaNode>
 		}
 
 		return map;
+	}
+
+	@Override
+	public boolean isBlacklisted(final Set<String> blacklist) {
+		return blacklist.contains(this.name);
 	}
 
 	// ----- package methods -----

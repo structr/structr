@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentSkipListSet;
 import java.util.stream.Collectors;
+import org.structr.schema.SchemaService;
 
 /**
  *
@@ -114,12 +115,19 @@ public class StructrTypeDefinitions implements StructrDefinition {
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
 		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
+		final Set<String> blacklist               = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
 		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
+
+			if (type.isBlacklisted(blacklist)) {
+
+				schemaNodes.remove(type.getName());
+				continue;
+			}
 
 			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, app);
 			if (schemaNode != null) {
@@ -135,6 +143,11 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		// resolve schema relationships
 		for (final StructrRelationshipTypeDefinition rel : relationships) {
+
+			if (rel.isBlacklisted(blacklist)) {
+				continue;
+			}
+
 			rel.resolveEndpointTypesForDatabaseSchemaCreation(schemaNodes, app);
 		}
 	}
@@ -195,10 +208,12 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 		// now generate the response schemas for each type schema reference
 		// Single and Multiple ResponseSchemas only differ in the 'result' key. It's either object or array.
-		Iterator<Entry<String, Object>> iterator = schemas.entrySet().iterator();
-		Map<String, Object> additionalSchemas = new HashMap<>();
+		final Iterator<Entry<String, Object>> iterator = schemas.entrySet().iterator();
+		final Map<String, Object> additionalSchemas    = new HashMap<>();
+
 		while (iterator.hasNext()) {
-			Entry<String, Object> entry = iterator.next();
+
+			final Entry<String, Object> entry = iterator.next();
 
 			additionalSchemas.put(entry.getKey() + "SingleResponseSchema", new OpenAPIAllOf(
 				new OpenAPISchemaReference("GetBaseResponse"),
@@ -214,26 +229,28 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		StructrTypeDefinitions.openApiSerializedSchemaTypes.clear();
 		schemas.putAll(additionalSchemas);
 
-
 		return schemas;
 	}
 
 	public Map<String, Object> serializeOpenAPIResponses(final Map<String, Object> responses, final String tag) {
-		final Map<String, Object> map = new TreeMap<>();
+
+		final ConfigurationProvider configuration = StructrApp.getConfiguration();
+		final Map<String, Object> map             = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
 
 			if (type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				ConfigurationProvider configuration = StructrApp.getConfiguration();
 				Class typeClass = configuration.getNodeEntityClass(type.name);
-
 				if (typeClass == null) {
-					Map<String, Class> interfaces = configuration.getInterfaces();
-					typeClass = interfaces.get(type.name);
-				};
+
+					final Map<String, Class> interfaces = configuration.getInterfaces();
+
+					typeClass = interfaces.get("org.structr.dynamic." + type.name);
+				}
 
 				Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
+
 				viewNames = viewNames.stream().filter(viewName ->  StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName)).collect(Collectors.toSet());
 
 				for (String viewName : viewNames) {
@@ -282,13 +299,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	private Set<String> getViewNamesOfType (StructrTypeDefinition type, final String view) {
 
-		ConfigurationProvider configuration = StructrApp.getConfiguration();
+		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		Class typeClass = configuration.getNodeEntityClass(type.name);
 
 		if (typeClass == null) {
 			Map<String, Class> interfaces = configuration.getInterfaces();
-			typeClass = interfaces.get(type.name);
-		};
+			typeClass = interfaces.get("org.structr.dynamic." + type.name);
+		}
 
 		Set<String> viewNames = configuration.getPropertyViewsForType(typeClass);
 		viewNames = viewNames.stream().filter(viewName -> {
@@ -297,21 +314,20 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 			return StringUtils.equals(viewName, "all") || !StructrTypeDefinition.VIEW_BLACKLIST.contains(viewName);
 		}).collect(Collectors.toSet());
+
 		return viewNames;
 	}
 
 	private Map<String, Object> serializeOpenAPIForTypes (Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
-		final Map<String, Object> map = new TreeMap<>();
+		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
+		final Map<String, Object> map   = new TreeMap<>();
 
 		for (final StructrTypeDefinition<?> type : typeDefinitions) {
-			final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
 
 			if (StringUtils.isNotEmpty(view) || typeWhiteList.contains(type.getName()) || type.isSelected(tag) && type.includeInOpenAPI()) {
 
-				Set<String> viewNames = this.getViewNamesOfType(type, view);
-
-				for (String viewName : viewNames) {
+				for (final String viewName : this.getViewNamesOfType(type, view)) {
 
 					final List<Map<String, Object>> allOf = new LinkedList<>();
 					final Map<String, Object> typeMap = new TreeMap<>();
@@ -503,10 +519,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			}
 		}
 
-		// nothing to do for this set, these types can simply be created without problems
-		//System.out.println(typesOnlyInStructrSchema);
-
-
 		// find detailed differences in the intersection of both schemas
 		for (final String name : bothTypes) {
 
@@ -516,8 +528,6 @@ public class StructrTypeDefinitions implements StructrDefinition {
 			// compare types
 			localType.diff(otherType);
 		}
-
-		// the same must be done for global methods and relationships!
 	}
 
 	private Map<String, StructrTypeDefinition> getMappedTypes() {

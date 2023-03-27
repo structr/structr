@@ -1049,8 +1049,6 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testBaseUrlInOnSave() {
 
-		cleanDatabaseAndSchema();
-
 		/*
 		This test verifies that access to the baseUrl keyword in a
 		scripting context does not produce a NullPointerException.
@@ -1100,8 +1098,6 @@ public class SystemTest extends StructrTest {
 
 	@Test
 	public void testCallPrivileged() {
-
-		cleanDatabaseAndSchema();
 
 		Principal tester = null;
 

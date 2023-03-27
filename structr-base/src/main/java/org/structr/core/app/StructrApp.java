@@ -63,10 +63,12 @@ public class StructrApp implements App {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrApp.class);
 
+	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
+	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
+	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
+	private static final Object globalConfigLock                = new Object();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
-	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Object globalConfigLock                = new Object();
 	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
 	private RelationshipFactory relFactory                      = null;
 	private NodeFactory nodeFactory                             = null;
@@ -495,12 +497,10 @@ public class StructrApp implements App {
 	}
 
 	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
-		initializeSchemaIds();
 		return typeIdMap.get(type);
 	}
 
 	public static Class resolveSchemaId(final URI uri) {
-		initializeSchemaIds();
 		return schemaIdMap.get(uri);
 	}
 
@@ -538,8 +538,8 @@ public class StructrApp implements App {
 
 			} else {
 
-				// next try: interface
-				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				// next try: interface created from SchemaNode (org.structr.dynamic)
+				final Class iface = config.getInterfaces().get("org.structr.dynamic." + type.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
@@ -601,10 +601,13 @@ public class StructrApp implements App {
 		return appContextStore;
 	}
 
-	// ----- private static methods -----
-	private static void initializeSchemaIds() {
+	public static void initializeSchemaIds() {
 
 		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
+
+		// refresh schema IDs
+		schemaIdMap.clear();
+		typeIdMap.clear();
 
 		// add Structr interfaces here
 		for (final Class type : interfaces.values()) {
@@ -617,16 +620,16 @@ public class StructrApp implements App {
 		}
 	}
 
+	// ----- private static methods -----
 	private static void registerType(final Class type) {
 
 		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
 
+		logger.debug("Registering type {} with {}", type, id);
+
 		schemaIdMap.put(id, type);
 		typeIdMap.put(type, id);
 	}
-
-	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();
-	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
 
 	// ---------- private methods -----
 	private synchronized Identity getNodeFromCache(final String uuid) {

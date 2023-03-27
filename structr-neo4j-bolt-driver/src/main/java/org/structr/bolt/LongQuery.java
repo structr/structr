@@ -21,14 +21,14 @@ package org.structr.bolt;
 /**
  *
  */
-public class LongQuery extends AbstractNativeQuery<Boolean> {
+public class LongQuery extends AbstractNativeQuery<Long> {
 
 	public LongQuery(final String query) {
 		super(query);
 	}
 
 	@Override
-	Boolean execute(final SessionTransaction tx) {
-		return tx.getBoolean(query, parameters);
+	Long execute(final SessionTransaction tx) {
+		return tx.getLong(query, parameters);
 	}
 }

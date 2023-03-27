@@ -115,6 +115,7 @@ public class MaintenanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				tx.success();
 			}
 
 			// clean-up after test
@@ -148,6 +149,7 @@ public class MaintenanceTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 				assertEquals(100, app.nodeQuery(TestOne.class).getAsList().size());
+				tx.success();
 			}
 
 			// clean-up after test

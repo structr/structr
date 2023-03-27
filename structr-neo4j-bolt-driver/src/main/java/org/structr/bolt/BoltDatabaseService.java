@@ -724,6 +724,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			case SpatialQueries:
 				return true;
 
+			case NewDistanceFunction:
+				return neo4jMajorVersion >= 5;
+
 			case AuthenticationRequired:
 				return true;
 
@@ -734,6 +737,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
 				return neo4jMajorVersion >= 4;
+
+			case ShowIndexesQuery:
+				return neo4jMajorVersion >= 5;
 		}
 
 		return false;
