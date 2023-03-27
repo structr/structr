@@ -700,16 +700,16 @@ public class IndexManagementTest extends StructrTest {
 
 		public String getEntityType() {
 
-			if (this.types.isEmpty()) {
+			if (types == null ||  types.isEmpty()) {
 				return null;
 			}
 
-			return this.types.get(0);
+			return types.get(0);
 		}
 
 		public String getPropertyName() {
 
-			if (this.props.isEmpty()) {
+			if (props == null || props.isEmpty()) {
 				return null;
 			}
 
@@ -736,7 +736,7 @@ public class IndexManagementTest extends StructrTest {
 		public Neo3IndexInfo(final Map<String, Object> data) {
 
 			this.type  = (String)data.get("type");
-			this.types = (List<String>)data.get("labelsOrTypes");
+			this.types = (List<String>)data.get("tokenNames");
 			this.props = (List<String>)data.get("properties");
 
 			if ("node_label_property".equals(this.type)) {
@@ -745,27 +745,3 @@ public class IndexManagementTest extends StructrTest {
 		}
 	}
 }
-
-/*
-
-							assertEquals("Created index has wrong type",     "NODE",     map.get("entityType"));
-							assertEquals("Created index has wrong label",    "Customer", ((List)map.get("labelsOrTypes")).get(0));
-							assertEquals("Created index has wrong property", "test",     ((List)map.get("properties")).get(0));
-						}
-
-					} else {
-
-						final String query = "CALL db.indexes() YIELD description, tokenNames, properties, state, type WHERE tokenNames = [\"Customer\"] RETURN tokenNames, properties, type ORDER BY description";
-						final NativeQuery<Iterable> nativeQuery    = db.query(query, Iterable.class);
-						final Iterable<Map<String, Object>> result = db.execute(nativeQuery);
-						final List<Map<String, Object>> resultList = Iterables.toList(result);
-
-						assertEquals("Index was not created", 1, resultList.size());
-
-						for (final Map<String, Object> map : resultList) {
-
-							assertEquals("Created index has wrong type",     "node_label_property", map.get("type"));
-							assertEquals("Created index has wrong label",    "Customer",            ((List)map.get("tokenNames")).get(0));
-							assertEquals("Created index has wrong property", "test",                ((List)map.get("properties")).get(0));
-						}
-*/
