@@ -28,7 +28,7 @@ import org.structr.core.entity.GenericNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.util.FileUtils;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -60,7 +60,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			final java.io.File fileOnDisk = path.toFile();
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
-			final Long fileNodeSize       = FileUtils.getSize(fileNode.getFileOnDisk());
+			final Long fileNodeSize       = StorageProviderFactory.getStreamProvider(fileNode).size();
 			final Long fileNodeDate       = fileNode.getProperty(StructrApp.key(File.class, "fileModificationDate"));
 
 			// update metadata only when size or modification time has changed

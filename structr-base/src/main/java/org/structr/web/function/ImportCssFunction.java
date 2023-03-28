@@ -25,8 +25,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
 import org.structr.web.entity.css.CssDeclaration;
 import org.structr.web.entity.css.CssRule;
@@ -36,7 +36,7 @@ import org.w3c.dom.css.CSSRule;
 import org.w3c.dom.css.CSSRuleList;
 import org.w3c.dom.css.CSSStyleSheet;
 
-import java.io.FileReader;
+import java.io.InputStreamReader;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -64,11 +64,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			final File file = (File) sources[0];
 
-			if (FileUtils.getSize(file.getFileOnDisk()) == 0) {
+			if (StorageProviderFactory.getStreamProvider(file).size() == 0) {
 				return "";
 			}
 
-			try (final FileReader reader = new FileReader(file.getFileOnDisk())) {
+			try (final InputStreamReader reader = new InputStreamReader(StorageProviderFactory.getStreamProvider(file).getInputStream())) {
 
 				logger.info("Parsing CSS from {}..", file.getName());
 

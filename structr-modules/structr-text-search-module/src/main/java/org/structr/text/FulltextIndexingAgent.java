@@ -43,7 +43,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.BufferedInputStream;
@@ -314,18 +314,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 		if (indexable instanceof File) {
 
 			final File file     = (File)indexable;
-			final Long fileSize = FileUtils.getSize(file.getFileOnDisk());
+			final Long fileSize = StorageProviderFactory.getStreamProvider(file).size();
 
 			if (fileSize != null) {
 
 				return fileSize;
 			}
 
-			final java.io.File fileOnDisk = file.getFileOnDisk(false);
-			if (fileOnDisk != null) {
-
-				return fileOnDisk.length();
-			}
 		}
 
 		return -1L;

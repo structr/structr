@@ -55,6 +55,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -63,7 +64,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
-import org.structr.util.FileUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
@@ -1621,7 +1621,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (StringUtils.isNotEmpty(range)) {
 
-						final long len = FileUtils.getSize(file.getFileOnDisk());
+						final long len = StorageProviderFactory.getStreamProvider(file).size();
 						long start     = 0;
 						long end       = len - 1;
 
@@ -1654,7 +1654,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					} else {
 
 						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(FileUtils.getSize(file.getFileOnDisk())));
+							response.addHeader("Content-Length", Long.toString(StorageProviderFactory.getStreamProvider(file).size()));
 						}
 
 						if (sendContent) {

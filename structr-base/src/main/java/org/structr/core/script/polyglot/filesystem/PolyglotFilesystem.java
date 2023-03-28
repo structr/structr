@@ -26,6 +26,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
@@ -56,24 +57,6 @@ public class PolyglotFilesystem implements FileSystem {
 	@Override
 	public Path parsePath(String path) {
 
-		final App app = StructrApp.getInstance();
-		try (final Tx tx = app.tx()) {
-
-			PropertyKey pathKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(AbstractFile.class, "path");
-			File file = (File)app.nodeQuery(File.class).and(pathKey, path).getFirst();
-
-			if (file != null) {
-
-				tx.success();
-				return file.getFileOnDisk().toPath();
-			}
-
-			tx.success();
-		} catch (FrameworkException ex) {
-
-			logger.error("Unexpected exception while trying to parse virtual filesystem path", ex);
-		}
-
 		if (path != null) {
 
 			return Path.of(path);
@@ -97,6 +80,24 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+		final App app = StructrApp.getInstance();
+		try (final Tx tx = app.tx()) {
+
+			PropertyKey pathKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(AbstractFile.class, "path");
+			File file = (File)app.nodeQuery(File.class).and(pathKey, path.toString()).getFirst();
+
+			if (file != null) {
+
+				tx.success();
+				return StorageProviderFactory.getStreamProvider(file).getSeekableByteChannel();
+			}
+
+			tx.success();
+		} catch (FrameworkException ex) {
+
+			logger.error("Unexpected exception while trying to parse virtual filesystem path", ex);
+		}
+
 		return Files.newByteChannel(path, options, attrs);
 	}
 

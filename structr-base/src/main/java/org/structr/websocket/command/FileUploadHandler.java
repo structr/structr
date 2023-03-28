@@ -23,10 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.util.FileUtils;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
@@ -43,7 +42,7 @@ public class FileUploadHandler {
 
 	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size            = FileUtils.getSize(file.getFileOnDisk());
+		this.size            = StorageProviderFactory.getStreamProvider(file).size();
 		this.file            = file;
 		this.isCreation      = isCreation;
 		this.securityContext = securityContext;
@@ -138,9 +137,11 @@ public class FileUploadHandler {
 	// ----- private methods -----
 	private FileChannel getChannel(final boolean append) throws IOException {
 
+		throw new IOException("getChannel needs to be implemented for new storage provider.");
+		/*
 		if (this.privateFileChannel == null) {
 
-			java.io.File fileOnDisk = file.getFileOnDisk();
+			java.io.File fileOnDisk = null;
 
 			fileOnDisk.getParentFile().mkdirs();
 
@@ -148,5 +149,6 @@ public class FileUploadHandler {
 		}
 
 		return this.privateFileChannel;
+		*/
 	}
 }

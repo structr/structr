@@ -45,6 +45,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
@@ -466,7 +467,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		try {
 
-			final PDDocument pdfDocument  = PDDocument.load(originalFile.getFileOnDisk());
+			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStreamProvider(originalFile).getInputStream());
 			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
 			// Create thumbnail of page
