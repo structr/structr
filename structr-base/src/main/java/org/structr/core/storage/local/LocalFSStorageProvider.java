@@ -28,6 +28,11 @@ import java.io.*;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.util.HashSet;
+import java.util.Set;
+
+import static java.nio.file.StandardOpenOption.*;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
@@ -40,6 +45,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public InputStream getInputStream() {
 		try {
 
+			ensureFileExists();
 			return new FileInputStream(LocalFSHelper.getFileOnDisk(getFile()));
 		} catch (FileNotFoundException ex) {
 
@@ -52,12 +58,14 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public OutputStream getOutputStream() {
+
 		return this.getOutputStream(false);
 	}
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
 		try {
 
+			ensureFileExists();
 			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getFile()), append);
 		} catch (FileNotFoundException ex) {
 
@@ -79,9 +87,19 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public SeekableByteChannel getSeekableByteChannel() {
+		return getSeekableByteChannel(false);
+	}
+	@Override
+	public SeekableByteChannel getSeekableByteChannel(final boolean append) {
 		try {
 
-			return FileChannel.open(LocalFSHelper.getFileOnDisk(getFile()).toPath());
+			ensureFileExists();
+			Set<OpenOption> options = Set.of(WRITE);
+			if (append) {
+				options.add(APPEND);
+			}
+
+			return FileChannel.open(LocalFSHelper.getFileOnDisk(getFile()).toPath(), options);
 		} catch (IOException ex) {
 
 			logger.error("Could not open file", ex);
@@ -104,7 +122,13 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public long size() {
 		try {
 
-			return Files.size(LocalFSHelper.getFileOnDisk(getFile()).toPath());
+			ensureFileExists();
+			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getFile());
+
+			if (fileOnDisk.exists()) {
+
+				return Files.size(fileOnDisk.toPath());
+			}
 		} catch (IOException ex) {
 
 			logger.error("Could not read size of file.", ex);
@@ -112,4 +136,19 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		return -1;
 	}
+
+	private void ensureFileExists() {
+		try {
+			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getFile());
+
+			if (!fileOnDisk.exists()) {
+
+				fileOnDisk.createNewFile();
+			}
+		} catch (IOException ex) {
+
+			logger.error("Could not create physical file for file {}. {}", getFile(), ex);
+		}
+	}
+
 }
