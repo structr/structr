@@ -44,6 +44,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;
@@ -51,6 +52,7 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.*;
 import org.structr.web.entity.*;
+import org.structr.web.entity.File;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.html.Body;
 import org.structr.web.entity.html.Head;
@@ -59,9 +61,7 @@ import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -1423,11 +1423,11 @@ public class Importer {
 					fileNode = createFileNode(fullPath, contentType, size, checksum);
 				}
 
-				final java.io.File imageFile = fileNode.getFileOnDisk(false);
-				final Path imagePath         = imageFile.toPath();
+				final OutputStream os = StorageProviderFactory.getStreamProvider(fileNode).getOutputStream();
+				final FileInputStream is = new FileInputStream(tmpFile);
 
-				// rename / move file to final location
-				Files.move(tmpFile.toPath(), imagePath);
+				// Copy contents of tmpFile to file in structr fs
+				IOUtils.copy(is, os);
 
 				if (contentType.equals("text/css")) {
 

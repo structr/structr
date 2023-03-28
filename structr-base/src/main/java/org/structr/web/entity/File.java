@@ -55,7 +55,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.web.common.ClosingFileOutputStream;
+import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.importer.CSVFileImportJob;
@@ -163,11 +163,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream1.setSource("return " + File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
 		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
 		getOutputStream1.addParameter("append", "boolean");
-		getOutputStream1.setReturnType(FileOutputStream.class.getName());
+		getOutputStream1.setReturnType(OutputStream.class.getName());
 
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
-		getOutputStream2.setReturnType(FileOutputStream.class.getName());
+		getOutputStream2.setReturnType(OutputStream.class.getName());
 
 		type.addMethod("doCSVImport")
 			.setReturnType(java.lang.Long.class.getName())
@@ -231,7 +231,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
-	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
+	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
 	boolean isTemplate();
 
@@ -452,11 +452,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile) {
+	static OutputStream getOutputStream(final File thisFile) {
 		return thisFile.getOutputStream(true, false);
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
+	static OutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		if (thisFile.isTemplate()) {
 
@@ -469,7 +469,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		try {
 
 			// Return file output stream and save checksum and size after closing
-			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
+			return new ClosingOutputStream(thisFile, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
 

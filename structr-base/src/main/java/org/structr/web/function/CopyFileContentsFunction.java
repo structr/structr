@@ -19,11 +19,13 @@
 package org.structr.web.function;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -62,33 +64,18 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 
 				try {
 
-					java.io.File fileToCopy = nodeToCopy.getFileOnDisk();
-					if (!fileToCopy.exists()) {
-
-						logger.warn("Error: Given source file does not exist. Parameters: {}", getParametersAsString(sources));
-						return "Error: Given source file does not exist.";
-					}
-
-					java.io.File fileToBeReplaced = nodeToBeReplaced.getFileOnDisk();
-
-					if (!fileToBeReplaced.exists()) {
-
-						// Call afterCreation method to ensure that the file is properly initialized.
-						nodeToBeReplaced.afterCreation(nodeToBeReplaced.getSecurityContext());
-					}
-
-					FileUtils.copyFile(fileToCopy, fileToBeReplaced);
+					IOUtils.copy(StorageProviderFactory.getStreamProvider(nodeToCopy).getInputStream(), StorageProviderFactory.getStreamProvider(nodeToBeReplaced).getOutputStream());
 
 					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
 					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");
 					final PropertyKey<Long> sizeKey       = StructrApp.key(File.class, "size");
 					final PropertyMap changedProperties   = new PropertyMap();
 
-					changedProperties.put(checksumKey, FileHelper.getChecksum(fileToBeReplaced));
+					changedProperties.put(checksumKey, FileHelper.getChecksum(nodeToBeReplaced));
 					changedProperties.put(versionKey, 0);
 					changedProperties.put(new StringProperty("contentType"), nodeToCopy.getProperty(new StringProperty("contentType")));
 
-					long fileSize = FileHelper.getSize(fileToBeReplaced);
+					long fileSize = FileHelper.getSize(nodeToBeReplaced);
 					if (fileSize > 0) {
 
 						changedProperties.put(sizeKey, fileSize);

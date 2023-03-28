@@ -26,6 +26,7 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.function.AdvancedScriptingFunction;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -71,8 +72,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				final File pdfFileObject  = (File) sources[0];
 				final String userPassword = (String) sources[1];
 
-				final java.io.File fileOnDisk = pdfFileObject.getFileOnDisk();
-				final PDDocument pdDocument = PDDocument.load(fileOnDisk);
+				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStreamProvider(pdfFileObject).getInputStream());
 
 				final AccessPermission accessPermission = new AccessPermission();
 				accessPermission.setCanPrint(false);
@@ -83,8 +83,8 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				standardProtectionPolicy.setPermissions(accessPermission);
 				pdDocument.protect(standardProtectionPolicy);
 
-				if (fileOnDisk.delete()) {
-					pdDocument.save(fileOnDisk);
+				if (StorageProviderFactory.getStreamProvider(pdfFileObject).getInputStream().available() <= 0) {
+					pdDocument.save(StorageProviderFactory.getStreamProvider(pdfFileObject).getOutputStream());
 				}
 
 				pdDocument.close();

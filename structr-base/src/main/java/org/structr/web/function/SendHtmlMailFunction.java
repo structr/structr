@@ -27,6 +27,7 @@ import org.structr.common.MailHelper;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
@@ -86,7 +87,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 						} else {
 
-							attachment.setDataSource(new FileDataSource(fileNode.getFileOnDisk()));
+							attachment.setDataSource(StorageProviderFactory.getStreamProvider(fileNode));
 						}
 
 						attachments.add(attachment);

@@ -35,6 +35,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.StringProperty;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
@@ -154,7 +155,7 @@ public interface ODSExporter extends ODFExporter {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(output.getFileOnDisk().getAbsolutePath());
+			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(StorageProviderFactory.getStreamProvider(output).getInputStream());
 			OdfTable sheet = spreadsheet.getTableList().get(0);
 
 			Iterator<Entry<String, Object>> it = nodeProperties.entrySet().iterator();
@@ -182,7 +183,7 @@ public interface ODSExporter extends ODFExporter {
 
 			}
 
-			spreadsheet.save(output.getFileOnDisk().getAbsolutePath());
+			spreadsheet.save(StorageProviderFactory.getStreamProvider(output).getOutputStream());
 			spreadsheet.close();
 
 		} catch (Exception e) {

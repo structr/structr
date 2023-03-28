@@ -26,6 +26,7 @@ import org.structr.web.entity.File;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 public class SetContentFunction extends UiAdvancedFunction {
 
@@ -56,7 +57,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 				if (sources[1] instanceof byte[]) {
 
-					try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
 						fos.write((byte[]) sources[1]);
 
@@ -68,7 +69,7 @@ public class SetContentFunction extends UiAdvancedFunction {
 
 					final String content = (String)sources[1];
 
-					try (final FileOutputStream fos = file.getOutputStream(true, false)) {
+					try (final OutputStream fos = file.getOutputStream(true, false)) {
 
 						fos.write(content.getBytes(encoding));
 

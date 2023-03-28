@@ -20,6 +20,7 @@ package org.structr.core.storage.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.app.StructrApp;
 import org.structr.core.storage.AbstractStorageProvider;
 import org.structr.web.entity.AbstractFile;
 
@@ -48,17 +49,32 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		return null;
 	}
 
+
 	@Override
 	public OutputStream getOutputStream() {
+		return this.getOutputStream(false);
+	}
+	@Override
+	public OutputStream getOutputStream(final boolean append) {
 		try {
 
-			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getFile()));
+			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getFile()), append);
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getContentType() {
+		return getFile().getProperty(StructrApp.key(File.class, "contentType"));
+	}
+
+	@Override
+	public String getName() {
+		return getFile().getName();
 	}
 
 	@Override
