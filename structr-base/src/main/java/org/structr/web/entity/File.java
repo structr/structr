@@ -799,7 +799,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				logger.info("Moving file {} from {} to {}..", thisFile, previousParent, newParent);
 
 				// Move binary content from old sp to new sp
-				IOUtils.copy(previousSP.getInputStream(), newSP.getOutputStream());
+				try (final InputStream is = previousSP.getInputStream(); final OutputStream os = newSP.getOutputStream()) {
+					IOUtils.copy(is, os);
+				}
 				// Clean up old binary data on previous sp
 				//previousSP.delete();
 			} catch (IOException ioex) {

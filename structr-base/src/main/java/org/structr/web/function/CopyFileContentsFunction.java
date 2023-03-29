@@ -30,6 +30,8 @@ import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public class CopyFileContentsFunction extends UiAdvancedFunction {
 
@@ -61,9 +63,9 @@ public class CopyFileContentsFunction extends UiAdvancedFunction {
 				File nodeToCopy = (File) toCopy;
 				File nodeToBeReplaced = (File) toBeReplaced;
 
-				try {
+				try (final InputStream is = StorageProviderFactory.getStorageProvider(nodeToCopy).getInputStream(); final OutputStream os = StorageProviderFactory.getStorageProvider(nodeToBeReplaced).getOutputStream()) {
 
-					IOUtils.copy(StorageProviderFactory.getStorageProvider(nodeToCopy).getInputStream(), StorageProviderFactory.getStorageProvider(nodeToBeReplaced).getOutputStream());
+					IOUtils.copy(is, os);
 
 					final PropertyKey<Integer> versionKey = StructrApp.key(File.class, "version");
 					final PropertyKey<Long> checksumKey   = StructrApp.key(File.class, "checksum");

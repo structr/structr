@@ -167,7 +167,10 @@ public class FileHelper {
 
 		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
 
-		IOUtils.copy(new FileInputStream(existingFileOnDisk), StorageProviderFactory.getStorageProvider(newFile).getOutputStream());
+		try (FileInputStream fis = new FileInputStream(existingFileOnDisk); OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+
+			IOUtils.copy(fis, os);
+		}
 
 		return newFile;
 	}
@@ -609,7 +612,9 @@ public class FileHelper {
 
 		setFilePropertiesOnCreation(fileNode);
 
-		IOUtils.copy(new ByteArrayInputStream(data), StorageProviderFactory.getStorageProvider(fileNode).getOutputStream());
+		try (final InputStream is = new ByteArrayInputStream(data); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+			IOUtils.copy(is, os);
+		}
 
 	}
 

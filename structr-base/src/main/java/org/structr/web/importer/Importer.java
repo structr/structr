@@ -1423,19 +1423,18 @@ public class Importer {
 					fileNode = createFileNode(fullPath, contentType, size, checksum);
 				}
 
-				final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream();
-				final FileInputStream is = new FileInputStream(tmpFile);
+				try (final FileInputStream is = new FileInputStream(tmpFile); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+					// Copy contents of tmpFile to file in structr fs
+					IOUtils.copy(is, os);
 
-				// Copy contents of tmpFile to file in structr fs
-				IOUtils.copy(is, os);
+					if (contentType.equals("text/css")) {
 
-				if (contentType.equals("text/css")) {
+						processCssFileNode(fileNode, downloadUrl);
+					}
 
-					processCssFileNode(fileNode, downloadUrl);
+					// set export flag according to user preference
+					fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
 				}
-
-				// set export flag according to user preference
-				fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
 
 			} else {
 

@@ -43,6 +43,8 @@ import org.structr.web.entity.Image;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -311,7 +313,9 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				IOUtils.copy(new FileInputStream(file.toFile()), StorageProviderFactory.getStorageProvider(newFile).getOutputStream());
+				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+					IOUtils.copy(is, os);
+				}
 
 				FileHelper.updateMetadata(newFile);
 

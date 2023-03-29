@@ -19,7 +19,6 @@
 package org.structr.core.storage.memory;
 
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
-import org.apache.commons.lang.ArrayUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.storage.AbstractStorageProvider;
@@ -28,6 +27,7 @@ import org.structr.web.entity.File;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -50,7 +50,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public OutputStream getOutputStream() {
-		return new ByteArrayOutputStream();
+		return new InMemoryOutputStream(false);
 	}
 
 	@Override
@@ -65,14 +65,11 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public OutputStream getOutputStream(boolean append) {
-		return new InMemoryByteArrayOutputStream(append);
+		return new InMemoryOutputStream(append);
 	}
 
 	@Override
 	public SeekableByteChannel getSeekableByteChannel() {
-		if (dataMap.get(getFile().getUuid()) != null) {
-			return new SavingInMemorySeekableByteChannel(dataMap.get(getFile().getUuid()));
-		}
 
 		return new SavingInMemorySeekableByteChannel();
 	}
@@ -97,19 +94,28 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		@Override
 		public void close() {
 
-			dataMap.put(getFile().getUuid(), super.array());
+			dataMap.put(getFile().getUuid(), Arrays.copyOf(super.array(), (int) super.size()));
 		}
 	}
-	private class InMemoryByteArrayOutputStream extends ByteArrayOutputStream {
+	private class InMemoryOutputStream extends ByteArrayOutputStream {
 		private final boolean append;
 
-		public InMemoryByteArrayOutputStream(final boolean append) {
+		public InMemoryOutputStream(final boolean append) {
 			super();
 			this.append = append;
 		}
 
 		@Override
+		public void flush() {
+			saveBuffer();
+		}
+
+		@Override
 		public void close() {
+			saveBuffer();
+		}
+
+		private void saveBuffer() {
 			final String uuid = getFile().getUuid();
 
 			if (append) {
