@@ -474,6 +474,11 @@ public class Scripting {
 			snippet.setTranscribedSource(transpiledSource);
 		}
 
+		if (snippet.getTranscribedSource() == null) {
+
+			return snippet.getSource();
+		}
+
 		return snippet.getTranscribedSource();
 	}
 
