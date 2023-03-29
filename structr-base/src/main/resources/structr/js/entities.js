@@ -335,10 +335,10 @@ let _Entities = {
 			let selectedValue = el.value;
 			//console.log(successBehaviourSelect, selectedValue);
 			document.querySelectorAll('.option-success').forEach(el => {
-				el.classList.add('hidden')
+				el.classList.add('hidden');
 			});
 			document.querySelectorAll('.option-success-' + selectedValue).forEach(el => {
-				el.classList.remove('hidden')
+				el.classList.remove('hidden');
 			});
 		});
 
@@ -348,10 +348,10 @@ let _Entities = {
 			let selectedValue = el.value;
 			//console.log(successBehaviourSelect, selectedValue);
 			document.querySelectorAll('.option-failure').forEach(el => {
-				el.classList.add('hidden')
+				el.classList.add('hidden');
 			});
 			document.querySelectorAll('.option-failure-' + selectedValue).forEach(el => {
-				el.classList.remove('hidden')
+				el.classList.remove('hidden');
 			});
 
 		});
@@ -479,12 +479,85 @@ let _Entities = {
 			// 	// TODO: Support multiple actions per DOM element
 			// 	let actionMapping = entity.triggeredActions[0];
 
+			// Activate dropzone if success behaviour is partial-refresh-linked
+			if (successBehaviour === 'partial-refresh-linked') {
 
+				const parentElement = document.querySelector('.option-success-partial-refresh-linked');
+				activateReloadTargetsElementDropzone(parentElement);
+
+				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+					for (const successTarget of actionMapping.successTargets) {
+						Command.get(successTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, obj);
+						});
+					}
+				});
+			}
+
+		};
+
+		const activateReloadTargetsElementDropzone = (parentElement) => {
+
+			const dropzoneElement = parentElement.querySelector('.link-reload-element-dropzone');
+
+			if (dropzoneElement) {
+
+				$(dropzoneElement).droppable({
+
+					drop: (e, el) => {
+
+						e.preventDefault();
+						e.stopPropagation();
+
+						let sourceEl = $(el.draggable);
+						let sourceId = Structr.getId(sourceEl);
+
+						if (!sourceId) {
+							return false;
+						}
+
+						let obj = StructrModel.obj(sourceId);
+
+						// Ignore shared components
+						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+							return false;
+						}
+
+						parentElement.querySelector('#success-partial-refresh-linked-input').value = sourceId;
+						_Elements.dropBlocked = false;
+
+						const newReloadingActions = [...obj.reloadingActions];
+						newReloadingActions.push({ id: actionMapping.id });
+						//console.log('drop successTargets', obj, newReloadingActions);
+						Command.setProperty(obj.id, 'reloadingActions', newReloadingActions);
+
+						addLinkedElementToDropzone(parentElement, obj);
+					}
+				});
+			}
+		};
+
+		const addLinkedElementToDropzone = (parentElement, obj) => {
+			const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
+			_Entities.appendRelatedNode($(dropzoneElement), obj, (nodeEl) => {
+				$('.remove', nodeEl).on('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					parentElement.querySelector('._' + obj.id).remove();
+					dropzoneElement.classList.remove('hidden');
+					Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+						Command.setProperty(actionMapping.id, 'successTargets', actionMapping.successTargets = actionMapping.successTargets.filter(t => t.id !== obj.id));
+					});
+
+				});
+			});
+			//const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
+			//dropzoneElement.classList.add('hidden');
 		};
 
 		const getAndAppendParameterMapping = (id) => {
 
-			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', (parameterMapping) => {
+			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
 
 				//console.log('Append parameter mapping element for', parameterMapping);
 
@@ -496,19 +569,19 @@ let _Entities = {
 				const parameterTypeSelector = row.querySelector('.parameter-type-select');
 				parameterTypeSelector.value = parameterMapping.parameterType;
 				row.querySelector('.parameter-' + parameterTypeSelector.value)?.classList.remove('hidden');
-				activateExistingElementDropzone(row);
+				activateUserInputDropzone(row);
 
 				parameterTypeSelector.addEventListener('change', e => {
 					const selectElement = e.target;
 					const value = selectElement.value;
 					row.querySelectorAll('.parameter-value').forEach(el => el.classList.add('hidden'));
 					row.querySelector('.parameter-' + value)?.classList.remove('hidden');
-					activateExistingElementDropzone(row);
+					activateUserInputDropzone(row);
 				});
 
 				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
 				if (parameterMapping.parameterType === 'user-input' && parameterMapping.inputElement) {
-					replaceDropzoneByInputElement(row, parameterMapping.inputElement);
+					replaceDropzoneByUserInputElement(row, parameterMapping.inputElement);
 				}
 
 				const constantValueInputElement = row.querySelector('.parameter-constant-value-input');
@@ -527,17 +600,19 @@ let _Entities = {
 			}, null);
 		};
 
-		const replaceDropzoneByInputElement = (parentElement, inputElement) => {
-			const userInputElement = parentElement.querySelector('.parameter-user-input');
-			_Entities.appendRelatedNode($(userInputElement), inputElement, (nodeEl) => {
+		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
+			const userInputArea = rowElement.querySelector('.parameter-user-input');
+			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
 				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
-					userInputElement.querySelector('.node').remove();
+					userInputArea.querySelector('.node').remove();
 					dropzoneElement.classList.remove('hidden');
+					//rowElement.querySelector('.parameter-user-input-input').value = null;
+					Command.setProperty(rowElement.dataset.structrId, 'inputElement', null);
 				});
 			});
-			const dropzoneElement = userInputElement.querySelector('.link-existing-element-dropzone');
+			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
 			dropzoneElement.classList.add('hidden');
 		};
 
@@ -551,9 +626,9 @@ let _Entities = {
 			});
 		};
 
-		const activateExistingElementDropzone = (parentElement) => {
+		const activateUserInputDropzone = (parentElement) => {
 
-			const parameterMappingId = parentElement.dataset['structrId'];
+			const parameterMappingId = parentElement.dataset.structrId;
 			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
 
 			if (dropzoneElement) {
@@ -591,7 +666,7 @@ let _Entities = {
 							}
 						}
 
-						replaceDropzoneByInputElement(parentElement, obj);
+						replaceDropzoneByUserInputElement(parentElement, obj);
 					}
 				});
 			}
@@ -2972,21 +3047,32 @@ let _Entities = {
 							<select class="select2" id="success-behaviour-select">
 								<option value="nothing">Nothing</option>
 								<option value="full-page-reload">Reload the current page</option>
-								<option value="partial-refresh">Refresh a section of the current page</option>
+								<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
+								<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 								<option value="navigate-to-url">Navigate to a new page</option>
-								<option value="fire-event">Fire a custom event</option>
+								<option value="fire-event">Raise a custom event</option>
 							</select>
 						</div>
 						<div class="hidden option-tile option-success option-success-partial-refresh">
 							<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-							<input type="text" id="success-partial-refresh-input" placeholder="Enter a CSS ID selector">
+							<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
+						</div>
+						<div class="hidden option-tile option-success-partial-refresh-linked">
+							<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
+							<input type="hidden" id="success-partial-refresh-linked-input" value="${config.value || ''}">
+							<div class="element-dropzone link-reload-element-dropzone">
+								<div class="info-icon h-16 flex items-center justify-center">
+									<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+									<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+								</div>
+							</div>
 						</div>
 						<div class="hidden option-tile option-success option-success-navigate-to-url">
 							<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
 							<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 						</div>
 						<div class="hidden option-tile option-success option-success-fire-event">
-							<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be fired.">Event to fire on success</label>
+							<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
 							<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
 						</div>
 					</div>
@@ -2997,21 +3083,22 @@ let _Entities = {
 							<select class="select2" id="failure-behaviour-select">
 								<option value="nothing">Nothing</option>
 								<option value="full-page-reload">Reload the current page</option>
-								<option value="partial-refresh">Refresh a section of the current page</option>
+								<option value="partial-refresh">Refresh section(s) by ID</option>
+								<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 								<option value="navigate-to-url">Navigate to a new page</option>
-								<option value="fire-event">Fire a custom event</option>
+								<option value="fire-event">Raise a custom event</option>
 							</select>
 						</div>
 						<div class="hidden option-tile option-failure option-failure-partial-refresh">
 							<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
-							<input type="text" id="failure-partial-refresh-input" placeholder="Enter a CSS ID">
-						</div>
+							<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
+						</div>						
 						<div class="hidden option-tile option-failure option-failure-navigate-to-url">
 							<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
 							<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 						</div>
 						<div class="hidden option-tile option-failure option-failure-fire-event">
-							<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be fired.">Event to fire on failure</label>
+							<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
 							<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
 						</div>
 
