@@ -160,7 +160,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 						
-						channel             = StorageProviderFactory.getStreamProvider(fileNode).getSeekableByteChannel();
+						channel             = StorageProviderFactory.getStorageProvider(fileNode).getSeekableByteChannel();
 
 						tx.success();
 

@@ -664,7 +664,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 	private String readFile(final File file) throws IOException {
 
-		try (final InputStream is = StorageProviderFactory.getStreamProvider(file).getInputStream()) {
+		try (final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream()) {
 
 			return IOUtils.toString(is, "utf-8");
 		}

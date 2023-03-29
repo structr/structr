@@ -314,7 +314,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 		if (indexable instanceof File) {
 
 			final File file     = (File)indexable;
-			final Long fileSize = StorageProviderFactory.getStreamProvider(file).size();
+			final Long fileSize = StorageProviderFactory.getStorageProvider(file).size();
 
 			if (fileSize != null) {
 

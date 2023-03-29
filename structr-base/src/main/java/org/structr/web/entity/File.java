@@ -48,6 +48,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
+import org.structr.core.storage.StorageProvider;
 import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
@@ -290,7 +291,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		// only delete mounted files
 		if (!thisFile.isExternal()) {
 
-			StorageProviderFactory.getStreamProvider(thisFile).delete();
+			StorageProviderFactory.getStorageProvider(thisFile).delete();
 		}
 	}
 
@@ -368,7 +369,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static String getFormattedSize(final File thisFile) {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStreamProvider(thisFile).size()
+				StorageProviderFactory.getStorageProvider(thisFile).size()
 		);
 	}
 
@@ -393,7 +394,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try {
 
-			final InputStream is = StorageProviderFactory.getStreamProvider(thisFile).getInputStream();
+			final InputStream is = StorageProviderFactory.getStorageProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();
 
 			if (thisFile.isTemplate()) {
@@ -783,32 +784,29 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
 
-		final Folder previousParent     = (Folder)thisFile.getProperty(key);
-		final Folder newParent          = (Folder)value;
-		final java.io.File previousFile = null;
-		java.io.File newFile            = null;
+		final Folder previousParent      = (Folder)thisFile.getProperty(key);
+		final Folder newParent           = (Folder)value;
 
-		if (newParent != null && !newParent.equals(previousParent)) {
+		if (previousParent != null && newParent != null && !newParent.getStorageProvider().equals(previousParent.getStorageProvider())) {
 
-			//newFile = newParent.getFileOnDisk(thisFile, "", false);
-		}
-
-		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
+			final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent.getStorageProvider());
+			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent.getStorageProvider());
 
 			final Logger logger = LoggerFactory.getLogger(File.class);
 
-			//try {
+			try {
 
-				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
+				logger.info("Moving file {} from {} to {}..", thisFile, previousParent, newParent);
 
-				//ToDo: Implement equivalent system for new storage providers.
-				//Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
-
-			/*
+				// Move binary content from old sp to new sp
+				IOUtils.copy(previousSP.getInputStream(), newSP.getOutputStream());
+				// Clean up old binary data on previous sp
+				//previousSP.delete();
 			} catch (IOException ioex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
-			 */
+
 		}
 	}
 

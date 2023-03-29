@@ -311,7 +311,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				IOUtils.copy(new FileInputStream(file.toFile()), StorageProviderFactory.getStreamProvider(newFile).getOutputStream());
+				IOUtils.copy(new FileInputStream(file.toFile()), StorageProviderFactory.getStorageProvider(newFile).getOutputStream());
 
 				FileHelper.updateMetadata(newFile);
 

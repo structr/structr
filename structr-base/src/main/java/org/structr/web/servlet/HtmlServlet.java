@@ -1621,7 +1621,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (StringUtils.isNotEmpty(range)) {
 
-						final long len = StorageProviderFactory.getStreamProvider(file).size();
+						final long len = StorageProviderFactory.getStorageProvider(file).size();
 						long start     = 0;
 						long end       = len - 1;
 
@@ -1654,7 +1654,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					} else {
 
 						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(StorageProviderFactory.getStreamProvider(file).size()));
+							response.addHeader("Content-Length", Long.toString(StorageProviderFactory.getStorageProvider(file).size()));
 						}
 
 						if (sendContent) {

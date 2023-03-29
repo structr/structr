@@ -155,7 +155,7 @@ public interface ODSExporter extends ODFExporter {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(StorageProviderFactory.getStreamProvider(output).getInputStream());
+			OdfSpreadsheetDocument spreadsheet = OdfSpreadsheetDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 			OdfTable sheet = spreadsheet.getTableList().get(0);
 
 			Iterator<Entry<String, Object>> it = nodeProperties.entrySet().iterator();
@@ -183,7 +183,7 @@ public interface ODSExporter extends ODFExporter {
 
 			}
 
-			spreadsheet.save(StorageProviderFactory.getStreamProvider(output).getOutputStream());
+			spreadsheet.save(StorageProviderFactory.getStorageProvider(output).getOutputStream());
 			spreadsheet.close();
 
 		} catch (Exception e) {

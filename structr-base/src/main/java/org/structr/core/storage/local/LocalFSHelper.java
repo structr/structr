@@ -74,7 +74,7 @@ public abstract class LocalFSHelper {
 
 		} else if (parentFolder != null) {
 
-			return getFileOnDisk(thisFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
+			return getFileOnDisk(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
 		}
 
 		// default implementation (store in UUID-indexed tree)

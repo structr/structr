@@ -86,7 +86,7 @@ public interface ODTExporter extends ODFExporter {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			TextDocument text = TextDocument.loadDocument(StorageProviderFactory.getStreamProvider(output).getInputStream());
+			TextDocument text = TextDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {
@@ -129,7 +129,7 @@ public interface ODTExporter extends ODFExporter {
 
 			}
 
-			text.save(StorageProviderFactory.getStreamProvider(output).getOutputStream());
+			text.save(StorageProviderFactory.getStorageProvider(output).getOutputStream());
 			text.close();
 
 		} catch (Exception e) {

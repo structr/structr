@@ -31,7 +31,6 @@ import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
-import javax.activation.FileDataSource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -87,7 +86,7 @@ public class SendHtmlMailFunction extends UiAdvancedFunction {
 
 						} else {
 
-							attachment.setDataSource(StorageProviderFactory.getStreamProvider(fileNode));
+							attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
 						}
 
 						attachments.add(attachment);

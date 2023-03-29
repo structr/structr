@@ -172,7 +172,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		long size = 0;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			size = StorageProviderFactory.getStreamProvider(file).size();
+			size = StorageProviderFactory.getStorageProvider(file).size();
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);

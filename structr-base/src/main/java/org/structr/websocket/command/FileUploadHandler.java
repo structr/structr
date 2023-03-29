@@ -43,7 +43,7 @@ public class FileUploadHandler {
 
 	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size            = StorageProviderFactory.getStreamProvider(file).size();
+		this.size            = StorageProviderFactory.getStorageProvider(file).size();
 		this.file            = file;
 		this.isCreation      = isCreation;
 		this.securityContext = securityContext;
@@ -138,7 +138,7 @@ public class FileUploadHandler {
 	private SeekableByteChannel getChannel(final boolean append) throws IOException {
 
 		if (this.privateChannel == null) {
-			this.privateChannel = StorageProviderFactory.getStreamProvider(this.file).getSeekableByteChannel();
+			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel();
 		}
 
 		return this.privateChannel;

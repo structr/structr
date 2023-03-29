@@ -203,7 +203,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 					try (final InputStream is = file.getInputStream()) {
 
-						final byte[] buffer = new byte[Long.valueOf(StorageProviderFactory.getStreamProvider(file).size()).intValue()];
+						final byte[] buffer = new byte[Long.valueOf(StorageProviderFactory.getStorageProvider(file).size()).intValue()];
 						IOUtils.read(is, buffer);
 						return StringUtils.toEncodedString(buffer, Charset.forName(charset));
 

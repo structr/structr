@@ -28,7 +28,6 @@ import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
-import javax.activation.FileDataSource;
 import java.net.MalformedURLException;
 
 public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
@@ -96,7 +95,7 @@ public class MailAddMimePartFunction extends AdvancedMailModuleFunction {
 
 		} else {
 
-			attachment.setDataSource(StorageProviderFactory.getStreamProvider(fileNode));
+			attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
 
 		}
 

@@ -150,7 +150,7 @@ public interface ODFExporter extends NodeInterface {
 				thisNode.setResultDocument(output);
 			}
 
-			templateOdt = OdfDocument.loadDocument(StorageProviderFactory.getStreamProvider(template).getInputStream());
+			templateOdt = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(template).getInputStream());
 			templateOdt.save(output.getOutputStream());
 			templateOdt.close();
 
@@ -176,7 +176,7 @@ public interface ODFExporter extends NodeInterface {
 
 			String templateImagePath = null;
 
-			OdfDocument doc = OdfDocument.loadDocument(StorageProviderFactory.getStreamProvider(output).getInputStream());
+			OdfDocument doc = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = doc.getContentRoot().getElementsByTagName(ODF_IMAGE_PARENT_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {
@@ -202,8 +202,8 @@ public interface ODFExporter extends NodeInterface {
 
 			}
 
-			pkg.insert(StorageProviderFactory.getStreamProvider(result).getInputStream(), ODF_IMAGE_DIRECTORY + imageName, contentType);
-			pkg.save(StorageProviderFactory.getStreamProvider(result).getOutputStream());
+			pkg.insert(StorageProviderFactory.getStorageProvider(result).getInputStream(), ODF_IMAGE_DIRECTORY + imageName, contentType);
+			pkg.save(StorageProviderFactory.getStorageProvider(result).getOutputStream());
 			pkg.close();
 			doc.close();
 

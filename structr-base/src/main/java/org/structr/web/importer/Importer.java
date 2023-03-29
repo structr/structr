@@ -1423,7 +1423,7 @@ public class Importer {
 					fileNode = createFileNode(fullPath, contentType, size, checksum);
 				}
 
-				final OutputStream os = StorageProviderFactory.getStreamProvider(fileNode).getOutputStream();
+				final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream();
 				final FileInputStream is = new FileInputStream(tmpFile);
 
 				// Copy contents of tmpFile to file in structr fs

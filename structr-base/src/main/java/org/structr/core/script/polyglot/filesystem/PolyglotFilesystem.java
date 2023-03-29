@@ -89,7 +89,7 @@ public class PolyglotFilesystem implements FileSystem {
 			if (file != null) {
 
 				tx.success();
-				return StorageProviderFactory.getStreamProvider(file).getSeekableByteChannel();
+				return StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel();
 			}
 
 			tx.success();

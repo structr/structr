@@ -18,7 +18,6 @@
  */
 package org.structr.web.common;
 
-import org.structr.core.storage.StorageProvider;
 import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
@@ -36,7 +35,7 @@ public class ClosingOutputStream extends OutputStream {
 
 	public ClosingOutputStream(final File thisFile, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
 
-		this.os = StorageProviderFactory.getStreamProvider(thisFile).getOutputStream(append);
+		this.os = StorageProviderFactory.getStorageProvider(thisFile).getOutputStream(append);
 		this.notifyIndexerAfterClosing = notifyIndexerAfterClosing;
 
 		this.thisFile = thisFile;

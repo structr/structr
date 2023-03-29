@@ -87,17 +87,10 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public SeekableByteChannel getSeekableByteChannel() {
-		return getSeekableByteChannel(false);
-	}
-	@Override
-	public SeekableByteChannel getSeekableByteChannel(final boolean append) {
 		try {
 
 			ensureFileExists();
 			Set<OpenOption> options = Set.of(WRITE);
-			if (append) {
-				options.add(APPEND);
-			}
 
 			return FileChannel.open(LocalFSHelper.getFileOnDisk(getFile()).toPath(), options);
 		} catch (IOException ex) {

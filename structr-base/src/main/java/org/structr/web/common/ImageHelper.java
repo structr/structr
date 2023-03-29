@@ -467,7 +467,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		try {
 
-			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStreamProvider(originalFile).getInputStream());
+			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStorageProvider(originalFile).getInputStream());
 			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
 			// Create thumbnail of page

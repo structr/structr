@@ -106,7 +106,7 @@ public class ChunkCommand extends AbstractCommand {
 
 				getWebSocket().removeFileUploadHandler(uuid);
 
-				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), StorageProviderFactory.getStreamProvider(file).size()});
+				logger.debug("File upload finished. Checksum: {}, size: {}", new Object[]{ file.getChecksum(), StorageProviderFactory.getStorageProvider(file).size()});
 
 			}
 

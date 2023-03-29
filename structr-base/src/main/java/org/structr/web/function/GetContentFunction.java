@@ -55,7 +55,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 				final File file = (File)sources[0];
 
-				if (StorageProviderFactory.getStreamProvider(file).size() == 0) {
+				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 					return "";
 				}
 

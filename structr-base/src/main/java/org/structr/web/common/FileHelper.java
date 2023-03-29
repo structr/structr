@@ -34,7 +34,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.tika.detect.DefaultDetector;
 import org.apache.tika.metadata.Metadata;
 import org.apache.tika.mime.MediaType;
-import org.gagravarr.ogg.CRCUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -55,7 +54,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
-import org.structr.web.entity.html.Output;
 
 import javax.activation.MimetypesFileTypeMap;
 import javax.imageio.ImageIO;
@@ -169,7 +167,7 @@ public class FileHelper {
 
 		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
 
-		IOUtils.copy(new FileInputStream(existingFileOnDisk), StorageProviderFactory.getStreamProvider(newFile).getOutputStream());
+		IOUtils.copy(new FileInputStream(existingFileOnDisk), StorageProviderFactory.getStorageProvider(newFile).getOutputStream());
 
 		return newFile;
 	}
@@ -611,7 +609,7 @@ public class FileHelper {
 
 		setFilePropertiesOnCreation(fileNode);
 
-		IOUtils.copy(new ByteArrayInputStream(data), StorageProviderFactory.getStreamProvider(fileNode).getOutputStream());
+		IOUtils.copy(new ByteArrayInputStream(data), StorageProviderFactory.getStorageProvider(fileNode).getOutputStream());
 
 	}
 
@@ -627,7 +625,7 @@ public class FileHelper {
 
 		setFilePropertiesOnCreation(fileNode);
 
-		try (final OutputStream out = StorageProviderFactory.getStreamProvider(fileNode).getOutputStream()) {
+		try (final OutputStream out = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
 
 			IOUtils.copy(data, out);
 		}
@@ -664,7 +662,7 @@ public class FileHelper {
 			}
 		}
 
-		try (final InputStream is = new BufferedInputStream(StorageProviderFactory.getStreamProvider(file).getInputStream())) {
+		try (final InputStream is = new BufferedInputStream(StorageProviderFactory.getStorageProvider(file).getInputStream())) {
 
 			final MediaType mediaType = new DefaultDetector().detect(is, new Metadata());
 			if (mediaType != null) {
@@ -929,7 +927,7 @@ public class FileHelper {
 
 				try (final Tx outertx = app.tx()) {
 
-					SevenZFile sevenZFile = new SevenZFile(StorageProviderFactory.getStreamProvider(file).getSeekableByteChannel());
+					SevenZFile sevenZFile = new SevenZFile(StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel());
 
 					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
 
@@ -1079,7 +1077,7 @@ public class FileHelper {
 
 
 	public static Long getChecksum(final File file) throws IOException {
-		StorageProvider sp = StorageProviderFactory.getStreamProvider(file);
+		StorageProvider sp = StorageProviderFactory.getStorageProvider(file);
 		return getChecksum(sp.getInputStream(), sp.size());
 	}
 
@@ -1119,7 +1117,7 @@ public class FileHelper {
 
 	public static Long getCRC32Checksum(final File file) throws IOException {
 		final CRC32 crc32 = new CRC32();
-		final InputStream is = StorageProviderFactory.getStreamProvider(file).getInputStream();
+		final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream();
 		byte[] buf = new byte[1024];
 		int length;
 		while ((length = is.read(buf)) != -1) {
@@ -1263,7 +1261,7 @@ public class FileHelper {
 
 		try {
 
-			return StorageProviderFactory.getStreamProvider(file).size();
+			return StorageProviderFactory.getStorageProvider(file).size();
 
 		} catch (Exception ex) {
 

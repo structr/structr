@@ -72,7 +72,7 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				final File pdfFileObject  = (File) sources[0];
 				final String userPassword = (String) sources[1];
 
-				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStreamProvider(pdfFileObject).getInputStream());
+				final PDDocument pdDocument = PDDocument.load(StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream());
 
 				final AccessPermission accessPermission = new AccessPermission();
 				accessPermission.setCanPrint(false);
@@ -83,8 +83,8 @@ public class PDFEncryptFunction extends AdvancedScriptingFunction {
 				standardProtectionPolicy.setPermissions(accessPermission);
 				pdDocument.protect(standardProtectionPolicy);
 
-				if (StorageProviderFactory.getStreamProvider(pdfFileObject).getInputStream().available() <= 0) {
-					pdDocument.save(StorageProviderFactory.getStreamProvider(pdfFileObject).getOutputStream());
+				if (StorageProviderFactory.getStorageProvider(pdfFileObject).getInputStream().available() <= 0) {
+					pdDocument.save(StorageProviderFactory.getStorageProvider(pdfFileObject).getOutputStream());
 				}
 
 				pdDocument.close();

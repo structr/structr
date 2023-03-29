@@ -37,7 +37,6 @@ import org.structr.web.entity.Folder;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -172,7 +171,7 @@ public class StructrFilePath extends StructrPath {
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
 					// Todo: Fix for fs abstraction
-					channel = (FileChannel) StorageProviderFactory.getStreamProvider(actualFile).getSeekableByteChannel();
+					channel = (FileChannel) StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel();
 
 					tx.success();
 

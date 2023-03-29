@@ -60,7 +60,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			final java.io.File fileOnDisk = path.toFile();
 			final long size               = fileOnDisk.length();
 			final long lastModified       = fileOnDisk.lastModified();
-			final Long fileNodeSize       = StorageProviderFactory.getStreamProvider(fileNode).size();
+			final Long fileNodeSize       = StorageProviderFactory.getStorageProvider(fileNode).size();
 			final Long fileNodeDate       = fileNode.getProperty(StructrApp.key(File.class, "fileModificationDate"));
 
 			// update metadata only when size or modification time has changed

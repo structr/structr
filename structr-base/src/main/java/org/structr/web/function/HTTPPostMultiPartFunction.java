@@ -130,7 +130,7 @@ public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
         if (abstractFile instanceof File) {
 
             final File file = (File) abstractFile;
-            InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStreamProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
+            InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
             builder.addPart(partKey, inputStreamBody);
 
         } else if (abstractFile instanceof Folder) {
