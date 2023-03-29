@@ -191,6 +191,7 @@ let StructrWS = {
 
 				} else {
 
+					/*
 					// either already logged in (STATUS) or just logged in (LOGIN)
 					if (command === 'LOGIN') {
 						console.log('login success, right?', data)
@@ -200,6 +201,7 @@ let StructrWS = {
 						console.log(command);
 						console.log('Whats going on?');
 					}
+					*/
 
 					Structr.updateUsername(data.data.username);
 					loginBox.hide();

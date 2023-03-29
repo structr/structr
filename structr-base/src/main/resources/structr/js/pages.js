@@ -70,9 +70,10 @@ let _Pages = {
 
 		Structr.resize();
 
-		// $('body').css({
-		// 	position: 'fixed'
-		// });
+		// TODO: remove!... but if removed, pages has a horizontal scrollbar caused by the right slideouts
+		$('body').css({
+			position: 'fixed'
+		});
 
 		_Pages.resizeColumns();
 	},

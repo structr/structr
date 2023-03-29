@@ -900,7 +900,6 @@ let _Entities = {
 
 							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])));
 
-							console.log(valueCell);
 							$('.add', valueCell).on('click', function() {
 								let { dialogText } = Structr.dialogSystem.openDialog(`Add ${typeInfo[key].type}`);
 								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
