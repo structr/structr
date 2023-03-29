@@ -396,3 +396,58 @@ input.dataKey_ {
 .linkable-container .nodeHover b {
 	cursor: pointer ! important;
 }
+
+/**
+	Widgets slideout
+ */
+.widget-folder {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+.widget {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 70px;
+	color: #333;
+	background-color: #fff;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.widget img {
+	opacity: 0.75;
+	flex-grow: 1;
+}
+
+.widget:hover img {
+	opacity: 1.0;
+}
+
+.widget:hover {
+	border: 1px solid #999;
+}
+
+.widget span {
+	width: 100%;
+	text-align: center;
+	flex-grow: 0;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	word-break: break-word;
+}
+
+.widget-header b, .widget-header span {
+	cursor: pointer;
+	line-height: 2rem;
+}
+
+.widget input.new-name {
+	width: 90%;
+}

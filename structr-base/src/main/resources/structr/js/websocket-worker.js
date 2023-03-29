@@ -117,10 +117,15 @@ let reconnect = (data) => {
 
 	if (!reconnectIntervalId) {
 
-		self.postMessage({ type: 'onclose' });
-
 		stopPing();
 		stopReconnect();
+
+		try {
+
+			websocket?.close();
+			websocket = null;
+
+		} catch (e) {}
 
 		// keep setInterval in worker to prevent background throttling
 		reconnectIntervalId = setInterval(() => {

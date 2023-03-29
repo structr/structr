@@ -628,6 +628,7 @@ public class ConfigServlet extends AbstractServletBase {
 		head.empty("link").attr(new Rel("icon"), new Href(applicationRootPath + "/favicon.ico"), new Type("image/x-icon"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/lib/jquery-3.3.1.min.js"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/icons.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/helper.js"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");
@@ -807,8 +808,8 @@ public class ConfigServlet extends AbstractServletBase {
 		}
 
 		final Tag buttons = div.block("p").css("buttons");
-		buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Set Neo4j defaults").attr(new Attr("onclick", "setNeo4jDefaults(this);"));
-		buttons.block("button").css("action").attr(new Attr("type", "button")).text("Add connection").attr(new Attr("onclick", "addConnection(this);"));
+		buttons.block("button").id("set-neo4j-defaults").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Set Neo4j defaults");
+		buttons.block("button").id("add-connection").css("action").attr(new Attr("type", "button")).text("Add connection");
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 

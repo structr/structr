@@ -85,12 +85,12 @@ let _Dragndrop = {
 						if (obj.isFile) {
 
 							Command.favorites('add', sourceId, function() {
-								blinkGreen(Structr.node(sourceId));
+								_Helpers.blinkGreen(Structr.node(sourceId));
 							});
 
 						} else {
 
-							blinkRed(Structr.node(sourceId));
+							_Helpers.blinkRed(Structr.node(sourceId));
 						}
 
 						return;
@@ -136,7 +136,7 @@ let _Dragndrop = {
 					return false;
 				}
 
-				if (target.isContent && target.type !== 'Template' && isIn(tag, _Elements.voidAttrs)) {
+				if (target.isContent && target.type !== 'Template' && _Helpers.isIn(tag, _Elements.voidAttrs)) {
 					return false;
 				}
 
@@ -178,7 +178,8 @@ let _Dragndrop = {
 				_Dragndrop.sortParent = $(ui.item).parent();
 
 				Structr.currentlyActiveSortable = el;
-				$('.element-dropzone').addClass("allow-drop");
+
+				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
 			},
 			update: function(event, ui) {
 				let el = $(ui.item);
@@ -329,7 +330,7 @@ let _Dragndrop = {
 			}
 		}
 	},
-	getAdditionalDataForElementCreation:function(tag, parentTag) {
+	getAdditionalDataForElementCreation: (tag, parentTag) => {
 		let nodeData = {};
 
 		let tagsWithAutoContent = ['a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h5', 'pre', 'label', 'option', 'li', 'em', 'title', 'b', 'span', 'th', 'td', 'button', 'figcaption'];
@@ -375,79 +376,52 @@ let _Dragndrop = {
 
 		_Widgets.insertWidgetIntoPage(source, target, pageId);
 	},
-	fileDropped: function(source, target, pageId) {
-		let refreshTimeout;
+	fileDropped: (source, target, pageId) => {
+
 		if (!pageId) {
 
-			if (source.id === target.id) {
-				return false;
-			}
-
-			if (_Files.selectedElements.length > 1) {
-
-				$.each(_Files.selectedElements, function(i, fileEl) {
-					let fileId = Structr.getId(fileEl);
-
-					if (fileId === target.id) {
-						return false;
-					}
-
-					Command.appendFile(fileId, target.id, () => {
-						if (refreshTimeout) {
-							window.clearTimeout(refreshTimeout);
-						}
-						refreshTimeout = window.setTimeout(() => {
-							_Files.refreshTree();
-							refreshTimeout = 0;
-						}, 100);
-					});
-				});
-				_Files.selectedElements = [];
-
-			} else {
-				Command.appendFile(source.id, target.id, () => {
-					_Files.refreshTree();
-				});
-			}
+			_Files.handleMoveObjectsAction(target.id, source.id);
 
 			return true;
-		}
-
-		let nodeData  = {}, tag;
-		let name      = source.name;
-		let parentTag = target.tag;
-
-		nodeData.linkableId = source.id;
-
-		if (parentTag === 'head') {
-
-			if (name.endsWith('.css')) {
-
-				tag = 'link';
-				nodeData._html_href = '${link.path}?${link.version}';
-				nodeData._html_type = 'text/css';
-				nodeData._html_rel = 'stylesheet';
-				nodeData._html_media = 'screen';
-
-			} else if (name.endsWith('.js')) {
-
-				tag = 'script';
-				nodeData._html_src = '${link.path}?${link.version}';
-			}
 
 		} else {
 
-			nodeData._html_href = '${link.path}';
-			nodeData._html_title = '${link.name}';
-			nodeData.childContent = '${parent.link.name}';
-			tag = 'a';
+			let nodeData  = {}, tag;
+			let name      = source.name;
+			let parentTag = target.tag;
+
+			nodeData.linkableId = source.id;
+
+			if (parentTag === 'head') {
+
+				if (name.endsWith('.css')) {
+
+					tag = 'link';
+					nodeData._html_href = '${link.path}?${link.version}';
+					nodeData._html_type = 'text/css';
+					nodeData._html_rel = 'stylesheet';
+					nodeData._html_media = 'screen';
+
+				} else if (name.endsWith('.js')) {
+
+					tag = 'script';
+					nodeData._html_src = '${link.path}?${link.version}';
+				}
+
+			} else {
+
+				nodeData._html_href = '${link.path}';
+				nodeData._html_title = '${link.name}';
+				nodeData.childContent = '${parent.link.name}';
+				tag = 'a';
+			}
+			source.id = undefined;
+
+			Structr.modules['files'].unload();
+			Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
+
+			return true;
 		}
-		source.id = undefined;
-
-		Structr.modules['files'].unload();
-		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
-
-		return true;
 	},
 	imageDropped: function(source, target, pageId) {
 

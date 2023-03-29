@@ -42,7 +42,7 @@ var timeout   = 0;
 var expanded  = {};
 var count     = 0;
 
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 
 	Structr.registerModule(_Graph);
 
@@ -214,10 +214,10 @@ let _Graph = {
 			graphBrowser.startForceAtlas2();
 		});
 
-		Structr.mainContainer.innerHTML = _Graph.templates.main();
-		Structr.functionBar.innerHTML   = _Graph.templates.functions();
+		Structr.setMainContainerHTML(_Graph.templates.main());
+		Structr.setFunctionBarHTML(_Graph.templates.functions());
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('graph'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('graph'));
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -345,17 +345,19 @@ let _Graph = {
 		});
 
 		$(document).on('click', '#tooltipBtnDel', function() {
+
 			let self = $(this);
 			let id = self.attr("value");
+
 			Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
 				if (graphBrowser.getNode(entity.id)) {
-					_Entities.deleteNode(self, entity, false, function (entity) {
+					_Entities.deleteNode(entity, false, function (entity) {
 						graphBrowser.dropNode(entity);
 						graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
 				} else {
-					_Entities.deleteEdge(self, entity, false, function (entity) {
+					_Entities.deleteEdge(entity, false, function (entity) {
 						if(graphBrowser.getEdge(entity)) {
 							graphBrowser.dropEdge(entity);
 						}
@@ -581,7 +583,7 @@ let _Graph = {
 	},
 
 	drawNode: function(node, x, y) {
-		if (isIn(node.id, nodeIds) || isIn(node.type, filteredNodeTypes)) {
+		if (_Helpers.isIn(node.id, nodeIds) || _Helpers.isIn(node.type, filteredNodeTypes)) {
 			return;
 		}
 		nodeIds.push(node.id);
@@ -609,7 +611,7 @@ let _Graph = {
 				color: color[node.type],
 				nodeType: node.type,
 				name: node.name,
-				hidden: isIn(node.type, hiddenNodeTypes)
+				hidden: _Helpers.isIn(node.type, hiddenNodeTypes)
 			});
 
 			graphBrowser.dataChanged();
@@ -635,7 +637,7 @@ let _Graph = {
 				type: edgeType,
 				relType: r.type,
 				relName: r.relType,
-				hidden: isIn(r.relType, hiddenRelTypes),
+				hidden: _Helpers.isIn(r.relType, hiddenRelTypes),
 				count: c
 			});
 			_Graph.updateRelationshipTypes();
@@ -646,7 +648,7 @@ let _Graph = {
 
 	},
 
-	resize: function() {
+	resize: () => {
 		Structr.resize();
 
 		// var windowHeight = $(window).height();
@@ -694,7 +696,7 @@ let _Graph = {
 	updateNodeTypes: function() {
 
 		var nodeTypesBox = $('#node-types');
-		fastRemoveAllChildren(nodeTypesBox[0]);
+		_Helpers.fastRemoveAllChildren(nodeTypesBox[0]);
 
 		Command.getSchemaInfo(null, function(nodes) {
 
@@ -745,14 +747,14 @@ let _Graph = {
 
 				var nodeType = node.name;
 
-				if (!isIn(nodeType, Object.keys(color))) {
+				if (!_Helpers.isIn(nodeType, Object.keys(color))) {
 					color[nodeType] = colors[c++];
 				}
 
-				nodeTypesBox.append('<div id="node-type-' + nodeType + '" class="node-type" data-node-type="' + nodeType + '"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ' + color[nodeType] + '"></div>' + nodeType + '</div>');
+				nodeTypesBox.append(`<div id="node-type-${nodeType}" class="node-type" data-node-type="${nodeType}"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ${color[nodeType]}"></div>${nodeType}</div>`);
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 
-				if (isIn(nodeType, hiddenNodeTypes)) {
+				if (_Helpers.isIn(nodeType, hiddenNodeTypes)) {
 					nt.attr('data-hidden', 1);
 					nt.addClass('hidden-node-type');
 				}
@@ -794,7 +796,7 @@ let _Graph = {
 	},
 
 	setNodeColor: function(node) {
-		if (!isIn(node.type, Object.keys(color))) {
+		if (!_Helpers.isIn(node.type, Object.keys(color))) {
 			node.color = colors[color++];
 			color[node.type] = node.color;
 		} else {
@@ -803,7 +805,7 @@ let _Graph = {
 	},
 
 	setRelationshipColor: function(rel) {
-		if (!isIn(rel.relType, Object.keys(relColors))) {
+		if (!_Helpers.isIn(rel.relType, Object.keys(relColors))) {
 			rel.color = colors[color++];
 			relColors[rel.relType] = rel.color;
 		} else {
@@ -818,7 +820,7 @@ let _Graph = {
 		$.each(relTypes, function(i, relType){
 			relTypesBox.append('<div id="rel-type-' + relType + '">' + relType + '</div>');
 			var rt = $('#rel-type-' + relType, relTypesBox);
-			if (isIn(relType, hiddenRelTypes)) {
+			if (_Helpers.isIn(relType, hiddenRelTypes)) {
 				rt.attr('data-hidden', 1);
 				rt.addClass('hidden-node-type');
 			}

@@ -37,17 +37,6 @@
 	padding: 1rem 0;
 }
 
-#crud-types-list, #crud-recent-types-list {
-	overflow-y: scroll;
-}
-
-#crud-recent-types .crud-type .remove-recent-type {
-	position: absolute;
-	right: 4px;
-	height: 14px;
-	margin: 2px;
-}
-
 #crudTypesSearch {
 	margin: 0 1rem .75rem .5rem;
 }
@@ -55,23 +44,17 @@
 #crud-types-list, #crud-recent-types-list {
 	padding: 1px 0 0 0;
 	margin: 0;
-	overflow-wrap: break-word;
 	height: calc(100% - 70px);
-	overflow: auto;
+	overflow-y: scroll;
 }
 
 #crud-left .crud-type {
-	position: relative;
 	border-bottom: 1px solid #f6f6f6;
 	border-top: 1px solid #f6f6f6;
 	margin-top: -1px;
-	list-style: none;
 	padding: 6px 5px 6px 10px;
 	cursor: pointer;
 	height: 18px;
-	overflow: hidden;
-	white-space: nowrap;
-	text-overflow: ellipsis;
 }
 
 #crud-left .crud-type.active {
@@ -89,21 +72,10 @@
 
 #crud-top {
 	display: inline-block;
-	/*height: 36px;*/
-}
-
-#crud-top .select2-container--default .select2-results>.select2-results__options {
-	/*max-height: 400px;*/
 }
 
 #crud-top #crud-refresh-list {
-	/*height: 2rem;*/
-	/*padding: 0 1rem;*/
 	margin-left: 1rem;
-}
-
-#crud-top #crud-refresh-list i {
-	/*margin: 5px;*/
 }
 
 .resourceBox h2 {
@@ -111,9 +83,6 @@
 }
 
 #crud-type-detail {
-	/*padding: 6px;*/
-	/*vertical-align: top;*/
-	/*margin-top: 1rem;*/
 	overflow: auto;
 	height: 100%;
 	width: calc(100% - 1rem);
@@ -121,12 +90,8 @@
 
 .resourceBox {
 	background: var(--solid-white) ! important;
-	/*font-size: 9pt;*/
 	position: relative;
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
-
-	/*box-shadow: 0 0 12px var(--gray-opacity-10);*/
-	/*border: 1px solid var(--black-opacity-125);*/
 }
 
 #crud-type-detail .crud-message {
@@ -152,7 +117,6 @@
 	overflow: auto;
 	border-collapse: collapse;
 	background: var(--solid-white);
-	/*margin: 6px 0;*/
 	width: 100%;
 }
 
@@ -162,16 +126,10 @@
 	vertical-align: top;
 	height: 1em;
 	background-color: var(--main-background);
-	/*color: var(--gray-333);*/
-	/*vertical-align: top;*/
-	/*min-width: 10rem;*/
 }
 
 .resourceBox td {
 	padding: .5rem 1rem;
-	/*text-align: left;*/
-	/*vertical-align: top;*/
-	/*height: 1em;*/
 	position: relative;
 }
 
@@ -196,13 +154,6 @@
 .column-sorted-active {
 	color: var(--active-link) ! important;
 }
-
-/*!* adds an outline to the table head elements because when using position:sticky the regular border is not rendered *!*/
-/*.crud-table th {*/
-/*	outline-offset: -1px;*/
-/*	border-top: none;*/
-/*	border-bottom: none;*/
-/*}*/
 
 .crud-table tbody tr:first-child td {
 	border-top: none;
@@ -304,8 +255,6 @@ input.readonly {
 }
 
 .crud-clear-value {
-	/*float: right;*/
-	/*margin-left: 4px;*/
 	opacity: .6;
 	position: absolute;
 	right: .5rem;
@@ -388,29 +337,36 @@ img.loader {
 }
 
 /*
-* Collection pager
+* (collection) pager
 */
+.cell-pager > .pageWrapper {
+	border: 1px solid var(--input-field-border);
+	border-radius: .25rem;
+	display: inline-block;
+	padding: 0;
+	background: var(--solid-white) ! important;
+	font-size: 1rem;
+	line-height: 2.3rem;
+	white-space: nowrap;
+}
+
+.cell-pager input.collection-page,
+.cell-pager input.page-count {
+	background-color: var(--solid-white) ! important;
+	width: 1.75rem;
+	border: none;
+	text-align: center;
+	margin: 0;
+}
+
 .cell-pager button {
 	background-color: var(--solid-white);
-}
-
-.cell-pager .next {
-	margin-left: .5rem;
-	margin-right: .5rem;
-}
-
-.cell-pager .page-count {
-	margin-left: .5rem;
-}
-
-.cell-pager .collection-page {
-	margin-bottom: .5rem;
+	border: 1px solid transparent;
 }
 
 .collection-page-size {
 	margin-left: 1rem;
 	display: inline-block;
-	clear: both;
 }
 
 .resourceBox .pager {

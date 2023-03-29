@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Code);
 });
 
@@ -60,7 +60,7 @@ let _Code = {
 	prevAnimFrameReqId_resize: undefined,
 	resize: () => {
 
-		Structr.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_resize, () => {
+		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_resize, () => {
 			_Code.updatedResizers();
 			Structr.resize();
 		});
@@ -68,7 +68,7 @@ let _Code = {
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
 
-		Structr.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
 			left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 			_Code.updatedResizers(left, null);
 		});
@@ -76,8 +76,7 @@ let _Code = {
 	prevAnimFrameReqId_moveRightResizer: undefined,
 	moveRightResizer: (left) => {
 
-		Structr.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {});
-		_Code.previousMoveRightResizerRequestId = requestAnimationFrame(() => {
+		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {
 			left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 			_Code.updatedResizers(null, left);
 		});
@@ -87,19 +86,33 @@ let _Code = {
 		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
 
-		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = left + 'px';
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = window.innerWidth - right + 'px';
+		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `${window.innerWidth - right}px`;
 
-		document.getElementById('code-tree').style.width              = 'calc(' + left + 'px - 1rem)';
-		document.getElementById('code-context-container').style.width = 'calc(' + right + 'px - 3rem)';
-		document.getElementById('code-contents').style.width          = 'calc(' + (window.innerWidth - left - right) + 'px - 4rem)';
+		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
+		document.getElementById('code-context-container').style.width = `calc(${right}px - 3rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth - left - right}px - 4rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
+	unload: () => {
+
+		let allow = _Code.testAllowNavigation();
+		if (allow) {
+
+			_Code.runCurrentEntitySaveAction = null;
+			_Editors.disposeAllEditors();
+
+			_Helpers.fastRemoveAllChildren(document.querySelector('.searchBox'));
+			_Helpers.fastRemoveAllChildren(document.querySelector('#code-main'));
+		}
+
+		return allow;
+	},
 	onload: () => {
 
-		Structr.functionBar.innerHTML   = _Code.templates.functions();
-		Structr.mainContainer.innerHTML = _Code.templates.main();
+		Structr.setFunctionBarHTML(_Code.templates.functions());
+		Structr.setMainContainerHTML(_Code.templates.main());
 
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
@@ -109,7 +122,7 @@ let _Code = {
 			_Code.inSearchBox = false;
 			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
 			codeSearchInput.addEventListener('blur',  () => { _Code.inSearchBox = false; });
-			codeSearchInput.addEventListener('input', _Code.debounce(_Code.doSearch, 300));
+			codeSearchInput.addEventListener('input', _Helpers.debounce(_Code.doSearch, 300));
 
 			$('#tree-forward-button').on('click', _Code.pathLocationForward);
 			$('#tree-back-button').on('click', _Code.pathLocationBackward);
@@ -210,7 +223,9 @@ let _Code = {
 					event.preventDefault();
 					event.stopPropagation();
 
-					runButton.click();
+					if (!Structr.dialogSystem.isDialogOpen()) {
+						runButton.click();
+					}
 				}
 			}
 		}
@@ -445,19 +460,19 @@ let _Code = {
 			if (element) {
 
 				if (element.tagName === 'INPUT' && element.type === 'text' && !element.classList.contains('hidden')) {
-					blinkGreen($(element));
+					_Helpers.blinkGreen($(element));
 				} else if (element.tagName === 'INPUT' && element.type === 'checkbox' && !element.classList.contains('hidden')) {
-					blinkGreen($(element.closest('.checkbox')));
+					_Helpers.blinkGreen($(element.closest('.checkbox')));
 				} else {
-					blinkGreen($(element.closest('.property-box')));
+					_Helpers.blinkGreen($(element.closest('.property-box')));
 				}
 			}
 		}
 	},
-	runCurrentEntitySaveAction: function () {
+	runCurrentEntitySaveAction: () => {
 		// this is the default action - it should always be overwritten by specific save actions and is only here to prevent errors
 		if (_Code.isDirty()) {
-			new MessageBuilder().warning('No save action is defined - but the editor is dirty!').requiresConfirmation().show();
+			new WarningMessage().text('No save action is defined - but the editor has unsaved changes!').requiresConfirmation().show();
 		}
 	},
 	saveEntityAction: (entity, callback, optionalFormDataModificationFunctions = []) => {
@@ -581,9 +596,9 @@ let _Code = {
 		let path = obj?.data?.path || '';
 
 		/* The tree construction is now based on obj.data.key, together with
-		 * additional information like type, parent etc. That means all nodes
-		 * must specify a data object (see below for example).
-		 */
+				 * additional information like type, parent etc. That means all nodes
+				 * must specify a data object (see below for example).
+				 */
 
 		if (id === '#') {
 
@@ -752,19 +767,6 @@ let _Code = {
 			}
 		}
 	},
-	unload: function() {
-
-		let allow = _Code.testAllowNavigation();
-		if (allow) {
-
-			_Editors.disposeAllEditors();
-
-			fastRemoveAllChildren($('.searchBox'));
-			fastRemoveAllChildren($('#code-main'));
-		}
-
-		return allow;
-	},
 	displayFunction: (result, data, dontSort, isSearch) => {
 
 		let path = data.path;
@@ -917,12 +919,7 @@ let _Code = {
 		}
 
 		if (!dontSort) {
-
-			list.sort((a, b) => {
-				if (a.text > b.text) { return 1; }
-				if (a.text < b.text) { return -1; }
-				return 0;
-			});
+			_Helpers.sort(list, 'text');
 		}
 
 		data.callback(list);
@@ -1100,7 +1097,7 @@ let _Code = {
 		_Code.updatePathLocationStack(data.path);
 		_Code.lastClickedPath = data.path;
 
-		_Code.codeContents.empty();
+		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 
 		let tagName       = data?.name;
 		let baseUrl       = location.origin + location.pathname;
@@ -1165,8 +1162,9 @@ let _Code = {
 		});
 	},
 	clearMainArea: () => {
-		fastRemoveAllChildren(_Code.codeContents[0]);
-		fastRemoveAllChildren($('#code-button-container')[0]);
+		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
+
+		_Code.runCurrentEntitySaveAction = null;
 	},
 	getDisplayNameInRecentsForType: (entity) => {
 
@@ -1337,7 +1335,7 @@ let _Code = {
 	},
 	displaySchemaNodeContent: (data) => {
 
-		fetch(Structr.rootUrl + data.id + '/schema').then(response => {
+		fetch(`${Structr.rootUrl}${data.id}/schema`).then(response => {
 
 			if (response.ok) {
 				return response.json();
@@ -1351,11 +1349,11 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
-			_Code.codeContents.empty();
+			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
 
-			let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
-			let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', _Code.codeContents), $('.tabs-content-container', _Code.codeContents), targetView);
+			let targetView  = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, 'basic');
+			let tabControls = _Schema.nodes.loadNode(entity, $('.tabs-container', )[0], $('.tabs-content-container', _Code.codeContents)[0], targetView);
 
 			// remove bulk edit save/discard buttons
 			for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
@@ -1386,38 +1384,19 @@ let _Code = {
 			// delete button
 			if (!entity.isPartOfBuiltInSchema) {
 				_Code.displaySvgActionButton('#type-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete type ' + entity.name, () => {
-					_Code.deleteSchemaEntity(entity, 'Delete type ' + entity.name + '?', 'This will delete all schema relationships as well, but no data will be removed.', data);
+					_Code.deleteSchemaEntity(entity, `Delete type ${entity.name}?`, 'This will delete all schema relationships as well, but no data will be removed.', data);
 				});
 			}
 
-			let disableButtons = () => {
-				saveButton.disabled = true;
-				cancelButton.disabled = true;
+			_Helpers.disableElements(true, saveButton, cancelButton);
 
-				saveButton.classList.add('disabled');
-				cancelButton.classList.add('disabled');
-			};
-			disableButtons();
-
-			let enableButtons = () => {
-				saveButton.removeAttribute('disabled');
-				cancelButton.removeAttribute('disabled');
-
-				saveButton.classList.remove('disabled');
-				cancelButton.classList.remove('disabled');
-			};
-
-			document.querySelector('#code-contents .tabs-content-container')?.childNodes[0]?.addEventListener('bulk-data-change', (e) => {
+			document.querySelector('#code-contents .tabs-content-container')?.addEventListener('bulk-data-change', (e) => {
 
 				e.stopPropagation();
 
 				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
 				let isDirty     = (changeCount > 0);
-				if (isDirty) {
-					enableButtons();
-				} else {
-					disableButtons();
-				}
+				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 
 				_Code.tellFirstElementToShowDirtyState(isDirty);
 			});
@@ -1431,11 +1410,11 @@ let _Code = {
 
 				Command.get(entity.targetId, null, (targetNode) => {
 
-					_Code.codeContents.empty();
+					_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 					_Code.codeContents.append(_Code.templates.propertyRemote({ data, entity, sourceNode, targetNode }));
 
 					let targetView  = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id, 'basic');
-					let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents), $('.tabs-content-container', _Code.codeContents), sourceNode, targetNode, targetView);
+					let tabControls = _Schema.relationships.loadRelationship(entity, $('.tabs-container', _Code.codeContents)[0], $('.tabs-content-container', _Code.codeContents)[0], sourceNode, targetNode, targetView);
 
 					// remove bulk edit save/discard buttons
 					for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
@@ -1468,22 +1447,7 @@ let _Code = {
 						});
 					}
 
-					let disableButtons = () => {
-						saveButton.disabled = true;
-						cancelButton.disabled = true;
-
-						saveButton.classList.add('disabled');
-						cancelButton.classList.add('disabled');
-					};
-					disableButtons();
-
-					let enableButtons = () => {
-						saveButton.removeAttribute('disabled');
-						cancelButton.removeAttribute('disabled');
-
-						saveButton.classList.remove('disabled');
-						cancelButton.classList.remove('disabled');
-					};
+					_Helpers.disableElements(true, saveButton, cancelButton);
 
 					document.querySelector('#code-contents .tabs-content-container')?.childNodes[0]?.addEventListener('bulk-data-change', (e) => {
 
@@ -1491,11 +1455,7 @@ let _Code = {
 
 						let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
 						let isDirty     = (changeCount > 0);
-						if (isDirty) {
-							enableButtons();
-						} else {
-							disableButtons();
-						}
+						_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 
 						_Code.tellFirstElementToShowDirtyState(isDirty);
 					});
@@ -1527,7 +1487,7 @@ let _Code = {
 
 			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
-			_Code.codeContents.empty();
+			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
@@ -1569,7 +1529,9 @@ let _Code = {
 			} else {
 
 				let apiTab = $('#tabView-api', _Code.codeContents);
-				apiTab.append(_Code.templates.openAPIBaseConfig({ element: result, availableTags: _Code.availableTags, includeMethodMarkup: true }));
+				apiTab.append(_Code.templates.openAPIBaseConfig({ type: result.type }));
+
+				_Code.populateOpenAPIBaseConfig(apiTab[0], result, _Code.availableTags);
 
 				let parameterTplRow = $('.template', apiTab);
 				let parameterContainer = parameterTplRow.parent();
@@ -1653,7 +1615,7 @@ let _Code = {
 
 				_Editors.getMonacoEditor(result, 'openAPIReturnType', apiTab[0].querySelector('.editor'), openAPIReturnTypeMonacoConfig);
 
-				Structr.activateCommentsInElement(apiTab[0]);
+				_Helpers.activateCommentsInElement(apiTab[0]);
 			}
 
 			// default buttons
@@ -1711,7 +1673,7 @@ let _Code = {
 				$('.checkbox.entity-method.hidden', buttons).removeClass('hidden');
 			}
 
-			Structr.activateCommentsInElement(buttons[0]);
+			_Helpers.activateCommentsInElement(buttons[0]);
 
 			_Code.updateDirtyFlag(result);
 
@@ -1755,6 +1717,22 @@ let _Code = {
 
 			_Editors.focusEditor(sourceEditor);
 		});
+	},
+	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
+
+		container.querySelector('[data-property="includeInOpenAPI"]').checked = (entity.includeInOpenAPI === true);
+
+		let tagsSelect = container.querySelector('#tags-select');
+
+		tagsSelect.insertAdjacentHTML('beforeend', ((entity.tags) ? entity.tags.map(tag => `<option selected>${tag}</option>`).join() : ''));
+		tagsSelect.insertAdjacentHTML('beforeend', availableTags.filter(tag => (!entity.tags || !entity.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join());
+
+		container.querySelector('[data-property="summary"]').value = entity.summary || '';
+
+		if (entity.type && entity.type !== 'SchemaNode') {
+
+			container.querySelector('[data-property="description"]').value = entity.description || '';
+		}
 	},
 	collectSchemaMethodParameters: () => {
 
@@ -1820,7 +1798,7 @@ let _Code = {
 		_WorkingSets.getWorkingSet(data.id, function(workingSet) {
 
 			_Code.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
-			_Code.codeContents.empty();
+			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
 			if (workingSet.name === _WorkingSets.recentlyUsedName) {
@@ -1949,36 +1927,39 @@ let _Code = {
 	},
 	displayCustomTypesContent: (data) => {
 
-		_Code.codeContents.append(_Code.templates.customTypes());
+		_Code.codeContents[0].insertAdjacentHTML('beforeend', _Code.templates.customTypes());
 
-		let createTypeForm = document.querySelector('#create-type-form');
-		let typeNameInput  = document.querySelector('#type-name');
+		let container = _Code.codeContents[0].querySelector('#create-type-container');
 
-		createTypeForm.addEventListener('submit', e => {
+		_Schema.nodes.showCreateNewTypeDialog(container);
 
-			e.preventDefault();
+		_Code.runCurrentEntitySaveAction = () => {
 
-			let newTypeData = {
-				type: 'SchemaNode',
-				name: typeNameInput.value
-			};
+			let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(container, {});
 
-			if (newTypeData.name === '') {
+			if (!typeData.name || typeData.name.trim() === '') {
 
-				blinkRed(typeNameInput);
+				_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
 
 			} else {
 
-				_Code.showSchemaRecompileMessage();
-
-				Command.create(newTypeData, (entity) => {
+				_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
 
 					_Code.refreshNode(data.path);
-					_Code.handleSelection(data);
-					_Code.hideSchemaRecompileMessage();
+
+					window.setTimeout(() => {
+						// tree needs to be refreshed - implement better solution using refresh_node.jstree event
+						_Code.findAndOpenNode(data.path + '/' + responseData.result[0], true);
+					}, 250);
+
+				}, rejectData => {
+
+					Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
 				});
 			}
-		});
+		};
+
+		_Code.displaySvgActionButton('#create-type-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'create', 'Create', _Code.runCurrentEntitySaveAction);
 	},
 	displayWorkingSetsContent: () => {
 		_Code.codeContents.append(_Code.templates.workingSets());
@@ -1997,7 +1978,7 @@ let _Code = {
 
 		Command.get(data.id, null, (entity) => {
 
-			_Schema.properties.appendLocalProperties($('.content-container', _Code.codeContents), entity, {
+			_Schema.properties.appendLocalProperties(document.querySelector('#code-contents .content-container'), entity, {
 
 				editReadWriteFunction: (property) => {
 					_Code.findAndOpenNode(data.path + '/' + property.id, true);
@@ -2025,7 +2006,7 @@ let _Code = {
 
 		Command.get(data.id, null, (entity) => {
 
-			_Schema.remoteProperties.appendRemote($('.content-container', _Code.codeContents), entity, () => {
+			_Schema.remoteProperties.appendRemote(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
 
 				// TODO: navigation should/could be possible in the code area as well - currently this is deactivated in schema.js
 
@@ -2046,7 +2027,7 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.views({ data: data }));
 
 		Command.get(data.id, null, (entity) => {
-			_Schema.views.appendViews($('.content-container', _Code.codeContents), entity, () => {
+			_Schema.views.appendViews(_Code.codeContents[0].querySelector('.content-container'), entity, () => {
 				_Code.refreshNode(data.path);
 			});
 
@@ -2068,7 +2049,7 @@ let _Code = {
 
 		Command.rest('SchemaMethod/schema?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
 
-			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), null, methods, () => {
+			_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), null, methods, () => {
 				_Code.refreshNode(data.path);
 			});
 
@@ -2088,7 +2069,7 @@ let _Code = {
 
 		Command.get(data.id, null, (entity) => {
 
-			_Schema.methods.appendMethods($('.content-container', _Code.codeContents), entity, entity.schemaMethods, () => {
+			_Schema.methods.appendMethods(_Code.codeContents[0].querySelector('.content-container'), entity, entity.schemaMethods, () => {
 				_Code.refreshNode(data.path);
 			});
 
@@ -2107,7 +2088,7 @@ let _Code = {
 		_Code.codeContents.append(_Code.templates.propertiesInherited({ data: data }));
 
 		Command.get(data.id, null, (entity) => {
-			_Schema.properties.appendBuiltinProperties($('.content-container', _Code.codeContents), entity);
+			_Schema.properties.appendBuiltinProperties(_Code.codeContents[0].querySelector('.content-container'), entity);
 		});
 	},
 	displayPropertyDetails: (data) => {
@@ -2182,7 +2163,7 @@ let _Code = {
 		}
 		activateTab(lastOpenTab || 'source');
 
-		Structr.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
+		_Helpers.activateCommentsInElement(_Code.codeContents[0], { insertAfter: true });
 
 		let functionPropertyMonacoConfig = {
 			language: 'auto',
@@ -2316,8 +2297,8 @@ let _Code = {
 				// update entity before storing the view to make sure that nonGraphProperties are correctly identified..
 				Command.get(view.schemaNode.id, null, (reloadedEntity) => {
 
-					let formData = _Code.collectChangedPropertyData(view);
-					let sortedAttrs = $('.property-attrs.view').sortedVals();
+					let formData                = _Code.collectChangedPropertyData(view);
+					let sortedAttrs             = $('.property-attrs.view').sortedVals();
 					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
 					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
@@ -2346,12 +2327,23 @@ let _Code = {
 
 		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
 			_Code.revertFormData(view);
-			_Code.displayViewSelect(view);
+			Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+
+				let select = document.querySelector('#view-properties .property-attrs');
+				for (let prop of data) {
+					let option = select.querySelector(`option[value="${prop.name}"]`);
+					if (option) {
+						option.selected = prop.isSelected;
+					}
+				}
+
+				select.dispatchEvent(new CustomEvent('chosen:updated'));
+			});
 		});
 
 		// delete button
 		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-			_Code.deleteSchemaEntity(view, 'Delete view' + ' ' + view.name + '?', 'Note: Builtin views will be restored in their initial configuration', data);
+			_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
 		});
 
 		_Code.updateDirtyFlag(view);
@@ -2370,27 +2362,17 @@ let _Code = {
 
 		Command.listSchemaProperties(view.schemaNode.id, view.name, (properties) => {
 
-			let propertySelectContainer = $('#view-properties');
-			fastRemoveAllChildren(propertySelectContainer[0]);
-			propertySelectContainer.append('<div class="view-properties-select"><select class="property-attrs view chosen-sortable" multiple="multiple"></select></div>');
-			let viewSelectElem = $('.property-attrs', propertySelectContainer);
-
-			let appendProperty = (prop) => {
-				let	name       = prop.name;
-				let isSelected = prop.isSelected ? ' selected="selected"' : '';
-				let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
-
-				viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
-			};
+			let viewSelectElem = document.querySelector('#view-properties .property-attrs');
 
 			if (view.sortOrder) {
+
 				for (let sortedProp of view.sortOrder.split(',')) {
 
 					let prop = properties.filter(prop => (prop.name === sortedProp));
 
 					if (prop.length) {
 
-						appendProperty(prop[0]);
+						_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop[0]);
 
 						properties = properties.filter(prop  => (prop.name !== sortedProp));
 					}
@@ -2398,16 +2380,16 @@ let _Code = {
 			}
 
 			for (let prop of properties) {
-				appendProperty(prop);
+				_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 			}
 
 			let changeFn = () => {
-				let sortedAttrs = viewSelectElem.sortedVals();
+				let sortedAttrs = $(viewSelectElem).sortedVals();
 				$('input#view-sort-order').val(sortedAttrs.join(','));
 				_Code.updateDirtyFlag(view);
 			};
 
-			viewSelectElem.chosen({
+			$(viewSelectElem).chosen({
 				search_contains: true,
 				width: '100%',
 				display_selected_options: false,
@@ -2422,7 +2404,7 @@ let _Code = {
 	},
 	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
 
-		let button     = Structr.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
+		let button     = _Helpers.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
 		button.addEventListener('click', callback);
 
 		let targetNode = document.querySelector(targetId);
@@ -2455,7 +2437,7 @@ let _Code = {
 
 		let parts = path.split('/').filter(p => p.length);
 		if (path.length === 0) { return; }
-		if (parts.length < 1) {	return; }
+		if (parts.length < 1) { return; }
 		if (depth > 15) { return; }
 
 		let id   = parts[depth];
@@ -2511,10 +2493,10 @@ let _Code = {
 		}
 	},
 	showSchemaRecompileMessage: () => {
-		Structr.showLoadingMessage('Schema is compiling', 'Please wait', 200);
+		_Helpers.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
 	},
 	hideSchemaRecompileMessage:  () => {
-		Structr.hideLoadingMessage();
+		_Helpers.hideNonBlockUIOverlay();
 	},
 	updatePathLocationStack: (path) => {
 
@@ -2643,9 +2625,9 @@ let _Code = {
 
 		let parent = parts.join('-');
 
-		Structr.confirmationPromiseNonBlockUI(`<h3>${title}</h3><p>${(text || '')}</p>`).then((answer) => {
+		_Helpers.confirmationPromiseNonBlockUI(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
-			if (answer === true) {
+			if (confirm === true) {
 
 				_Code.showSchemaRecompileMessage();
 				_Code.dirty = false;
@@ -2669,21 +2651,22 @@ let _Code = {
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
 		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
 
-		Structr.dialog('Run global schema method ' + name, () => {}, () => {
-			document.querySelector('#run-method')?.remove();
-			document.querySelector('#clear-log')?.remove();
-		}, ['run-global-schema-method-dialog']);
+		let { dialogText } = Structr.dialogSystem.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
 
-		dialogBtn.prepend(`
+		let runButton = Structr.dialogSystem.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
 		`);
-		window.setTimeout(() => { $('#run-method', dialogBtn).focus(); }, 50);
-		dialogBtn.append('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
-		let paramsOuterBox = Structr.createSingleDOMElementFromHTML(`
+		let clearButton = Structr.dialogSystem.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
+
+		window.setTimeout(() => {
+			runButton.focus();
+		}, 50);
+
+		let paramsOuterBox = _Helpers.createSingleDOMElementFromHTML(`
 			<div>
 				<div id="params">
 					<h3 class="heading-narrow">Parameters</h3>
@@ -2695,9 +2678,9 @@ let _Code = {
 				<pre id="log-output"></pre>
 			</div>
 		`);
-		dialog[0].appendChild(paramsOuterBox);
+		dialogText.appendChild(paramsOuterBox);
 
-		Structr.appendInfoTextToElement({
+		_Helpers.appendInfoTextToElement({
 			element: paramsOuterBox.querySelector('h3'),
 			text: "Parameters can be accessed in the called method by using the <code>retrieve()</code> function.",
 			css: { marginLeft: "5px" },
@@ -2707,7 +2690,7 @@ let _Code = {
 		let newParamTrigger = paramsOuterBox.querySelector('.add-param-action');
 		newParamTrigger.addEventListener('click', () => {
 
-			let newParam = Structr.createSingleDOMElementFromHTML(`
+			let newParam = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="param flex items-center mb-1">
 					<input class="param-name" placeholder="Parameter name">
 					<span class="px-2">=</span>
@@ -2717,15 +2700,15 @@ let _Code = {
 			`);
 
 			newParam.querySelector('.remove-action').addEventListener('click', () => {
-				newParam.remove();
+				_Helpers.fastRemoveElement(newParam);
 			});
 
 			newParamTrigger.parentNode.appendChild(newParam);
 		});
 
-		document.querySelector('#run-method')?.addEventListener('click', async () => {
+		let logOutput = paramsOuterBox.querySelector('#log-output');
 
-			let logOutput = document.getElementById('log-output');
+		runButton.addEventListener('click', async () => {
 
 			logOutput.textContent = 'Running method..\n';
 
@@ -2743,11 +2726,11 @@ let _Code = {
 			});
 
 			let text = await response.text();
-			logOutput.textContent = text +	 'Done.';
+			logOutput.textContent = text + 'Done.';
 		});
 
-		document.querySelector('#clear-log').addEventListener('click', () => {
-			document.querySelector('#log-output').textContent = '';
+		clearButton.addEventListener('click', () => {
+			logOutput.textContent = '';
 		});
 	},
 	activatePropertyValueInput: (inputId, id, name) => {
@@ -2761,7 +2744,7 @@ let _Code = {
 				data[name] = elem.val();
 
 				Command.setProperties(id, data, () => {
-					blinkGreen(elem);
+					_Helpers.blinkGreen(elem);
 					_TreeHelper.refreshTree('#code-tree');
 				});
 			}
@@ -2788,21 +2771,6 @@ let _Code = {
 		}
 
 		return errorPropertyNameForLinting;
-	},
-	debounce: (func, wait, immediate) => {
-		var timeout;
-
-		return function() {
-			var context = this, args = arguments;
-			var later = function() {
-				timeout = null;
-				if (!immediate) func.apply(context, args);
-			};
-			var callNow = immediate && !timeout;
-			clearTimeout(timeout);
-			timeout = setTimeout(later, wait);
-			if (callNow) func.apply(context, args);
-		};
 	},
 	refreshNode: (id) => {
 		if (_Code.codeTree) {
@@ -2881,16 +2849,15 @@ let _Code = {
 			</div>
 		`,
 		customTypes: config => `
-			<h2>Custom Types</h2>
-			<form id="create-type-form">
-				<div class="flex mb-4">
-					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type name" autocomplete="off" required>
-	
-					<button type="submit" class="create-form-button accept flex items-center px-3 py-1">
-						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green')}
-					</button>
+			<h2>Create New Type</h2>
+			<div id="method-buttons">
+				<div class="flex flex-wrap gap-x-4">
+					<div class="mb-2">
+						<div id="create-type-actions"></div>
+					</div>
 				</div>
-			</form>
+			</div>
+			<div id="create-type-container"></div>
 		`,
 		cypherProperty: config => `
 			<h2>CypherProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
@@ -2996,36 +2963,34 @@ let _Code = {
 		`,
 		openAPIBaseConfig: config => `
 			<div id="openapi-options" class="flex flex-col flex-grow">
-			
+
 				<div class="flex flex-wrap gap-8">
-			
+
 					<div class="min-w-48">
 						<label class="block mb-5">Enabled</label>
-						<input type="checkbox" data-property="includeInOpenAPI" ${config.element.includeInOpenAPI ? 'checked' : ''}> Include in OpenAPI output
+						<input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output
 					</div>
-			
+
 					<div class="min-w-48">
 						<label class="block mb-2" data-comment="Use tags to combine types and methods into an API. Each tag is available under its own OpenAPI endpoint (/structr/openapi/tag.json).">Tags</label>
 						<select id="tags-select" data-property="tags" multiple="multiple">
-							${config.element.tags ? config.element.tags.map(tag => `<option selected>${tag}</option>`).join() : ''}
-							${config.availableTags.filter(tag => (!config.element.tags || !config.element.tags.includes(tag))).map(tag => `<option>${tag}</option>`).join()}
 						</select>
 					</div>
-					
+
 					<div class="min-w-48">
 						<label class="block mb-2">Summary</label>
-						<input data-property="summary" value="${config.element.summary || ''}" type="text">
+						<input data-property="summary" type="text">
 					</div>
 
-					${(config.element.type === 'SchemaNode') ? '' : `
+					${(config.type === 'SchemaNode') ? '' : `
 						<div class="min-w-48">
 							<label class="block mb-2">Description</label>
-							<input data-property="description" value="${config.element.description || ''}" type="text">
+							<input data-property="description" type="text">
 						</div>
 					`}
 				</div>
 
-				${(config.includeMethodMarkup ? _Code.templates.openAPIMethodConfig() : '')}
+				${(config.type === 'SchemaMethod' ? _Code.templates.openAPIMethodConfig() : '')}
 			</div>
 		`,
 		openAPIMethodConfig: config => `
@@ -3098,7 +3063,9 @@ let _Code = {
 			<h2>Relationship (:${config.sourceNode.name})-[:${config.entity.relationshipType}]-&gt;(:${config.targetNode.name})</h2>
 			<div id="type-actions" class="mb-4"></div>
 
-			<div class="tabs-container"></div>
+			<div class="tabs-container code-tabs">
+				<ul></ul>
+			</div>
 			<div class="tabs-content-container flex-grow"></div>
 		`,
 		propertyOptions: config => `
@@ -3171,7 +3138,9 @@ let _Code = {
 			<h2>Type ${config.type.name}</h2>
 			<div id="type-actions" class="mb-4"></div>
 
-			<div class="tabs-container"></div>
+			<div class="tabs-container code-tabs">
+				<ul></ul>
+			</div>
 			<div class="tabs-content-container flex-grow"></div>
 		`,
 		viewOptions: config => `
@@ -3193,7 +3162,11 @@ let _Code = {
 						<label class="font-semibold">Properties</label>
 					</div>
 					<input type="text" id="view-sort-order" class="hidden" data-property="sortOrder" value="${config.view.sortOrder || ''}">
-					<div id="view-properties"></div>
+					<div id="view-properties">
+						<div class="view-properties-select">
+							${_Schema.templates.viewPropertiesSelect(config)}
+						</div>
+					</div>
 				</div>
 			</div>
 		`,
@@ -3216,7 +3189,7 @@ let _Code = {
 				</p>
 			</div>
 
-			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;" class="fit-to-height"></div>
+			<div id="group-contents" style="height: calc(100% - 200px); background-color: #fff;"></div>
 		`,
 		workingSets: config => `
 			<h2>Working Sets</h2>
@@ -3238,8 +3211,7 @@ let _WorkingSets = {
 
 	recentlyUsedName: 'Recently Used Types',
 	deleted: {},
-
-	getWorkingSets: function(callback) {
+	getWorkingSets: (callback) => {
 
 		Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: 'layout' }, (result) => {
 
@@ -3279,8 +3251,7 @@ let _WorkingSets = {
 
 		}, true, null, 'id,type,name,content,owner');
 	},
-
-	getWorkingSet: function(id, callback) {
+	getWorkingSet: (id, callback) => {
 
 		Command.get(id, null, (result) => {
 
@@ -3295,8 +3266,7 @@ let _WorkingSets = {
 			});
 		});
 	},
-
-	getWorkingSetContents: function(id, callback) {
+	getWorkingSetContents: (id, callback) => {
 
 		Command.get(id, null, (result) => {
 
@@ -3305,22 +3275,11 @@ let _WorkingSets = {
 
 			Command.query('SchemaNode', 1000, 1, 'name', true, {}, (result) => {
 
-				let schemaNodes = [];
-
-				for (var schemaNode of result) {
-
-					if (positions[schemaNode.name]) {
-
-						schemaNodes.push(schemaNode);
-					}
-				}
-
-				callback(schemaNodes);
+				callback(result.filter(schemaNode => positions[schemaNode.name]));
 			});
 		});
 	},
-
-	addTypeToSet: function(id, type, callback) {
+	addTypeToSet: (id, type, callback) => {
 
 		Command.get(id, null, (result) => {
 
@@ -3339,8 +3298,7 @@ let _WorkingSets = {
 			}
 		});
 	},
-
-	removeTypeFromSet: function(id, type, callback) {
+	removeTypeFromSet: (id, type, callback) => {
 
 		Command.get(id, null, (result) => {
 
@@ -3353,8 +3311,7 @@ let _WorkingSets = {
 			Command.setProperty(id, 'content', JSON.stringify(content), false, callback);
 		});
 	},
-
-	createNewSetAndAddType: function(name, callback, setName) {
+	createNewSetAndAddType: (name, callback, setName) => {
 
 		Command.query('SchemaNode', 10000, 1, 'name', true, { }, (result) => {
 
@@ -3383,15 +3340,13 @@ let _WorkingSets = {
 
 		}, true, null, 'id,name');
 	},
-
-	deleteSet: function(id, callback) {
+	deleteSet: (id, callback) => {
 
 		_WorkingSets.deleted[id] = true;
 
 		Command.deleteNode(id, false, callback);
 	},
-
-	updatePositions: function(id, positions, callback) {
+	updatePositions: (id, positions, callback) => {
 
 		if (positions && !_WorkingSets.deleted[id]) {
 
@@ -3414,7 +3369,6 @@ let _WorkingSets = {
 			});
 		}
 	},
-
 	addRecentlyUsed: (name) => {
 
 		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {
@@ -3434,7 +3388,6 @@ let _WorkingSets = {
 
 		}, true, null, 'id,name');
 	},
-
 	clearRecentlyUsed: (callback) => {
 
 		Command.query('ApplicationConfigurationDataNode', 1, 1, 'name', true, { name: _WorkingSets.recentlyUsedName }, (result) => {

@@ -479,27 +479,6 @@ let Command = {
 		return StructrWS.sendObj(obj, callback);
 	},
 	/**
-	 * Send an APPEND_FILE command to the server.
-	 *
-	 * The server will append the file or folder node with the given id
-	 * as child of the parent folder node with the given parent id.
-	 *
-	 * If the node was child of another folder before, it will be
-	 * removed from the former parent before being appended
-	 * to the new one.
-	 *
-	 */
-	appendFile: function(id, parentId, callback) {
-		let obj = {
-			command: 'APPEND_FILE',
-			id: id,
-			data: {
-				parentId: parentId
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
-	/**
 	 * Send an APPEND_CONTENT_ITEM command to the server.
 	 */
 	appendContentItem: function(id, parentId, callback) {
@@ -892,7 +871,7 @@ let Command = {
 			relData: relData
 		};
 		if (!obj.data.name) {
-			obj.data.name = 'New ' + obj.data.type + ' ' + Math.floor(Math.random() * (999999 - 1));
+			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
 		}
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
@@ -911,7 +890,7 @@ let Command = {
 			data: nodeData
 		};
 		if (!obj.data.name) {
-			obj.data.name = 'New ' + obj.data.type + ' ' + Math.floor(Math.random() * (999999 - 1));
+			obj.data.name = `New ${obj.data.type} ${Math.floor(Math.random() * (999999 - 1))}`;
 		}
 		if (obj.data.isContent && !obj.data.content) {
 			obj.data.content = obj.data.name;
@@ -1085,7 +1064,7 @@ let Command = {
 				parent: file.parent,
 				hasParent: file.hasParent,
 				parentId: file.parentId,
-				type: (Structr.isImage(file.type) ? 'Image' : (Structr.isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
+				type: (_Helpers.isImage(file.type) ? 'Image' : (_Helpers.isVideo(file.type) && Structr.isModulePresent('media')) ? 'VideoFile' : 'File')
 			}
 		};
 		return StructrWS.sendObj(obj, callback);
@@ -1342,10 +1321,10 @@ let Command = {
 	getApplicationConfigurationDataNodesGroupedByUser: function(configType, callback) {
 		return Command.query('ApplicationConfigurationDataNode', 1000, 1, 'name', true, { configType: configType }, function(data) {
 
-			let grouped = {};
+			let grouped          = {};
 			let ownerlessConfigs = [];
 
-			data.forEach(function(n) {
+			for (let n of data) {
 				if (n.owner) {
 					if (!grouped[n.owner.name]) {
 						grouped[n.owner.name] = [];
@@ -1354,16 +1333,10 @@ let Command = {
 				} else {
 					ownerlessConfigs.push(n);
 				}
-			});
+			}
 
 			let ownerNames = Object.keys(grouped);
-
-			// sort by name
-			ownerNames.sort(function (a, b) {
-				if (a > b) { return 1; }
-				if (a < b) { return -1; }
-				return 0;
-			});
+			ownerNames.sort();
 
 			let sortedAndGrouped = [];
 
@@ -1388,14 +1361,14 @@ let Command = {
 				});
 			}
 
-			// add the other configs grouped by owner and sorted by ownername
-			ownerNames.forEach(function (on) {
+			// add the other configs grouped by owner and sorted by owner name
+			for (let on of ownerNames) {
 				sortedAndGrouped.push({
 					label: on,
 					ownerless: false,
 					configs: grouped[on]
 				});
-			});
+			}
 
 			callback(sortedAndGrouped);
 

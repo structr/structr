@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 
 	Structr.registerModule(Importer);
 
@@ -46,16 +46,14 @@ let Importer = {
 		graphTypes: []
 	},
 
-	init: function() {
-	},
-	resize: function() {
-	},
+	init: () => {},
+	resize: () => {},
 	onload: function() {
 
 		Importer.init();
 
-		Structr.mainContainer.innerHTML = Importer.templates.main();
-		Structr.functionBar.innerHTML   = Importer.templates.functions();
+		Structr.setMainContainerHTML(Importer.templates.main());
+		Structr.setFunctionBarHTML(Importer.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -68,7 +66,7 @@ let Importer = {
 			let jobId = parseInt($('#cancel-all-queued-after-job-id').val());
 
 			if (isNaN(jobId)) {
-				new MessageBuilder().warning("Unable to parse job id").show();
+				new WarningMessage().text("Unable to parse job id").show();
 			} else {
 				Command.fileImport('cancelAllAfter', jobId, () => {
 
@@ -82,9 +80,8 @@ let Importer = {
 
 		Structr.unblockMenu(100);
 	},
-	unload: function() {
+	unload: () => {
 		Importer.schemaTypeCachePopulated = false;
-		Importer.restoreButtons();
 	},
 	isShowNotifications: function() {
 		return UISettings.getValueForSetting(UISettings.importer.settings.showNotificationsKey);
@@ -120,10 +117,10 @@ let Importer = {
 		}, 250);
 
 	},
-	createRowForJob: function (job) {
+	createRowForJob: (job) => {
 		return $(`<tr><td>${job.jobId}</td><td>${job.jobtype}</td><td>${job.username}</td>${Importer.createJobInfoHTML(job)}<td>${job.status}</td><td>${Importer.createActionButtons(job)}</td></tr>`);
 	},
-	createJobInfoHTML:function(job) {
+	createJobInfoHTML: (job) => {
 		switch (job.jobtype) {
 			case 'XML':
 			case 'CSV':
@@ -136,7 +133,7 @@ let Importer = {
 				return '<td colspan=4 class="placeholderText"> - not applicable - </td>';
 		}
 	},
-	createActionButtons: function (job) {
+	createActionButtons: (job) => {
 		let actionHtml = '';
 
 		switch (job.jobtype) {
@@ -171,38 +168,6 @@ let Importer = {
 	createActionButton: function (action, jobId, content) {
 		return `<button class="import-job-action" data-action="${action}" data-job-id="${jobId}">${content}</button>`;
 	},
-
-	initializeButtons: function(start, next, prev, close) {
-
-		if (prev) {
-			dialogBtn.prepend('<button id="prev-element">Previous</button>');
-		}
-
-		if (next) {
-			dialogBtn.prepend('<button id="next-element">Next</button>');
-		}
-
-		if (start) {
-			dialogBtn.prepend('<button class="action" id="start-import">Start import</button>');
-		}
-
-		if (!close) {
-
-			dialogCancelButton.addClass('hidden');
-
-		} else {
-
-			dialogCancelButton.on('click', Importer.unload);
-		}
-	},
-	restoreButtons: function() {
-		dialogCancelButton.removeClass('hidden');
-		$('#start-import').remove();
-		$('#next-element').remove();
-		$('#prev-element').remove();
-		$('#csv-configurations').remove();
-		$('#xml-configurations').remove();
-	},
 	updateConfigSelector: (elem, importType) => {
 
 		Command.getApplicationConfigurationDataNodesGroupedByUser(importType + '-import', (grouped) => {
@@ -224,19 +189,19 @@ let Importer = {
 
 		if (name && name.length) {
 
-			Command.createApplicationConfigurationDataNode(importType + '-import', name, JSON.stringify(configuration), (data) => {
+			Command.createApplicationConfigurationDataNode(`${importType}-import`, name, JSON.stringify(configuration), (data) => {
 
 				if (!data.error) {
 
-					new MessageBuilder().success("Import Configuration saved").show();
+					new SuccessMessage().text('Import Configuration saved').show();
 
 					Importer.updateConfigSelector(elem, importType);
 					inputElem.val('');
 
-					blinkGreen(elem);
+					_Helpers.blinkGreen(elem);
 
 				} else {
-					new MessageBuilder().error().title(data.error).text(data.message).show();
+					new ErrorMessage().title(data.error).text(data.message).show();
 				}
 			});
 
@@ -252,13 +217,13 @@ let Importer = {
 
 			if (!data.error) {
 
-				new MessageBuilder().success("Import Configuration saved").show();
+				new SuccessMessage().text("Import Configuration saved").show();
 
-				blinkGreen(elem);
+				_Helpers.blinkGreen(elem);
 
 			} else {
 
-				new MessageBuilder().error().title(data.error).text(data.message).show();
+				new ErrorMessage().title(data.error).text(data.message).show();
 			}
 		});
 	},
@@ -271,42 +236,33 @@ let Importer = {
 			console.log(e);
 		}
 	},
-	configSelectorChangeHandler: (elem, importType) => {
+	configSelectorChangeHandler: (selectElement, importType) => {
 
-		let updateImportConfigButton = $('#update-' + importType + '-config-button');
-		let loadImportConfigButton   = $('#load-' + importType + '-config-button');
-		let deleteImportConfigButton = $('#delete-' + importType + '-config-button');
-		let selectedOption           = $(':selected:not(:disabled)', elem);
+		let updateImportConfigButton = document.querySelector(`#update-${importType}-config-button`);
+		let loadImportConfigButton   = document.querySelector(`#load-${importType}-config-button`);
+		let deleteImportConfigButton = document.querySelector(`#delete-${importType}-config-button`);
+		let selectedOption           = selectElement[0].querySelector(':checked:not(:disabled)');
 
-		if (selectedOption.length === 0) {
+		if (!selectedOption) {
 
-			Structr.disableButton(updateImportConfigButton);
-			Structr.disableButton(loadImportConfigButton);
-			Structr.disableButton(deleteImportConfigButton);
+			_Helpers.disableElements(true, updateImportConfigButton, loadImportConfigButton, deleteImportConfigButton);
 
 		} else {
 
-			Structr.enableButton(loadImportConfigButton);
+			_Helpers.enableElement(loadImportConfigButton);
 
-			let username = selectedOption.closest('optgroup').prop('label');
-
-			if (username !== 'null' && username !== StructrWS.me.username) {
-				Structr.disableButton(updateImportConfigButton);
-				Structr.disableButton(deleteImportConfigButton);
-			} else {
-				Structr.enableButton(updateImportConfigButton);
-				Structr.enableButton(deleteImportConfigButton);
-			}
+			let username = selectedOption.closest('optgroup').label;
+			_Helpers.disableElements((username !== 'null' && username !== StructrWS.me.username), updateImportConfigButton, deleteImportConfigButton);
 		}
 	},
 	deleteImportConfiguration: (elem, importType) => {
 
 		Command.deleteNode(elem.val(), false, () => {
 			Importer.updateConfigSelector(elem, importType);
-			blinkGreen(elem);
+			_Helpers.blinkGreen(elem);
 		});
 	},
-	importCSVDialog: function(file) {
+	importCSVDialog: (file) => {
 
 		// define data structure here to be able to use it in callbacks etc. below
 		let mixedMappingConfig = {
@@ -316,11 +272,11 @@ let Importer = {
 
 		Importer.clearSchemaTypeCache();
 
-		Structr.dialog('Import CSV from ' + file.name, function() {}, function() {});
+		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Import CSV from ${file.name}`, Importer.unload);
 
-		Importer.initializeButtons(true, false, false, true);
+		let startButton = Structr.dialogSystem.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 
-		dialogMeta.append(Importer.templates.dialogConfigurations({type: 'csv'}));
+		dialogMeta.insertAdjacentHTML('beforeend', Importer.templates.dialogConfigurations({type: 'csv'}));
 
 		let importConfigSelector = $('#load-csv-config-selector');
 		importConfigSelector.on('change', function () {
@@ -383,7 +339,7 @@ let Importer = {
 
 						} else {
 
-							new MessageBuilder().warning('Type ' + config.targetType + ' from loaded configuration does not exist. This may be due to an outdated configuration.').show();
+							new WarningMessage().text(`Type ${config.targetType} from loaded configuration does not exist. This may be due to an outdated configuration.`).show();
 							Importer.customTypesOnly = true;
 						}
 					}
@@ -407,7 +363,7 @@ let Importer = {
 			if (configInfo.errors.length > 0) {
 
 				for (let e of configInfo.errors) {
-					new MessageBuilder().title(e.title).error(e.message).show();
+					new ErrorMessage().title(e.title).text(e.message).show();
 				}
 
 			} else {
@@ -423,7 +379,7 @@ let Importer = {
 			if (configInfo.errors.length > 0) {
 
 				for (let e of configInfo.errors){
-					new MessageBuilder().title(e.title).error(e.message).show();
+					new ErrorMessage().title(e.title).text(e.message).show();
 				}
 
 			} else {
@@ -437,16 +393,14 @@ let Importer = {
 		});
 
 		// load first lines to display a sample of the data
-		fetch(Structr.rootUrl + 'File/' + file.id + '/getFirstLines', { method: 'POST' }).then(response => response.json()).then(data => {
+		fetch(`${Structr.rootUrl}File/${file.id}/getFirstLines`, { method: 'POST' }).then(response => response.json()).then(data => {
 
 			if (data && data.result) {
 
 				let results   = Papa.parse(data.result.lines);
 				let delim     = results.meta.delimiter;
 				let qc        = data.result.lines.substring(0,1);
-				let html      = Importer.templates.dialogCSV({ data: data, delim: delim, qc: qc, importType: "node" });
-				let container = $(html);
-				dialog.append(container);
+				dialogText.insertAdjacentHTML('beforeend', Importer.templates.dialogCSV({ data: data, delim: delim, qc: qc, importType: "node" }));
 
 				Importer.formatImportTypeSelectorDialog(file, mixedMappingConfig);
 
@@ -578,7 +532,7 @@ let Importer = {
 		// clear current mapping list
 		propertySelector.empty();
 
-		fetch(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', {
+		fetch(`${Structr.rootUrl}File/${file.id}/getCSVHeaders`, {
 			method: 'POST',
 			body: JSON.stringify({
 				delimiter: $('#delimiter').val(),
@@ -591,7 +545,7 @@ let Importer = {
 			propertySelector.append('<div class="attr-mapping"><table><thead><tr><th>Column name</th><th class="transform-head">Transformation (optional)</th><th></th></tr></thead><tbody id="row-container"></tbody></table></div>');
 
 			let helpText = 'Specify optional StructrScript expression here to transform the input value.<br>The data key is &quot;input&quot; and the return value of the expression will be imported.<br><br><b>Example</b>: capitalize(input)';
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				text: helpText,
 				element: $('th.transform-head', propertySelector),
 				css: {
@@ -609,8 +563,9 @@ let Importer = {
 					typeConfig['mappings']   = data.transforms;
 				};
 
-				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, function() {
+				Importer.displayImportPropertyMapping(type, csvHeaders.result.headers, $('#row-container'), names, true, typeConfig, () => {
 
+					_Helpers.enableElement($('#start-import')[0]);
 					$('#start-import').off('click').on('click', function() {
 
 						let configInfo = Importer.collectCSVImportConfigurationInfo();
@@ -619,12 +574,12 @@ let Importer = {
 						if (!allowImport) {
 
 							configInfo.errors.forEach(function(e) {
-								new MessageBuilder().title(e.title).error(e.message).show();
+								new ErrorMessage().title(e.title).text(e.message).show();
 							});
 
 						} else {
 
-							fetch(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', {
+							fetch(`${Structr.rootUrl}File/${file.id}/doCSVImport`, {
 								method: 'POST',
 								body: JSON.stringify(configInfo.config)
 							});
@@ -723,14 +678,11 @@ let Importer = {
 			blacklist.push('id');
 		};
 
-		fetch(Structr.rootUrl + '_schema/' + config.type + '/all').then(response => response.json()).then(typeInfo => {
+		fetch(`${Structr.rootUrl}_schema/${config.type}/all`).then(response => response.json()).then(typeInfo => {
 
 			if (typeInfo && typeInfo.result) {
 
-				// sort by name
-				typeInfo.result.sort((a, b) => {
-					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
-				});
+				_Helpers.sort(typeInfo.result, 'jsonName');
 
 				let mapping = {};
 
@@ -787,7 +739,7 @@ let Importer = {
 			}
 		});
 	},
-	checkSelection: function(typeConfig, sourceName, targetName) {
+	checkSelection: (typeConfig, sourceName, targetName) => {
 
 		if (typeConfig && typeConfig.properties) {
 
@@ -795,8 +747,8 @@ let Importer = {
 
 		} else if (sourceName && sourceName.length && targetName && targetName.length) {
 
-			var src      = sourceName.toLowerCase().replace(/\W/g, '');
-			var tgt      = targetName.toLowerCase().replace(/\W/g, '');
+			let src      = sourceName.toLowerCase().replace(/\W/g, '');
+			let tgt      = targetName.toLowerCase().replace(/\W/g, '');
 			return src === tgt;// || src.indexOf(tgt) >= 0 || tgt.indexOf(src) >= 0;
 		}
 
@@ -806,15 +758,17 @@ let Importer = {
 
 		let configuration = {};
 
-		Structr.dialog('Import XML from ' + file.name, function() {}, function() {});
+		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Import XML from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
 
-		Importer.initializeButtons(true, true, true, true, true);
+		let prevButton = Structr.dialogSystem.prependCustomDialogButton('<button id="prev-element">Previous</button>');
+		let nextButton = Structr.dialogSystem.prependCustomDialogButton('<button id="next-element">Next</button>');
+		let startButton = Structr.dialogSystem.prependCustomDialogButton('<button class="action" id="start-import">Start import</button>');
 
 		let html = Importer.templates.dialogConfigurations({type: 'xml'});
-		dialogMeta.append(html);
+		dialogMeta.insertAdjacentHTML('beforeend', html);
 
 		let importConfigSelector = $('#load-xml-config-selector');
-		importConfigSelector.on('change', function () {
+		importConfigSelector.on('change', () => {
 			Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
 		});
 		Importer.configSelectorChangeHandler(importConfigSelector, 'xml');
@@ -823,7 +777,7 @@ let Importer = {
 
 		$('#load-xml-config-button').on('click', function() {
 
-			Importer.loadImportConfiguration(importConfigSelector, function(data) {
+			Importer.loadImportConfiguration(importConfigSelector, (data) => {
 
 				if (data && data.content) {
 
@@ -849,7 +803,7 @@ let Importer = {
 			});
 		});
 
-		dialog.append(`
+		dialogText.insertAdjacentHTML('beforeend', `
 			<div id="xml-import">
 				<div id="left">
 					<h2>Document Structure</h2>
@@ -871,15 +825,8 @@ let Importer = {
 			</div>
 		`);
 
-		$('#cancel-button').on('click', function() {
-			// close dialog
-			$.unblockUI({
-				fadeOut: 25
-			});
-			Importer.unload();
-		});
+		nextButton.addEventListener('click', () => {
 
-		$('#next-element').on('click', function() {
 			let elem = $('td.xml-mapping.selected').parent('tr').next().children('td.xml-mapping');
 			if (elem && elem.get(0)) {
 				elem.get(0).scrollIntoView(false);
@@ -887,7 +834,8 @@ let Importer = {
 			}
 		});
 
-		$('#prev-element').on('click', function() {
+		prevButton.addEventListener('click', () => {
+
 			let elem = $('td.xml-mapping.selected').parent('tr').prev().children('td.xml-mapping');
 			if (elem && elem.get(0)) {
 				elem.get(0).scrollIntoView(false);
@@ -895,28 +843,28 @@ let Importer = {
 			}
 		});
 
-		$('#start-import').off('click').on('click', async () => {
+		startButton.addEventListener('click', async () => {
 
-			await fetch(Structr.rootUrl + 'File/' + file.id + '/doXMLImport', {
+			await fetch(`${Structr.rootUrl}File/${file.id}/doXMLImport`, {
 				method: 'POST',
 				body: JSON.stringify(configuration)
 			});
 		});
 
-		$('#save-xml-config-button').on('click', function() {
+		$('#save-xml-config-button').on('click', () => {
 			Importer.saveImportConfiguration(importConfigSelector, 'xml', configuration);
 		});
 
-		$('#update-xml-config-button').on('click', function() {
+		$('#update-xml-config-button').on('click', () => {
 			Importer.updateImportConfiguration(importConfigSelector, configuration);
 		});
 
-		$('#delete-xml-config-button').on('click', function() {
+		$('#delete-xml-config-button').on('click', () => {
 			Importer.deleteImportConfiguration(importConfigSelector, 'xml');
 		});
 
 		let xmlConfig = $('#xml-config');
-		fetch(Structr.rootUrl + 'File/' + file.id + '/getXMLStructure', { method: 'POST' }).then(response => response.json()).then(data => {
+		fetch(`${Structr.rootUrl}File/${file.id}/getXMLStructure`, { method: 'POST' }).then(response => response.json()).then(data => {
 
 			if (data && data.result) {
 
@@ -1296,10 +1244,7 @@ let Importer = {
 
 			if (typeInfo && typeInfo.result) {
 
-				// sort by name
-				typeInfo.result.sort((a, b) => {
-					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
-				});
+				_Helpers.sort(typeInfo.result, 'jsonName');
 
 				let selectedString = '';
 				let longestMatch   = 0;
@@ -1367,7 +1312,7 @@ let Importer = {
 
 	formatMixedImportDialog: (file, mixedMappingConfig) => {
 
-		Structr.appendInfoTextToElement({
+		_Helpers.appendInfoTextToElement({
 			text: "Use the select box labelled &quot;Add target type..&quot; to add type mappings.",
 			element: $('#type-mapping-title'),
 			css: {
@@ -1386,18 +1331,20 @@ let Importer = {
 
 		$('#types-container').empty();
 		$('#start-import').off('click');
+		_Helpers.disableElement($('#start-import')[0]);
 
 		customOnlyCheckbox.off('change').on('change', function() {
 			Importer.customTypesOnly = $(this).prop('checked');
 			Importer.updateSchemaTypeSelector(targetTypeSelector);
 			$('#types-container').empty();
 			$('#start-import').off('click');
+			_Helpers.disableElement($('#start-import')[0]);
 		});
 
 		Importer.updateSchemaTypeSelector(targetTypeSelector);
 
 		// collect CSV headers to use
-		fetch(Structr.rootUrl + 'File/' + file.id + '/getCSVHeaders', {
+		fetch(`${Structr.rootUrl}File/${file.id}/getCSVHeaders`, {
 			method: 'POST',
 			body: JSON.stringify({
 				delimiter: $('#delimiter').val(),
@@ -1480,6 +1427,7 @@ let Importer = {
 			displayMatchingPropertiesOnly: true,
 			onLoadComplete: () => {
 
+				_Helpers.enableElement($('#start-import')[0]);
 				$('#start-import').off('click').on('click', function() {
 
 					let configInfo = Importer.collectCSVImportConfigurationInfo();
@@ -1488,14 +1436,14 @@ let Importer = {
 					if (!allowImport) {
 
 						for (let e of configInfo.errors) {
-							new MessageBuilder().title(e.title).error(e.message).show();
+							new ErrorMessage().title(e.title).text(e.message).show();
 						}
 
 					} else {
 
 						configInfo.config.mixedMappings = mixedMappingConfig.mappedTypes;
 
-						fetch(Structr.rootUrl + 'File/' + file.id + '/doCSVImport', {
+						fetch(`${Structr.rootUrl}File/${file.id}/doCSVImport`, {
 							method: 'POST',
 							body: JSON.stringify(configInfo.config)
 						});
@@ -1518,14 +1466,11 @@ let Importer = {
 			blacklist.push('id');
 		}
 
-		fetch(Structr.rootUrl + '_schema/' + config.type + '/all').then(response => response.json()).then(typeInfo => {
+		fetch(`${Structr.rootUrl}_schema/${config.type}/all`).then(response => response.json()).then(typeInfo => {
 
 			if (typeInfo && typeInfo.result) {
 
-				// sort by name
-				typeInfo.result.sort(function(a, b) {
-					return a.jsonName > b.jsonName ? 1 : a.jsonName < b.jsonName ? -1 : 0;
-				});
+				_Helpers.sort(typeInfo.result, 'jsonName');
 
 				let mapping = config.mixedMappingConfig;
 
@@ -1645,11 +1590,11 @@ let Importer = {
 		`,
 		functions: config => `
 			<div class="flex flex-grow">
-			
+
 				<button class="refresh flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Refresh
 				</button>
-			
+
 				<div class="button-and-input inline-flex items-center">
 
 					<label for="cancel-all-queued-after-job-id" class="mr-2">
@@ -1659,11 +1604,11 @@ let Importer = {
 					<input size="6" type="text" id="cancel-all-queued-after-job-id" placeholder="Job ID">
 
 					<button id="cancel-all-queued-after" class="inline-flex items-center ml-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Cancel Job
 					</button>
 
 				</div>
-			
+
 			</div>
 		`,
 		dialogConfigurations: config => `
