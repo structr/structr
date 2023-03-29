@@ -19,21 +19,13 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletRequest;
-import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
-import org.structr.api.service.LicenseManager;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.Services;
 import org.structr.core.function.StructrEnvFunction;
-import org.structr.core.property.ArrayProperty;
-import org.structr.core.property.DateProperty;
-import org.structr.core.property.GenericProperty;
-import org.structr.core.property.StringProperty;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;

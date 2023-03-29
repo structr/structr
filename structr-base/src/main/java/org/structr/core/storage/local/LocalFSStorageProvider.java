@@ -29,10 +29,9 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
-import java.util.HashSet;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.WRITE;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);

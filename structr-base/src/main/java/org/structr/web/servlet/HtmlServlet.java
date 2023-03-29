@@ -54,6 +54,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.UuidProperty;
 import org.structr.core.script.Scripting;
 import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.auth.AuthHelper;
@@ -70,6 +71,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.*;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -86,8 +88,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.core.property.UuidProperty;
-import org.structr.web.entity.dom.DOMElement;
 
 /**
  * Main servlet for content rendering.
