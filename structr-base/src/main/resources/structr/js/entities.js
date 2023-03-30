@@ -18,7 +18,6 @@
  */
 let _Entities = {
 	selectedObject: {},
-	activeElements: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
 	activeEditTabPrefix: 'structrActiveEditTab_' + location.port,
 	selectedObjectIdKey: 'structrSelectedObjectId_' + location.port,

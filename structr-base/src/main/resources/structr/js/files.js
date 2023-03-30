@@ -1506,7 +1506,6 @@ let _Files = {
 				return true;
 			}
 		};
-		globalFinalizationRegistry.register(checkForUnsaved, 'checkForUnsaved');
 
 		let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
 
@@ -1562,9 +1561,6 @@ let _Files = {
 				_Editors.updateMonacoEditorLanguage(editor, language);
 			});
 		});
-
-		globalFinalizationRegistry.register(isTemplateCheckbox, 'isTemplateCheckbox');
-		globalFinalizationRegistry.register(showPreviewCheckbox, 'showPreviewCheckbox');
 
 		showPreviewCheckbox.addEventListener('change', () => {
 

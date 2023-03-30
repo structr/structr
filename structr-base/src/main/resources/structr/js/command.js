@@ -1110,13 +1110,13 @@ let Command = {
 	 *
 	 * The optional callback function will be executed for each node in the result set.
 	 */
-	listActiveElements: function(pageId, callback) {
-		let obj = {
-			command: 'LIST_ACTIVE_ELEMENTS',
-			id: pageId
-		};
-		return StructrWS.sendObj(obj, callback);
-	},
+	// listActiveElements: function(pageId, callback) {
+	// 	let obj = {
+	// 		command: 'LIST_ACTIVE_ELEMENTS',
+	// 		id: pageId
+	// 	};
+	// 	return StructrWS.sendObj(obj, callback);
+	// },
 	listLocalizations: (pageId, locale, detailObjectId, queryString) => {
 		return new Promise((resolve, reject) => {
 			let obj = {

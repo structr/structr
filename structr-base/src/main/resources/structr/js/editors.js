@@ -439,7 +439,6 @@ let _Editors = {
 		}
 
 		let monacoInstance = monaco.editor.create(domElement, monacoConfig);
-		globalFinalizationRegistry.register(monacoInstance, 'monacoInstance');
 
 		domElement.dataset['monacoEntityId']           = entity.id;
 		domElement.dataset['monacoEntityPropertyName'] = propertyName;
