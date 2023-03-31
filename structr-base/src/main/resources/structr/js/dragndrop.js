@@ -46,19 +46,6 @@ let _Dragndrop = {
 				let self = $(this), related;
 
 				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
-
-				if (!sourceId) {
-					// palette element dragged
-
-					let d = $(ui.draggable);
-					tag   = d.text();
-					if (d.attr('subkey')) {
-						related = {};
-						related.subKey = d.attr('subkey');
-						related.isCollection = (d.attr('collection') === 'true');
-					}
-				}
-
 				let targetId = Structr.getId(self);
 
 				if (self.hasClass('jstree-wholerow')) {
@@ -237,7 +224,7 @@ let _Dragndrop = {
 	 * is undefined. This is the case if an element was dragged from the
 	 * HTML elements palette.
 	 */
-	dropAction: function(source, target, pageId, tag, related) {
+	dropAction: (source, target, pageId, tag, related) => {
 
 		if (source && pageId && source.pageId && pageId !== source.pageId) {
 
@@ -435,42 +422,9 @@ let _Dragndrop = {
 
 		return true;
 	},
-	contentItemDropped: function(source, target) {
+	contentItemDropped: (source, target) => {
 
-		if (source.id === target.id) {
-			return false;
-		}
-
-		if (_Contents.selectedElements.length > 1) {
-
-			let nodeIds = [..._Contents.selectedElements].map(el => Structr.getId(el));
-
-			$.each(_Contents.selectedElements, function(i, contentEl) {
-
-				let contentId = Structr.getId(contentEl);
-
-				if (contentId === target.id) {
-					return false;
-				}
-
-				Command.appendContentItem(contentId, target.id, () => {
-					if (refreshTimeout) {
-						window.clearTimeout(refreshTimeout);
-					}
-					refreshTimeout = window.setTimeout(() => {
-						_Contents.refreshTree();
-						refreshTimeout = 0;
-					}, 100);
-				});
-			});
-			_Contents.selectedElements = [];
-
-		} else {
-
-			Command.appendContentItem(source.id, target.id, function() {
-				_Contents.refreshTree();
-			});
-		}
+		_Contents.handleMoveObjectsAction(target.id, source.id);
 
 		return true;
 	},

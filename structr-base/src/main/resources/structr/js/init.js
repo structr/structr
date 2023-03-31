@@ -1274,7 +1274,7 @@ let Structr = {
 			slideoutElement.width(psw);
 
 			slideoutElement.animate({ left: 0 }, 100, () => {
-				callback?.({ isOpenAction: true });
+				callback?.();
 			});
 
 			slideoutElement.addClass('open');
@@ -2837,7 +2837,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<h3 class="mb-1 mt-0">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text">
 							${this.params.text}
 						</div>

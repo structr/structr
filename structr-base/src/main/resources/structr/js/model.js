@@ -223,9 +223,9 @@ let StructrModel = {
 			obj.remove();
 		}
 
-		if (graphBrowser) {
+		if (_Graph.graphBrowser) {
 			try {
-				graphBrowser.graph.dropElement(id);
+				_Graph.graphBrowser.graph.dropElement(id);
 			} catch (e) {}
 		}
 	},
@@ -371,8 +371,8 @@ let StructrModel = {
 
 			let element = Structr.node(id);
 
-			if (graphBrowser) {
-				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
+			if (_Graph.graphBrowser) {
+				_Graph.graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
 			}
 
 			if (!element) {
@@ -857,13 +857,16 @@ StructrElement.prototype.remove = function() {
 		let modelEntity = StructrModel.obj(this.parent.id);
 		if (modelEntity) {
 
-			modelEntity.children = modelEntity.children.filter(function(child) {
-				return child.id === this.id;
-			});
+			if (modelEntity.children) {
+				modelEntity.children = modelEntity.children.filter(child => child.id === this.id);
+			}
+
+			if (modelEntity.childContainers) {
+				modelEntity.childContainers = modelEntity.childContainers.filter(child => child.id === this.id);
+			}
+
 			if (modelEntity.childrenIds) {
-				modelEntity.childrenIds = modelEntity.childrenIds.filter(function(childId) {
-					return childId === this.id;
-				});
+				modelEntity.childrenIds = modelEntity.childrenIds.filter(childId => childId === this.id);
 			}
 		}
 	}

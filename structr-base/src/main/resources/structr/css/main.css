@@ -2319,11 +2319,6 @@ th.center {
 	}
 }
 
-#info-area .message h3 {
-	margin-top: 0;
-	margin-bottom: 5px;
-}
-
 #info-area .message li {
 	list-style: decimal;
 }
@@ -4146,6 +4141,9 @@ table.props td.__value {
 }
 .ml-8 {
 	margin-left: 2rem;
+}
+.-mt-1 {
+	margin-top: -.25rem;
 }
 .mt-0 {
 	margin-top: 0;
