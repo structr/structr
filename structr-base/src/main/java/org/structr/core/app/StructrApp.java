@@ -25,7 +25,6 @@ import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
@@ -55,18 +54,19 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stateful facade for accessing the Structr core layer.
  */
 public class StructrApp implements App {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrApp.class);
+	private static final String INSTANCE_ID = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
 	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
 	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
 	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
-	private static final Object globalConfigLock                = new Object();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
 	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
@@ -385,58 +385,6 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException {
-
-		final DatabaseService service = getDatabaseService();
-		if (service != null) {
-
-			final GraphProperties config = service.getGlobalProperties();
-			T value                      = null;
-
-			if (config != null) {
-				value = (T)config.getProperty(key);
-			}
-
-			if (value == null) {
-				return defaultValue;
-			}
-
-			return value;
-		}
-
-		return defaultValue;
-	}
-
-	@Override
-	public void setGlobalSetting(final String key, final Object value) throws FrameworkException {
-
-		final DatabaseService service = getDatabaseService();
-		if (service != null) {
-
-			final GraphProperties config = service.getGlobalProperties();
-			if (config != null) {
-
-				config.setProperty(key, value);
-			}
-		}
-	}
-
-	@Override
-	public String getInstanceId() throws FrameworkException {
-
-		synchronized (globalConfigLock) {
-
-			String instanceId = (String) getGlobalSetting("structr.instance.id", null);
-			if (instanceId == null) {
-
-				instanceId = NodeServiceCommand.getNextUuid();
-				setGlobalSetting("structr.instance.id", instanceId);
-			}
-			return instanceId;
-		}
-	}
-
-	@Override
 	public FulltextIndexer getFulltextIndexer(final Object... params) {
 
 		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
@@ -599,6 +547,11 @@ public class StructrApp implements App {
 	@Override
 	public Map<String, Object> getAppContextStore() {
 		return appContextStore;
+	}
+
+	@Override
+	public String getInstanceId() throws FrameworkException {
+		return StructrApp.INSTANCE_ID;
 	}
 
 	public static void initializeSchemaIds() {

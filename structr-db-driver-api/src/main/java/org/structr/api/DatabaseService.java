@@ -18,7 +18,6 @@
  */
 package org.structr.api;
 
-import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -80,8 +79,6 @@ public interface DatabaseService {
 
 	Iterable<Relationship> getAllRelationships();
 	Iterable<Relationship> getRelationshipsByType(final String type);
-
-	GraphProperties getGlobalProperties();
 
 	String getTenantIdentifier();
 	String getInternalTimestamp();
