@@ -638,7 +638,8 @@ let _Code = {
 					data: {
 						svgIcon: _Icons.getSvgIcon(_Icons.iconStructrSSmall, 18, 24),
 						key:     'root',
-						path:    '/root'
+						path:    '/root',
+						// content: 'root'      // uncomment this to restore the visualisation of all types when selecting the "Types" entry
 					},
 					children: [
 						{
