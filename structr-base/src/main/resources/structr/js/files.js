@@ -652,7 +652,7 @@ let _Files = {
 					text:     d?.name ?? '[unnamed]',
 					children: d.foldersCount > 0,
 					icon:     _Icons.nonExistentEmptyIcon,
-					data:     {svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24)},
+					data:     { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
 					path:     d.path
 				};
 			});
@@ -1048,21 +1048,29 @@ let _Files = {
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
 			stop: function(e, ui) {
+
 				$(this).show();
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
 			},
 			helper: function(event) {
-				let helperEl = $(this);
-				_Files.selectedElements = $('.node.selected');
+
+				let draggedElement           = $(this);
+				let draggedElementIsSelected = draggedElement.hasClass('selected')
+
+				_Files.selectedElements = draggedElementIsSelected ? $('.node.selected') : [];
+
+				$('.node.selected').removeClass('selected');
+
 				if (_Files.selectedElements.length > 1) {
-					_Files.selectedElements.removeClass('selected');
-					return $(`<i>${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')}</i>`);
+					return $(`<span class="flex items-center gap-2 pl-2">${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')} ${_Files.selectedElements.length} elements</span>`);
 				}
-				let hlp = helperEl.clone();
-				hlp.find('.button').remove();
-				return hlp;
+
+				let helperEl = draggedElement.clone();
+				helperEl.find('.button').remove();
+				helperEl.addClass('pl-2');
+				return helperEl;
 			}
 		});
 
@@ -1145,14 +1153,18 @@ let _Files = {
 		if (_Files.selectedElements.length > 1) {
 
 			let selectedElementIds = [..._Files.selectedElements].map(el => Structr.getId(el));
-			_Files.moveObjectsToTargetFolder(targetFolderId, ...selectedElementIds).then(promiseCallback);
+			_Files.moveObjectsToTargetFolder(targetFolderId, selectedElementIds).then(promiseCallback);
 
 		} else {
 
-			_Files.moveObjectsToTargetFolder(targetFolderId, actualDraggedObjectId).then(promiseCallback);
+			_Files.moveObjectsToTargetFolder(targetFolderId, [actualDraggedObjectId]).then(promiseCallback);
 		}
+
+
+		let selectedElementIds = (_Files.selectedElements.length > 0) ? [..._Contents.selectedElements].map(el => Structr.getId(el)) : [actualDraggedObjectId];
+		_Files.moveObjectsToTargetFolder(targetFolderId, selectedElementIds).then(promiseCallback);
 	},
-	moveObjectsToTargetFolder: async (targetFolderId, ...objectIds) => {
+	moveObjectsToTargetFolder: async (targetFolderId, objectIds) => {
 
 		/**
 		 * initial promise.all returns a list of moved object ids
@@ -1506,7 +1518,6 @@ let _Files = {
 				return true;
 			}
 		};
-		globalFinalizationRegistry.register(checkForUnsaved, 'checkForUnsaved');
 
 		let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
 
@@ -1562,9 +1573,6 @@ let _Files = {
 				_Editors.updateMonacoEditorLanguage(editor, language);
 			});
 		});
-
-		globalFinalizationRegistry.register(isTemplateCheckbox, 'isTemplateCheckbox');
-		globalFinalizationRegistry.register(showPreviewCheckbox, 'showPreviewCheckbox');
 
 		showPreviewCheckbox.addEventListener('change', () => {
 

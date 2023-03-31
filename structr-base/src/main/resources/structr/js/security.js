@@ -373,8 +373,6 @@ let _UsersAndGroups = {
 			}
 		}, null, 'id,isUser,name,type,isAdmin', true);
 
-		globalFinalizationRegistry.register(userPager, 'userPager');
-
 		userPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_Security.userList);
 		};
@@ -552,8 +550,6 @@ let _UsersAndGroups = {
 				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			}
 		}, undefined, undefined, true);
-
-		globalFinalizationRegistry.register(groupPager, 'groupPager');
 
 		groupPager.cleanupFunction = () => {
 			_Helpers.fastRemoveAllChildren(_Security.groupList);

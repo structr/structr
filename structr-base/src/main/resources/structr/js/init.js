@@ -952,7 +952,11 @@ let Structr = {
 		}
 	},
 	resize: () => {
+
 		Structr.dialogSystem.resizeDialog();
+
+		// TODO: also call resize function for active module (if exists) ... prevent endless loop ... decide if first the sub-module resize should run or first this
+		// TODO: use requestAnimationFrame wrapper
 	},
 	error: (text, confirmationRequired) => {
 
@@ -1242,92 +1246,111 @@ let Structr = {
 			}
 		});
 	},
-	openSlideOut: (triggerEl, slideoutElement, callback) => {
+	slideouts: {
+		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
 
-		let storedRightSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerRigthKey);
-		let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
+			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
-		let t = $(triggerEl);
-		t.addClass('active');
-		slideoutElement.width(rsw);
+			if (selectedSlideoutWasOpen === false) {
 
-		slideoutElement.animate({right: 0}, 100, function() {
-			if (typeof callback === 'function') {
-				callback({isOpenAction: true});
+				Structr.slideouts.closeLeftSlideOuts(otherSlideouts, closeCallback);
+				Structr.slideouts.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
+
+				document.querySelector('.column-resizer-left')?.classList.remove('hidden');
+
+			} else {
+
+				Structr.slideouts.closeLeftSlideOuts([slideoutElement], closeCallback);
+
+				document.querySelector('.column-resizer-left')?.classList.add('hidden');
 			}
-		});
+		},
+		openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
 
-		slideoutElement.addClass('open');
-	},
-	openLeftSlideOut: (triggerEl, slideoutElement, callback) => {
+			let storedLeftSlideoutWidth = LSWrapper.getItem(Structr.getActiveModule().getLeftResizerKey?.());
+			let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
 
-		let storedLeftSlideoutWidth = LSWrapper.getItem(_Pages.pagesResizerLeftKey);
-		let psw                     = storedLeftSlideoutWidth ? parseInt(storedLeftSlideoutWidth) : (slideoutElement.width());
+			triggerEl.classList.add('active');
+			slideoutElement.width(psw);
 
-		let t = $(triggerEl);
-		t.addClass('active');
+			slideoutElement.animate({ left: 0 }, 100, () => {
+				callback?.();
+			});
 
-		slideoutElement.width(psw);
+			slideoutElement.addClass('open');
+		},
+		closeLeftSlideOuts: (slideouts, callback) => {
 
-		slideoutElement.animate({ left: 0 }, 100, () => {
-			if (typeof callback === 'function') {
+			for (let slideout of slideouts) {
 
-				callback({isOpenAction: true});
+				let wasOpen = slideout[0].classList.contains('open');
+				slideout[0].classList.remove('open');
+
+				if (wasOpen) {
+
+					let slideoutWidth = slideout[0].getBoundingClientRect().width;
+
+					slideout.animate({ left: -slideoutWidth }, 100, () => {
+						callback?.();
+					}).zIndex(2);
+				}
 			}
-		});
 
-		slideoutElement.addClass('open');
-	},
-	closeSlideOuts: (slideouts, callback) => {
+			document.querySelector('.slideout-activator.left.active')?.classList.remove('active');
+		},
+		rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
 
-		let wasOpen = false;
+			let selectedSlideoutWasOpen = slideoutElement.hasClass('open');
 
-		for (let slideout of slideouts) {
+			if (selectedSlideoutWasOpen === false) {
 
-			slideout.removeClass('open');
+				Structr.slideouts.closeRightSlideOuts(otherSlideouts, closeCallback);
+				Structr.slideouts.openRightSlideOut(triggerEl, slideoutElement, openCallback);
 
-			let left          = slideout.position().left;
-			let slideoutWidth = slideout[0].getBoundingClientRect().width;
+				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
 
-			if ((window.innerWidth - left) > 1) {
+			} else {
 
-				wasOpen = true;
-				slideout.animate({ right: -slideoutWidth }, 100, function() {
-					if (typeof callback === 'function') {
-						callback(wasOpen);
-					}
-				}).zIndex(2);
-				$('.slideout-activator.right.active').removeClass('active');
+				Structr.slideouts.closeRightSlideOuts([slideoutElement], closeCallback);
+
+				document.querySelector('.column-resizer-right')?.classList.add('hidden');
 			}
-		}
+		},
+		openRightSlideOut: (triggerEl, slideoutElement, callback) => {
 
-		LSWrapper.removeItem(_Pages.activeTabRightKey);
-	},
-	closeLeftSlideOuts: (slideouts, callback) => {
+			let storedRightSlideoutWidth = LSWrapper.getItem(Structr.getActiveModule().getRightResizerKey?.());
+			let rsw                      = storedRightSlideoutWidth ? parseInt(storedRightSlideoutWidth) : (slideoutElement.width() + 12);
 
-		let wasOpen = false;
-		let oldSlideoutWidth;
+			triggerEl.classList.add('active');
+			slideoutElement.width(rsw);
 
-		for (let slideout of slideouts) {
+			slideoutElement.animate({right: 0}, 100, () => {
+				callback?.();
+			});
 
-			slideout.removeClass('open');
+			slideoutElement.addClass('open');
+		},
+		closeRightSlideOuts: (slideouts, callback) => {
 
-			let left          = slideout.position().left;
-			let slideoutWidth = slideout[0].getBoundingClientRect().width;
+			for (let slideout of slideouts) {
 
-			if (left > -1) {
+				let wasOpen = slideout[0].classList.contains('open');
+				slideout[0].classList.remove('open');
 
-				wasOpen = true;
-				oldSlideoutWidth = slideoutWidth;
-				slideout.animate({ left: -slideoutWidth }, 100, function() {
-					if (typeof callback === 'function') {
-						callback(wasOpen, -oldSlideoutWidth, 0);
-					}
-				}).zIndex(2);
+				if (wasOpen) {
 
-				$('.slideout-activator.left.active').removeClass('active');
+					let slideoutWidth = slideout[0].getBoundingClientRect().width;
+
+					slideout.animate({ right: -slideoutWidth }, 100, () => {
+						callback?.();
+					}).zIndex(2);
+				}
 			}
-		}
+
+			document.querySelector('.slideout-activator.right.active')?.classList.remove('active');
+
+			LSWrapper.removeItem(_Pages.activeTabRightKey);
+		},
 	},
 	updateVersionInfo: (retryCount = 0, isLogin = false) => {
 
@@ -2814,7 +2837,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<h3 class="mb-1 mt-0">${this.params.title}${this.getUniqueCountElement()}</h3>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text">
 							${this.params.text}
 						</div>

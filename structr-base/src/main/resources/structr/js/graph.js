@@ -16,46 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var graphBrowser, mode, colors = [], c = 0;
-var nodeIds = [], relIds = [], removedRel;
-var graph;
-var savedQueriesKey = 'structrSavedQueries_' + location.port;
-var relTypes = {}, nodeTypes = {}, color = {}, relColors = {}, hasDragged, hasDoubleClicked, clickTimeout, doubleClickTime = 250, refreshTimeout;
-var filteredNodeTypes = [], hiddenNodeTypes = [], hiddenRelTypes = [];
-var edgeType = 'curvedArrow';
-var schemaNodes = {}, schemaRelationships = {}, schemaNodesById = {};
-var displayHtmlTypes = false, displayCustomTypes = true, displayCoreTypes = false, displayUiTypes = false, displayLogTypes = false, displayOtherTypes = false;
-var maxRels = 100, defaultNodeColor = '#a5a5a5', defaultRelColor = '#cccccc';
-var tmpX, tmpY, nodeLabelsHidden = false, edgeLabelsHidden  = false;
-var selectionTable;
-var forceAtlas2Config = {
-	gravity: 1,
-	strongGravityMode: true,
-	adjustSizes: true,
-	iterationsPerRender: 10,
-	barnesHutOptimize: false,
-	slowDown: 2
-};
-
-var animating = false;
-var timeout   = 0;
-var expanded  = {};
-var count     = 0;
-
 document.addEventListener("DOMContentLoaded", () => {
 
 	Structr.registerModule(_Graph);
-
-	$(document.body).on('mousedown', function(e) {
-		tmpX = e.clientX;
-		tmpY = e.clientY;
-	});
-
-	$(document.body).on('mouseup', function(e) {
-		hasDragged = (tmpX && tmpY && (tmpX !== e.clientX || tmpY !== e.clientY));
-		tmpX = e.clientX;
-		tmpY = e.clientY;
-	});
 
 	$(document).on('change', '#nodeFilters input', function(e) {
 		_Graph.updateNodeTypes();
@@ -70,10 +33,34 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Graph = {
 	_moduleName: 'graph',
 	displayTypeConfigKey: 'structrGraphDisplayTypes_' + location.port,
-	init: function() {
+	savedQueriesKey: 'structrSavedQueries_' + location.port,
+	graphBrowser: undefined,
+	animating: undefined,
+	edgeType: 'curvedArrow',
+	colors: [],
+	color: {},
+	relColors: {},
+	colorCntr: 0,
+	defaultRelColor: '#cccccc',
+	doubleClickTime: 250,
+	tmpX: undefined,
+	tmpY: undefined,
+	hasDragged: undefined,
+	hasDoubleClicked: undefined,
+	nodeLabelsHidden: false,
+	edgeLabelsHidden: false,
+	filteredNodeTypes: [],
+	hiddenNodeTypes: [],
+	hiddenRelTypes: [],
+	clickTimeout: undefined,
+	nodeIds: [],
+	schemaNodes: {},
+	schemaNodesById: {},
+
+	init: () => {
 
 		// Colors created with http://paletton.com
-		var palettonColors = [
+		let palettonColors = [
 			'#82CE25', '#1DA353', '#E24C29', '#C22363',
 			'#B7ED74', '#61C68A', '#FF967D', '#E26F9E',
 			'#9BDD4A', '#3BAF6A', '#F37052', '#D1467E',
@@ -85,26 +72,24 @@ let _Graph = {
 			'#017277', '#0B2E85', '#C68500', '#C65B00',
 			'#00595D', '#072368', '#9A6800', '#9A4700'
 		];
-		colors.concat(palettonColors);
+		_Graph.colors.concat(palettonColors);
 
-		var max = 255;
-		var steps = [21, 53, 31];
+		let steps = [21, 53, 31];
 
-		for (var i = 50; i < 999; i++) {
-			var col = 'rgb(' + (steps[i%3] * i) % max + ',' + (steps[(i+1)%3] * i) % max + ',' + (steps[(i+2)%3] * i) % max + ')';
-			colors.push(col);
+		for (let i = 50; i < 999; i++) {
+			_Graph.colors.push(`rgb(${(steps[i % 3] * i) % 255},${(steps[(i + 1) % 3] * i) % 255},${(steps[(i + 2) % 3] * i) % 255})`);
 		}
 
 		_Graph.updateNodeTypes();
 
-		var canvasWidth = 1000; //$('#graph-canvas').width();
-		var canvasHeight = 1000; //canvasWidth / (16 / 9);
+		let canvasWidth  = 1000; //$('#graph-canvas').width();
+		let canvasHeight = 1000; //canvasWidth / (16 / 9);
 
-		var editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
-		var graphBrowserSettings = {
+		let editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
+		let graphBrowserSettings = {
 			graphContainer: 'graph-canvas',
 			moduleSettings: {
-				'tooltips' : {
+				tooltips : {
 					node : {
 						cssClass: 'graphBrowserTooltips',
 						renderer: _Graph.renderNodeTooltip
@@ -114,7 +99,7 @@ let _Graph = {
 						renderer: _Graph.renderEdgeTooltip
 					}
 				},
-				'nodeExpander': {
+				nodeExpander: {
 					container: 'graph-info',
 					newEdgeSize: 40,
 					newNodeSize: 20,
@@ -125,16 +110,18 @@ let _Graph = {
 					expandButtonsTimeout: 1000,
 					onNodesAdded: _Graph.onNodesAdded
 				},
-				'selectionTools': {'container': 'graph-canvas'},
-				'relationshipEditor' : {
+				selectionTools: {
+					container: 'graph-canvas'
+				},
+				relationshipEditor : {
 					incomingRelationsKey: 'shift',
 					outgoingRelationsKey: 'ctrl',
 					deleteEvent: 'doubleClickEdge',
 					onDeleteRelation: undefined,
 					maxDistance: editDistance
 				},
-				'currentNodeTypes': {},
-				'nodeFilter': {}
+				currentNodeTypes: {},
+				nodeFilter: {}
 			},
 			sigmaSettings: {
 				immutable: false,
@@ -169,49 +156,51 @@ let _Graph = {
 				nodeHaloSize: 20
 			},
 			lassoSettings: {
-				'strokeStyle': 'rgb(129, 206, 37)',
-				'lineWidth': 5,
-				'fillWhileDrawing': true,
-				'fillStyle': 'rgba(129, 206, 37, 0.2)',
-				'cursor': 'crosshair'
+				strokeStyle: 'rgb(129, 206, 37)',
+				lineWidth: 5,
+				fillWhileDrawing: true,
+				fillStyle: 'rgba(129, 206, 37, 0.2)',
+				cursor: 'crosshair'
 			}
 		};
 
-		graphBrowser = new GraphBrowser(graphBrowserSettings);
-		graphBrowser.start();
+		_Graph.graphBrowser = new GraphBrowser(graphBrowserSettings);
+		_Graph.graphBrowser.start();
 
-		graphBrowser.bindEvent('clickStage', _Graph.handleClickStageEvent);
-		graphBrowser.bindEvent('clickNode', _Graph.handleClickNodeEvent);
-		graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
-		graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
-		graphBrowser.bindEvent('startdrag', _Graph.handleStartDragNodeEvent);
-		graphBrowser.bindEvent('clickEdge', _Graph.handleClickEdgeEvent);
+		_Graph.graphBrowser.bindEvent('clickStage', _Graph.handleClickStageEvent);
+		_Graph.graphBrowser.bindEvent('clickNode', _Graph.handleClickNodeEvent);
+		_Graph.graphBrowser.bindEvent('doubleClickNode', _Graph.handleDoubleClickNodeEvent);
+		_Graph.graphBrowser.bindEvent('drag', _Graph.handleDragNodeEvent);
+		_Graph.graphBrowser.bindEvent('startdrag', _Graph.handleStartDragNodeEvent);
+		_Graph.graphBrowser.bindEvent('clickEdge', _Graph.handleClickEdgeEvent);
 	},
 
-	onload: function() {
+	onload: () => {
+
+		_Graph.registerEventHandlers();
 
 		live('#toggleNodeLabels', 'change', (e) => {
-			nodeLabelsHidden = !nodeLabelsHidden;
-			graphBrowser.changeSigmaSetting('drawLabels', !nodeLabelsHidden);
+			_Graph.nodeLabelsHidden = !_Graph.nodeLabelsHidden;
+			_Graph.graphBrowser.changeSigmaSetting('drawLabels', !_Graph.nodeLabelsHidden);
 		});
 
 		live('#toggleEdgeLabels', 'change', (e) => {
-			edgeLabelsHidden = !edgeLabelsHidden;
-			graphBrowser.changeSigmaSetting('drawEdgeLabels', !edgeLabelsHidden);
+			_Graph.edgeLabelsHidden = !_Graph.edgeLabelsHidden;
+			_Graph.graphBrowser.changeSigmaSetting('drawEdgeLabels', !_Graph.edgeLabelsHidden);
 		});
 
 		live('#fruchterman-controlElement', 'click', () => {
-			graphBrowser.doLayout('fruchtermanReingold');
+			_Graph.graphBrowser.doLayout('fruchtermanReingold');
 		});
 
 		live('#dagre-controlElement', 'click', () => {
-			graphBrowser.doLayout('dagre');
+			_Graph.graphBrowser.doLayout('dagre');
 		});
 
 		live('#forceAtlas-controlElement', 'click', (e) => {
 			let el = e.target.closest('a#forceAtlas-controlElement');
 			el.classList.toggle('active');
-			graphBrowser.startForceAtlas2();
+			_Graph.graphBrowser.startForceAtlas2();
 		});
 
 		Structr.setMainContainerHTML(_Graph.templates.main());
@@ -235,14 +224,14 @@ let _Graph = {
 		$('#graphTypeToggleOther').prop('checked', (savedTypeVisibility.other === undefined ? true : savedTypeVisibility.other));
 
 		$('#selectionLasso').on('click', function() {
-			if (!graphBrowser.selectionToolsActive) {
-				graphBrowser.activateSelectionLasso(true);
+			if (!_Graph.graphBrowser.selectionToolsActive) {
+				_Graph.graphBrowser.activateSelectionLasso(true);
 			}
 		});
 
 		$('#newSelectionGroup').on('click', function() {
 
-			let newId = graphBrowser.createSelectionGroup();
+			let newId = _Graph.graphBrowser.createSelectionGroup();
 
 			let newSelectionGroupHtml = _Graph.templates.newSelectionGroup({newId: newId});
 
@@ -253,7 +242,7 @@ let _Graph = {
 
 		$(document).on('click', ".selectionTableRemoveBtn", function() {
 			var val = $(this).val();
-			graphBrowser.dropSelection(val);
+			_Graph.graphBrowser.dropSelection(val);
 		});
 
 		$(document).on('click', "input[name='selectedGroup[]']",  function() {
@@ -263,10 +252,10 @@ let _Graph = {
 				$("input[name='selectedGroup[]']").prop("checked", false);
 				self.prop("checked", true);
 				var val = self.val().split('.');
-				graphBrowser.activateSelectionTools();
-				graphBrowser.activateSelectionGroup(val[1]);
+				_Graph.graphBrowser.activateSelectionTools();
+				_Graph.graphBrowser.activateSelectionGroup(val[1]);
 			} else {
-				graphBrowser.deactivateSelectionTools();
+				_Graph.graphBrowser.deactivateSelectionTools();
 				self.prop("checked", false);
 			}
 		});
@@ -275,14 +264,14 @@ let _Graph = {
 			var self = $(this);
 			var val = self.val().split('.');
 
-			graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
+			_Graph.graphBrowser.hideSelectionGroup(val[1], self.is(':checked'));
 		});
 
 		$(document).on('click', "input[name='Fixed[]']",  function() {
 			var self = $(this);
 			var val = self.val().split('.');
 
-			graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
+			_Graph.graphBrowser.fixateSelectionGroup(val[1], self.is(':checked'));
 		});
 
 		for (let clearSearchIcon of document.querySelectorAll('.clearSearchIcon')) {
@@ -320,27 +309,27 @@ let _Graph = {
 			}
 		});
 
-		$(document).on('click', '.closeTooltipBtn', function(){
-			graphBrowser.closeTooltip();
+		$(document).on('click', '.closeTooltipBtn', () => {
+			_Graph.graphBrowser.closeTooltip();
 		});
 
-		$(document).on('click', '#tooltipBtnProps', function(){
+		$(document).on('click', '#tooltipBtnProps', function() {
 			var id = $(this).attr("value");
 			_Entities.showProperties({id: id});
-			graphBrowser.closeTooltip();
+			_Graph.graphBrowser.closeTooltip();
 		});
 
 		$(document).on('click', '#tooltipBtnHide', function() {
 			var id = $(this).attr("value");
-			graphBrowser.closeTooltip();
-			graphBrowser.hideNode(id, true);
+			_Graph.graphBrowser.closeTooltip();
+			_Graph.graphBrowser.hideNode(id, true);
 		});
 
 		$(document).on('click', '#tooltipBtnDrop', function() {
 			let id = $(this).attr("value");
-			graphBrowser.closeTooltip();
-			graphBrowser.dropNode(id);
-			graphBrowser.dataChanged();
+			_Graph.graphBrowser.closeTooltip();
+			_Graph.graphBrowser.dropNode(id);
+			_Graph.graphBrowser.dataChanged();
 			_Graph.updateRelationshipTypes();
 		});
 
@@ -349,37 +338,37 @@ let _Graph = {
 			let self = $(this);
 			let id = self.attr("value");
 
-			Command.get(id, 'id,type,name,sourceId,targetId', function (entity) {
-				if (graphBrowser.getNode(entity.id)) {
-					_Entities.deleteNode(entity, false, function (entity) {
-						graphBrowser.dropNode(entity);
-						graphBrowser.dataChanged();
+			Command.get(id, 'id,type,name,sourceId,targetId', (entity) => {
+				if (_Graph.graphBrowser.getNode(entity.id)) {
+					_Entities.deleteNode(entity, false, (entity) => {
+						_Graph.graphBrowser.dropNode(entity);
+						_Graph.graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
 				} else {
-					_Entities.deleteEdge(entity, false, function (entity) {
-						if(graphBrowser.getEdge(entity)) {
-							graphBrowser.dropEdge(entity);
+					_Entities.deleteEdge(entity, false, (entity) => {
+						if(_Graph.graphBrowser.getEdge(entity)) {
+							_Graph.graphBrowser.dropEdge(entity);
 						}
-						graphBrowser.dataChanged();
+						_Graph.graphBrowser.dataChanged();
 						_Graph.updateRelationshipTypes();
 					});
 				}
 			});
-			graphBrowser.closeTooltip();
+			_Graph.graphBrowser.closeTooltip();
 		});
 
-		graph = $('#graph-canvas');
+		let canvas = $('#graph-canvas');
 
-		graph.droppable({
+		canvas.droppable({
 			accept: '.node-type',
 			drop: function(e, ui) {
-				var nodeType = ui.helper.attr('data-node-type');
+				let nodeType = ui.helper.attr('data-node-type');
 				Command.create({
 					type: nodeType
-				}, function(obj) {
+				}, (obj) => {
 					if(obj != null) {
-						Command.get(obj.id, 'id,type,name,color,tag', function(node) {
+						Command.get(obj.id, 'id,type,name,color,tag', (node) => {
 							_Graph.drawNode(node);
 						});
 					}
@@ -447,7 +436,41 @@ let _Graph = {
 		$('#newSelectionGroup').trigger('click');
 		Structr.unblockMenu(100);
 	},
-	execQuery: function(query, type, params) {
+	unload: () => {
+
+		_Graph.unregisterEventHandlers();
+
+		_Graph.colors = [];
+		_Graph.nodeIds = [];
+		_Graph.relIds = [];
+		_Graph.hiddenNodeTypes = [];
+		_Graph.hiddenRelTypes = [];
+		if (_Graph.graphBrowser) {
+			_Graph.graphBrowser.kill();
+			_Graph.graphBrowser = undefined;
+		}
+	},
+	registerEventHandlers: () => {
+		document.body.addEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
+		document.body.addEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
+	},
+	unregisterEventHandlers: () => {
+		document.body.removeEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
+		document.body.removeEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
+	},
+	eventHandlers: {
+		mouseDownHandler: (e) => {
+			_Graph.tmpX = e.clientX;
+			_Graph.tmpY = e.clientY;
+		},
+		mouseUpHandler: (e) => {
+			_Graph.hasDragged = (_Graph.tmpX && _Graph.tmpY && (_Graph.tmpX !== e.clientX || _Graph.tmpY !== e.clientY));
+			_Graph.tmpX = e.clientX;
+			_Graph.tmpY = e.clientY;
+		},
+	},
+	execQuery: (query, type, params) => {
+
 		if (query && query.length) {
 			if (type === 'cypher') {
 				Command.cypher(query.replace(/(\r\n|\n|\r)/gm, ''), params, _Graph.processQueryResults);
@@ -460,32 +483,18 @@ let _Graph = {
 			// _Graph.listSavedQueries();
 		}
 	},
-	processQueryResults: function (results) {
-		var nodes = [];
-		var rels  = [];
+	processQueryResults: (results) => {
 
-		$(results).each(function (i, entity) {
-			if (entity.hasOwnProperty('relType')) {
-				rels.push(entity);
-			} else {
-				nodes.push(entity);
-			}
-		});
-
-		nodes.forEach(function (entity) {
+		for (let entity of results) {
 			StructrModel.createSearchResult(entity);
-		});
+		}
 
-		rels.forEach(function (entity) {
-			StructrModel.createSearchResult(entity);
-		});
-
-		graphBrowser.dataChanged();
+		_Graph.graphBrowser.dataChanged();
 		_Graph.updateRelationshipTypes();
 
 	},
 	// saveQuery: function(query, type, params) {
-	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(_Graph.savedQueriesKey)) || [];
 	// 	var exists = false;
 	// 	$.each(savedQueries, function(i, q) {
 	// 		if (q.query === query && q.params === params) {
@@ -494,17 +503,17 @@ let _Graph = {
 	// 	});
 	// 	if (!exists) {
 	// 		savedQueries.unshift({type: type, query: query, params: params});
-	// 		LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+	// 		LSWrapper.setItem(_Graph.savedQueriesKey, JSON.stringify(savedQueries));
 	// 	}
 	// },
 	// removeSavedQuery: function(i) {
-	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(_Graph.savedQueriesKey)) || [];
 	// 	savedQueries.splice(i, 1);
-	// 	LSWrapper.setItem(savedQueriesKey, JSON.stringify(savedQueries));
+	// 	LSWrapper.setItem(_Graph.savedQueriesKey, JSON.stringify(savedQueries));
 	// 	_Graph.listSavedQueries();
 	// },
 	// restoreSavedQuery: function(i, exec) {
-	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(_Graph.savedQueriesKey)) || [];
 	// 	var query = savedQueries[i];
 	//
 	// 	let element = document.querySelector('.search[name=' + query.type + ']');
@@ -527,7 +536,7 @@ let _Graph = {
 	// listSavedQueries: function() {
 	// 	$('#saved-queries').empty();
 	//
-	// 	var savedQueries = JSON.parse(LSWrapper.getItem(savedQueriesKey)) || [];
+	// 	var savedQueries = JSON.parse(LSWrapper.getItem(_Graph.savedQueriesKey)) || [];
 	// 	$.each(savedQueries, function(q, query) {
 	// 		if (query.type === 'cypher') {
 	// 			$('#saved-queries').append('<div class="saved-query cypher-query"><i class="replay ' + _Icons.getFullSpriteClass(_Icons.exec_icon) + '" />' + query.query + '<i class="remove-query ' + _Icons.getFullSpriteClass(_Icons.grey_cross_icon) + '" /></div>');
@@ -555,42 +564,26 @@ let _Graph = {
 		element.focus();
 	},
 
-	clearGraph: function() {
-		colors = [];
-		relTypes = {};
-		nodeTypes = {};
-		nodeIds = [];
-		relIds = [];
-		hiddenNodeTypes = [];
-		hiddenRelTypes = [];
-		graphBrowser.hideExpandButtons();
-		graphBrowser.reset();
+	clearGraph: () => {
+		_Graph.colors = [];
+		_Graph.nodeIds = [];
+		_Graph.relIds = [];
+		_Graph.hiddenNodeTypes = [];
+		_Graph.hiddenRelTypes = [];
+		_Graph.graphBrowser.hideExpandButtons();
+		_Graph.graphBrowser.reset();
 		_Graph.updateRelationshipTypes();
 	},
 
-	unload: function() {
-		colors = [];
-		relTypes = {};
-		nodeTypes = {};
-		nodeIds = [];
-		relIds = [];
-		hiddenNodeTypes = [];
-		hiddenRelTypes = [];
-		if (graphBrowser) {
-			graphBrowser.kill();
-			graphBrowser = undefined;
-		}
-	},
-
 	drawNode: function(node, x, y) {
-		if (_Helpers.isIn(node.id, nodeIds) || _Helpers.isIn(node.type, filteredNodeTypes)) {
+		if (_Helpers.isIn(node.id, _Graph.nodeIds) || _Helpers.isIn(node.type, _Graph.filteredNodeTypes)) {
 			return;
 		}
-		nodeIds.push(node.id);
+		_Graph.nodeIds.push(node.id);
 		_Graph.setNodeColor(node);
 
 		try {
-			var ratio = graphBrowser.getCameraRatio();
+			var ratio = _Graph.graphBrowser.getCameraRatio();
 			var newX = 0;
 			var newY = 0;
 
@@ -602,50 +595,49 @@ let _Graph = {
 				newY = (Math.random(100) / (1/ratio));
 			}
 
-			graphBrowser.addNode({
+			_Graph.graphBrowser.addNode({
 				id: node.id || node.name,
 				label: (node.name || node.tag || node.id.substring(0, 5) + '…') ,
 				x: x || newX,
 				y: y || newY,
 				size: 20,
-				color: color[node.type],
+				color: _Graph.color[node.type],
 				nodeType: node.type,
 				name: node.name,
-				hidden: _Helpers.isIn(node.type, hiddenNodeTypes)
+				hidden: _Helpers.isIn(node.type, _Graph.hiddenNodeTypes)
 			});
 
-			graphBrowser.dataChanged();
+			_Graph.graphBrowser.dataChanged();
 
 		} catch (error) {
 //			console.log('Node: ' + node.id + 'already in the graph');
 		}
 	},
 
-	drawRel: function(r) {
+	drawRel: (r) => {
 
-		var existingEdges = graphBrowser.findRelationships(r.sourceId, r.targetId);
-		var c = existingEdges.length * 15;
+		let existingEdges = _Graph.graphBrowser.findRelationships(r.sourceId, r.targetId);
+		let c = existingEdges.length * 15;
 
-		try{
-			graphBrowser.addEdge({
+		try {
+			_Graph.graphBrowser.addEdge({
 				id: r.id,
 				label: r.relType,
 				source: r.sourceId,
 				target: r.targetId,
 				size: 40,
-				color: defaultRelColor,
-				type: edgeType,
+				color: _Graph.defaultRelColor,
+				type: _Graph.edgeType,
 				relType: r.type,
 				relName: r.relType,
-				hidden: _Helpers.isIn(r.relType, hiddenRelTypes),
+				hidden: _Helpers.isIn(r.relType, _Graph.hiddenRelTypes),
 				count: c
 			});
 			_Graph.updateRelationshipTypes();
-		}
-		catch(error){
+
+		} catch(error) {
 //			console.log('Edge: ' + r.id + 'already in the graph');
 		}
-
 	},
 
 	resize: () => {
@@ -680,7 +672,7 @@ let _Graph = {
 		// });
 	},
 
-	getTypeVisibilityConfig: function () {
+	getTypeVisibilityConfig: () => {
 
 		return {
 			rels:   $('#graphTypeToggleRels').prop('checked'),
@@ -693,16 +685,16 @@ let _Graph = {
 		};
 
 	},
-	updateNodeTypes: function() {
+	updateNodeTypes: () => {
 
 		var nodeTypesBox = $('#node-types');
 		_Helpers.fastRemoveAllChildren(nodeTypesBox[0]);
 
-		Command.getSchemaInfo(null, function(nodes) {
+		Command.getSchemaInfo(null, (nodes) => {
 
 			var typeVisibility = _Graph.getTypeVisibilityConfig();
 
-			filteredNodeTypes = [];
+			_Graph.filteredNodeTypes = [];
 
 			nodes.sort(function(a, b) {
 				var aName = a.name.toLowerCase();
@@ -728,33 +720,33 @@ let _Graph = {
 							//(!typeVisibility.ui && isUiType) || (!typeVisibility.log && isLogType) || (!typeVisibility.other && isOtherType);
 
 				if (hide) {
-					filteredNodeTypes.push(node.type);
+					_Graph.filteredNodeTypes.push(node.type);
 					return;
 				}
 
-				schemaNodes[node.type] = node;
-				schemaNodesById[node.id] = node;
+				_Graph.schemaNodes[node.type] = node;
+				_Graph.schemaNodesById[node.id] = node;
 
 				// expand comma-separated list into real collection
-				if (schemaNodes[node.type].possibleSourceTypes) {
-					schemaNodes[node.type].possibleSourceTypes = schemaNodes[node.type].possibleSourceTypes.split(",");
+				if (_Graph.schemaNodes[node.type].possibleSourceTypes) {
+					_Graph.schemaNodes[node.type].possibleSourceTypes = _Graph.schemaNodes[node.type].possibleSourceTypes.split(",");
 				}
 
 				// expand comma-separated list into real collection
-				if (schemaNodes[node.type].possibleTargetTypes) {
-					schemaNodes[node.type].possibleTargetTypes = schemaNodes[node.type].possibleTargetTypes.split(",");
+				if (_Graph.schemaNodes[node.type].possibleTargetTypes) {
+					_Graph.schemaNodes[node.type].possibleTargetTypes = _Graph.schemaNodes[node.type].possibleTargetTypes.split(",");
 				}
 
 				var nodeType = node.name;
 
-				if (!_Helpers.isIn(nodeType, Object.keys(color))) {
-					color[nodeType] = colors[c++];
+				if (!_Helpers.isIn(nodeType, Object.keys(_Graph.color))) {
+					_Graph.color[nodeType] = _Graph.colors[_Graph.colorCntr++];
 				}
 
-				nodeTypesBox.append(`<div id="node-type-${nodeType}" class="node-type" data-node-type="${nodeType}"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ${color[nodeType]}"></div>${nodeType}</div>`);
+				nodeTypesBox.append(`<div id="node-type-${nodeType}" class="node-type" data-node-type="${nodeType}"><input type="checkbox" class="toggle-type" checked="checked"> <div class="circle" style="background-color: ${_Graph.color[nodeType]}"></div>${nodeType}</div>`);
 				var nt = $('#node-type-' + nodeType, nodeTypesBox);
 
-				if (_Helpers.isIn(nodeType, hiddenNodeTypes)) {
+				if (_Helpers.isIn(nodeType, _Graph.hiddenNodeTypes)) {
 					nt.attr('data-hidden', 1);
 					nt.addClass('hidden-node-type');
 				}
@@ -764,9 +756,9 @@ let _Graph = {
 				}).on('click', function() {
 					// TODO: Query
 				}).on('mouseover', function() {
-					graphBrowser.highlightNodeType(nodeType);
+					_Graph.graphBrowser.highlightNodeType(nodeType);
 				}).on('mouseout', function() {
-					graphBrowser.unhighlightNodeType(nodeType);
+					_Graph.graphBrowser.unhighlightNodeType(nodeType);
 				}).draggable({
 					helper: 'clone'
 				});
@@ -774,53 +766,67 @@ let _Graph = {
 				$('.toggle-type', nt).on('click', function() {
 					var n = $(this);
 					if (n.attr('data-hidden')) {
-						graphBrowser.hideNodeType(nodeType, false);
+						_Graph.graphBrowser.hideNodeType(nodeType, false);
 						n.removeAttr('data-hidden', 1);
 					} else {
-						graphBrowser.hideNodeType(nodeType, true);
+						_Graph.graphBrowser.hideNodeType(nodeType, true);
 						n.attr('data-hidden', 1);
 					}
 				});
 			});
-			_Graph.filterNodeTypes(filteredNodeTypes);
+			_Graph.filterNodeTypes(_Graph.filteredNodeTypes);
 			_Graph.resize();
 		});
 	},
 
-	filterNodeTypes: function(types) {
-		graphBrowser.clearFilterNodeTypes();
-		types.forEach(function(type) {
-			graphBrowser.addNodeTypeToFilter(type);
-		});
-		graphBrowser.filterGraph();
+	filterNodeTypes: (types) => {
+
+		_Graph.graphBrowser.clearFilterNodeTypes();
+
+		for (let type of types) {
+			_Graph.graphBrowser.addNodeTypeToFilter(type);
+		}
+
+		_Graph.graphBrowser.filterGraph();
 	},
 
-	setNodeColor: function(node) {
-		if (!_Helpers.isIn(node.type, Object.keys(color))) {
-			node.color = colors[color++];
-			color[node.type] = node.color;
+	setNodeColor: (node) => {
+
+		if (!_Helpers.isIn(node.type, Object.keys(_Graph.color))) {
+
+			node.color = _Graph.colors[_Graph.color++];
+			_Graph.color[node.type] = node.color;
+
 		} else {
-			node.color = color[node.type];
+
+			node.color = _Graph.color[node.type];
 		}
 	},
 
-	setRelationshipColor: function(rel) {
-		if (!_Helpers.isIn(rel.relType, Object.keys(relColors))) {
-			rel.color = colors[color++];
-			relColors[rel.relType] = rel.color;
+	setRelationshipColor: (rel) => {
+
+		if (!_Helpers.isIn(rel.relType, Object.keys(_Graph.relColors))) {
+
+			rel.color = _Graph.colors[_Graph.color++];
+			_Graph.relColors[rel.relType] = rel.color;
+
 		} else {
-			rel.color = relColors[rel.relType];
+
+			rel.color = _Graph.relColors[rel.relType];
 		}
 	},
 
-	updateRelationshipTypes: function() {
-		var relTypesBox = $('#relationship-types');
+	updateRelationshipTypes: () => {
+
+		let relTypesBox = $('#relationship-types');
 		relTypesBox.empty();
-		var relTypes = graphBrowser.getCurrentRelTypes();
+		let relTypes = _Graph.graphBrowser.getCurrentRelTypes();
+
 		$.each(relTypes, function(i, relType){
-			relTypesBox.append('<div id="rel-type-' + relType + '">' + relType + '</div>');
+
+			relTypesBox.append(`<div id="rel-type-${relType}">${relType}</div>`);
 			var rt = $('#rel-type-' + relType, relTypesBox);
-			if (_Helpers.isIn(relType, hiddenRelTypes)) {
+			if (_Helpers.isIn(relType, _Graph.hiddenRelTypes)) {
 				rt.attr('data-hidden', 1);
 				rt.addClass('hidden-node-type');
 			}
@@ -830,18 +836,18 @@ let _Graph = {
 			}).on('click', function() {
 				var n = $(this);
 				if (n.attr('data-hidden')) {
-					graphBrowser.hideRelType(relType, false);
+					_Graph.graphBrowser.hideRelType(relType, false);
 					n.removeAttr('data-hidden', 1);
 					n.removeClass('hidden-node-type');
 				} else {
-					graphBrowser.hideRelType(relType, true);
+					_Graph.graphBrowser.hideRelType(relType, true);
 					n.attr('data-hidden', 1);
 					n.addClass('hidden-node-type');
 				}
 			}).on('mouseover', function() {
-					graphBrowser.highlightRelType(relType);
+					_Graph.graphBrowser.highlightRelType(relType);
 			}).on('mouseout', function() {
-					graphBrowser.unhighlightRelType(relType);
+					_Graph.graphBrowser.unhighlightRelType(relType);
 			});
 		});
 	},
@@ -860,66 +866,65 @@ let _Graph = {
 		_Graph.updateRelationshipTypes();
 	},
 
-	handleClickStageEvent: function(){
-		graphBrowser.hideExpandButtons();
+	handleClickStageEvent: () => {
+		_Graph.graphBrowser.hideExpandButtons();
 		document.querySelectorAll('.dropdown-menu-container').forEach((container) => {
 			container.style.display = 'none';
 		});
 	},
-	handleDragNodeEvent: function(){
-		hasDragged = true;
+	handleDragNodeEvent: () => {
+		_Graph.hasDragged = true;
 	},
-	handleStartDragNodeEvent: function(){
-		hasDragged = true;
-		graphBrowser.hideExpandButtons();
+	handleStartDragNodeEvent: () => {
+		_Graph.hasDragged = true;
+		_Graph.graphBrowser.hideExpandButtons();
 	},
-	handleDoubleClickNodeEvent: function(clickedNode){
-		window.clearTimeout(clickTimeout);
-		hasDoubleClicked = true;
+	handleDoubleClickNodeEvent: (clickedNode) => {
+		window.clearTimeout(_Graph.clickTimeout);
+		_Graph.hasDoubleClicked = true;
 		return false;
 	},
-	handleClickNodeEvent: function(clickedNode){
-		var node = clickedNode.data.node;
+	handleClickNodeEvent: (clickedNode) => {
+		let node = clickedNode.data.node;
 
-		if (hasDoubleClicked) {
+		if (_Graph.hasDoubleClicked) {
 			return false;
 		}
 
-		if (hasDragged) {
-			hasDragged = false;
+		if (_Graph.hasDragged) {
+			_Graph.hasDragged = false;
 			return false;
 		}
 
-		clickTimeout = window.setTimeout(function() {
+		_Graph.clickTimeout = window.setTimeout(() => {
 			_Entities.showProperties(node);
-			window.clearTimeout(clickTimeout);
-		}, doubleClickTime);
+		}, _Graph.doubleClickTime);
 
-		window.setTimeout(function() {
-			hasDoubleClicked = false;
-		}, doubleClickTime + 10);
+		window.setTimeout(() => {
+			_Graph.hasDoubleClicked = false;
+		}, _Graph.doubleClickTime + 10);
 	},
-	handleClickEdgeEvent: function(clickedEdge){
+	handleClickEdgeEvent: (clickedEdge) => {
 
-		if (hasDragged) {
-			hasDragged = false;
+		if (_Graph.hasDragged) {
+			_Graph.hasDragged = false;
 			return false;
 		}
 
-		hasDoubleClicked = false;
+		_Graph.hasDoubleClicked = false;
 
 		_Entities.showProperties(clickedEdge.data.edge);
 	},
-	renderNodeExpanderInfoButton: function(colorKey, label){
+	renderNodeExpanderInfoButton: (colorKey, label) => {
 		return `
 			<div class="nodeExpander-infobutton">
-				<div class="circle" style="background-color: ${color[colorKey] || '#e5e5e5'}"></div>
+				<div class="circle" style="background-color: ${_Graph.color[colorKey] || '#e5e5e5'}"></div>
 				${label}
 			</div>
 		`;
 	},
 	renderNodeTooltip: (node) => {
-		graphBrowser.hideExpandButtons();
+		_Graph.graphBrowser.hideExpandButtons();
 
 		return `
 			<div class='tooltipArrowUp'></div>
@@ -928,7 +933,7 @@ let _Graph = {
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close')}
 					<p class='tooltipTitle'>${node.label}</p>
 				</div>
-				<div class='tooltipContent' style='border-top: solid ${color[node.nodeType]} 4px;'>
+				<div class='tooltipContent' style='border-top: solid ${_Graph.color[node.nodeType]} 4px;'>
 					<div class='tooltipBody'>
 						<table class='tooltipTable'>
 							<tbody>
@@ -1041,18 +1046,18 @@ let _Graph = {
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
 					${_Icons.getSvgIcon(_Icons.iconSliders)} Display Settings
 				</button>
-			
+
 				<div class="dropdown-menu-container">
 					<div class="heading-row">
 						<h3>Display Options</h3>
 					</div>
 					<div class="row">
-						<label class="block"><input ${!nodeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleNodeLabels" name="toggleNodeLabels"> Node labels</label>
+						<label class="block"><input ${!_Graph.nodeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleNodeLabels" name="toggleNodeLabels"> Node labels</label>
 					</div>
 					<div class="row">
-						<label class="block"><input ${!edgeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleEdgeLabels" name="toggleEdgeLabels"> Edge labels</label>
+						<label class="block"><input ${!_Graph.edgeLabelsHidden ? 'checked' : ''} type="checkbox" id="toggleEdgeLabels" name="toggleEdgeLabels"> Edge labels</label>
 					</div>
-					
+
 					<div class="heading-row">
 						<h3>Set Layout</h3>
 					</div>
@@ -1062,15 +1067,15 @@ let _Graph = {
 					<div class="row">
 						<a id="dagre-controlElement" class="block">Dagre</a>
 					</div>
-					
+
 					<div class="heading-row">
 						<h3>Dynamic Layouting On/Off</h3>
 					</div>
-					
+
 					<div class="row">
-						<a id="forceAtlas-controlElement" class="block ${animating ? 'active' : ''}">ForceAtlas2</a>
+						<a id="forceAtlas-controlElement" class="block ${_Graph.animating ? 'active' : ''}">ForceAtlas2</a>
 					</div>
-					
+
 					<!--	<div class="heading-row"><h3>Selection Tools</h3></div>-->
 					<!--	<button id="newSelectionGroup">New Selection</button>-->
 					<!--	<button id="selectionLasso">Lasso</button>-->
@@ -1091,15 +1096,15 @@ let _Graph = {
 
 				</div>
 			</div>
-			
+
 			<button id="clear-graph" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear Graph</button>
 		`,
 		filters: config => `
 			<div id="filters" class="">
-			
+
 				<div id="nodeFilters">
 					<h3>Node Filters</h3>
-					
+
 					<div><input type="checkbox" id="graphTypeToggleCore"><label for="graphTypeToggleCore"> Core Types</label></div>
 					<div><input type="checkbox" id="graphTypeToggleUi"><label for="graphTypeToggleUi"> UI Types</label></div>
 					<div><input type="checkbox" id="graphTypeToggleCustom"><label for="graphTypeToggleCustom"> Custom Types</label></div>

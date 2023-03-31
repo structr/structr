@@ -516,10 +516,7 @@ img.disabled {
 }
 
 #pages,
-#activeElements,
-#dataBinding,
 #localizations,
-#propertyDefinitions,
 #contents,
 #folders,
 #files,
@@ -531,10 +528,6 @@ img.disabled {
 	width: 24rem;
 	z-index: 4;     /* 1 greater than the column-resizer, which is 3! */
 }
-
-/*.slideOutRight {*/
-/*	margin: 3px 0 6px 9px;*/
-/*}*/
 
 #users > .node.user, #groups > .node.group {
 	margin-left: 0;
@@ -621,19 +614,16 @@ img.disabled {
 /*
  * Pages: Left slideout activators
  */
-
 #pagesTab,
 #inheritanceTab,
 #widgetsTab {
 	top: 4rem;
 }
 
-#activeElementsTab,
 #paletteTab {
 	top: 10rem;
 }
 
-#dataBindingTab,
 #componentsTab {
 	top: 16rem;
 }
@@ -649,7 +639,6 @@ img.disabled {
 /*
  * Pages: Right slideout activators
  */
-
 #widgetsTab,
 #paletteTab,
 #componentsTab,
@@ -659,19 +648,14 @@ img.disabled {
 
 .slideOut {
 	height: calc(100% - 2rem);
-	/*margin: 0;*/
-	/*border-top: 1px solid var(--black-opacity-125) ! important;*/
-	/*border-bottom: 1px solid var(--black-opacity-125) ! important;*/
 	position: absolute;
 	z-index: 2;
 	top: 2rem;
 	background-color: var(--solid-white) ! important;
-	/*font-size: .875rem;*/
 }
 
 .slideOut.open {
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
-	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
 }
 
 .slideOut .inner {
@@ -698,21 +682,11 @@ img.disabled {
 	width: 400px;
 	right: calc(-413px - 3rem);
 	padding-right: 4rem;
-	/*border-left: 1px solid var(--black-opacity-125) ! important;*/
 }
 
 .slideOutLeft {
 	left: calc(-414px - 3rem);
 	padding-left: 4rem;
-	/*padding-top: 1rem;*/
-	/*border-right: 1px solid var(--black-opacity-125) ! important;*/
-	/*margin-left: 4rem;*/
-}
-
-#paletteArea {
-	height: 100%;
-	overflow: auto;
-	padding-left: 1rem;
 }
 
 #palette .elementGroup {
@@ -726,21 +700,9 @@ img.disabled {
 	position: relative;
 }
 
-#paletteArea .draggable {
-	/*font-size: .875rem;*/
-	padding: .5rem 1rem;
-	/*color: var(--gray-333);*/
-	display: inline-block;
-	/*border: 1px solid transparent;*/
-	border-radius: 3px;
-	margin: 0 .5rem .5rem 0;
-	background-color: var(--input-background);
-}
-
 .draggable:hover {
 	cursor: move;
 	color: var(--solid-black);
-	/*border: 1px solid transparent;*/
 	background-color: var(--input-disabled);
 }
 
@@ -758,7 +720,6 @@ img.disabled {
 .props {
 	width: 100%;
 	border-collapse: collapse;
-	/*font-size: 1rem;*/
 }
 
 #users .props {
@@ -1093,7 +1054,6 @@ img.disabled {
 
 .node .id,
 .group .id,
-.propertyDefinitions .id,
 .user .id,
 .page .id,
 .element .id,
@@ -1325,13 +1285,10 @@ i.button {
 .nodeHover, .nodeActive, #graph-canvas .node {
 	color: var(--gray-333) ! important;
 	background-color: var(--light-gray-bg-f3);
-	/*border: 1px solid var(--black-opacity-125) ! important;*/
 }
 
 .slideOut .node {
-	/*padding: .1rem 0 .1rem .1rem;*/
 	margin: 0 0 0 1rem;
-	/*border-right: 0;*/
 }
 
 #components, #elements {
@@ -1353,7 +1310,6 @@ i.button {
 .node.contextMenuActive {
 	color: var(--gray-333) ! important;
 	background-color: var(--structr-light-green-transparent) ! important;
-	/*border: 1px solid var(--input-field-border);*/
 }
 
 .nodeSelected {
@@ -2361,11 +2317,6 @@ th.center {
 		opacity: 0;
 		max-height: 0;
 	}
-}
-
-#info-area .message h3 {
-	margin-top: 0;
-	margin-bottom: 5px;
 }
 
 #info-area .message li {
@@ -4190,6 +4141,9 @@ table.props td.__value {
 }
 .ml-8 {
 	margin-left: 2rem;
+}
+.-mt-1 {
+	margin-top: -.25rem;
 }
 .mt-0 {
 	margin-top: 0;

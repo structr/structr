@@ -145,7 +145,7 @@ class VISLayouter {
 	init() {
 
 		// Modify to initialize the graph browser with the modules of your choice
-		graphBrowser = new GraphBrowser({
+		let graphBrowser = new GraphBrowser({
 			graphContainer: 'graph-container',
 			sigmaSettings: settings,
 			moduleSettings: {

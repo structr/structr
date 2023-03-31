@@ -70,17 +70,18 @@ let _Pages = {
 
 		Structr.resize();
 
-		// TODO: remove!... but if removed, pages has a horizontal scrollbar caused by the right slideouts
-		$('body').css({
-			position: 'fixed'
-		});
-
 		_Pages.resizeColumns();
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
-	onload: function() {
+	unload: () => {
+		document.querySelector('body').style.position = null;
+	},
+	onload: () => {
+
+		// TODO: remove!... but if removed, pages has a horizontal scrollbar caused by the right slideouts
+		document.querySelector('body').style.position = 'fixed';
 
 		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 		if (urlHash) {
@@ -107,7 +108,7 @@ let _Pages = {
 
 		let pagesTab = document.getElementById('pagesTab');
 		let pagesTabSlideoutAction = (e) => {
-			_Pages.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
+			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
 				_Pages.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
@@ -123,7 +124,7 @@ let _Pages = {
 
 		let localizationsTab = document.getElementById('localizationsTab');
 		localizationsTab.addEventListener('click', () => {
-			_Pages.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
+			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
 				_Pages.localizations.refreshPagesForLocalizationPreview();
 				_Pages.resize();
@@ -151,33 +152,27 @@ let _Pages = {
 
 		let widgetsTab = document.getElementById('widgetsTab');
 		widgetsTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-				if (params.isOpenAction) {
-					_Widgets.reloadWidgets();
-				}
+				_Widgets.reloadWidgets();
 				_Pages.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
 		let paletteTab = document.getElementById('paletteTab');
 		paletteTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-				if (params.isOpenAction) {
-					_Pages.designTools.reload();
-				}
+				_Pages.designTools.reload();
 				_Pages.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
 		let componentsTab = document.getElementById('componentsTab');
 		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-				if (params.isOpenAction) {
-					_Pages.sharedComponents.reload(isDragOpen);
-				}
+				_Pages.sharedComponents.reload(isDragOpen);
 				_Pages.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		};
@@ -198,15 +193,13 @@ let _Pages = {
 
 		let elementsTab = document.getElementById('elementsTab');
 		elementsTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-				if (params.isOpenAction) {
-					_Pages.unattachedNodes.reload();
-				}
+				_Pages.unattachedNodes.reload();
 				_Pages.resize();
-			}, (wasOpen) => {
+			}, () => {
 				_Pages.unattachedNodes.removeElementsFromUI();
-				_Pages.rightSlideoutClosedCallback(wasOpen);
+				_Pages.rightSlideoutClosedCallback();
 			});
 		});
 
@@ -608,8 +601,8 @@ let _Pages = {
 	resizeColumns: (pxLeft, pxRight) => {
 
 		if (!pxLeft && !pxRight) {
-			pxLeft  = LSWrapper.getItem(_Pages.pagesResizerLeftKey)  || _Pages.leftTabMinWidth;
-			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || _Pages.rightTabMinWidth;
+			pxLeft  = LSWrapper.getItem(_Pages.getLeftResizerKey())  || _Pages.leftTabMinWidth;
+			pxRight = LSWrapper.getItem(_Pages.getRightResizerKey()) || _Pages.rightTabMinWidth;
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -703,8 +696,8 @@ let _Pages = {
 			_Pages.resize();
 		});
 
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
 		Structr.unblockMenu(500);
 
@@ -1334,53 +1327,21 @@ let _Pages = {
 	getActiveTabRight: () => {
 		return LSWrapper.getItem(_Pages.activeTabRightKey);
 	},
-	leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
-
-		let leftResizer = document.querySelector('.column-resizer-left');
-
-		if (!$(triggerEl).hasClass('noclick')) {
-
-			if (slideoutElement.position().left < -1) {
-				Structr.closeLeftSlideOuts(otherSlideouts, closeCallback);
-				Structr.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
-				if (leftResizer) {
-					leftResizer.classList.remove('hidden');
-				}
-			} else {
-				Structr.closeLeftSlideOuts([slideoutElement], closeCallback);
-				if (leftResizer) {
-					leftResizer.classList.add('hidden');
-				}
-			}
-		}
+	getLeftResizerKey: () => {
+		return _Pages.pagesResizerLeftKey;
 	},
-	rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
-
-		if (!$(triggerEl).hasClass('noclick')) {
-
-			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
-				Structr.closeSlideOuts(otherSlideouts, closeCallback);
-				Structr.openSlideOut(triggerEl, slideoutElement, openCallback);
-				document.querySelector('.column-resizer-right').classList.remove('hidden');
-			} else {
-				Structr.closeSlideOuts([slideoutElement], closeCallback);
-				document.querySelector('.column-resizer-right').classList.add('hidden');
-			}
-		}
+	getRightResizerKey: () => {
+		return _Pages.pagesResizerRightKey;
 	},
-	leftSlideoutClosedCallback: (wasOpen) => {
-		if (wasOpen) {
-			LSWrapper.removeItem(_Pages.activeTabLeftKey);
+	leftSlideoutClosedCallback: () => {
 
-			_Pages.resize();
-		}
+		LSWrapper.removeItem(_Pages.activeTabLeftKey);
+		_Pages.resize();
 	},
-	rightSlideoutClosedCallback: (wasOpen) => {
-		if (wasOpen) {
-			LSWrapper.removeItem(_Pages.activeTabRightKey);
+	rightSlideoutClosedCallback: () => {
 
-			_Pages.resize();
-		}
+		LSWrapper.removeItem(_Pages.activeTabRightKey);
+		_Pages.resize();
 	},
 
 	openAndSelectTreeObjectById: (id) => {
@@ -3292,13 +3253,14 @@ console.log(raw)
 					</button>
 				`);
 
-				let btn = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
-				btn.addEventListener('click', async () => {
+				let deleteUnattachedNodesButton = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
+
+				deleteUnattachedNodesButton.addEventListener('click', async () => {
 					let confirm = await _Helpers.confirmationPromiseNonBlockUI('<p>Delete all DOM elements without parent?</p>');
 					if (confirm === true) {
 						Command.deleteUnattachedNodes();
 
-						Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						Structr.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 					}
 				});
 
@@ -3308,13 +3270,13 @@ console.log(raw)
 
 					let count = result.length;
 					if (count > 0) {
-						btn.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
-						btn.classList.add('hover:bg-gray-100');
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
+						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
 
-						_Helpers.disableElements(false, btn);
+						_Helpers.disableElements(false, deleteUnattachedNodesButton);
 					} else {
-						btn.textContent = 'No unused elements';
-						btn.classList.remove('hover:bg-gray-100');
+						deleteUnattachedNodesButton.textContent = 'No unused elements';
+						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
@@ -3663,7 +3625,6 @@ console.log(raw)
 			</div>
 
 			<div id="palette" class="slideOut slideOutRight">
-				<div id="paletteArea"></div>
 			</div>
 
 			<div class="slideout-activator right" id="componentsTab">
@@ -3677,7 +3638,6 @@ console.log(raw)
 			</div>
 
 			<div id="components" class="slideOut slideOutRight">
-				<div class="inner"></div>
 			</div>
 
 			<div class="slideout-activator right" id="elementsTab">

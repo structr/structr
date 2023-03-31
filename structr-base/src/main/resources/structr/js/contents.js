@@ -98,11 +98,11 @@ let _Contents = {
 			});
 
 			itemTypeSelect.addEventListener('change', () => {
-				addItemButton.querySelector('span').textContent = 'Add ' + itemTypeSelect.value;
+				addItemButton.querySelector('span').textContent = `Add ${itemTypeSelect.value}`;
 			});
 
 			containerTypeSelect.addEventListener('change', () => {
-				addContainerButton.querySelector('span').textContent = 'Add ' + containerTypeSelect.value;
+				addContainerButton.querySelector('span').textContent = `Add ${containerTypeSelect.value}`;
 			});
 
 			if (contentItemTypes.length === 0) {
@@ -135,7 +135,7 @@ let _Contents = {
 
 		_Contents.contentTree.on('select_node.jstree', function(evt, data) {
 
-			_Contents.setWorkingDirectory(data.node.id);
+			_Contents.setCurrentContentContainer(data.node.id);
 			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 		});
 
@@ -258,17 +258,17 @@ let _Contents = {
 
 		return elements;
 	},
-	deepOpen: function(d, dirs) {
+	deepOpen: (d, dirs) => {
 
 		_TreeHelper.deepOpen(_Contents.contentTree, d, dirs, 'parent', (_Contents.currentContentContainer ? _Contents.currentContentContainer.id : 'root'));
 	},
-	refreshTree: function() {
+	refreshTree: () => {
 
-		_TreeHelper.refreshTree(_Contents.contentTree, function() {
+		_TreeHelper.refreshTree(_Contents.contentTree, () => {
 			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
 		});
 	},
-	treeInitFunction: function(obj, callback) {
+	treeInitFunction: (obj, callback) => {
 
 		switch (obj.id) {
 
@@ -302,26 +302,25 @@ let _Contents = {
 				break;
 		}
 	},
-	unload: function() {
-		_Helpers.fastRemoveAllChildren(Structr.mainContainer);
+	unload: () => {
 	},
 	fulltextSearch: (searchString) => {
 
 		_Contents.contentsContents.children().hide();
 
-		_Contents.displaySearchResultsForURL(Structr.rootUrl + 'ContentItem/ui?' + Structr.getRequestParameterName('loose') + '=1' + searchString.split(' ').map((str) => '&name=' + str));
+		_Contents.displaySearchResultsForURL(`${Structr.rootUrl}ContentItem/ui?${Structr.getRequestParameterName('loose')}=1${searchString.split(' ').map((str) => '&name=' + str)}`);
 	},
 	clearSearch: () => {
 		Structr.mainContainer.querySelector('.search').value = '';
 		$('#search-results').remove();
 		_Contents.contentsContents.children().show();
 	},
-	loadAndSetWorkingDir: function(callback) {
+	loadAndSetWorkingDir: (callback) => {
 
 		_Contents.currentContentContainer = LSWrapper.getItem(_Contents.currentContentContainerKey);
 		callback();
 	},
-	load: function(id, callback) {
+	load: (id, callback) => {
 
 		let filter = {
 			parent: (id ? id : null)
@@ -332,7 +331,7 @@ let _Contents = {
 			let list = folders.map(d => {
 				return {
 					id: d.id,
-					text: (d.name ? d.name : '[unnamed]') + ((d.items && d.items.length > 0) ? ' (' + d.items.length + ')' : ''),
+					text: (d?.name ?? '[unnamed]') + ((d.items && d.items.length > 0) ? ` (${d.items.length})` : ''),
 					children: d.isContentContainer && d.childContainers.length > 0,
 					icon: _Icons.nonExistentEmptyIcon,
 					data: {
@@ -348,12 +347,12 @@ let _Contents = {
 
 		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
 	},
-	setWorkingDirectory: (id) => {
+	setCurrentContentContainer: (id) => {
 
 		if (id === 'root') {
 			_Contents.currentContentContainer = null;
 		} else {
-			_Contents.currentContentContainer = { 'id': id };
+			_Contents.currentContentContainer = { id: id };
 		}
 
 		LSWrapper.setItem(_Contents.currentContentContainerKey, _Contents.currentContentContainer);
@@ -449,23 +448,23 @@ let _Contents = {
 			});
 		}
 	},
-	appendItemOrContainerRow: function(d) {
+	appendItemOrContainerRow: (d) => {
 
 		// add container/item to global model
 		StructrModel.createFromData(d, null, false);
 
 		let tableBody  = $('#files-table-body');
 
-		$('#row' + d.id, tableBody).remove();
+		$(`#row${d.id}`, tableBody).remove();
 
 		let items      = d.items || [];
 		let containers = d.containers || [];
 		let size       = d.isContentContainer ? containers.length + items.length : (d?.size ?? '-');
 
-		let rowId = 'row' + d.id;
-		tableBody.append('<tr id="' + rowId + '"' + (d.isThumbnail ? ' class="thumbnail"' : '') + '></tr>');
+		let rowId = `row${d.id}`;
+		tableBody.append(`<tr id="${rowId}"${d.isThumbnail ? ' class="thumbnail"' : ''}></tr>`);
 
-		let row   = $('#' + rowId);
+		let row   = $(`#${rowId}`);
 		let title = (d?.name ?? '[unnamed]');
 
 		row.append(`
@@ -483,25 +482,25 @@ let _Contents = {
 		`);
 
 		// Change working dir by click on folder icon
-		$('#id_' + d.id + '.container').parent().prev().on('click', function(e) {
+		$(`#id_${d.id}.container`).parent().prev().on('click', function(e) {
 
 			e.preventDefault();
 			e.stopPropagation();
 
 			if (d.parentId) {
 
-				_Contents.contentTree.jstree('open_node', $('#' + d.parentId), function() {
+				_Contents.contentTree.jstree('open_node', $(`#${d.parentId}`), () => {
 
 					if (d.name === '..') {
-						$('#' + d.parentId + '_anchor').click();
+						$(`#${d.parentId}_anchor`).click();
 					} else {
-						$('#' + d.id + '_anchor').click();
+						$(`#${d.id}_anchor`).click();
 					}
 				});
 
 			} else {
 
-				$('#' + d.id + '_anchor').click();
+				$(`#${d.id}_anchor`).click();
 			}
 
 			return false;
@@ -518,10 +517,6 @@ let _Contents = {
 			_Entities.makeNameEditable(div);
 		});
 
-		div.on('remove', function() {
-			div.closest('tr').remove();
-		});
-
 		if (d.isContentContainer) {
 
 			div.droppable({
@@ -534,23 +529,10 @@ let _Contents = {
 					e.preventDefault();
 					e.stopPropagation();
 
-					let targetContainerId = Structr.getId($(this));
-					let elements          = (_Contents.selectedElements.length > 0) ? [..._Contents.selectedElements] : [ui.draggable];
-					let movePromises      = elements.map(el => new Promise((resolve, reject) => {
+					let elementId         = Structr.getId(ui.draggable);
+					let targetContainerId = d.id;
 
-						let node = StructrModel.obj(Structr.getId(el));
-
-						if (node.isContentContainer) {
-							_Entities.setProperty(node.id, 'parent', targetContainerId, false, resolve);
-						} else {
-							_Entities.addToCollection(node.id, targetContainerId, 'containers', resolve);
-						}
-					}));
-
-					Promise.all(movePromises).then(values => {
-						$(ui.draggable).remove();
-						_Contents.refreshTree();
-					});
+					_Contents.handleMoveObjectsAction(targetContainerId, elementId);
 
 					return false;
 				}
@@ -583,21 +565,29 @@ let _Contents = {
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
 			stop: function(e, ui) {
+
 				$(this).show();
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
 			},
 			helper: function(event) {
-				let helperEl = $(this);
-				_Contents.selectedElements = $('.node.selected');
+
+				let draggedElement           = $(this);
+				let draggedElementIsSelected = draggedElement.hasClass('selected')
+
+				_Contents.selectedElements = draggedElementIsSelected ? $('.node.selected') : [];
+
+				$('.node.selected').removeClass('selected');
+
 				if (_Contents.selectedElements.length > 1) {
-					_Contents.selectedElements.removeClass('selected');
-					return $(`<i>${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')}</i>`);
+					return $(`<span class="flex items-center gap-2 pl-2">${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')} ${_Contents.selectedElements.length} elements</span>`);
 				}
-				let hlp = helperEl.clone();
-				hlp.find('.button').remove();
-				return hlp;
+
+				let helperEl = draggedElement.clone();
+				helperEl.find('.button').remove();
+				helperEl.addClass('pl-2');
+				return helperEl;
 			}
 		});
 
@@ -610,7 +600,71 @@ let _Contents = {
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 		_Elements.enableContextMenuOnElement(div, d);
+	},
+	handleMoveObjectsAction: (targetContainerId, actualDraggedObjectId) => {
 
+		/**
+		 * handles a drop action to a ContentContainer located in the contents area...
+		 * and a drop action to a ContentContainer located in the tree
+		 *
+		 * must take into account the selected elements in the contents area
+		 */
+		let promiseCallback = (info) => {
+
+			if (info.skipped.length > 0) {
+				let text = `The following containers were not moved to prevent inconsistencies:<br><br>${info.skipped.map(id => StructrModel.obj(id)?.name ?? 'unknown').join('<br>')}`;
+				new InfoMessage().title('Skipped some objects').text(text).show();
+			}
+
+			// unconditionally reload whole tree (because the count also changes)
+			_Contents.refreshTree();
+
+			_Contents.selectedElements = [];
+		};
+
+		let selectedElementIds = (_Contents.selectedElements.length > 0) ? [..._Contents.selectedElements].map(el => Structr.getId(el)) : [actualDraggedObjectId];
+		_Contents.moveObjectsToTargetContainer(targetContainerId, selectedElementIds).then(promiseCallback);
+	},
+	moveObjectsToTargetContainer: async (targetContainerId, objectIds) => {
+
+		/**
+		 * initial promise.all returns a list of moved object ids
+		 * skipped objects have the "skipped_" prefix before the uuid
+		 * result of the promise is an object telling us the skipped objects, the moved objects, and if there was a folder which has been moved
+		 */
+		let skippedPrefix = 'skipped_';
+		let movePromises = objectIds.map(objectId => new Promise((resolve, reject) => {
+
+			// prevent moving element to self
+			if (objectId !== targetContainerId) {
+
+				let nodeToMove = StructrModel.obj(objectId);
+
+				if (nodeToMove.isContentContainer) {
+					_Entities.setProperty(nodeToMove.id, 'parent', targetContainerId, false, () => {
+						resolve(objectId);
+					});
+				} else {
+					_Entities.addToCollection(nodeToMove.id, targetContainerId, 'containers', () => {
+						resolve(objectId);
+					});
+				}
+
+			} else {
+				resolve(skippedPrefix + objectId);
+			}
+		}));
+
+		return Promise.all(movePromises).then(values => {
+
+			let movedObjectIds = values.filter(v => !v.startsWith(skippedPrefix));
+
+			return {
+				movedContentContainer: movedObjectIds.map(id => StructrModel.obj(id)).some(obj => obj?.type === 'ContentContainer'),
+				moved: movedObjectIds,
+				skipped: values.filter(v => v.startsWith(skippedPrefix)).map(text => text.slice(skippedPrefix.length))
+			};
+		});
 	},
 	checkValueHasChanged: (oldVal, newVal, buttons) => {
 
@@ -951,19 +1005,19 @@ let _Contents = {
 	templates: {
 		contents: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/contents.css">
-			
+
 			<div class="tree-main" id="contents-main">
 				<div class="column-resizer"></div>
-			
+
 				<div class="tree-container" id="content-tree-container">
 					<div class="tree" id="contents-tree">
-			
+
 					</div>
 				</div>
-			
+
 				<div class="tree-contents-container" id="contents-contents-container">
 					<div class="tree-contents tree-contents-with-top-buttons" id="contents-contents">
-			
+
 					</div>
 				</div>
 			</div>

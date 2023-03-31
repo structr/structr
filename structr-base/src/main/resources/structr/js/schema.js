@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-const globalFinalizationRegistry = new FinalizationRegistry(message => console.log(message));
 
 document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Schema);
@@ -83,10 +82,10 @@ let _Schema = {
 				_Schema.ui.selectionStop();
 			});
 
-			let inheritanceTab = $('#inheritanceTab');
-			inheritanceTab.on('click', () => {
-				_Pages.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], (params) => {
-					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.prop('id'));
+			let inheritanceTab = document.querySelector('#inheritanceTab');
+			inheritanceTab.addEventListener('click', () => {
+				Structr.slideouts.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], () => {
+					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.id);
 					_Schema.inheritanceTree.show();
 				}, () => {
 					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
@@ -108,6 +107,9 @@ let _Schema = {
 				_Schema.resize();
 			});
 		});
+	},
+	getLeftResizerKey: () => {
+		return null;
 	},
 	reload: (callback) => {
 
@@ -900,38 +902,36 @@ let _Schema = {
 
 			let { dialogText } = Structr.dialogSystem.openDialog("Create Type", null, ['schema-edit-dialog']);
 
-			globalFinalizationRegistry.register(dialogText, 'createType: container');
-
 			_Schema.nodes.showCreateNewTypeDialog(dialogText);
 
-			// let saveButton    = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
-			// let discardButton = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
-			//
-			// saveButton.addEventListener('click', async (e) => {
-			//
-			// 	let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
-			//
-			// 	if (!typeData.name || typeData.name.trim() === '') {
-			//
-			// 		_Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
-			//
-			// 	} else {
-			//
-			// 		_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
-			// 			_Schema.openEditDialog(responseData.result[0]);
-			// 			_Schema.reload();
-			// 		}, rejectData => {
-			// 			Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
-			// 		});
-			//
-			// 	}
-			// });
-			//
-			// // replace old cancel button with "discard button" to enable global ESC handler
-			// Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
-			// discardButton.addEventListener('click', (e) => {
-			// 	Structr.dialogSystem.dialogCancelBaseAction();
-			// });
+			let saveButton    = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
+			let discardButton = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+
+			saveButton.addEventListener('click', async (e) => {
+
+				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
+
+				if (!typeData.name || typeData.name.trim() === '') {
+
+					_Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+
+				} else {
+
+					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
+						_Schema.openEditDialog(responseData.result[0]);
+						_Schema.reload();
+					}, rejectData => {
+						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
+					});
+
+				}
+			});
+
+			// replace old cancel button with "discard button" to enable global ESC handler
+			Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
+			discardButton.addEventListener('click', (e) => {
+				Structr.dialogSystem.dialogCancelBaseAction();
+			});
 		},
 		populateBasicTypeInfo: (container, entity) => {
 
