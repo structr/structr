@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -32,8 +33,6 @@ import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * A resource constraint whose only purpose is to configure the
@@ -43,7 +42,6 @@ import java.util.regex.Pattern;
 public class ViewFilterResource extends WrappingResource {
 
 	private static final Logger logger       = LoggerFactory.getLogger(ViewFilterResource.class.getName());
-	private static final Pattern uuidPattern = Pattern.compile("[a-fA-F0-9]{32}");
 	private String propertyView              = null;
 
 	// no-arg constructor for automatic instantiation
@@ -117,14 +115,10 @@ public class ViewFilterResource extends WrappingResource {
 		if (signaturePart.contains("/")) {
 
 			String[] parts  = StringUtils.split(signaturePart, "/");
-			Matcher matcher = uuidPattern.matcher("");
 
 			for (String subPart : parts) {
 
-				// re-use pattern matcher for better performance
-				matcher.reset(subPart);
-
-				if (!matcher.matches()) {
+				if (Settings.isValidUuid(subPart)) {
 
 					signature.append(subPart);
 					signature.append("/");

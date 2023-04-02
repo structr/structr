@@ -20,6 +20,7 @@ package org.structr.core.function;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.core.GraphObject;
 
 import java.io.IOException;
@@ -28,8 +29,6 @@ public class UserChangelogFunction extends ChangelogFunction {
 
 	public static final String ERROR_MESSAGE_USER_CHANGELOG    = "Usage: ${user_changelog(user[, resolve=false[, filterKey, filterValue...]])}. Example: ${user_changelog(current, false, 'verb', 'change', 'timeTo', now)}";
 	public static final String ERROR_MESSAGE_USER_CHANGELOG_JS = "Usage: ${{Structr.userChangelog(user[, resolve=false[, filterObject]])}}. Example: ${{Structr.userChangelog(Structr.get('me'), false, {verb:\"change\", timeTo: new Date()}))}}";
-
-	private static final Logger logger = LoggerFactory.getLogger(ChangelogFunction.class.getName());
 
 	@Override
 	public String getName() {
@@ -56,7 +55,7 @@ public class UserChangelogFunction extends ChangelogFunction {
 	@Override
 	protected String getChangelogForString (final String inputString) throws IOException {
 
-		if (uuidPattern.matcher(inputString).matches()) {
+		if (Settings.isValidUuid(inputString)) {
 
 			return getChangelogForUUID(inputString, "u");
 
