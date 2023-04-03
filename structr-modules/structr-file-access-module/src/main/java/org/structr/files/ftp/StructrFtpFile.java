@@ -60,7 +60,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Long size = StorageProviderFactory.getStreamProvider(structrFile).size();
+			final Long size = StorageProviderFactory.getStorageProvider(structrFile).size();
 
 			tx.success();
 

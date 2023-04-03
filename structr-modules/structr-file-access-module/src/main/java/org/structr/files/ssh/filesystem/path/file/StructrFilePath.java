@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -152,7 +153,8 @@ public class StructrFilePath extends StructrPath {
 					final File file = (File)actualFile;
 
 					//channel = new StructrFileChannel(file.getOutputStream(true, !truncate || append));
-					channel = file.getOutputStream(true, !truncate || append).getChannel();
+					throw new FrameworkException(500, "Channel not implemented for new FS abstraction");
+					//channel = file.getOutputStream(true, !truncate || append).getChannel();
 				}
 
 				tx.success();
@@ -168,7 +170,8 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					channel = FileChannel.open(((File)actualFile).getFileOnDisk().toPath(), options);
+					// Todo: Fix for fs abstraction
+					channel = (FileChannel) StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel();
 
 					tx.success();
 

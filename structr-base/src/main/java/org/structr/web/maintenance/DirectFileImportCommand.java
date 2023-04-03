@@ -18,6 +18,7 @@
  */
 package org.structr.web.maintenance;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
@@ -39,7 +41,10 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -183,7 +188,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						parentPath = path;
 					}
 
-					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, mode, existing, doIndex);
+					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, existing, doIndex);
 
 					newTargetPath = targetPath + PathHelper.PATH_SEP + PathHelper.clean(path.getFileName().toString());
 
@@ -201,7 +206,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					@Override
 					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing, doIndex);
+						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, existing, doIndex);
 					}
 
 					@Override
@@ -227,7 +232,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	}
 
 	private FileVisitResult createFileOrFolder(final SecurityContext ctx, final App app, final Path path, final Path file, final BasicFileAttributes attrs,
-			final String sourcePath, final String targetPath, final Mode mode, final Existing existing, final boolean doIndex) {
+			final String sourcePath, final String targetPath, final Existing existing, final boolean doIndex) {
 
 		ctx.setDoTransactionNotifications(false);
 
@@ -308,20 +313,8 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				final java.io.File fileOnDisk = newFile.getFileOnDisk(false);
-				final Path fullFolderPath     = fileOnDisk.toPath();
-
-				Files.createDirectories(fullFolderPath.getParent());
-
-				switch (mode) {
-
-					case MOVE:
-						Files.move(file, fullFolderPath);
-						break;
-
-					case COPY:
-						Files.copy(file, fullFolderPath);
-						break;
+				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+					IOUtils.copy(is, os);
 				}
 
 				FileHelper.updateMetadata(newFile);

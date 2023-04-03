@@ -48,6 +48,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
+import org.structr.core.storage.StorageProvider;
 import org.structr.core.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
@@ -55,7 +56,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.web.common.ClosingFileOutputStream;
+import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.importer.CSVFileImportJob;
@@ -69,7 +70,6 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -163,11 +163,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream1.setSource("return " + File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
 		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
 		getOutputStream1.addParameter("append", "boolean");
-		getOutputStream1.setReturnType(FileOutputStream.class.getName());
+		getOutputStream1.setReturnType(OutputStream.class.getName());
 
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
-		getOutputStream2.setReturnType(FileOutputStream.class.getName());
+		getOutputStream2.setReturnType(OutputStream.class.getName());
 
 		type.addMethod("doCSVImport")
 			.setReturnType(java.lang.Long.class.getName())
@@ -231,7 +231,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
-	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
+	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
 	boolean isTemplate();
 
@@ -290,7 +290,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		// only delete mounted files
 		if (!thisFile.isExternal()) {
 
-			StorageProviderFactory.getStreamProvider(thisFile).delete();
+			StorageProviderFactory.getStorageProvider(thisFile).delete();
 		}
 	}
 
@@ -368,7 +368,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static String getFormattedSize(final File thisFile) {
 		return FileUtils.byteCountToDisplaySize(
-				StorageProviderFactory.getStreamProvider(thisFile).size()
+				StorageProviderFactory.getStorageProvider(thisFile).size()
 		);
 	}
 
@@ -393,7 +393,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try {
 
-			final InputStream is = StorageProviderFactory.getStreamProvider(thisFile).getInputStream();
+			final InputStream is = StorageProviderFactory.getStorageProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();
 
 			if (thisFile.isTemplate()) {
@@ -452,11 +452,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return null;
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile) {
+	static OutputStream getOutputStream(final File thisFile) {
 		return thisFile.getOutputStream(true, false);
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
+	static OutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		if (thisFile.isTemplate()) {
 
@@ -469,7 +469,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		try {
 
 			// Return file output stream and save checksum and size after closing
-			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
+			return new ClosingOutputStream(thisFile, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
 
@@ -783,32 +783,31 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
 
-		final Folder previousParent     = (Folder)thisFile.getProperty(key);
-		final Folder newParent          = (Folder)value;
-		final java.io.File previousFile = null;
-		java.io.File newFile            = null;
+		final Folder previousParent      = (Folder)thisFile.getProperty(key);
+		final Folder newParent           = (Folder)value;
 
-		if (newParent != null && !newParent.equals(previousParent)) {
+		if (previousParent != null && newParent != null && !newParent.getStorageProvider().equals(previousParent.getStorageProvider())) {
 
-			//newFile = newParent.getFileOnDisk(thisFile, "", false);
-		}
-
-		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
+			final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent.getStorageProvider());
+			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent.getStorageProvider());
 
 			final Logger logger = LoggerFactory.getLogger(File.class);
 
-			//try {
+			try {
 
-				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
+				logger.info("Moving file {} from {} to {}..", thisFile, previousParent, newParent);
 
-				//ToDo: Implement equivalent system for new storage providers.
-				//Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
-
-			/*
+				// Move binary content from old sp to new sp
+				try (final InputStream is = previousSP.getInputStream(); final OutputStream os = newSP.getOutputStream()) {
+					IOUtils.copy(is, os);
+				}
+				// Clean up old binary data on previous sp
+				//previousSP.delete();
 			} catch (IOException ioex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ioex));
 			}
-			 */
+
 		}
 	}
 

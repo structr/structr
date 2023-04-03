@@ -19,11 +19,61 @@
 package org.structr.core.storage;
 
 import org.structr.core.storage.local.LocalFSStorageProvider;
+import org.structr.core.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.Folder;
 
 public abstract class StorageProviderFactory {
 
-	public static StorageProvider getStreamProvider(final AbstractFile file) {
-		return new LocalFSStorageProvider(file);
+	public static StorageProvider getStorageProvider(final AbstractFile file) {
+		final String provider = getProviderType(file);
+
+		if (provider == null) {
+			return new LocalFSStorageProvider(file);
+		}
+
+		switch (provider) {
+			case "memory":
+				return new InMemoryStorageProvider(file);
+			default:
+				return new LocalFSStorageProvider(file);
+		}
+	}
+
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String forcedProvider) {
+
+		if (forcedProvider == null) {
+			return new LocalFSStorageProvider(file);
+		}
+
+		switch (forcedProvider) {
+			case "memory":
+				return new InMemoryStorageProvider(file);
+			default:
+				return new LocalFSStorageProvider(file);
+		}
+	}
+
+	private static String getProviderType(final AbstractFile abstractFile) {
+
+		if (abstractFile.getStorageProvider() != null) {
+
+			return abstractFile.getStorageProvider();
+		}
+
+		final Folder parentFolder = abstractFile.getParent();
+
+		if (parentFolder != null) {
+
+			if (parentFolder.getStorageProvider() != null) {
+
+				return parentFolder.getStorageProvider();
+			} else {
+
+				return getProviderType(parentFolder);
+			}
+		}
+
+		return null;
 	}
 }

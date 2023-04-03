@@ -59,7 +59,7 @@ abstract class FileImportJob extends ScheduledJob {
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();
 		this.fileName = file.getName();
-		this.fileSize = StorageProviderFactory.getStreamProvider(file).size();
+		this.fileSize = StorageProviderFactory.getStorageProvider(file).size();
 	}
 
 	public String getFileUuid () {

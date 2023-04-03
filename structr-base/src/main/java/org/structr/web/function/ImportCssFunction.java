@@ -64,11 +64,11 @@ public class ImportCssFunction extends UiAdvancedFunction {
 
 			final File file = (File) sources[0];
 
-			if (StorageProviderFactory.getStreamProvider(file).size() == 0) {
+			if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 				return "";
 			}
 
-			try (final InputStreamReader reader = new InputStreamReader(StorageProviderFactory.getStreamProvider(file).getInputStream())) {
+			try (final InputStreamReader reader = new InputStreamReader(StorageProviderFactory.getStorageProvider(file).getInputStream())) {
 
 				logger.info("Parsing CSS from {}..", file.getName());
 

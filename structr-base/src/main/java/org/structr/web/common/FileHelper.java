@@ -47,6 +47,8 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.storage.StorageProvider;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
@@ -62,6 +64,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
+import java.util.zip.CRC32;
 
 /**
  * File utility class.
@@ -163,9 +166,11 @@ public class FileHelper {
 		props.put(StructrApp.key(File.class, "contentType"), contentType);
 
 		final T newFile = (T) StructrApp.getInstance(securityContext).create(File.class, props);
-		final java.io.File newFileOnDisk = newFile.getFileOnDisk(false);
 
-		FileUtils.moveFile(existingFileOnDisk, newFileOnDisk);
+		try (FileInputStream fis = new FileInputStream(existingFileOnDisk); OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+
+			IOUtils.copy(fis, os);
+		}
 
 		return newFile;
 	}
@@ -349,14 +354,13 @@ public class FileHelper {
 	 */
 	private static void setFilePropertiesOnCreation(final File file, final String contentType) throws IOException, FrameworkException {
 
-		final java.io.File fileOnDisk = file.getFileOnDisk(false);
 		final PropertyMap map         = new PropertyMap();
 
-		map.put(StructrApp.key(File.class, "contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(fileOnDisk, file.getProperty(File.name)));
-		map.put(StructrApp.key(File.class, "size"),        FileHelper.getSize(fileOnDisk));
+		map.put(StructrApp.key(File.class, "contentType"), contentType != null ? contentType : FileHelper.getContentMimeType(file, file.getProperty(File.name)));
+		map.put(StructrApp.key(File.class, "size"),        FileHelper.getSize(file));
 		map.put(StructrApp.key(File.class, "version"),     1);
 
-		map.putAll(getChecksums(file, fileOnDisk));
+		map.putAll(getChecksums(file));
 
 		if (file instanceof Image) {
 
@@ -408,11 +412,10 @@ public class FileHelper {
 	 * Calculate checksums that are configured in settings of parent folder.
 	 *
 	 * @param file
-	 * @param fileOnDisk
 	 * @return
 	 * @throws IOException
 	 */
-	private static PropertyMap getChecksums(final File file, final java.io.File fileOnDisk) throws IOException {
+	private static PropertyMap getChecksums(final File file) throws IOException {
 
 		final PropertyMap propertiesWithChecksums = new PropertyMap();
 
@@ -430,10 +433,10 @@ public class FileHelper {
 		}
 
 		// New, very fast xxHash default checksum, will always be calculated
-		propertiesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(fileOnDisk));
+		propertiesWithChecksums.put(StructrApp.key(File.class, "checksum"), FileHelper.getChecksum(file));
 
 		if (StringUtils.contains(checksums, "crc32"))	{
-			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getCRC32Checksum(fileOnDisk));
+			propertiesWithChecksums.put(StructrApp.key(File.class, "crc32"), FileHelper.getCRC32Checksum(file));
 		}
 
 		if (StringUtils.contains(checksums, "md5"))	{
@@ -471,9 +474,7 @@ public class FileHelper {
 	 */
 	public static void updateMetadata(final File file, final PropertyMap map, final boolean calcChecksums) throws FrameworkException {
 
-		final java.io.File fileOnDisk = file.getFileOnDisk(false);
-
-		if (fileOnDisk != null && fileOnDisk.exists()) {
+		if (file != null) {
 
 			try {
 
@@ -496,10 +497,10 @@ public class FileHelper {
 					}
 				}
 
-				map.put(fileModificationDateKey, fileOnDisk.lastModified());
+				map.put(fileModificationDateKey, file.getLastModifiedDate().getTime());
 
 				if (calcChecksums) {
-					map.putAll(getChecksums(file, fileOnDisk));
+					map.putAll(getChecksums(file));
 				}
 
 				if (contentType != null) {
@@ -510,7 +511,7 @@ public class FileHelper {
 					}
 				}
 
-				long fileSize = FileHelper.getSize(fileOnDisk);
+				long fileSize = FileHelper.getSize(file);
 				if (fileSize >= 0) {
 
 					map.put(sizeKey, fileSize);
@@ -520,7 +521,7 @@ public class FileHelper {
 				file.setProperties(SecurityContext.getSuperUserInstance(), map);
 
 			} catch (IOException ioex) {
-				logger.warn("Unable to access {} on disk: {}", fileOnDisk, ioex.getMessage());
+				logger.warn("Unable to access {} on disk: {}", file.getPath(), ioex.getMessage());
 			}
 		}
 	}
@@ -611,7 +612,9 @@ public class FileHelper {
 
 		setFilePropertiesOnCreation(fileNode);
 
-		FileUtils.writeByteArrayToFile(fileNode.getFileOnDisk(), data);
+		try (final InputStream is = new ByteArrayInputStream(data); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+			IOUtils.copy(is, os);
+		}
 
 	}
 
@@ -627,7 +630,7 @@ public class FileHelper {
 
 		setFilePropertiesOnCreation(fileNode);
 
-		try (final FileOutputStream out = new FileOutputStream(fileNode.getFileOnDisk())) {
+		try (final OutputStream out = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
 
 			IOUtils.copy(data, out);
 		}
@@ -641,7 +644,47 @@ public class FileHelper {
 	 * @throws java.io.IOException
 	 */
 	public static String getContentMimeType(final File file) throws IOException {
-		return getContentMimeType(file.getFileOnDisk(), file.getProperty(AbstractNode.name));
+		return getContentMimeType(file, file.getProperty(AbstractNode.name));
+	}
+
+	/**
+	 * Return mime type of given file
+	 *
+	 * @param file
+	 * @param name
+	 * @return content type
+	 * @throws java.io.IOException
+	 */
+	public static String getContentMimeType(final File file, final String name) throws IOException {
+
+		String mimeType;
+
+		// try name first, if not null
+		if (name != null) {
+			mimeType = mimeTypeMap.getContentType(name);
+			if (mimeType != null && !UNKNOWN_MIME_TYPE.equals(mimeType)) {
+				return mimeType;
+			}
+		}
+
+		try (final InputStream is = new BufferedInputStream(StorageProviderFactory.getStorageProvider(file).getInputStream())) {
+
+			final MediaType mediaType = new DefaultDetector().detect(is, new Metadata());
+			if (mediaType != null) {
+
+				mimeType = mediaType.toString();
+				if (mimeType != null) {
+
+					return mimeType;
+				}
+			}
+
+		} catch (NoClassDefFoundError t) {
+			logger.warn("Unable to instantiate MIME type detector: {}", t.getMessage());
+		}
+
+		// no success :(
+		return UNKNOWN_MIME_TYPE;
 	}
 
 	/**
@@ -889,7 +932,7 @@ public class FileHelper {
 
 				try (final Tx outertx = app.tx()) {
 
-					SevenZFile sevenZFile = new SevenZFile(file.getFileOnDisk());
+					SevenZFile sevenZFile = new SevenZFile(StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel());
 
 					SevenZArchiveEntry sevenZEntry = sevenZFile.getNextEntry();
 
@@ -1037,9 +1080,19 @@ public class FileHelper {
 		return new SimpleDateFormat("yyyy-MM-dd-HHmmssSSS").format(new Date());
 	}
 
-	public static Long getChecksum(final java.io.File fileOnDisk) throws IOException {
 
-		try (final BufferedInputStream is = new BufferedInputStream(new FileInputStream(fileOnDisk), 131072)) {
+	public static Long getChecksum(final File file) throws IOException {
+		StorageProvider sp = StorageProviderFactory.getStorageProvider(file);
+		return getChecksum(sp.getInputStream(), sp.size());
+	}
+
+	public static Long getChecksum(final java.io.File file) throws IOException {
+		return getChecksum(new FileInputStream(file), file.length());
+	}
+
+	public static Long getChecksum(final InputStream inputStream, long size) throws IOException {
+
+		try (final BufferedInputStream is = new BufferedInputStream(inputStream, 131072)) {
 
 			final long hash = LongHashFunction.xx().hash(is, new Access<BufferedInputStream>() {
 
@@ -1056,19 +1109,27 @@ public class FileHelper {
 					return ByteOrder.nativeOrder();
 				}
 
-			}, 0, fileOnDisk.length());
+			}, 0, size);
 
 			return hash;
 
 		} catch (final IOException ex) {
-			logger.warn("Unable to calculate checksum for {}: {}", fileOnDisk.getAbsolutePath(), ex.getMessage());
+			logger.warn("Unable to calculate checksum for {}: {}", inputStream, ex.getMessage());
 		}
 
 		return null;
 	}
 
-	public static Long getCRC32Checksum(final java.io.File fileOnDisk) throws IOException {
-		return FileUtils.checksumCRC32(fileOnDisk);
+	public static Long getCRC32Checksum(final File file) throws IOException {
+		final CRC32 crc32 = new CRC32();
+		final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream();
+		byte[] buf = new byte[1024];
+		int length;
+		while ((length = is.read(buf)) != -1) {
+			crc32.update(buf, 0, length);
+		}
+
+		return crc32.getValue();
 	}
 
 	public static String getMD5Checksum(final File file) {
@@ -1201,11 +1262,11 @@ public class FileHelper {
 		return null;
 	}
 
-	public static long getSize(final java.io.File file) {
+	public static long getSize(final File file) {
 
 		try {
 
-			return file.length();
+			return StorageProviderFactory.getStorageProvider(file).size();
 
 		} catch (Exception ex) {
 

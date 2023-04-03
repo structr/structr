@@ -18,23 +18,33 @@
  */
 package org.structr.web.common;
 
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 
 /**
  */
-public class ClosingFileOutputStream extends FileOutputStream {
+public class ClosingOutputStream extends OutputStream {
 
+	private final OutputStream os;
 	private boolean closed = false;
+	private boolean notifyIndexerAfterClosing = false;
 	private File thisFile  = null;
 
-	public ClosingFileOutputStream(final File thisFile, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
+	public ClosingOutputStream(final File thisFile, final boolean append, final boolean notifyIndexerAfterClosing) throws IOException {
 
-		super(thisFile.getFileOnDisk(), append);
+		this.os = StorageProviderFactory.getStorageProvider(thisFile).getOutputStream(append);
+		this.notifyIndexerAfterClosing = notifyIndexerAfterClosing;
 
 		this.thisFile = thisFile;
+	}
+
+	@Override
+	public void write(int b) throws IOException {
+
+		os.write(b);
 	}
 
 	@Override
@@ -44,9 +54,11 @@ public class ClosingFileOutputStream extends FileOutputStream {
 			return;
 		}
 
-		super.close();
+		os.close();
 
-		thisFile.notifyUploadCompletion();
+		if (notifyIndexerAfterClosing) {
+			thisFile.notifyUploadCompletion();
+		}
 
 		closed = true;
 	}

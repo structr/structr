@@ -34,7 +34,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.schema.action.EvaluationHints;
-import org.structr.web.entity.html.P;
 
 import java.io.IOException;
 import java.util.HashMap;

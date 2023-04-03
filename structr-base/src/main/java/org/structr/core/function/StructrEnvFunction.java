@@ -22,7 +22,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;

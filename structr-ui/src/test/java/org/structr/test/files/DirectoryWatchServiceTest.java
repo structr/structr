@@ -32,6 +32,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.core.storage.StorageProviderFactory;
 import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
@@ -44,7 +45,10 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
@@ -286,7 +290,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
 				assertEquals("Invalid checksum of externally modified file", FileHelper.getChecksum(file2), check2.getChecksum());
-				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
+				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
 
 				tx.success();
 
@@ -441,7 +445,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
 				assertFalse("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2).equals(check2.getMd5()));
-				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
+				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
 
 				tx.success();
 
@@ -661,11 +665,11 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		}
 	}
 
-	private String readFile(final java.io.File file) throws IOException {
+	private String readFile(final File file) throws IOException {
 
-		try (final FileInputStream fis = new FileInputStream(file)) {
+		try (final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream()) {
 
-			return IOUtils.toString(fis, "utf-8");
+			return IOUtils.toString(is, "utf-8");
 		}
 	}
 }

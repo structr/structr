@@ -224,7 +224,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 			if (file instanceof File) {
 
-				final Number s = StorageProviderFactory.getStreamProvider(file).size();
+				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
 
 					size = s.longValue();

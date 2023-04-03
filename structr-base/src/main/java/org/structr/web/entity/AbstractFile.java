@@ -72,6 +72,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("storageProvider",                           PropertyView.Public, PropertyView.Ui);
 
 		type.addBooleanProperty("hasParent").setIndexed(true);
 
@@ -80,6 +81,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
+		type.addPropertyGetter("storageProvider", String.class);
 
 		type.addPropertySetter("hasParent", Boolean.TYPE);
 
@@ -124,6 +126,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	String getPath();
 	String getFolderPath();
+
+	String getStorageProvider();
 
 	boolean isMounted();
 	boolean isExternal();

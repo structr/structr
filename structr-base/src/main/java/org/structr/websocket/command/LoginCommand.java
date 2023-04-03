@@ -25,6 +25,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
@@ -44,7 +45,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.core.Services;
 
 public class LoginCommand extends AbstractCommand {
 

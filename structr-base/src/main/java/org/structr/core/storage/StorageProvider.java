@@ -18,13 +18,15 @@
  */
 package org.structr.core.storage;
 
+import javax.activation.DataSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.SeekableByteChannel;
 
-public interface StorageProvider {
+public interface StorageProvider extends DataSource {
 	InputStream getInputStream();
 	OutputStream getOutputStream();
+	OutputStream getOutputStream(final boolean append);
 	SeekableByteChannel getSeekableByteChannel();
 
 	void delete();
