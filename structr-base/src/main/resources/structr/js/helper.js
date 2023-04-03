@@ -119,10 +119,10 @@ let _Helpers = {
 	capitalize: (string) => {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	},
-	uuidRegexp: new RegExp('[a-fA-F0-9]{32}'),
+	uuidRegexp: new RegExp('^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$'),
 	isUUID: (str) => (str.length === 32 && _Helpers.uuidRegexp.test(str)),
 	nvl: (value, defaultValue) => {
-		var returnValue;
+		let returnValue;
 		if (value === undefined) {
 			returnValue = defaultValue;
 		} else if (value === false) {
@@ -144,7 +144,7 @@ let _Helpers = {
 
 		if (value.constructor === Object) {
 
-			var out = '';
+			let out = '';
 			Object.keys(value).forEach(function(key) {
 				out += key + ': ' + _Helpers.formatValue(value[key]) + '\n';
 			});
@@ -152,7 +152,7 @@ let _Helpers = {
 
 		} else if (value.constructor === Array) {
 
-			var out = '';
+			let out = '';
 			value.forEach(function(val) {
 				out += JSON.stringify(val);
 			});

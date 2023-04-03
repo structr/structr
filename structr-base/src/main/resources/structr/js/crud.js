@@ -2312,7 +2312,7 @@ let _Crud = {
 				// only search in node types
 				types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
 			}
-			if (searchString.match(/[0-9a-f]{32}/)) {
+			if (searchString.match(/^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/)) {
 				attr = 'uuid';
 				types = ['AbstractNode'];
 			}

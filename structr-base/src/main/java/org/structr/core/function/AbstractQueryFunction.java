@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.structr.api.config.Settings;
 import org.structr.api.search.Occurrence;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
@@ -157,7 +158,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 					final String uuid = sources[1].toString();
 
-					if (uuid.matches("[a-fA-F0-9]{32}")) {
+					if (Settings.isValidUuid(uuid)) {
 
 						// special case: second parameter is a UUID
 						final PropertyKey key = StructrApp.key(type, "id");
@@ -180,7 +181,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 
 			// the below loop must work for both simple parameters (key, value, key, value, key, value, ...)
 			// as well as advanced ones (predicate, predicate, predicate, ...) so we increment the value
-			// of c inside of the loop if a non-advanced parameter is encountered.
+			// of c inside the loop if a non-advanced parameter is encountered.
 
 			for (int c = 1; c < parameter_count; c++) {
 

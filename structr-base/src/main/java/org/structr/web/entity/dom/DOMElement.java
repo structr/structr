@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -585,7 +586,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		}
 
-		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
+		if (Settings.isValidUuid(dataTarget)) {
 
 			final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
 			final Logger logger             = LoggerFactory.getLogger(getClass());

@@ -18,6 +18,7 @@
  */
 package org.structr.web.common;
 
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.rest.ResourceProvider;
 import org.structr.rest.resource.*;
@@ -37,7 +38,7 @@ public class UiResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile("[a-fA-F0-9]{32}"), UuidResource.class);        // matches a UUID without dashes
+		resourceMap.put(Pattern.compile(Settings.UuidPattern.getValue()), UuidResource.class);// matches any UUID configured in settings
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
 		resourceMap.put(Pattern.compile("graphQL"), GraphQLResource.class);             // graphQL query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login
