@@ -42,10 +42,10 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	public InputStream getInputStream() {
 
 		if (dataMap.get(getFile().getUuid()) != null) {
-			return new ByteArrayInputStream(dataMap.get(getFile().getUuid()));
+			return new ByteArrayInputStream(dataMap.get(getFile().getUuid()), 0, dataMap.get(getFile().getUuid()).length);
 		}
 
-		return new ByteArrayInputStream(new byte[]{});
+		return new ByteArrayInputStream(new byte[]{}, 0,0);
 	}
 
 	@Override
@@ -101,7 +101,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		private final boolean append;
 
 		public InMemoryOutputStream(final boolean append) {
-			super();
+			super(0);
 			this.append = append;
 		}
 

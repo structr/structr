@@ -46,6 +46,7 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
 import org.structr.core.storage.StorageProvider;
@@ -125,8 +126,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
 		// override setProperty methods, but don't call super first (we need the previous value)
-		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
-		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, arg2);")
+		type.overrideMethod("setProperty",                 false,  File.class.getName() + ".OnSetProperty(this, arg0,arg1,arg2);\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperties",               false,  File.class.getName() + ".OnSetProperties(this, arg0, arg1, arg2);\n\t\tsuper.setProperties(arg0, arg1, arg2);")
 				// the following lines make the overridden setProperties method more explicit in regards to its parameters
 				.setReturnType("void")
 				.addParameter("arg0", SecurityContext.class.getName())
@@ -249,6 +250,38 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	Folder getCurrentWorkingDir();
 
+	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
+		if (value == null || isCreation) {
+			return;
+		}
+
+		PropertyKey<String> storageProviderKey = StructrApp.key(File.class, "storageProvider");
+		PropertyKey<Folder> parentKey          = StructrApp.key(File.class, "parent");
+
+		if (key.equals(storageProviderKey) && value instanceof String) {
+
+			checkMoveBinaryContents(thisFile, (String)value);
+		} else if (key.equals(parentKey) && value instanceof Folder) {
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), (Folder)value);
+		}
+	}
+	static void OnSetProperties(final File thisFile, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+		if (isCreation) {
+			return;
+		}
+
+		PropertyKey<String> storageProviderKey = StructrApp.key(File.class, "storageProvider");
+		PropertyKey<Folder> parentKey          = StructrApp.key(File.class, "parent");
+
+		if (properties.containsKey(storageProviderKey)) {
+
+			checkMoveBinaryContents(thisFile, properties.get(storageProviderKey));
+		} else if (properties.containsKey(parentKey)) {
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), properties.get(parentKey));
+		}
+	}
 	static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {
@@ -781,33 +814,41 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
 	}
 
-	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
+	static void checkMoveBinaryContents(final File thisFile, final String newProvider) {
 
-		final Folder previousParent      = (Folder)thisFile.getProperty(key);
-		final Folder newParent           = (Folder)value;
+		if (!StorageProviderFactory.getStorageProvider(thisFile).equals(StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider))) {
 
-		if (previousParent != null && newParent != null && !newParent.getStorageProvider().equals(previousParent.getStorageProvider())) {
+			final StorageProvider previousSP = StorageProviderFactory.getStorageProvider(thisFile);
+			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider);
+			moveBinaryContentBetweenStorageProviders(previousSP, newSP);
+		}
+	}
+	static void checkMoveBinaryContents(final File thisFile, final Folder previousParent, final Folder newParent) {
+
+		if (previousParent != null && newParent != null) {
+
+			if (newParent.getStorageProvider() != null && newParent.getStorageProvider().equals(previousParent.getStorageProvider())) {
+				return;
+			}
 
 			final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent.getStorageProvider());
 			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent.getStorageProvider());
+			moveBinaryContentBetweenStorageProviders(previousSP, newSP);
+		}
+	}
 
-			final Logger logger = LoggerFactory.getLogger(File.class);
+	static void moveBinaryContentBetweenStorageProviders(final StorageProvider previousSP, final StorageProvider newSP) {
+		try {
 
-			try {
-
-				logger.info("Moving file {} from {} to {}..", thisFile, previousParent, newParent);
-
-				// Move binary content from old sp to new sp
-				try (final InputStream is = previousSP.getInputStream(); final OutputStream os = newSP.getOutputStream()) {
-					IOUtils.copy(is, os);
-				}
-				// Clean up old binary data on previous sp
-				//previousSP.delete();
-			} catch (IOException ioex) {
-
-				logger.error(ExceptionUtils.getStackTrace(ioex));
+			// Move binary content from old sp to new sp
+			try (final InputStream is = previousSP.getInputStream(); final OutputStream os = newSP.getOutputStream()) {
+				IOUtils.copy(is, os);
 			}
+			// Clean up old binary data on previous sp
+			//previousSP.delete();
+		} catch (IOException ioex) {
 
+			LoggerFactory.getLogger(File.class).error(ExceptionUtils.getStackTrace(ioex));
 		}
 	}
 

@@ -30,4 +30,13 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	public AbstractFile getFile() {
 		return file;
 	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (obj instanceof StorageProvider) {
+			StorageProvider otherProvider = (StorageProvider)obj;
+			return otherProvider.getClass().equals(this.getClass());
+		}
+		return false;
+	}
 }
