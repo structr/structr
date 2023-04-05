@@ -102,7 +102,6 @@ public abstract class StructrRestTestBase {
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
 		Settings.SuperUserName.setValue("superadmin");

@@ -38,7 +38,6 @@ import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
 import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
-import org.structr.common.ThreadLocalMatcher;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
@@ -106,11 +105,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	public static final String TARGET_PATH_KEY           = "target";
 	public static final String ERROR_PAGE_KEY            = "onerror";
 
-	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME = "structr-encoded-render-state";
-
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
-	private static final ExecutorService threadPool                = Executors.newCachedThreadPool();
-
+	public static final String ENCODED_RENDER_STATE_PARAMETER_NAME    = "structr-encoded-render-state";
+	private static final ExecutorService threadPool                   = Executors.newCachedThreadPool();
 	private final Pattern FilenameCleanerPattern                      = Pattern.compile("[\n\r]", Pattern.CASE_INSENSITIVE | Pattern.MULTILINE | Pattern.DOTALL);
 	private final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	private final Set<String> possiblePropertyNamesForEntityResolving = new LinkedHashSet<>();
@@ -242,7 +238,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				} else {
 
 					// special optimization for UUID-addressed partials
-					if (uriParts.length == 1 && UuidProperty.UUID_PATTERN.matcher(uriParts[0]).matches()) {
+					if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
 
 						final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
 						if (node != null && node instanceof DOMElement) {
@@ -282,16 +278,14 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (file == null) {
 
-						// store remaining path parts in request
-						final Matcher matcher = threadLocalUUIDMatcher.get();
 
 						for (int i = 0; i < uriParts.length; i++) {
 
+							// store remaining path parts in request
 							request.setAttribute(uriParts[i], i);
-							matcher.reset(uriParts[i]);
 
 							// set to "true" if part matches UUID pattern
-							requestUriContainsUuids |= matcher.matches();
+							requestUriContainsUuids |= Settings.isValidUuid(uriParts[i]);
 						}
 
 						if (uriParts.length == 1) {
@@ -360,7 +354,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 							}
 						}
 
-						setLimitingDataObject(securityContext, request, renderContext);
 					}
 				}
 
@@ -642,15 +635,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					if (uriParts != null) {
 
 						// store remaining path parts in request
-						Matcher matcher = threadLocalUUIDMatcher.get();
-
 						for (int i = 0; i < uriParts.length; i++) {
 
 							request.setAttribute(uriParts[i], i);
-							matcher.reset(uriParts[i]);
 
 							// set to "true" if part matches UUID pattern
-							requestUriContainsUuids |= matcher.matches();
+							requestUriContainsUuids |= Settings.isValidUuid(uriParts[i]);
 
 						}
 					}
@@ -1448,32 +1438,6 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 		response.setHeader("Cache-Control", "private, max-age=0, s-maxage=0, no-cache, no-store, must-revalidate"); // HTTP 1.1.
 		response.setHeader("Pragma", "no-cache, no-store"); // HTTP 1.0.
 		response.setDateHeader("Expires", 0);
-	}
-
-	private void setLimitingDataObject(final SecurityContext securityContext, final HttpServletRequest request, final RenderContext renderContext) {
-
-		// check special parameter for details object
-		final String detailsObjectId = StringUtils.substringAfterLast(request.getRequestURI(), ";");
-
-		if (StringUtils.isNotBlank(detailsObjectId)) {
-
-			AbstractNode detailsObject = null;
-
-			try {
-
-				detailsObject = findNodeByUuid(securityContext, detailsObjectId);
-
-			} catch (FrameworkException ex) {
-
-				logger.debug("No details object found for id {}.", detailsObjectId);
-			}
-
-			if (detailsObject != null) {
-
-				//renderContext.setDetailsDataObject(detailsObject);
-				renderContext.setSourceDataObject(detailsObject);
-			}
-		}
 	}
 
 	private static boolean notModifiedSince(final HttpServletRequest request, HttpServletResponse response, final NodeInterface node, final boolean dontCache) {

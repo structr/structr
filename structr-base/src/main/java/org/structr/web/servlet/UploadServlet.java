@@ -37,7 +37,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
-import org.structr.common.*;
+import org.structr.common.AccessMode;
+import org.structr.common.PathHelper;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
@@ -67,7 +70,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 /**
  * Simple upload servlet.
@@ -75,7 +77,6 @@ import java.util.regex.Matcher;
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
 	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
@@ -459,10 +460,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				return;
 			}
 
-			Matcher matcher = threadLocalUUIDMatcher.get();
-			matcher.reset(uuid);
-
-			if (!matcher.matches()) {
+			if (!Settings.isValidUuid(uuid)) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));

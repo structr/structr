@@ -164,10 +164,10 @@ public class DatabaseConnection extends LinkedHashMap<String, Object> {
 
 		if (isActive()) {
 			buttons.block("a").css("align-left").attr(new Attr("href", adminBackendUrl)).text("Open Structr UI");
-			buttons.block("button").css("hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("onclick", "disconnect(this, '" + name + "');"));
+			buttons.block("button").css("disconnect-connection hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green").attr(new Attr("type", "button")).text("Disconnect").attr(new Attr("data-connection-name", name));
 		} else {
-			buttons.block("button").attr(new Attr("type", "button")).text("Remove").attr(new Attr("onclick", "deleteConnection('" + name + "');"));
-			buttons.block("button").css("default-action").attr(new Attr("type", "button")).text("Connect").attr(new Attr("onclick", "connect(this, '" + name + "');"));
+			buttons.block("button").css("delete-connection").attr(new Attr("type", "button")).text("Remove").attr(new Attr("data-connection-name", name));
+			buttons.block("button").css("connect-connection default-action").attr(new Attr("type", "button")).text("Connect").attr(new Attr("data-connection-name", name));
 		}
 
 		//buttons.block("button").attr(new Attr("type", "button")).text("Save").attr(new Attr("onclick", "saveConnection('" + name + "')"));

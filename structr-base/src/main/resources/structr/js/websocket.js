@@ -48,6 +48,10 @@ let StructrWS = {
 					StructrWS.ping();
 					break;
 				}
+				case 'debug': {
+					console.log(e.data);
+					break;
+				}
 			}
 		});
 
@@ -58,7 +62,7 @@ let StructrWS = {
 		let isEnc   = (window.location.protocol === 'https:');
 		let host    = document.location.host;
 		let message = {
-			wsUrl: 'ws' + (isEnc ? 's' : '') + '://' + host + Structr.wsRoot,
+			wsUrl: `ws${isEnc ? 's' : ''}://${host}${Structr.wsRoot}`,
 			wsClass: (('WebSocket' in window) === true) ? 'WebSocket' : (('MozWebSocket' in window) ? 'MozWebSocket' : false)
 		};
 
@@ -125,11 +129,7 @@ let StructrWS = {
 	},
 	onopen: (workerMessage) => {
 
-		if ($.unblockUI) {
-			$.unblockUI({
-				fadeOut: 25
-			});
-		}
+		_Helpers.hideNonBlockUIOverlay();
 
 		let wasDisconnect = Structr.moveOffscreenUIOnscreen();
 
@@ -151,7 +151,7 @@ let StructrWS = {
 			if (movedOffscreen) {
 				// we just moved the UI off-screen to be able to show the reconnect dialog.
 				// if we did not move the UI off-screen, we are already showing the reconnect dialog
-				Structr.reconnectDialog();
+				Structr.showReconnectDialog();
 			}
 			StructrWS.reconnect({ source: 'onclose' });
 
@@ -183,7 +183,7 @@ let StructrWS = {
 				Structr.clearMain();
 				Structr.login(msg);
 
-			} else if (!StructrWS.user || StructrWS.user !== data.data.username || loginBox.is(':visible')) {
+			} else if (!StructrWS.user || StructrWS.user !== data.data.username || Structr.dialogSystem.isLoginDialogOpen()) {
 
 				if (StructrWS.skipNext100Code === true) {
 
@@ -191,11 +191,25 @@ let StructrWS = {
 
 				} else {
 
+					/*
+					// either already logged in (STATUS) or just logged in (LOGIN)
+					if (command === 'LOGIN') {
+						console.log('login success, right?', data)
+					} else if (command === 'STATUS') {
+						console.log('already authenticated session, right?', data);
+					} else {
+						console.log(command);
+						console.log('Whats going on?');
+					}
+					*/
+
 					Structr.updateUsername(data.data.username);
 					loginBox.hide();
 					Structr.clearLoginForm();
+
 					$('table.username-password', loginBox).show();
 					$('table.twofactor', loginBox).hide();
+
 					Structr.refreshUi((command === 'LOGIN'));
 				}
 			}
@@ -217,6 +231,7 @@ let StructrWS = {
 		} else if (command === 'STATUS') {
 
 			if (code === 403) {
+
 				StructrWS.user   = null;
 				StructrWS.userId = null;
 
@@ -225,24 +240,29 @@ let StructrWS = {
 				} else {
 					Structr.login('Wrong username or password!');
 				}
+
 			} else if (code === 401) {
+
 				StructrWS.user   = null;
 				StructrWS.userId = null;
 
 				if (data.data.reason === 'twofactortoken') {
+
 					Structr.clearLoginForm();
 					$('table.username-password', loginBox).show();
 					$('table.twofactor', loginBox).hide();
 				}
-				Structr.login((msg !== null) ? msg : '');
+
+				Structr.login(msg || '');
 
 			} else if (code === 202) {
+
 				StructrWS.user   = null;
 				StructrWS.userId = null;
 
 				Structr.login('');
 
-				Structr.toggle2FALoginBox(data.data);
+				Structr.show2FALoginBox(data.data);
 
 			} else {
 
@@ -254,17 +274,17 @@ let StructrWS = {
 					} catch (e) {}
 				}
 
-				let msgClass;
+				let messageType;
 				let requiresConfirmation = false;
 				if (codeStr.startsWith('2')) {
-					msgClass = 'success';
+					messageType = MessageBuilder.types.success;
 				} else if (codeStr.startsWith('3')) {
-					msgClass = 'info';
+					messageType = MessageBuilder.types.info;
 				} else if (codeStr.startsWith('4')) {
-					msgClass = 'warning';
+					messageType = MessageBuilder.types.warning;
 					requiresConfirmation = true;
 				} else {
-					msgClass = 'error';
+					messageType = MessageBuilder.types.error;
 					requiresConfirmation = true;
 				}
 
@@ -276,12 +296,13 @@ let StructrWS = {
 
 					let msgObj = JSON.parse(msg);
 
-					if (dialogBox.is(':visible')) {
+					if (Structr.dialogSystem.isDialogOpen()) {
 
-						Structr.showAndHideInfoBoxMessage(msgObj.size + ' bytes saved to ' + msgObj.name, msgClass, 2000, 200);
+						Structr.dialogSystem.showAndHideInfoBoxMessage(`${msgObj.size} bytes saved to ${msgObj.name}`, messageType, 2000, 200);
 
 					} else {
 
+						// show progress for file upload
 						let node = Structr.node(msgObj.id);
 
 						if (node) {
@@ -299,8 +320,8 @@ let StructrWS = {
 							node.find('.bar').css({width: w + 'px'});
 
 							if (part >= size) {
-								blinkGreen(progr);
-								window.setTimeout(function () {
+								_Helpers.blinkGreen(progr);
+								window.setTimeout(() => {
 									progr.fadeOut('fast');
 									_Files.resize();
 								}, 1000);
@@ -312,7 +333,7 @@ let StructrWS = {
 
 					if (codeStr === "404") {
 
-						let msgBuilder = new MessageBuilder().className(msgClass);
+						let msgBuilder = new MessageBuilder(messageType);
 
 						if (requiresConfirmation) {
 							msgBuilder.requiresConfirmation();
@@ -332,7 +353,7 @@ let StructrWS = {
 
 					} else {
 
-						let msgBuilder = new MessageBuilder().className(msgClass).text(msg);
+						let msgBuilder = new MessageBuilder(messageType).text(msg);
 
 						if (requiresConfirmation) {
 							msgBuilder.requiresConfirmation();
@@ -378,7 +399,7 @@ let StructrWS = {
 
 			if (result.length > 0 && result[0].name) {
 				result.sort(function (a, b) {
-					return a.name.localeCompare(b.name);
+					return (a?.name ?? '').localeCompare(b?.name ?? '');
 				});
 			}
 
@@ -527,7 +548,7 @@ let StructrWS = {
 				if (command === 'CREATE' && entity.isPage && Structr.lastMenuEntry === _Pages._moduleName) {
 
 					if (entity.createdBy === StructrWS.userId) {
-						setTimeout(function () {
+						window.setTimeout(() => {
 							_Pages.previews.showPreviewInIframeIfVisible(entity.id);
 						}, 1000);
 					}
@@ -546,10 +567,8 @@ let StructrWS = {
 
 		} else if (command === 'PROGRESS') {
 
-			if (dialogMsg.is(':visible')) {
-				let msgObj = JSON.parse(data.message);
-				dialogMsg.html('<div class="infoBox info">' + msgObj.message + '</div>');
-			}
+			let msgObj = JSON.parse(data.message);
+			Structr.dialogSystem.showAndHideInfoBoxMessage(msgObj.message, 'info');
 
 		} else if (command === 'FINISHED') {
 
@@ -596,9 +615,10 @@ let StructrWS = {
 			console.log('Received unknown command: ' + command);
 
 			if (sessionValid === false) {
+
 				StructrWS.user   = null;
 				StructrWS.userId = null;
-				clearMain();
+				Structr.clearMain();
 
 				Structr.login();
 			}

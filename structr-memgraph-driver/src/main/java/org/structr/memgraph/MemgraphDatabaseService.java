@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
 import org.structr.api.*;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -40,7 +39,6 @@ import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
-import java.io.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -52,7 +50,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  *
  */
-public class MemgraphDatabaseService extends AbstractDatabaseService implements GraphProperties {
+public class MemgraphDatabaseService extends AbstractDatabaseService {
 
 	private static final Logger logger                                = LoggerFactory.getLogger(MemgraphDatabaseService.class.getName());
 	private static final ThreadLocal<SessionTransaction> sessions     = new ThreadLocal<>();
@@ -62,7 +60,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 	private CypherNodeIndex nodeIndex                                 = null;
 	private String errorMessage                                       = null;
 	private String databaseUrl                                        = null;
-	private String databasePath                                       = null;
 	private Driver driver                                             = null;
 	private boolean supportsANY                                       = false;
 
@@ -76,7 +73,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 			serviceName = name;
 		}
 
-		this.databasePath        = Settings.DatabasePath.getPrefixedValue(serviceName);
 		databaseUrl              = Settings.ConnectionUrl.getPrefixedValue(serviceName);
 		final String username    = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password    = Settings.ConnectionPassword.getPrefixedValue(serviceName);
@@ -95,9 +91,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 
 			databaseDriverUrl = databaseUrl;
 		}
-
-		// create db directory if it does not exist
-		new File(databasePath).mkdirs();
 
 		try {
 
@@ -401,11 +394,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 		final QueryContext context      = new QueryContext(true);
 
 		return index.query(context, predicate, Integer.MAX_VALUE, 1);
-	}
-
-	@Override
-	public GraphProperties getGlobalProperties() {
-		return this;
 	}
 
 	@Override
@@ -771,47 +759,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 			.build();
 	}
 
-	// ----- interface GraphProperties -----
-	@Override
-	public void setProperty(final String name, final Object value) {
-
-		final Properties properties = getProperties();
-		boolean hasChanges          = false;
-
-		if (value == null) {
-
-			if (properties.containsKey(name)) {
-
-				properties.remove(name);
-				hasChanges = true;
-			}
-
-		} else {
-
-			properties.setProperty(name, value.toString());
-			hasChanges = true;
-		}
-
-		if (hasChanges) {
-
-			final File propertiesFile   = new File(databasePath + "/graph.properties");
-
-			try (final Writer writer = new FileWriter(propertiesFile)) {
-
-				properties.store(writer, "Created by Structr at " + new Date());
-
-			} catch (IOException ioex) {
-
-				logger.warn("Unable to write properties file", ioex);
-			}
-		}
-	}
-
-	@Override
-	public Object getProperty(final String name) {
-		return getProperties().getProperty(name);
-	}
-
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
@@ -888,23 +835,6 @@ public class MemgraphDatabaseService extends AbstractDatabaseService implements 
 				tx.success();
 			}
 		}
-	}
-
-	private Properties getProperties() {
-
-		if (globalGraphProperties == null) {
-
-			globalGraphProperties = new Properties();
-			final File propertiesFile   = new File(databasePath + "/graph.properties");
-
-			try (final Reader reader = new FileReader(propertiesFile)) {
-
-				globalGraphProperties.load(reader);
-
-			} catch (IOException ioex) {}
-		}
-
-		return globalGraphProperties;
 	}
 
 	private long getCount(final String query, final String resultKey) {

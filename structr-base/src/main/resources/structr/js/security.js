@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Security);
 	Structr.classes.push('user');
 	Structr.classes.push('group');
@@ -26,9 +26,7 @@ $(document).ready(function() {
 
 let _Security = {
 	_moduleName: 'security',
-	userControls: undefined,
 	userList: undefined,
-	groupControls: undefined,
 	groupList: undefined,
 	resourceAccesses: undefined,
 	corsSettingsList: undefined,
@@ -43,16 +41,14 @@ let _Security = {
 
 		_Security.init();
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('security'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('security'));
 
-		Structr.mainContainer.innerHTML = _Security.templates.main();
-		Structr.functionBar.innerHTML   = _Security.templates.functions();
+		Structr.setMainContainerHTML(_Security.templates.main());
+		Structr.setFunctionBarHTML(_Security.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
-		_Security.userControls     = document.getElementById('users-controls');
 		_Security.userList         = document.getElementById('users-list');
-		_Security.groupControls    = document.getElementById('groups-controls');
 		_Security.groupList        = document.getElementById('groups-list');
 		_Security.corsSettingsList = document.getElementById('cors-settings-list');
 		_Security.resourceAccesses = $('#resourceAccesses');
@@ -81,22 +77,21 @@ let _Security = {
 	},
 	getContextMenuElements: (div, entity) => {
 
-		const isUser             = entity.isUser;
-		const isGroup            = entity.isGroup;
-
-		let elements = [];
+		const isUser  = entity.isUser;
+		const isGroup = entity.isGroup;
+		let elements  = [];
 
 		if (isUser || isGroup) {
 
 			let userOrGroupEl = div.closest('.node');
 			let parentGroupEl = userOrGroupEl.parent().closest('.group');
 			if (parentGroupEl.length) {
-				let parentGroupId = Structr.getGroupId(parentGroupEl);
+				let parentGroupId = _UsersAndGroups.getGroupId(parentGroupEl);
 				elements.push({
-					name: 'Remove ' + entity.name + ' from ' + $('.name_', parentGroupEl).attr('title'),
+					name: `Remove ${entity.name} from ${$('.name_', parentGroupEl).attr('title')}`,
 					clickHandler: () => {
-						Command.removeFromCollection(parentGroupId, 'members', entity.id, () => {
-							_UsersAndGroups.refreshGroups();
+						Command.removeFromCollection(parentGroupId, 'members', entity.id, async () => {
+							await _UsersAndGroups.refreshGroups();
 						});
 						return false;
 					}
@@ -136,7 +131,7 @@ let _Security = {
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
 
-				_Entities.deleteNode(this, entity);
+				_Entities.deleteNode(entity);
 
 				return false;
 			}
@@ -266,7 +261,7 @@ let _Security = {
 					</label>
 				</div>
 			</div>
-			
+
 			<table class="security-module-table" id="resourceAccessesTable">
 				<thead>
 					<tr>
@@ -294,8 +289,8 @@ let _Security = {
 						<th>HEAD</th>
 						<th class="br-1">PATCH</th>
 						<th>Bitmask</th>
-						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToAuthenticatedUsers</th>
-						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">visibleToPublicUsers</th>
+						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
+						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToPublicUsers']}</th>
 						<th></th>
 					</tr>
 				</thead>
@@ -310,12 +305,12 @@ let _Security = {
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add CORS Setting
 					</button>
 				</div>
-			
+
 				<div id="filter-cors-settings" class="flex items-center">
 					<input type="text" class="filter" data-attribute="requestUri" placeholder="Filter/Search...">
 				</div>
 			</div>
-			
+
 			<table class="security-module-table" id="corsSettingsTable">
 				<thead>
 					<tr>
@@ -340,13 +335,22 @@ let _UsersAndGroups = {
 	userNodeClassPrefix:  'userid_',
 	groupNodeClassPrefix: 'groupid_',
 
+	getUserId: (element) => {
+		return element.data('userId');
+	},
+	getGroupId: (element) => {
+		return element.data('groupId');
+	},
+
 	refreshUsers: async () => {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
 		let newUserHtml = _Security.templates.newUserButton({ types: types });
 		_Security.userList.innerHTML     = '';
-		_Security.userControls.innerHTML = newUserHtml;
+
+		let userControls = document.getElementById('users-controls');
+		userControls.innerHTML = newUserHtml;
 
 		let userTypeSelect = document.querySelector('select#user-type');
 		let addUserButton  = document.getElementById('add-user-button');
@@ -362,15 +366,15 @@ let _UsersAndGroups = {
 			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 		});
 
-		let userPager = _Pager.addPager('users', $(_Security.userControls), true, 'User', 'public', (users) => {
+		let userPager = _Pager.addPager('users', userControls, true, 'User', 'public', (users) => {
 			for (let user of users) {
 				let userModelObj = StructrModel.create(user);
 				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
 			}
-		}, null, 'id,isUser,name,type,isAdmin', undefined, true);
+		}, null, 'id,isUser,name,type,isAdmin', true);
 
 		userPager.cleanupFunction = () => {
-			fastRemoveAllChildren(_Security.userList);
+			_Helpers.fastRemoveAllChildren(_Security.userList);
 		};
 
 		userPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
@@ -398,7 +402,7 @@ let _UsersAndGroups = {
 	prevAnimFrameReqId_updateUserElementAfterModelChange: undefined,
 	updateUserElementAfterModelChange: (user) => {
 
-		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateUserElementAfterModelChange, () => {
+		_Helpers.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateUserElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
@@ -523,7 +527,8 @@ let _UsersAndGroups = {
 
 		let newGroupHtml = _Security.templates.newGroupButton({ types: types });
 		_Security.groupList.innerHTML     = '';
-		_Security.groupControls.innerHTML = newGroupHtml;
+		let groupControls    = document.getElementById('groups-controls');
+		groupControls.innerHTML = newGroupHtml;
 
 		let groupTypeSelect = document.querySelector('select#group-type');
 		let addGroupButton  = document.getElementById('add-group-button');
@@ -539,15 +544,15 @@ let _UsersAndGroups = {
 			addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 		});
 
-		let groupPager = _Pager.addPager('groups', $(_Security.groupControls), true, 'Group', 'public', (groups) => {
+		let groupPager = _Pager.addPager('groups', groupControls, true, 'Group', 'public', (groups) => {
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
 				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
 			}
-		}, undefined, undefined, undefined, true);
+		}, undefined, undefined, true);
 
 		groupPager.cleanupFunction = () => {
-			fastRemoveAllChildren(_Security.groupList);
+			_Helpers.fastRemoveAllChildren(_Security.groupList);
 		};
 		groupPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
 		groupPager.activateFilterElements();
@@ -556,7 +561,7 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: (group) => {
 
-		let displayName = ((group.name) ? group.name : '[unnamed]');
+		let displayName = group?.name ?? '[unnamed]';
 
 		let groupElement = $(`
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
@@ -576,24 +581,28 @@ let _UsersAndGroups = {
 				let nodeId;
 
 				if (ui.draggable.hasClass('user')) {
-					nodeId = Structr.getUserId(ui.draggable);
+					nodeId = _UsersAndGroups.getUserId(ui.draggable);
 				} else if (ui.draggable.hasClass('group')) {
-					nodeId = Structr.getGroupId(ui.draggable);
+					nodeId = _UsersAndGroups.getGroupId(ui.draggable);
 				}
 
 				if (nodeId) {
+
 					if (nodeId !== group.id) {
+
 						Command.appendMember(nodeId, group.id, (group) => {
 
 							let groupModelObj = StructrModel.obj(group.id);
 							let userModelObj  = StructrModel.obj(nodeId);
 
-							blinkGreen($('.' + _UsersAndGroups.groupNodeClassPrefix + group.id));
+							_Helpers.blinkGreen($('.' + _UsersAndGroups.groupNodeClassPrefix + group.id));
 
 							_UsersAndGroups.appendMemberToGroup(userModelObj, groupModelObj, $(groupElement));
 						});
+
 					} else {
-						new MessageBuilder().title("Warning").warning("Prevented adding group as a member of itself").show();
+
+						new WarningMessage().title("Warning").text("Prevented adding group as a member of itself").show();
 					}
 				}
 			}
@@ -606,7 +615,7 @@ let _UsersAndGroups = {
 	prevAnimFrameReqId_updateGroupElementAfterModelChange: undefined,
 	updateGroupElementAfterModelChange: (group) => {
 
-		Structr.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateGroupElementAfterModelChange, () => {
+		_Helpers.requestAnimationFrameWrapper(_UsersAndGroups.prevAnimFrameReqId_updateGroupElementAfterModelChange, () => {
 
 			// request animation frame is especially important if a name is completely removed!
 
@@ -660,12 +669,12 @@ let _UsersAndGroups = {
 
 		return groupDiv;
 	},
-	setMouseOver: function (node, id, prefix) {
+	setMouseOver: (node, id, prefix) => {
 
 		node.children('.node-container').children('b.name_').off('click').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
-				blinkGreen(el);
+				_Helpers.blinkGreen(el);
 			});
 		});
 
@@ -680,17 +689,17 @@ let _UsersAndGroups = {
 			}
 		});
 	},
-	activateNodeHover: function (id, prefix) {
+	activateNodeHover: (id, prefix) => {
 		for (let el of document.querySelectorAll(prefix + id)) {
 			el.classList.add('nodeHover');
 		}
 	},
-	deactivateNodeHover: function (id, prefix) {
+	deactivateNodeHover: (id, prefix) => {
 		for (let el of document.querySelectorAll(prefix + id)) {
 			el.classList.remove('nodeHover');
 		}
 	},
-	makeDraggable: function(el) {
+	makeDraggable: (el) => {
 		el.draggable({
 			revert: 'invalid',
 			helper: 'clone',
@@ -719,15 +728,15 @@ let _ResourceAccessGrants = {
 		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
 		_Security.resourceAccesses.html(resourceAccessHtml);
 
-		Structr.activateCommentsInElement(_Security.resourceAccesses[0]);
+		_Helpers.activateCommentsInElement(_Security.resourceAccesses[0]);
 
-		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', undefined, true);
+		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses)[0], true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
 
 		raPager.cleanupFunction = () => {
 			$('#resourceAccessesTable tbody tr').remove();
 		};
 
-		raPager.activateFilterElements(_Security.resourceAccesses);
+		raPager.activateFilterElements(_Security.resourceAccesses[0]);
 		raPager.setIsPaused(false);
 		raPager.refresh();
 
@@ -796,7 +805,7 @@ let _ResourceAccessGrants = {
 			});
 		} else {
 			reEnableInput();
-			blinkRed(inp);
+			_Helpers.blinkRed(inp);
 		}
 		window.setTimeout(reEnableInput, 250);
 	},
@@ -912,11 +921,11 @@ let _ResourceAccessGrants = {
 		$('.delete-resource-access', tr).on('click', (e) => {
 			e.stopPropagation();
 			resourceAccess.name = resourceAccess.signature;
-			_Entities.deleteNode(null, resourceAccess);
+			_Entities.deleteNode(resourceAccess);
 		});
 
 		if (hasAuthFlag && hasNonAuthFlag) {
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				text: 'Grant has flags for authenticated and public users. This is probably misconfigured and should be changed or split into two grants.',
 				element: $('.title-cell b', tr),
 				customToggleIcon: _Icons.iconWarningYellowFilled,
@@ -929,7 +938,7 @@ let _ResourceAccessGrants = {
 		}
 
 		for (let key in flagWarningTexts) {
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				text: flagWarningTexts[key].join('<br><br>'),
 				element: $('input[data-key=' + key + ']', tr),
 				customToggleIcon: _Icons.iconWarningYellowFilled,
@@ -941,7 +950,7 @@ let _ResourceAccessGrants = {
 
 		for (let key in flagSanityInfos) {
 			if (!flagWarningTexts[key]) {
-				Structr.appendInfoTextToElement({
+				_Helpers.appendInfoTextToElement({
 					text: flagSanityInfos[key].join('<br><br>'),
 					element: $('input[data-key=' + key + ']', tr),
 					customToggleIcon: _Icons.iconErrorRedFilled,
@@ -958,7 +967,7 @@ let _ResourceAccessGrants = {
 
 			replaceElement.replaceWith(tr);
 			if (blinkAfterUpdate) {
-				blinkGreen(tr.find('td'));
+				_Helpers.blinkGreen(tr.find('td'));
 			}
 
 		} else {
@@ -999,13 +1008,13 @@ let _ResourceAccessGrants = {
 
 		return div;
 	},
-	updateResourceAccessFlags: function (id, newFlags) {
+	updateResourceAccessFlags: (id, newFlags) => {
 
-		Command.setProperty(id, 'flags', newFlags, false, function() {
+		Command.setProperty(id, 'flags', newFlags, false, () => {
 			_ResourceAccessGrants.updateResourcesAccessRow(id);
 		});
 	},
-	updateResourcesAccessRow: function (id, blinkGreen = true) {
+	updateResourcesAccessRow: (id, blinkGreen = true) => {
 		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', (obj) => {
 			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
 		});
@@ -1016,18 +1025,17 @@ _CorsSettings = {
 
 	refreshCorsSettings: () => {
 
-		let corsSettingsHtml = _Security.templates.corsSettings({});
-		_Security.corsSettings.html(corsSettingsHtml);
+		_Security.corsSettings.html(_Security.templates.corsSettings());
 
-		Structr.activateCommentsInElement(_Security.corsSettings[0]);
+		_Helpers.activateCommentsInElement(_Security.corsSettings[0]);
 
-		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings), true, 'CorsSetting', undefined, null, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', undefined, true);
+		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings)[0], true, 'CorsSetting', undefined, null, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', true);
 
 		csPager.cleanupFunction = () => {
 			$('#corsSettingsTable tbody tr').remove();
 		};
 
-		csPager.activateFilterElements(_Security.corsSettings);
+		csPager.activateFilterElements(_Security.corsSettings[0]);
 		csPager.setIsPaused(false);
 		csPager.refresh();
 
@@ -1061,7 +1069,7 @@ _CorsSettings = {
 		$(`#id_${corsSetting.id} .delete-cors-setting`).on('click', (e) => {
 			e.stopPropagation();
 			corsSetting.name = corsSetting.requestUri;
-			_Entities.deleteNode(null, corsSetting);
+			_Entities.deleteNode(corsSetting);
 		});
 
 		document.querySelectorAll(`#id_${corsSetting.id} input[type="text"]`).forEach(inp => {
@@ -1093,7 +1101,7 @@ _CorsSettings = {
 			});
 		} else {
 			reEnableInput();
-			blinkRed(inp);
+			_Helpers.blinkRed(inp);
 		}
 		window.setTimeout(reEnableInput, 250);
 	},

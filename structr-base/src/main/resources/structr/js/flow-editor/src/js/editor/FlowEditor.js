@@ -76,6 +76,8 @@ export class FlowEditor {
 		while (this._rootElement.firstChild) {
 			this._rootElement.removeChild(this._rootElement.firstChild);
 		}
+
+		this._editor.view.destroy();
 	}
 
 	_injectDependencies() {
@@ -152,7 +154,6 @@ export class FlowEditor {
 		new AreaSelector(this);
 
 		this._registerKeybinds();
-
 	}
 
 	_getEventHandlers() {

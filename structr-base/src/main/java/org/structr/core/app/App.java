@@ -83,9 +83,6 @@ public interface App extends Closeable {
 	<T extends Service> T getService(final Class<T> serviceClass);
 	DatabaseService getDatabaseService();
 
-	<T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException;
-	void setGlobalSetting(final String key, final Object value) throws FrameworkException;
-
 	/**
 	 * Returns the unique instance ID of this Structr database instance. Please
 	 * note that this method can throw a FrameworkException because it needs a

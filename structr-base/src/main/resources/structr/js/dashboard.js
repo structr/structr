@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Dashboard);
 });
 
@@ -35,7 +35,7 @@ let _Dashboard = {
 
 			_Dashboard.init();
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('dashboard'));
+			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('dashboard'));
 
 			let dashboardUiConfig = {};
 			let envResponse       = await fetch(Structr.rootUrl + '_env');
@@ -82,10 +82,10 @@ let _Dashboard = {
 			dashboardUiConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportAppendTimestampKey, true);
 			dashboardUiConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipDataExportAppendTimestamp, true);
 
-			Structr.mainContainer.innerHTML = _Dashboard.templates.main(dashboardUiConfig);
-			Structr.functionBar.innerHTML   = _Dashboard.templates.functions();
+			Structr.setMainContainerHTML(_Dashboard.templates.main(dashboardUiConfig));
+			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
 
-			Structr.activateCommentsInElement(Structr.mainContainer);
+			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
 			UISettings.showSettingsForCurrentModule();
 
@@ -105,7 +105,7 @@ let _Dashboard = {
 		} catch (e) {
 
 			if (retryCount < 3) {
-				setTimeout(() => {
+				window.setTimeout(() => {
 					_Dashboard.onload(++retryCount);
 				}, 250);
 			} else {
@@ -289,7 +289,7 @@ let _Dashboard = {
 					if (showMessage) {
 
 						config.text += " Please get in touch via <b>licensing@structr.com</b> to renew your license.";
-						Structr.appendInfoTextToElement(config);
+						_Helpers.appendInfoTextToElement(config);
 					}
 				}
 			},
@@ -335,7 +335,7 @@ let _Dashboard = {
 						let downloadUrl = deploymentUrlInput.value;
 
 						if (!(downloadUrl && downloadUrl.length)) {
-							new MessageBuilder().title('Unable to start application import from URL').warning('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start application import from URL').text('Please enter a URL or upload a ZIP file containing the application export.').requiresConfirmation().allowConfirmAll().show();
 						} else {
 							_Dashboard.tabs['deployment'].deployFromZIPURL(downloadUrl, zipContentPath);
 						}
@@ -380,7 +380,7 @@ let _Dashboard = {
 
 						if (!(downloadUrl && downloadUrl.length)) {
 
-							new MessageBuilder().title('Unable to start data import from URL').warning('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
+							new WarningMessage().title('Unable to start data import from URL').text('Please enter a URL or upload a ZIP file containing the data export.').requiresConfirmation().allowConfirmAll().show();
 
 						} else {
 
@@ -399,10 +399,10 @@ let _Dashboard = {
 				});
 
 
-				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', function(nodes) {
+				Command.list('SchemaNode', true, 1000, 1, 'name', 'asc', 'id,name,isBuiltinType', (nodes) => {
 
 					let builtinTypes = [];
-					let customTypes = [];
+					let customTypes  = [];
 
 					for (let n of nodes) {
 						if (n.isBuiltinType) {
@@ -417,8 +417,8 @@ let _Dashboard = {
 						let topOffset       = 0;
 						let typesSelectElem = $(typesSelectElemSelector);
 
-						$('.custom-types', typesSelectElem).append(customTypes.map((type) => '<option>' + type.name + '</option>').join(''));
-						$('.builtin-types', typesSelectElem).append(builtinTypes.map((type) => '<option>' + type.name + '</option>').join(''));
+						$('.custom-types', typesSelectElem).append(customTypes.map((type) => `<option>${type.name}</option>`).join(''));
+						$('.builtin-types', typesSelectElem).append(builtinTypes.map((type) => `<option>${type.name}</option>`).join(''));
 
 						typesSelectElem.chosen({
 							search_contains: true,
@@ -442,7 +442,7 @@ let _Dashboard = {
 			deploy: async (mode, location) => {
 
 				if (!(location && location.length)) {
-					new MessageBuilder().title('Unable to start application ' + mode).warning('Please enter a local directory path for application ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to start application ' + mode).text(`Please enter a local directory path for application ${mode}.`).requiresConfirmation().allowConfirmAll().show();
 					return;
 				}
 
@@ -466,7 +466,7 @@ let _Dashboard = {
 			cleanFileNamePrefix: (prefix) => {
 				let cleaned = prefix.replaceAll(/[^a-zA-Z0-9 _-]/g, '').trim();
 				if (cleaned !== prefix) {
-					new MessageBuilder().title('Cleaned prefix').info('The given filename prefix was changed to "' + cleaned + '".').requiresConfirmation().allowConfirmAll().show();
+					new InfoMessage().title('Cleaned prefix').text(`The given filename prefix was changed to "${cleaned}".`).requiresConfirmation().allowConfirmAll().show();
 				}
 				return cleaned;
 			},
@@ -475,7 +475,7 @@ let _Dashboard = {
 				let zeroPad = (v) => (((v < 10) ? '0' : '') + v);
 				let date    = new Date();
 
-				return prefix + '_' + date.getFullYear() + zeroPad(date.getMonth()+1) + zeroPad(date.getDate()) + '_' + zeroPad(date.getHours()) + zeroPad(date.getMinutes()) + zeroPad(date.getSeconds());
+				return `${prefix}_${date.getFullYear()}${zeroPad(date.getMonth() + 1)}${zeroPad(date.getDate())}_${zeroPad(date.getHours())}${zeroPad(date.getMinutes())}${zeroPad(date.getSeconds())}`;
 			},
 			exportAsZip: () => {
 
@@ -490,7 +490,7 @@ let _Dashboard = {
 				}
 
 				if (prefix === '') {
-					new MessageBuilder().title('Unable to export application').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to export application').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 				} else {
 					window.location = Structr.deployRoot + '?name=' + prefix;
 				}
@@ -511,11 +511,11 @@ let _Dashboard = {
 				let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value).join(',');
 
 				if (types === '') {
-					new MessageBuilder().title('Unable to start data export').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to start data export').text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
 				} else if (prefix === '') {
-					new MessageBuilder().title('Unable to start data export').warning('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to start data export').text('Please enter a prefix or select "Append timestamp"').requiresConfirmation().allowConfirmAll().show();
 				} else {
-					window.location = Structr.deployRoot + '?mode=data&name=' + prefix + '&types=' + types;
+					window.location = `${Structr.deployRoot}?mode=data&name=${prefix}&types=${types}`;
 				}
 			},
 			deployFromZIPURL: async (downloadUrl, zipContentPath) => {
@@ -533,7 +533,7 @@ let _Dashboard = {
 
 				if (!response.ok && response.status === 400) {
 					let responseText = await response.text();
-					new MessageBuilder().title('Unable to import app from URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to import app from URL').text(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
 			deployDataFromZIPURL: async (downloadUrl, zipContentPath) => {
@@ -551,7 +551,7 @@ let _Dashboard = {
 
 				if (!response.ok && response.status === 400) {
 					let responseText = await response.text();
-					new MessageBuilder().title('Unable to import app from ZIP URL').warning(responseText).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to import app from ZIP URL').text(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
 			deployFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
@@ -569,7 +569,7 @@ let _Dashboard = {
 
 				if (!response.ok && response.status === 400) {
 					let responseText = await response.text();
-					new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to import app from uploaded ZIP').text(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
 			deployDataFromZIPFileUpload: async (filesSelectField, zipContentPath) => {
@@ -587,13 +587,13 @@ let _Dashboard = {
 
 				if (!response.ok && response.status === 400) {
 					let responseText = await response.text();
-					new MessageBuilder().title('Unable to import app from uploaded ZIP').warning(responseText).requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title('Unable to import app from uploaded ZIP').text(responseText).requiresConfirmation().allowConfirmAll().show();
 				}
 			},
 			deployData: async (mode, location, types) => {
 
 				if (!(location && location.length)) {
-					new MessageBuilder().title('Unable to start data ' + mode + '').warning('Please enter a local directory path for data ' + mode + '.').requiresConfirmation().allowConfirmAll().show();
+					new WarningMessage().title(`Unable to start data ${mode}`).text(`Please enter a local directory path for data ${mode}.`).requiresConfirmation().allowConfirmAll().show();
 					return;
 				}
 
@@ -612,7 +612,7 @@ let _Dashboard = {
 					if (types && types.length) {
 						data['types'] = types.join(',');
 					} else {
-						new MessageBuilder().title('Unable to ' + mode + ' data').warning('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
+						new WarningMessage().title(`Unable to ${mode} data`).text('Please select at least one data type.').requiresConfirmation().allowConfirmAll().show();
 						return;
 					}
 				}
@@ -632,7 +632,8 @@ let _Dashboard = {
 			appendGlobalSchemaMethods: async () => {
 
 				let container = document.querySelector('#dashboard-global-schema-methods');
-				let response  = await fetch(Structr.rootUrl + 'SchemaMethod?schemaNode=&' + Structr.getRequestParameterName('sort') + '=name');
+				_Helpers.fastRemoveAllChildren(container);
+				let response  = await fetch(`${Structr.rootUrl}SchemaMethod?schemaNode=&${Structr.getRequestParameterName('sort')}=name`);
 
 				if (response.ok) {
 
@@ -640,18 +641,18 @@ let _Dashboard = {
 
 					if (data.result.length === 0) {
 
-						container.innerHTML = 'No global schema methods.';
+						container.textContent = 'No global schema methods.';
 
 					} else {
 
-						let maintenanceList = Structr.createSingleDOMElementFromHTML(`
+						let maintenanceList = _Helpers.createSingleDOMElementFromHTML(`
 							<table class="props">
 								${data.result.map(method => `
 									<tr class="global-method">
 										<td><span class="method-name">${method.name}</span></td>
 										<td><button id="run-${method.id}" class="action button">Run now</button></td>
 									</tr>
-								`)}
+								`).join('')}
 							</table>
 						`);
 						container.appendChild(maintenanceList);
@@ -707,7 +708,7 @@ let _Dashboard = {
 
 						successFn?.();
 
-						blinkGreen(e.target);
+						_Helpers.blinkGreen(e.target);
 					});
 				};
 
@@ -805,7 +806,7 @@ let _Dashboard = {
 				let url    = Structr.rootUrl + '_runtimeEventLog?' + Structr.getRequestParameterName('order') + '=absoluteTimestamp&' + Structr.getRequestParameterName('sort') + '=desc&' + Structr.getRequestParameterName('pageSize') + '=' + num.value;
 				let type   = filter.value;
 
-				fastRemoveAllChildren(tbody);
+				_Helpers.fastRemoveAllChildren(tbody);
 
 				if (type && type.length) {
 					url += '&type=' + type;
@@ -821,7 +822,7 @@ let _Dashboard = {
 
 						let data = event.data;
 
-						let row = Structr.createSingleDOMElementFromHTML(`
+						let row = _Helpers.createSingleDOMElementFromHTML(`
 							<tr>
 								<td>${new Date(event.absoluteTimestamp).toISOString()}</td>
 								<td>${event.type}</td>
@@ -839,7 +840,7 @@ let _Dashboard = {
 
 							if (data.type === 'SchemaMethod' || data.type === 'SchemaProperty') {
 
-								let button = Structr.createSingleDOMElementFromHTML(`<button>Go to code</button>`);
+								let button = _Helpers.createSingleDOMElementFromHTML(`<button>Go to code</button>`);
 								actionsCell.appendChild(button);
 
 								button.addEventListener('click', () => {
@@ -857,7 +858,7 @@ let _Dashboard = {
 
 							} else {
 
-								let button = Structr.createSingleDOMElementFromHTML(`<button>Open content in editor</button>`);
+								let button = _Helpers.createSingleDOMElementFromHTML(`<button>Open content in editor</button>`);
 								actionsCell.appendChild(button);
 
 								button.addEventListener('click', () => {
@@ -887,7 +888,7 @@ let _Dashboard = {
 
 				let tbody  = document.querySelector('#running-threads-container');
 
-				fastRemoveAllChildren(tbody);
+				_Helpers.fastRemoveAllChildren(tbody);
 
 				let response  = await fetch(Structr.rootUrl + 'maintenance/manageThreads', {
 					method: 'POST',
@@ -900,7 +901,7 @@ let _Dashboard = {
 
 					for (let thread of result.result) {
 
-						let row = Structr.createSingleDOMElementFromHTML(`
+						let row = _Helpers.createSingleDOMElementFromHTML(`
 							<tr>
 								<td>${thread.id}</td>
 								<td>${thread.name}</td>
@@ -915,8 +916,8 @@ let _Dashboard = {
 						tbody.appendChild(row);
 
 						let actionsCell     = row.querySelector('.actions-cell');
-						let interruptButton = Structr.createSingleDOMElementFromHTML(`<button>Interrupt</button>`);
-						let killButton      = Structr.createSingleDOMElementFromHTML(`<button>Kill</button>`);
+						let interruptButton = _Helpers.createSingleDOMElementFromHTML(`<button>Interrupt</button>`);
+						let killButton      = _Helpers.createSingleDOMElementFromHTML(`<button>Kill</button>`);
 
 						actionsCell.appendChild(interruptButton);
 						actionsCell.appendChild(killButton);
@@ -1006,7 +1007,7 @@ let _Dashboard = {
 
 				let settingsContainer = document.querySelector('#settings-container');
 				let allSettings       = UISettings.getSettings();
-				let offCanvasDummy    = Structr.createSingleDOMElementFromHTML('<div></div>');	// prepare off-canvas to reduce number of renders
+				let offCanvasDummy    = _Helpers.createSingleDOMElementFromHTML('<div></div>');	// prepare off-canvas to reduce number of renders
 
 				for (let section of allSettings) {
 					UISettings.appendSettingsSectionToContainer(section, offCanvasDummy);
@@ -1023,7 +1024,7 @@ let _Dashboard = {
 					LSWrapper.save(() => {
 
 						Command.setProperty(userId, 'localStorage', null, false, () => {
-							blinkGreen(document.querySelector('#clear-local-storage-on-server'));
+							_Helpers.blinkGreen(document.querySelector('#clear-local-storage-on-server'));
 							LSWrapper.clear();
 							_Dashboard.onload();
 						});
@@ -1160,7 +1161,7 @@ let _Dashboard = {
 								<h3>Data export to server directory</h3>
 								<div>
 									<input type="text" id="data-export-target-input" placeholder="Server directory path for data export">
-									<select id="data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple">
+									<select id="data-export-types-input" data-placeholder="Please select data type(s) to export" multiple="multiple">
 										<optgroup label="Custom Types" class="custom-types"></optgroup>
 										<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 									</select>
@@ -1183,7 +1184,7 @@ let _Dashboard = {
 								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
 									<input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}">
-									<select id="zip-data-export-types-input" class="chosen-sortable" data-placeholder="Please select data type(s) to export" multiple="multiple">
+									<select id="zip-data-export-types-input" data-placeholder="Please select data type(s) to export" multiple="multiple">
 										<optgroup label="Custom Types" class="custom-types"></optgroup>
 										<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 									</select>
@@ -1255,7 +1256,7 @@ let _Dashboard = {
 
 								<div class="flex menu-order-container">
 									<div class="text-center font-bold w-40 p-4">Main Menu</div>
-									<div class="text-center font-bold w-40 p-4">Custom Menu (☰)</div>
+									<div class="text-center font-bold w-40 p-4">Custom Menu (${_Icons.getSvgIcon(_Icons.iconHamburgerMenu, 8, 8)})</div>
 								</div>
 
 								<div class="flex menu-order-container">

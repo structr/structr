@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_VirtualTypes);
 });
 
@@ -32,14 +32,14 @@ let _VirtualTypes = {
 	virtualTypesResizerLeftKey: 'structrVirtualTypesResizerLeftKey_' + location.port,
 	virtualTypeSelectedElementKey: 'structrVirtualTypeSelectedElementKey_' + location.port,
 
-	init: function() {},
-	unload: function() {},
-	onload: function() {
+	init: () => {},
+	unload: () => {},
+	onload: () => {
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('virtual-types'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('virtual-types'));
 
-		Structr.mainContainer.innerHTML = _VirtualTypes.templates.main();
-		Structr.functionBar.innerHTML   = _VirtualTypes.templates.functions();
+		Structr.setMainContainerHTML(_VirtualTypes.templates.main());
+		Structr.setFunctionBarHTML(_VirtualTypes.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -65,7 +65,7 @@ let _VirtualTypes = {
 				_VirtualTypes.virtualTypesPager.refresh();
 
 			} else {
-				blinkRed(Structr.functionBar);
+				_Helpers.blinkRed(Structr.functionBar);
 			}
 		});
 
@@ -80,7 +80,7 @@ let _VirtualTypes = {
 
 		_VirtualTypes.registerChangeListeners();
 
-		Structr.appendInfoTextToElement({
+		_Helpers.appendInfoTextToElement({
 			element: $('.resource-link'),
 			text: "Preview the virtual type in a new window/tab.<br>The request parameter pageSize=1 is automatically appended to reduce the number of results in the preview.",
 			css: { marginLeft: "5px" },
@@ -88,7 +88,7 @@ let _VirtualTypes = {
 			offsetY: 10
 		});
 
-		_VirtualTypes.activateInfoTextsInColumnHeaders();
+		_Helpers.activateCommentsInElement(_VirtualTypes.virtualTypeDetail);
 
 		Structr.unblockMenu(100);
 
@@ -105,6 +105,7 @@ let _VirtualTypes = {
 		document.getElementById('virtual-types-main').style.display = 'none';
 	},
 	checkMainVisibility: () => {
+
 		let rows = document.querySelectorAll('.virtual-type-row');
 		let selectedRowExists = false;
 		rows.forEach((row) => {
@@ -123,7 +124,7 @@ let _VirtualTypes = {
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
-		Structr.requestAnimationFrameWrapper(_VirtualTypes.prevAnimFrameReqId_moveResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_VirtualTypes.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_VirtualTypes.virtualTypesResizerLeftKey) || 340;
 			left = Math.max(340, Math.min(left, window.innerWidth - 340));
@@ -139,16 +140,7 @@ let _VirtualTypes = {
 			return true;
 		});
 	},
-	activateInfoTextsInColumnHeaders: function() {
-		$('th[data-info-text]').each(function(i, el) {
-			Structr.appendInfoTextToElement({
-				element: $(el),
-				text: $(el).data('info-text'),
-				css: { marginLeft: "5px" }
-			});
-		});
-	},
-	registerChangeListeners: function() {
+	registerChangeListeners: () => {
 
 		$(_VirtualTypes.virtualTypeDetailTableRow).on('change', '.property', function() {
 			let el     = $(this);
@@ -178,19 +170,18 @@ let _VirtualTypes = {
 			}
 		});
 	},
-	listVirtualTypes: function () {
-
-		let pagerEl = $('#virtual-types-pager');
+	listVirtualTypes: () => {
 
 		_Pager.initPager('virtual-types', 'VirtualType', 1, 25, 'name', 'asc');
 
-		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', pagerEl, false, 'VirtualType', 'ui', _VirtualTypes.processPagerData, undefined, undefined, undefined, true);
+		_VirtualTypes.virtualTypesPager = _Pager.addPager('virtual-types', document.querySelector('#virtual-types-pager'), false, 'VirtualType', 'ui', _VirtualTypes.processPagerData, undefined, undefined, true);
 
 		_VirtualTypes.virtualTypesPager.cleanupFunction = () => {
-			fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
+			_Helpers.fastRemoveAllChildren(_VirtualTypes.virtualTypesList[0]);
 		};
 		_VirtualTypes.virtualTypesPager.appendFilterElements(`
-			Filters: <input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
+			<span class="mr-1">Filters:</span>
+			<input type="text" class="filter w100 virtual-type-name" data-attribute="name" placeholder="Name">
 			<input type="text" class="filter w100 virtual-type-sourceType" data-attribute="sourceType" placeholder="Source Type">
 		`);
 		_VirtualTypes.virtualTypesPager.activateFilterElements();
@@ -225,12 +216,12 @@ let _VirtualTypes = {
 			row.click();
 		}
 	},
-	populateVirtualTypeRow: function(row, virtualTypeData) {
+	populateVirtualTypeRow: (row, virtualTypeData) => {
 		$('.position', row).text(virtualTypeData.position !== null ? virtualTypeData.position : "");
 		$('.name', row).text(virtualTypeData.name !== null ? virtualTypeData.name : "");
 		$('.sourceType', row).text(virtualTypeData.sourceType !== null ? virtualTypeData.sourceType : "");
 	},
-	getContextMenuElements: function (div, virtualType) {
+	getContextMenuElements: (div, virtualType) => {
 
 		let elements = [];
 
@@ -250,28 +241,26 @@ let _VirtualTypes = {
 			name: 'Delete Virtual Type',
 			clickHandler: () => {
 
-				Structr.confirmation(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`, () => {
+				_Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`).then(confirm => {
+					if (confirm === true) {
 
-					Command.get(virtualType.id, 'id,properties', function(vt) {
+						Command.get(virtualType.id, 'id,properties', (vt) => {
 
-						let promises = vt.properties.map((vp) => {
-							return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
-						});
+							let promises = vt.properties.map((vp) => {
+								return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
+							});
 
-						promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
+							promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
 
-						Promise.all(promises).then(() => {
+							Promise.all(promises).then(() => {
 
-							_VirtualTypes.virtualTypesPager.refresh();
-							window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
+								_VirtualTypes.virtualTypesPager.refresh();
+								window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
 
-							div.remove();
-
-							$.unblockUI({
-								fadeOut: 25
+								div.remove();
 							});
 						});
-					});
+					}
 				});
 
 				return false;
@@ -337,11 +326,9 @@ let _VirtualTypes = {
 	},
 	listVirtualProperties: (properties) => {
 
-		properties.sort((a, b) => {
-			return (a.position === b.position) ? 0 : (a.position > b.position) ? 1 : -1;
-		});
+		_Helpers.sort(properties, 'position');
 
-		fastRemoveAllChildren(_VirtualTypes.virtualPropertiesTableBody[0]);
+		_Helpers.fastRemoveAllChildren(_VirtualTypes.virtualPropertiesTableBody[0]);
 
 		for (let p of properties) {
 			_VirtualTypes.appendVirtualProperty(p);
@@ -389,7 +376,7 @@ let _VirtualTypes = {
 
 				if (response.ok) {
 
-					blinkGreen($('td', row));
+					_Helpers.blinkGreen($('td', row));
 
 					let data = await response.json();
 
@@ -402,7 +389,7 @@ let _VirtualTypes = {
 					});
 
 				} else {
-					blinkRed($('td', row));
+					_Helpers.blinkRed($('td', row));
 				}
 			});
 
@@ -415,41 +402,38 @@ let _VirtualTypes = {
 	},
 	updateVirtualObject: async (type, id, newData, $el, $blinkTarget, successCallback) => {
 
-		let response = await fetch(Structr.rootUrl + type + '/' + id, {
+		let response = await fetch(`${Structr.rootUrl}${type}/${id}`, {
 			method: 'PUT',
 			body: JSON.stringify(newData)
 		});
 
 		if (response.ok) {
 
-			blinkGreen(($blinkTarget ? $blinkTarget : $el));
+			_Helpers.blinkGreen(($blinkTarget ? $blinkTarget : $el));
 
-			if (typeof(successCallback) === "function") {
-				successCallback();
-			}
+			successCallback?.();
 
 		} else {
 
-			blinkRed(($blinkTarget ? $blinkTarget : $el));
+			_Helpers.blinkRed(($blinkTarget ? $blinkTarget : $el));
 		}
 	},
 	deleteVirtualProperty: (id, row) => {
 
-		Structr.confirmation('<p>Do you really want to delete the virtual property?</p>', async () => {
+		_Helpers.confirmationPromiseNonBlockUI('<p>Do you really want to delete the virtual property?</p>').then(async confirm => {
 
-			let response = await fetch(Structr.rootUrl + 'VirtualProperty/' + id, {
-				method: 'DELETE'
-			});
+			if (confirm === true) {
 
-			if (response.ok) {
-				row.remove();
-			} else {
-				blinkRed($('td', row));
+				let response = await fetch(`${Structr.rootUrl}VirtualProperty/${id}`, {
+					method: 'DELETE'
+				});
+
+				if (response.ok) {
+					row.remove();
+				} else {
+					_Helpers.blinkRed($('td', row));
+				}
 			}
-
-			$.unblockUI({
-				fadeOut: 25
-			});
 		});
 	},
 	selectRow: (row) => {
@@ -465,11 +449,11 @@ let _VirtualTypes = {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/virtual-types.css">
-			
+
 			<div id="virtual-types-main">
-			
+
 				<div class="column-resizer column-resizer-left"></div>
-			
+
 				<div id="virtual-types-list-container">
 					<div id="virtual-types-list" class="resourceBox">
 						<table id="virtual-types-table">
@@ -481,56 +465,73 @@ let _VirtualTypes = {
 									<th></th>
 								</tr>
 							</thead>
-							<tbody>
-			
-							</tbody>
+							<tbody></tbody>
 						</table>
 					</div>
 				</div>
-			
-				<div id="virtual-type-detail" class="resourceBox" style="display: none;">
+
+				<div id="virtual-type-detail" class="" style="display: none;">
+
 					<div class="flex justify-between">
-						<h2>Virtual Type</h2>
+						<div class="font-bold mb-4 text-xl px-2">Virtual Type</div>
 						<div class="resource-link"><a target="_blank" href="">/</a></div>
 					</div>
+
 					<table id="virtual-type-detail-table">
-						<thead><tr>
-							<th class="position" data-info-text="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
-							<th class="name" data-info-text="The name under which the virtual type can be queried via REST">Name</th>
-							<th class="sourceType" data-info-text="Specifies the source type of the type mapping">Source Type</th>
-							<th class="filterExpression" data-info-text="Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">Filter Expression</th>
-							<th>Visible To Public Users</th>
-							<th>Visible To Authenticated Users</th>
-						</tr></thead>
-						<tbody><tr>
-							<td><input class="property" data-property="position" size="4" /></td>
-							<td><input class="property" data-property="name" /></td>
-							<td><input class="property" data-property="sourceType" /></td>
-							<td><textarea class="property" data-property="filterExpression"></textarea></td>
-							<td><input class="property" type="checkbox" data-property="visibleToPublicUsers" /></td>
-							<td><input class="property" type="checkbox" data-property="visibleToAuthenticatedUsers" /></td>
-						</tr></tbody>
+						<thead>
+							<tr class="odd:bg-white even:bg-gray-75">
+								<th class="p-2 pt-1 w-24" data-comment="The position attribute for virtual types is mostly for sorting them in the left column">Position</th>
+								<th class="p-2 pt-1" data-comment="The name under which the virtual type can be queried via REST">Name</th>
+								<th class="p-2 pt-1" data-comment="Specifies the source type of the type mapping">Source Type</th>
+								<th class="p-2 pt-1" data-comment="Can be used to remove entities from the target collection, e.g. filter entities with invalid names etc. The filter expression is a StructrScript (JavaScript may severely impact performance) expression that will be called for every entity in the source collection, with the current entity being available under the keyword <code>this</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">Filter Expression</th>
+								<th class="p-2 pt-1 w-32 text-center">${Structr.abbreviations['visibleToPublicUsers']}</th>
+								<th class="p-2 pt-1 w-32 text-center">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr class="odd:bg-white even:bg-gray-75">
+								<td class="px-4">
+									<input class="property w-full box-border" data-property="position">
+								</td>
+								<td class="px-4">
+									<input class="property w-full box-border" data-property="name">
+								</td>
+								<td class="px-4">
+									<input class="property w-full box-border" data-property="sourceType">
+								</td>
+								<td class="px-4">
+									<textarea class="property w-full box-border" data-property="filterExpression"></textarea>
+								</td>
+								<td class="text-center">
+									<input class="property" type="checkbox" data-property="visibleToPublicUsers">
+								</td>
+								<td class="text-center">
+									<input class="property" type="checkbox" data-property="visibleToAuthenticatedUsers">
+								</td>
+							</tr>
+						</tbody>
 					</table>
+
 					<div id="virtual-properties">
-						<h3>Virtual Properties</h3>
+
+						<div class="font-bold mb-4 text-lg px-2">Virtual Properties</div>
+
 						<table id="virtual-properties-table">
 							<thead>
-								<tr>
-									<th class="position" data-info-text="Specifies the position of the property in the output JSON document and the order in this interface">position</th>
-									<th class="sourceName" data-info-text="Specifies the property key of the source entity">sourceName</th>
-									<th class="targetName" data-info-text="The desired target property name. If left empty, the source property name is used">targetName</th>
-									<th class="inputFunction" data-info-text="An optional input transformation when writing to this virtual property. The input data is made available via the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">inputFunction</th>
-									<th class="outputFunction" data-info-text="An optional scripting expression that creates or transforms the output value for the current property. It can be either a constant value, or a function that transforms the input value, which is provided using the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">outputFunction</th>
-									<th>Visible To Public Users</th>
-									<th>Visible To Authenticated Users</th>
-									<th>Actions</th>
+								<tr class="odd:bg-white even:bg-gray-75">
+									<th class="p-2 pt-1 w-24">Actions</th>
+									<th class="p-2 pt-1 w-32 position" data-comment="Specifies the position of the attribute in the output JSON document and the order in this interface">position</th>
+									<th class="p-2 pt-1 sourceName" data-comment="Specifies the attribute name of the source entity">sourceName</th>
+									<th class="p-2 pt-1 targetName" data-comment="The desired target attribute name. If left empty, the source attribute name is used">targetName</th>
+									<th class="p-2 pt-1 inputFunction" data-comment="An optional input transformation when writing to this virtual property. The input data is made available via the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">inputFunction</th>
+									<th class="p-2 pt-1 outputFunction" data-comment="An optional scripting expression that creates or transforms the output value for the current attribute. It can be either a constant value, or a function that transforms the input value, which is provided using the keyword <code>input</code>.<br><br>This is an 'auto-script' environment, meaning that the text is automatically surrounded with \${}">outputFunction</th>
+									<th class="p-2 pt-1 w-32 text-center">${Structr.abbreviations['visibleToPublicUsers']}</th>
+									<th class="p-2 pt-1 w-32 text-center">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
 								</tr>
 							</thead>
-							<tbody>
-			
-							</tbody>
+							<tbody></tbody>
 						</table>
-			
+
 						<button class="create hover:bg-gray-100 focus:border-gray-666 active:border-green inline-flex items-center">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2', 'icon-green'])} New Virtual Property
 						</button>
@@ -543,27 +544,41 @@ let _VirtualTypes = {
 
 				<input title="Enter a name for the virtual type" id="virtual-type-name-preselect" type="text" size="10" placeholder="Name" required class="mr-2">
 				<input title="Enter the name of the source type of the virtual type" id="virtual-type-source-type-preselect" type="text" size="12" placeholder="Source Type" required class="mr-2">
-			
+
 				<button type="submit" form="create-virtual-type-form" class="btn action inline-flex items-center" id="create-virtual-type">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Virtual Type
 				</button>
 
 			</form>
-			
+
 			<div id="virtual-types-pager"></div>
 		`,
 		propertyRow: config => `
-			<tr class="virtual-property">
-				<td><input class="property" data-property="position" size="4"></td>
-				<td><input class="property" data-property="sourceName"></td>
-				<td><input class="property" data-property="targetName"></td>
-				<td><textarea class="property" data-property="inputFunction" cols="40"></textarea></td>
-				<td><textarea class="property" data-property="outputFunction" cols="40"></textarea></td>
-				<td><input class="property" data-property="visibleToPublicUsers" type="checkbox" checked></td>
-				<td><input class="property" data-property="visibleToAuthenticatedUsers" type="checkbox" checked></td>
-				<td class="actions">
+			<tr class="virtual-property odd:bg-white even:bg-gray-75">
+				<td class="actions px-4">
 					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-virtual-property']))}
 					${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-virtual-property']), 'Remove')}
+				</td>
+				<td class="px-4">
+					<input class="property w-full box-border" data-property="position">
+				</td>
+				<td class="px-4">
+					<input class="property w-full box-border" data-property="sourceName">
+				</td>
+				<td class="px-4">
+					<input class="property w-full box-border" data-property="targetName">
+				</td>
+				<td class="px-4">
+					<textarea class="property w-full box-border" data-property="inputFunction" cols="25"></textarea>
+				</td>
+				<td class="px-4">
+					<textarea class="property w-full box-border" data-property="outputFunction" cols="25"></textarea>
+				</td>
+				<td class="text-center">
+					<input class="property" data-property="visibleToPublicUsers" type="checkbox" checked>
+				</td>
+				<td class="text-center">
+					<input class="property" data-property="visibleToAuthenticatedUsers" type="checkbox" checked>
 				</td>
 			</tr>
 		`,
