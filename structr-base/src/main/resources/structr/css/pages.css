@@ -192,92 +192,6 @@
 
 
 /**
- * Active Elements slideout
- */
-#activeElements .inner {
-	margin-left: 12px;
-	height: 100%;
-	overflow: auto;
-}
-
-#activeElements h3 {
-	margin-bottom: 0px;
-}
-
-#activeElements textarea {
-	/*font-size: 8pt;*/
-	width: 90%;
-}
-
-#activeElements input {
-	/*font-size: 8pt;*/
-	width: 90%;
-}
-
-#activeElements div.inner p {
-	margin: 0px;
-}
-
-/**
- * Data Binding Wizard slideout
- */
-#dataBinding .inner {
-	margin-top: 16px;
-	margin-left: 28px;
-	height: calc(100% - 16px);
-}
-
-#dataBinding #type-selector {
-	/*width: 100%;*/
-}
-
-#data-wizard-attributes {
-	height: calc(100% - 26px);
-}
-
-#data-wizard-attributes .properties {
-	max-height: calc(100% - 168px);
-	overflow: auto;
-}
-
-#dataBinding #flow-selector {
-	width: 100%;
-}
-
-.data-binding-type {
-	padding: 12px;
-	margin-top: 12px;
-	float: none ! important;
-	width: 160px;
-	text-align: center;
-}
-
-input.dataKey_ {
-	border: 1px solid var(--gray-ccc);
-}
-
-.save_dataKey {
-	margin-left: 6px;
-}
-
-.query-text {
-	width: calc(100% - 2rem);
-	min-height: 8rem;
-	margin-bottom: 1rem;
-	/*border: 1px solid var(--gray-ccc);*/
-	/*padding: 2px 4px;*/
-	/*font-size: 14px;*/
-}
-
-#data-binding-tabs {
-	width: 96%;
-}
-
-#data-binding-inputs {
-	margin-top: 48px ! important;
-}
-
-/**
  * Localizations slideout
  */
 
@@ -395,4 +309,59 @@ input.dataKey_ {
 
 .linkable-container .nodeHover b {
 	cursor: pointer ! important;
+}
+
+/**
+	Widgets slideout
+ */
+.widget-folder {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+}
+
+.widget {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 70px;
+	color: #333;
+	background-color: #fff;
+	border: 1px solid transparent;
+	border-radius: 5px;
+	cursor: pointer;
+}
+
+.widget img {
+	opacity: 0.75;
+	flex-grow: 1;
+}
+
+.widget:hover img {
+	opacity: 1.0;
+}
+
+.widget:hover {
+	border: 1px solid #999;
+}
+
+.widget span {
+	width: 100%;
+	text-align: center;
+	flex-grow: 0;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	-webkit-line-clamp: 3;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	word-break: break-word;
+}
+
+.widget-header b, .widget-header span {
+	cursor: pointer;
+	line-height: 2rem;
+}
+
+.widget input.new-name {
+	width: 90%;
 }

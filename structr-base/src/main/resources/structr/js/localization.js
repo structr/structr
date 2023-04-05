@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Localization);
 });
 
@@ -37,25 +37,24 @@ let _Localization = {
 	localizationPreselectLocaleKey: 'structrLocalizationPreselectLocaleKey_' + location.port,
 	localizationResizerLeftKey    : 'structrLocalizationResizerLeftKey_' + location.port,
 
-	init: function() {
-	},
-	resize: function() {
+	init: () => {},
+	resize: () => {
 		_Localization.moveResizer();
 		Structr.resize();
 	},
 	onload: function() {
+
 		_Localization.init();
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('localization'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('localization'));
 
-		Structr.mainContainer.innerHTML = _Localization.templates.main();
-		Structr.functionBar.innerHTML   = _Localization.templates.functions();
+		Structr.setMainContainerHTML(_Localization.templates.main());
+		Structr.setFunctionBarHTML(_Localization.templates.functions());
 
 		document.getElementById('add-new-translation').addEventListener('click', (event) => {
 			event.preventDefault();
 			_Localization.createNewLocalizationEntry();
 		});
-
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -146,17 +145,13 @@ let _Localization = {
 			name: 'Delete Localization',
 			clickHandler: () => {
 
-				Structr.confirmation(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`,
-					() => {
+				_Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`).then(confirm => {
+					if (confirm === true) {
 						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
 						_Localization.localizationDetailContainer.style.display = 'none';
-
-						$.unblockUI({
-							fadeOut: 25
-						});
 					}
-				);
+				});
 
 				return false;
 			}
@@ -169,7 +164,7 @@ let _Localization = {
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
-		Structr.requestAnimationFrameWrapper(_Localization.prevAnimFrameReqId_moveResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_Localization.prevAnimFrameReqId_moveResizer, () => {
 
 			left = left || LSWrapper.getItem(_Localization.localizationResizerLeftKey) || 340;
 			left = Math.max(300, Math.min(left, window.innerWidth - 300));
@@ -183,15 +178,16 @@ let _Localization = {
 	},
 	listKeysAndDomains: () => {
 
-		let pagerEl = $('#localization-pager');
+		let pagerEl = document.querySelector('#localization-pager');
 
 		_Pager.initPager('localizations', 'Localization', 1, 25, 'name', 'asc');
 
-		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, undefined, true);
+		_Localization.keyAndDomainPager = _Pager.addPager('localizations', pagerEl, false, 'Localization', 'ui', _Localization.processPagerData, _Localization.customPagerTransportFunction, undefined, true);
 
 		_Localization.keyAndDomainPager.cleanupFunction = _Localization.clearLocalizationsList;
 		_Localization.keyAndDomainPager.appendFilterElements(`
-			Filters: <input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
+			<span class="mr-1">Filters:</span>
+			<input type="text" class="filter w75 localization-key" data-attribute="name" placeholder="Key">
 			<input type="text" class="filter w75 localization-domain" data-attribute="domain" placeholder="Domain">
 			<input type="text" class="filter w75 localization-text" data-attribute="localizedName" placeholder="Content">
 		`);
@@ -342,7 +338,7 @@ let _Localization = {
 		}
 	},
 	clearLocalizationsList: () => {
-		fastRemoveAllChildren(_Localization.keysAndDomainsList[0]);
+		_Helpers.fastRemoveAllChildren(_Localization.keysAndDomainsList[0]);
 	},
 	appendLocalizationDetailListRow: (localization) => {
 
@@ -354,7 +350,7 @@ let _Localization = {
 		_Localization.fillLocalizationRow($tr, localization);
 	},
 	clearLocalizationDetailsList: () => {
-		fastRemoveAllChildren(_Localization.localizationsDetailList[0]);
+		_Helpers.fastRemoveAllChildren(_Localization.localizationsDetailList[0]);
 	},
 	saveButtonAction: async (e) => {
 
@@ -397,14 +393,14 @@ let _Localization = {
 
 					if (putResponse.ok) {
 
-						blinkGreen($(e.target));
+						_Helpers.blinkGreen($(e.target));
 
 						_Localization.keyAndDomainPager.refresh();
 						await _Localization.showLocalizationsForKeyAndDomainObject(newData);
 
 					} else {
 
-						blinkRed($(e.target));
+						_Helpers.blinkRed($(e.target));
 					}
 				}
 
@@ -415,7 +411,7 @@ let _Localization = {
 	},
 	keyFieldErrorAction: () => {
 		_Localization.localizationDetailKey.focus();
-		blinkRed(_Localization.localizationDetailKey);
+		_Helpers.blinkRed(_Localization.localizationDetailKey);
 	},
 	isFieldNonEmpty: ($field) => {
 		return ($field.val().trim() !== '');
@@ -463,9 +459,9 @@ let _Localization = {
 
 			let key    = _Localization.localizationDetailKey.val();
 			let domain = _Localization.localizationDetailDomain.val();
-			let answer = await Structr.confirmationPromiseNonBlockUI(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
+			let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
 
-			if (answer === true) {
+			if (confirm === true) {
 
 				let success = await _Localization.deleteSingleLocalization(localization.id);
 				if (success === true) {
@@ -477,12 +473,8 @@ let _Localization = {
 						_Localization.localizationDetailContainer.style.display = 'none';
 					}
 
-					$.unblockUI({
-						fadeOut: 25
-					});
-
 				} else {
-					blinkRed($row);
+					_Helpers.blinkRed($row);
 				}
 			}
 		});
@@ -519,7 +511,7 @@ let _Localization = {
 
 			$el.data('oldValue', curValue);
 			localization[attr] = curValue;
-			blinkGreen(($blinkTarget ? $blinkTarget : $el));
+			_Helpers.blinkGreen(($blinkTarget ? $blinkTarget : $el));
 
 		} else {
 
@@ -528,7 +520,7 @@ let _Localization = {
 			} else {
 				$el.val(oldValue);
 			}
-			blinkRed(($blinkTarget ? $blinkTarget : $el));
+			_Helpers.blinkRed(($blinkTarget ? $blinkTarget : $el));
 		}
 	},
 	createNewLocalizationKey: (newData, preselectLocales) => {
@@ -596,7 +588,7 @@ let _Localization = {
 					_Localization.fillLocalizationRow($tr, newData);
 
 				} else {
-					blinkRed($('td', $tr));
+					_Helpers.blinkRed($('td', $tr));
 				}
 
 			} else {
@@ -638,9 +630,9 @@ let _Localization = {
 	templates: {
 		main: config => `
 			<div id="localization-main">
-			
+
 				<div class="column-resizer column-resizer-left"></div>
-			
+
 				<div id="localization-list-container">
 					<div id="localization-list" class="resourceBox">
 						<table id="localization-table">
@@ -653,11 +645,11 @@ let _Localization = {
 						</table>
 					</div>
 				</div>
-			
+
 				<div id="localization-detail-container" style="display: none;">
-			
+
 					<form id="localization-detail-form">
-			
+
 						<div class="form-row">
 							<div class="form-col">
 								<label for="localization-key">Key</label>
@@ -671,24 +663,27 @@ let _Localization = {
 					</form>
 					<div>
 						<button id="localization-fields-save" title="Save" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2')} Save
+							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green mr-2')} Save
 						</button>
 					</div>
-			
+
 					<div class="mt-8">
 						<button id="add-new-translation" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add translation
 						</button>
 					</div>
+
 					<table id="localization-detail-table" class="props">
-						<thead><tr>
-							<th class="w-40">Locale</th>
-							<th>Translation</th>
-							<th class="w-16">ID</th>
-							<th class="w-24">Public</th>
-							<th class="w-24">Auth. Vis.</th>
-							<th class="w-24"></th>
-						</tr></thead>
+						<thead>
+							<tr>
+								<th class="w-24"></th>
+								<th class="w-40">Locale</th>
+								<th>Translation</th>
+								<th class="w-16">ID</th>
+								<th class="w-24">${Structr.abbreviations['visibleToPublicUsers']}</th>
+								<th class="w-24">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
+							</tr>
+						</thead>
 						<tbody></tbody>
 					</table>
 				</div>
@@ -697,19 +692,19 @@ let _Localization = {
 		functions: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/crud.css">
 			<link rel="stylesheet" type="text/css" media="screen" href="css/localization.css">
-			
+
 			<form id="create-localization-form" autocomplete="off">
 				<div class="inline-flex gap-x-2">
 					<input title="Enter a key to create translations for" id="localization-key-preselect" type="text" size="30" placeholder="Key" name="key" required data-lpignore="true">
 					<input title="Enter a domain to create translations for" id="localization-domain-preselect" type="text" size="10" placeholder="Domain" name="domain">
 					<input title="Enter a comma-separated list of locales (f.e. en,de,fr) to create translations for" id="localization-locale-preselect" type="text" size="10" placeholder="Locale(s)" name="locale">
-				
+
 					<button type="submit" form="create-localization-form" class="action inline-flex items-center">
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-white mr-2')} Create new localization key
 					</button>
 				</div>
 			</form>
-				
+
 				<div id="localization-pager"></div>
 		`,
 		typeRow: config => `
@@ -723,6 +718,12 @@ let _Localization = {
 		`,
 		emptyRow: config => `
 			<tr class="localization">
+				<td class="actions text-center">
+					<div class="flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
+						${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
+					</div>
+				</td>
 				<td>
 					<input class="___locale">
 				</td>
@@ -737,12 +738,6 @@ let _Localization = {
 				</td>
 				<td>
 					<input class="___visibleToAuthenticatedUsers" type="checkbox" checked>
-				</td>
-				<td class="actions text-center">
-					<div class="flex items-center justify-center">
-						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'mr-2', 'save-localization']))}
-						${_Icons.getSvgIcon(_Icons.iconTrashcan,      20, 20, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-localization']), 'Remove')}
-					</div>
 				</td>
 			</tr>
 		`,

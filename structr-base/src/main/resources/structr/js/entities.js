@@ -18,25 +18,23 @@
  */
 let _Entities = {
 	selectedObject: {},
-	activeElements: {},
 	activeQueryTabPrefix: 'structrActiveQueryTab_' + location.port,
 	activeEditTabPrefix: 'structrActiveEditTab_' + location.port,
 	selectedObjectIdKey: 'structrSelectedObjectId_' + location.port,
-	numberAttrs: ['position', 'size'],
 	readOnlyAttrs: ['lastModifiedDate', 'createdDate', 'createdBy', 'id', 'checksum', 'size', 'version', 'relativeFilePath'],
 	pencilEditBlacklist: ['html', 'body', 'head', 'title', ' script',  'input', 'label', 'button', 'textarea', 'link', 'meta', 'noscript', 'tbody', 'thead', 'tr', 'td', 'caption', 'colgroup', 'tfoot', 'col', 'style'],
 	null_prefix: 'null_attr_',
 	collectionPropertiesResultCount: {},
-	changeBooleanAttribute: function(attrElement, value, activeLabel, inactiveLabel) {
+	changeBooleanAttribute: (attrElement, value, activeLabel, inactiveLabel) => {
 
 		if (value === true) {
-			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2') + (activeLabel ? ' ' + activeLabel : ''));
+			attrElement.removeClass('inactive').addClass('active').prop('checked', true).html(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2']) + ' ' + (activeLabel ?? ''));
 		} else {
-			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ? inactiveLabel : '-'));
+			attrElement.removeClass('active').addClass('inactive').prop('checked', false).text((inactiveLabel ?? '-'));
 		}
 
 	},
-	reloadChildren: function(id) {
+	reloadChildren: (id) => {
 		let el = Structr.node(id);
 
 		$(el).children('.node').remove();
@@ -44,676 +42,52 @@ let _Entities = {
 
 		Command.children(id);
 	},
-	deleteNodes: (button, entities, recursive, callback) => {
+	deleteNodes: (entities, recursive, callback) => {
 
-		if ( !Structr.isButtonDisabled(button) ) {
+		let confirmationHtml = `
+			<p>Delete the following objects ${recursive ? '(all folders recursively) ' : ''}?</p>
+			<div>
+				${entities.map(entity => `<div><strong>${entity.name}</strong> [${entity.id}]</div>`).join('')}
+			</div>
+			<br>
+		`;
 
-			let confirmationHtml = `<p>Delete the following objects ${recursive ? '(all folders recursively) ' : ''}?</p>`;
+		_Helpers.confirmationPromiseNonBlockUI(confirmationHtml).then(confirm => {
 
-			let nodeIds = [];
+			if (confirm === true) {
 
-			for (let entity of entities) {
-
-				confirmationHtml += `<strong>${entity.name}</strong> [${entity.id}]<br>`;
-				nodeIds.push(entity.id);
-			}
-
-			confirmationHtml += '<br>';
-
-			Structr.confirmation(confirmationHtml,() => {
-
+				let nodeIds = entities.map(e => e.id);
 				Command.deleteNodes(nodeIds, recursive);
-				$.unblockUI({
-					fadeOut: 25
-				});
-				if (callback) {
-					callback();
-				}
-			});
-		}
-	},
-	deleteNode: (button, entity, recursive, callback) => {
 
-		if ( !Structr.isButtonDisabled(button) ) {
-			Structr.confirmation(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`,
-				function() {
-					Command.deleteNode(entity.id, recursive);
-					$.unblockUI({
-						fadeOut: 25
-					});
-					if (callback) {
-						callback(entity);
-					}
-				});
-		}
+				callback?.();
+			}
+		});
+	},
+	deleteNode: (entity, recursive, callback) => {
+
+		_Helpers.confirmationPromiseNonBlockUI(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+			if (confirm === true) {
+				Command.deleteNode(entity.id, recursive);
+
+				callback?.(entity);
+			}
+		});
 
 	},
-	deleteEdge: (button, entity, recursive, callback) => {
+	deleteEdge: (entity, recursive, callback) => {
 
-		if ( !Structr.isButtonDisabled(button) ) {
+		_Helpers.confirmationPromiseNonBlockUI(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+			if (confirm === true) {
+				Command.deleteRelationship(entity.id, recursive);
 
-			Structr.confirmation(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`,
-				function() {
-					Command.deleteRelationship(entity.id, recursive);
-					$.unblockUI({
-						fadeOut: 25
-					});
-					if (callback) {
-						callback(entity);
-					}
-				});
-
-		}
-
+				callback?.(entity);
+			}
+		});
 	},
-	dataBindingDialog: function(entity, el, typeInfo) {
-
-		let eventsHtml = _Entities.templates.events({entity: entity});
-		el.empty();
-		el.append(eventsHtml);
-		Structr.activateCommentsInElement(el[0]);
-
-		let width = '100%';
-		let style = 'text-align: left; color: red;';
-		let parent = $('.blockPage');
-
-		if (parent.length === 0) {
-			parent = $(document.body);
-		}
-
-		let eventSelectElement               = document.getElementById('event-select');
-		let actionSelectElement              = document.getElementById('action-select');
-
-		let customEventInput                 = document.getElementById('custom-event-input');
-		let customActionInput                = document.getElementById('custom-action-input');
-
-		let dataTypeSelect                   = document.getElementById('data-type-select');
-		let dataTypeInput                    = document.getElementById('data-type-input');
-		let methodNameInput                  = document.getElementById('method-name-input');
-
-		let updateTargetInput                = document.getElementById('update-target-input');
-		let deleteTargetInput                = document.getElementById('delete-target-input');
-		let methodTargetInput                = document.getElementById('method-target-input');
-		let customTargetInput                = document.getElementById('custom-target-input');
-
-		let addParameterMappingButton        = document.querySelector('.add-parameter-mapping-button');
-		let addParameterMappingForTypeButton = document.querySelector('.add-parameter-mapping-for-type-button');
-
-		let successBehaviourSelect           = document.getElementById('success-behaviour-select');
-		let successPartialRefreshInput       = document.getElementById('success-partial-refresh-input');
-		let successNavigateToURLInput        = document.getElementById('success-navigate-to-url-input');
-		let successFireEventInput            = document.getElementById('success-fire-event-input');
-
-		let failureBehaviourSelect           = document.getElementById('failure-behaviour-select');
-		let failurePartialRefreshInput       = document.getElementById('failure-partial-refresh-input');
-		let failureNavigateToURLInput        = document.getElementById('failure-navigate-to-url-input');
-		let failureFireEventInput            = document.getElementById('failure-fire-event-input');
-
-		let saveButton                       = document.getElementById('save-event-mapping-button');
-
-		let actionMapping;
-
-		if (entity.triggeredActions && entity.triggeredActions.length) {
-
-			actionMapping = entity.triggeredActions[0];
-
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
-				//console.log('Using first object for event action mapping:', result);
-				updateEventMapping(entity, result);
-			});
-		}
-
-		Command.getByType('SchemaNode', 1000, 1, 'name', 'asc', 'id,name', false, result => {
-			for (const typeObj of result) {
-				dataTypeSelect.insertAdjacentHTML('beforeend', '<option>' + typeObj.name + '</option>');
-			}
-		});
-
-
-		if (saveButton) {
-			saveButton.addEventListener('click', () => {
-				saveEventMappingData(entity);
-				saveParameterMappings();
-			});
-		}
-
-		eventSelectElement.addEventListener('change', e => {
-
-			let el = e.target;
-			el.classList.remove('required');
-			let selectedValue = el.value;
-
-			if (selectedValue === 'custom') {
-				document.querySelectorAll('.options-custom-event').forEach(el => {
-					el.classList.remove('opacity-0', 'hidden')
-				});
-			} else if (selectedValue === 'drop') {
-				document.querySelectorAll('.event-drop').forEach(el => {
-					el.classList.remove('opacity-0', 'hidden')
-				});
-			} else {
-				document.querySelectorAll('.options-custom-event').forEach(el => {
-					el.classList.add('opacity-0')
-				});
-				if (actionSelectElement.value !== 'custom') {
-					document.querySelectorAll('.options-custom-event').forEach(el => {
-						el.classList.add('hidden')
-					});
-				}
-			}
-
-			saveEventMappingData(entity);
-		});
-
-		actionSelectElement.addEventListener('change', e => {
-
-			let el = e.target;
-			el.classList.remove('required');
-			let selectedValue = el.value;
-
-			document.querySelectorAll('.options-properties').forEach(el => {
-				el.classList.remove('hidden')
-			});
-
-			document.querySelectorAll('.options-properties').forEach(el => {
-				el.classList.remove('hidden')
-			});
-
-			if (selectedValue === 'custom') {
-				document.querySelectorAll('.options-custom-action').forEach(el => {
-					el.classList.remove('opacity-0', 'hidden')
-				});
-				document.querySelectorAll('.options-custom-event').forEach(el => {
-					el.classList.remove('hidden')
-				});
-			} else {
-				document.querySelectorAll('.options-' + selectedValue).forEach(el => {
-					el.classList.remove('hidden')
-				});
-				document.querySelectorAll('.options-any').forEach(el => {
-					el.classList.remove('hidden')
-				});
-			}
-
-			if (selectedValue !== 'custom') {
-				document.querySelectorAll('.options-custom-action').forEach(el => {
-					el.classList.add('opacity-0', 'hidden')
-				});
-				if (eventSelectElement.value !== 'custom') {
-					document.querySelectorAll('.options-custom-event').forEach(el => {
-						el.classList.add('hidden')
-					});
-				}
-			}
-
-			if (selectedValue !== 'create') {
-				//document.querySelectorAll('.options-create').forEach(el => { el.classList.add('hidden') });
-			}
-
-			saveEventMappingData(entity);
-
-		});
-
-		dataTypeSelect.addEventListener('change', e => {
-			let el = e.target;
-			let selectedValue = el.value;
-			dataTypeInput.value = selectedValue;
-		});
-
-		dataTypeSelect.addEventListener('mousedown', e => {
-			e.preventDefault(); // => catches click
-			let listEl = dataTypeSelect.parentNode.querySelector('ul');
-			if (!listEl) {
-				dataTypeSelect.insertAdjacentHTML('afterend', '<ul class="combined-input-select-field"></ul>');
-				listEl = dataTypeSelect.parentNode.querySelector('ul');
-				document.addEventListener('click', removeListElementHandler);
-			}
-			dataTypeSelect.querySelectorAll('option').forEach(option => {
-				const dataType = option.value;
-				appendListItem(listEl, dataType);
-			});
-		});
-
-		dataTypeInput.addEventListener('keyup', e => {
-			const el = e.target;
-			const key = e.key;
-			let listEl = dataTypeSelect.parentNode.querySelector('ul');
-			if (key === 'Escape') {
-				listEl.remove(); return;
-			}
-			if (!listEl) {
-				dataTypeSelect.insertAdjacentHTML('afterend', '<ul class="combined-input-select-field"></ul>');
-				listEl = dataTypeSelect.parentNode.querySelector('ul');
-			} else {
-				listEl.querySelectorAll('li').forEach(el => el.remove());
-			}
-			dataTypeSelect.querySelectorAll('option').forEach(option => {
-				const dataType = option.value;
-				if (dataType && dataType.match(el.value)) appendListItem(listEl, dataType);
-			});
-		});
-
-		addParameterMappingButton.addEventListener('click', e => {
-
-			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
-				actionMapping = result.triggeredActions[0];
-				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
-					getAndAppendParameterMapping(parameterMapping.id);
-				});
-			});
-
-		});
-
-		addParameterMappingForTypeButton.addEventListener('click', e => {
-
-			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
-				actionMapping = result.triggeredActions[0];
-				Command.getSchemaInfo(dataTypeSelect.value, result => {
-
-					let properties = result.filter(property => !property.system);
-					//console.log(properties); return;
-
-					for (const property of properties) {
-
-						Command.create({
-							type: 'ParameterMapping',
-							parameterName: property.jsonName,
-							actionMapping: actionMapping.id
-						}, (parameterMapping) => {
-							getAndAppendParameterMapping(parameterMapping.id);
-						});
-
-					}
-				});
-			});
-
-		});
-
-		successBehaviourSelect.addEventListener('change', e => {
-			let el = e.target;
-			el.classList.remove('required');
-			let selectedValue = el.value;
-			//console.log(successBehaviourSelect, selectedValue);
-			document.querySelectorAll('.option-success').forEach(el => {
-				el.classList.add('hidden')
-			});
-			document.querySelectorAll('.option-success-' + selectedValue).forEach(el => {
-				el.classList.remove('hidden')
-			});
-		});
-
-		failureBehaviourSelect.addEventListener('change', e => {
-			let el = e.target;
-			el.classList.remove('required');
-			let selectedValue = el.value;
-			//console.log(successBehaviourSelect, selectedValue);
-			document.querySelectorAll('.option-failure').forEach(el => {
-				el.classList.add('hidden')
-			});
-			document.querySelectorAll('.option-failure-' + selectedValue).forEach(el => {
-				el.classList.remove('hidden')
-			});
-
-		});
-
-		const appendListItem = (listEl, dataType) => {
-			if (dataType) {
-				listEl.insertAdjacentHTML('beforeend', `<li data-value="${dataType}">${dataType}</li>`);
-				const liEl = listEl.querySelector(`li[data-value="${dataType}"]`);
-				if (liEl) {
-					liEl.addEventListener('click', e => {
-						const el = e.target;
-						dataTypeInput.value = el.innerText;
-						listEl.remove();
-					});
-				}
-			}
-		};
-
-		const removeListElementHandler = (e) => {
-			const el = e.target;
-			const listEl = dataTypeSelect.parentNode.querySelector('ul');
-			if (listEl && el !== dataTypeSelect) {
-				console.log(e.target);
-				const val = el.dataset['value'];
-				if (val) dataTypeInput.value = val;
-				e.preventDefault();
-				listEl.remove();
-				document.removeEventListener('click', removeListElementHandler);
-			}
-		};
-
-
-		const updateEventMapping = (entity, actionMapping) => {
-
-			if (!actionMapping) {
-				console.warn('No actionMapping object given', entity);
-				return;
-			}
-
-			//console.log('updateEventMapping', entity, actionMapping);
-
-			let id = 'options-none';
-
-			let event                = actionMapping.event;
-			let action               = actionMapping.action;
-
-			let method               = actionMapping.method;
-			let targetType           = actionMapping.dataType;
-			let idExpression         = actionMapping.idExpression;
-
-			let successBehaviour       = actionMapping.successBehaviour;
-			let successPartial         = actionMapping.successPartial;
-			let successURL             = actionMapping.successURL;
-			let successEvent           = actionMapping.successEvent;
-
-			let failureBehaviour       = actionMapping.failureBehaviour;
-			let failurePartial         = actionMapping.failurePartial;
-			let failureURL             = actionMapping.failureURL;
-			let failureEvent           = actionMapping.failureEvent;
-
-			// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
-			if (action === 'previous-page') action = 'prev-page';
-
-			if (event === 'custom') {
-				customEventInput.value = event;
-				customActionInput.value = action;
-			} else {
-				id = 'options-' + action + '-' + event;
-			}
-
-			eventSelectElement.value        = event;
-			actionSelectElement.value       = action;
-
-			methodNameInput.value           = method;
-			dataTypeSelect.value            = targetType;
-			dataTypeInput.value             = targetType;
-
-			if (action === 'update') {
-				updateTargetInput.value         = idExpression;
-			} else if (action === 'delete') {
-				deleteTargetInput.value         = idExpression;
-			} else if (action === 'method') {
-				methodTargetInput.value         = idExpression;
-			} else if (action === 'custom') {
-				customTargetInput.value         = idExpression;
-			}
-
-			successBehaviourSelect.value     = successBehaviour;
-			successPartialRefreshInput.value = successPartial;
-			successNavigateToURLInput.value  = successURL;
-			successFireEventInput.value      = successEvent;
-
-			failureBehaviourSelect.value     = failureBehaviour;
-			failurePartialRefreshInput.value = failurePartial;
-			failureNavigateToURLInput.value  = failureURL;
-			failureFireEventInput.value      = failureEvent;
-
-			document.querySelectorAll('.options-' + action).forEach(el => {
-				el.classList.remove('hidden')
-			});
-			document.querySelectorAll('.options-any').forEach(el => {
-				el.classList.remove('hidden')
-			});
-			document.querySelectorAll('.option-success-' + successBehaviour).forEach(el => {
-				el.classList.remove('hidden')
-			});
-			document.querySelectorAll('.option-failure-' + failureBehaviour).forEach(el => {
-				el.classList.remove('hidden')
-			});
-
-			// remove existing parameter mappings
-			for (const parameterMappingElement of document.querySelectorAll('.options-properties .parameter-mapping')) {
-				parameterMappingElement.remove();
-			}
-
-			// append mapped parameters
-			Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
-				for (const parameterMapping of actionMapping.parameterMappings) {
-					getAndAppendParameterMapping(parameterMapping.id);
-				}
-			});
-
-			// if (entity.triggeredActions && entity.triggeredActions.length) {
-			//
-			// 	// TODO: Support multiple actions per DOM element
-			// 	let actionMapping = entity.triggeredActions[0];
-
-
-		};
-
-		const getAndAppendParameterMapping = (id) => {
-
-			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', (parameterMapping) => {
-
-				//console.log('Append parameter mapping element for', parameterMapping);
-
-				const html = _Entities.templates.parameterMappingRow(parameterMapping);
-				const container = document.querySelector('.parameter-mappings-container');
-				container.insertAdjacentHTML('beforeend', html);
-				const row = container.querySelector('.parameter-mapping[data-structr-id="' + id + '"]');
-
-				const parameterTypeSelector = row.querySelector('.parameter-type-select');
-				parameterTypeSelector.value = parameterMapping.parameterType;
-				row.querySelector('.parameter-' + parameterTypeSelector.value)?.classList.remove('hidden');
-				activateExistingElementDropzone(row);
-
-				parameterTypeSelector.addEventListener('change', e => {
-					const selectElement = e.target;
-					const value = selectElement.value;
-					row.querySelectorAll('.parameter-value').forEach(el => el.classList.add('hidden'));
-					row.querySelector('.parameter-' + value)?.classList.remove('hidden');
-					activateExistingElementDropzone(row);
-				});
-
-				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
-				if (parameterMapping.parameterType === 'user-input' && parameterMapping.inputElement) {
-					replaceDropzoneByInputElement(row, parameterMapping.inputElement);
-				}
-
-				const constantValueInputElement = row.querySelector('.parameter-constant-value-input');
-				if (parameterMapping.constantValue) {
-					constantValueInputElement.value = parameterMapping.constantValue;
-				}
-
-				const scriptExpressionInputElement = row.querySelector('.parameter-script-expression-input');
-				if (parameterMapping.scriptExpression) {
-					scriptExpressionInputElement.value = parameterMapping.scriptExpression;
-				}
-
-				activateRemoveIcon(parameterMapping);
-				Structr.activateCommentsInElement(container);
-
-			}, null);
-		};
-
-		const replaceDropzoneByInputElement = (parentElement, inputElement) => {
-			const userInputElement = parentElement.querySelector('.parameter-user-input');
-			_Entities.appendRelatedNode($(userInputElement), inputElement, (nodeEl) => {
-				$('.remove', nodeEl).on('click', function(e) {
-					e.preventDefault();
-					e.stopPropagation();
-					userInputElement.querySelector('.node').remove();
-					dropzoneElement.classList.remove('hidden');
-				});
-			});
-			const dropzoneElement = userInputElement.querySelector('.link-existing-element-dropzone');
-			dropzoneElement.classList.add('hidden');
-		};
-
-		const activateRemoveIcon = (parameterMapping) => {
-			let parameterMappingElement = document.querySelector('.parameter-mapping[data-structr-id="' + parameterMapping.id + '"]');
-			let removeIcon = parameterMappingElement.querySelector('.parameter-mapping-remove-button');
-			removeIcon?.addEventListener('click', e => {
-				Command.deleteNode(parameterMapping.id, false, () => {
-					parameterMappingElement.remove();
-				});
-			});
-		};
-
-		const activateExistingElementDropzone = (parentElement) => {
-
-			const parameterMappingId = parentElement.dataset['structrId'];
-			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
-
-			if (dropzoneElement) {
-
-				$(dropzoneElement).droppable({
-
-					drop: (e, el) => {
-
-						e.preventDefault();
-						e.stopPropagation();
-
-						let sourceEl = $(el.draggable);
-						let sourceId = Structr.getId(sourceEl);
-
-						if (!sourceId) {
-							return false;
-						}
-
-						let obj = StructrModel.obj(sourceId);
-
-						// Ignore shared components
-						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-							return false;
-						}
-
-						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
-						_Elements.dropBlocked = false;
-
-						let userInputName = obj['_html_name'];
-						if (userInputName) {
-
-							let parameterNameInput = parentElement.querySelector('.parameter-name-input');
-							if (parameterNameInput.value === '') {
-								parameterNameInput.value = userInputName;
-							}
-						}
-
-						replaceDropzoneByInputElement(parentElement, obj);
-					}
-				});
-			}
-		};
-
-		const saveEventMappingData = (entity) => {
-
-			let eventValue             = eventSelectElement?.value;
-			let actionValue            = actionSelectElement?.value;
-
-			let methodValue            = methodNameInput?.value;
-			let dataTypeValue          = dataTypeInput?.value || dataTypeSelect?.value;
-
-			let updateTargetValue      = updateTargetInput?.value;
-			let deleteTargetValue      = deleteTargetInput?.value;
-			let methodTargetValue      = methodTargetInput?.value;
-			let customTargetValue      = customTargetInput?.value;
-
-			let successBehaviourValue  = successBehaviourSelect?.value;
-			let successPartialValue    = successPartialRefreshInput?.value;
-			let successURLValue        = successNavigateToURLInput?.value;
-			let successEventValue      = successFireEventInput?.value;
-
-			let failureBehaviourValue  = failureBehaviourSelect?.value;
-			let failurePartialValue    = failurePartialRefreshInput?.value;
-			let failureURLValue        = failureNavigateToURLInput?.value;
-			let failureEventValue      = failureFireEventInput?.value;
-
-			// let customEvent        = customEventInput?.value;
-			// let customAction       = customActionInput?.value;
-			// let customTarget       = customTargetInput?.value;
-			//
-			// let methodName     = methodNameInput?.value;
-			// let methodTarget   = methodTargetInput?.value;
-			// let deleteTarget   = deleteTargetInput?.value;
-			// let paginationName = paginationNameInput?.value;
-			// let reloadTarget   = null;
-
-			let actionMappingObject = {
-				type:             'ActionMapping',
-				event:            eventValue,
-				action:           actionValue,
-				method:           methodValue,
-				dataType:         dataTypeValue,
-				idExpression:     (actionValue === 'method') ? methodTargetValue : (actionValue === 'update') ? updateTargetValue : deleteTargetValue,
-				successBehaviour: successBehaviourValue,
-				successPartial:   successPartialValue,
-				successURL:       successURLValue,
-				successEvent:     successEventValue,
-				failureBehaviour: failureBehaviourValue,
-				failurePartial:   failurePartialValue,
-				failureURL:       failureURLValue,
-				failureEvent:     failureEventValue
-			};
-
-			//console.log(actionMappingObject);
-
-			if (entity.triggeredActions && entity.triggeredActions.length) {
-
-				actionMappingObject.id = entity.triggeredActions[0].id;
-
-				console.log('ActionMapping object already exists, updating...', actionMappingObject);
-				Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
-					blinkGreen(Structr.nodeContainer(entity.id));
-					updateEventMapping(entity, actionMappingObject);
-				});
-
-			} else {
-
-				actionMappingObject.triggerElements = [ entity.id ];
-
-				console.log('No ActionMapping object exists, create one and update data...');
-				Command.create(actionMappingObject, (actionMapping) => {
-					//console.log('Successfully created new ActionMapping object:', actionMapping);
-					blinkGreen(Structr.nodeContainer(entity.id));
-					updateEventMapping(entity, actionMapping);
-				});
-			}
-		};
-
-		const saveParameterMappings = () => {
-
-			const inputDefinitions = [
-				{ key: 'parameterName',    selector: '.parameter-mapping .parameter-name-input' },
-				{ key: 'parameterType',    selector: '.parameter-mapping .parameter-type-select' },
-				{ key: 'constantValue',    selector: '.parameter-mapping .parameter-constant-value-input' },
-				{ key: 'scriptExpression', selector: '.parameter-mapping .parameter-script-expression-input' },
-				{ key: 'inputElement',     selector: '.parameter-mapping .parameter-user-input-input' },
-				{ key: 'methodResult',     selector: '.parameter-mapping .parameter-method-result-input' },
-				{ key: 'flowResult',       selector: '.parameter-mapping .parameter-flow-result-input' }
-			];
-
-			const parameterMappings = document.querySelectorAll('.parameter-mapping');
-
-			//console.log('save parameter mappings', inputDefinitions, parameterMappings);
-
-			for (const parameterMappingElement of parameterMappings) {
-				const parameterMappingId = parameterMappingElement.dataset['structrId'];
-				//console.log(parameterMappingId);
-				const parameterMappingData = { id: parameterMappingId };
-				for (const inputDefinition of inputDefinitions) {
-
-					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
-						const value     = inp.value;
-						if (value) {
-							//console.log(inputDefinition.key, value);
-							parameterMappingData[inputDefinition.key] = value;
-						}
-					}
-				}
-
-				//console.log(parameterMappingData);
-				Command.setProperties(parameterMappingId, parameterMappingData);
-
-			}
-		};
-
-	},
-	appendSchemaHint: function (el, key, typeInfo) {
+	appendSchemaHint: (el, key, typeInfo) => {
 
 		if (typeInfo[key] && typeInfo[key].hint) {
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				element: el,
 				text: typeInfo[key].hint,
 				class: 'hint'
@@ -744,7 +118,7 @@ let _Entities = {
 		let saveFunction = () => {
 
 			if (queryTypeButtonsContainer.querySelectorAll('button.active').length > 1) {
-				return new MessageBuilder().error('Please select only one query type.').show();
+				return new ErrorMessage().text('Please select only one query type.').show();
 			}
 
 			let data = {};
@@ -768,7 +142,7 @@ let _Entities = {
 				}
 
 				data[queryType.propertyName] = val;
-			};
+			}
 
 			Command.setProperties(entity.id, data, (obj) => {
 
@@ -776,9 +150,9 @@ let _Entities = {
 
 				// vanilla replacement for $.is(':visible')
 				if (flowSelector.offsetParent !== null) {
-					blinkGreen(flowSelector);
+					_Helpers.blinkGreen(flowSelector);
 				} else {
-					blinkGreen(saveQueryButton);
+					_Helpers.blinkGreen(saveQueryButton);
 				}
 			});
 		};
@@ -892,7 +266,7 @@ let _Entities = {
 			saveDatakeyButton.addEventListener('click', () => {
 
 				Command.setProperty(entity.id, 'dataKey', datakeyInput.value, false, () => {
-					blinkGreen(datakeyInput);
+					_Helpers.blinkGreen(datakeyInput);
 					entity.dataKey = datakeyInput.value;
 				});
 			});
@@ -921,18 +295,16 @@ let _Entities = {
 	},
 	editEmptyDiv: (entity) => {
 
-		Structr.dialog('Edit source of "' + (entity.name ? entity.name : entity.id) + '"', () => {}, () => {}, ['popup-dialog-with-editor']);
-		dialog.append('<div class="editor h-full"></div>');
-		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled"> Save </button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit source of "${entity?.name ?? entity.id}"`, null, ['popup-dialog-with-editor']);
+		Structr.dialogSystem.showMeta();
 
-		dialogMeta.html('<span class="editor-info"></span>');
+		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
+		dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-		let editorInfo       = dialogMeta[0].querySelector('.editor-info');
+		let dialogSaveButton   = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+		let saveAndCloseButton = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let editorInfo         = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
-
-		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
-		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
 
 		let initialText = '';
 
@@ -945,19 +317,8 @@ let _Entities = {
 			forceAllowAutoComplete: true,
 			changeFn: (editor, entity) => {
 
-				let editorText = editor.getValue();
-
-				if (initialText === editorText) {
-					dialogSaveButton.disabled = true;
-					dialogSaveButton.classList.add('disabled');
-					saveAndClose.disabled = true;
-					saveAndClose.classList.add('disabled');
-				} else {
-					dialogSaveButton.disabled = null;
-					dialogSaveButton.classList.remove('disabled');
-					saveAndClose.disabled = null;
-					saveAndClose.classList.remove('disabled');
-				}
+				let disabled = (initialText === editor.getValue());
+				_Helpers.disableElements(disabled, dialogSaveButton, saveAndCloseButton);
 			},
 			saveFn: (editor, entity, close = false) => {
 
@@ -970,30 +331,30 @@ let _Entities = {
 
 				Command.patch(entity.id, text1, text2, () => {
 
-					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					dialogSaveButton.disabled = true;
-					dialogSaveButton.classList.add('disabled')
+					Structr.dialogSystem.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					_Helpers.disableElements(true, dialogSaveButton, saveAndCloseButton);
 
 					Command.getProperty(entity.id, 'content', (newText) => {
 						initialText = newText;
 					});
 				});
+
 				Command.saveNode(`<div data-structr-hash="${entity.id}">${editor.getValue()}</div>`, entity.id, () => {
 
-					Structr.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
+					Structr.dialogSystem.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 					if (_Entities.isExpanded(Structr.node(entity.id))) {
 						$('.expand_icon_svg', Structr.node(entity.id)).click().click();
 					}
 
 					if (close === true) {
-						dialogCancelButton.click();
+						Structr.dialogSystem.clickDialogCancelButton();
 					}
 				});
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, 'source', dialog[0].querySelector('.editor'), emptyDivMonacoConfig);
+		let editor = _Editors.getMonacoEditor(entity, 'source', dialogText.querySelector('.editor'), emptyDivMonacoConfig);
 
 		_Editors.addEscapeKeyHandlersToPreventPopupClose(editor);
 
@@ -1003,7 +364,7 @@ let _Entities = {
 			emptyDivMonacoConfig.saveFn(editor, entity);
 		});
 
-		saveAndClose.addEventListener('click', (e) => {
+		saveAndCloseButton.addEventListener('click', (e) => {
 			e.stopPropagation();
 
 			emptyDivMonacoConfig.saveFn(editor, entity, true);
@@ -1013,15 +374,9 @@ let _Entities = {
 
 		_Editors.resizeVisibleEditors();
 	},
-	hideDataHashAttribute: function(editor) {
-		var sc = editor.getSearchCursor(/\sdata-structr-hash=".{32}"/);
-		while (sc.findNext()) {
-			editor.markText(sc.from(), sc.to(), {className: 'data-structr-hash', collapsed: true, inclusiveLeft: true});
-		}
-	},
 	getSchemaProperties: (type, view, callback) => {
 
-		fetch(Structr.rootUrl + '_schema/' + type + '/' + view).then(async response => {
+		fetch(`${Structr.rootUrl}_schema/${type}/${view}`).then(async response => {
 
 			let data = await response.json();
 
@@ -1036,18 +391,16 @@ let _Entities = {
 					}
 				}
 
-				if (callback) {
-					callback(properties);
-				}
+				callback?.(properties);
 
 			} else {
 				Structr.errorFromResponse(data, url);
-				console.log("ERROR: loading Schema " + type);
+				console.log(`ERROR: loading Schema ${type}`);
 			}
 		});
 
 	},
-	showProperties: (obj, activeViewOverride, parent) => {
+	showProperties: (obj, activeViewOverride) => {
 
 		let handleGraphObject;
 
@@ -1079,7 +432,7 @@ let _Entities = {
 						tabTexts.sourceNode = 'Source Node Properties';
 						tabTexts.targetNode = 'Target Node Properties';
 
-						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' relationship ' + (entity.name ? entity.name : entity.id);
+						dialogTitle = `Edit properties of ${entity?.type ?? ''} relationship ${entity?.name ?? entity.id}`;
 
 					} else {
 
@@ -1094,35 +447,31 @@ let _Entities = {
 						tabTexts.ui     = 'Advanced';
 						tabTexts.custom = 'Custom Properties';
 
-						dialogTitle = 'Edit properties of ' + (entity.type ? entity.type : '') + ' node ' + (entity.name ? entity.name : entity.id);
+						dialogTitle = `Edit properties of ${entity?.type ?? ''} node ${entity?.name ?? entity.id}`;
 					}
 
+					let { dialogText } = Structr.dialogSystem.openDialog(dialogTitle, null, ['full-height-dialog-text']);
 
-					let tabsdiv, mainTabs, contentEl;
-					if (!parent) {
-						Structr.dialog(dialogTitle, () => { return true; }, () => { return true; });
+					dialogText.insertAdjacentHTML('beforeend', `
+						<div id="tabs" class="flex flex-col h-full overflow-hidden">
+							<ul class="flex-shrink-0"></ul>
+						</div>
+					`);
 
-						tabsdiv   = dialogHead.append('<div id="tabs"></div>');
-						mainTabs  = tabsdiv.append('<ul></ul>');
-						contentEl = dialog.append('<div></div>');
+					let mainTabs  = dialogText.querySelector('#tabs');
+					let contentEl = dialogText.querySelector('#tabs');
 
-					} else {
-						contentEl = parent;
-					}
-
-					// custom dialog tab?
 					_Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
 					if (!entity.hasOwnProperty('relType')) {
-						_Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false, (c) => {
-							_Entities.accessControlDialog(entity, c, typeInfo);
-						});
+						let tabContent = _Entities.appendPropTab(entity, mainTabs, contentEl, 'permissions', 'Security', false);
+						_Entities.accessControlDialog(entity, $(tabContent), typeInfo);
 					}
 
-					activeView = activeViewOverride || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + entity.id) || activeView;
-					$('#tab-' + activeView).click();
+					activeView = activeViewOverride || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${entity.id}`) || activeView;
+					$(`#tab-${activeView}`).click();
 
 					Structr.resize();
 				});
@@ -1135,89 +484,99 @@ let _Entities = {
 			}
 		});
 	},
-	appendPropTab: (entity, tabsEl, contentEl, name, label, isActive, callback, showCallback, refreshOnShow = false) => {
+	appendPropTab: (entity, tabsEl, contentEl, name, label, isActive, showCallback, refreshOnShow = false, tabHidden = false) => {
 
-		let tabId     = `tab-${name}`;
-		let tabViewId = `tabView-${name}`;
-		let ul        = tabsEl.children('ul');
+		let tabId      = `tab-${name}`;
+		let ul         = tabsEl.querySelector('ul');
+		let tabContent = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent h-full overflow-y-auto" id="tabView-${name}" data-tab-id="${tabId}"></div>`);
+		let tab        = _Helpers.createSingleDOMElementFromHTML(`<li id="${tabId}">${label}</li>`);
 
-		ul.append(`<li id="${tabId}">${label}</li>`);
-		contentEl.append(`<div class="propTabContent h-full" id="${tabViewId}" data-tab-id="${tabId}"></div>`);
+		contentEl.appendChild(tabContent);
+		ul.appendChild(tab);
 
-		let tabContent = $('#' + tabViewId);
-		let tab        = $('#' + tabId);
 		if (isActive) {
-			tab.addClass('active');
+			tab.classList.add('active');
+		}
+		if (tabHidden && !isActive) {
+			tab.style.display = 'none';
 		}
 
-		tab.on('click', (e) => {
+		tab.addEventListener('click', (e) => {
 
 			e.stopPropagation();
-			$('.propTabContent', contentEl).hide();
-			$('li', ul).removeClass('active');
-			tabContent.show();
-			tab.addClass('active');
-			LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, name);
+
+			for (let everyTab of contentEl.querySelectorAll('.propTabContent')) {
+				everyTab.style.display = 'none';
+			}
+			for (let everyLi of ul.querySelectorAll('.active')) {
+				everyLi.classList.remove('active');
+			}
+			tabContent.style.display = 'block';
+			tab.classList.add('active');
+
+			LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, name);
 
 			if (typeof showCallback === 'function') {
 
 				// this does not really work for the initially active tab because its html is not yet output... showCallback must also be called from 'outside'
 
 				if (refreshOnShow === true) {
+
 					// update entity for show callback
 					if (entity.relType) {
-						Command.getRelationship(entity.id, entity.target, null, (e) => {
-							showCallback(tabContent, e);
+						Command.getRelationship(entity.id, entity.target, null, (reloadedEntity) => {
+							showCallback(tabContent, reloadedEntity);
 						});
 					} else {
-						Command.get(entity.id, null, (e) => {
-							showCallback(tabContent, e);
+						Command.get(entity.id, null, (reloadedEntity) => {
+							showCallback(tabContent, reloadedEntity);
 						});
 					}
 				} else {
-					showCallback(tabContent, e);
+					showCallback(tabContent, entity);
 				}
 			}
 		});
 
 		if (isActive) {
-			tabContent.show();
-		}
-		if (callback) {
-			callback(tabContent, entity);
+			tabContent.style.display = 'block';
 		}
 
-		return { tab: tab, tabContent, tabContent };
+		return tabContent;
 	},
-	appendViews: function(entity, views, texts, tabsEl, contentEl, typeInfo) {
+	appendViews: (entity, views, texts, tabsEl, contentEl, typeInfo) => {
 
-		let ul = tabsEl.children('ul');
+		let ul = tabsEl.querySelector('ul');
 
 		for (let view of views) {
 
-			ul.append(`<li id="tab-${view}">${texts[view]}</li>`);
+			let tab     = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${view}">${texts[view]}</li>`);
+			let tabView = _Helpers.createSingleDOMElementFromHTML(`<div class="propTabContent overflow-y-auto" id="tabView-${view}"></div>`);
 
-			contentEl.append(`<div class="propTabContent" id="tabView-${view}"></div>`);
+			ul.appendChild(tab);
+			contentEl.appendChild(tabView);
 
-			let tab = $('#tab-' + view);
-
-			tab.on('click', function(e) {
+			tab.addEventListener('click', (e) => {
 				e.stopPropagation();
 
-				let self = $(this);
-				contentEl.children('div').hide();
-				$('li', ul).removeClass('active');
-				self.addClass('active');
+				for (let everyTab of contentEl.querySelectorAll('.propTabContent')) {
+					everyTab.style.display = 'none';
+				}
 
-				let tabView = $('#tabView-' + view);
-				fastRemoveAllChildren(tabView[0]);
-				tabView.show();
-				LSWrapper.setItem(_Entities.activeEditTabPrefix  + '_' + entity.id, view);
+				for (let li of ul.querySelectorAll('.active')) {
+					li.classList.remove('active');
+				}
+				tab.classList.add('active');
 
-				_Entities.listProperties(entity, view, tabView, typeInfo, () => {
-					$('input.dateField', tabView).each(function(i, input) {
+				_Helpers.fastRemoveAllChildren(tabView);
+				tabView.style.display = 'block';
+
+				LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${entity.id}`, view);
+
+				_Entities.listProperties(entity, view, $(tabView), typeInfo, () => {
+					for (let input of tabView.querySelectorAll('input.dateField')) {
 						_Entities.activateDatePicker($(input));
-					});
+					}
 				});
 			});
 		}
@@ -1230,7 +589,7 @@ let _Entities = {
 			let filteredProperties   = Object.keys(properties).filter(key => !(typeInfo[key].isCollection && typeInfo[key].relatedType) );
 			let collectionProperties = Object.keys(properties).filter(key => typeInfo[key].isCollection && typeInfo[key].relatedType );
 
-			fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/all?' + Structr.getRequestParameterName('edit') + '=2', {
+			fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/all?${Structr.getRequestParameterName('edit')}=2`, {
 				headers: {
 					Accept: 'application/json; charset=utf-8; properties=' + filteredProperties.join(',')
 				}
@@ -1303,7 +662,7 @@ let _Entities = {
 
 		let pageSize = 10, resultCount;
 
-		let cell = $('.value.' + key + '_', container);
+		let cell = $(`.value.${key}_`, container);
 		cell.css('height', '60px');
 
 		fetch(`${Structr.rootUrl + entity.type}/${entity.id}/${key}?${Structr.getRequestParameterName('pageSize')}=${pageSize}&${Structr.getRequestParameterName('page')}=${page}`, {
@@ -1381,8 +740,8 @@ let _Entities = {
 									e.preventDefault();
 									Command.removeFromCollection(entity.id, key, node.id, () => {
 										nodeEl.remove();
-										blinkGreen(cell);
-										Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+										_Helpers.blinkGreen(cell);
+										Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
 									return false;
 								});
@@ -1393,7 +752,7 @@ let _Entities = {
 			}
 		})
 	},
-	createPropertyTable: function(heading, keys, res, entity, view, container, typeInfo, tempNodeCache) {
+	createPropertyTable: (heading, keys, res, entity, view, container, typeInfo, tempNodeCache) => {
 
 		if (heading) {
 			container.append(`<h2>${heading}</h2>`);
@@ -1423,7 +782,7 @@ let _Entities = {
 
 				let showKeyInitially = false;
 				for (let mostUsed of _Elements.mostUsedAttrs) {
-					if (isIn(entity.tag, mostUsed.elements) && isIn(key.substring(6), mostUsed.attrs)) {
+					if (_Helpers.isIn(entity.tag, mostUsed.elements) && _Helpers.isIn(key.substring(6), mostUsed.attrs)) {
 						showKeyInitially = true;
 						focusAttr = mostUsed.focus ? mostUsed.focus : focusAttr;
 					}
@@ -1444,27 +803,27 @@ let _Entities = {
 				}
 
 				if (showKeyInitially || key === '_html_class' || key === '_html_id') {
-					propsTable.append(`<tr><td class="key">${displayKey}</td><td class="value ${key}_">${formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
+					propsTable.append(`<tr><td class="key">${displayKey}</td><td class="value ${key}_">${_Helpers.formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				} else if (key !== 'id') {
-					propsTable.append(`<tr class="hidden"><td class="key">${displayKey}</td><td class="value ${key}_">${formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
+					propsTable.append(`<tr class="hidden"><td class="key">${displayKey}</td><td class="value ${key}_">${_Helpers.formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				}
 				valueCell = $(`.value.${key}_`, propsTable);
 
 			} else {
 
-				let row = $(`<tr><td class="key">${formatKey(key)}</td><td class="value ${key}_"></td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
+				let row = $(`<tr><td class="key">${_Helpers.formatKey(key)}</td><td class="value ${key}_"></td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
 				propsTable.append(row);
 				valueCell = $(`.value.${key}_`, propsTable);
 
 				if (!typeInfo[key]) {
 
-					valueCell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+					valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 
 				} else {
 
 					let type = typeInfo[key].type;
 
-					isReadOnly  = isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
+					isReadOnly  = _Helpers.isIn(key, _Entities.readOnlyAttrs) || (typeInfo[key].readOnly);
 					isSystem    = typeInfo[key].system;
 					isPassword  = (typeInfo[key].className === 'org.structr.core.property.PasswordProperty');
 					isMultiline = (typeInfo[key].format === 'multi-line');
@@ -1492,7 +851,7 @@ let _Entities = {
 									let checked = checkbox.prop('checked');
 									_Entities.setProperty(id, key, checked, false, (newVal) => {
 										if (val !== newVal) {
-											blinkGreen(valueCell);
+											_Helpers.blinkGreen(valueCell);
 										}
 										checkbox.prop('checked', newVal);
 										val = newVal;
@@ -1522,10 +881,10 @@ let _Entities = {
 												_Entities.setProperty(id, key, null, false, (newVal) => {
 													if (!newVal) {
 														nodeEl.remove();
-														blinkGreen(valueCell);
-														Structr.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+														_Helpers.blinkGreen(valueCell);
+														Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 													} else {
-														blinkRed(valueCell);
+														_Helpers.blinkRed(valueCell);
 													}
 												});
 												return false;
@@ -1538,14 +897,15 @@ let _Entities = {
 								}
 							}
 
-							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])))
+							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])));
+
 							$('.add', valueCell).on('click', function() {
-								Structr.dialog(`Add ${typeInfo[key].type}`, () => {}, () => {});
-								_Entities.displaySearch(id, key, typeInfo[key].type, dialogText, isCollection);
+								let { dialogText } = Structr.dialogSystem.openDialog(`Add ${typeInfo[key].type}`);
+								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
 							});
 
 						} else {
-							valueCell.append(formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
+							valueCell.append(_Helpers.formatValueInputField(key, res[key], isPassword, isReadOnly, isMultiline));
 						}
 					}
 				}
@@ -1572,11 +932,11 @@ let _Entities = {
 
 						if (!newVal) {
 							if (key.indexOf('_custom_html_') === -1) {
-								blinkGreen(valueCell);
-								Structr.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
+								_Helpers.blinkGreen(valueCell);
+								Structr.dialogSystem.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
 							} else {
 								icon.closest('tr').remove();
-								Structr.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+								Structr.dialogSystem.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 							}
 
 							if (key === 'name') {
@@ -1592,7 +952,7 @@ let _Entities = {
 
 						} else {
 
-							blinkRed(input);
+							_Helpers.blinkRed(input);
 						}
 
 						if (!isRelated) {
@@ -1629,7 +989,7 @@ let _Entities = {
 
 			let addCustomAttributeButton = $('.add-custom-attribute', container);
 
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				element: addCustomAttributeButton,
 				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
 				insertAfter: true,
@@ -1652,26 +1012,26 @@ let _Entities = {
 
 					if (key.indexOf('data-structr-') === 0) {
 
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key can not begin with "data-structr-" as it is reserved for internal use.').show();
+						_Helpers.blinkRed(keyInput);
+						new ErrorMessage().text('Key can not begin with "data-structr-" as it is reserved for internal use.').show();
 
 					} else if (!regexAllowed.test(key)) {
 
-						blinkRed(keyInput);
-						new MessageBuilder().error('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
+						_Helpers.blinkRed(keyInput);
+						new ErrorMessage().text('Key contains forbidden characters. Allowed: "a-z", "A-Z", "-" and "_".').show();
 
 					} else {
 
 						let newKey = '_custom_html_' + key;
 
 						Command.setProperty(id, newKey, val, false, () => {
-							blinkGreen(exitedInput);
-							Structr.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
+							_Helpers.blinkGreen(exitedInput);
+							Structr.dialogSystem.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
 							valInput.name = newKey;
 
-							let nullIcon = Structr.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
+							let nullIcon = _Helpers.createSingleDOMElementFromHTML(_Entities.getNullIconForKey(newKey));
 							row.querySelector('td:last-of-type').appendChild(nullIcon);
 							nullIcon.addEventListener('click', () => {
 
@@ -1679,7 +1039,7 @@ let _Entities = {
 
 								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
-									Structr.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+									Structr.dialogSystem.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 								});
 							});
 
@@ -1691,7 +1051,7 @@ let _Entities = {
 			};
 
 			addCustomAttributeButton.on('click', () => {
-				let newAttributeRow = Structr.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>')
+				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>')
 				propsTable[0].appendChild(newAttributeRow);
 
 				for (let input of newAttributeRow.querySelectorAll('input')) {
@@ -1724,7 +1084,7 @@ let _Entities = {
 			e.preventDefault();
 
 			let searchString = $(this).val();
-			if (searchString && searchString.length && e.keyCode === 13) {
+			if (searchString.length && e.keyCode === 13) {
 
 				$('.clearSearchIcon', searchBox).show().on('click', function() {
 					if (_Entities.clearSearchResults(el)) {
@@ -1745,7 +1105,7 @@ let _Entities = {
 						if (!node.path || node.path.indexOf('/._structr_thumbnails/') !== 0) {
 
 							let displayName = node.title || node.name || node.id;
-							box.append(`<div title="${escapeForHtmlAttributes(displayName)}" " class="_${node.id} node element abbr-ellipsis abbr-120">${displayName}</div>`);
+							box.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" " class="_${node.id} node element abbr-ellipsis abbr-120">${displayName}</div>`);
 							$('._' + node.id, box).on('click', function() {
 
 								let nodeEl = $(this);
@@ -1754,7 +1114,7 @@ let _Entities = {
 
 									_Entities.addToCollection(id, node.id, key, () => {
 
-										blinkGreen(nodeEl);
+										_Helpers.blinkGreen(nodeEl);
 
 										if (Structr.isModuleActive(_Pages)) {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
@@ -1775,7 +1135,7 @@ let _Entities = {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
 
-										dialogCancelButton.click();
+										Structr.dialogSystem.clickDialogCancelButton();
 									});
 								}
 							});
@@ -1791,8 +1151,8 @@ let _Entities = {
 
 			} else if (e.keyCode === 27) {
 
-				if (!searchString || searchString === '') {
-					dialogCancelButton.click();
+				if (searchString.trim() === '') {
+					Structr.dialogSystem.clickDialogCancelButton();
 				}
 
 				if (_Entities.clearSearchResults(el)) {
@@ -1826,10 +1186,8 @@ let _Entities = {
 	},
 	addToCollection: function(itemId, newItemId, key, callback) {
 		_Entities.extendCollection(itemId, newItemId, key, function(collectionIds) {
-			Command.setProperty(itemId, key, collectionIds, false, function() {
-				if (callback) {
-					callback();
-				}
+			Command.setProperty(itemId, key, collectionIds, false, () => {
+				callback?.();
 			});
 		});
 	},
@@ -1855,21 +1213,24 @@ let _Entities = {
 		});
 	},
 	appendDatePicker: function(el, entity, key, format) {
+
 		if (!entity[key] || entity[key] === 'null') {
 			entity[key] = '';
 		}
+
 		el.append(`<input class="dateField" name="${key}" type="text" value="${entity[key]}" autocomplete="off">`);
+
 		let dateField = $(el.find('.dateField'));
 		_Entities.activateDatePicker(dateField, format);
 
 		return dateField;
 	},
-	activateDatePicker: function(input, format) {
+	activateDatePicker: (input, format) => {
 		if (!format) {
 			format = input.data('dateFormat');
 		}
 
-		var dateTimePickerFormat = getDateTimePickerFormat(format);
+		let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
 		input.datetimepicker({
 			dateFormat: dateTimePickerFormat.dateFormat,
 			timeFormat: dateTimePickerFormat.timeFormat,
@@ -1879,7 +1240,7 @@ let _Entities = {
 	appendRelatedNode: (cell, node, onDelete) => {
 		let displayName = _Crud.displayName(node);
 		cell.append(`
-			<div title="${escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node.tag ? node.tag : 'element')} ${node.id}_">
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
 				<span class="abbr-ellipsis abbr-80">${displayName}</span>
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
 			</div>
@@ -1963,19 +1324,19 @@ let _Entities = {
 			input.data('changed', false);
 			_Entities.setProperty(objId, key, val, false, function(newVal) {
 				if (isPassword || (newVal !== oldVal)) {
-					blinkGreen(input);
+					_Helpers.blinkGreen(input);
 					let valueMsg;
 					if (newVal.constructor === Array) {
-						cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
+						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
 						cell.find('[name="' + key + '"]').each(function(i, el) {
 							_Entities.activateInput(el, id, pageId, typeInfo);
 						});
-						valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
 					} else {
 						input.val(newVal);
-						valueMsg = (newVal !== undefined || newValue !== null) ? 'value "' + newVal + '"': 'empty value';
+						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
-					Structr.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg + '' : ''}`, 'success', 2000, 200);
+					Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 
 					if (onUpdateCallback) {
 						onUpdateCallback();
@@ -1989,20 +1350,20 @@ let _Entities = {
 		}
 
 	},
-	saveArrayValue: function(cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) {
+	saveArrayValue: (cell, objId, key, oldVal, id, pageId, typeInfo, onUpdateCallback) => {
 
-		var val = _Entities.getArrayValue(key, cell);
+		let val = _Entities.getArrayValue(key, cell);
 
-		_Entities.setProperty(objId, key, val, false, function(newVal) {
+		_Entities.setProperty(objId, key, val, false, (newVal) => {
 			if (newVal !== oldVal) {
-				blinkGreen(cell);
+				_Helpers.blinkGreen(cell);
 				let valueMsg;
-				cell.html(formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
-				cell.find('[name="' + key + '"]').each(function(i, el) {
+				cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, false));
+				cell.find(`[name="${key}"]`).each(function(i, el) {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
-				valueMsg = (newVal !== undefined || newValue !== null) ? 'value [' + newVal.join(',\n') + ']': 'empty value';
-				Structr.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
+				Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
 
 				if (onUpdateCallback) {
 					onUpdateCallback();
@@ -2024,7 +1385,7 @@ let _Entities = {
 			_Entities.showAccessControlDialog(entity);
 		});
 	},
-	accessControlDialog: (entity, el, typeInfo) => {
+	accessControlDialog: (entity, container, typeInfo) => {
 
 		let id = entity.id;
 		let requiredAttributesForPrincipals = 'id,name,type,isGroup,isAdmin';
@@ -2033,7 +1394,7 @@ let _Entities = {
 
 			let allowRecursive = (entity.type === 'Template' || entity.isFolder || (Structr.isModuleActive(_Pages) && !(entity.isContent)));
 			let owner_select_id = 'owner_select_' + id;
-			el.append(`
+			container.append(`
 				<h3>Owner</h3>
 				<div>
 					<select id="${owner_select_id}"></select>
@@ -2056,8 +1417,10 @@ let _Entities = {
 					</thead>
 					<tbody>
 						<tr id="new">
-							<td>
-								<select style="z-index: 999" id="newPrincipal"><option></option></select>
+							<td class="relative">
+								<select style="z-index: 999" id="newPrincipal">
+									<option></option>
+								</select>
 							</td>
 							<td></td>
 							<td></td>
@@ -2069,11 +1432,11 @@ let _Entities = {
 				</table>
 			`);
 
-			let securityContainer = el.find('.security-container');
+			let securityContainer = container.find('.security-container');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToPublicUsers', ['Visible to public users', 'Not visible to public users'], 'Click to toggle visibility for users not logged-in', '#recursive');
 			_Entities.appendBooleanSwitch(securityContainer, entity, 'visibleToAuthenticatedUsers', ['Visible to auth. users', 'Not visible to auth. users'], 'Click to toggle visibility to logged-in users', '#recursive');
 
-			fetch(Structr.rootUrl + entity.id + '/in').then(async response => {
+			fetch(`${Structr.rootUrl}${entity.id}/in`).then(async response => {
 
 				let data = await response.json();
 
@@ -2082,25 +1445,26 @@ let _Entities = {
 					for (let result of data.result) {
 
 						let permissions = {
-							read: isIn('read', result.allowed),
-							write: isIn('write', result.allowed),
-							delete: isIn('delete', result.allowed),
-							accessControl: isIn('accessControl', result.allowed)
+							read: _Helpers.isIn('read', result.allowed),
+							write: _Helpers.isIn('write', result.allowed),
+							delete: _Helpers.isIn('delete', result.allowed),
+							accessControl: _Helpers.isIn('accessControl', result.allowed)
 						};
 
 						let principalId = result.principalId;
 						if (principalId) {
 							Command.get(principalId, requiredAttributesForPrincipals, (p) => {
-								_Entities.addPrincipal(entity, p, permissions, allowRecursive, el);
+								_Entities.addPrincipal(entity, p, permissions, allowRecursive, container);
 							});
 						}
 					}
 				}
 			})
 
-			let ownerSelect   = $('#' + owner_select_id, el);
-			let granteeSelect = $('#newPrincipal', el);
-			let spinnerIcon   = Structr.loaderIcon(granteeSelect.parent(), { float: 'right' });
+			let ownerSelect      = $('#' + owner_select_id, container);
+			let granteeSelect    = $('#newPrincipal', container);
+			let spinnerIcon      = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, ['absolute', 'right-0']));
+			granteeSelect.parent()[0].appendChild(spinnerIcon);
 
 			Command.getByType('Principal', null, null, 'name', 'asc', requiredAttributesForPrincipals, false, (principals) => {
 
@@ -2134,13 +1498,12 @@ let _Entities = {
 					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} ${state.text}</span>`);
 				};
 
-				let dropdownParent = (dialogBox && dialogBox.is(':visible')) ? dialogBox : $('body');
+				let dropdownParent = Structr.dialogSystem.isDialogOpen() ? $(Structr.dialogSystem.getDialogBoxElement()) : $('body');
 
 				ownerSelect.select2({
 					allowClear: true,
 					placeholder: 'Owner',
 					width: '300px',
-					style: 'text-align:left;',
 					dropdownParent: dropdownParent,
 					templateResult: (state) => templateOption(state, false),
 					templateSelection: (state) => templateOption(state, true)
@@ -2148,7 +1511,7 @@ let _Entities = {
 					e.preventDefault();
 
 					Command.setProperty(id, 'owner', null, false, () => {
-						blinkGreen(ownerSelect.parent());
+						_Helpers.blinkGreen(ownerSelect.parent());
 						ownerSelect.val(null).trigger('change');
 					});
 
@@ -2156,7 +1519,7 @@ let _Entities = {
 
 					let data = e.params.data;
 					Command.setProperty(id, 'owner', data.id, false, () => {
-						blinkGreen(ownerSelect.parent());
+						_Helpers.blinkGreen(ownerSelect.parent());
 					});
 				});
 
@@ -2169,18 +1532,16 @@ let _Entities = {
 
 					let data = e.params.data;
 					let pId  = data.id;
-					let rec  = $('#recursive', el).is(':checked');
+					let rec  = $('#recursive', container).is(':checked');
 
 					Command.setPermission(entity.id, pId, 'grant', 'read', rec);
 
 					Command.get(pId, requiredAttributesForPrincipals, (p) => {
-						_Entities.addPrincipal(entity, p, { read: true }, allowRecursive, el);
+						_Entities.addPrincipal(entity, p, { read: true }, allowRecursive, container);
 					});
 				});
 
-				if (spinnerIcon.length) {
-					spinnerIcon.remove();
-				}
+				_Helpers.fastRemoveElement(spinnerIcon);
 			});
 		};
 
@@ -2190,7 +1551,7 @@ let _Entities = {
 			Command.get(id, 'id,type,name,isFolder,isContent,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 		}
 	},
-	templateForPrincipalOption: (p, selected = false) => `<option value="${p.id}" data-principal="${escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>${p.name}</option>`,
+	templateForPrincipalOption: (p, selected = false) => `<option value="${p.id}" data-principal="${_Helpers.escapeForHtmlAttributes(JSON.stringify(p))}" ${(selected ? 'selected' : '')}>${p.name}</option>`,
 	showAccessControlDialog: (entity) => {
 
 		let id = entity.id;
@@ -2201,7 +1562,7 @@ let _Entities = {
 			visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
 		};
 
-		Structr.dialog('Access Control and Visibility', () => {}, () => {
+		let { dialogText } = Structr.dialogSystem.openDialog('Access Control and Visibility', () => {
 
 			if (Structr.isModuleActive(_Crud)) {
 
@@ -2220,36 +1581,41 @@ let _Entities = {
 				} else {
 					Command.get(id, 'id,type,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', handleGraphObject);
 				}
+
 			} else if (Structr.isModuleActive(_Security)) {
 				_ResourceAccessGrants.updateResourcesAccessRow(id, false);
 			}
 		});
 
-		_Entities.accessControlDialog(entity, dialogText);
+		_Entities.accessControlDialog(entity, $(dialogText));
 	},
-	addPrincipal: function (entity, principal, permissions, allowRecursive, container) {
+	addPrincipal: (entity, principal, permissions, allowRecursive, container) => {
 
-		$(`#newPrincipal option[value="${principal.id}"]`, container).css({
-			display: 'none'
-		});
+		$(`#newPrincipal option[value="${principal.id}"]`, container).remove();
 		$('#newPrincipal', container).trigger('chosen:updated');
 
-		if ($('#principals ._' + principal.id, container).length > 0) {
+		if ($(`#principals ._${principal.id}`, container).length > 0) {
 			return;
 		}
 
-		let row = $(`<tr class="_${principal.id}"><td><div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.name}</span></div></td></tr>`);
+		let row = $(`
+			<tr class="_${principal.id}">
+				<td>
+					<div class="flex items-center gap-2">${_Icons.getIconForPrincipal(principal)}<span class="name">${principal.name}</span></div>
+				</td>
+			</tr>
+		`);
 		$('#new', container).after(row);
 
 		for (let perm of ['read', 'write', 'delete', 'accessControl']) {
 
 			row.append(`<td><input class="${perm}" type="checkbox" data-permission="${perm}"${permissions[perm] ? ' checked="checked"' : ''}"></td>`);
 
-			$('.' + perm, row).on('dblclick', function() {
+			$(`.${perm}`, row).on('dblclick', () => {
 				return false;
 			});
 
-			$('.' + perm, row).on('click', function(e) {
+			$(`.${perm}`, row).on('click', function(e) {
 				e.preventDefault();
 
 				let checkbox = $(this);
@@ -2272,7 +1638,7 @@ let _Entities = {
 
 					checkbox.prop('disabled', false);
 
-					blinkGreen(checkbox.parent());
+					_Helpers.blinkGreen(checkbox.parent());
 				});
 			});
 		}
@@ -2292,28 +1658,29 @@ let _Entities = {
 				Command.setPermission(entity.id, principal.id, 'setAllowed', permissions, true, () => {
 
 					button.removeAttribute('disabled');
-					blinkGreen(row);
+					_Helpers.blinkGreen(row);
 				});
 			});
 		}
 	},
-	appendBooleanSwitch: function(el, entity, key, label, desc, recElementId) {
+	appendBooleanSwitch: function(el, entity, key, labels, desc, recElementId) {
+
 		if (!el || !entity) {
 			return false;
 		}
 		el.append(`<div class="${entity.id}_ flex items-center mt-2"><button class="switch inactive ${key}_ inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green min-w-56"></button>${desc}</div>`);
 
-		let sw = $('.' + key + '_', el);
-		_Entities.changeBooleanAttribute(sw, entity[key], label[0], label[1]);
+		let sw = $(`.${key}_`, el);
+		_Entities.changeBooleanAttribute(sw, entity[key], labels[0], labels[1]);
 
 		sw.on('click', function(e) {
 			e.stopPropagation();
-			Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), function(obj) {
+			Command.setProperty(entity.id, key, sw.hasClass('inactive'), $(recElementId, el).is(':checked'), (obj) => {
 				if (obj.id !== entity.id) {
 					return false;
 				}
-				_Entities.changeBooleanAttribute(sw, obj[key], label[0], label[1]);
-				blinkGreen(sw);
+				_Entities.changeBooleanAttribute(sw, obj[key], labels[0], labels[1]);
+				_Helpers.blinkGreen(sw);
 				return true;
 			});
 		});
@@ -2437,7 +1804,7 @@ let _Entities = {
 
 		_Pages.registerDetailClickHandler($(nodeContainer), entity);
 	},
-	removeExpandIcon: function(el) {
+	removeExpandIcon: (el) => {
 		if (!el)
 			return;
 
@@ -2474,11 +1841,6 @@ let _Entities = {
 				return false;
 			});
 		}
-
-		// node.children('b.name_').off('click').on('click', function(e) {
-		// 	e.stopPropagation();
-		// 	_Entities.makeNameEditable(node);
-		// });
 
 		let nodeId = Structr.getId(el);
 		let isComponent = false;
@@ -2674,7 +2036,7 @@ let _Entities = {
 
 		element?.querySelector('.node-selector')?.classList.add('active');
 	},
-	selectElement: function(element, entity) {
+	selectElement: (element, entity) => {
 
 		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
 			activeSelector.classList.remove('active');
@@ -2684,7 +2046,7 @@ let _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	toggleElement: function(id, nodeContainer, isExpanded, callback) {
+	toggleElement: (id, nodeContainer, isExpanded, callback) => {
 
 		let el            = $(nodeContainer);
 		let toggleIcon    = el.children('.expand_icon_svg').first();
@@ -2708,26 +2070,26 @@ let _Entities = {
 			Structr.addExpandedNode(id);
 		}
 	},
-	makeAttributeEditable: function(parentElement, id, attributeSelector, attributeName, callback) {
+	makeAttributeEditable: (parentElement, id, attributeSelector, attributeName, callback) => {
 
 		let attributeElement        = parentElement.find(attributeSelector).first();
 		let additionalInputClass    = attributeElement.data('inputClass') || '';
 		let oldValue                = $.trim(attributeElement.attr('title'));
 		let attributeElementRawHTML = attributeElement[0].outerHTML;
 
-		attributeElement.replaceWith('<input type="text" size="' + (oldValue.length + 4) + '" class="new-' + attributeName + ' ' + additionalInputClass + '" value="' + oldValue + '">');
+		attributeElement.replaceWith(`<input type="text" size="${oldValue.length + 4}" class="new-${attributeName} ${additionalInputClass}" value="${oldValue}">`);
 
 		let input = $('input', parentElement);
 		input.focus().select();
 
-		let restoreNonEditableTag = function(el, text) {
+		let restoreNonEditableTag = (el, text) => {
 
 			let newEl = $(attributeElementRawHTML);
 			newEl.html(text);
 			newEl.attr('title', text);
 			el.replaceWith(newEl);
 
-			parentElement.find(attributeSelector).first().off('click').on('click', function(e) {
+			parentElement.find(attributeSelector).first().off('click').on('click', (e) => {
 				e.stopPropagation();
 				_Entities.makeAttributeEditable(parentElement, id, attributeSelector, attributeName, callback);
 			});
@@ -2735,7 +2097,7 @@ let _Entities = {
 			return newEl;
 		};
 
-		let saveAndUpdate = function (el) {
+		let saveAndUpdate = (el) => {
 
 			let newVal = el.val();
 
@@ -2746,49 +2108,44 @@ let _Entities = {
 
 				let finalEl = restoreNonEditableTag(newEl, newVal);
 
-				if (callback) {
-					callback(finalEl);
-				}
+				callback?.(finalEl);
 			};
 
-			_Entities.setNewAttributeValue(parentElement, id, attributeName, newVal, successFunction, function () {
+			_Entities.setNewAttributeValue(parentElement, id, attributeName, newVal, successFunction, () => {
 
 				let attributeElement = parentElement.find(attributeSelector).first();
 				attributeElement.attr('title', oldValue).text(oldValue);
-				blinkRed(parentElement);
+				_Helpers.blinkRed(parentElement);
 			});
 		};
 
-		input.on('blur', function() {
-			saveAndUpdate($(this));
+		input.on('blur', () => {
+			saveAndUpdate(input);
 		});
 
 		input.keydown(function(e) {
 
 			if (e.keyCode === 13) {
-				saveAndUpdate($(this));
+
+				saveAndUpdate(input);
 
 			} else if (e.keyCode === 27) {
 				e.stopPropagation();
-				restoreNonEditableTag($(this), oldValue);
+				restoreNonEditableTag(input, oldValue);
 			}
 		});
 	},
-	makeNameEditable: function(element, callback) {
+	makeNameEditable: (element, callback) => {
 		let id = Structr.getId(element);
 		_Entities.makeAttributeEditable(element, id, 'b.name_', 'name', callback);
 	},
-	setNewName: function(element, newName, callback) {
-		let id = Structr.getId(element);
-		_Entities.setNewAttributeValue(element, id, 'name', newName, callback);
-	},
-	setNewAttributeValue: function(element, id, attributeName, newValue, callback, failCallback) {
+	setNewAttributeValue: (element, id, attributeName, newValue, callback, failCallback) => {
 
-		Command.setProperty(id, attributeName, newValue, false, function(entity, resultSize, errorOccurred) {
+		Command.setProperty(id, attributeName, newValue, false, (entity, resultSize, errorOccurred) => {
 
 			if (!errorOccurred || errorOccurred === false) {
 
-				blinkGreen(element.find('.' + attributeName + '_').first());
+				_Helpers.blinkGreen(element.find(`.${attributeName}_`).first());
 
 				if (Structr.isModuleActive(_Pages)) {
 
@@ -2802,14 +2159,13 @@ let _Entities = {
 				} else if (Structr.isModuleActive(_Files) && attributeName === 'name') {
 
 					let a = element.closest('td').prev().children('a').first();
-					Command.getProperty(id, 'path', function(newPath) {
+
+					Command.getProperty(id, 'path', (newPath) => {
 						a.attr('href', newPath);
 					});
 				}
 
-				if (callback) {
-					callback();
-				}
+				callback?.();
 
 			} else if (failCallback) {
 				failCallback();
@@ -2822,289 +2178,38 @@ let _Entities = {
 	isLinkableEntity: (entity) => {
 		return (entity.tag === 'a' || entity.tag === 'link' || entity.tag === 'script' || entity.tag === 'img' || entity.tag === 'video' || entity.tag === 'object');
 	},
-	setPropertyWithFeedback: function(entity, key, newVal, input, blinkEl) {
+	setPropertyWithFeedback: (entity, key, newVal, input, blinkEl) => {
+
 		const oldVal = entity[key];
 		input.val(oldVal);
-		Command.setProperty(entity.id, key, newVal, false, function(result) {
+
+		Command.setProperty(entity.id, key, newVal, false, (result) => {
+
 			let newVal = result[key];
 
 			// update entity so this works multiple times
 			entity[key] = newVal;
 
 			if (key === 'password' || newVal !== oldVal) {
-				blinkGreen(input);
+				_Helpers.blinkGreen(input);
 				if (blinkEl) {
-					blinkGreen(blinkEl);
+					_Helpers.blinkGreen(blinkEl);
 				}
 				if (newVal && newVal.constructor === Array) {
 					newVal = newVal.join(',');
 				}
 				input.val(newVal);
-				let valueMsg = (newVal !== undefined || newVal !== null) ? 'value "' + newVal : 'empty value';
-				Structr.showAndHideInfoBoxMessage('Updated property "' + key + '" with ' + valueMsg, 'success', 2000, 200);
+				let valueMsg = (newVal !== undefined || newVal !== null) ? `value "${newVal}` : 'empty value';
+				Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}`, 'success', 2000, 200);
+
 			} else {
+
 				input.val(oldVal);
 			}
 		});
 	},
 
 	templates: {
-		events: config => `
-			<h3>Event Action Mapping</h3>
-
-			<div class="grid grid-cols-2 gap-8">
-
-				<div class="option-tile">
-					<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
-					<select class="select2" id="event-select">
-						<option value="none">None</option>
-						<option value="click">Click</option>
-						<option value="change">Change</option>
-						<option value="focusout">Focus out</option>
-						<option value="drop">Drop</option>
-						<option value="custom">Custom frontend event</option>
-					</select>
-				</div>
-
-				<div class="option-tile">
-					<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
-					<select class="select2" id="action-select">
-						<option value="none">No action</option>
-						<option value="create">Create new object</option>
-						<option value="update">Update object</option>
-						<option value="delete">Delete object</option>
-						<option value="method">Execute method</option>
-						<option value="flow">Execute flow</option>
-						<option value="custom">Custom action</option>
-						<option value="next-page">Next page</option>
-						<option value="prev-page">Previous page</option>
-					</select>
-				</div>
-
-				<div class="hidden opacity-0 option-tile options-custom-event">
-					<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
-					<input type="text" id="custom-event-input">
-				</div>
-
-				<div class="hidden opacity-0 option-tile options-custom-action">
-					<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
-					<input type="text" id="custom-action-input">
-				</div>
-
-				<div class="option-tile option-any uuid-container-for-all-events">
-					<div class="option-tile hidden event-options options-delete">
-						<label class="block mb-2" for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
-						<input type="text" id="delete-target-input">
-					</div>
-					<div class="option-tile hidden event-options options-method">
-						<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
-						<input type="text" id="method-target-input">
-					</div>
-					<div class="option-tile hidden event-options options-custom">
-						<label class="block mb-2" for="custom-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
-						<input type="text" id="custom-target-input">
-					</div>
-					<div class="option-tile hidden event-options options-update">
-						<label class="block mb-2" for="update-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
-						<input type="text" id="update-target-input">
-					</div>
-				</div>
-
-				<!--div class="row hidden event-options options-prev-page options-next-page">
-					<div class="option-tile">
-						<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
-						<input type="text" id="pagination-name-input">
-					</div>
-				</div-->
-
-				<div class="row hidden event-options options-create options-update">
-					<div class="option-tile">
-						<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
-						<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
-						<select class="required combined-input-select-field" id="data-type-select">
-							<option value="">Select type from schema</option>
-						</select>
-					</div>
-				</div>
-
-				<div class="row hidden event-options options-method">
-					<div class="option-tile">
-						<label class="block mb-2" for="method-name-input">Name of method to execute</label>
-						<input type="text" id="method-name-input">
-					</div>
-				</div>
-
-<!--				<div class="row hidden event-options options-update">-->
-<!--					<div class="option-tile">-->
-<!--						<label class="block mb-2" for="update-property-input">Name of property to update</label>-->
-<!--						<input type="text" id="update-property-input">-->
-<!--					</div>-->
-<!--				</div>-->
-				
-				<div class="col-span-2 hidden event-options event-drop">
-					<h3>Drag & Drop</h3>
-					<div class="option-tile">
-						<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
-						<ul class="mb-2">
-							<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
-							<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
-							<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
-						<ul>
-					</div>
-				</div>
-
-				<div class="col-span-2 hidden event-options options-properties options-any">
-					<h3>Parameter Mapping
-						<i class="m-2 add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
-						<i class="m-2 add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
-					</h3>
-
-					<div class="event-options options-properties options-create options-update parameter-mappings-container"></div>
-
-				</div>
-
-				<div class="col-span-2 hidden event-options options-any">
-					<h3>Follow-up Actions</h3>
-					<div class="grid grid-cols-2 gap-8 event-options">
-
-						<div class="option-tile">
-							<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
-							<select class="select2" id="success-behaviour-select">
-								<option value="nothing">Nothing</option>
-								<option value="full-page-reload">Reload the current page</option>
-								<option value="partial-refresh">Refresh a section of the current page</option>
-								<option value="navigate-to-url">Navigate to a new page</option>
-								<option value="fire-event">Fire a custom event</option>
-							</select>
-						</div>
-						<div class="hidden option-tile option-success option-success-partial-refresh">
-							<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
-							<input type="text" id="success-partial-refresh-input" placeholder="Enter a CSS ID selector">
-						</div>
-						<div class="hidden option-tile option-success option-success-navigate-to-url">
-							<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
-							<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-						</div>
-						<div class="hidden option-tile option-success option-success-fire-event">
-							<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be fired.">Event to fire on success</label>
-							<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
-						</div>
-					</div>
-
-					<div class="grid grid-cols-2 gap-8 mt-4 event-options">
-						<div class="option-tile">
-							<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
-							<select class="select2" id="failure-behaviour-select">
-								<option value="nothing">Nothing</option>
-								<option value="full-page-reload">Reload the current page</option>
-								<option value="partial-refresh">Refresh a section of the current page</option>
-								<option value="navigate-to-url">Navigate to a new page</option>
-								<option value="fire-event">Fire a custom event</option>
-							</select>
-						</div>
-						<div class="hidden option-tile option-failure option-failure-partial-refresh">
-							<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
-							<input type="text" id="failure-partial-refresh-input" placeholder="Enter a CSS ID">
-						</div>
-						<div class="hidden option-tile option-failure option-failure-navigate-to-url">
-							<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
-							<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
-						</div>
-						<div class="hidden option-tile option-failure option-failure-fire-event">
-							<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be fired.">Event to fire on failure</label>
-							<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
-						</div>
-
-
-					</div>
-				</div>
-				
-				<div class="option-tile col-span-2">
-					<button type="button" class="action" id="save-event-mapping-button">Save</button>
-				</div>
-
-			</div>
-		`,
-		parameterMappingRow: config => `
-			<div class="event-options options-properties options-update parameter-mapping" data-structr-id="${config.id}">
-				
-				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
-				
-					<div class="option-tile">
-						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>
-						<input type="text" class="parameter-name-input" placeholder="Name" value="${config.parameterName || ''}">
-					</div>
-
-					<div class="option-tile">
-						<label class="block mb-2" for="parameter-type-select" data-comment="Select the type of this parameter.">Parameter type</label>
-						<select class="parameter-type-select">
-							<option>-- Select --</option>						
-							<option value="user-input">User Input</option>
-							<option value="page-param">Request parameter for page</option>
-							<option value="pagesize-param">Request parameter for page size</option>
-							<option value="constant-value">Constant value</option>
-							<option value="script-expression">Script expression</option>
-							<option value="method-result">Result of method call</option>
-							<option value="flow-result">Result of flow</option>
-						</select>
-					</div>
-					
-					<div class="hidden col-span-2 option-tile parameter-value parameter-constant-value">
-						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
-						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
-					</div>
-
-					<div class="hidden col-span-2 option-tile parameter-value parameter-script-expression">
-						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
-						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
-					</div>
-
-					<div class="hidden col-span-2 option-tile parameter-value parameter-user-input">
-						<label class="block mb-2" data-comment="Drag a form input element (&amp;lt;input&amp;gt;, &amp;lt;textarea&amp;gt; or &amp;lt;select&amp;gt;) and drop it here">Form input element</label>
-						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
-						<div class="element-dropzone link-existing-element-dropzone">
-							<div class="info-icon h-16 flex items-center justify-center">
-								<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing form input element here 
-							</div>
-						</div>
-					</div>
-
-					<div class="hidden col-span-2 option-tile parameter-value parameter-method-result">
-						<label class="block mb-2" data-comment="The method will be evaluated and the result passed as parameter value">Method</label>
-						<input type="text" class="parameter-method-result-input" placeholder="Method name" value="${config.value || ''}">
-					</div>
-
-					<div class="hidden col-span-2 option-tile parameter-value parameter-flow-result">
-						<label class="block mb-2" data-comment="The selected Flow will be evaluated and the result passed as parameter value">Flow result</label>
-						<select class="parameter-flow-result-input">
-							<option value="">-- Select flow --</option>
-						</select>
-					</div>
-					
-					<div class="option-tile">
-						<label class="hidden block mb-2">Actions</label>
-						<i class="block mt-4 cursor-pointer parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
-					</div>
-
-				</div>
-								
-				<!--div class="event-options options-properties options-create options-update">
-					<div id="link-existing-element-dropzone" class="element-dropzone">
-						<div class="info-icon h-16 flex items-center justify-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])} Drop existing input or select elements here
-						</div>
-					</div>
-				</div>
-
-				<div class="event-options options-properties options-update">
-					<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new input</button>
-					<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new select</button>
-				</div-->
-				
-			</div>
-		`,
 		multipleInputsRow: config => `
 			<div class="event-options options-properties options-update multiple-properties">
 
@@ -3133,69 +2238,5 @@ let _Entities = {
 
 			</div>
 		`,
-	}
-}
-
-function formatValueInputField(key, obj, isPassword, isReadOnly, isMultiline) {
-
-	if (obj === undefined || obj === null) {
-
-		return formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
-
-	} else if (obj.constructor === Object) {
-
-		let displayName = _Crud.displayName(obj);
-		return `<div title="${escapeForHtmlAttributes(displayName)}" id="_${obj.id}" class="node ${obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')} ${obj.id}_"><span class="abbr-ellipsis abbr-80">${displayName}</span>${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['remove'])}</div>`;
-
-	} else if (obj.constructor === Array) {
-
-		return formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
-
-	} else {
-
-		return formatRegularValueField(key, escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
-	}
-}
-
-function formatArrayValueField(key, values, isMultiline, isReadOnly, isPassword) {
-
-	let html           = '';
-	let readonlyHTML   = (isReadOnly ? ' readonly class="readonly"' : '');
-	let inputTypeHTML  = (isPassword ? 'password' : 'text');
-	let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
-
-	for (let value of values) {
-
-		if (isMultiline) {
-
-			html += `<div class="array-attr relative"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password">${value}</textarea>${removeIconHTML}</div>`;
-
-		} else {
-
-			html += `<div class="array-attr relative"><input name="${key}" type="${inputTypeHTML}" value="${value}"${readonlyHTML} autocomplete="new-password">${removeIconHTML}</div>`;
-		}
-	}
-
-	if (isMultiline) {
-
-		html += `<div class="array-attr"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password"></textarea></div>`;
-
-	} else {
-
-		html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" value=""${readonlyHTML} autocomplete="new-password"></div>`;
-	}
-
-	return html;
-}
-
-function formatRegularValueField(key, value, isMultiline, isReadOnly, isPassword) {
-
-	if (isMultiline) {
-
-		return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="new-password">${value}</textarea>`;
-
-	} else {
-
-		return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
 	}
 }

@@ -21,6 +21,7 @@ package org.structr.common;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Identity;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
@@ -50,6 +51,7 @@ public class ValidationHelper {
 	private static final Map<String, Pattern> patterns = new ConcurrentHashMap<>();
 
 	// ----- public static methods -----
+
 	/**
 	 * Checks whether the value for the given property key of the given node
 	 * has at least the given length.
@@ -148,7 +150,7 @@ public class ValidationHelper {
 
 	/**
 	 * Checks whether the value of the given property key of the given node
-	 * if not null and matches the given regular expression.
+	 * is not null and matches the given regular expression.
 	 *
 	 * @param node
 	 * @param key
@@ -171,12 +173,10 @@ public class ValidationHelper {
 
 	/**
 	 * Checks whether the value of the given property key of the given node
-	 * if not null and matches the given regular expression.
+	 * is not null and matches the given regular expression.
 	 *
-	 * @param node
-	 * @param key
+	 * @param value
 	 * @param expression
-	 * @param errorBuffer
 	 * @return true if string matches expression
 	 */
 	public static boolean isValidStringMatchingRegex(final String value, final String expression) {
@@ -190,6 +190,28 @@ public class ValidationHelper {
 		}
 
 		return (value != null && pattern.matcher(value).matches());
+	}
+
+	/**
+	 * Checks whether the value of the given property key of the given node
+	 * is not null and matches the given regular expression.
+	 *
+	 * @param node
+	 * @param key
+	 * @param errorBuffer
+	 * @return true if string matches expression
+	 */
+	public static boolean isValidUuid(final GraphObject node, final PropertyKey<String> key, final ErrorBuffer errorBuffer) {
+
+		final String value = node.getProperty(key);
+
+		if (Settings.isValidUuid(value)) {
+			return true;
+		}
+
+		// no match
+		errorBuffer.add(new MatchToken(node.getType(), key, Settings.UuidPattern.getValue(), value));
+		return false;
 	}
 
 	public static boolean isValidIntegerInRange(final GraphObject node, final PropertyKey<Integer> key, final String range, final ErrorBuffer errorBuffer) {
@@ -540,18 +562,18 @@ public class ValidationHelper {
 					if (object instanceof NodeInterface) {
 
 						result = StructrApp.getInstance()
-							.nodeQuery(type)
-							.and(key, value)
-							.sort(GraphObject.createdDate)
-							.getAsList();
+								.nodeQuery(type)
+								.and(key, value)
+								.sort(GraphObject.createdDate)
+								.getAsList();
 
 					} else {
 
 						result = StructrApp.getInstance()
-							.relationshipQuery(type)
-							.and(key, value)
-							.sort(GraphObject.createdDate)
-							.getAsList();
+								.relationshipQuery(type)
+								.and(key, value)
+								.sort(GraphObject.createdDate)
+								.getAsList();
 
 					}
 
@@ -626,18 +648,18 @@ public class ValidationHelper {
 				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-						.nodeQuery(type)
-						.and(properties)
-						.sort(GraphObject.createdDate)
-						.getAsList();
+							.nodeQuery(type)
+							.and(properties)
+							.sort(GraphObject.createdDate)
+							.getAsList();
 
 				} else {
 
 					result = StructrApp.getInstance()
-						.relationshipQuery(type)
-						.and(properties)
-						.sort(GraphObject.createdDate)
-						.getAsList();
+							.relationshipQuery(type)
+							.and(properties)
+							.sort(GraphObject.createdDate)
+							.getAsList();
 
 				}
 
@@ -693,18 +715,18 @@ public class ValidationHelper {
 				if (object instanceof NodeInterface) {
 
 					result = StructrApp.getInstance()
-						.nodeQuery(NodeInterface.class)
-						.and(key, value)
-						.sort(GraphObject.createdDate)
-						.getAsList();
+							.nodeQuery(NodeInterface.class)
+							.and(key, value)
+							.sort(GraphObject.createdDate)
+							.getAsList();
 
 				} else if (object instanceof RelationshipInterface) {
 
 					result = StructrApp.getInstance()
-						.relationshipQuery(RelationshipInterface.class)
-						.and(key, value)
-						.sort(GraphObject.createdDate)
-						.getAsList();
+							.relationshipQuery(RelationshipInterface.class)
+							.and(key, value)
+							.sort(GraphObject.createdDate)
+							.getAsList();
 
 				} else {
 

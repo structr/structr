@@ -37,7 +37,9 @@ import org.structr.web.entity.Folder;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -111,10 +113,10 @@ public class StructrFilePath extends StructrPath {
 	}
 
 	@Override
-	public FileChannel newFileChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
+	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 
 		AbstractFile actualFile   = getActualFile();
-		FileChannel channel       = null;
+		SeekableByteChannel channel       = null;
 
 		final boolean create      = options.contains(StandardOpenOption.CREATE);
 		final boolean createNew   = options.contains(StandardOpenOption.CREATE_NEW);
@@ -170,8 +172,7 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					// Todo: Fix for fs abstraction
-					channel = (FileChannel) StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel();
+					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel();
 
 					tx.success();
 

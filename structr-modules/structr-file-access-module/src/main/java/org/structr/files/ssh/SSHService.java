@@ -91,7 +91,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 		logger.info("Initializing host key generator..");
 
-		final SimpleGeneratorHostKeyProvider hostKeyProvider = new SimpleGeneratorHostKeyProvider(Paths.get("db/structr_hostkey"));
+		final SimpleGeneratorHostKeyProvider hostKeyProvider = new SimpleGeneratorHostKeyProvider(Paths.get("structr_hostkey"));
 		hostKeyProvider.setAlgorithm(KeyUtils.RSA_ALGORITHM);
 
 		logger.info("Configuring SSH server..");

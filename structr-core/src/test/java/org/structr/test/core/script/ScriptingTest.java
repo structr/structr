@@ -22,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -2030,7 +2031,7 @@ public class ScriptingTest extends StructrTest {
 
 			// random_uuid
 			final String randomUuid = Scripting.replaceVariables(ctx, null, "${random_uuid()}");
-			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, randomUuid.matches("[a-fA-F0-9]{32}"));
+			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, Settings.isValidUuid(randomUuid));
 
 			tx.success();
 

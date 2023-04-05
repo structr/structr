@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -74,6 +75,7 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
@@ -584,7 +586,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		}
 
-		if (UuidProperty.UUID_PATTERN.matcher(dataTarget).matches()) {
+		if (Settings.isValidUuid(dataTarget)) {
 
 			final List<GraphObject> targets = DOMElement.resolveDataTargets(actionContext, this, dataTarget);
 			final Logger logger             = LoggerFactory.getLogger(getClass());
@@ -1270,6 +1272,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 								case ("partial-refresh"):
 									reloadTargetString = successPartial;
 									break;
+								case ("partial-refresh-linked"):
+									final List<DOMNode> successTargets = (List<DOMNode>) Iterables.toList((Iterable<? extends DOMNode >) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successTargets")));
+									if (!successTargets.isEmpty()) {
+										int i=1;
+										reloadTargetString = "";
+										for (final DOMNode successTarget : successTargets) {
+
+											// Create CSS selector for data-structr-id
+											String successTargetSelector = "[data-structr-id='" + successTarget.getUuid() + "']";
+											final String key = successTarget.getDataKey();
+											if (key != null) {
+												successTargetSelector += "[data-repeater-data-object-id='" + renderContext.getDataNode(key).getUuid() + "']";
+											}
+											reloadTargetString += successTargetSelector + (i < successTargets.size() ? "," : "");
+											i++;
+										}
+
+										//reloadTargetString = successTargets.stream().map(successTarget -> successTargetElementIdAttr).collect(Collectors.joining(","));
+									}
+									break;
 								case ("navigate-to-url"):
 									reloadTargetString = "url:" + successURL;
 									break;
@@ -1326,6 +1348,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 							final String parameterType = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "parameterType"));
 							final String parameterName = parameterMapping.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ParameterMapping.class, "parameterName"));
+
+							if (parameterType == null || parameterName == null) {
+								// Ignore incomplete parameter mapping
+								continue;
+							}
+
 							final String nameAttributeHyphenated = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_HYPHEN, parameterName);
 
 							switch (parameterType) {
@@ -1394,7 +1422,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 						}
 
-					} else if (isReloadTarget(thisElement)) {
+					}
+
+					if (isReloadTarget(thisElement)) {
 
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 
@@ -1403,6 +1433,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (current != null) {
 
 							out.append(" data-current-object-id=\"").append(current.getUuid()).append("\"");
+						}
+
+						// make repeater data object ID available in reload targets
+						final GraphObject repeaterDataObject = renderContext.getDataObject();
+						if (repeaterDataObject != null) {
+
+							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
 
 						// realization: all dynamic parameters must be stored on the reload target!
@@ -1429,17 +1466,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							out.append(" data-structr-render-state=\"").append(encodedRenderState).append("\"");
 						}
 
-					} else if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
+					}
+
+					if (thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode")) != null) {
 
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 						out.append(" data-structr-delay-or-interval=\"").append(thisElement.getProperty(StructrApp.key(DOMElement.class, "data-structr-delay-or-interval"))).append("\"");
 
-					} else if (renderContext.isTemplateRoot(uuid)) {
+					}
+
+					if (renderContext.isTemplateRoot(uuid)) {
 
 						// render template ID into output so it can be re-used
 						out.append(" data-structr-template-id=\"").append(renderContext.getTemplateId()).append("\"");
 
-					} else if (thisElement instanceof TemplateElement) {
+					}
+
+					if (thisElement instanceof TemplateElement) {
 
 						// render template ID into output so it can be re-used
 						out.append(" data-structr-id=\"").append(uuid).append("\"");

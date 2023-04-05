@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Files);
 });
 
@@ -40,11 +40,9 @@ let _Files = {
 	selectedElements: [],
 	folderPageSize: 10000,
 	folderPage: 1,
-	droppableArea: undefined,
 	filesViewModeKey: 'structrFilesViewMode_' + location.port,
 	filesLastOpenFolderKey: 'structrFilesLastOpenFolder_' + location.port,
 	filesResizerLeftKey: 'structrFilesResizerLeftKey_' + location.port,
-	// activeFileTabPrefix: 'activeFileTabPrefix' + location.port,
 
 	getViewMode: () => {
 		return LSWrapper.getItem(_Files.filesViewModeKey, 'list');
@@ -68,28 +66,27 @@ let _Files = {
 		if (Structr.isModuleActive(_Files)) {
 			_Files.moveResizer();
 			Structr.resize();
-			$('div.xml-mapping').css({ height: dialogBox.height() - 118 });
 		}
 	},
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
 
 		// throttle
-		Structr.requestAnimationFrameWrapper(_Files.prevAnimFrameReqId_moveResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_Files.prevAnimFrameReqId_moveResizer, () => {
 			left = left || LSWrapper.getItem(_Files.filesResizerLeftKey) || 300;
 			$('.column-resizer', _Files.filesMain).css({ left: left });
 
 			_Files.fileTree.css({width: left - 14 + 'px'});
-			$('#folder-contents-container').css({width: 'calc(100% - ' + (left + 14) + 'px)'});
+			$('#folder-contents-container').css({width: `calc(100% - ${left + 14}px)`});
 		});
 	},
 	onload: function() {
 
-		Structr.mainContainer.innerHTML = _Files.templates.main();
+		Structr.setMainContainerHTML(_Files.templates.main());
 
 		_Files.init();
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('files'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('files'));
 
 		_Files.filesMain      = $('#files-main');
 		_Files.fileTree       = $('#file-tree');
@@ -103,15 +100,15 @@ let _Files = {
 			let fileTypes   = await _Schema.getDerivedTypes('org.structr.dynamic.File', ['CsvFile']);
 			let folderTypes = await _Schema.getDerivedTypes('org.structr.dynamic.Folder', ['Trash']);
 
-			Structr.functionBar.innerHTML = _Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes });
+			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 
 			UISettings.showSettingsForCurrentModule();
 			_Files.updateFunctionBarStatus();
 
-			let fileTypeSelect   = document.querySelector('select#file-type');
-			let addFileButton    = document.getElementById('add-file-button');
-			let folderTypeSelect = document.querySelector('select#folder-type');
-			let addFolderButton  = document.getElementById('add-folder-button');
+			let fileTypeSelect   = Structr.functionBar.querySelector('select#file-type');
+			let addFileButton    = Structr.functionBar.querySelector('#add-file-button');
+			let folderTypeSelect = Structr.functionBar.querySelector('select#folder-type');
+			let addFolderButton  = Structr.functionBar.querySelector('#add-folder-button');
 
 			addFileButton.addEventListener('click', () => {
 				Command.create({
@@ -215,7 +212,7 @@ let _Files = {
 		_Files.resize();
 		Structr.adaptUiToAvailableFeatures();
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		const isFile         = entity.isFile;
 		let selectedElements = document.querySelectorAll('.node.selected');
@@ -353,7 +350,7 @@ let _Files = {
 							// fake the a element so we do not need to look up the server
 							let a = document.createElement('a');
 							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-							a.href = `${Structr.getPrefixedRootUrl('')}${possiblyUpdatedEntity.path}`;
+							a.href = possiblyUpdatedEntity.path;
 							await navigator.clipboard.writeText(a.href);
 						})();
 
@@ -369,7 +366,7 @@ let _Files = {
 
 						let a = document.createElement('a');
 						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-						a.href = `${Structr.getPrefixedRootUrl('')}${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
+						a.href = `${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
 						a.click();
 
 						return false;
@@ -387,7 +384,7 @@ let _Files = {
 				});
 			}
 
-			Structr.performModuleDependendAction(() => {
+			Structr.performModuleDependentAction(() => {
 				if (fileCount === 1 && Structr.isModulePresent('csv') && Structr.isModulePresent('api-builder') && contentType === 'text/csv') {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeCSV),
@@ -400,7 +397,7 @@ let _Files = {
 				}
 			});
 
-			Structr.performModuleDependendAction(() => {
+			Structr.performModuleDependentAction(() => {
 				if (fileCount === 1 && Structr.isModulePresent('xml') && (contentType === 'text/xml' || contentType === 'application/xml')) {
 					elements.push({
 						icon: _Icons.getMenuSvgIcon(_Icons.iconFileTypeXML),
@@ -433,13 +430,13 @@ let _Files = {
 
 					let files = [...selectedElements].map(el => Structr.entityFromElement(el));
 
-					_Entities.deleteNodes(this, files, true, () => {
+					_Entities.deleteNodes(files, true, () => {
 						_Files.refreshTree();
 					});
 
 				} else {
 
-					_Entities.deleteNode(this, entity, true, () => {
+					_Entities.deleteNode(entity, true, () => {
 						_Files.refreshTree();
 					});
 				}
@@ -452,18 +449,7 @@ let _Files = {
 
 		return elements;
 	},
-	formatBytes(a, b= 2) {
-
-		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
-
-		if (0 === a) return "0 " + sizes[0];
-
-		const c = (0 > b) ? 0 : b;
-		const d = Math.floor(Math.log(a) / Math.log(1024));
-
-		return parseFloat((a/Math.pow(1024,d)).toFixed(c)) + " " + sizes[d]
-	},
-	deepOpen: function(d, dirs) {
+	deepOpen: (d, dirs) => {
 
 		_TreeHelper.deepOpen(_Files.fileTree, d, dirs, 'parent', (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : 'root'));
 
@@ -480,14 +466,19 @@ let _Files = {
 			_Files.fileTree.jstree('activate_node', selectedId);
 		});
 	},
-	refreshNode: function(nodeId, newName) {
+	refreshNode: (nodeId, newName) => {
+
 
 		let node = _Files.fileTree.jstree('get_node', nodeId);
-		node.text = newName;
+		if (node.text !== newName) {
+			node.text = newName;
 
-		_TreeHelper.refreshNode(_Files.fileTree, node);
+			_TreeHelper.refreshNode(_Files.fileTree, node, () => {
+				//
+			});
+		}
 	},
-	treeInitFunction: function(obj, callback) {
+	treeInitFunction: (obj, callback) => {
 
 		switch (obj.id) {
 
@@ -527,60 +518,59 @@ let _Files = {
 		}
 
 	},
-	unload: function() {
+	unload: () => {
 		window.removeEventListener('resize', _Files.resize);
-		fastRemoveAllChildren(Structr.mainContainer);
-		fastRemoveAllChildren(Structr.functionBar);
+		_Helpers.fastRemoveAllChildren(Structr.mainContainer);
+		_Helpers.fastRemoveAllChildren(Structr.functionBar);
 	},
 	activateUpload: () => {
 
 		if (window.File && window.FileReader && window.FileList && window.Blob) {
 
-			_Files.droppableArea = $('#folder-contents');
+			let droppableArea = document.querySelector('#folder-contents');
 
-			_Files.droppableArea.on('dragover', function(event) {
-				event.originalEvent.dataTransfer.dropEffect = 'copy';
-				return false;
+			droppableArea.addEventListener('dragover', (event) => {
+				event.preventDefault();
+				event.dataTransfer.dropEffect = 'copy';
 			});
 
-			_Files.droppableArea.on('drop', function(event) {
-
-				if (!event.originalEvent.dataTransfer) {
-					return;
-				}
-
-				event.stopPropagation();
+			droppableArea.addEventListener('drop', (event) => {
 				event.preventDefault();
 
-				if (_Files.displayingFavorites === true) {
-					(new MessageBuilder()).warning("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
+				if (!event.dataTransfer) {
 					return;
 				}
 
-				_Files.fileUploadList = event.originalEvent.dataTransfer.files;
+				if (_Files.displayingFavorites === true) {
+					new WarningMessage().text("Can't upload to virtual folder Favorites - please first upload file to destination folder and then drag to favorites.").show();
+					return;
+				}
+
+				_Files.fileUploadList = event.dataTransfer.files;
 				let filesToUpload = [];
 				let tooLargeFiles = [];
 
-				$(_Files.fileUploadList).each(function(i, file) {
+				for (let file of _Files.fileUploadList) {
+
 					if (file.size <= _Files.fileSizeLimit) {
 						filesToUpload.push(file);
 					} else {
 						tooLargeFiles.push(file);
 					}
-				});
+				}
 
 				if (filesToUpload.length < _Files.fileUploadList.length) {
 
-					let errorText = 'The following files are too large (limit ' + _Files.fileSizeLimit / (1024 * 1024) + ' Mbytes):<br>\n';
+					let errorText = `
+						The following files are too large (limit ${_Files.fileSizeLimit / (1024 * 1024)} Mbytes):<br>
+						${tooLargeFiles.map(tooLargeFile => `<b>${tooLargeFile.name}</b>: ${Math.round(tooLargeFile.size / (1024 * 1024))} Mbytes<br>`).join('')}
+					`;
 
-					$(tooLargeFiles).each(function(i, tooLargeFile) {
-						errorText += '<b>' + tooLargeFile.name + '</b>: ' + Math.round(tooLargeFile.size / (1024 * 1024)) + ' Mbytes<br>\n';
-					});
-
-					new MessageBuilder().error(errorText).title('File(s) too large for upload').requiresConfirmation().show();
+					new ErrorMessage().text(errorText).title('File(s) too large for upload').requiresConfirmation().show();
 				}
 
-				filesToUpload.forEach(function(fileToUpload) {
+				for (let fileToUpload of filesToUpload) {
+
 					fileToUpload.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 					fileToUpload.hasParent = true; // Setting hasParent = true forces the backend to upload the file to the root dir even if parentId is null
 
@@ -588,13 +578,14 @@ let _Files = {
 						fileToUpload.id = createdFileNode.id;
 						_Files.uploadFile(createdFileNode);
 					});
-				});
+				}
 
 				return false;
 			});
 		}
 	},
-	uploadFile: function(file) {
+	uploadFile: (file) => {
+
 		let worker = new Worker('js/upload-worker.js');
 		worker.onmessage = function(e) {
 
@@ -607,19 +598,19 @@ let _Files = {
 
 			for (let c = 0; c < chunks; c++) {
 				let start = c * _Files.chunkSize;
-				let end = (c + 1) * _Files.chunkSize;
+				let end   = (c + 1) * _Files.chunkSize;
 				let chunk = window.btoa(String.fromCharCode.apply(null, new Uint8Array(binaryContent.slice(start, end))));
 				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks);
 			}
 		};
 
-		$(_Files.fileUploadList).each(function(i, fileObj) {
+		for (let fileObj of _Files.fileUploadList) {
 			if (file.id === fileObj.id) {
 				worker.postMessage(fileObj);
 			}
-		});
+		}
 	},
-	fulltextSearch: function(searchString) {
+	fulltextSearch: (searchString) => {
 
 		let content = $('#folder-contents');
 		content.children().hide();
@@ -632,14 +623,15 @@ let _Files = {
 
 		_Files.displaySearchResultsForURL(url, searchString);
 	},
-	clearSearch: function() {
+	clearSearch: () => {
 		_Files.searchField.value = '';
 		_Files.searchFieldClearIcon.style.display = 'none';
 		$('#search-results').remove();
 		$('#folder-contents').children().show();
 	},
-	loadAndSetWorkingDir: function(callback) {
-		Command.rest("/me/ui", function (result) {
+	loadAndSetWorkingDir: (callback) => {
+
+		Command.rest("/me/ui", (result) => {
 			let me = result[0];
 			if (me.workingDirectory) {
 				_Files.currentWorkingDir = me.workingDirectory;
@@ -656,12 +648,12 @@ let _Files = {
 
 			let list = folders.map((d) => {
 				return {
-					id: d.id,
-					text:  d.name || '[unnamed]',
+					id:       d.id,
+					text:     d?.name ?? '[unnamed]',
 					children: d.foldersCount > 0,
-					icon: _Icons.nonExistentEmptyIcon,
-					data: { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
-					path: d.path
+					icon:     _Icons.nonExistentEmptyIcon,
+					data:     { svgIcon: _Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 24) },
+					path:     d.path
 				};
 			});
 
@@ -684,9 +676,9 @@ let _Files = {
 			_Files.currentWorkingDir = { id: id };
 		}
 
-		fetch(Structr.rootUrl + 'me', {
+		fetch(`${Structr.rootUrl}me`, {
 			method: 'PUT',
-			body: JSON.stringify({'workingDirectory': _Files.currentWorkingDir})
+			body: JSON.stringify({ workingDirectory: _Files.currentWorkingDir })
 		})
 	},
 	registerFolderLinks: () => {
@@ -711,7 +703,6 @@ let _Files = {
 			} else {
 				_Files.fileTree.jstree('open_node', parentId, openTargetNode);
 			}
-
 		});
 	},
 	updateFunctionBarStatus: () => {
@@ -720,30 +711,11 @@ let _Files = {
 		let addFileButton     = document.getElementById('add-file-button');
 		let mountDialogButton = document.getElementById('mount-folder-dialog-button');
 
-		if (_Files.displayingFavorites === true) {
-
-			addFolderButton?.classList.add('disabled');
-			addFileButton?.classList.add('disabled');
-			mountDialogButton?.classList.add('disabled');
-
-			addFolderButton?.setAttribute('disabled', 'disabled');
-			addFileButton?.setAttribute('disabled', 'disabled');
-			mountDialogButton?.setAttribute('disabled', 'disabled');
-
-		} else {
-
-			addFolderButton?.classList.remove('disabled');
-			addFileButton?.classList.remove('disabled');
-			mountDialogButton?.classList.remove('disabled');
-
-			addFolderButton?.removeAttribute('disabled');
-			addFileButton?.removeAttribute('disabled');
-			mountDialogButton?.removeAttribute('disabled');
-		}
+		_Helpers.disableElements(_Files.displayingFavorites === true, addFolderButton, addFileButton, mountDialogButton);
 	},
 	displayFolderContents: (id, parentId, nodePath, parents) => {
 
-		fastRemoveAllChildren(_Files.folderContents[0]);
+		_Helpers.fastRemoveAllChildren(_Files.folderContents[0]);
 
 		LSWrapper.setItem(_Files.filesLastOpenFolderKey, id);
 
@@ -823,14 +795,12 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.folderContents, false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', undefined, true);
+			let filesPager = _Pager.addPager(pagerId, _Files.folderContents[0], false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', true);
 
 			filesPager.cleanupFunction = () => {
-				let toRemove = $('.node.file', filesPager.el).closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') );
-
-				for (let elem of toRemove) {
-					fastRemoveAllChildren(elem);
-					elem.remove();
+				let toRemove = filesPager.el.querySelectorAll('.node.file');
+				for (let item of toRemove) {
+					_Helpers.fastRemoveElement(item.closest( (_Files.isViewModeActive('list') ? 'tr' : '.tile') ));
 				}
 			};
 
@@ -864,16 +834,10 @@ let _Files = {
 					}
 				});
 
-			} else if (_Files.isViewModeActive('tiles')) {
+			} else if (_Files.isViewModeActive('tiles') || _Files.isViewModeActive('img')) {
 
 				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</div><b title="..">..</b></div></div>`);
-				}
-
-			} else if (_Files.isViewModeActive('img')) {
-
-				if (!isRootFolder) {
-					_Files.folderContents.append(`<div class="tile img-tile"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</div><b title="..">..</b></div></div>`);
+					_Files.folderContents.append(`<div class="tile${_Files.isViewModeActive('img') ? ' img-tile' : ''}"><div class="node folder"><div class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 40, 40)}</div><b title="..">..</b></div></div>`);
 				}
 			}
 		}
@@ -906,7 +870,7 @@ let _Files = {
 	},
 	insertLayoutSwitches: (id, parentId, nodePath, parents) => {
 
-		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 12, 12, 'icon-green mr-2');
+		let checkmark = _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green mr-2');
 
 		_Files.folderContents.prepend(`
 			<div id="switches" class="absolute flex top-4 right-2">
@@ -940,27 +904,37 @@ let _Files = {
 		tilesSw.on('click', layoutSwitchFunction);
 		imgSw.on('click', layoutSwitchFunction);
 	},
-	fileOrFolderCreationNotification: function (newFileOrFolder) {
+	fileOrFolderCreationNotification: (newFileOrFolder) => {
+
 		if ((_Files.currentWorkingDir === undefined || _Files.currentWorkingDir === null) && newFileOrFolder.parent === null) {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		} else if ((_Files.currentWorkingDir !== undefined && _Files.currentWorkingDir !== null) && newFileOrFolder.parent && _Files.currentWorkingDir.id === newFileOrFolder.parent.id) {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},
-	appendFileOrFolder: function(d) {
+	appendFileOrFolder: (d) => {
 
 		if (!d.isFile && !d.isFolder) return;
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
 		let size              = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
-		let progressIndicator = `<div class="progress"><div class="bar"><div class="indicator"><span class="part"></span>/<span class="size">${size}</span></div></div></div>`;
-		let name              = d.name || '[unnamed]';
-		let fileIcon          = _Icons.getFileIconSVG(d);
-		let listModeActive    = _Files.isViewModeActive('list');
-		let tilesModeActive   = _Files.isViewModeActive('tiles');
-		let imageModeActive   = _Files.isViewModeActive('img');
-		let filePath          = `${Structr.getPrefixedRootUrl('')}${d.path}`;
+		let progressIndicator = `
+			<div class="progress">
+				<div class="bar">
+					<div class="indicator">
+						<span class="part"></span>/<span class="size">${size}</span>
+					</div>
+				</div>
+			</div>
+		`;
+		let name            = d.name || '[unnamed]';
+		let listModeActive  = _Files.isViewModeActive('list');
+		let tilesModeActive = _Files.isViewModeActive('tiles');
+		let imageModeActive = _Files.isViewModeActive('img');
+		let filePath        = d.path;
+		let iconSize        = (tilesModeActive || imageModeActive) ? 40 : 16;
+		let fileIcon        = _Icons.getSvgIcon((d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d)), iconSize, iconSize);
 
 		if (listModeActive) {
 
@@ -1000,7 +974,7 @@ let _Files = {
 
 			row.append(`
 				<td class="truncate id">${d.id}</td>
-				<td class="size whitespace-nowrap">${d.isFolder ? size : _Files.formatBytes(size, 0)}</td>
+				<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
 				<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
 				<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
 			`);
@@ -1009,20 +983,16 @@ let _Files = {
 
 		} else if (tilesModeActive || imageModeActive) {
 
-			let tileId = 'tile' + d.id;
+			let tileId = `tile${d.id}`;
 
-			let tileClasses = ['tile'];
-			if (d.isThumbnail)   { tileClasses.push('thumbnail'); }
-			if (imageModeActive) { tileClasses.push('img-tile'); }
-
-			_Files.folderContents.append(`<div id="${tileId}" class="${tileClasses.join(' ')}"></div>`);
+			_Files.folderContents.append(`<div id="${tileId}" class="tile${d.isThumbnail ? ' thumbnail' : ''}${imageModeActive ? ' img-tile' : ''}"></div>`);
 			let tile = $('#' + tileId);
 
 			if (d.isFolder) {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node folder">
-						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 48, 48)}</div>
+						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${fileIcon}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -1036,7 +1006,9 @@ let _Files = {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node file">
-						<div class="file-icon"><a href="${filePath}" target="_blank">${iconOrThumbnail}</a></div>
+						<div class="file-icon">
+							<a href="${filePath}" target="_blank">${iconOrThumbnail}</a>
+						</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						${progressIndicator}
 						<div class="icons-container flex items-center"></div>
@@ -1061,10 +1033,6 @@ let _Files = {
 			_Entities.makeNameEditable(div);
 		});
 
-		div.on('remove', function() {
-			div.closest('tr').remove();
-		});
-
 		if (d.isFolder) {
 			_Files.handleFolder(div, d);
 		}
@@ -1080,21 +1048,29 @@ let _Files = {
 			cursorAt: { top: 8, left: 25 },
 			zIndex: 99,
 			stop: function(e, ui) {
+
 				$(this).show();
 				$(e.toElement).one('click', function(e) {
 					e.stopImmediatePropagation();
 				});
 			},
 			helper: function(event) {
-				let helperEl = $(this);
-				_Files.selectedElements = $('.node.selected');
+
+				let draggedElement           = $(this);
+				let draggedElementIsSelected = draggedElement.hasClass('selected')
+
+				_Files.selectedElements = draggedElementIsSelected ? $('.node.selected') : [];
+
+				$('.node.selected').removeClass('selected');
+
 				if (_Files.selectedElements.length > 1) {
-					_Files.selectedElements.removeClass('selected');
-					return $(`<i>${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')}</i>`);
+					return $(`<span class="flex items-center gap-2 pl-2">${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')} ${_Files.selectedElements.length} elements</span>`);
 				}
-				let hlp = helperEl.clone();
-				hlp.find('.button').remove();
-				return hlp;
+
+				let helperEl = draggedElement.clone();
+				helperEl.find('.button').remove();
+				helperEl.addClass('pl-2');
+				return helperEl;
 			}
 		});
 
@@ -1107,6 +1083,7 @@ let _Files = {
 		}
 
 		if (d.isFile) {
+
 			let dblclickHandler = (e) => {
 				if ($('b.name_', div).length > 0) {
 					_Files.editFile(d);
@@ -1122,7 +1099,7 @@ let _Files = {
 
 		_Entities.makeSelectable(div);
 	},
-	handleFolder: function(div, d) {
+	handleFolder: (div, d) => {
 
 		div.droppable({
 			accept: '.folder, .file, .image',
@@ -1130,63 +1107,122 @@ let _Files = {
 			hoverClass: 'nodeHover',
 			tolerance: 'pointer',
 			drop: function(e, ui) {
-				console.log('a')
 				e.preventDefault();
 				e.stopPropagation();
 
-				var self = $(this);
-				var fileId = Structr.getId(ui.draggable);
-				var folderId = Structr.getId(self);
-				if (!(fileId === folderId)) {
-					var nodeData = {};
-					nodeData.id = fileId;
+				let self           = $(this);
+				let fileId         = Structr.getId(ui.draggable);
+				let targetFolderId = Structr.getId(self);
 
-					if (_Files.selectedElements.length > 1) {
-
-						$.each(_Files.selectedElements, function(i, fileEl) {
-							var fileId = Structr.getId(fileEl);
-							Command.setProperty(fileId, 'parentId', folderId, false, function() {
-								$(ui.draggable).remove();
-							});
-
-						});
-						_Files.selectedElements.length = 0;
-					} else {
-						Command.setProperty(fileId, 'parentId', folderId, false, function() {
-							$(ui.draggable).remove();
-						});
-					}
-
-					_Files.refreshTree();
-				}
+				_Files.handleMoveObjectsAction(targetFolderId, fileId);
 
 				return false;
 			}
 		});
 	},
+	handleMoveObjectsAction: (targetFolderId, actualDraggedObjectId) => {
+
+		/**
+		 * handles a drop action to a folder located in the folder contents area...
+		 * and a drop action to a folder located in the folder tree
+		 *
+		 * must take into account the selected elements in the folder contents area
+		 */
+		let promiseCallback = (info) => {
+
+			if (info.skipped.length > 0) {
+				let text = `The following folders were not moved to prevent inconsistencies:<br><br>${info.skipped.map(id => StructrModel.obj(id)?.name ?? 'unknown').join('<br>')}`;
+				new InfoMessage().title('Skipped some objects').text(text).show();
+			}
+
+			if (info.movedFolder === true) {
+				// reload whole tree
+				_Files.refreshTree();
+			} else {
+				// reload current directory only
+				if (_Files.currentWorkingDir === null) {
+					$('#root_anchor').click();
+				} else {
+					$(`#${_Files.currentWorkingDir.id}_anchor`).click();
+				}
+			}
+
+			_Files.selectedElements = [];
+		};
+
+		if (_Files.selectedElements.length > 1) {
+
+			let selectedElementIds = [..._Files.selectedElements].map(el => Structr.getId(el));
+			_Files.moveObjectsToTargetFolder(targetFolderId, selectedElementIds).then(promiseCallback);
+
+		} else {
+
+			_Files.moveObjectsToTargetFolder(targetFolderId, [actualDraggedObjectId]).then(promiseCallback);
+		}
+
+
+		let selectedElementIds = (_Files.selectedElements.length > 0) ? [..._Contents.selectedElements].map(el => Structr.getId(el)) : [actualDraggedObjectId];
+		_Files.moveObjectsToTargetFolder(targetFolderId, selectedElementIds).then(promiseCallback);
+	},
+	moveObjectsToTargetFolder: async (targetFolderId, objectIds) => {
+
+		/**
+		 * initial promise.all returns a list of moved object ids
+		 * skipped objects have the "skipped_" prefix before the uuid
+		 * result of the promise is an object telling us the skipped objects, the moved objects, and if there was a folder which has been moved
+		 */
+		let skippedPrefix = 'skipped_';
+		let movePromises = [];
+
+		for (let objectId of objectIds) {
+
+			movePromises.push(new Promise((resolve, reject) => {
+
+				// prevent moving element to self
+				if (objectId !== targetFolderId) {
+
+					Command.setProperty(objectId, 'parentId', targetFolderId, false, () => {
+						resolve(objectId);
+					});
+
+				} else {
+					resolve(skippedPrefix + objectId);
+				}
+			}));
+		}
+
+		return Promise.all(movePromises).then(values => {
+
+			let movedObjectIds = values.filter(v => !v.startsWith(skippedPrefix));
+
+			return {
+				movedFolder: movedObjectIds.map(id => StructrModel.obj(id)).some(obj => obj?.type === 'Folder'),
+				moved: movedObjectIds,
+				skipped: values.filter(v => v.startsWith(skippedPrefix)).map(text => text.slice(skippedPrefix.length))
+			};
+		});
+	},
 	unpackArchive: (d) => {
 
-		$('#tempInfoBox .infoHeading, #tempInfoBox .infoMsg').empty();
-		$('#tempInfoBox .closeButton').hide();
-		$('#tempInfoBox .infoMsg').append(`
-			<div class="flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<div>Unpacking Archive - please stand by...</div></div>
-			<p>Extraction will run in the background.<br>You can safely close this popup and work during this operation.<br>You will be notified when the extraction has finished.</p>
+		let { headingEl, messageEl, buttonsEl, closeButton } = _Helpers.showNonBlockUITempInfoBox()
+
+		closeButton.style.display = 'none';
+		messageEl.insertAdjacentHTML('beforeend', `
+			<div class="flex items-center justify-center">
+				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
+				<div>Unpacking Archive - please stand by...</div>
+			</div>
+			<p>
+				Extraction will run in the background.<br>
+				You can safely close this popup and work during this operation.<br>
+				You will be notified when the extraction has finished.
+			</p>
 		`);
 
-		$.blockUI({
-			message: $('#tempInfoBox'),
-			css: Structr.defaultBlockUICss
-		});
-
-		let closed = false;
-		window.setTimeout(function() {
-			$('#tempInfoBox .closeButton').show().on('click', function () {
-				closed = true;
-				$.unblockUI({
-					fadeOut: 25
-				});
-			});
+		window.setTimeout(() => {
+			closeButton.style.display = null;
 		}, 500);
+
 
 		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, (data) => {
 
@@ -1194,87 +1230,73 @@ let _Files = {
 
 				_Files.refreshTree();
 
-				let message = "Extraction of '" + data.filename + "' finished successfully. ";
+				let closed = (messageEl.offsetParent === null);
+
+				let message = `Extraction of '${data.filename}' finished successfully.`;
 
 				if (closed) {
 
-					new MessageBuilder().success(message).requiresConfirmation("Close").show();
+					new SuccessMessage().requiresConfirmation("Close").show();
 
 				} else {
 
-					$('#tempInfoBox .infoMsg').html(`<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} ${message}</div>`);
+					_Helpers.fastRemoveAllChildren(messageEl);
+					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} ${message}</div>`);
 				}
 
 			} else {
 
-				$('#tempInfoBox .infoMsg').html(`<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed</div>`);
+				_Helpers.fastRemoveAllChildren(messageEl);
+				messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed</div>`);
 			}
 		});
 	},
 	editImage: (image) => {
 
-		Structr.dialog('' + image.name, function() {
-			dialogMeta.show();
-		}, function() {
-			dialogMeta.show();
-		});
+		let { dialogText } = Structr.dialogSystem.openDialog(image.name);
 
-		_Files.viewImage(image, $('#dialogBox .dialogText'));
-	},
-	viewImage: function(image, el) {
-		dialogMeta.hide();
+		let imagePath = image.path;
 
-		let imagePath = `${Structr.getPrefixedRootUrl('')}${image.path}`;
-
-		el.append(`
+		dialogText.insertAdjacentHTML('beforeend', `
 			<div class="image-editor-menubar">
 				<div class="crop-action">
 					${_Icons.getSvgIcon(_Icons.iconCropImage)}
 					<br>Crop
 				</div>
 			</div>
-			<div><img id="image-editor" class="orientation-' + image.orientation + '" src="${ imagePath }"></div>
+			<div><img id="image-editor" class="orientation-${image.orientation}" src="${imagePath}"></div>
 		`);
 
-		var x,y,w,h;
+		let x,y,w,h;
 
-		dialogBtn.children('#saveFile').remove();
-		dialogBtn.children('#saveAndClose').remove();
+		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+		let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
 
-		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
-
-		dialogSaveButton = $('#saveFile', dialogBtn);
-		saveAndClose = $('#saveAndClose', dialogBtn);
-
-		$('button#saveFile', dialogBtn).on('click', function(e) {
+		dialogSaveButton.addEventListener('click', (e) => {
 			e.preventDefault();
 			e.stopPropagation();
-			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), null, Math.round(x), Math.round(y), function() {
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
+			Command.createConvertedImage(image.id, Math.round(w), Math.round(h), null, Math.round(x), Math.round(y), () => {
+				_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 			});
 		});
 
-		saveAndClose.on('click', function(e) {
+		saveAndClose.addEventListener('click', (e) => {
 			e.stopPropagation();
 			dialogSaveButton.click();
-			setTimeout(function() {
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				dialogCancelButton.click();
+
+			window.setTimeout(() => {
+				Structr.dialogSystem.clickDialogCancelButton();
 			}, 500);
 		});
 
-		$('.crop-action', el).on('click', function() {
+		dialogText.querySelector('.crop-action').addEventListener('click', () => {
 
 			$('#image-editor').cropper({
-				crop: function(e) {
+				crop: (e) => {
 
 					x = e.x, y = e.y, w = e.width, h = e.height;
 
-					dialogSaveButton.prop("disabled", false).removeClass('disabled');
-					saveAndClose.prop("disabled", false).removeClass('disabled');
+					_Helpers.disableElements(false, dialogSaveButton, saveAndClose);
 				}
 			});
 		});
@@ -1325,17 +1347,18 @@ let _Files = {
 
 		if (hasBeenWarned === false && hasFileAboveThreshold === true) {
 
-			Structr.confirmationPromiseNonBlockUI(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(answer => {
-				if (answer === true) {
+			_Helpers.confirmationPromiseNonBlockUI(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(confirm => {
+				if (confirm === true) {
 					_Files.editFile(file, true);
 				}
 			})
 
 		} else {
 
-			Structr.dialog('Edit files', () => {}, () => {}, ['popup-dialog-with-editor']);
+			let { dialogText } = Structr.dialogSystem.openDialog('Edit files', null, ['popup-dialog-with-editor']);
+			Structr.dialogSystem.showMeta();
 
-			dialogText.append('<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
+			dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
 			let filesTabs     = document.getElementById('files-tabs');
 			let filesTabsUl   = filesTabs.querySelector('ul');
@@ -1349,8 +1372,8 @@ let _Files = {
 
 					loadedEditors++;
 
-					let tab             = Structr.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
-					let editorContainer = Structr.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
+					let tab             = _Helpers.createSingleDOMElementFromHTML(`<li id="tab-${entity.id}" class="file-tab">${entity.name}</li>`);
+					let editorContainer = _Helpers.createSingleDOMElementFromHTML(`<div id="content-tab-${entity.id}" class="content-tab-editor flex-grow flex"></div>`);
 
 					filesTabsUl.appendChild(tab);
 					filesTabs.appendChild(editorContainer);
@@ -1377,10 +1400,10 @@ let _Files = {
 
 							// clear all other tabs before editing this one to ensure correct height
 							for (let editor of filesTabs.querySelectorAll('.content-tab-editor')) {
-								fastRemoveAllChildren(editor);
+								_Helpers.fastRemoveAllChildren(editor);
 							}
 
-							_Files.editFileWithMonaco(entity, $(editorContainer));
+							_Files.editFileWithMonaco(entity, editorContainer);
 						}
 
 						return false;
@@ -1394,73 +1417,62 @@ let _Files = {
 		}
 	},
 	markFileEditorTabAsChanged: (id, hasChanges) => {
-		if (hasChanges) {
-			$('#tab-' + id).addClass('has-changes');
-		} else {
-			$('#tab-' + id).removeClass('has-changes');
-		}
+		let tab = document.querySelector(`#tab-${id}`);
+		_Schema.markElementAsChanged(tab, hasChanges);
 	},
-	editFileWithMonaco: async (file, element) => {
+	editFileWithMonaco: async (file, editorContainer) => {
 
-		// remove all buttons
-		dialogBtn.children().remove();
+		let saveButton         = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+		let saveAndCloseButton = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
 
-		dialogBtn.html('<button class="closeButton">Close</button>');
-		dialogBtn.append('<button id="saveFile" disabled="disabled" class="disabled">Save</button>');
-		dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>');
+		editorContainer.insertAdjacentHTML('beforeend', '<div class="editor h-full overflow-hidden"></div><div id="template-preview"><textarea readonly></textarea></div>');
 
-		dialogCancelButton = $('.closeButton', dialogBox);
-		dialogSaveButton   = $('#saveFile', dialogBtn);
-		saveAndClose       = $('#saveAndClose', dialogBtn);
-
-		element.append('<div class="editor h-full overflow-hidden"></div><div id="template-preview"><textarea readonly></textarea></div>');
-
-		let urlForFileAndPreview = Structr.viewRootUrl + file.id + '?' + Structr.getRequestParameterName('edit') + '=1';
+		let urlForFileAndPreview = `${Structr.viewRootUrl}${file.id}?${Structr.getRequestParameterName('edit')}=1`;
 		let fileResponse         = await fetch(urlForFileAndPreview);
 		let data                 = await fileResponse.text();
 		let initialText          = _Files.fileContents[file.id] || data;
+
+		let monacoChangeFn = (editor, entity) => {
+
+			let currentText = editor.getValue();
+
+			// Store current editor text
+			_Files.fileContents[file.id] = currentText;
+
+			_Files.fileHasUnsavedChanges[file.id] = (data !== currentText);
+
+			_Files.markFileEditorTabAsChanged(file.id, _Files.fileHasUnsavedChanges[file.id]);
+
+			_Helpers.disableElements((data === currentText), saveButton, saveAndCloseButton);
+		};
 
 		let fileMonacoConfig = {
 			value: initialText,
 			language: _Files.getLanguageForFile(file),
 			lint: true,
 			autocomplete: true,
-			changeFn: (editor, entity) => {
-				let currentText = editor.getValue();
-
-				// Store current editor text
-				_Files.fileContents[file.id] = currentText;
-
-				_Files.fileHasUnsavedChanges[file.id] = (data !== currentText);
-
-				_Files.markFileEditorTabAsChanged(file.id, _Files.fileHasUnsavedChanges[file.id]);
-
-				if (data === currentText) {
-					dialogSaveButton.prop("disabled", true).addClass('disabled');
-					saveAndClose.prop("disabled", true).addClass('disabled');
-				} else {
-					dialogSaveButton.prop("disabled", false).removeClass('disabled');
-					saveAndClose.prop("disabled", false).removeClass('disabled');
-				}
-			}
+			changeFn: monacoChangeFn
 		};
 
-		dialogMeta.html('<span class="editor-info"></span>');
+		let dialogMeta = Structr.dialogSystem.getDialogMetaElement();
 
-		let monacoEditor = _Editors.getMonacoEditor(file, 'content', element[0].querySelector('.editor'), fileMonacoConfig);
+		_Helpers.fastRemoveAllChildren(dialogMeta);
+		dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
+
+		let monacoEditor = _Editors.getMonacoEditor(file, 'content', editorContainer.querySelector('.editor'), fileMonacoConfig);
 
 		_Editors.addEscapeKeyHandlersToPreventPopupClose(monacoEditor);
 
-		let editorInfo = dialogMeta[0].querySelector('.editor-info');
+		let editorInfo = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
-		let { isTemplateCheckbox, showPreviewCheckbox } = _Files.appendTemplateConfig(editorInfo, monacoEditor, file, element, urlForFileAndPreview);
+		let { isTemplateCheckbox, showPreviewCheckbox } = _Files.appendTemplateConfig(editorInfo, monacoEditor, file, editorContainer, urlForFileAndPreview);
 
 		_Editors.resizeVisibleEditors();
 
 		fileMonacoConfig.changeFn(monacoEditor);
 		monacoEditor.focus();
 
-		dialogSaveButton.on('click', function(e) {
+		saveButton.addEventListener('click', (e) => {
 
 			e.preventDefault();
 			e.stopPropagation();
@@ -1477,8 +1489,7 @@ let _Files = {
 			let saveFileAction = (callback) => {
 				_Files.updateTextFile(file, newText, callback);
 				initialText = newText;
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
+				toggleSaveButtons(true);
 			};
 
 			if (isTemplateCheckbox.checked) {
@@ -1488,7 +1499,7 @@ let _Files = {
 						_Entities.setProperty(file.id, 'isTemplate', true, false, () => {
 							let active = showPreviewCheckbox.checked;
 							if (active) {
-								_Files.updateTemplatePreview(element, urlForFileAndPreview);
+								_Files.updateTemplatePreview(editorContainer, urlForFileAndPreview);
 							}
 						});
 					});
@@ -1501,39 +1512,33 @@ let _Files = {
 		});
 
 		let checkForUnsaved = () => {
-			if ($('.file-tab.has-changes').length > 0) {
+			if (document.querySelectorAll('.file-tab.has-changes').length > 0) {
 				return confirm('You have unsaved changes, really close without saving?');
 			} else {
 				return true;
 			}
 		};
 
-		saveAndClose.on('click', function(e) {
-			e.stopPropagation();
-			dialogSaveButton.click();
+		let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
+
+		newCancelButton.addEventListener('click', async (e) => {
 
 			if (checkForUnsaved()) {
-				setTimeout(function() {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
+
+				e.stopPropagation();
+
+				Structr.dialogSystem.dialogCancelBaseAction();
 			}
 		});
 
-		dialogCancelButton.on('click', (e) => {
+		saveAndCloseButton.addEventListener('click', (e) => {
+			e.stopPropagation();
+			saveButton.click();
+
 			if (checkForUnsaved()) {
-				e.stopPropagation();
-				dialogText.empty();
-				$.unblockUI({
-					fadeOut: 25
-				});
-
-				dialogBtn.children(':not(.closeButton)').remove();
-
-				Structr.focusSearchField();
-
-				LSWrapper.removeItem(Structr.dialogDataKey);
+				window.setTimeout(() => {
+					newCancelButton.click();
+				}, 250);
 			}
 		});
 
@@ -1549,7 +1554,7 @@ let _Files = {
 		let isTemplateCheckbox   = element.querySelector('#isTemplate');
 		let showPreviewCheckbox  = element.querySelector('#showTemplatePreview');
 
-		Structr.appendInfoTextToElement({
+		_Helpers.appendInfoTextToElement({
 			text: "Expressions like <pre>Hello ${print(me.name)} !</pre> will be evaluated. To see a preview, tick the adjacent checkbox.",
 			element: $(isTemplateCheckbox),
 			insertAfter: true,
@@ -1570,13 +1575,17 @@ let _Files = {
 		});
 
 		showPreviewCheckbox.addEventListener('change', () => {
-			let active = showPreviewCheckbox.checked;
-			if (active) {
+
+			if (showPreviewCheckbox.checked) {
+
 				_Files.updateTemplatePreview(outerElement, urlForFileAndPreview);
+
 			} else {
-				let previewArea = $('#template-preview').hide();
-				$('textarea', previewArea).val('');
-				$('.editor', outerElement).width('inherit');
+
+				let previewArea = document.querySelector('#template-preview');
+				previewArea.style.display = 'none';
+				previewArea.querySelector('textarea').value = '';
+				outerElement.querySelector('.editor').style.width = 'inherit';
 			}
 
 			_Editors.resizeVisibleEditors();
@@ -1635,17 +1644,28 @@ let _Files = {
 
 			} else {
 
-				container.append('<h1>' + data.result.length + ' result' + (data.result.length > 1 ? 's' : '') + ':</h1><table class="props"><thead><th class="_type">Type</th><th>Name</th><th>Size</th></thead><tbody></tbody></table>');
-				container.append('<div id="search-results-details"></div>')
+				container.append(`
+					<h1>${data.result.length} result${data.result.length > 1 ? 's' : ''}:</h1>
+					<table class="props">
+						<thead>
+							<tr>
+								<th class="_type">Type</th>
+								<th>Name</th>
+								<th>Size</th>
+							</tr>
+						</thead>
+						<tbody></tbody>
+					</table>
+					<div id="search-results-details"></div>`);
 
-				let tbody = $('tbody', container);
+				let tbody            = $('tbody', container);
 				let detailsContainer = $('#search-results-details', container);
 
 				for (let d of data.result) {
 
-					tbody.append('<tr><td>' + _Icons.getFileIconSVG(d) + ' ' + d.type + (d.isFile && d.contentType ? ' (' + d.contentType + ')' : '') + '</td><td>' + d.name + '</td><td>' + d.size + '</td></tr>');
+					tbody.append(`<tr><td>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.type}${d.isFile && d.contentType ? ` (${d.contentType})` : ''}</td><td>${d.name}</td><td>${d.size}</td></tr>`);
 
-					let contextResponse = await fetch(Structr.rootUrl + 'files/' + d.id + '/getSearchContext', {
+					let contextResponse = await fetch(`${Structr.rootUrl}files/${d.id}/getSearchContext`, {
 						method: 'POST',
 						body: JSON.stringify({
 							searchString: searchString,
@@ -1659,12 +1679,15 @@ let _Files = {
 
 						if (data.result) {
 
-							detailsContainer.append('<div class="search-result collapsed" id="results' + d.id + '"></div>');
+							detailsContainer.append(`<div class="search-result collapsed" id="results${d.id}"></div>`);
 
 							let div = $('#results' + d.id);
 
-							div.append('<h2>' + _Icons.getFileIconSVG(d) + ' ' + d.name + '</h2>');
-							div.append('<i class="toggle-height fa fa-expand"></i>').append('<i class="go-to-top fa fa-chevron-up"></i>');
+							div.append(`
+								<h2>${_Icons.getSvgIcon(_Icons.getFileIconSVG(d))} ${d.name}</h2>
+								<i class="toggle-height fa fa-expand"></i>
+								<i class="go-to-top fa fa-chevron-up"></i>
+							`);
 
 							$('.toggle-height', div).on('click', function() {
 								let icon = $(this);
@@ -1683,7 +1706,7 @@ let _Files = {
 									contextString = contextString.replace(new RegExp('(' + str + ')', 'gi'), '<span class="highlight">$1</span>');
 								}
 
-								div.append('<div class="part">' + contextString + '</div>');
+								div.append(`<div class="part">${contextString}</div>`);
 							}
 
 							div.append('<div style="clear: both;"></div>');
@@ -1701,84 +1724,81 @@ let _Files = {
 			for (var c = 0; c < chunks; c++) {
 				var start = c * _Files.chunkSize;
 				var end = (c + 1) * _Files.chunkSize;
-				var chunk = utf8_to_b64(text.substring(start, end));
+				var chunk = _Helpers.utf8_to_b64(text.substring(start, end));
 				Command.chunk(file.id, c, _Files.chunkSize, chunk, chunks, ((c+1 === chunks) ? callback : undefined));
 			}
 		}
 	},
 	updateTemplatePreview: async (element, url) => {
 
-		let contentBox = $('.editor', element);
-		contentBox.width('50%');
+		let contentBox = element.querySelector('.editor');
+		contentBox.style.width = '50%';
 
-		let previewArea = $('#template-preview');
-		previewArea.show();
+		let previewArea = document.querySelector('#template-preview');
+		previewArea.style.display = 'block';
 
 		let response = await fetch(url.substr(0, url.indexOf('?')));
 		let text     = await response.text();
 
-		$('textarea', previewArea).val(text);
+		previewArea.querySelector('textarea').value = text;
 	},
-	isArchive: function(file) {
-		var contentType = file.contentType;
-		var extension = file.name.substring(file.name.lastIndexOf('.') + 1);
+	isArchive: (file) => {
 
-		var archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive', 'application/x-7z-compressed', 'application/x-ar', 'application/x-arj'];
-		var archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar', '7z', 'ar', 'arj'];
+		let contentType = file.contentType;
+		let extension = file.name.substring(file.name.lastIndexOf('.') + 1);
 
-		return isIn(contentType, archiveTypes) || isIn(extension, archiveExtensions);
+		let archiveTypes = ['application/zip', 'application/x-tar', 'application/x-cpio', 'application/x-dump', 'application/x-java-archive', 'application/x-7z-compressed', 'application/x-ar', 'application/x-arj'];
+		let archiveExtensions = ['zip', 'tar', 'cpio', 'dump', 'jar', '7z', 'ar', 'arj'];
+
+		return _Helpers.isIn(contentType, archiveTypes) || _Helpers.isIn(extension, archiveExtensions);
 	},
-	openMountDialog: function() {
+	openMountDialog: () => {
 
-		_Schema.getTypeInfo('Folder', function(typeInfo) {
+		_Schema.getTypeInfo('Folder', (typeInfo) => {
 
-			Structr.dialog('Mount Folder', function(){}, function(){});
+			let { dialogText } = Structr.dialogSystem.openDialog('Mount Folder');
 
-			let elem = $(_Files.templates.mountDialog({typeInfo: typeInfo}));
+			dialogText.insertAdjacentHTML('beforeend', _Files.templates.mountDialog({typeInfo: typeInfo}));
+			_Helpers.activateCommentsInElement(dialogText);
 
-			$('[data-info-text]', elem).each(function(i, el) {
-				Structr.appendInfoTextToElement({
-					element: $(el),
-					text: $(el).data('info-text'),
-					css: { marginLeft: "5px" }
-				});
-			});
+			let mountButton = Structr.dialogSystem.prependCustomDialogButton('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
 
-			dialogText.append(elem);
+			mountButton.addEventListener('click', () => {
 
-			let mountButton = $('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>').on('click', function() {
+				let mountConfig = {};
+				for (let input of dialogText.querySelectorAll('[data-attribute-name]')) {
 
-				var mountConfig = {};
-				$('.mount-option[type="text"]').each(function(i, el) {
-					var val = $(el).val();
-					if (val !== "") {
-						mountConfig[$(el).data('attributeName')] = val;
+					let attrName = input.dataset['attributeName'];
+					if (input.type === 'text') {
+						if (input.value != '') {
+							mountConfig[attrName] = input.value;
+						}
+					} else if (input.type === 'number') {
+						if (input.value != '') {
+							mountConfig[attrName] = parseInt(input.value);
+						}
+					} else if (input.type === 'checkbox') {
+						mountConfig[attrName] = input.checked;
 					}
-				});
-				$('.mount-option[type="number"]').each(function(i, el) {
-					var val = $(el).val();
-					if (val !== "") {
-						mountConfig[$(el).data('attributeName')] = parseInt(val);
-					}
-				});
-				$('.mount-option[type="checkbox"]').each(function(i, el) {
-					mountConfig[$(el).data('attributeName')] = $(el).prop('checked');
-				});
+				}
 
 				if (!mountConfig.name) {
-					Structr.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+
+					Structr.dialogSystem.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+
 				} else if (!mountConfig.mountTarget) {
-					Structr.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+
+					Structr.dialogSystem.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+
 				} else {
+
 					mountConfig.type = 'Folder';
 					mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 					Command.create(mountConfig);
 
-					dialogCancelButton.click();
+					Structr.dialogSystem.clickDialogCancelButton();
 				}
 			});
-
-			dialogBtn.prepend(mountButton);
 		});
 	},
 
@@ -1835,7 +1855,7 @@ let _Files = {
 				</div>
 			</div>
 
-			<div class="searchBox module-dependend" data-structr-module="text-search">
+			<div class="searchBox module-dependent" data-structr-module="text-search">
 				<input id="files-search-box" class="search" name="search" placeholder="Search...">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
@@ -1843,11 +1863,11 @@ let _Files = {
 		mountDialog: config => `
 			<table id="mount-dialog" class="props">
 				<tr>
-					<td data-info-text="The name of the folder which will mount the target directory">Name</td>
+					<td data-comment="The name of the folder which will mount the target directory">Name</td>
 					<td><input type="text" class="mount-option" data-attribute-name="name"></td>
 				</tr>
 				<tr>
-					<td data-info-text="The absolute path of the local directory to mount">Mount Target</td>
+					<td data-comment="The absolute path of the local directory to mount">Mount Target</td>
 					<td><input type="text" class="mount-option" data-attribute-name="mountTarget"></td>
 				</tr>
 				<tr>
@@ -1855,23 +1875,23 @@ let _Files = {
 					<td><input type="checkbox" class="mount-option" data-attribute-name="mountDoFulltextIndexing"></td>
 				</tr>
 				<tr>
-					<td data-info-text="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
+					<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
 					<td><input type="number" class="mount-option" data-attribute-name="mountScanInterval"></td>
 				</tr>
 				<tr>
-					<td data-info-text="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
+					<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
 					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFolderType"></td>
 				</tr>
 				<tr>
-					<td data-info-text="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
+					<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
 					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFileType"></td>
 				</tr>
 				<tr>
-					<td data-info-text="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
+					<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
 					<td><input type="text" class="mount-option" data-attribute-name="enabledChecksums"></td>
 				</tr>
 				<tr>
-					<td data-info-text="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
+					<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
 					<td><input type="checkbox" class="mount-option" data-attribute-name="mountWatchContents"></td>
 				</tr>
 			</table>

@@ -1248,7 +1248,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 			//build a button for each type and add it to the settings-container
 			$.each(_nodeTypes, function(i, nodeType){
-				nodeTypeBox.append('<a id="currentNodeTypes-nodeType-btn-' + nodeType + '" class="currentNodeTypesButton ' + _classes + '" style="background-color: ' + color[nodeType] + '">' + nodeType + '</a>');
+				nodeTypeBox.append('<a id="currentNodeTypes-nodeType-btn-' + nodeType + '" class="currentNodeTypesButton ' + _classes + '" style="background-color: ' + _Graph.color[nodeType] + '">' + nodeType + '</a>');
 				var newButton = $('#currentNodeTypes-nodeType-btn-' + nodeType);
 
 				//if the nodes with the type are hidden, change the button accordingly
@@ -1455,7 +1455,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 var Graphbrowser = Graphbrowser || {};
 Graphbrowser.Modules = Graphbrowser.Modules || {};
 
-var animating = animating || undefined;
+var animating = undefined;
 
 (function() {
 	'use strict';
@@ -2053,7 +2053,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				graphInfo.append(_infoButtonRenderer(key, label));
 				var button = $('#' + key + '-button');
 				button.css('border', 'none');
-				button.css('background-color', color[key]);
+				button.css('background-color', _Graph.color[key]);
 				button.css('color', '#000');
 				button.css('top', (y + dy + _marginY) + 'px');
 				button.css('left', (x + dx + _marginX) + 'px');
@@ -2176,7 +2176,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				size: size,
 				x: newX,
 				y: newY,
-				color: color[targetNode.type],
+				color: _Graph.color[targetNode.type],
 				nodeType: targetNode.type
 			});
 
@@ -2216,7 +2216,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				size: size,
 				x: newX,
 				y: newY,
-				color: color[sourceNode.type],
+				color: _Graph.color[sourceNode.type],
 				nodeType: sourceNode.type
 			});
 
@@ -2374,7 +2374,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		addToApi('hideExpandButtons', hideExpandButtons);
 
 		function defaultInfoButtonRenderer(colorKey, label){
-			return '<button class="btn btn-xs nodeExpander-infobutton" style="margin: 4px; color: #000; background-color: ' + (color[colorKey] || _defaultInfoButtonColor) + '">' + label + '</button>'
+			return '<button class="btn btn-xs nodeExpander-infobutton" style="margin: 4px; color: #000; background-color: ' + (_Graph.color[colorKey] || _defaultInfoButtonColor) + '">' + label + '</button>'
 		};
 
 		this.name = _name;

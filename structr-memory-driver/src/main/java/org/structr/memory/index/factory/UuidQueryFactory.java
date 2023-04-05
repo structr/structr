@@ -18,7 +18,7 @@
  */
 package org.structr.memory.index.factory;
 
-import org.apache.commons.lang.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
@@ -38,7 +38,7 @@ public class UuidQueryFactory extends AbstractQueryFactory<MemoryQuery> {
 	public boolean createQuery(final QueryPredicate predicate, final MemoryQuery query, final boolean isFirst) {
 
 		final String uuid = ((UuidQuery)predicate).getUuid();
-		if (StringUtils.isNotBlank(uuid) && uuid.length() == 32) {
+		if (Settings.isValidUuid(uuid)) {
 
 			query.addPredicate(new ValuePredicate("id", uuid));
 

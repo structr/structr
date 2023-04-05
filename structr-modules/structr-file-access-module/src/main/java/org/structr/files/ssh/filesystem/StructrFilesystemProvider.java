@@ -66,12 +66,12 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized FileChannel newFileChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		return checkPath(path).newFileChannel(options, attrs);
+		throw new UnsupportedOperationException("Not supported.");
 	}
 
 	@Override
 	public synchronized SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-		return newFileChannel(path, options, attrs);
+		return checkPath(path).newChannel(options, attrs);
 	}
 
 	@Override

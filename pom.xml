@@ -38,10 +38,6 @@
 			<name>Christian Kramp</name>
 			<email>christian.kramp@structr.com</email>
 		</developer>
-		<developer>
-			<name>Jakob Laenge</name>
-			<email>jakob.laenge@structr.com</email>
-		</developer>
 	</developers>
 
 	<prerequisites>
@@ -57,7 +53,7 @@
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
-		<test.forkCount>8</test.forkCount>
+		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
 	</properties>
 

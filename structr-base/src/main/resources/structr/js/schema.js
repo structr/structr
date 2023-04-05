@@ -16,7 +16,8 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
 
@@ -57,8 +58,8 @@ let _Schema = {
 
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
-			Structr.mainContainer.innerHTML = _Schema.templates.main();
-			Structr.activateCommentsInElement(Structr.mainContainer);
+			Structr.setMainContainerHTML(_Schema.templates.main());
+			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
 			_Schema.inheritanceSlideout     = $('#inheritance-tree');
 			_Schema.inheritanceTree         = $('#inheritance-tree-container');
@@ -81,10 +82,10 @@ let _Schema = {
 				_Schema.ui.selectionStop();
 			});
 
-			let inheritanceTab = $('#inheritanceTab');
-			inheritanceTab.on('click', () => {
-				_Pages.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], (params) => {
-					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.prop('id'));
+			let inheritanceTab = document.querySelector('#inheritanceTab');
+			inheritanceTab.addEventListener('click', () => {
+				Structr.slideouts.leftSlideoutTrigger(inheritanceTab, _Schema.inheritanceSlideout, [], () => {
+					LSWrapper.setItem(_Schema.schemaActiveTabLeftKey, inheritanceTab.id);
 					_Schema.inheritanceTree.show();
 				}, () => {
 					LSWrapper.removeItem(_Schema.schemaActiveTabLeftKey);
@@ -100,12 +101,15 @@ let _Schema = {
 				_Schema.resize();
 			});
 
-			Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('schema'));
+			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
 
 			$(window).off('resize').on('resize', () => {
 				_Schema.resize();
 			});
 		});
+	},
+	getLeftResizerKey: () => {
+		return null;
 	},
 	reload: (callback) => {
 
@@ -118,10 +122,9 @@ let _Schema = {
 		_Schema.isReloading = true;
 		//_Schema.storePositions();	/* CHM: don't store positions on every reload, let automatic positioning do its job.. */
 
-		fastRemoveAllChildren(_Schema.ui.canvas[0]);
+		_Helpers.fastRemoveAllChildren(_Schema.ui.canvas[0]);
 		_Schema.init({ x: window.scrollX, y: window.scrollY }, callback);
 		_Schema.resize();
-
 	},
 	storePositions: () => {
 		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
@@ -140,15 +143,13 @@ let _Schema = {
 	},
 	init: (scrollPosition, callback) => {
 
-		_Schema.schemaLoading = false;
-		_Schema.schema        = [];
-		_Schema.keys          = [];
+		_Schema.schemaLoading      = false;
+		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
+		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
+		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
+		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
-		_Schema.ui.connectorStyle     = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
-		_Schema.ui.zoomLevel          = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
-		_Schema.ui.showInheritance    = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
-		_Schema.showJavaMethods       = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
-		Structr.functionBar.innerHTML = _Schema.templates.functions();
+		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
 		//UISettings.showSettingsForCurrentModule();
 
@@ -156,25 +157,7 @@ let _Schema = {
 		_Schema.activateSnapshotsDialog();
 		_Schema.activateAdminTools();
 
-		let typeNameInput       = document.getElementById('type-name');
-		let createNewTypeButton = document.getElementById('create-type');
-
-		createNewTypeButton.addEventListener('click', async () => {
-			await _Schema.createNode(typeNameInput.value);
-		});
-
-		typeNameInput.addEventListener('keyup', (e) => {
-
-			if (e.keyCode === 13 || e.code === 'Enter') {
-				e.preventDefault();
-				if (typeNameInput.value.length) {
-					createNewTypeButton.click();
-					typeNameInput.blur();
-				}
-				return false;
-			}
-		});
-
+		document.getElementById('create-type').addEventListener('click', _Schema.nodes.showCreateTypeDialog);
 		document.getElementById('global-schema-methods').addEventListener('click', _Schema.methods.showGlobalSchemaMethods);
 
 		$('#zoom-slider').slider({
@@ -222,12 +205,14 @@ let _Schema = {
 			_Schema.ui.jsPlumbInstance.bind('connection', (info, originalEvent) => {
 
 				if (info.connection.scope === 'jsPlumb_DefaultScope') {
+
 					if (originalEvent) {
 
-						_Schema.relationships.createRelationship(info);
+						_Schema.relationships.showCreateRelationshipDialog(info);
 					}
+
 				} else {
-					new MessageBuilder().warning('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
+					new WarningMessage().text('Moving existing relationships is not permitted!').title('Not allowed').requiresConfirmation().show();
 					_Schema.reload();
 				}
 			});
@@ -235,7 +220,7 @@ let _Schema = {
 			_Schema.ui.jsPlumbInstance.bind('connectionDetached', (info) => {
 
 				if (info.connection.scope !== 'jsPlumb_DefaultScope') {
-					new MessageBuilder().warning('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
+					new WarningMessage().text('Deleting relationships is only possible via the delete button!').title('Not allowed').requiresConfirmation().show();
 					_Schema.reload();
 				}
 			});
@@ -252,12 +237,10 @@ let _Schema = {
 
 			Structr.unblockMenu(500);
 
-			let overlaysVisible    = LSWrapper.getItem(_Schema.showSchemaOverlaysKey);
-			let showSchemaOverlays = (overlaysVisible === null) ? true : overlaysVisible;
+			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
 			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
 
-			let inheritanceVisible    = LSWrapper.getItem(_Schema.showSchemaInheritanceKey);
-			let showSchemaInheritance = (inheritanceVisible === null) ? true : inheritanceVisible;
+			let showSchemaInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true);
 			_Schema.ui.updateInheritanceVisibility(showSchemaInheritance);
 
 			if (scrollPosition) {
@@ -272,10 +255,10 @@ let _Schema = {
 		Structr.adaptUiToAvailableFeatures();
 	},
 	showSchemaRecompileMessage: () => {
-		Structr.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
+		_Helpers.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
 	},
 	hideSchemaRecompileMessage:  () => {
-		Structr.hideNonBlockUILoadingMessage();
+		_Helpers.hideNonBlockUIOverlay();
 	},
 	loadSchema: async () => {
 
@@ -294,9 +277,9 @@ let _Schema = {
 
 		if (Structr.isModuleActive(_Schema)) {
 
-			new MessageBuilder()
+			new InfoMessage()
 				.title("Schema recompiled")
-				.info("Another user made changes to the schema. Do you want to reload to see the changes?")
+				.text("Another user made changes to the schema. Do you want to reload to see the changes?")
 				.specialInteractionButton("Reload", _Schema.reloadSchemaAfterRecompileNotification, "Ignore")
 				.uniqueClass('schema')
 				.incrementsUniqueCount()
@@ -308,11 +291,9 @@ let _Schema = {
 		if (_Schema.currentNodeDialogId !== null) {
 
 			// we break the current dialog the hard way (because if we 'click' the close button we might re-open the previous dialog
-			$.unblockUI({
-				fadeOut: 25
-			});
+			Structr.dialogSystem.dialogCancelBaseAction();
 
-			let currentView = LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + _Schema.currentNodeDialogId);
+			let currentView = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${_Schema.currentNodeDialogId}`);
 
 			_Schema.reload(() => {
 				_Schema.openEditDialog(_Schema.currentNodeDialogId, currentView);
@@ -325,30 +306,22 @@ let _Schema = {
 	},
 	getFirstSchemaLayoutOrFalse: async () => {
 
-		if (!_Schema.hiddenSchemaNodes) {
+		let response = await fetch(`${Structr.rootUrl}ApplicationConfigurationDataNode/ui?configType=layout&${Structr.getRequestParameterName('pageSize')}=1&${Structr.getRequestParameterName('order')}=desc&${Structr.getRequestParameterName('sort')}=createdDate`);
+		let data     = await response.json();
 
-			let response = await fetch(Structr.rootUrl + 'ApplicationConfigurationDataNode/ui?configType=layout');
-			let data     = await response.json();
+		if (data.result?.length > 0) {
 
-			if (data.result.length > 0) {
-
-				return data.result[0].content;
-
-			} else {
-
-				_Schema.hiddenSchemaNodes = [];
-			}
+			return data.result[0];
 		}
 
 		return false;
 	},
 	openEditDialog: (id, targetView, callback) => {
 
-		targetView = targetView || LSWrapper.getItem(_Entities.activeEditTabPrefix  + '_' + id) || 'basic';
+		targetView = targetView || LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${id}`) || 'basic';
 
 		_Schema.currentNodeDialogId = id;
 
-		dialogMeta.hide();
 		Command.get(id, null, (entity) => {
 
 			let title = (entity.type === "SchemaRelationshipNode") ? `(:${_Schema.nodeData[entity.sourceId].name})-[:${entity.relationshipType}]-&gt;(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
@@ -356,37 +329,40 @@ let _Schema = {
 			let callbackCancel = () => {
 				_Schema.currentNodeDialogId = null;
 
-				if (callback) {
-					callback();
-				}
-				dialogMeta.show();
+				callback?.();
+
 				_Schema.ui.jsPlumbInstance.repaintEverything();
 			};
 
-			Structr.dialog(title, () => {
-				dialogMeta.show();
-			}, callbackCancel, ['schema-edit-dialog']);
+			let { dialogText } = Structr.dialogSystem.openDialog(title, callbackCancel, ['schema-edit-dialog']);
+
+			dialogText.insertAdjacentHTML('beforeend', `
+				<div id="tabs" class="flex flex-col h-full overflow-hidden">
+					<ul class="flex-shrink-0"></ul>
+				</div>
+			`);
+
+			let mainTabs  = dialogText.querySelector('#tabs');
+			let contentEl = dialogText.querySelector('#tabs');
 
 			let tabControls;
 
 			if (entity.type === "SchemaRelationshipNode") {
-				tabControls = _Schema.relationships.loadRelationship(entity, dialogHead, dialogText, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView, callbackCancel);
+				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView, callbackCancel);
 			} else {
-				tabControls = _Schema.nodes.loadNode(entity, dialogHead, dialogText, targetView, callbackCancel);
+				tabControls = _Schema.nodes.loadNode(entity, mainTabs, contentEl, targetView, callbackCancel);
 			}
 
 			// remove bulk edit save/discard buttons
-			for (let button of dialogText[0].querySelectorAll('.discard-all, .save-all')) {
+			for (let button of dialogText.querySelectorAll('.discard-all, .save-all')) {
 				button.remove();
 			}
 
-			let actionButtons = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaActionButtons({ saveButtonText: 'Save All', discardButtonText: 'Discard All' }));
-			dialogBtn[0].prepend(actionButtons);
-
-			let saveButton   = actionButtons.querySelector('#save-entity-button');
-			let cancelButton = actionButtons.querySelector('#discard-entity-changes-button');
+			let cancelButton = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard All' }));
+			let saveButton   = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Save All' }));
 
 			saveButton.addEventListener('click', async (e) => {
+
 				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(id, tabControls);
 
 				if (ok) {
@@ -398,36 +374,19 @@ let _Schema = {
 				_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
 			});
 
-			let disableButtons = () => {
-				saveButton.disabled = true;
-				cancelButton.disabled = true;
+			_Helpers.disableElements(true, saveButton, cancelButton);
 
-				saveButton.classList.add('disabled');
-				cancelButton.classList.add('disabled');
-			};
-			disableButtons();
-
-			let enableButtons = () => {
-				saveButton.removeAttribute('disabled');
-				cancelButton.removeAttribute('disabled');
-
-				saveButton.classList.remove('disabled');
-				cancelButton.classList.remove('disabled');
-			};
-
-			dialogText[0].childNodes[0].addEventListener('bulk-data-change', (e) => {
+			contentEl.addEventListener('bulk-data-change', (e) => {
 
 				e.stopPropagation();
 
 				let changeCount = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(_Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, false));
-				if (changeCount > 0) {
-					enableButtons();
-				} else {
-					disableButtons();
-				}
+				let isDirty     = (changeCount > 0);
+				_Helpers.disableElements(!isDirty, saveButton, cancelButton);
 			});
 
 			_Schema.ui.clearSelection();
+
 		}, 'schema');
 
 	},
@@ -435,81 +394,72 @@ let _Schema = {
 		closeWithoutSavingChangesQuestionOpen: false,
 		overrideDialogCancel: (mainTabs, additionalCallback) => {
 
-			dialogCancelButton.off('click').on('click', async () => {
+			if (Structr.isModuleActive(_Schema)) {
 
-				if (_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen === false) {
+				let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
 
-					let allowNavigation = true;
-					let hasChanges      = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs);
+				newCancelButton.addEventListener('click', async (e) => {
 
-					if (hasChanges) {
+					if (_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen === false) {
 
-						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
-						allowNavigation = await Structr.confirmationPromiseNonBlockUI("Really close with unsaved changes?")
-					}
+						let allowNavigation = true;
+						let hasChanges      = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs);
 
-					_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
+						if (hasChanges) {
 
-					if (allowNavigation === true) {
+							_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
+							allowNavigation = await _Helpers.confirmationPromiseNonBlockUI("Really close with unsaved changes?")
+						}
 
-						Structr.dialogCancelBaseAction();
+						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
 
-						if (additionalCallback) {
-							additionalCallback();
+						if (allowNavigation === true) {
+
+							Structr.dialogSystem.dialogCancelBaseAction();
+
+							if (additionalCallback) {
+								additionalCallback();
+							}
 						}
 					}
-				}
-			});
+				});
+			}
 		},
 		hasUnsavedChangesInTabs: (mainTabs) => {
-			return (mainTabs.find('.has-changes').length > 0);
+			return (mainTabs.querySelectorAll('.has-changes').length > 0);
 		},
 		hasUnsavedChangesInTable: (table) => {
-			return (table[0].querySelectorAll('tbody tr.to-delete, tbody tr.has-changes').length > 0);
+			return (table.querySelectorAll('tbody tr.to-delete, tbody tr.has-changes').length > 0);
 		},
 		tableChanged: (table) => {
 			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(table);
-			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, table, table.find('tfoot'));
-		},
-		hasUnsavedChangesInFakeTable: (fakeTable) => {
-			return (fakeTable[0].querySelectorAll('.fake-tbody .fake-tr.to-delete, .fake-tbody .fake-tr.has-changes').length > 0);
+			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, table, table.querySelector('tfoot'));
 		},
 		fakeTableChanged: (fakeTable) => {
-			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInFakeTable(fakeTable);
-			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, fakeTable, fakeTable.find('.fake-tfoot'));
+			let unsavedChanges = (fakeTable.querySelectorAll('.fake-tbody .fake-tr.to-delete, .fake-tbody .fake-tr.has-changes').length > 0);
+			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, fakeTable, fakeTable.querySelector('.fake-tfoot'));
 		},
 		dataChanged: (unsavedChanges, table, tfoot) => {
 
 			let tabContainer = table.closest('.propTabContent');
-			if (tabContainer.length > 0) {
+			if (tabContainer) {
 				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContainer, unsavedChanges);
 			}
 
-			if (unsavedChanges) {
+			let discardAll = tfoot.querySelector('.discard-all');
+			let saveAll    = tfoot.querySelector('.save-all');
 
-				$('.discard-all', tfoot).removeClass('disabled').attr('disabled', null);
-				$('.save-all', tfoot).removeClass('disabled').attr('disabled', null);
-
-			} else {
-
-				$('.discard-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-				$('.save-all', tfoot).addClass('disabled').attr('disabled', 'disabled');
-			}
+			_Helpers.disableElements(!unsavedChanges, discardAll, saveAll);
 		},
 		dataChangedInTab: (tabContainer, unsavedChanges) => {
 
-			let tab = document.querySelector('#' + tabContainer.data('tabId'));
+			let tab = document.querySelector(`#${tabContainer.dataset['tabId']}`);
 
 			if (tab) {
-
-				if (unsavedChanges) {
-					tab.classList.add('has-changes');
-				} else {
-					tab.classList.remove('has-changes');
-				}
+				_Schema.markElementAsChanged(tab, unsavedChanges);
 			}
 
-			tabContainer[0].dispatchEvent(new CustomEvent('bulk-data-change', {
+			tabContainer.dispatchEvent(new CustomEvent('bulk-data-change', {
 				// detail: {
 				// 	bar: 'baz'
 				// },
@@ -517,6 +467,7 @@ let _Schema = {
 			}));
 		},
 		getBulkInfoFromTabControls: (tabControls, doValidate = true) => {
+
 			let data = {};
 			for (let key in tabControls) {
 				data[key] = tabControls[key].getBulkInfo(doValidate);
@@ -535,9 +486,10 @@ let _Schema = {
 				}
 			}
 
-			return {allow, reasons};
+			return { allow, reasons };
 		},
 		getChangeCountFromBulkInfo: (bulkInfo) => {
+
 			let total = 0;
 
 			for (let [key, info] of Object.entries(bulkInfo)) {
@@ -565,15 +517,15 @@ let _Schema = {
 		},
 		saveEntityFromTabControls: async (id, tabControls) => {
 
-			let bulkInfo         = _Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, true);
-			let counts           = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(bulkInfo);
-			let {allow, reasons} = _Schema.bulkDialogsGeneral.isSaveAllowedFromBulkInfo(bulkInfo);
+			let bulkInfo           = _Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, true);
+			let counts             = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(bulkInfo);
+			let { allow, reasons } = _Schema.bulkDialogsGeneral.isSaveAllowedFromBulkInfo(bulkInfo);
 
 			if (counts > 0) {
 
 				if (!allow) {
 
-					new MessageBuilder().warning(`Unable to save. ${reasons.join()} are preventing saving.`).show();
+					new WarningMessage().text(`Unable to save. ${reasons.join()} are preventing saving.`).show();
 
 				} else {
 
@@ -614,360 +566,328 @@ let _Schema = {
 
 			_Schema.hiddenSchemaNodes = JSON.parse(LSWrapper.getItem(_Schema.hiddenSchemaNodesKey));
 
-			let savedHiddenSchemaNodesNull = (_Schema.hiddenSchemaNodes === null);
-
 			let schemaLayout = await _Schema.getFirstSchemaLayoutOrFalse();
 
-			if (schemaLayout && !savedHiddenSchemaNodesNull) {
+			if (schemaLayout && schemaLayout.content && (_Schema.hiddenSchemaNodes === null)) {
 
-				_Schema.applySavedLayoutConfiguration(schemaLayout);
+				_Schema.applySavedLayoutConfiguration(schemaLayout, true);
+			}
 
-			} else {
+			let response = await fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=hierarchyLevel&${Structr.getRequestParameterName('order')}=asc`);
+			if (response.ok) {
 
-				let response = await fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=hierarchyLevel&' + Structr.getRequestParameterName('order') + '=asc');
+				let data             = await response.json();
+				let entities         = {};
+				let inheritancePairs = {};
+				let hierarchy        = {};
+				let x = 0, y = 0;
 
-				if (response.ok) {
+				if (_Schema.hiddenSchemaNodes === null) {
+					_Schema.hiddenSchemaNodes = data.result.filter((entity) => entity.isBuiltinType).map((entity) => entity.name);
+					LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
+				}
 
-					let data             = await response.json();
-					let entities         = {};
-					let inheritancePairs = {};
-					let hierarchy        = {};
-					let x = 0, y = 0;
+				_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
+				if (!_Schema.nodePositions) {
 
-					if (savedHiddenSchemaNodesNull) {
-						_Schema.hiddenSchemaNodes = data.result.filter((entity) => {
-							return entity.isBuiltinType;
-						}).map((entity) => {
-							return entity.name;
-						});
-						LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-					}
+					let nodePositions = {};
 
-					_Schema.nodePositions = LSWrapper.getItem(_Schema.schemaPositionsKey);
-					if (!_Schema.nodePositions) {
+					// positions are stored the 'old' way => convert to the 'new' way
+					let typeNames = data.result.map(entity => entity.name);
+					for (let typeName of typeNames) {
 
-						let nodePositions = {};
+						let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
+						if (nodePos) {
+							nodePositions[typeName] = nodePos.position;
 
-						// positions are stored the 'old' way => convert to the 'new' way
-						let typeNames = data.result.map(entity => entity.name);
-						for (let typeName of typeNames) {
-
-							let nodePos = JSON.parse(LSWrapper.getItem(typeName + _Schema.schemaNodePositionKeySuffix));
-							if (nodePos) {
-								nodePositions[typeName] = nodePos.position;
-
-								LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
-							}
-						}
-
-						_Schema.nodePositions = nodePositions;
-						LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
-
-						// After we have converted all types we try to find *all* outdated type positions and delete them
-						for (let key in JSON.parse(LSWrapper.getAsJSON())) {
-
-							if (key.endsWith('node-position')) {
-								LSWrapper.removeItem(key);
-							}
+							LSWrapper.removeItem(typeName + _Schema.schemaNodePositionKeySuffix);
 						}
 					}
 
-					_Schema.loadClassTree(data.result);
+					_Schema.nodePositions = nodePositions;
+					LSWrapper.setItem(_Schema.schemaPositionsKey, _Schema.nodePositions);
 
-					_Schema.availableTypeNames = [];
+					// After we have converted all types we try to find *all* outdated type positions and delete them
+					for (let key in JSON.parse(LSWrapper.getAsJSON())) {
 
-					for (let entity of data.result) {
-
-						_Schema.availableTypeNames.push(entity.name);
-
-						let level   = 0;
-						let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
-						let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
-						let hasRels = (outs > 0 || ins > 0);
-
-						if (ins === 0 && outs === 0) {
-
-							// no rels => push down
-							//level += 100;
-
-						} else {
-
-							if (outs === 0) {
-								level += 10;
-							}
-
-							level += ins;
+						if (key.endsWith('node-position')) {
+							LSWrapper.removeItem(key);
 						}
+					}
+				}
 
-						if (entity.isBuiltinType && !hasRels) {
+				_Schema.loadClassTree(data.result);
+
+				_Schema.availableTypeNames = [];
+
+				for (let entity of data.result) {
+
+					_Schema.availableTypeNames.push(entity.name);
+
+					let level   = 0;
+					let outs    = entity.relatedTo ? entity.relatedTo.length : 0;
+					let ins     = entity.relatedFrom ? entity.relatedFrom.length : 0;
+					let hasRels = (outs > 0 || ins > 0);
+
+					if (ins === 0 && outs === 0) {
+
+						// no rels => push down
+						//level += 100;
+
+					} else {
+
+						if (outs === 0) {
 							level += 10;
 						}
 
-						if (!hierarchy[level]) { hierarchy[level] = []; }
-						hierarchy[level].push(entity);
-
-						entities[entity.id] = entity.id;
+						level += ins;
 					}
 
-					for (let entity of data.result) {
-
-						if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
-							inheritancePairs[entity.id] = entities[entity.extendsClass.id];
-						}
+					if (entity.isBuiltinType && !hasRels) {
+						level += 10;
 					}
 
-					for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
+					if (!hierarchy[level]) { hierarchy[level] = []; }
+					hierarchy[level].push(entity);
 
-						for (let entity of entitiesAtHierarchyLevel) {
-
-							_Schema.nodeData[entity.id] = entity;
-
-							if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
-
-								let id = 'id_' + entity.id;
-								_Schema.ui.canvas.append(`
-									<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
-										<b>${entity.name}</b>
-										<div class="icons-container flex items-center">
-											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
-											${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
-										</div>
-									</div>
-								`);
-
-								let node = $('#' + id);
-
-								node[0].addEventListener('mousedown', () => {
-									node[0].style.zIndex = ++_Schema.ui.maxZ;
-								});
-
-								node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
-									_Schema.openEditDialog(entity.id);
-								});
-
-								if (!entity.isBuiltinType) {
-
-									node[0].querySelector('b').addEventListener('click', () => {
-										_Schema.makeAttrEditable(node, 'name');
-									});
-
-									node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
-										let confirm = await Structr.confirmationPromiseNonBlockUI(`
-											<h3>Delete schema node '${entity.name}'?</h3>
-											<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
-										`);
-
-										if (confirm === true) {
-
-											$.unblockUI({fadeOut: 25});
-
-											await _Schema.deleteNode(entity.id);
-										}
-									});
-								}
-
-								let nodePosition = _Schema.nodePositions[entity.name];
-
-								if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
-
-									nodePosition = _Schema.ui.calculateNodePosition(x, y);
-
-									let count = 0;
-
-									while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-										x++;
-										nodePosition = _Schema.ui.calculateNodePosition(x, y);
-									}
-								}
-
-								let canvasOffsetTop = _Schema.ui.canvas.offset().top;
-
-								if (nodePosition.top < canvasOffsetTop) {
-									nodePosition.top = canvasOffsetTop;
-
-									let count = 0;
-
-									while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
-										x++;
-										nodePosition = _Schema.ui.calculateNodePosition(x, y);
-									}
-								}
-
-								node.offset(nodePosition);
-
-								_Schema.nodeData[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-									anchor: "Top",
-									maxConnections: -1,
-									isTarget: true,
-									deleteEndpointsOnDetach: false
-								});
-								_Schema.nodeData[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
-									anchor: "Bottom",
-									maxConnections: -1,
-									isSource: true,
-									deleteEndpointsOnDetach: false
-								});
-
-								let currentCanvasOffset;
-								let dragElement;
-								let dragElementId;
-								let dragElementIsSelected = false;
-								let nodeDragStartpoint    = {};
-								let dragStopped           = false;
-
-								_Schema.ui.jsPlumbInstance.draggable(id, {
-									containment: true,
-									start: (ui) => {
-
-										_Schema.ui.updateSelectedNodes();
-
-										dragElement         = $(ui.el);
-										dragElementId       = dragElement.attr('id');
-										currentCanvasOffset = _Schema.ui.canvas.offset();
-										dragStopped         = false;
-										let nodeOffset      = dragElement.offset();
-
-										dragElementIsSelected = dragElement.hasClass('selected');
-										if (!dragElementIsSelected) {
-											_Schema.ui.clearSelection();
-										}
-
-										nodeDragStartpoint = {
-											top: (nodeOffset.top - currentCanvasOffset.top),
-											left: (nodeOffset.left - currentCanvasOffset.left)
-										};
-									},
-									drag: () => {
-
-										if (dragElementIsSelected) {
-
-											Structr.requestAnimationFrameWrapper(_Schema.prevAnimFrameReqId_dragNode, () => {
-												if (!dragStopped) {
-													let nodeOffset = dragElement.offset();
-
-													let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
-													let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
-
-													for (let selectedNode of _Schema.ui.selectedNodes) {
-
-														if (selectedNode.nodeId !== dragElementId) {
-															let newTop  = selectedNode.pos.top - deltaTop;
-															if (newTop < currentCanvasOffset.top) {
-																newTop = currentCanvasOffset.top;
-															}
-															let newLeft = selectedNode.pos.left - deltaLeft;
-															if (newLeft < currentCanvasOffset.left) {
-																newLeft = currentCanvasOffset.left;
-															}
-
-															$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
-														}
-													}
-
-													_Schema.ui.jsPlumbInstance.repaintEverything();
-												}
-											});
-										}
-
-									},
-									stop: () => {
-										dragStopped = true;
-
-										_Schema.storePositions();
-										_Schema.ui.updateSelectedNodes();
-										_Schema.resize();
-									}
-								});
-								x++;
-							}
-						}
-
-						y++;
-						x = 0;
-					}
-
-					for (let [source, target] of Object.entries(inheritancePairs)) {
-
-						let sourceEntity = _Schema.nodeData[source];
-						let targetEntity = _Schema.nodeData[target];
-
-						let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
-						let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
-
-						if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
-							continue;
-						}
-
-						_Schema.ui.jsPlumbInstance.connect({
-							source: 'id_' + source,
-							target: 'id_' + target,
-							endpoint: 'Blank',
-							anchors: [
-								[ 'Perimeter', { shape: 'Rectangle' } ],
-								[ 'Perimeter', { shape: 'Rectangle' } ]
-							],
-							connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
-							paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
-							cssClass: "dashed-inheritance-relationship"
-						});
-					}
-
-				} else {
-					throw new Error("Loading of Schema nodes failed");
+					entities[entity.id] = entity.id;
 				}
+
+				for (let entity of data.result) {
+
+					if (entity.extendsClass && entity.extendsClass.id && entities[entity.extendsClass.id]) {
+						inheritancePairs[entity.id] = entities[entity.extendsClass.id];
+					}
+				}
+
+				for (let entitiesAtHierarchyLevel of Object.values(hierarchy)) {
+
+					for (let entity of entitiesAtHierarchyLevel) {
+
+						_Schema.nodeData[entity.id] = entity;
+
+						if (!(_Schema.hiddenSchemaNodes.length > 0 && _Schema.hiddenSchemaNodes.indexOf(entity.name) > -1)) {
+
+							let id = 'id_' + entity.id;
+							_Schema.ui.canvas.append(`
+								<div class="schema node compact${(entity.isBuiltinType ? ' light' : '')}" id="${id}">
+									<b>${entity.name}</b>
+									<div class="icons-container flex items-center">
+										${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['node-action-icon', 'mr-1', 'edit-type-icon']))}
+										${(entity.isBuiltinType ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'node-action-icon', 'delete-type-icon'])))}
+									</div>
+								</div>
+							`);
+
+							let node = $('#' + id);
+
+							node[0].addEventListener('mousedown', () => {
+								node[0].style.zIndex = ++_Schema.ui.maxZ;
+							});
+
+							node[0].querySelector('.edit-type-icon').addEventListener('click', (e) => {
+								_Schema.openEditDialog(entity.id);
+							});
+
+							if (!entity.isBuiltinType) {
+
+								node[0].querySelector('b').addEventListener('click', () => {
+									_Schema.makeAttrEditable(node, 'name');
+								});
+
+								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
+									let confirm = await _Helpers.confirmationPromiseNonBlockUI(`
+										<h3>Delete schema node '${entity.name}'?</h3>
+										<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
+									`);
+
+									if (confirm === true) {
+
+										await _Schema.deleteNode(entity.id);
+									}
+								});
+							}
+
+							let nodePosition = _Schema.nodePositions[entity.name];
+
+							if (!nodePosition || (nodePosition && nodePosition.left === 0 && nodePosition.top === 0)) {
+
+								nodePosition = _Schema.ui.calculateNodePosition(x, y);
+
+								let count = 0;
+
+								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+									x++;
+									nodePosition = _Schema.ui.calculateNodePosition(x, y);
+								}
+							}
+
+							let canvasOffsetTop = _Schema.ui.canvas.offset().top;
+
+							if (nodePosition.top < canvasOffsetTop) {
+								nodePosition.top = canvasOffsetTop;
+
+								let count = 0;
+
+								while (_Schema.overlapsExistingNodes(nodePosition) && count++ < 1000) {
+									x++;
+									nodePosition = _Schema.ui.calculateNodePosition(x, y);
+								}
+							}
+
+							node.offset(nodePosition);
+
+							_Schema.nodeData[entity.id + '_top'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+								anchor: "Top",
+								maxConnections: -1,
+								isTarget: true,
+								deleteEndpointsOnDetach: false
+							});
+							_Schema.nodeData[entity.id + '_bottom'] = _Schema.ui.jsPlumbInstance.addEndpoint(id, {
+								anchor: "Bottom",
+								maxConnections: -1,
+								isSource: true,
+								deleteEndpointsOnDetach: false
+							});
+
+							let currentCanvasOffset;
+							let dragElement;
+							let dragElementId;
+							let dragElementIsSelected = false;
+							let nodeDragStartpoint    = {};
+							let dragStopped           = false;
+
+							_Schema.ui.jsPlumbInstance.draggable(id, {
+								containment: true,
+								start: (ui) => {
+
+									_Schema.ui.updateSelectedNodes();
+
+									dragElement         = $(ui.el);
+									dragElementId       = dragElement.attr('id');
+									currentCanvasOffset = _Schema.ui.canvas.offset();
+									dragStopped         = false;
+									let nodeOffset      = dragElement.offset();
+
+									dragElementIsSelected = dragElement.hasClass('selected');
+									if (!dragElementIsSelected) {
+										_Schema.ui.clearSelection();
+									}
+
+									nodeDragStartpoint = {
+										top: (nodeOffset.top - currentCanvasOffset.top),
+										left: (nodeOffset.left - currentCanvasOffset.left)
+									};
+								},
+								drag: () => {
+
+									if (dragElementIsSelected) {
+
+										_Helpers.requestAnimationFrameWrapper(_Schema.prevAnimFrameReqId_dragNode, () => {
+											if (!dragStopped) {
+												let nodeOffset = dragElement.offset();
+
+												let deltaTop  = (nodeDragStartpoint.top - nodeOffset.top);
+												let deltaLeft = (nodeDragStartpoint.left - nodeOffset.left);
+
+												for (let selectedNode of _Schema.ui.selectedNodes) {
+
+													if (selectedNode.nodeId !== dragElementId) {
+														let newTop  = selectedNode.pos.top - deltaTop;
+														if (newTop < currentCanvasOffset.top) {
+															newTop = currentCanvasOffset.top;
+														}
+														let newLeft = selectedNode.pos.left - deltaLeft;
+														if (newLeft < currentCanvasOffset.left) {
+															newLeft = currentCanvasOffset.left;
+														}
+
+														$('#' + selectedNode.nodeId).offset({ top: newTop, left: newLeft });
+													}
+												}
+
+												_Schema.ui.jsPlumbInstance.repaintEverything();
+											}
+										});
+									}
+
+								},
+								stop: () => {
+									dragStopped = true;
+
+									_Schema.storePositions();
+									_Schema.ui.updateSelectedNodes();
+									_Schema.resize();
+								}
+							});
+							x++;
+						}
+					}
+
+					y++;
+					x = 0;
+				}
+
+				for (let [source, target] of Object.entries(inheritancePairs)) {
+
+					let sourceEntity = _Schema.nodeData[source];
+					let targetEntity = _Schema.nodeData[target];
+
+					let i1 = _Schema.hiddenSchemaNodes.indexOf(sourceEntity.name);
+					let i2 = _Schema.hiddenSchemaNodes.indexOf(targetEntity.name);
+
+					if (_Schema.hiddenSchemaNodes.length > 0 && (i1 > -1 || i2 > -1)) {
+						continue;
+					}
+
+					_Schema.ui.jsPlumbInstance.connect({
+						source: 'id_' + source,
+						target: 'id_' + target,
+						endpoint: 'Blank',
+						anchors: [
+							[ 'Perimeter', { shape: 'Rectangle' } ],
+							[ 'Perimeter', { shape: 'Rectangle' } ]
+						],
+						connector: [ 'Straight', { curviness: 200, cornerRadius: 25, gap: 0 }],
+						paintStyle: { lineWidth: 4, strokeStyle: "#dddddd", dashstyle: '2 2' },
+						cssClass: "dashed-inheritance-relationship"
+					});
+				}
+
+			} else {
+				throw new Error("Loading of Schema nodes failed");
 			}
 		},
-		loadNode: (entity, headEl, contentEl, targetView = 'local', callbackCancel) => {
+		loadNode: (entity, mainTabs, contentDiv, targetView = 'local', callbackCancel) => {
 
-			headEl.append('<div id="tabs"><ul></ul></div>');
-			let mainTabs = $('#tabs', headEl);
+			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
+				targetView = 'basic';
+			}
+			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
+			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
+			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
+			let builtinPropsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin');
+			let viewsTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views');
+			let methodsTabContent      = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
+			let schemaGrantsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants');
 
-			let contentDiv = $('<div class="schema-details h-full relative"></div>');
-			contentEl.append(contentDiv);
+			_Schema.properties.appendBuiltinProperties(builtinPropsTabContent, entity);
 
-			let tabControls = {};
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic', (tabContent, entity) => {
-				tabControls.basic = _Schema.nodes.appendBasicNodeInfo(tabContent, entity, mainTabs);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
-				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(c, entity);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote', (c) => {
-				let editSchemaObjectLinkHandler = async ($el) => {
-					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
-					if (okToNavigate) {
-						_Schema.openEditDialog($el.data('objectId'));
-					}
-				};
-				tabControls.remoteProperties = _Schema.remoteProperties.appendRemote(c, entity, editSchemaObjectLinkHandler);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'builtin', 'Inherited properties', targetView === 'builtin', (c) => {
-				_Schema.properties.appendBuiltinProperties(c, entity);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
-				tabControls.schemaViews = _Schema.views.appendViews(c, entity);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
-				tabControls.schemaMethods = _Schema.methods.appendMethods(c, entity, entity.schemaMethods);
-			}, _Editors.resizeVisibleEditors);
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'schema-grants', 'Schema Grants', targetView === 'schema-grants', (c) => {
-				tabControls.schemaGrants = _Schema.nodes.schemaGrants.appendSchemaGrants(c, entity);
-			});
+			let tabControls = {
+				basic            : _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs),
+				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
+				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs); }),
+				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
+				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
+				schemaGrants     : _Schema.nodes.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
+			};
 
 			if (Structr.isModuleActive(_Code)) {
 
 				// only show the following tabs in the Code area where it is not opened in a popup
 
-				_Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets', (tabContent, entity) => {
-					_Schema.nodes.appendWorkingSets(tabContent, entity);
-				});
+				let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
+				_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
 
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
 			}
@@ -978,62 +898,146 @@ let _Schema = {
 
 			return tabControls;
 		},
+		showCreateTypeDialog: async () => {
+
+			let { dialogText } = Structr.dialogSystem.openDialog("Create Type", null, ['schema-edit-dialog']);
+
+			_Schema.nodes.showCreateNewTypeDialog(dialogText);
+
+			let saveButton    = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
+			let discardButton = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+
+			saveButton.addEventListener('click', async (e) => {
+
+				let typeData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
+
+				if (!typeData.name || typeData.name.trim() === '') {
+
+					_Helpers.blinkRed(dialogText.querySelector('[data-property="name"]'));
+
+				} else {
+
+					_Schema.nodes.createTypeDefinition(typeData).then(responseData => {
+						_Schema.openEditDialog(responseData.result[0]);
+						_Schema.reload();
+					}, rejectData => {
+						Structr.errorFromResponse(rejectData, undefined, { requiresConfirmation: true });
+					});
+
+				}
+			});
+
+			// replace old cancel button with "discard button" to enable global ESC handler
+			Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
+			discardButton.addEventListener('click', (e) => {
+				Structr.dialogSystem.dialogCancelBaseAction();
+			});
+		},
+		populateBasicTypeInfo: (container, entity) => {
+
+			let nameInput = container.querySelector('[data-property="name"]');
+			nameInput.value = entity.name;
+			if (entity.isBuiltinType === true) {
+				delete nameInput.dataset['property'];
+				nameInput.disabled = true;
+				nameInput.classList.add('disabled');
+			} else {
+			}
+
+			if (entity.extendsClass || entity.isBuiltinType === false) {
+
+				let select = container.querySelector('[data-property="extendsClass"]');
+				if (entity.isBuiltinType === true) {
+					select.insertAdjacentHTML('beforeend', `<option>${entity.extendsClass.name}</option>`);
+					delete select.dataset['property'];
+					select.disabled = true;
+					select.classList.add('disabled');
+				}
+
+				if (!entity.extendsClass) {
+					container.querySelector('.edit-parent-type').remove();
+				}
+
+			} else {
+				container.querySelector('.extends-type').remove();
+			}
+
+			container.querySelector('[data-property="changelogDisabled"]').checked      = (true === entity.changelogDisabled);
+			container.querySelector('[data-property="defaultVisibleToPublic"]').checked = (true === entity.defaultVisibleToPublic);
+			container.querySelector('[data-property="defaultVisibleToAuth"]').checked   = (true === entity.defaultVisibleToAuth);
+
+			_Code.populateOpenAPIBaseConfig(container, entity, _Code.availableTags);
+		},
+		appendTypeHierarchy: (container, entity = {}, changeFn) => {
+
+			fetch(`${Structr.rootUrl}SchemaNode/ui?${Structr.getRequestParameterName('sort')}=name`).then(async (response) => {
+
+				let data         = await response.json();
+				let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
+				let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
+
+				let getOptionsForList = (list) => {
+					return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
+				};
+
+				let classSelect = container.querySelector('.extends-class-select');
+				classSelect.insertAdjacentHTML('beforeend', `
+					<optgroup label="Default Type">
+						<option value="">AbstractNode - Structr default base type</option>
+					</optgroup>
+					${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>` : ''}
+					${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>` : ''}
+				`);
+
+				$(classSelect).select2({
+					search_contains: true,
+					width: '500px',
+					dropdownParent: $(container)
+				}).on('change', () => {
+					changeFn?.();
+				});
+			});
+		},
+		activateTagsSelect: (container, changeFn) => {
+
+			$('#tags-select', $(container)).select2({
+				tags: true,
+				width: '100%'
+			}).on('change', () => {
+				changeFn?.();
+			});
+		},
 		appendBasicNodeInfo: (tabContent, entity, mainTabs) => {
 
-			tabContent.append(_Schema.templates.typeBasicTab({ type: entity }));
+			tabContent.appendChild(_Helpers.createSingleDOMElementFromHTML(_Schema.templates.typeBasicTab()));
 
-			Structr.activateCommentsInElement(tabContent[0]);
+			_Helpers.activateCommentsInElement(tabContent);
 
 			let updateChangeStatus = () => {
 
-				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent[0], entity);
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
 				let changedData = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
 				let hasChanges  = Object.keys(changedData).length > 0;
 
 				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
 			};
 
-			for (let property of tabContent[0].querySelectorAll('[data-property]')) {
+			_Schema.nodes.populateBasicTypeInfo(tabContent, entity);
+
+			for (let property of tabContent.querySelectorAll('[data-property]')) {
 				property.addEventListener('input', updateChangeStatus);
 			}
 
 			if (false === entity.isBuiltinType) {
 
-				let classSelect = $('.extends-class-select', tabContent);
-
-				fetch(Structr.rootUrl + 'SchemaNode/ui?' + Structr.getRequestParameterName('sort') + '=name').then(async (response) => {
-
-					let data         = await response.json();
-					let customTypes  = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && !cls.isBuiltinType) && (cls.id !== entity.id));
-					let builtinTypes = data.result.filter(cls => ((!cls.category || cls.category !== 'html') && !cls.isAbstract && !cls.isInterface && cls.isBuiltinType) && (cls.id !== entity.id));
-
-					let getOptionsForList = (list) => {
-						return list.map(cls => `<option ${((entity.extendsClass && entity.extendsClass.name && entity.extendsClass.id === cls.id) ? 'selected' : '')} value="${cls.id}">${cls.name}</option>`).join('');
-					};
-
-					classSelect.append(`
-						<optgroup label="Default Type">
-							<option value="">AbstractNode - Structr default base type</option>
-						</optgroup>
-						${(customTypes.length > 0) ? `<optgroup id="for-custom-types" label="Custom Types">${getOptionsForList(customTypes)}</optgroup>` : ''}
-						${(builtinTypes.length > 0) ? `<optgroup id="for-builtin-types" label="System Types">${getOptionsForList(builtinTypes)}</optgroup>` : ''}
-					`);
-
-					classSelect.select2({
-						search_contains: true,
-						width: '500px',
-						dropdownParent: tabContent
-					}).on('change', () => {
-						updateChangeStatus();
-					});
-				});
+				_Schema.nodes.appendTypeHierarchy(tabContent, entity, updateChangeStatus);
 			}
 
 			if (entity?.extendsClass?.id) {
 
-				tabContent[0].querySelector('.edit-parent-type')?.addEventListener('click', async () => {
+				tabContent.querySelector('.edit-parent-type')?.addEventListener('click', async () => {
 
-					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to parent type?"));
+					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to parent type?"));
 					if (okToNavigate) {
 						_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
 
@@ -1045,22 +1049,15 @@ let _Schema = {
 				});
 			}
 
-			let apiTab = $('#openapi-options', tabContent);
-
-			$('#tags-select', apiTab).select2({
-				tags: true,
-				width: '100%'
-			}).on('change', () => {
-				updateChangeStatus();
-			});
+			_Schema.nodes.activateTagsSelect(tabContent.querySelector('#openapi-options'), updateChangeStatus);
 
 			return {
 				getBulkInfo: (doValidate) => {
 
-					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent[0], entity);
+					let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(tabContent, entity);
 					let allow       = true;
 					if (doValidate) {
-						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent[0], entity);
+						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
 					}
 					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
 
@@ -1074,13 +1071,13 @@ let _Schema = {
 					}
 				},
 				reset: () => {
-					_Schema.nodes.resetTypeDefinition(tabContent[0], entity);
+					_Schema.nodes.resetTypeDefinition(tabContent, entity);
 				}
 			};
 		},
-		appendWorkingSets: (tabContent, entity) => {
+		appendWorkingSets: (container, entity) => {
 
-			tabContent.append(_Schema.templates.workingSets({ type: entity, addButtonText: 'Add Working Set' }));
+			container.insertAdjacentHTML('beforeend', _Schema.templates.workingSets({ type: entity, addButtonText: 'Add Working Set' }));
 
 			// manage working sets
 			_WorkingSets.getWorkingSets((workingSets) => {
@@ -1136,7 +1133,7 @@ let _Schema = {
 					});
 				});
 
-				tabContent[0].querySelector('.add-button')?.addEventListener('click', () => {
+				container.querySelector('.add-button')?.addEventListener('click', () => {
 
 					_WorkingSets.createNewSetAndAddType(entity.name, (ws) => {
 
@@ -1152,22 +1149,16 @@ let _Schema = {
 		appendGeneratedSourceCodeTab: (entity, mainTabs, contentDiv, targetView) => {
 
 			let generatedSourceTabShowCallback = (tabContent) => {
-				_Schema.showGeneratedSource(tabContent[0].querySelector('.generated-source')).then(() => {
+				_Schema.showGeneratedSource(tabContent.querySelector('.generated-source')).then(() => {
 					_Editors.resizeVisibleEditors();
 				});
 			};
-			let { tab, tabContent } = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', (tabContent, entity) => {
-				tabContent[0].innerHTML = `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`;
-			}, generatedSourceTabShowCallback);
+			let tabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'source-code', 'Source Code', targetView === 'source-code', generatedSourceTabShowCallback, false, true);
 
-			tab.addClass('tab');
-			tab.addClass('generated-source');
-			tabContent.addClass('generated-source');
+			tabContent.insertAdjacentHTML('beforeend', `<div class="generated-source" data-type-name="${entity.type}" data-type-id="${entity.id}"></div>`);
 
 			if (targetView === 'source-code') {
 				generatedSourceTabShowCallback(tabContent);
-			} else {
-				tab.css('display', 'none');
 			}
 		},
 		getTypeDefinitionDataFromForm: (tabContent, entity) => {
@@ -1181,10 +1172,9 @@ let _Schema = {
 			if (false === entity.isBuiltinType) {
 
 				// check type name against regex
-				let match = typeInfo.name.match(/^[A-Z][a-zA-Z0-9_]*$/);
-				if (match === null) {
+				if (typeInfo.name === null || typeInfo.name.match(/^[A-Z][a-zA-Z0-9_]*$/) === null) {
 					allow = false;
-					blinkRed(container.querySelector('[name="name"]'));
+					_Helpers.blinkRed(container.querySelector('[data-property="name"]'));
 				}
 			}
 
@@ -1197,7 +1187,7 @@ let _Schema = {
 				let shouldDelete = (entity[key] === newData[key]);
 
 				if (key === 'tags') {
-					let prevTags = entity[key];
+					let prevTags = entity[key] ?? [];
 					let newTags  = newData[key];
 					if (!prevTags && newTags.length === 0) {
 						shouldDelete = true
@@ -1219,42 +1209,76 @@ let _Schema = {
 		resetTypeDefinition: (container, entity) => {
 			_Code.revertFormDataInContainer(container, entity);
 		},
+		showCreateNewTypeDialog: (container) => {
+
+			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
+
+			container.querySelector('.edit-parent-type').remove();
+
+			_Schema.nodes.appendTypeHierarchy(container);
+			_Schema.nodes.activateTagsSelect(container);
+			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
+
+			_Helpers.activateCommentsInElement(container);
+		},
+		createTypeDefinition: (data) => {
+
+			return new Promise(((resolve, reject) => {
+
+				_Schema.showSchemaRecompileMessage();
+
+				fetch(`${Structr.rootUrl}schema_nodes`, {
+					method: 'POST',
+					body: JSON.stringify(data)
+				}).then(response => {
+
+					response.json().then(responseData => {
+
+						_Schema.hideSchemaRecompileMessage();
+
+						if (response.ok) {
+
+							resolve(responseData);
+
+						} else {
+
+							reject(responseData);
+						}
+					});
+				})
+			}));
+		},
 
 		schemaGrants: {
-			appendSchemaGrants: (tabContent, entity, mainTabs) => {
+			schemaGrantsTableConfig: {
+				class: 'schema-grants-table schema-props',
+				cols: [
+					{ class: '', title: 'Group' },
+					{ class: '', title: 'read' },
+					{ class: '', title: 'write' },
+					{ class: '', title: 'delete' },
+					{ class: '', title: 'access control' }
+				],
+				discardButtonText: 'Discard Schema Grant changes',
+				saveButtonText: 'Save Schema Grants'
+			},
+			appendSchemaGrants: (container, entity) => {
 
-				let schemaGrantsTableConfig = {
-					class: 'schema-grants-table schema-props',
-					cols: [
-						{ class: '', title: 'Group' },
-						{ class: '', title: 'read' },
-						{ class: '', title: 'write' },
-						{ class: '', title: 'delete' },
-						{ class: '', title: 'access control' }
-					],
-					discardButtonText: 'Discard Schema Grant changes',
-					saveButtonText: 'Save Schema Grants'
-				};
-
-				let schemaGrantsContainer = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaGrantsTabContent({ tableMarkup: _Schema.templates.schemaTable(schemaGrantsTableConfig) }));
-				tabContent[0].append(schemaGrantsContainer);
-
-				let tbody = schemaGrantsContainer.querySelector('tbody');
+				let schemaGrantsContainer = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrantsTabContent({ tableMarkup: _Schema.templates.schemaTable(_Schema.nodes.schemaGrants.schemaGrantsTableConfig) }));
+				let tbody                 = schemaGrantsContainer.querySelector('tbody');
+				container.appendChild(schemaGrantsContainer);
 
 				let updateStatus = () => {
 					let hasChanges = ((schemaGrantsContainer.querySelectorAll('.changed')).length > 0);
 
-					_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
+					_Schema.bulkDialogsGeneral.dataChangedInTab(container, hasChanges);
 				};
 
 				let schemaGrantsTableChange = (cb, rowConfig) => {
 
 					let property = cb.dataset['property'];
-					if (rowConfig[property] !== cb.checked) {
-						cb.classList.add('changed');
-					} else {
-						cb.classList.remove('changed');
-					}
+
+					cb.classList[(rowConfig[property] !== cb.checked) ? 'add' : 'remove']('changed');
 
 					updateStatus();
 				};
@@ -1314,7 +1338,7 @@ let _Schema = {
 
 						let tplConfig = getGrantConfigForGroup(group);
 
-						let row = Structr.createSingleDOMElementFromHTML(_Code.templates.schemaGrantsRow(tplConfig));
+						let row = _Helpers.createSingleDOMElementFromHTML(_Code.templates.schemaGrantsRow(tplConfig));
 						tbody.appendChild(row);
 
 						for (let cb of row.querySelectorAll('input')) {
@@ -1346,6 +1370,7 @@ let _Schema = {
 					reset: () => {
 
 						for (let row of schemaGrantsContainer.querySelectorAll('tbody tr')) {
+
 							let tplConfig = getGrantConfigForGroup({
 								id: row.dataset['groupId']
 							});
@@ -1367,7 +1392,7 @@ let _Schema = {
 		loadRels: async () => {
 
 			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes');
-			let data = await response.json();
+			let data     = await response.json();
 
 			let existingRels = {};
 			let relCnt       = {};
@@ -1380,7 +1405,7 @@ let _Schema = {
 
 				} else {
 
-					let relIndex = res.sourceId + '-' + res.targetId;
+					let relIndex = `${res.sourceId}-${res.targetId}`;
 					if (relCnt[relIndex] === undefined) {
 						relCnt[relIndex] = 0;
 					} else {
@@ -1388,16 +1413,16 @@ let _Schema = {
 					}
 
 					existingRels[relIndex] = true;
-					if (res.targetId !== res.sourceId && existingRels[res.targetId + '-' + res.sourceId]) {
-						relCnt[relIndex] += existingRels[res.targetId + '-' + res.sourceId];
+					if (res.targetId !== res.sourceId && existingRels[`${res.targetId}-${res.sourceId}`]) {
+						relCnt[relIndex] += existingRels[`${res.targetId}-${res.sourceId}`];
 					}
 
 					let stub   = 30 + 80 * relCnt[relIndex];
 					let offset =     0.2 * relCnt[relIndex];
 
 					_Schema.ui.jsPlumbInstance.connect({
-						source: _Schema.nodeData[res.sourceId + '_bottom'],
-						target: _Schema.nodeData[res.targetId + '_top'],
+						source: _Schema.nodeData[`${res.sourceId}_bottom`],
+						target: _Schema.nodeData[`${res.targetId}_top`],
 						deleteEndpointsOnDetach: false,
 						scope: res.id,
 						connector: [_Schema.ui.connectorStyle, { curviness: 200, cornerRadius: 20, stub: [stub, 20], gap: 6, alwaysRespectStubs: true }],
@@ -1411,7 +1436,7 @@ let _Schema = {
 							}],
 							["Label", {
 								cssClass: "label rel-type",
-								label: `<div id="rel_${res.id}" class="flex items-center">
+								label: `<div id="rel_${res.id}" class="flex items-center" data-name="${res.name}" data-source-type="${_Schema.nodeData[res.sourceId].name}" data-target-type="${_Schema.nodeData[res.targetId].name}">
 											${(res.relationshipType === _Schema.initialRelType ? '<span>&nbsp;</span>' : res.relationshipType)}
 											${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-1', 'ml-2', 'edit-relationship-icon']))}
 											${(res.isPartOfBuiltInSchema ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-1', 'delete-relationship-icon'])))}
@@ -1437,7 +1462,7 @@ let _Schema = {
 						});
 						relTypeOverlay.parent().addClass('schema-reltype-warning');
 
-						Structr.appendInfoTextToElement({
+						_Helpers.appendInfoTextToElement({
 							text: "It is highly advisable to set a relationship type on the relationship! To do this, click the pencil icon to open the edit dialog.<br><br><strong>Note: </strong>Any existing relationships of this type have to be migrated manually.",
 							element: $('span', relTypeOverlay),
 							customToggleIcon: _Icons.iconWarningYellowFilled,
@@ -1457,71 +1482,59 @@ let _Schema = {
 				}
 			}
 		},
-		loadRelationship: (entity, headEl, contentEl, sourceNode, targetNode, targetView, callbackCancel) => {
+		loadRelationship: (entity, tabsContainer, contentDiv, sourceNode, targetNode, targetView, callbackCancel) => {
 
-			let mainTabs = $('<div id="tabs"><ul></ul></div>');
-			headEl.append(mainTabs);
+			let basicTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'basic', 'Basic', targetView === 'basic');
+			let localPropsTabContent = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'local', 'Direct properties', targetView === 'local');
+			let viewsTabContent      = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'views', 'Views', targetView === 'views');
+			let methodsTabContent    = _Entities.appendPropTab(entity, tabsContainer, contentDiv, 'methods', 'Methods', targetView === 'methods', _Editors.resizeVisibleEditors);
 
-			let contentDiv = $('<div class="schema-details h-full"></div>');
-			contentEl.append(contentDiv);
+			let tabControls = {
+				basic            : _Schema.relationships.appendBasicRelInfo(basicTabContent, entity, sourceNode, targetNode, tabsContainer),
+				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
+				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
+				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods)
+			};
 
-			let tabControls = {};
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic', (tabContent, entity) => {
-				tabControls.basic = _Schema.relationships.appendBasicRelInfo(tabContent, entity, sourceNode, targetNode, mainTabs);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local', (c) => {
-				tabControls.schemaProperties = _Schema.properties.appendLocalProperties(c, entity);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'views', 'Views', targetView === 'views', (c) => {
-				tabControls.schemaViews = _Schema.views.appendViews(c, entity);
-			});
-
-			_Entities.appendPropTab(entity, mainTabs, contentDiv, 'methods', 'Methods', targetView === 'methods', (c) => {
-				tabControls.schemaMethods = _Schema.methods.appendMethods(c, entity, entity.schemaMethods);
-			}, _Editors.resizeVisibleEditors);
-
-			_Schema.bulkDialogsGeneral.overrideDialogCancel(mainTabs, callbackCancel);
+			_Schema.bulkDialogsGeneral.overrideDialogCancel(tabsContainer, callbackCancel);
 
 			Structr.resize();
 
 			return tabControls;
 		},
-		appendBasicRelInfo: (tabContent, entity, sourceNode, targetNode, mainTabs) => {
+		appendBasicRelInfo: (container, entity, sourceNode, targetNode, mainTabs) => {
 
-			tabContent[0].insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
+			container.insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
 
-			_Schema.relationships.appendCascadingDeleteHelpText();
+			_Schema.relationships.appendCascadingDeleteHelpText(container);
 
 			let updateChangeStatus = () => {
 
-				let changedData = _Schema.relationships.getRelationshipDefinitionChanges(entity);
+				let changedData = _Schema.relationships.getRelationshipDefinitionChanges(container, entity);
 				let hasChanges  = Object.keys(changedData).length > 0;
 
-				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContent, hasChanges);
+				_Schema.bulkDialogsGeneral.dataChangedInTab(container, hasChanges);
 			};
 
-			_Schema.relationships.populateBasicRelInfo(entity, sourceNode, targetNode);
+			_Schema.relationships.populateBasicRelInfo(container, entity, sourceNode, targetNode);
 
 			let sourceHelpElements = [];
 			let targetHelpElements = [];
 
 			let reactToCardinalityChange = () => {
-				_Schema.relationships.reactToCardinalityChange(entity, sourceHelpElements, targetHelpElements);
+				_Schema.relationships.reactToCardinalityChange(container, entity, sourceHelpElements, targetHelpElements);
 			};
 
 			updateChangeStatus();
 
 			if (Structr.isModuleActive(_Schema)) {
 
-				for (let editLink of tabContent[0].querySelectorAll('.edit-schema-object')) {
+				for (let editLink of container.querySelectorAll('.edit-schema-object')) {
 
 					editLink.addEventListener('click', async (e) => {
 						e.stopPropagation();
 
-						let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await Structr.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+						let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
 						if (okToNavigate) {
 							_Schema.openEditDialog(editLink.dataset['objectId']);
 						}
@@ -1529,47 +1542,47 @@ let _Schema = {
 						return false;
 					});
 				}
+
 			} else {
-				$('.edit-schema-object', tabContent).removeClass('edit-schema-object');
+
+				container.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
 			}
 
 			let initActions = () => {
 
-				let tabContentEl = tabContent[0];
+				container.querySelector('#source-json-name').addEventListener('keyup', updateChangeStatus);
+				container.querySelector('#target-json-name').addEventListener('keyup', updateChangeStatus);
 
-				tabContentEl.querySelector('#source-json-name').addEventListener('keyup', updateChangeStatus);
-				tabContentEl.querySelector('#target-json-name').addEventListener('keyup', updateChangeStatus);
+				container.querySelector('#source-multiplicity-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#target-multiplicity-selector').addEventListener('change', updateChangeStatus);
 
-				tabContentEl.querySelector('#source-multiplicity-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#target-multiplicity-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#relationship-type-name').addEventListener('keyup', updateChangeStatus);
 
-				tabContentEl.querySelector('#relationship-type-name').addEventListener('keyup', updateChangeStatus);
+				container.querySelector('#cascading-delete-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#autocreate-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#propagation-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#read-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#write-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#delete-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#access-control-selector').addEventListener('change', updateChangeStatus);
+				container.querySelector('#masked-properties').addEventListener('keyup', updateChangeStatus);
 
-				tabContentEl.querySelector('#cascading-delete-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#autocreate-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#propagation-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#read-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#write-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#delete-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#access-control-selector').addEventListener('change', updateChangeStatus);
-				tabContentEl.querySelector('#masked-properties').addEventListener('keyup', updateChangeStatus);
-
-				tabContentEl.querySelector('#source-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
-				tabContentEl.querySelector('#target-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
-				tabContentEl.querySelector('#source-json-name').addEventListener('keyup', reactToCardinalityChange);
-				tabContentEl.querySelector('#target-json-name').addEventListener('keyup', reactToCardinalityChange);
+				container.querySelector('#source-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
+				container.querySelector('#target-multiplicity-selector').addEventListener('change', reactToCardinalityChange);
+				container.querySelector('#source-json-name').addEventListener('keyup', reactToCardinalityChange);
+				container.querySelector('#target-json-name').addEventListener('keyup', reactToCardinalityChange);
 			};
 			initActions();
 
 			return {
 				getBulkInfo: (doValidate) => {
 
-					let relInfo     = _Schema.relationships.getRelationshipDefinitionDataFromForm();
+					let relInfo     = _Schema.relationships.getRelationshipDefinitionDataFromForm(container);
 					let allow       = true;
 					if (doValidate) {
-						allow = _Schema.relationships.validateBasicRelInfo(relInfo, tabContent[0]);
+						allow = _Schema.relationships.validateBasicRelInfo(container, relInfo);
 					}
-					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(entity)).length;
+					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(container, entity)).length;
 
 					return {
 						name: 'Basic relationship attributes',
@@ -1581,61 +1594,61 @@ let _Schema = {
 					}
 				},
 				reset: () => {
-					_Schema.relationships.populateBasicRelInfo(entity, sourceNode, targetNode);
+					_Schema.relationships.populateBasicRelInfo(container, entity, sourceNode, targetNode);
 					reactToCardinalityChange();
 					updateChangeStatus();
 				},
 			};
 		},
-		populateBasicRelInfo: (rel, sourceNode, targetNode) => {
+		populateBasicRelInfo: (container, rel, sourceNode, targetNode) => {
 
-			$('#source-type-name').text(sourceNode.name);
-			document.querySelector('#source-type-name').dataset['objectId'] = rel.sourceId;
-			$('#target-type-name').text(targetNode.name);
-			document.querySelector('#target-type-name').dataset['objectId'] = rel.targetId;
-
-			$('#source-json-name').val(rel.sourceJsonName || rel.oldSourceJsonName);
-			$('#target-json-name').val(rel.targetJsonName || rel.oldTargetJsonName);
-
-			$('#source-multiplicity-selector').val(rel.sourceMultiplicity || '*');
-			$('#target-multiplicity-selector').val(rel.targetMultiplicity || '*');
-
-			$('#relationship-type-name').val(rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
-
-			$('#cascading-delete-selector').val(rel.cascadingDeleteFlag || 0);
-			$('#autocreate-selector').val(rel.autocreationFlag || 0);
-			$('#propagation-selector').val(rel.permissionPropagation || 'None');
-			$('#read-selector').val(rel.readPropagation || 'Remove');
-			$('#write-selector').val(rel.writePropagation || 'Remove');
-			$('#delete-selector').val(rel.deletePropagation || 'Remove');
-			$('#access-control-selector').val(rel.accessControlPropagation || 'Remove');
-			$('#masked-properties').val(rel.propertyMask);
+			container.querySelector('#source-type-name').textContent         = sourceNode.name;
+			container.querySelector('#target-type-name').textContent         = targetNode.name;
+			container.querySelector('#source-type-name').dataset['objectId'] = rel.sourceId;
+			container.querySelector('#target-type-name').dataset['objectId'] = rel.targetId;
+			container.querySelector('#source-json-name').value               = (rel.sourceJsonName || rel.oldSourceJsonName);
+			container.querySelector('#target-json-name').value               = (rel.targetJsonName || rel.oldTargetJsonName);
+			container.querySelector('#source-multiplicity-selector').value   = (rel.sourceMultiplicity || '*');
+			container.querySelector('#target-multiplicity-selector').value   = (rel.targetMultiplicity || '*');
+			container.querySelector('#relationship-type-name').value         = (rel.relationshipType === _Schema.initialRelType ? '' : rel.relationshipType);
+			container.querySelector('#cascading-delete-selector').value      = (rel.cascadingDeleteFlag || 0);
+			container.querySelector('#autocreate-selector').value            = (rel.autocreationFlag || 0);
+			container.querySelector('#propagation-selector').value           = (rel.permissionPropagation || 'None');
+			container.querySelector('#read-selector').value                  = (rel.readPropagation || 'Remove');
+			container.querySelector('#write-selector').value                 = (rel.writePropagation || 'Remove');
+			container.querySelector('#delete-selector').value                = (rel.deletePropagation || 'Remove');
+			container.querySelector('#access-control-selector').value        = (rel.accessControlPropagation || 'Remove');
+			container.querySelector('#masked-properties').value              = (rel.propertyMask);
 
 			if (rel.isPartOfBuiltInSchema) {
-				$('#source-type-name').attr('disabled', 'disabled');
-				$('#target-type-name').attr('disabled', 'disabled');
-				$('#source-json-name').attr('disabled', 'disabled');
-				$('#target-json-name').attr('disabled', 'disabled');
-				$('#source-multiplicity-selector').attr('disabled', 'disabled');
-				$('#target-multiplicity-selector').attr('disabled', 'disabled');
-				$('#relationship-type-name').attr('disabled', 'disabled');
-				$('#cascading-delete-selector').attr('disabled', 'disabled');
-				$('#autocreate-selector').attr('disabled', 'disabled');
-				$('#propagation-selector').attr('disabled', 'disabled');
-				$('#read-selector').attr('disabled', 'disabled');
-				$('#write-selector').attr('disabled', 'disabled');
-				$('#delete-selector').attr('disabled', 'disabled');
-				$('#access-control-selector').attr('disabled', 'disabled');
-				$('#masked-properties').attr('disabled', 'disabled');
+
+				container.querySelector('#source-type-name').disabled             = true;
+				container.querySelector('#target-type-name').disabled             = true;
+				container.querySelector('#source-json-name').disabled             = true;
+				container.querySelector('#target-json-name').disabled             = true;
+				container.querySelector('#source-multiplicity-selector').disabled = true;
+				container.querySelector('#target-multiplicity-selector').disabled = true;
+				container.querySelector('#relationship-type-name').disabled       = true;
+				container.querySelector('#cascading-delete-selector').disabled    = true;
+				container.querySelector('#autocreate-selector').disabled          = true;
+				container.querySelector('#propagation-selector').disabled         = true;
+				container.querySelector('#read-selector').disabled                = true;
+				container.querySelector('#write-selector').disabled               = true;
+				container.querySelector('#delete-selector').disabled              = true;
+				container.querySelector('#access-control-selector').disabled      = true;
+				container.querySelector('#masked-properties').disabled            = true;
 			}
 		},
-		reactToCardinalityChange: (entity, sourceHelpElements, targetHelpElements) => {
+		reactToCardinalityChange: (container, entity, sourceHelpElements, targetHelpElements) => {
 
 			sourceHelpElements.map(e => e.remove());
 			while (sourceHelpElements.length > 0) sourceHelpElements.pop();
 
-			if ($('#source-multiplicity-selector').val() !== (entity.sourceMultiplicity || '*') && $('#source-json-name').val() === (entity.sourceJsonName || entity.oldSourceJsonName)) {
-				for (let el of _Schema.relationships.appendCardinalityChangeInfo($('#source-json-name'))) {
+			let sourceMultiplicitySelect = container.querySelector('#source-multiplicity-selector');
+			let sourceJsonNameInput      = container.querySelector('#source-json-name');
+
+			if (sourceMultiplicitySelect.value !== (entity.sourceMultiplicity || '*') && sourceJsonNameInput.value === (entity.sourceJsonName || entity.oldSourceJsonName)) {
+				for (let el of _Schema.relationships.appendCardinalityChangeInfo(sourceJsonNameInput)) {
 					sourceHelpElements.push(el);
 				}
 			}
@@ -1643,14 +1656,18 @@ let _Schema = {
 			targetHelpElements.map(e => e.remove());
 			while (targetHelpElements.length > 0) targetHelpElements.pop();
 
-			if ($('#target-multiplicity-selector').val() !== (entity.targetMultiplicity || '*') && $('#target-json-name').val() === (entity.targetJsonName || entity.oldTargetJsonName)) {
-				for (let el of _Schema.relationships.appendCardinalityChangeInfo($('#target-json-name'))) {
+			let targetMultiplicitySelect = container.querySelector('#target-multiplicity-selector');
+			let targetJsonNameInput      = container.querySelector('#target-json-name');
+
+			if (targetMultiplicitySelect.value !== (entity.targetMultiplicity || '*') && targetJsonNameInput.value === (entity.targetJsonName || entity.oldTargetJsonName)) {
+				for (let el of _Schema.relationships.appendCardinalityChangeInfo(targetJsonNameInput)) {
 					targetHelpElements.push(el);
 				}
 			}
 		},
 		appendCardinalityChangeInfo: (el) => {
-			return Structr.appendInfoTextToElement({
+
+			return _Helpers.appendInfoTextToElement({
 				text: 'Multiplicity was changed without changing the remote property name - make sure this is correct',
 				element: el,
 				insertAfter: true,
@@ -1661,7 +1678,7 @@ let _Schema = {
 				}
 			});
 		},
-		validateBasicRelInfo: (relDef, container) => {
+		validateBasicRelInfo: (container, relInfo) => {
 
 			let allow = true;
 
@@ -1669,77 +1686,74 @@ let _Schema = {
 			let match = relDef.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
 			if (match === null) {
 				allow = false;
-				blinkRed(container.querySelector('#relationship-type-name'));
+				_Helpers.blinkRed(container.querySelector('#relationship-type-name'));
 			}
 
 			return allow;
 		},
-		createRelationship: (info) => {
+		showCreateRelationshipDialog: (info) => {
 
 			let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
 			let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
 
-			Structr.dialog("Create Relationship", () => {}, () => {}, ['schema-edit-dialog']);
+			let { dialogText } = Structr.dialogSystem.openDialog("Create Relationship", ['schema-edit-dialog']);
 
-			dialogCancelButton.hide();
+			dialogText.insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
 
-			let container = dialogText;
-
-			container.append(_Schema.templates.relationshipBasicTab());
-
-			_Schema.relationships.appendCascadingDeleteHelpText();
+			_Schema.relationships.appendCascadingDeleteHelpText(dialogText);
 
 			let sourceTypeName = _Schema.nodeData[sourceId].name;
 			let targetTypeName = _Schema.nodeData[targetId].name;
 
-			$('#source-type-name').text(sourceTypeName);
-			$('#target-type-name').text(targetTypeName);
+			dialogText.querySelector('#source-type-name').textContent = sourceTypeName;
+			dialogText.querySelector('#target-type-name').textContent = targetTypeName;
 
 			let previousSourceSuggestion = '';
 			let previousTargetSuggestion = '';
 
 			let updateSuggestions = () => {
 
-				let currentSourceSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(sourceTypeName, $('#source-multiplicity-selector').val());
-				let currentTargetSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(targetTypeName, $('#target-multiplicity-selector').val());
+				let currentSourceSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(sourceTypeName, dialogText.querySelector('#source-multiplicity-selector').value);
+				let currentTargetSuggestion = _Schema.relationships.createRemotePropertyNameSuggestion(targetTypeName, dialogText.querySelector('#target-multiplicity-selector').value);
 
 				if (currentSourceSuggestion === currentTargetSuggestion) {
 					currentSourceSuggestion += '_source';
 					currentTargetSuggestion += '_target';
 				}
 
-				if (previousSourceSuggestion === $('#source-json-name').val()) {
-					$('#source-json-name').val(currentSourceSuggestion);
-					previousSourceSuggestion = currentSourceSuggestion;
+				let sourceJsonNameInput = dialogText.querySelector('#source-json-name');
+				if (previousSourceSuggestion === sourceJsonNameInput.value) {
+
+					sourceJsonNameInput.value = currentSourceSuggestion;
+					previousSourceSuggestion  = currentSourceSuggestion;
 				}
 
-				if (previousTargetSuggestion === $('#target-json-name').val()) {
-					$('#target-json-name').val(currentTargetSuggestion);
-					previousTargetSuggestion = currentTargetSuggestion;
+				let targetJsonNameInput = dialogText.querySelector('#target-json-name');
+				if (previousTargetSuggestion === targetJsonNameInput.value) {
+
+					targetJsonNameInput.value = currentTargetSuggestion;
+					previousTargetSuggestion  = currentTargetSuggestion;
 				}
 			};
 			updateSuggestions();
 
-			$('#source-multiplicity-selector').on('change', updateSuggestions);
-			$('#target-multiplicity-selector').on('change', updateSuggestions);
+			dialogText.querySelector('#source-multiplicity-selector').addEventListener('change', updateSuggestions);
+			dialogText.querySelector('#target-multiplicity-selector').addEventListener('change', updateSuggestions);
 
 			if (Structr.isModuleActive(_Schema)) {
 
-				let actionButtons = Structr.createSingleDOMElementFromHTML(_Schema.templates.schemaActionButtons({ saveButtonText: 'Create', discardButtonText: 'Discard and close' }));
-				dialogBtn[0].prepend(actionButtons);
+				let discardButton = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+				let saveButton    = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
 
-				let saveButton    = actionButtons.querySelector('#save-entity-button');
-				let discardButton = actionButtons.querySelector('#discard-entity-changes-button');
+				saveButton.addEventListener('click', async () => {
 
-				saveButton.addEventListener('click', async (e) => {
-
-					let relData = _Schema.relationships.getRelationshipDefinitionDataFromForm();
+					let relData = _Schema.relationships.getRelationshipDefinitionDataFromForm(dialogText);
 					relData.sourceId = sourceId;
 					relData.targetId = targetId;
 
 					if (relData.relationshipType.trim() === '') {
 
-						blinkRed($('#relationship-type-name'));
+						_Helpers.blinkRed(dialogText.querySelector('#relationship-type-name'));
 
 					} else {
 
@@ -1747,43 +1761,43 @@ let _Schema = {
 					}
 				});
 
-				discardButton.addEventListener('click', function(e) {
+				// replace old cancel button with "discard button" to enable global ESC handler
+				Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
+				discardButton.addEventListener('click', () => {
 
 					_Schema.currentNodeDialogId = null;
 
 					_Schema.ui.jsPlumbInstance.repaintEverything();
 					_Schema.ui.jsPlumbInstance.detach(info.connection);
 
-					Structr.dialogCancelBaseAction();
-
-					dialogCancelButton.show();
+					Structr.dialogSystem.dialogCancelBaseAction();
 				});
 			}
 
 			Structr.resize();
 		},
-		getRelationshipDefinitionDataFromForm: () => {
+		getRelationshipDefinitionDataFromForm: (container) => {
 
 			return {
-				relationshipType: $('#relationship-type-name').val(),
-				sourceMultiplicity: $('#source-multiplicity-selector').val(),
-				targetMultiplicity: $('#target-multiplicity-selector').val(),
-				sourceJsonName: $('#source-json-name').val(),
-				targetJsonName: $('#target-json-name').val(),
-				cascadingDeleteFlag: parseInt($('#cascading-delete-selector').val()),
-				autocreationFlag: parseInt($('#autocreate-selector').val()),
-				permissionPropagation: $('#propagation-selector').val(),
-				readPropagation: $('#read-selector').val(),
-				writePropagation: $('#write-selector').val(),
-				deletePropagation: $('#delete-selector').val(),
-				accessControlPropagation: $('#access-control-selector').val(),
-				propertyMask: $('#masked-properties').val()
+				relationshipType:         container.querySelector('#relationship-type-name').value,
+				sourceMultiplicity:       container.querySelector('#source-multiplicity-selector').value,
+				targetMultiplicity:       container.querySelector('#target-multiplicity-selector').value,
+				sourceJsonName:           container.querySelector('#source-json-name').value,
+				targetJsonName:           container.querySelector('#target-json-name').value,
+				cascadingDeleteFlag:      parseInt(container.querySelector('#cascading-delete-selector').value),
+				autocreationFlag:         parseInt(container.querySelector('#autocreate-selector').value),
+				permissionPropagation:    container.querySelector('#propagation-selector').value,
+				readPropagation:          container.querySelector('#read-selector').value,
+				writePropagation:         container.querySelector('#write-selector').value,
+				deletePropagation:        container.querySelector('#delete-selector').value,
+				accessControlPropagation: container.querySelector('#access-control-selector').value,
+				propertyMask:             container.querySelector('#masked-properties').value
 			};
 
 		},
-		getRelationshipDefinitionChanges: (entity) => {
+		getRelationshipDefinitionChanges: (container, entity) => {
 
-			let newData = _Schema.relationships.getRelationshipDefinitionDataFromForm();
+			let newData = _Schema.relationships.getRelationshipDefinitionDataFromForm(container);
 
 			for (let key in newData) {
 
@@ -1814,15 +1828,15 @@ let _Schema = {
 
 			} else {
 
-				new MessageBuilder().title('Unsupported cardinality: ' + cardinality).warning('Unable to generate suggestion for linked property name. Unsupported cardinality encountered!').requiresConfirmation().show();
+				new WarningMessage().title(`Unsupported cardinality: ${cardinality}`).text('Unable to generate suggestion for linked property name. Unsupported cardinality encountered!').requiresConfirmation().show();
 				return typeName;
 			}
 		},
-		appendCascadingDeleteHelpText: () => {
+		appendCascadingDeleteHelpText: (container) => {
 
-			Structr.appendInfoTextToElement({
+			_Helpers.appendInfoTextToElement({
 				text: '<dl class="help-definitions"><dt>NONE</dt><dd>No cascading delete</dd><dt>SOURCE_TO_TARGET</dt><dd>Delete target node when source node is deleted</dd><dt>TARGET_TO_SOURCE</dt><dd>Delete source node when target node is deleted</dd><dt>ALWAYS</dt><dd>Delete source node if target node is deleted AND delete target node if source node is deleted</dd><dt>CONSTRAINT_BASED</dt><dd>Delete source or target node if deletion of the other side would result in a constraint violation on the node (e.g. notNull constraint)</dd></dl>',
-				element: $('#cascading-delete-selector'),
+				element: container.querySelector('#cascading-delete-selector'),
 				customToggleIconClasses: ['ml-2', 'icon-blue'],
 				insertAfter: true,
 				noSpan: true
@@ -1877,7 +1891,7 @@ let _Schema = {
 
 			_Schema.showSchemaRecompileMessage();
 
-			let getResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id);
+			let getResponse = await fetch(`${Structr.rootUrl}schema_relationship_nodes/${entity.id}`);
 
 			if (getResponse.ok) {
 
@@ -1889,7 +1903,7 @@ let _Schema = {
 
 				if (hasChanges) {
 
-					let putResponse = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + entity.id, {
+					let putResponse = await fetch(`${Structr.rootUrl}schema_relationship_nodes/${entity.id}`, {
 						method: 'PUT',
 						body: JSON.stringify(newData)
 					});
@@ -1900,7 +1914,7 @@ let _Schema = {
 					if (putResponse.ok) {
 
 						for (let attribute in newData) {
-							blinkGreen($('#relationship-options [data-attr-name=' + attribute + ']'));
+							_Helpers.blinkGreen($(`#relationship-options [data-attr-name=${attribute}]`));
 							entity[attribute] = newData[attribute];
 						}
 
@@ -1911,7 +1925,7 @@ let _Schema = {
 						_Schema.relationships.reportRelationshipError(existingData.result, newData, responseData);
 
 						for (let attribute in newData) {
-							blinkRed($('#relationship-options [data-attr-name=' + attribute + ']'));
+							_Helpers.blinkRed($(`#relationship-options [data-attr-name=${attribute}]`));
 						}
 
 						return false;
@@ -1927,12 +1941,12 @@ let _Schema = {
 		},
 		reportRelationshipError: (relData, newData, responseData) => {
 
-			for (let error in responseData.errors) {
-				blinkRed($('#relationship-options [data-attr-name=' + error.property + ']'));
+			for (let error of responseData.errors) {
+				_Helpers.blinkRed($(`#relationship-options [data-attr-name=${error.property}]`));
 			}
 
 			let additionalInformation  = {};
-			let hasDuplicateClassError = responseData.errors.some((e) => { return (e.token === 'duplicate_relationship_definition'); });
+			let hasDuplicateClassError = responseData.errors.some(e => (e.token === 'duplicate_relationship_definition'));
 
 			if (hasDuplicateClassError) {
 
@@ -1940,25 +1954,23 @@ let _Schema = {
 
 				additionalInformation.requiresConfirmation = true;
 				additionalInformation.title                = 'Error';
-				additionalInformation.furtherText          = 'You are trying to create a second relationship named <strong>' + relType + '</strong> between these types.<br>Relationship names between types have to be unique.';
+				additionalInformation.errorExplanation     = `You are trying to create a second relationship named <strong>${relType}</strong> between these types.<br>Relationship names between types have to be unique.`;
 				additionalInformation.requiresConfirmation = true;
 			}
 
 			Structr.errorFromResponse(responseData, null, additionalInformation);
 		},
 		askDeleteRelationship: (resId, name) => {
-			Structr.confirmation(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`,
-				async() => {
-					$.unblockUI({
-						fadeOut: 25
-					});
 
+			_Helpers.confirmationPromiseNonBlockUI(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`).then(async confirm => {
+				if (confirm === true) {
 					await _Schema.relationships.removeRelationshipDefinition(resId);
-				});
+				}
+			});
 		},
 	},
 	properties: {
-		appendLocalProperties: (el, entity, overrides, optionalAfterSaveCallback) => {
+		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
 			let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
@@ -1979,12 +1991,11 @@ let _Schema = {
 				addButtonText: 'Add direct property'
 			};
 
-			let schemaTableHtml = _Schema.templates.schemaTable(tableConfig);
-			let propertiesTable = $(schemaTableHtml);
-			el.append(propertiesTable);
-			let tbody = $('tbody', propertiesTable);
+			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
+			container.appendChild(propertiesTable);
+			let tbody = propertiesTable.querySelector('tbody');
 
-			_Schema.sort(entity.schemaProperties);
+			_Helpers.sort(entity.schemaProperties);
 
 			let typeOptions       = _Schema.templates.typeOptions();
 			let typeHintOptions   = _Schema.templates.typeHintOptions();
@@ -1992,7 +2003,7 @@ let _Schema = {
 			for (let prop of entity.schemaProperties) {
 
 				let row = $(_Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions, dbNameClass: dbNameClass }));
-				tbody.append(row);
+				tbody.appendChild(row[0]);
 
 				_Schema.properties.setAttributesInRow(prop, row);
 				_Schema.properties.bindRowEvents(prop, row, overrides);
@@ -2001,44 +2012,42 @@ let _Schema = {
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
+				for (let discardIcon of tbody.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			propertiesTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			propertiesTable[0].querySelector('.save-all').addEventListener('click', () => {
-				_Schema.properties.bulkSave(el, tbody, entity, overrides, optionalAfterSaveCallback);
+			container.querySelector('.discard-all').addEventListener('click', resetFunction);
+
+			propertiesTable.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.properties.bulkSave(container, tbody, entity, overrides, optionalAfterSaveCallback);
 			});
 
-			el[0].querySelector('button.add-button').addEventListener('click', () => {
+			container.querySelector('button.add-button').addEventListener('click', () => {
 
-				let newPropertyHtml = _Schema.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass });
-				let tr = $(newPropertyHtml);
-				tbody.append(tr);
+				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass }));
+				tbody.appendChild(tr);
 
-				let propertyTypeSelect = tr[0].querySelector('.property-type');
+				let propertyTypeSelect = tr.querySelector('.property-type');
+
 				propertyTypeSelect.addEventListener('change', () => {
 
 					let selectedOption = propertyTypeSelect.querySelector('option:checked');
-					let shouldIndex = selectedOption.dataset['indexed'];
-					if (shouldIndex === undefined) {
-						shouldIndex = true;
-					} else if (shouldIndex === 'false') {
-						shouldIndex = false;
-					}
-					let indexedCb = tr[0].querySelector('.indexed');
+					let indexedCb      = tr.querySelector('.indexed');
+					let shouldIndex    = selectedOption.dataset['indexed'];
+					shouldIndex = (shouldIndex === undefined) || (shouldIndex !== 'false');
+
 					if (indexedCb.checked !== shouldIndex) {
 
 						indexedCb.checked = shouldIndex;
 
-						blink(indexedCb.closest('td'), '#fff', '#bde5f8');
-						Structr.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
+						_Helpers.blink(indexedCb.closest('td'), '#fff', '#bde5f8');
+						Structr.dialogSystem.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
 					}
 				});
 
-				tr[0].querySelector('.discard-changes').addEventListener('click', () => {
-					tr.remove();
+				tr.querySelector('.discard-changes').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(tr);
 					_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
 				});
 
@@ -2047,12 +2056,12 @@ let _Schema = {
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.properties.getDataFromTable(el, tbody, entity, doValidate);
+					return _Schema.properties.getDataFromTable(tbody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (el, tbody, entity, doValidate = true) => {
+		getDataFromTable: (tbody, entity, doValidate = true) => {
 
 			let name = 'Properties';
 			let data = {
@@ -2065,7 +2074,7 @@ let _Schema = {
 				new: 0
 			};
 
-			for (let tr of tbody[0].querySelectorAll('tr')) {
+			for (let tr of tbody.querySelectorAll('tr')) {
 
 				let row        = $(tr);
 				let propertyId = row.data('propertyId');
@@ -2102,9 +2111,9 @@ let _Schema = {
 
 			return { name, data, allow, counts };
 		},
-		bulkSave: (el, tbody, entity, overrides, optionalAfterSaveCallback) => {
+		bulkSave: (container, tbody, entity, overrides, optionalAfterSaveCallback) => {
 
-			let { allow, counts, data } = _Schema.properties.getDataFromTable(el, tbody, entity);
+			let { allow, counts, data } = _Schema.properties.getDataFromTable(tbody, entity);
 
 			if (allow) {
 
@@ -2119,8 +2128,9 @@ let _Schema = {
 
 						Command.get(entity.id, null, (reloadedEntity) => {
 
-							el.empty();
-							_Schema.properties.appendLocalProperties(el, reloadedEntity, overrides, optionalAfterSaveCallback);
+							container.remove();
+
+							_Schema.properties.appendLocalProperties(container, reloadedEntity, overrides, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
 
 							if (optionalAfterSaveCallback) {
@@ -2147,7 +2157,7 @@ let _Schema = {
 
 			let isProtected = false;
 
-			let propertyTypeOption = $('.property-type option[value="' + property.propertyType + '"]', row);
+			let propertyTypeOption = $(`.property-type option[value="${property.propertyType}"]`, row);
 			if (propertyTypeOption) {
 				propertyTypeOption.attr('selected', true);
 				if (propertyTypeOption.data('protected')) {
@@ -2189,7 +2199,7 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row[0].closest('table'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
@@ -2215,7 +2225,7 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row[0].closest('table'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForCypherProperty(property.id, () => {
@@ -2298,33 +2308,34 @@ let _Schema = {
 				if ((propertyInfoUI[key] === '' || propertyInfoUI[key] === null || propertyInfoUI[key] === undefined) && (property[key] === '' || property[key] === null || property[key] === undefined)) {
 					// account for different attribute-sets and fuzzy equality
 				} else if (propertyInfoUI[key] !== property[key]) {
-					hasChanges = true;
+
+					if (property.propertyType === 'Cypher' && key === 'format') {
+						// ignore "changes" in format... it is not display and collected
+					} else {
+						hasChanges = true;
+					}
 				}
 			}
 
-			if (hasChanges) {
-				row.addClass('has-changes');
-			} else {
-				row.removeClass('has-changes');
-			}
+			_Schema.markElementAsChanged(row[0], hasChanges);
 
-			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.tableChanged(row[0].closest('table'));
 		},
 		validateProperty: (propertyDefinition, tr) => {
 
 			if (propertyDefinition.name.length === 0) {
 
-				blinkRed($('.property-name', tr).closest('td'));
+				_Helpers.blinkRed($('.property-name', tr).closest('td'));
 				return false;
 
 			} else if (propertyDefinition.propertyType.length === 0) {
 
-				blinkRed($('.property-type', tr).closest('td'));
+				_Helpers.blinkRed($('.property-type', tr).closest('td'));
 				return false;
 
 			} else if (propertyDefinition.propertyType === 'Enum' && propertyDefinition.format.trim().length === 0) {
 
-				blinkRed($('.property-format', tr).closest('td'));
+				_Helpers.blinkRed($('.property-format', tr).closest('td'));
 				return false;
 
 			} else if (propertyDefinition.propertyType === 'Enum') {
@@ -2334,234 +2345,169 @@ let _Schema = {
 				});
 
 				if (containsSpace) {
-					blinkRed($('.property-format', tr).closest('td'));
-					new MessageBuilder().warning('Enum values must be separated by commas and cannot contain spaces<br>See the <a href="' + Structr.getDocumentationURLForTopic('schema-enum') + '" target="_blank">support article on enum properties</a> for more information.').requiresConfirmation().show();
+					_Helpers.blinkRed($('.property-format', tr).closest('td'));
+					new WarningMessage().text(`Enum values must be separated by commas and can not contain spaces<br>See the <a href="${_Helpers.getDocumentationURLForTopic('schema-enum')}" target="_blank">support article on enum properties</a> for more information.`).requiresConfirmation().show();
 					return false;
 				}
 			}
 
 			return true;
 		},
-		openCodeEditorForFunctionProperty: (id, key, callback) => {
+		openCodeEditorForFunctionProperty: (id, key, closeCallback) => {
 
-			dialogMeta.show();
+			Command.get(id, `id,name,contentType,${key}`, (entity) => {
 
-			Command.get(id, 'id,name,contentType,' + key, (entity) => {
+				let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
+				Structr.dialogSystem.showMeta();
 
-				Structr.dialog('Edit ' + key + ' of ' + entity.name, () => {}, () => {}, ['popup-dialog-with-editor']);
+				let initialText = entity[key] || '';
 
-				_Schema.properties.editFunctionPropertyCode(entity, key, dialogText, () => {
-					window.setTimeout(() => {
-						callback();
-					}, 250);
-				});
-			});
-		},
-		editFunctionPropertyCode: (entity, key, element, callback) => {
+				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
+				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-			let initialText = entity[key] || '';
+				let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+				let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+				let editorInfo       = dialogMeta.querySelector('.editor-info');
+				_Editors.appendEditorOptionsElement(editorInfo);
 
-			element.append('<div class="editor h-full"></div>');
+				let functionPropertyMonacoConfig = {
+					language: 'auto',
+					lint: true,
+					autocomplete: true,
+					changeFn: (editor, entity) => {
 
-			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+						let disabled = (initialText === editor.getValue());
+						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+					},
+					saveFn: (editor, entity, close = false) => {
 
-			dialogSaveButton = $('#editorSave', dialogBtn);
-			saveAndClose     = $('#saveAndClose', dialogBtn);
+						let text1 = initialText;
+						let text2 = editor.getValue();
 
-			let functionPropertyMonacoConfig = {
-				language: 'auto',
-				lint: true,
-				autocomplete: true,
-				changeFn: (editor, entity) => {
-					let editorText = editor.getValue();
+						if (text1 === text2) {
+							return;
+						}
 
-					if (initialText === editorText) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
-					}
-				},
-				saveFn: (editor, entity) => {
-					let text1 = initialText;
-					let text2 = editor.getValue();
+						Command.setProperty(entity.id, key, text2, false, () => {
 
-					if (text1 === text2) {
-						return;
-					}
+							Structr.dialogSystem.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 
-					Command.setProperty(entity.id, key, text2, false, function() {
+							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-						Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-						Command.getProperty(entity.id, key, function(newText) {
-							initialText = newText;
+							Command.getProperty(entity.id, key, (newText) => {
+								initialText = newText;
+							});
+
+							if (close === true) {
+								Structr.dialogSystem.clickDialogCancelButton();
+							}
 						});
-					});
-				},
-				saveFnText: `Save ${key} Function`,
-				preventRestoreModel: true,
-				isAutoscriptEnv: true
-			};
+					},
+					saveFnText: `Save ${key} Function`,
+					preventRestoreModel: true,
+					isAutoscriptEnv: true
+				};
 
-			let editor = _Editors.getMonacoEditor(entity, key, element[0].querySelector('.editor'), functionPropertyMonacoConfig);
+				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), functionPropertyMonacoConfig);
 
-			_Editors.resizeVisibleEditors();
-			Structr.resize();
+				_Editors.resizeVisibleEditors();
+				Structr.resize();
 
-			saveAndClose.off('click').on('click', function(e) {
-				e.stopPropagation();
-				dialogSaveButton.click();
+				dialogSaveButton.addEventListener('click', (e) => {
+					e.stopPropagation();
 
-				setTimeout(() => {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
+					functionPropertyMonacoConfig.saveFn(editor, entity);
+				});
+
+				saveAndClose.addEventListener('click', (e) => {
+					e.stopPropagation();
+
+					functionPropertyMonacoConfig.saveFn(editor, entity, true);
+				});
+
+				_Editors.focusEditor(editor);
 			});
-
-			dialogCancelButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-				e.preventDefault();
-				if (callback) {
-					callback();
-				}
-				dialogSaveButton = $('#editorSave', dialogBtn);
-				saveAndClose     = $('#saveAndClose', dialogBtn);
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				return false;
-			});
-
-			dialogSaveButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-
-				functionPropertyMonacoConfig.saveFn(editor, entity);
-			});
-
-			dialogMeta.append('<span class="editor-info"></span>');
-
-			let editorInfo = dialogMeta[0].querySelector('.editor-info');
-			_Editors.appendEditorOptionsElement(editorInfo);
-
-			_Editors.focusEditor(editor);
 		},
 		openCodeEditorForCypherProperty: (id, closeCallback) => {
 
-			dialogMeta.show();
-
 			Command.get(id, 'id,name,format', (entity) => {
 
-				Structr.dialog('Edit cypher query of ' + entity.name, () => {}, () => {}, ['popup-dialog-with-editor']);
+				let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit cypher query of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
+				Structr.dialogSystem.showMeta();
 
-				_Schema.properties.editCypherPropertyCode(entity, dialogText, () => {
-					window.setTimeout(() => {
-						closeCallback();
-					}, 250);
-				});
-			});
-		},
-		editCypherPropertyCode: (entity, element, callback) => {
+				let key         = 'format';
+				let initialText = entity[key] || '';
 
-			let key         = 'format';
-			let initialText = entity[key] || '';
+				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
+				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-			element.append('<div class="editor h-full"></div>');
+				let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+				let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+				let editorInfo       = dialogMeta.querySelector('.editor-info');
+				_Editors.appendEditorOptionsElement(editorInfo);
 
-			dialogBtn.append('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
-			dialogBtn.append('<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>');
+				let cypherPropertyMonacoConfig = {
+					language: 'cypher',
+					lint: false,
+					autocomplete: false,
+					changeFn: (editor, entity) => {
 
-			dialogSaveButton = $('#editorSave', dialogBtn);
-			saveAndClose     = $('#saveAndClose', dialogBtn);
+						let disabled = (initialText === editor.getValue());
+						_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+					},
+					saveFn: (editor, entity, close = false) => {
 
-			let cypherPropertyMonacoConfig = {
-				language: 'cypher',
-				lint: false,
-				autocomplete: false,
-				changeFn: (editor, entity) => {
-					let editorText = editor.getValue();
+						let text1 = initialText;
+						let text2 = editor.getValue();
 
-					if (initialText === editorText) {
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-					} else {
-						dialogSaveButton.prop("disabled", false).removeClass('disabled');
-						saveAndClose.prop("disabled", false).removeClass('disabled');
-					}
-				},
-				saveFn: (editor, entity) => {
-					let text1 = initialText;
-					let text2 = editor.getValue();
+						if (text1 === text2) {
+							return;
+						}
 
-					if (text1 === text2) {
-						return;
-					}
+						_Schema.showSchemaRecompileMessage();
 
-					_Schema.showSchemaRecompileMessage();
+						Command.setProperty(entity.id, key, text2, false, () => {
 
-					Command.setProperty(entity.id, key, text2, false, function() {
+							_Schema.hideSchemaRecompileMessage();
 
-						_Schema.hideSchemaRecompileMessage();
+							Structr.dialogSystem.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
-						Structr.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
-						dialogSaveButton.prop("disabled", true).addClass('disabled');
-						saveAndClose.prop("disabled", true).addClass('disabled');
-						Command.getProperty(entity.id, key, function(newText) {
-							initialText = newText;
+							Command.getProperty(entity.id, key, (newText) => {
+								initialText = newText;
+							});
+
+							if (close === true) {
+								Structr.dialogSystem.clickDialogCancelButton();
+							}
 						});
-					});
-				},
-				saveFnText: `Save Cypher Property Query`,
-				preventRestoreModel: true,
-				isAutoscriptEnv: false
-			};
+					},
+					saveFnText: `Save Cypher Property Query`,
+					preventRestoreModel: true,
+					isAutoscriptEnv: false
+				};
 
-			let editor = _Editors.getMonacoEditor(entity, key, element[0].querySelector('.editor'), cypherPropertyMonacoConfig);
+				let editor = _Editors.getMonacoEditor(entity, key, dialogText.querySelector('.editor'), cypherPropertyMonacoConfig);
 
-			_Editors.resizeVisibleEditors();
-			Structr.resize();
+				_Editors.resizeVisibleEditors();
+				Structr.resize();
 
-			saveAndClose.off('click').on('click', function(e) {
-				e.stopPropagation();
-				dialogSaveButton.click();
+				dialogSaveButton.addEventListener('click', (e) => {
+					e.stopPropagation();
 
-				setTimeout(() => {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
+					cypherPropertyMonacoConfig.saveFn(editor, entity);
+				});
+
+				saveAndClose.addEventListener('click', (e) => {
+					e.stopPropagation();
+
+					cypherPropertyMonacoConfig.saveFn(editor, entity, true);
+				});
+
+				_Editors.focusEditor(editor);
 			});
-
-			dialogCancelButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-				e.preventDefault();
-				if (callback) {
-					callback();
-				}
-				dialogSaveButton = $('#editorSave', dialogBtn);
-				saveAndClose     = $('#saveAndClose', dialogBtn);
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				return false;
-			});
-
-			dialogSaveButton.off('click').on('click', function(e) {
-				e.stopPropagation();
-
-				cypherPropertyMonacoConfig.saveFn(editor, entity);
-			});
-
-			dialogMeta.append('<span class="editor-info"></span>');
-
-			let editorInfo = dialogMeta[0].querySelector('.editor-info');
-			_Editors.appendEditorOptionsElement(editorInfo);
-
-			_Editors.focusEditor(editor);
 		},
-		appendBuiltinProperties: (el, entity) => {
+		appendBuiltinProperties: (container, entity) => {
 
 			let tableConfig = {
 				class: 'builtin schema-props',
@@ -2576,18 +2522,18 @@ let _Schema = {
 				]
 			};
 
-			let schemaTableHtml = _Schema.templates.schemaTable(tableConfig);
-			let propertiesTable = $(schemaTableHtml);
-			el.append(propertiesTable);
+			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
+			let tbody           = propertiesTable.querySelector('tbody')
+			propertiesTable.querySelector('tfoot').classList.add('hidden');
 
-			$('tfoot', propertiesTable).addClass('hidden');
+			container.appendChild(propertiesTable);
 
-			_Schema.sort(entity.schemaProperties);
+			_Helpers.sort(entity.schemaProperties);
 
 			Command.listSchemaProperties(entity.id, 'ui', (data) => {
 
 				// sort by name
-				_Schema.sort(data, "declaringClass", "name");
+				_Helpers.sort(data, "declaringClass", "name");
 
 				for (let prop of data) {
 
@@ -2605,8 +2551,7 @@ let _Schema = {
 							declaringClass: prop.declaringClass
 						};
 
-						let builtinPropertyHtml = _Schema.templates.propertyBuiltin({ property: property });
-						$('tbody', propertiesTable).append(builtinPropertyHtml);
+						tbody.insertAdjacentHTML('beforeend', _Schema.templates.propertyBuiltin({ property: property }));
 					}
 				}
 			});
@@ -2617,7 +2562,13 @@ let _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		appendRemote: (el, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
+		asyncEditSchemaObjectLinkHandler: async (el, mainTabs) => {
+			let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+			if (okToNavigate) {
+				_Schema.openEditDialog(el.dataset['objectId']);
+			}
+		},
+		appendRemote: (container, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
 
 			let tableConfig = {
 				class: 'related-attrs schema-props',
@@ -2628,14 +2579,14 @@ let _Schema = {
 				]
 			};
 
-			let tbl   = $(_Schema.templates.schemaTable(tableConfig));
-			let tbody = tbl.find('tbody');
-			el.append(tbl);
+			let table = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
+			let tbody = table.querySelector('tbody');
+			container.appendChild(table);
 
 			if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
 
-				tbody.append('<td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
-				$('tfoot', tbl).addClass('hidden');
+				tbody.insertAdjacentHTML('beforeend', '<tr><td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
+				table.querySelector('tfoot').classList.add('hidden');
 
 			} else {
 
@@ -2649,26 +2600,27 @@ let _Schema = {
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of tbl[0].querySelectorAll('.discard-changes')) {
+				for (let discardIcon of table.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			tbl[0].querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			tbl[0].querySelector('.save-all').addEventListener('click', () => {
-				_Schema.remoteProperties.bulkSave(el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
+			table.querySelector('.discard-all').addEventListener('click', resetFunction);
+
+			table.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.remoteProperties.bulkSave(container, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
 			});
 
-			_Schema.bulkDialogsGeneral.tableChanged(tbl);
+			_Schema.bulkDialogsGeneral.tableChanged(table);
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.remoteProperties.getDataFromTable(el, tbody, entity, doValidate);
+					return _Schema.remoteProperties.getDataFromTable(tbody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (el, tbody, entity, doValidate = true) => {
+		getDataFromTable: (tbody, entity, doValidate = true) => {
 
 			let name = 'Linked Properties';
 			let data = {
@@ -2681,38 +2633,45 @@ let _Schema = {
 				reset:0
 			};
 
-			for (let tr of tbody[0].querySelectorAll('tr')) {
+			for (let tr of tbody.querySelectorAll('tr')) {
 
-				let row  = $(tr);
-				let info = {
-					id: row.data('relationshipId')
-				};
+				let relId            = tr.dataset['relationshipId'];
+				let propertyName     = tr.dataset['propertyName'];
+				let targetCollection = tr.dataset['targetCollection'];
 
-				info[row.data('propertyName')] = $('.property-name', row).val();
-				if (info[row.data('propertyName')] === '') {
-					info[row.data('propertyName')] = null;
-				}
+				if (relId) {
 
-				if (row.hasClass('has-changes')) {
-					if (doValidate) {
-						allow = _Schema.remoteProperties.validate(row) && allow;
+					let info = {
+						id: relId
+					};
+
+					info[propertyName] = tr.querySelector('.property-name').value;
+					if (info[propertyName] === '') {
+						info[propertyName] = null;
 					}
 
-					if (info[row.data('propertyName')] === null) {
-						counts.reset++;
-					} else {
-						counts.update++;
-					}
-				}
+					if (tr.classList.contains('has-changes')) {
 
-				data[row.data('targetCollection')].push(info);
+						if (doValidate) {
+							allow = _Schema.remoteProperties.validate(tr) && allow;
+						}
+
+						if (info[propertyName] === null) {
+							counts.reset++;
+						} else {
+							counts.update++;
+						}
+					}
+
+					data[targetCollection].push(info);
+				}
 			}
 
 			return { name, data, allow, counts };
 		},
 		bulkSave: (el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
 
-			let { allow, counts, data } = _Schema.remoteProperties.getDataFromTable(el, tbody, entity);
+			let { allow, counts, data } = _Schema.remoteProperties.getDataFromTable(tbody, entity);
 
 			if (allow) {
 
@@ -2726,7 +2685,9 @@ let _Schema = {
 					if (response.ok) {
 
 						Command.get(entity.id, null, (reloadedEntity) => {
-							el.empty();
+
+							_Helpers.fastRemoveElement(el);
+
 							_Schema.remoteProperties.appendRemote(el, reloadedEntity, editSchemaObjectLinkHandler);
 							_Schema.hideSchemaRecompileMessage();
 
@@ -2753,39 +2714,40 @@ let _Schema = {
 
 			let renderRemoteProperty = (tplConfig) => {
 
-				let remotePropertyHtml = _Schema.templates.remoteProperty(tplConfig);
-				let row = $(remotePropertyHtml);
-				el.append(row);
+				let row = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.remoteProperty(tplConfig));
+				el.appendChild(row);
 
-				$('.property-name', row).on('keyup', () => {
+				row.querySelector('.property-name').addEventListener('keyup', () => {
 					_Schema.remoteProperties.rowChanged(row, attributeName);
 				});
 
-				$('.reset-action', row).on('click', () => {
-					$('.property-name', row).val('');
+				row.querySelector('.reset-action').addEventListener('click', () => {
+					row.querySelector('.property-name').value = '';
 					_Schema.remoteProperties.rowChanged(row, attributeName);
 				});
 
-				$('.discard-changes', row).on('click', () => {
+				row.querySelector('.discard-changes').addEventListener('click', () => {
 					$('.property-name', row).val(attributeName);
 					_Schema.remoteProperties.rowChanged(row, attributeName);
 				});
 
 				if (Structr.isModuleActive(_Schema)) {
-					$('.edit-schema-object', row).on('click', async (e) => {
-						e.stopPropagation();
 
+					row.querySelector('.edit-schema-object').addEventListener('click', async (e) => {
+						e.stopPropagation();
 
 						let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
 
 						if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
-							editSchemaObjectLinkHandler($(e.target));
+							editSchemaObjectLinkHandler(e.target);
 						}
 
 						return false;
 					});
+
 				} else {
-					$('.edit-schema-object', row).removeClass('edit-schema-object');
+
+					row.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
 				}
 			};
 
@@ -2814,14 +2776,10 @@ let _Schema = {
 		},
 		rowChanged: (row, originalName) => {
 
-			let nameInUI   = $('.property-name', row).val();
+			let nameInUI   = row.querySelector('.property-name').value;
 			let hasChanges = (nameInUI !== originalName);
 
-			if (hasChanges) {
-				row.addClass('has-changes');
-			} else {
-				row.removeClass('has-changes');
-			}
+			_Schema.markElementAsChanged(row, hasChanges);
 
 			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
 		},
@@ -2831,54 +2789,52 @@ let _Schema = {
 	},
 	views: {
 		initialViewConfig: {},
-		appendViews: (el, entity, optionalAfterSaveCallback) => {
+		viewsTableConfig: {
+			class: 'related-attrs schema-props',
+			cols: [
+				{ class: '', title: 'Name' },
+				{ class: '', title: 'Properties' },
+				{ class: 'actions-col', title: 'Action' }
+			],
+			addButtonText: 'Add view'
+		},
+		appendViews: (container, entity, optionalAfterSaveCallback) => {
 
-			let tableConfig = {
-				class: 'related-attrs schema-props',
-				cols: [
-					{ class: '', title: 'Name' },
-					{ class: '', title: 'Properties' },
-					{ class: 'actions-col', title: 'Action' }
-				],
-				addButtonText: 'Add view'
-			};
+			let viewsTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(_Schema.views.viewsTableConfig));
+			let tbody      = viewsTable.querySelector('tbody');
+			container.appendChild(viewsTable);
 
-			let viewsTable = $(_Schema.templates.schemaTable(tableConfig));
-			el.append(viewsTable);
-
-			let tbody = viewsTable.find('tbody');
-
-			_Schema.sort(entity.schemaViews);
+			_Helpers.sort(entity.schemaViews);
 
 			for (let view of entity.schemaViews) {
 				_Schema.views.appendView(tbody, view, entity);
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of tbody[0].querySelectorAll('.discard-changes')) {
+				for (let discardIcon of tbody.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			viewsTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
+			viewsTable.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			viewsTable[0].querySelector('.save-all').addEventListener('click', () => {
-				_Schema.views.bulkSave(el, tbody, entity, optionalAfterSaveCallback);
+			viewsTable.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.views.bulkSave(container, tbody, entity, optionalAfterSaveCallback);
 			});
 
-			el[0].querySelector('button.add-button').addEventListener('click', () => {
+			container.querySelector('button.add-button').addEventListener('click', () => {
 
-				let newViewHtml = _Schema.templates.viewNew();
-				let row = $(newViewHtml);
-				tbody.append(row);
+				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.viewNew());
+				tbody.appendChild(tr);
 
-				_Schema.views.appendViewSelectionElement(row, { name: 'new' }, entity, (chznElement) => {
-					chznElement.chosenSortable();
+				_Schema.views.appendViewSelectionElement(tr, { name: 'new' }, entity, (chosenElement) => {
+
+					chosenElement.chosenSortable();
 
 					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
 
-				row[0].querySelector('.discard-changes').addEventListener('click', () => {
-					row.remove();
+				tr.querySelector('.discard-changes').addEventListener('click', () => {
+					tr.remove();
 					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
 			});
@@ -2887,12 +2843,12 @@ let _Schema = {
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.views.getDataFromTable(el, tbody, entity, doValidate);
+					return _Schema.views.getDataFromTable(tbody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (el, tbody, entity, doValidate = true) => {
+		getDataFromTable: (tbody, entity, doValidate = true) => {
 
 			let name = 'Views';
 			let data = {
@@ -2905,26 +2861,30 @@ let _Schema = {
 				new: 0
 			};
 
-			for (let tr of tbody[0].querySelectorAll('tr')) {
+			for (let tr of tbody.querySelectorAll('tr')) {
 
-				let row    = $(tr);
-				let viewId = row.data('viewId');
-				let view   = _Schema.views.getInfoFromRow(row, entity);
+				let viewId = tr.dataset['viewId'];
+				let view   = _Schema.views.getInfoFromRow(tr, entity);
 
 				if (viewId) {
 
-					if (row.hasClass('to-delete')) {
+					if (tr.classList.contains('to-delete')) {
+
 						// do not add this property to the list
 						counts.delete++;
-					} else if (row.hasClass('has-changes')) {
+
+					} else if (tr.classList.contains('has-changes')) {
+
 						// changed lines
 						counts.update++;
 						view.id = viewId;
 						if (doValidate) {
-							allow = _Schema.views.validateViewRow(row) && allow;
+							allow = _Schema.views.validateViewRow(tr) && allow;
 						}
 						data.schemaViews.push(view);
+
 					} else {
+
 						// unchanged lines, only transmit id
 						view = { id: viewId };
 						data.schemaViews.push(view);
@@ -2936,7 +2896,7 @@ let _Schema = {
 					counts.new++;
 					view.type = 'SchemaView';
 					if (doValidate) {
-						allow = _Schema.views.validateViewRow(row) && allow;
+						allow = _Schema.views.validateViewRow(tr) && allow;
 					}
 					data.schemaViews.push(view);
 				}
@@ -2946,7 +2906,7 @@ let _Schema = {
 		},
 		bulkSave: (el, tbody, entity, optionalAfterSaveCallback) => {
 
-			let { data, allow, counts } = _Schema.views.getDataFromTable(el, tbody, entity);
+			let { data, allow, counts } = _Schema.views.getDataFromTable(tbody, entity);
 
 			if (allow) {
 
@@ -2960,7 +2920,7 @@ let _Schema = {
 					if (response.ok) {
 
 						Command.get(entity.id, null, (reloadedEntity) => {
-							el.empty();
+							_Helpers.fastRemoveAllChildren(el);
 							_Schema.views.appendViews(el, reloadedEntity, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
 
@@ -2978,88 +2938,96 @@ let _Schema = {
 				});
 			}
 		},
-		appendView: (el, view, entity) => {
+		appendView: (tbody, view, entity) => {
 
-			let viewHtml = _Schema.templates.view({view: view, type: entity});
-			let row = $(viewHtml);
-			el.append(row);
+			let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.view({ view: view, type: entity }));
+			tbody.appendChild(tr);
 
-			_Schema.views.appendViewSelectionElement(row, view, entity, (chznElement) => {
+			_Schema.views.appendViewSelectionElement(tr, view, entity, (chosenElement) => {
 
 				// store initial configuration for later comparison
-				let initialViewConfig = _Schema.views.getInfoFromRow(row, entity);
+				let initialViewConfig = _Schema.views.getInfoFromRow(tr, entity);
 
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				chznElement.chosenSortable(function() {
+				chosenElement.chosenSortable(function() {
 					// sort order changed
-					_Schema.views.rowChanged(row, entity, initialViewConfig);
+					_Schema.views.rowChanged(tr, entity, initialViewConfig);
 				});
 
-				_Schema.views.bindRowEvents(row, entity, view, initialViewConfig);
+				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
 			});
 		},
-		bindRowEvents: (row, entity, view, initialViewConfig) => {
+		bindRowEvents: (tr, entity, view, initialViewConfig) => {
 
 			let viewInfoChangeHandler = (event, params) => {
-				_Schema.views.rowChanged(row, entity, initialViewConfig);
+				_Schema.views.rowChanged(tr, entity, initialViewConfig);
 			};
 
-			$('.view.property-name', row).off('change').on('change', viewInfoChangeHandler);
-			$('.view.property-attrs', row).off('change').on('change', viewInfoChangeHandler);
+			tr.querySelector('.view.property-name').addEventListener('change', viewInfoChangeHandler);
 
-			$('.discard-changes', row).off('click').on('click', function() {
+			// required jquery change handler for chosen plugin
+			$(tr.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
 
-				var select = $('select', row);
+			tr.querySelector('.discard-changes').addEventListener('click', () => {
 
-				$('.view.property-name', row).val(view.name);
+				tr.querySelector('.view.property-name').value = view.name;
 
+				let select = tr.querySelector('select');
 				Command.listSchemaProperties(entity.id, view.name, (data) => {
 
 					for (let prop of data) {
-						$('option[value="' + prop.name + '"]', select).prop('selected', prop.isSelected);
+						let option = select.querySelector(`option[value="${prop.name}"]`);
+						if (option) {
+							option.selected = prop.isSelected;
+						}
 					}
 
-					select.trigger('chosen:updated');
+					select.dispatchEvent(new CustomEvent('chosen:updated'));
 
-					row.removeClass('to-delete');
-					row.removeClass('has-changes');
+					tr.classList.remove('to-delete');
+					tr.classList.remove('has-changes');
 
-					_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
+					_Schema.bulkDialogsGeneral.tableChanged(tr.closest('table'));
 				});
 			});
 
-			$('.remove-action', row).off('click').on('click', function() {
+			let removeAction = tr.querySelector('.remove-action');
+			removeAction.addEventListener('click', () => {
 
-				row.addClass('to-delete');
+				tr.classList.add('to-delete');
 				viewInfoChangeHandler();
 
-			}).prop('disabled', null);
+			})
+			removeAction.disabled = false;
+		},
+		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
+
+			let name = prop.name;
+			if (name !== 'internalEntityContextPath') {
+
+				let isSelected = prop.isSelected ? ' selected="selected"' : '';
+				let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
+
+				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${name}"${isSelected}${isDisabled}>${name}</option>`);
+			}
 		},
 		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
-			let propertySelectTd = $('.view-properties-select', row).last();
-			propertySelectTd.append('<select class="property-attrs view chosen-sortable" multiple="multiple"></select>');
-			let viewSelectElem = $('.property-attrs', propertySelectTd);
+			let viewSelectElem = row.querySelector('.property-attrs');
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
-				let appendProperty = (prop) => {
-					let name       = prop.name;
-					let isSelected = prop.isSelected ? ' selected="selected"' : '';
-					let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
-
-					viewSelectElem.append('<option value="' + name + '"' + isSelected + isDisabled + '>' + name + '</option>');
-				};
-
 				if (view.sortOrder) {
+
 					for (let sortedProp of view.sortOrder.split(',')) {
 
 						let prop = properties.filter(prop => (prop.name === sortedProp));
 
 						if (prop.length > 0) {
-							appendProperty(prop[0]);
+
+							_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop[0]);
 
 							properties = properties.filter(prop => (prop.name !== sortedProp));
 						}
@@ -3067,10 +3035,10 @@ let _Schema = {
 				}
 
 				for (let prop of properties) {
-					appendProperty(prop);
+					_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 				}
 
-				let chzn = viewSelectElem.chosen({
+				let chosenElement = $(viewSelectElem).chosen({
 					search_contains: true,
 					width: '100%',
 					display_selected_options: false,
@@ -3078,7 +3046,7 @@ let _Schema = {
 					display_disabled_options: false
 				});
 
-				callback(chzn);
+				callback(chosenElement);
 			});
 		},
 		findSchemaPropertiesByNodeAndName: (entity, names) => {
@@ -3132,21 +3100,23 @@ let _Schema = {
 
 			let inheritedProperties = [];
 
-			for (let prop of $('.builtin.schema-props tr')) {
+			for (let prop of document.querySelectorAll('.builtin.schema-props tr')) {
+
 				let name = prop.dataset.propertyName;
 				let id   = prop.dataset.propertyId;
+
 				if (names.includes(name)) {
-					inheritedProperties.push({id: id});
+					inheritedProperties.push({ id: id });
 				}
 			}
 
 			return inheritedProperties;
 		},
-		findExcludedProperties: (entity, names, row) => {
+		findExcludedProperties: (entity, names, tr) => {
 
 			let excludedProps = [];
 
-			let viewId = row.data('viewId');
+			let viewId            = tr.dataset['viewId'];
 			let initialViewConfig = _Schema.views.initialViewConfig[viewId];
 
 			if (initialViewConfig && initialViewConfig.hasOwnProperty('nonGraphProperties')) {
@@ -3155,20 +3125,21 @@ let _Schema = {
 
 			return excludedProps;
 		},
-		getInfoFromRow: (row, schemaNodeEntity) => {
-			let sortedAttrs = $('.view.property-attrs', row).sortedVals();
+		getInfoFromRow: (tr, schemaNodeEntity) => {
+
+			let sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedVals();
 
 			return {
-				name: $('.view.property-name', row).val(),
+				name: tr.querySelector('.view.property-name').value,
 				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
 				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
-				excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, row),
+				excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
 				sortOrder: sortedAttrs.join(',')
 			};
 		},
-		rowChanged: (row, entity, initialViewConfig) => {
+		rowChanged: (tr, entity, initialViewConfig) => {
 
-			let viewInfoInUI = _Schema.views.getInfoFromRow(row, entity);
+			let viewInfoInUI = _Schema.views.getInfoFromRow(tr, entity);
 			let hasChanges   = false;
 
 			for (let key in viewInfoInUI) {
@@ -3187,25 +3158,23 @@ let _Schema = {
 				}
 			}
 
-			if (hasChanges) {
-				row.addClass('has-changes');
-			} else {
-				row.removeClass('has-changes');
-			}
+			_Schema.markElementAsChanged(tr, hasChanges);
 
-			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.tableChanged(tr.closest('table'));
 		},
 		validateViewRow: (row) => {
 
-			if ($('.property-name', row).val().length === 0) {
+			let nameField = row.querySelector('.property-name');
+			if (nameField.value.length === 0) {
 
-				blinkRed($('.property-name', row).closest('td'));
+				_Helpers.blinkRed(nameField.closest('td'));
 				return false;
 			}
 
-			if ($('.view.property-attrs', row).sortedVals().length === 0) {
+			let viewPropertiesSelect = row.querySelector('.view.property-attrs');
+			if ($(viewPropertiesSelect).sortedVals().length === 0) {
 
-				blinkRed($('.view.property-attrs', row).closest('td'));
+				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
 				return false;
 			}
 
@@ -3215,37 +3184,37 @@ let _Schema = {
 	methods: {
 		methodsData: {},
 		lastEditedMethod: {},
-		getLastEditedMethod: (entity) => {
-			return _Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')];
-		},
+		getLastEditedMethod: (entity) => _Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')],
 		setLastEditedMethod: (entity, method) => {
 			_Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')] = method;
 		},
-		appendMethods: (el, entity, methods, optionalAfterSaveCallback) => {
+		methodsTableConfig: {
+			class: 'actions schema-props',
+			cols: [
+				{ class: '', title: 'Name' },
+				{ class: 'isstatic-col', title: 'isStatic' },
+				{ class: 'actions-col', title: 'Action' }
+			]
+		},
+		appendMethods: (container, entity, methods, optionalAfterSaveCallback) => {
 
 			_Schema.methods.methodsData = {};
 
 			methods = _Schema.filterJavaMethods(methods);
 
-			el.append(_Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
+			container.insertAdjacentHTML('beforeend', _Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
 
-			let tableConfig = {
-				class: 'actions schema-props',
-				cols: [
-					{ class: '', title: 'Name' },
-					{ class: 'isstatic-col', title: 'isStatic' },
-					{ class: 'actions-col', title: 'Action' }
-				],
-				entity: entity
-			};
+			let methodsFakeTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.fakeTable(_Schema.methods.methodsTableConfig));
+			container.querySelector('#methods-table-container').appendChild(methodsFakeTable);
 
-			let methodsFakeTable = $(_Schema.templates.fakeTable(tableConfig));
-			let fakeTbody        = methodsFakeTable.find('.fake-tbody');
-			$('#methods-table-container', el).append(methodsFakeTable);
+			let fakeTbody = container.querySelector('.fake-tbody');
 
-			_Schema.methods.activateUIActions(el, fakeTbody, entity);
+			let fakeTfootButtonsContainer = methodsFakeTable.querySelector('.fake-tfoot-buttons');
+			fakeTfootButtonsContainer.insertAdjacentHTML('beforeend', (entity) ? _Schema.templates.addMethodsDropdown() : _Schema.templates.addMethodDropdown());
 
-			_Schema.sort(methods);
+			_Schema.methods.activateUIActions(container, fakeTbody, entity);
+
+			_Helpers.sort(methods);
 
 			let lastEditedMethod = _Schema.methods.getLastEditedMethod(entity);
 
@@ -3253,13 +3222,14 @@ let _Schema = {
 
 			for (let method of methods) {
 
-				let methodHtml = _Schema.templates.method({ method: method });
-				let fakeRow    = $(methodHtml);
-				fakeTbody.append(fakeRow);
+				let fakeRow = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.method({ method: method }));
+				fakeTbody.appendChild(fakeRow);
 
-				fakeRow.data('type-name', (entity ? entity.name : 'global_schema_method')).data('method-name', method.name);
-				$('.property-name', fakeRow).val(method.name);
-				$('.property-isStatic', fakeRow).prop('checked', method.isStatic);
+				fakeRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
+				fakeRow.dataset['methodName'] = method.name;
+
+				fakeRow.querySelector('.property-name').value       = method.name;
+				fakeRow.querySelector('.property-isStatic').checked = method.isStatic;
 
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
@@ -3282,33 +3252,33 @@ let _Schema = {
 			}
 
 			if (rowToActivate) {
-				rowToActivate[0].querySelector('.edit-action').dispatchEvent(new Event('click'));
+				rowToActivate.querySelector('.edit-action').dispatchEvent(new Event('click'));
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of methodsFakeTable[0].querySelectorAll('.discard-changes')) {
+				for (let discardIcon of methodsFakeTable.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			methodsFakeTable[0].querySelector('.discard-all').addEventListener('click', resetFunction);
+			methodsFakeTable.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			methodsFakeTable[0].querySelector('.save-all').addEventListener('click', () => {
-				_Schema.methods.bulkSave(el, fakeTbody, entity, optionalAfterSaveCallback);
+			methodsFakeTable.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.methods.bulkSave(container, fakeTbody, entity, optionalAfterSaveCallback);
 			});
 
-			let editorInfo = el[0].querySelector('#methods-container-right .editor-info');
+			let editorInfo = container.querySelector('#methods-container-right .editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
 			_Schema.bulkDialogsGeneral.fakeTableChanged(methodsFakeTable);
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.methods.getDataFromTable(el, fakeTbody, entity, doValidate);
+					return _Schema.methods.getDataFromTable(fakeTbody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (el, tbody, entity, doValidate = true) => {
+		getDataFromTable: (tbody, entity, doValidate = true) => {
 
 			let name = 'Methods';
 			let data = {
@@ -3327,15 +3297,14 @@ let _Schema = {
 				data.schemaMethods.push({ id: javaMethod.id });
 			}
 
-			for (let tr of tbody[0].querySelectorAll('.fake-tr')) {
+			for (let tr of tbody.querySelectorAll('.fake-tr')) {
 
-				let row        = $(tr);
-				let methodId   = row.data('methodId');
+				let methodId   = tr.dataset['methodId'];
 				let methodData = _Schema.methods.methodsData[methodId];
 
 				if (methodData.isNew === false) {
 
-					if (row.hasClass('to-delete')) {
+					if (tr.classList.contains('to-delete')) {
 
 						counts.delete++;
 						data.schemaMethods.push({
@@ -3343,7 +3312,7 @@ let _Schema = {
 							deleteMethod: true
 						});
 
-					} else if (row.hasClass('has-changes')) {
+					} else if (tr.classList.contains('has-changes')) {
 
 						counts.update++;
 						data.schemaMethods.push({
@@ -3353,7 +3322,7 @@ let _Schema = {
 							source:   methodData.source,
 						});
 						if (doValidate) {
-							allow = _Schema.methods.validateMethodRow(row) && allow;
+							allow = _Schema.methods.validateMethodRow(tr) && allow;
 						}
 
 					} else {
@@ -3370,7 +3339,7 @@ let _Schema = {
 
 					counts.new++;
 					if (doValidate) {
-						allow = _Schema.methods.validateMethodRow(row) && allow;
+						allow = _Schema.methods.validateMethodRow(tr) && allow;
 					}
 					let method = {
 						type:     'SchemaMethod',
@@ -3390,15 +3359,15 @@ let _Schema = {
 
 			return { name, data, allow, counts };
 		},
-		bulkSave: (el, fakeTbody, entity, optionalAfterSaveCallback) => {
+		bulkSave: (container, fakeTbody, entity, optionalAfterSaveCallback) => {
 
-			let { data, allow, counts } = _Schema.methods.getDataFromTable(el, fakeTbody, entity);
+			let { data, allow, counts } = _Schema.methods.getDataFromTable(fakeTbody, entity);
 
 			if (allow) {
 
-				let activeMethod = fakeTbody.find('.fake-tr.editing');
+				let activeMethod = fakeTbody.querySelector('.fake-tr.editing');
 				if (activeMethod) {
-					_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.data('methodId')]);
+					_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.dataset['methodId']]);
 				} else {
 					_Schema.methods.setLastEditedMethod(entity, undefined);
 				}
@@ -3418,25 +3387,24 @@ let _Schema = {
 
 							Command.get(entity.id, null, (reloadedEntity) => {
 
-								el.empty();
-								_Schema.methods.appendMethods(el, reloadedEntity, reloadedEntity.schemaMethods, optionalAfterSaveCallback);
+								_Helpers.fastRemoveAllChildren(container);
+
+								_Schema.methods.appendMethods(container, reloadedEntity, reloadedEntity.schemaMethods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
 
-								if (optionalAfterSaveCallback) {
-									optionalAfterSaveCallback();
-								}
+								optionalAfterSaveCallback?.();
 							});
 
 						} else {
 
-							Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
-								el.empty();
-								_Schema.methods.appendMethods(el, null, methods, optionalAfterSaveCallback);
+							Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
+
+								container.remove();
+
+								_Schema.methods.appendMethods(container, null, methods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
 
-								if (optionalAfterSaveCallback) {
-									optionalAfterSaveCallback();
-								}
+								optionalAfterSaveCallback?.();
 							});
 						}
 
@@ -3450,11 +3418,11 @@ let _Schema = {
 				});
 			}
 		},
-		activateUIActions: (el, fakeTbody, entity) => {
+		activateUIActions: (container, fakeTbody, entity) => {
 
 			let addedMethodsCounter = 1;
 
-			for (let addMethodButton of el[0].querySelectorAll('.add-method-button')) {
+			for (let addMethodButton of container.querySelectorAll('.add-method-button')) {
 
 				addMethodButton.addEventListener('click', () => {
 
@@ -3468,16 +3436,14 @@ let _Schema = {
 				});
 			}
 
-			Structr.activateCommentsInElement(el[0], { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
+			_Helpers.activateCommentsInElement(container, { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
 		},
 		appendNewMethod: (fakeTbody, method, entity) => {
 
-			let newMethodHtml = _Schema.templates.method({ method: method, isNew: true });
-			let row           = $(newMethodHtml);
-			let rowEl         = row[0];
-			fakeTbody.append(row);
+			let fakeTr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.method({ method: method, isNew: true }));
+			fakeTbody.appendChild(fakeTr);
 
-			fakeTbody.scrollTop(row.position().top);
+			fakeTbody.scrollTop = fakeTr.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
 				id: method.id,
@@ -3487,22 +3453,22 @@ let _Schema = {
 				source: method.source || '',
 			};
 
-			let propertyNameInput = rowEl.querySelector('.property-name');
+			let propertyNameInput = fakeTr.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
 			});
 
-			let isStaticCheckbox = rowEl.querySelector('.property-isStatic');
+			let isStaticCheckbox = fakeTr.querySelector('.property-isStatic');
 			isStaticCheckbox.addEventListener('change', () => {
 				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
 			});
 
-			rowEl.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(row, entity);
+			fakeTr.querySelector('.edit-action').addEventListener('click', () => {
+				_Schema.methods.editMethod(fakeTr, entity);
 			});
 
-			rowEl.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(row.closest('.fake-tbody'), {
+			fakeTr.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(fakeTr.closest('.fake-tbody'), {
 					id:       method.id + '_clone_' + (new Date().getTime()),
 					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy'),
 					isStatic: _Schema.methods.methodsData[method.id].isStatic,
@@ -3510,11 +3476,12 @@ let _Schema = {
 				}, entity);
 			});
 
-			rowEl.querySelector('.discard-changes').addEventListener('click', () => {
-				if (row.hasClass('editing')) {
-					$('#methods-container-right').hide();
+			fakeTr.querySelector('.discard-changes').addEventListener('click', () => {
+
+				if (fakeTr.classList.contains('editing')) {
+					document.querySelector('#methods-container-right').style.display = 'none';
 				}
-				row.remove();
+				fakeTr.remove();
 
 				_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
 
@@ -3523,7 +3490,7 @@ let _Schema = {
 
 			_Schema.bulkDialogsGeneral.fakeTableChanged(fakeTbody.closest('.fake-table'));
 
-			_Schema.methods.editMethod(row, entity);
+			_Schema.methods.editMethod(fakeTr, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -3552,30 +3519,29 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (row, entity) => {
+		bindRowEvents: (tr, entity) => {
 
-			let rowEl            = row[0];
-			let methodId         = rowEl.dataset['methodId'];
-			let methodData       = _Schema.methods.methodsData[methodId];
+			let methodId   = tr.dataset['methodId'];
+			let methodData = _Schema.methods.methodsData[methodId];
 
-			let propertyNameInput = rowEl.querySelector('.property-name');
+			let propertyNameInput = tr.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				methodData.name = propertyNameInput.value;
-				_Schema.methods.rowChanged(row, (methodData.name !== methodData.initialName));
+				_Schema.methods.rowChanged(tr, (methodData.name !== methodData.initialName));
 			});
 
-			let isStaticCheckbox = rowEl.querySelector('.property-isStatic');
+			let isStaticCheckbox = tr.querySelector('.property-isStatic');
 			isStaticCheckbox.addEventListener('change', () => {
 				methodData.isStatic = isStaticCheckbox.checked;
-				_Schema.methods.rowChanged(row, (methodData.isStatic !== methodData.initialisStatic));
+				_Schema.methods.rowChanged(tr, (methodData.isStatic !== methodData.initialisStatic));
 			});
 
-			rowEl.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(row, entity);
+			tr.querySelector('.edit-action').addEventListener('click', () => {
+				_Schema.methods.editMethod(tr, entity);
 			});
 
-			rowEl.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(row.closest('.fake-tbody'), {
+			tr.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(tr.closest('.fake-tbody'), {
 					id:       methodId + '_clone_' + (new Date().getTime()),
 					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy'),
 					isStatic: methodData.isStatic,
@@ -3583,40 +3549,40 @@ let _Schema = {
 				}, entity);
 			});
 
-			rowEl.querySelector('.remove-action').addEventListener('click', () => {
-				row.addClass('to-delete');
-				_Schema.methods.rowChanged(row, true);
+			tr.querySelector('.remove-action').addEventListener('click', () => {
+				tr.classList.add('to-delete');
+				_Schema.methods.rowChanged(tr, true);
 			});
 
-			rowEl.querySelector('.discard-changes').addEventListener('click', () => {
+			tr.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (row.hasClass('to-delete') || row.hasClass('has-changes')) {
+				if (tr.classList.contains('to-delete') || tr.classList.contains('has-changes')) {
 
-					row.removeClass('to-delete');
-					row.removeClass('has-changes');
+					tr.classList.remove('to-delete');
+					tr.classList.remove('has-changes');
 
 					methodData.name     = methodData.initialName;
 					methodData.isStatic = methodData.initialisStatic;
 					methodData.source   = methodData.initialSource;
 
-					$('.property-name', row).val(methodData.name);
-					$('.property-isStatic', row).prop('checked', methodData.isStatic);
+					tr.querySelector('.property-name').value       = methodData.name;
+					tr.querySelector('.property-isStatic').checked = methodData.isStatic;
 
-					if (row.hasClass('editing')) {
+					if (tr.classList.contains('editing')) {
 						_Editors.disposeEditorModel(methodData.id, 'source');
-						_Schema.methods.editMethod(row);
+						_Schema.methods.editMethod(tr);
 					}
 
-					_Schema.methods.rowChanged(row, false);
+					_Schema.methods.rowChanged(tr, false);
 				}
 			});
 		},
-		saveAndDisposePreviousEditor: (row) => {
+		saveAndDisposePreviousEditor: (tr) => {
 
-			let previouslyActiveRow = row.closest('.fake-tbody').find('.fake-tr.editing');
+			let previouslyActiveRow = tr.closest('.fake-tbody').querySelector('.fake-tr.editing');
 			if (previouslyActiveRow) {
 
-				let previousMethodId = previouslyActiveRow.data('methodId');
+				let previousMethodId = previouslyActiveRow.dataset['methodId'];
 
 				if (previousMethodId) {
 					_Editors.saveViewState(previousMethodId, 'source');
@@ -3624,16 +3590,16 @@ let _Schema = {
 				}
 			}
 		},
-		editMethod: (row, entity) => {
+		editMethod: (tr, entity) => {
 
-			_Schema.methods.saveAndDisposePreviousEditor(row);
+			_Schema.methods.saveAndDisposePreviousEditor(tr);
 
-			$('#methods-container-right').show();
+			document.querySelector('#methods-container-right').style.display = '';
 
-			row.closest('.fake-tbody').find('.fake-tr').removeClass('editing');
-			row.addClass('editing');
+			tr.closest('.fake-tbody').querySelector('.fake-tr.editing')?.classList.remove('editing');
+			tr.classList.add('editing');
 
-			let methodId   = row.data('methodId');
+			let methodId   = tr.dataset['methodId'];
 			let methodData = _Schema.methods.methodsData[methodId];
 
 			_Schema.methods.setLastEditedMethod(entity, methodData);
@@ -3645,7 +3611,7 @@ let _Schema = {
 				changeFn: (editor, entity) => {
 					methodData.source = editor.getValue();
 					let hasChanges = (methodData.source !== methodData.initialSource) || (methodData.name !== methodData.initialName) || (methodData.isStatic !== methodData.initialisStatic);
-					_Schema.methods.rowChanged(row, hasChanges);
+					_Schema.methods.rowChanged(tr, hasChanges);
 				}
 			};
 
@@ -3654,47 +3620,37 @@ let _Schema = {
 
 			sourceMonacoConfig.changeFn(sourceEditor);
 
-			_Schema.resizeVisibleEditors();
+			_Editors.resizeVisibleEditors();
 		},
 		showGlobalSchemaMethods: () => {
 
-			Command.rest('SchemaMethod?schemaNode=null&' + Structr.getRequestParameterName('sort') + '=name&' + Structr.getRequestParameterName('order') + '=ascending', (methods) => {
+			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-				Structr.dialog('Global Schema Methods', () => {
-					dialogMeta.show();
-				}, () => {
+				let { dialogText } = Structr.dialogSystem.openDialog('Global Schema Methods', () => {
+
 					_Schema.currentNodeDialogId = null;
 
-					dialogMeta.show();
 					_Schema.ui.jsPlumbInstance.repaintEverything();
+
 				}, ['schema-edit-dialog', 'global-methods-dialog']);
 
-				dialogMeta.hide();
+				dialogText.insertAdjacentHTML('beforeend', '<div class="schema-details"><div id="tabView-methods" class="schema-details"></div></div>');
 
-				let contentEl  = dialogText;
-				let contentDiv = $('<div id="tabView-methods" class="schema-details"></div>');
-				let outerDiv   = $('<div class="schema-details"></div>');
-				outerDiv.append(contentDiv);
-				contentEl.append(outerDiv);
-
-				_Schema.methods.appendMethods(contentDiv, null, methods);
+				_Schema.methods.appendMethods(dialogText.querySelector('#tabView-methods'), null, methods);
 			});
 		},
-		rowChanged: (row, hasChanges) => {
+		rowChanged: (tr, hasChanges) => {
 
-			if (hasChanges) {
-				row.addClass('has-changes');
-			} else {
-				row.removeClass('has-changes');
-			}
+			_Schema.markElementAsChanged(tr, hasChanges);
 
-			_Schema.bulkDialogsGeneral.fakeTableChanged(row.closest('.fake-table'));
+			_Schema.bulkDialogsGeneral.fakeTableChanged(tr.closest('.fake-table'));
 		},
-		validateMethodRow: (row) => {
+		validateMethodRow: (tr) => {
 
-			if ($('.property-name', row).val().length === 0) {
+			let propertyNameInput = tr.querySelector('.property-name');
+			if (propertyNameInput.value.length === 0) {
 
-				blinkRed($('.property-name', row).closest('.fake-td'));
+				_Helpers.blinkRed(propertyNameInput.closest('.fake-td'));
 				return false;
 			}
 
@@ -3710,7 +3666,7 @@ let _Schema = {
 
 			if (typeName && typeId) {
 
-				fastRemoveAllChildren(sourceContainer);
+				_Helpers.fastRemoveAllChildren(sourceContainer);
 
 				sourceContainer.classList.add('h-full');
 
@@ -3738,7 +3694,7 @@ let _Schema = {
 			}
 		}
 	},
-	resize: function() {
+	resize: () => {
 
 		Structr.resize();
 
@@ -3772,15 +3728,13 @@ let _Schema = {
 				height: (canvasSize.h - 1) + 'px'
 			});
 
-			$('body').css({
-				position: 'relative'
-			});
+			// probably not necessary anymore with new UI
+			// $('body').css({
+			// 	position: 'relative'
+			// });
 		}
 	},
 	dialogSizeChanged: () => {
-		_Schema.resizeVisibleEditors();
-	},
-	resizeVisibleEditors: () => {
 		_Editors.resizeVisibleEditors();
 	},
 	storeSchemaEntity: async (entity, data, onSuccess, onError, onNoop) => {
@@ -3825,55 +3779,13 @@ let _Schema = {
 
 				onNoop?.();
 			}
-
-		} else {
-
-			_Schema.showSchemaRecompileMessage();
-
-			let response = await fetch(Structr.rootUrl + 'schema_nodes', {
-				method: 'POST',
-				body: JSON.stringify({name: type})
-			});
-			let data = await response.json();
-
-			_Schema.hideSchemaRecompileMessage();
-
-			if (response.ok) {
-
-				onSuccess?.(data);
-
-			} else {
-
-				onError?.(data);
-			}
-		}
-	},
-	createNode: async (type) => {
-
-		_Schema.showSchemaRecompileMessage();
-
-		let response = await fetch(Structr.rootUrl + 'schema_nodes', {
-			method: 'POST',
-			body: JSON.stringify({name: type})
-		});
-		let data = await response.json();
-
-		_Schema.hideSchemaRecompileMessage();
-
-		if (response.ok) {
-
-			_Schema.reload();
-
-		} else {
-
-			Structr.errorFromResponse(data, undefined, { requiresConfirmation: true });
 		}
 	},
 	deleteNode: async (id) => {
 
 		_Schema.showSchemaRecompileMessage();
 
-		let response = await fetch(Structr.rootUrl + 'schema_nodes/' + id, {
+		let response = await fetch(`${Structr.rootUrl}schema_nodes/${id}`, {
 			method: 'DELETE'
 		});
 		let data = await response.json();
@@ -3899,11 +3811,11 @@ let _Schema = {
 
 		element.children('b').hide();
 		let oldVal = $.trim(element.children('b').text());
-		let input = $('input.new-' + key, element);
+		let input = $(`input.new-${key}`, element);
 
 		if (!input.length) {
-			element.prepend('<input type="text" size="' + (oldVal.length + 8) + '" class="new-' + key + '" value="' + oldVal + '">');
-			input = $('input.new-' + key, element);
+			element.prepend(`<input type="text" size="${oldVal.length + 8}" class="new-${key}" value="${oldVal}">`);
+			input = $(`input.new-${key}`, element);
 		}
 
 		input.show().focus().select();
@@ -3954,37 +3866,40 @@ let _Schema = {
 	},
 	activateSnapshotsDialog: () => {
 
-		let table = $('#snapshots');
+		let snapshotsContainer = document.querySelector('#snapshots');
 
 		let refresh = () => {
 
-			table.empty();
+			_Helpers.fastRemoveAllChildren(snapshotsContainer);
 
 			Command.snapshots('list', '', null, (result) => {
 
 				for (let data of result) {
 
-					data.snapshots.forEach(function(snapshot, i) {
-						table.append(`
-							<tr>
-								<td class="snapshot-link name-${i}">
-									<a href="#">${snapshot}</a>
-								</td>
-								<td style="text-align:right;">
-									<button id="restore-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
-									<button id="add-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
-									<button id="delete-${i}" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-								</td>
-							</tr>
+					for (let snapshotName of data.snapshots) {
+
+						let tr = _Helpers.createSingleDOMElementFromHTML(`
+							<div class="flex items-center justify-between p-2">
+								<div class="snapshot-link name"><a href="#">${snapshotName}</a></div>
+								<div>
+									<button class="restore-snapshot hover:bg-gray-100 focus:border-gray-666 active:border-green">Restore</button>
+									<button class="add-snapshot     hover:bg-gray-100 focus:border-gray-666 active:border-green">Add</button>
+									<button class="delete-snapshot  hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
+								</div>
+							</div>
 						`);
 
-						$('.name-' + i + ' a').on('click', function() {
+						snapshotsContainer.appendChild(tr);
 
-							Command.snapshots("get", snapshot, null, (data) => {
+						tr.querySelector(`.snapshot-link.name a`).addEventListener('click', (e) => {
+
+							e.preventDefault();
+
+							Command.snapshots("get", snapshotName, null, (snapshotData) => {
 
 								let element = document.createElement('a');
-								element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(data.schemaJson));
-								element.setAttribute('download', snapshot);
+								element.setAttribute('href', `data:text/plain;charset=utf-8,${encodeURIComponent(snapshotData.schemaJson)}`);
+								element.setAttribute('download', snapshotName);
 
 								element.style.display = 'none';
 								document.body.appendChild(element);
@@ -3994,25 +3909,24 @@ let _Schema = {
 							});
 						});
 
-						$('#restore-' + i).on('click', () => {
-							_Schema.performSnapshotAction('restore', snapshot);
+						tr.querySelector('.restore-snapshot').addEventListener('click', () => {
+							_Schema.performSnapshotAction('restore', snapshotName);
 						});
-						$('#add-' + i).on('click', () => {
-							_Schema.performSnapshotAction('add', snapshot);
+						tr.querySelector('.add-snapshot').addEventListener('click', () => {
+							_Schema.performSnapshotAction('add', snapshotName);
 						});
-						$('#delete-' + i).on('click', () => {
-							Command.snapshots('delete', snapshot, null, refresh);
+						tr.querySelector('.delete-snapshot').addEventListener('click', () => {
+							Command.snapshots('delete', snapshotName, null, refresh);
 						});
-					});
+					}
 				}
 			});
 		};
 
-		$('#create-snapshot').off('click').on('click', function() {
+		document.querySelector('#create-snapshot').addEventListener('click', () => {
 
-			let suffix = $('#snapshot-suffix').val();
-
-			let types = [];
+			let suffix = document.querySelector('#snapshot-suffix').value;
+			let types  = [];
 
 			if (_Schema.ui.selectedNodes && _Schema.ui.selectedNodes.length) {
 
@@ -4021,14 +3935,13 @@ let _Schema = {
 				}
 
 				for (let el of _Schema.ui.canvas[0].querySelectorAll('.label.rel-type')) {
-					let $el = $(el);
 
-					let sourceType = $el.children('div').attr('data-source-type');
-					let targetType = $el.children('div').attr('data-target-type');
+					let sourceType = el.children[0].dataset['sourceType'];
+					let targetType = el.children[0].dataset['targetType'];
 
 					// include schema relationship if both source and target type are selected
 					if (types.indexOf(sourceType) !== -1 && types.indexOf(targetType) !== -1) {
-						types.push($el.children('div').attr('data-name'));
+						types.push(el.children[0].dataset['name']);
 					}
 				}
 			}
@@ -4036,22 +3949,16 @@ let _Schema = {
 			Command.snapshots('export', suffix, types, (data) => {
 
 				let status = data[0].status;
-				if (dialogBox.is(':visible')) {
-
-					if (status === 'success') {
-						Structr.showAndHideInfoBoxMessage('Snapshot successfully created', 'success', 2000, 200);
-					} else {
-						Structr.showAndHideInfoBoxMessage('Snapshot creation failed', 'error', 2000, 200);
-					}
+				if (status !== 'success') {
+					new ErrorMessage().text('Snapshot creation failed').show();
 				}
 
 				refresh();
 			});
 		});
 
-		$('#refresh-snapshots').on('click', refresh);
+		document.querySelector('#refresh-snapshots').addEventListener('click', refresh);
 		refresh();
-
 	},
 	performSnapshotAction: (action, snapshot) => {
 
@@ -4062,8 +3969,8 @@ let _Schema = {
 			if (status === 'success') {
 				_Schema.reload();
 			} else {
-				if (dialogBox.is(':visible')) {
-					Structr.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
+				if (Structr.dialogSystem.isDialogOpen()) {
+					Structr.dialogSystem.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 				}
 			}
 		});
@@ -4079,15 +3986,15 @@ let _Schema = {
 
 				let transportAction = async (target, payload) => {
 
-					Structr.updateButtonWithSpinnerAndText(btn, oldHtml);
+					_Helpers.updateButtonWithSpinnerAndText(btn[0], oldHtml);
 
-					let response = await fetch(Structr.rootUrl + 'maintenance/' + target, {
+					let response = await fetch(`${Structr.rootUrl}maintenance/${target}`, {
 						method: 'POST',
 						body: JSON.stringify(payload)
 					});
 
 					if (response.ok) {
-						Structr.updateButtonWithSuccessIcon(btn, oldHtml);
+						_Helpers.updateButtonWithSuccessIcon(btn[0], oldHtml);
 					}
 				};
 
@@ -4099,7 +4006,7 @@ let _Schema = {
 
 					let type = connectedSelectElement.val();
 					if (!type) {
-						blinkRed(connectedSelectElement);
+						_Helpers.blinkRed(connectedSelectElement);
 					} else {
 						await transportAction(target, ((typeof getPayloadFunction === "function") ? getPayloadFunction(type) : {}));
 					}
@@ -4110,18 +4017,18 @@ let _Schema = {
 		registerSchemaToolButtonAction($('#rebuild-index'), 'rebuildIndex');
 		registerSchemaToolButtonAction($('#flush-caches'), 'flushCaches');
 
-		$('#clear-schema').on('click', (e) => {
-			Structr.confirmation('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>', () => {
-				$.unblockUI({
-					fadeOut: 25
-				});
+		$('#clear-schema').on('click', async (e) => {
+
+			let confirm = await _Helpers.confirmationPromiseNonBlockUI('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>');
+
+			if (confirm === true) {
 
 				_Schema.showSchemaRecompileMessage();
 				Command.snapshots("purge", undefined, undefined, () => {
 					_Schema.reload();
 					_Schema.hideSchemaRecompileMessage();
 				});
-			});
+			}
 		});
 
 		let nodeTypeSelector = $('#node-type-selector');
@@ -4130,15 +4037,15 @@ let _Schema = {
 		});
 
 		registerSchemaToolButtonAction($('#reindex-nodes'), 'rebuildIndex', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? {'mode': 'nodesOnly'} : {'mode': 'nodesOnly', 'type': type};
+			return (type === 'allNodes') ? { mode: 'nodesOnly' } : { mode: 'nodesOnly', type: type };
 		});
 
 		registerSchemaToolButtonAction($('#add-node-uuids'), 'setUuid', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? {'allNodes': true} : {'type': type};
+			return (type === 'allNodes') ? { allNodes: true } : { type: type };
 		});
 
 		registerSchemaToolButtonAction($('#create-labels'), 'createLabels', nodeTypeSelector, (type) => {
-			return (type === 'allNodes') ? {} : {'type': type};
+			return (type === 'allNodes') ? {} : { type: type };
 		});
 
 		let relTypeSelector = $('#rel-type-selector');
@@ -4147,11 +4054,11 @@ let _Schema = {
 		});
 
 		registerSchemaToolButtonAction($('#reindex-rels'), 'rebuildIndex', relTypeSelector, (type) => {
-			return (type === 'allRels') ? {'mode': 'relsOnly'} : {'mode': 'relsOnly', 'type': type};
+			return (type === 'allRels') ? { mode: 'relsOnly' } : { mode: 'relsOnly', type: type };
 		});
 
 		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, (type) => {
-			return (type === 'allRels') ? {'allRels': true} : {'relType': type};
+			return (type === 'allRels') ? { allRels: true } : { relType: type };
 		});
 
 		let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
@@ -4160,7 +4067,7 @@ let _Schema = {
 			showJavaMethodsCheckbox.on('click', () => {
 				_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
 				LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
-				blinkGreen(showJavaMethodsCheckbox.parent());
+				_Helpers.blinkGreen(showJavaMethodsCheckbox.parent());
 			});
 		}
 	},
@@ -4211,25 +4118,17 @@ let _Schema = {
 
 				if (selectedOption.length === 0) {
 
-					Structr.disableButton(updateLayoutButton);
-					Structr.disableButton(restoreLayoutButton);
-					Structr.disableButton(deleteLayoutButton);
+					_Helpers.disableElements(true, updateLayoutButton[0], restoreLayoutButton[0], deleteLayoutButton[0]);
 
 				} else {
 
-					Structr.enableButton(restoreLayoutButton);
+					_Helpers.enableElement(restoreLayoutButton[0]);
 
 					let optGroup    = selectedOption.closest('optgroup');
 					let username    = optGroup.prop('label');
 					let isOwnerless = optGroup.data('ownerless') === true;
 
-					if (isOwnerless || username === StructrWS.me.username) {
-						Structr.enableButton(updateLayoutButton);
-						Structr.enableButton(deleteLayoutButton);
-					} else {
-						Structr.disableButton(updateLayoutButton);
-						Structr.disableButton(deleteLayoutButton);
-					}
+					_Helpers.disableElements((isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
 				}
 			};
 			layoutSelectorChangeHandler();
@@ -4244,13 +4143,13 @@ let _Schema = {
 
 					if (!data.error) {
 
-						new MessageBuilder().success("Layout saved").show();
+						new SuccessMessage().text("Layout saved").show();
 
-						blinkGreen(layoutSelector);
+						_Helpers.blinkGreen(layoutSelector);
 
 					} else {
 
-						new MessageBuilder().error().title(data.error).text(data.message).show();
+						new ErrorMessage().title(data.error).text(data.message).show();
 					}
 				});
 			});
@@ -4266,7 +4165,7 @@ let _Schema = {
 				Command.deleteNode(selectedLayout, false, async () => {
 					await _Schema.updateGroupedLayoutSelector(layoutSelector);
 					layoutSelectorChangeHandler();
-					blinkGreen(layoutSelector);
+					_Helpers.blinkGreen(layoutSelector);
 				});
 			});
 
@@ -4280,17 +4179,17 @@ let _Schema = {
 
 						if (!data.error) {
 
-							new MessageBuilder().success("Layout saved").show();
+							new SuccessMessage().text("Layout saved").show();
 
 							await _Schema.updateGroupedLayoutSelector(layoutSelector);
 							layoutSelectorChangeHandler();
 							layoutNameInput.val('');
 
-							blinkGreen(layoutSelector);
+							_Helpers.blinkGreen(layoutSelector);
 
 						} else {
 
-							new MessageBuilder().error().title(data.error).text(data.message).show();
+							new ErrorMessage().title(data.error).text(data.message).show();
 						}
 					});
 
@@ -4344,15 +4243,15 @@ let _Schema = {
 		if (selectedLayout) {
 
 			Command.getApplicationConfigurationDataNode(selectedLayout, (data) => {
-				_Schema.applySavedLayoutConfiguration(data.content);
+				_Schema.applySavedLayoutConfiguration(data);
 			});
 		}
 	},
-	applySavedLayoutConfiguration: (layoutJSON) => {
+	applySavedLayoutConfiguration: (data, initialRestore = false) => {
 
 		try {
 
-			let loadedConfig = JSON.parse(layoutJSON);
+			let loadedConfig = JSON.parse(data.content);
 
 			if (loadedConfig._version) {
 
@@ -4380,7 +4279,7 @@ let _Schema = {
 						// update the list in the visibility table
 						$('#schema-options-table input.toggle-type').prop('checked', true);
 						for (let hiddenType of _Schema.hiddenSchemaNodes) {
-							$('#schema-options-table input.toggle-type[data-structr-type="' + hiddenType + '"]').prop('checked', false);
+							$(`#schema-options-table input.toggle-type[data-structr-type="${hiddenType}"]`).prop('checked', false);
 						}
 
 						let connectorStyle = loadedConfig.connectorStyle;
@@ -4412,15 +4311,19 @@ let _Schema = {
 				LSWrapper.setItem(_Schema.schemaPositionsKey, loadedConfig);
 				_Schema.applyNodePositions(loadedConfig);
 
-				new MessageBuilder().info("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
+				new InfoMessage().text("This layout was created using an older version of Structr. To make use of newer features you should delete and re-create it with the current version.").show();
 			}
 
 			LSWrapper.save();
 
-			_Schema.reload();
+			if (initialRestore === true) {
+				new SuccessMessage().text(`No saved schema layout detected, loaded "${data.name}"`).show();
+			} else {
+				_Schema.reload();
+			}
 
 		} catch (e) {
-			console.warn(e);
+
 			Structr.error('Unreadable JSON - please make sure you are using JSON exported from this dialog!', true);
 		}
 
@@ -4449,7 +4352,7 @@ let _Schema = {
 	},
 	openTypeVisibilityDialog: () => {
 
-		Structr.dialog('', () => {}, () => {});
+		let { dialogText } = Structr.dialogSystem.openDialog('Schema Type Visibility', null, ['full-height-dialog-text']);
 
 		let visibilityTables = [
 			{
@@ -4480,17 +4383,20 @@ let _Schema = {
 		];
 
 		let id = "schema-tools-visibility";
-		dialogHead.append(`<div class="data-tabs level-two"><ul id="${id}-tabs"></ul></div>`);
-		dialogText.append(`<div id="${id}_content"></div>`);
+		dialogText.insertAdjacentHTML('beforeend', `
+			<div id="${id}_content" class="code-tabs flex flex-col h-full overflow-hidden">
+				<ul id="${id}-tabs" class="flex-shrink-0"></ul>
+			</div>
+		`);
 
-		let ul        = dialogHead[0].querySelector('#' + id + '-tabs', );
-		let contentEl = dialogText[0].querySelector('#' + id + '_content');
+		let ul        = dialogText.querySelector(`#${id}-tabs`);
+		let contentEl = dialogText.querySelector(`#${id}_content`);
 
 		let activateTab = (tabName) => {
 			[...contentEl.querySelectorAll('.tab')].forEach(tab => tab.style.display = 'none');
 			[...ul.querySelectorAll('li')].forEach(li => li.classList.remove('active'));
-			contentEl.querySelector('div[data-name="' + tabName + '"]').style.display = 'block';
-			ul.querySelector('li[data-name="' + tabName + '"]').classList.add('active');
+			contentEl.querySelector(`div[data-name="${tabName}"]`).style.display = 'block';
+			ul.querySelector(`li[data-name="${tabName}"]`).classList.add('active');
 			LSWrapper.setItem(_Schema.activeSchemaToolsSelectedVisibilityTab, tabName);
 		};
 
@@ -4500,7 +4406,7 @@ let _Schema = {
 			ul.insertAdjacentHTML('beforeend', tabsHtml);
 
 			let tabContentsHtml = visibilityTables.map(visType => `
-				<div class="tab" data-name="${visType.caption}">
+				<div class="tab overflow-y-auto" data-name="${visType.caption}">
 					<table class="props schema-visibility-table">
 						<tr>
 							<th class="toggle-column-header">
@@ -4618,23 +4524,6 @@ let _Schema = {
 			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
 			_Schema.reload();
 		}
-	},
-	sort: (collection, sortKey, secondarySortKey) => {
-
-		if (!sortKey) {
-			sortKey = "name";
-		}
-
-		collection.sort((a, b) => {
-
-			let equal = ((a[sortKey] > b[sortKey]) ? 1 : ((a[sortKey] < b[sortKey]) ? -1 : 0));
-			if (equal === 0 && secondarySortKey) {
-
-				equal = ((a[secondarySortKey] > b[secondarySortKey]) ? 1 : ((a[secondarySortKey] < b[secondarySortKey]) ? -1 : 0));
-			}
-
-			return equal;
-		});
 	},
 	loadClassTree: (schemaNodes) => {
 
@@ -4783,14 +4672,13 @@ let _Schema = {
 
 						let nodeId = delIcon.closest('li').dataset['id'];
 						if (nodeId) {
-							let confirm = await Structr.confirmationPromiseNonBlockUI(`
+
+							let confirm = await _Helpers.confirmationPromiseNonBlockUI(`
 								<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
 								<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
 							`);
 
 							if (confirm === true) {
-
-								$.unblockUI({fadeOut: 25});
 
 								await _Schema.deleteNode(nodeId);
 							}
@@ -4858,11 +4746,12 @@ let _Schema = {
 				_Schema.inheritanceTree.jstree(true).clear_search();
 
 			} else {
+
 				if (searchTimeout) {
 					clearTimeout(searchTimeout);
 				}
 
-				searchTimeout = setTimeout(() => {
+				searchTimeout = window.setTimeout(() => {
 					let query = searchInheritanceTypesInput.value;
 					_Schema.inheritanceTree.jstree(true).search(query, true, true);
 				}, 250);
@@ -4916,7 +4805,7 @@ let _Schema = {
 	getDerivedTypes: async (baseType, blacklist) => {
 
 		// baseType is FQCN
-		let response = await fetch(Structr.rootUrl + '_schema');
+		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
@@ -4933,7 +4822,7 @@ let _Schema = {
 
 					if (n.extendsClass === type) {
 
-						fileTypes.push('org.structr.dynamic.' + n.name);
+						fileTypes.push(`org.structr.dynamic.${n.name}`);
 
 						if (!n.isAbstract && !blacklist.includes(n.name)) {
 							types[n.name] = 1;
@@ -4995,7 +4884,7 @@ let _Schema = {
 
 			// deselect selected Relationship
 			if (_Schema.ui.selectedRel) {
-				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({border:'', borderRadius:'', background: 'rgba(255, 255, 255, .8)'});
+				_Schema.ui.selectedRel.nextAll('._jsPlumb_overlay').slice(0, 3).css({ border: '', borderRadius: '', background: 'rgba(255, 255, 255, .8)' });
 
 				let pathElements = _Schema.ui.selectedRel.find('path');
 				pathElements.css({stroke: '', fill: ''});
@@ -5013,13 +4902,14 @@ let _Schema = {
 		},
 		prevAnimFrameReqId_selectionDrag: undefined,
 		selectionDrag: (e) => {
+
 			if (_Schema.ui.selectionInProgress === true) {
 
-				Structr.requestAnimationFrameWrapper(_Schema.ui.prevAnimFrameReqId_selectionDrag, () => {
+				_Helpers.requestAnimationFrameWrapper(_Schema.ui.prevAnimFrameReqId_selectionDrag, () => {
+
 					let schemaOffset = _Schema.ui.canvas.offset();
 					_Schema.ui.mouseUpCoords.x = e.pageX - schemaOffset.left;
 					_Schema.ui.mouseUpCoords.y = e.pageY - schemaOffset.top;
-
 
 					_Schema.ui.drawSelectElem();
 				});
@@ -5174,6 +5064,14 @@ let _Schema = {
 		}
 	},
 
+	markElementAsChanged: (element, hasClass) => {
+		if (hasClass === true) {
+			element.classList.add('has-changes');
+		} else {
+			element.classList.remove('has-changes');
+		}
+	},
+
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -5188,7 +5086,10 @@ let _Schema = {
 			<div id="inheritance-tree" class="slideOut slideOutLeft">
 				<div class="flex items-center justify-between my-2">
 					<label class="ml-4">Search: <input type="text" id="search-types" autocomplete="off"></label>
-					<label class="mr-4" data-comment="Built-in types will still be shown if they are ancestors of custom types."><input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>Show built-in types</label>
+					<label class="mr-4 flex" data-comment="Built-in types will still be shown if they are ancestors of custom types.">
+						<input type="checkbox" id="show-builtin-types" ${(LSWrapper.getItem(_Schema.showBuiltinTypesInInheritanceTreeKey, false) ? 'checked' : '')}>
+						<span class="whitespace-nowrap">Show built-in types</span>
+					</label>
 				</div>
 				<div id="inheritance-tree-container" class="ver-scrollable hidden"></div>
 			</div>
@@ -5201,10 +5102,8 @@ let _Schema = {
 			<div class="flex-grow">
 				<div class="inline-flex">
 
-					<input class="schema-input mr-2" id="type-name" type="text" size="20" placeholder="New type" autocomplete="off">
-
 					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
 					</button>
 
 					<div class="dropdown-menu dropdown-menu-large">
@@ -5302,9 +5201,7 @@ let _Schema = {
 								<h3>Available Snapshots</h3>
 							</div>
 
-							<table class="props" id="snapshots">
-
-							</table>
+							<div class="props" id="snapshots"></div>
 
 							<div class="separator"></div>
 
@@ -5384,29 +5281,26 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					${(true === config.type.isBuiltinType) ? `<input class="disabled" disabled value="${config.type.name}" class="flex-grow">` : `<input data-property="name" value="${config.type.name}" class="flex-grow">`}
+					<input data-property="name" class="flex-grow">
 
-					${(config.type.extendsClass || false === config.type.isBuiltinType) ? `
-						<div class="extends-type">
-							extends
-							${(true === config.type.isBuiltinType) ? `<select disabled><option>${config.type.extendsClass.name}</option></select>` : '<select class="extends-class-select" data-property="extendsClass"></select>' }
-
-							${config.type.extendsClass ? _Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['ml-2', 'edit-parent-type']), 'Edit parent type') : ''}
-						</div>
-					` : ''}
+					<div class="extends-type flex items-center gap-2">
+						extends
+						<select class="extends-class-select" data-property="extendsClass"></select>
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
+					</div>
 				</div>
 
 				<h3>Options</h3>
 				<div class="property-options-group">
 					<div>
 						<label data-comment="Only takes effect if the changelog is active">
-							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled" ${config.type.changelogDisabled ? 'checked' : ''}> Disable changelog
+							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
 						</label>
 						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
-							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic" ${config.type.defaultVisibleToPublic ? 'checked' : ''}> Visible for public users
+							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
 						</label>
 						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth" ${config.type.defaultVisibleToAuth ? 'checked' : ''}> Visible for authenticated users
+							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
 						</label>
 					</div>
 				</div>
@@ -5414,7 +5308,7 @@ let _Schema = {
 				<h3>OpenAPI</h3>
 				<div class="property-options-group">
 					<div id="type-openapi">
-						${_Code.templates.openAPIBaseConfig({ element: config.type, availableTags: _Code.availableTags })}
+						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
 					</div>
 				</div>
 			</div>
@@ -5423,7 +5317,7 @@ let _Schema = {
 			<div class="schema-details">
 				<div id="relationship-options">
 
-					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-center mb-4">
+					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-baseline mb-4">
 
 						<div class="text-right pb-2 truncate">
 							<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
@@ -5554,15 +5448,15 @@ let _Schema = {
 				</div>
 			</div>
 		`,
-		schemaActionButtons: config => `
-			<div>
-				<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['icon-green', 'mr-2'])} ${(config?.saveButtonText ?? 'Save')}
-				</button>
-				<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['icon-red', 'mr-2'])} ${(config?.discardButtonText ?? 'Discard')}
-				</button>
-			</div>
+		saveActionButton: config => `
+			<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${(config?.text ?? 'Save')}
+			</button>
+		`,
+		discardActionButton: config => `
+			<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} ${(config?.text ?? 'Discard')}
+			</button>
 		`,
 		methods: config => `
 			<div id="methods-container" class="${config.class} h-full flex">
@@ -5592,8 +5486,8 @@ let _Schema = {
 		`,
 		propertyBuiltin: config => `
 			<tr data-property-name="${config.property.name}" data-property-id="${config.property.id}">
-				<td>${escapeForHtmlAttributes(config.property.declaringClass)}</td>
-				<td>${escapeForHtmlAttributes(config.property.name)}</td>
+				<td>${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</td>
+				<td>${_Helpers.escapeForHtmlAttributes(config.property.name)}</td>
 				<td>${config.property.propertyType}</td>
 				<td class="centered"><input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')}></td>
 				<td class="centered"><input class="compound" type="checkbox" disabled="disabled" ${(config.property.compound ? 'checked' : '')}></td>
@@ -5603,8 +5497,8 @@ let _Schema = {
 		`,
 		propertyLocal: config => `
 			<tr data-property-id="${config.property.id}" >
-				<td><input size="15" type="text" class="property-name" value="${escapeForHtmlAttributes(config.property.name)}"></td>
-				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" value="${escapeForHtmlAttributes(config.property.dbName)}"></td>
+				<td><input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}"></td>
+				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}"></td>
 				<td>${config.typeOptions}</td>
 				<td>
 					${
@@ -5623,7 +5517,7 @@ let _Schema = {
 								case 'Cypher':
 									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
 								default:
-									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? escapeForHtmlAttributes(config.property.format) : '')}">`;
+									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? _Helpers.escapeForHtmlAttributes(config.property.format) : '')}">`;
 							};
 						})()
 					}
@@ -5632,7 +5526,7 @@ let _Schema = {
 				<td class="centered"><input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}></td>
 				<td class="centered"><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
 				<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
-				<td><input type="text" size="10" class="property-default" value="${escapeForHtmlAttributes(config.property.defaultValue)}"></td>
+				<td><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></td>
 				<td class="centered actions-col">
 					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
@@ -5688,11 +5582,7 @@ let _Schema = {
 						</div>
 					</div>
 				</div>
-				<div class="fake-tfoot-buttons">
-
-					${(config.entity ? _Schema.templates.addMethodsDropdown(config) : _Schema.templates.addMethodDropdown(config))}
-
-				</div>
+				<div class="fake-tfoot-buttons"></div>
 			</div>
 		`,
 		addMethodsDropdown: config => `
@@ -5789,9 +5679,11 @@ let _Schema = {
 		view: config => `
 			<tr data-view-id="${config.view.id}" >
 				<td style="width:20%;">
-					<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? escapeForHtmlAttributes(config.view.name) : '')}" ${(config.view && config.view.isBuiltinView ? 'disabled' : '')}>
+					<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}" ${(config.view && config.view.isBuiltinView ? 'disabled' : '')}>
 				</td>
-				<td class="view-properties-select"></td>
+				<td class="view-properties-select">
+					${_Schema.templates.viewPropertiesSelect(config)}
+				</td>
 				<td class="centered actions-col">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
@@ -5807,12 +5699,15 @@ let _Schema = {
 				<td style="width:20%;">
 					<input size="15" type="text" class="view property-name" placeholder="Enter view name">
 				</td>
-				<td class="view-properties-select"></td>
+				<td class="view-properties-select">
+					${_Schema.templates.viewPropertiesSelect(config)}
+				</td>
 				<td class="centered actions">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 				</td>
 			</tr>
 		`,
+		viewPropertiesSelect: config => '<select class="property-attrs view chosen-sortable" multiple="multiple"></select>',
 		schemaGrantsTabContent: config => `
 			<div>
 				<div class="inline-info">

@@ -51,11 +51,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class ChangelogFunction extends AdvancedScriptingFunction {
-
-	protected static final Pattern uuidPattern = Pattern.compile("[a-f0-9]{32}");
 
 	public static final String ERROR_MESSAGE_CHANGELOG = "Usage: ${changelog(entity[, resolve=false[, filterKey, filterValue...]])}. Example: ${changelog(current, false, 'verb', 'change', 'timeTo', now)}";
 	public static final String ERROR_MESSAGE_CHANGELOG_JS = "Usage: ${{Structr.changelog(entity[, resolve=false[, filterObject]])}}. Example: ${{Structr.changelog(Structr.get('current'), false, {verb:\"change\", timeTo: new Date()}))}}";
@@ -174,7 +171,7 @@ public class ChangelogFunction extends AdvancedScriptingFunction {
 
 	protected String getChangelogForString (final String inputString) throws IOException {
 
-		if (uuidPattern.matcher(inputString).matches()) {
+		if (Settings.isValidUuid(inputString)) {
 
 			String changelog = getChangelogForUUID(inputString, "n");
 

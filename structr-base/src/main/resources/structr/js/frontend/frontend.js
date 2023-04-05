@@ -319,6 +319,16 @@ export class Frontend {
 		}
 	}
 
+	replaceContentInContainer = (container, html) => {
+		let content = document.createElement('template');
+		content.insertAdjacentHTML('afterbegin', html);
+		if (content && content.children && content.children.length) {
+			container.replaceWith(content.children[0]);
+		} else {
+			container.replaceWith('');
+		}
+	};
+
 	replacePartial(container, id, element, data, parameters, dontRebind) {
 
 		let base   = '/structr/html/' + id;
@@ -332,17 +342,9 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
-			let content = document.createElement('div');
-			if (content) {
-				content.insertAdjacentHTML('afterbegin', html);
-				if (content && content.children && content.children.length) {
-					container.replaceWith(content.children[0]);
-				} else {
-					container.replaceWith('');
-				}
-				container.dispatchEvent(new Event('structr-reload'));
-				this.fireEvent('reload', {target: container});
-			}
+			this.replaceContentInContainer(container, html);
+			container.dispatchEvent(new Event('structr-reload'));
+			this.fireEvent('reload', {target: container});
 
 			let restoreFocus = container.querySelector('*[name="' + this.focusName + '"][data-structr-id="' + this.focusId + '"][data-structr-target="' + this.focusTarget + '"]');
 			if (restoreFocus) {
@@ -370,17 +372,8 @@ export class Frontend {
 			if (!response.ok) { throw { status: response.status, statusText: response.statusText } };
 			return response.text();
 		}).then(html => {
-			let content = document.createElement('div');
-			if (content) {
-				content.insertAdjacentHTML('afterbegin', html);
-				if (content && content.children && content.children.length) {
-					container.replaceWith(content.children[0]);
-				} else {
-					container.replaceWith('');
-				}
-			}
+			this.replaceContentInContainer(container, html);
 			this.bindEvents();
-
 		}).catch(e => {
 			this.handleNetworkError(container, e, {});
 		});

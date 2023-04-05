@@ -57,12 +57,16 @@ let _Dialogs = {
 
 		if (dialogConfig) {
 
-			let callback = dialogConfig.appendDialogForEntityToContainer;
-
 			if (dialogConfig.condition === undefined || (typeof dialogConfig.condition === 'function' && dialogConfig.condition())) {
 
+				let wrapperFn = (tabCntnt) => {
+					dialogConfig.appendDialogForEntityToContainer($(tabCntnt), entity);
+				}
+
 				// call method with the same callback object for initial callback and show callback
-				_Entities.appendPropTab(entity, mainTabs, contentEl, dialogConfig.id, dialogConfig.title, true, callback, callback, true);
+				let tabContent = _Entities.appendPropTab(entity, mainTabs, contentEl, dialogConfig.id, dialogConfig.title, true, wrapperFn, true);
+
+				wrapperFn(tabContent);
 
 				return true;
 			}
@@ -236,8 +240,8 @@ let _Dialogs = {
 
 		Command.setProperty(id, key, null, false, () => {
 			input.val(null);
-			blinkGreen(input);
-			Structr.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
+			_Helpers.blinkGreen(input);
+			Structr.dialogSystem.showAndHideInfoBoxMessage('Property "' + key + '" has been set to null.', 'success', 2000, 1000);
 		});
 	},
 	addHtmlPropertiesToEntity: (entity, callback) => {
@@ -275,9 +279,9 @@ let _Dialogs = {
 			});
 
 			if (response.ok) {
-				Structr.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
+				Structr.dialogSystem.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
 			} else {
-				Structr.showAndHideInfoBoxMessage('LDAP group could not be updated', 'warning', 5000, 200);
+				Structr.dialogSystem.showAndHideInfoBoxMessage('LDAP group could not be updated', 'warning', 5000, 200);
 			}
 		});
 
@@ -293,21 +297,21 @@ let _Dialogs = {
 
 			$('button#extract-structure-button').on('click', async () => {
 
-				Structr.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+				Structr.dialogSystem.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
 
 				let response = await fetch(Structr.rootUrl + entity.type + '/' + entity.id + '/extractStructure', {
 					method: 'POST'
 				});
 
 				if (response.ok) {
-					Structr.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+					Structr.dialogSystem.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
 				}
 			});
 		}
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el[0]);
+		_Helpers.activateCommentsInElement(el[0]);
 
 		_Dialogs.focusInput(el);
 	},
@@ -317,7 +321,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el[0]);
+		_Helpers.activateCommentsInElement(el[0]);
 	},
 	aDialog: (el, entity) => {
 
@@ -399,7 +403,7 @@ let _Dialogs = {
 
 		_Dialogs.populateInputFields(el, entity);
 		_Dialogs.registerSimpleInputChangeHandlers(el, entity);
-		Structr.activateCommentsInElement(el[0]);
+		_Helpers.activateCommentsInElement(el[0]);
 
 		$('button#set-password-button').on('click', (e) => {
 			let input = $('input#password-input');
@@ -423,7 +427,7 @@ let _Dialogs = {
 
 		await _Dialogs.showCustomProperties(el, entity);
 
-		Structr.activateCommentsInElement(el[0]);
+		_Helpers.activateCommentsInElement(el[0]);
 	},
 	defaultDomDialog: (el, entity) => {
 
@@ -514,32 +518,32 @@ let _Dialogs = {
 		`,
 		aOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
-					
+
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					<div class="option-tile col-span-2">
 						<label class="block mb-2" for="href-input">HREF attribute</label>
 						<input type="text" id="href-input" name="_html_href">
 					</div>
-			
+
 					${_Dialogs.templates.htmlStyleTile(config)}
 
 					${_Dialogs.templates.repeaterPartial(config)}
-				
+
 					${_Dialogs.templates.visibilityPartial(config)}
-				
+
 					${_Dialogs.templates.contentPartial(config)}
-				
+
 				</div>
 
 				${_Dialogs.templates.renderingOptions(config)}
-				
+
 				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
@@ -547,42 +551,42 @@ let _Dialogs = {
 			<div id="div-options" class="quick-access-options">
 
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
-					
+
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					${_Dialogs.templates.htmlTitleTile(config)}
-					
+
 					${_Dialogs.templates.htmlTypeTile(config)}
 
 					${_Dialogs.templates.htmlStyleTile(config)}
-			
+
 					${_Dialogs.templates.repeaterPartial(config)}
-				
+
 					${_Dialogs.templates.visibilityPartial(config)}
-				
+
 					${_Dialogs.templates.contentPartial()}
 				</div>
-			
+
 				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
 		contentOptions: config => `
 			<div id="default-dom-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
 					${_Dialogs.templates.repeaterPartial(config)}
-				
+
 					${_Dialogs.templates.visibilityPartial(config)}
-				
+
 				</div>
-				
+
 				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
@@ -602,21 +606,21 @@ let _Dialogs = {
 			<div id="default-dom-options" class="quick-access-options">
 
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
-				
+
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					${_Dialogs.templates.htmlStyleTile(config)}
-				
+
 					${_Dialogs.templates.repeaterPartial(config)}
-					
+
 					${_Dialogs.templates.visibilityPartial(config)}
-	
+
 					${_Dialogs.templates.contentPartial()}
-	
+
 				</div>
 
 				${_Dialogs.templates.renderingOptions(config)}
@@ -626,19 +630,19 @@ let _Dialogs = {
 		`,
 		divOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
-				
+
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					${_Dialogs.templates.htmlStyleTile(config)}
-				
+
 					${_Dialogs.templates.repeaterPartial(config)}
-				
+
 					${_Dialogs.templates.visibilityPartial(config)}
 
 				</div>
@@ -646,7 +650,7 @@ let _Dialogs = {
 				${_Dialogs.templates.renderingOptions(config)}
 
 				${_Dialogs.templates.customPropertiesPartial(config)}
-				
+
 			</div>
 		`,
 		includeInFrontendExport: config => `
@@ -657,11 +661,11 @@ let _Dialogs = {
 		`,
 		fileOptions: config => `
 			<div id="file-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(config)}
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="content-type-input">Content Type</label>
 						<input type="text" id="content-type-input" autocomplete="off" name="contentType">
@@ -673,9 +677,9 @@ let _Dialogs = {
 					</div>
 
 					<div class="option-tile">
-			
+
 						<label class="block mb-2">Options</label>
-			
+
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="isTemplate" id="isTemplate">
 							<label for="isTemplate">Is template (dynamic file)</label>
@@ -706,15 +710,15 @@ let _Dialogs = {
 		`,
 		folderOptions: config => `
 			<div id="file-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(config)}
 
 					<div class="option-tile">
 
 						<label class="block mb-2">Options</label>
-						
+
 						${_Dialogs.templates.includeInFrontendExport(config)}
 
 					</div>
@@ -723,13 +727,13 @@ let _Dialogs = {
 		`,
 		inputOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
-				
+
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					${_Dialogs.templates.htmlTypeTile(config)}
@@ -742,11 +746,11 @@ let _Dialogs = {
 					${_Dialogs.templates.htmlStyleTile(config)}
 
 					${_Dialogs.templates.htmlTitleTile(config)}
-				
+
 					${_Dialogs.templates.visibilityPartial(config)}
 
 				</div>
-				
+
 				${_Dialogs.templates.customPropertiesPartial(config)}
 			</div>
 		`,
@@ -787,24 +791,24 @@ let _Dialogs = {
 		`,
 		optionOptions: config => `
 			<div id="div-options" class="quick-access-options">
-				
+
 				<div class="grid grid-cols-2 gap-8">
-				
+
 					${_Dialogs.templates.nameTile(Object.assign({ doubleWide: true }, config))}
 
 					${_Dialogs.templates.htmlClassTile(config)}
-					
+
 					${_Dialogs.templates.htmlIdTile(config)}
 
 					${_Dialogs.templates.htmlStyleTile(config)}
-			
+
 					${_Dialogs.templates.repeaterPartial(config)}
-			
+
 					<div class="option-tile">
 						<label class="block mb-2" for="selected-input">Selected</label>
 						<input type="text" id="selected-input" name="_html_selected">
 					</div>
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
 						<input type="text" id="selected-values-input" name="selectedValues">
@@ -814,32 +818,32 @@ let _Dialogs = {
 						<label class="block mb-2" for="value-input">Value</label>
 						<input type="text" id="value-input" name="_html_value">
 					</div>
-					
+
 					<div><!-- occupy space in grid UI --></div>
-			
+
 					${_Dialogs.templates.visibilityPartial(config)}
-				
+
 					${_Dialogs.templates.contentPartial()}
 				</div>
-			
+
 				${_Dialogs.templates.renderingOptions(config)}
 
 				${_Dialogs.templates.customPropertiesPartial(config)}
-			
+
 			</div>
 		`,
 		pageOptions: config => `
 			<div id="div-options" class="quick-access-options">
-			
+
 				<div class="grid grid-cols-2 gap-8">
 
 					${_Dialogs.templates.nameTile(config)}
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="content-type-input">Content Type</label>
 						<input type="text" id="content-type-input" name="contentType">
 					</div>
-			
+
 					<div class="option-tile">
 						<label  class="mb-2"for="category-input">Category</label>
 						<input type="text" id="category-input" name="category">
@@ -849,7 +853,7 @@ let _Dialogs = {
 						<label class="block mb-2" for="show-on-error-codes-input">Show on Error Codes</label>
 						<input type="text" id="show-on-error-codes-input" name="showOnErrorCodes">
 					</div>
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="position-input">Position</label>
 						<input type="text" id="position-input" name="position">
@@ -878,12 +882,12 @@ let _Dialogs = {
 						</div>
 
 					</div>
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="_details-object-id" data-comment="UUID of detail object to append to preview URL">Preview Detail Object</label>
 						<input id="_details-object-id" type="text" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
 					</div>
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="_request-parameters" data-comment="Request parameters to append to preview URL">Preview Request Parameters</label>
 						<div class="flex items-baseline">
@@ -900,9 +904,9 @@ let _Dialogs = {
 		renderingOptions: config => `
 			<div id="rendering-options-container" class="hidden">
 				<h3>Rendering Options</h3>
-				
+
 				<div class="grid grid-cols-2 gap-8">
-	
+
 					<div class="option-tile">
 						<label class="block mb-3" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
 						<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
@@ -938,32 +942,32 @@ let _Dialogs = {
 				<div class="grid grid-cols-2 gap-8">
 
 					${_Dialogs.templates.nameTile(config)}
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="e-mail-input">eMail</label>
 						<input type="text" id="e-mail-input" autocomplete="off" name="eMail">
 					</div>
-			
+
 					<div class="option-tile">
 						<label class="block mb-2" for="password-input">Password</label>
 						<input type="password" id="password-input" autocomplete="new-password" value="****** HIDDEN ******">
 						<button class="action" type="button" id="set-password-button">Set Password</button>
 					</div>
-			
+
 					<div class="option-tile">
-			
+
 						<label class="block mb-2">Options</label>
-			
+
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="isAdmin" id="isAdmin">
 							<label for="isAdmin">Is Admin User</label>
 						</div>
-			
+
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
 							<label for="skipSecurityRelationships">Skip Security Relationships</label>
 						</div>
-			
+
 						<div class="mb-2 flex items-center">
 							<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
 							<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
@@ -974,7 +978,7 @@ let _Dialogs = {
 						<label class="block mb-2" for="password-attempts-input" data-comment="The number of failed login attempts for this user. Depending on the configuration a user is blocked after a certain number of failed login attempts. The user must then reset their password (if allowed via the configuration) or this counter must be reset by an admin.<br><br>Before that threshold is reached, the counter is reset on each successful login.">Failed Login Attempts</label>
 						<input type="text" id="password-attempts-input" name="passwordAttempts">
 					</div>
-					
+
 					<div class="option-tile">
 						<label class="block mb-2" for="confirmation-key" data-comment="Used for self-registration and password reset. If a confirmation key is set, log in via password is prevented.">Confirmation Key</label>
 						<input type="text" id="confirmation-key" name="confirmationKey">
@@ -1004,7 +1008,7 @@ let _Dialogs = {
 					</select>
 				</div>
 			</div>
-			
+
 			<div class="option-tile">
 				<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
 				<div class="flex">

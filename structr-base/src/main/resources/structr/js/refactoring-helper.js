@@ -24,25 +24,20 @@ class RefactoringHelper {
 
 	show() {
 
-		this.container.append(`
+		this.container.insertAdjacentHTML('beforeend', `
 			<p>
 				This helper allows you to find and edit the attributes of HTML elements in Structr pages and Shared Components based on a type and some common attributes.
 				Enter a type selector and one or more attributes to show all DOM nodes that contain a value in at least one of the fields.
 			</p>
+			<div id="select-container" class="flex flex-row items-center justify-between">
+				<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>
+				<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button">
+				<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick">
+				<input type="checkbox" id="empty-checkbox"><label for="empty-checkbox"> Show empty results</label>
+			</div>
+			<div id="result-container"></div>
+			<div><pre id="error-container"></pre></div>
 		`);
-		this.container.append('<div id="select-container" class="flex flex-row items-center justify-between"></div>');
-
-		let selectContainer = $('#select-container');
-
-		selectContainer.append(`
-			<select class="refactoring-helper" id="page-input" placeholder="Page in which to search"></select>
-			<input class="refactoring-helper" id="selector-input" placeholder="HTML tag, e.g. div, button">
-			<input class="refactoring-helper" id="property-input" placeholder="Property keys to display, e.g. id, class, name, onclick">
-			<input type="checkbox" id="empty-checkbox" /><label for="empty-checkbox"> Show empty results</label>
-		`);
-
-		this.container.append('<div id="result-container"></div>');
-		this.container.append('<div><pre id="error-container"></pre></div>');
 
 		let selectedPageId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
 		if (_Entities.selectedObject && _Entities.selectedObject.type) {
@@ -52,7 +47,7 @@ class RefactoringHelper {
 			}
 		}
 
-		fetch(Structr.rootUrl + 'Page?hidden=false&' + Structr.getRequestParameterName('sort') + '=name').then(async response => {
+		fetch(`${Structr.rootUrl}Page?hidden=false&${Structr.getRequestParameterName('sort')}=name`).then(async response => {
 
 			let data = await response.json();
 
@@ -60,13 +55,15 @@ class RefactoringHelper {
 
 			for (let page of data.result) {
 				let selected = (page.id === selectedPageId  ? 'selected' : '');
-				pageSelect.append('<option ' + selected + ' value="' + page.id + '">' + page.name + '</option>');
+				pageSelect.append(`<option ${selected} value="${page.id}">${page.name}</option>`);
 			}
 		});
 
-		window.setTimeout(() => { $('#selector-input').focus(); }, 100);
+		window.setTimeout(() => {
+			$('#selector-input').focus();
+		}, 100);
 
-		let loadFunction = this.debounce(this.loadResults, 300);
+		let loadFunction = _Helpers.debounce(this.loadResults, 300);
 
 		$('#property-input').on('keyup', loadFunction);
 		$('#empty-checkbox').on('click', loadFunction);
@@ -136,17 +133,13 @@ class RefactoringHelper {
 						}
 					}
 
-					header.append('<th>Source</th>' + keys.map(k => '<th>' + k.title + '</th>'));
+					header.append(`<th>Source</th>${keys.map(k => `<th>${k.title}</th>`).join('')}`);
 
-					data.result.sort((a, b) => {
-						if (a.internalEntityContextPath < b.internalEntityContextPath) { return -1; }
-						if (a.internalEntityContextPath > b.internalEntityContextPath) { return 1; }
-						return 0;
-					});
+					_Helpers.sort(data.result, 'internalEntityContextPath');
 
 					for (let v of data.result) {
 
-						table.append('<tr id="row' + i + '"></tr>');
+						table.append(`<tr id="row${i}"></tr>`);
 
 						let hasValue = false;
 						let row      = $('#row' + i);
@@ -173,12 +166,12 @@ class RefactoringHelper {
 								hasValue = true;
 							}
 
-							row.append('<td><input type="text" id="' + id + '" value="' + value + '"/></td>');
+							row.append(`<td><input type="text" id="${id}" value="${value}"/></td>`);
 							let input = $('#' + id);
 							input.on('blur', e => {
 								let val = $('#' + id).val();
 								Command.setProperty(v.id, k.name, val, false, () => {
-									blinkGreen(input);
+									_Helpers.blinkGreen(input);
 								});
 							});
 						}
@@ -193,20 +186,5 @@ class RefactoringHelper {
 				}
 			});
 		}
-	}
-
-	debounce(func, wait, immediate) {
-		var timeout;
-		return function() {
-			var context = this, args = arguments;
-			var later = function() {
-				timeout = null;
-				if (!immediate) func.apply(context, args);
-			};
-			var callNow = immediate && !timeout;
-			clearTimeout(timeout);
-			timeout = setTimeout(later, wait);
-			if (callNow) func.apply(context, args);
-		};
 	}
 }

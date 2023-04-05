@@ -33,7 +33,9 @@ import org.structr.files.ssh.filesystem.StructrToplevelAttributes;
 import org.structr.files.ssh.filesystem.path.graph.StructrNodePropertyPath;
 
 import java.io.IOException;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -94,7 +96,7 @@ public class StructrSchemaNodePath extends StructrPath {
 	}
 
 	@Override
-	public FileChannel newFileChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
+	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

@@ -122,6 +122,7 @@ let _Icons = {
 	iconAdd:                 'circle_plus',
 	iconListAdd:             'list_add',
 	iconInfo:                'info-icon',
+	iconWarning:             'warning-triangle',
 	iconInvertSelection:     'arrows-shuffle',
 	iconDatetime:            'datetime-icon',
 	iconTypeVisibility:      'eye-in-square',
@@ -308,7 +309,7 @@ let _Icons = {
 			}
 		}
 
-		return _Icons.getSvgIcon(result);
+		return result;
 	},
 	getAccessControlIconId: (entity) => {
 
@@ -484,5 +485,20 @@ let _Icons = {
 
 			return _Icons.getSvgIcon(_Icons.iconDOMTreeElement, 16, 16, ['typeIcon', 'icon-grey', 'fill-transparent', ...initialClasses]);
 		}
+	},
+	getSvgIconForMessageClass: (messageClass) => {
+
+		switch (messageClass) {
+			case MessageBuilder.types.warning:
+				return _Icons.iconWarning;
+			case MessageBuilder.types.error:
+				return _Icons.iconCrossIcon;
+			case MessageBuilder.types.success:
+				return _Icons.iconCheckmarkBold;
+			case MessageBuilder.types.info:
+				return _Icons.iconInfo;
+		}
+
+		return _Icons.iconCrossIcon;
 	}
 };
