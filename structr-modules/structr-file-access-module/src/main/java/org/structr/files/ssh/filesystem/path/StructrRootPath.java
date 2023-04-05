@@ -28,7 +28,9 @@ import org.structr.files.ssh.filesystem.path.file.StructrFilesPath;
 import org.structr.files.ssh.filesystem.path.schema.StructrSchemaPath;
 
 import java.io.IOException;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -63,7 +65,7 @@ public class StructrRootPath extends StructrPath {
 	}
 
 	@Override
-	public FileChannel newFileChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+	public SeekableByteChannel newChannel(Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
 		throw new AccessDeniedException(toString());
 	}
 
