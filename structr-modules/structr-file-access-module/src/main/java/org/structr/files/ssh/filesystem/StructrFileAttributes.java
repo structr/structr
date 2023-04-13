@@ -40,7 +40,7 @@ import java.util.*;
 /**
  *
  */
-public class StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
+public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
 	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
 	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));

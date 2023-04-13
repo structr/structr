@@ -69,7 +69,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public SeekableByteChannel getSeekableByteChannel() {
+	public SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate) {
 
 		return new SavingInMemorySeekableByteChannel();
 	}

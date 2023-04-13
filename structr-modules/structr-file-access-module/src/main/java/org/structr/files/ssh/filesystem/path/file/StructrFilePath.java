@@ -154,9 +154,7 @@ public class StructrFilePath extends StructrPath {
 
 					final File file = (File)actualFile;
 
-					//channel = new StructrFileChannel(file.getOutputStream(true, !truncate || append));
-					throw new FrameworkException(500, "Channel not implemented for new FS abstraction");
-					//channel = file.getOutputStream(true, !truncate || append).getChannel();
+					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(append, truncate);
 				}
 
 				tx.success();
@@ -172,7 +170,7 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel();
+					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel(append, truncate);
 
 					tx.success();
 
@@ -296,12 +294,6 @@ public class StructrFilePath extends StructrPath {
 					// rename & move (parent is null: root path)
 					thisFile.setParent(null);
 					thisFile.setProperty(AbstractNode.name, targetName);
-
-					// this is a move operation, delete existing file
-					if (otherFile != null) {
-						app.delete(otherFile);
-					}
-
 				} else {
 
 					final StructrFilePath parent  = (StructrFilePath)other.getParent();
@@ -310,11 +302,6 @@ public class StructrFilePath extends StructrPath {
 					// rename & move
 					thisFile.setParent(newParentFolder);
 					thisFile.setProperty(AbstractNode.name, targetName);
-
-					// this is a move operation, delete existing file
-					if (otherFile != null) {
-						app.delete(otherFile);
-					}
 				}
 
 				tx.success();

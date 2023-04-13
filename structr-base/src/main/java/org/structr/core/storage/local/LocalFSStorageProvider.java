@@ -29,9 +29,10 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
-import static java.nio.file.StandardOpenOption.WRITE;
+import static java.nio.file.StandardOpenOption.*;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
@@ -85,11 +86,17 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public SeekableByteChannel getSeekableByteChannel() {
+	public SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate) {
 		try {
 
 			ensureFileExists();
-			Set<OpenOption> options = Set.of(WRITE);
+			Set<OpenOption> options = new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC));
+			if (append) {
+				options.add(APPEND);
+			}
+			if (truncate) {
+				options.add(TRUNCATE_EXISTING);
+			}
 
 			return FileChannel.open(LocalFSHelper.getFileOnDisk(getFile()).toPath(), options);
 		} catch (IOException ex) {

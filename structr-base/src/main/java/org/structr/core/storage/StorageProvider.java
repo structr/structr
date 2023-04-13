@@ -27,7 +27,13 @@ public interface StorageProvider extends DataSource {
 	InputStream getInputStream();
 	OutputStream getOutputStream();
 	OutputStream getOutputStream(final boolean append);
-	SeekableByteChannel getSeekableByteChannel();
+	default SeekableByteChannel getSeekableByteChannel() {
+		return getSeekableByteChannel(false, false);
+	}
+	default SeekableByteChannel getSeekableByteChannel(boolean append) {
+		return getSeekableByteChannel(append, false);
+	}
+	SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate);
 
 	void delete();
 	long size();

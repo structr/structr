@@ -20,6 +20,7 @@ package org.structr.files.ssh.filesystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.core.storage.util.VirtualFileChannel;
 
 import java.io.IOException;
 import java.net.URI;
@@ -66,7 +67,7 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized FileChannel newFileChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		throw new UnsupportedOperationException("Not supported.");
+		return new VirtualFileChannel(newByteChannel(path, options, attrs));
 	}
 
 	@Override
