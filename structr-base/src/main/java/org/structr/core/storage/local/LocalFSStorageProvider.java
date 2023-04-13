@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.storage.AbstractStorageProvider;
+import org.structr.core.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
 
 import java.io.*;
@@ -29,7 +30,6 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.OpenOption;
-import java.nio.file.StandardOpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
@@ -46,7 +46,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-			return new FileInputStream(LocalFSHelper.getFileOnDisk(getFile()));
+			return new FileInputStream(LocalFSHelper.getFileOnDisk(getAbstractFile()));
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
@@ -61,12 +61,13 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		return this.getOutputStream(false);
 	}
+
 	@Override
 	public OutputStream getOutputStream(final boolean append) {
 		try {
 
 			ensureFileExists();
-			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getFile()), append);
+			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getAbstractFile()), append);
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
@@ -77,12 +78,12 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getFile().getProperty(StructrApp.key(File.class, "contentType"));
+		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
 	}
 
 	@Override
 	public String getName() {
-		return getFile().getName();
+		return getAbstractFile().getName();
 	}
 
 	@Override
@@ -98,7 +99,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 				options.add(TRUNCATE_EXISTING);
 			}
 
-			return FileChannel.open(LocalFSHelper.getFileOnDisk(getFile()).toPath(), options);
+			return FileChannel.open(LocalFSHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
 		} catch (IOException ex) {
 
 			logger.error("Could not open file", ex);
@@ -108,9 +109,29 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
+	public void moveTo(final StorageProvider newFileStorageProvider) {
+
+		// Check if new provider is different from current one, if so use default implementation
+		if (!this.equals(newFileStorageProvider)) {
+
+			super.moveTo(newFileStorageProvider);
+		}
+
+		// If provider class is local as well, check if file needs to be moved
+		// Ensure files exist and abstract files are actual files
+		if(getAbstractFile() != null && getAbstractFile() instanceof org.structr.web.entity.File && newFileStorageProvider.getAbstractFile() != null && newFileStorageProvider.getAbstractFile() instanceof org.structr.web.entity.File) {
+			// Check file paths and only move if they differ
+			if (!getAbstractFile().getPath().equals(newFileStorageProvider.getAbstractFile().getPath())) {
+
+				LocalFSHelper.getFileOnDisk(getAbstractFile()).renameTo(LocalFSHelper.getFileOnDisk(newFileStorageProvider.getAbstractFile()));
+			}
+		}
+	}
+
+	@Override
 	public void delete() {
 
-		java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getFile());
+		java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
 		if (fileOnDisk.exists() && fileOnDisk.isFile()) {
 
 			fileOnDisk.delete();
@@ -122,7 +143,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getFile());
+			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
 
 			if (fileOnDisk.exists()) {
 
@@ -138,7 +159,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	private void ensureFileExists() {
 		try {
-			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getFile());
+			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
 
 			if (!fileOnDisk.exists()) {
 
@@ -146,7 +167,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 			}
 		} catch (IOException ex) {
 
-			logger.error("Could not create physical file for file {}. {}", getFile(), ex);
+			logger.error("Could not create physical file for file {}. {}", getAbstractFile(), ex);
 		}
 	}
 

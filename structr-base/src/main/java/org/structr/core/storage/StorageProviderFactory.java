@@ -24,7 +24,6 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
 public abstract class StorageProviderFactory {
-
 	public static StorageProvider getStorageProvider(final AbstractFile file) {
 		final String provider = getProviderType(file);
 

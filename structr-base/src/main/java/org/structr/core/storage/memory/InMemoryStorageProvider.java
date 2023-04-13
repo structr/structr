@@ -22,6 +22,7 @@ import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.core.storage.AbstractStorageProvider;
+import org.structr.core.storage.StorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
@@ -41,8 +42,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	@Override
 	public InputStream getInputStream() {
 
-		if (dataMap.get(getFile().getUuid()) != null) {
-			return new ByteArrayInputStream(dataMap.get(getFile().getUuid()), 0, dataMap.get(getFile().getUuid()).length);
+		if (dataMap.get(getAbstractFile().getUuid()) != null) {
+			return new ByteArrayInputStream(dataMap.get(getAbstractFile().getUuid()), 0, dataMap.get(getAbstractFile().getUuid()).length);
 		}
 
 		return new ByteArrayInputStream(new byte[]{}, 0,0);
@@ -55,12 +56,12 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 
 	@Override
 	public String getContentType() {
-		return getFile().getProperty(StructrApp.key(File.class, "contentType"));
+		return getAbstractFile().getProperty(StructrApp.key(File.class, "contentType"));
 	}
 
 	@Override
 	public String getName() {
-		return getFile().getName();
+		return getAbstractFile().getName();
 	}
 
 	@Override
@@ -75,13 +76,18 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
+	public void moveTo(final StorageProvider newFileStorageProvider) {
+		super.moveTo(newFileStorageProvider);
+	}
+
+	@Override
 	public void delete() {
-		dataMap.remove(getFile().getUuid());
+		dataMap.remove(getAbstractFile().getUuid());
 	}
 
 	@Override
 	public long size() {
-		return dataMap.get(getFile().getUuid()) != null ? dataMap.get(getFile().getUuid()).length : 0;
+		return dataMap.get(getAbstractFile().getUuid()) != null ? dataMap.get(getAbstractFile().getUuid()).length : 0;
 	}
 
 	private class SavingInMemorySeekableByteChannel extends SeekableInMemoryByteChannel {
@@ -94,7 +100,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		@Override
 		public void close() {
 
-			dataMap.put(getFile().getUuid(), Arrays.copyOf(super.array(), (int) super.size()));
+			dataMap.put(getAbstractFile().getUuid(), Arrays.copyOf(super.array(), (int) super.size()));
 		}
 	}
 	private class InMemoryOutputStream extends ByteArrayOutputStream {
@@ -116,7 +122,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		}
 
 		private void saveBuffer() {
-			final String uuid = getFile().getUuid();
+			final String uuid = getAbstractFile().getUuid();
 
 			if (append) {
 

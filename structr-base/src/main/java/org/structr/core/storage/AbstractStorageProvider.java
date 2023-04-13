@@ -18,7 +18,14 @@
  */
 package org.structr.core.storage;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.web.entity.AbstractFile;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 public abstract class AbstractStorageProvider implements StorageProvider {
 	private final AbstractFile file;
@@ -27,7 +34,8 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 		this.file = file;
 	}
 
-	public AbstractFile getFile() {
+	@Override
+	public AbstractFile getAbstractFile() {
 		return file;
 	}
 
@@ -38,5 +46,25 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 			return otherProvider.getClass().equals(this.getClass());
 		}
 		return false;
+	}
+
+	@Override
+	public void moveTo(final StorageProvider newFileStorageProvider) {
+		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getSpecificStorageProvider(getAbstractFile(), null);
+
+		if (!this.equals(destinationStorageProvider)) {
+			try {
+
+				// Move binary content from old sp to new sp
+				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
+					IOUtils.copy(is, os);
+				}
+				// Clean up old binary data on previous sp
+				//previousSP.delete();
+			} catch (IOException ex) {
+
+				LoggerFactory.getLogger(AbstractStorageProvider.class).error(ExceptionUtils.getStackTrace(ex));
+			}
+		}
 	}
 }

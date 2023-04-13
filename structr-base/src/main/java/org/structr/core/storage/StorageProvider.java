@@ -18,12 +18,15 @@
  */
 package org.structr.core.storage;
 
+import org.structr.web.entity.AbstractFile;
+
 import javax.activation.DataSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.SeekableByteChannel;
 
 public interface StorageProvider extends DataSource {
+	AbstractFile getAbstractFile();
 	InputStream getInputStream();
 	OutputStream getOutputStream();
 	OutputStream getOutputStream(final boolean append);
@@ -34,7 +37,7 @@ public interface StorageProvider extends DataSource {
 		return getSeekableByteChannel(append, false);
 	}
 	SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate);
-
+	void moveTo(final StorageProvider newFileStorageProvider);
 	void delete();
 	long size();
 }

@@ -171,51 +171,51 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream2.setReturnType(OutputStream.class.getName());
 
 		type.addMethod("doCSVImport")
-			.setReturnType(java.lang.Long.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.setReturnType(java.lang.Long.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 
 		type.addMethod("doXMLImport")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType(java.lang.Long.class.getName())
-			.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType(java.lang.Long.class.getName())
+				.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("getFirstLines")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters, ctx);")
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters, ctx);")
+				.setDoExport(true);
 
 		type.addMethod("getCSVHeaders")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("getXMLStructure")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setReturnType("java.lang.String")
-			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.setReturnType("java.lang.String")
+				.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("extractStructure")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".extractStructure(this);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".extractStructure(this);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
@@ -227,9 +227,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}}
 
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
+
 	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
 	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
@@ -237,15 +241,19 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	boolean isTemplate();
 
 	void notifyUploadCompletion();
+
 	void callOnUploadHandler(final SecurityContext ctx);
+
 	void increaseVersion() throws FrameworkException;
 
 	void setVersion(final int version) throws FrameworkException;
+
 	Integer getVersion();
 
 	Integer getCacheForSeconds();
 
 	Long getChecksum();
+
 	String getMd5();
 
 	Folder getCurrentWorkingDir();
@@ -266,6 +274,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), (Folder)value);
 		}
 	}
+
 	static void OnSetProperties(final File thisFile, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
 		if (isCreation) {
 			return;
@@ -282,6 +291,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), properties.get(parentKey));
 		}
 	}
+
 	static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (Settings.FilesystemEnabled.getValue() && !thisFile.getHasParent()) {
@@ -820,36 +830,15 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			final StorageProvider previousSP = StorageProviderFactory.getStorageProvider(thisFile);
 			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider);
-			moveBinaryContentBetweenStorageProviders(previousSP, newSP);
+			previousSP.moveTo(newSP);
 		}
 	}
+
 	static void checkMoveBinaryContents(final File thisFile, final Folder previousParent, final Folder newParent) {
 
-		if (previousParent != null && newParent != null) {
-
-			if (newParent.getStorageProvider() != null && newParent.getStorageProvider().equals(previousParent.getStorageProvider())) {
-				return;
-			}
-
-			final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent.getStorageProvider());
-			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent.getStorageProvider());
-			moveBinaryContentBetweenStorageProviders(previousSP, newSP);
-		}
-	}
-
-	static void moveBinaryContentBetweenStorageProviders(final StorageProvider previousSP, final StorageProvider newSP) {
-		try {
-
-			// Move binary content from old sp to new sp
-			try (final InputStream is = previousSP.getInputStream(); final OutputStream os = newSP.getOutputStream()) {
-				IOUtils.copy(is, os);
-			}
-			// Clean up old binary data on previous sp
-			//previousSP.delete();
-		} catch (IOException ioex) {
-
-			LoggerFactory.getLogger(File.class).error(ExceptionUtils.getStackTrace(ioex));
-		}
+		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent != null ? previousParent.getStorageProvider() : null);
+		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent != null ? newParent.getStorageProvider() : null);
+		previousSP.moveTo(newSP);
 	}
 
 	static boolean doIndexing(final File thisFile) {
@@ -892,6 +881,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 	}
+
 	static boolean isImmutable(final File thisFile) {
 
 		final Principal _owner = thisFile.getOwnerNode();
