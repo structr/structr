@@ -20,6 +20,7 @@ package org.structr.core.notion;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.PropertiesNotFoundToken;
@@ -31,8 +32,6 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
-import org.structr.core.property.UuidProperty;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -82,7 +81,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 			return (T) source;
 		}
 
-		if (source != null && source instanceof String && UuidProperty.UUID_PATTERN.matcher((String)source).matches()) {
+		if (source != null && source instanceof String && Settings.isValidUuid((String) source)) {
 
 			return getTypedResult((T)StructrApp.getInstance(securityContext).getNodeById((String) source), type);
 

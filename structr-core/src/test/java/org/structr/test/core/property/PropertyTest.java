@@ -1209,8 +1209,6 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testEscapingInFunctionProperty() {
 
-		cleanDatabaseAndSchema();
-
 		// create test node with offending quote
 
 		try (final Tx tx = app.tx()) {
@@ -1896,8 +1894,6 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testFunctionPropertyIndexing() {
 
-		cleanDatabaseAndSchema();
-
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -1998,8 +1994,6 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testNotionPropertyOwner() {
 
-		cleanDatabaseAndSchema();
-
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -2063,8 +2057,6 @@ public class PropertyTest extends StructrTest {
 	 */
 	@Test
 	public void testNotionPropertyMessageId() {
-
-		cleanDatabaseAndSchema();
 
 		SchemaNode message = null;
 
@@ -2173,8 +2165,6 @@ public class PropertyTest extends StructrTest {
 	@Test
 	public void testNotionPropertyMessageName() {
 
-		cleanDatabaseAndSchema();
-
 		// schema setup
 		try (final Tx tx = app.tx()) {
 
@@ -2219,8 +2209,6 @@ public class PropertyTest extends StructrTest {
 	 */
 	@Test
 	public void testNotionPropertyMessageTrueFalse() {
-
-		cleanDatabaseAndSchema();
 
 		// schema setup
 		try (final Tx tx = app.tx()) {
@@ -2270,8 +2258,6 @@ public class PropertyTest extends StructrTest {
 
 	@Test
 	public void testEncryptedStringProperty() {
-
-		cleanDatabaseAndSchema();
 
 		// schema setup
 		try (final Tx tx = app.tx()) {

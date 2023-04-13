@@ -546,6 +546,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			// restore previous data object
 			renderContext.putDataObject(dataKey, previousDataObject);
+			renderContext.setDataObject(previousDataObject);
 		}
 	}
 
@@ -1632,7 +1633,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 		// admin-only edit modes ==> visibility check not necessary
 		final boolean isAdminOnlyEditMode = (EditMode.RAW.equals(editMode) || EditMode.WIDGET.equals(editMode) || EditMode.DEPLOYMENT.equals(editMode));
-		final boolean isPartial           = renderContext.getPage() == null;
+		final boolean isPartial           = renderContext.isPartialRendering(); // renderContext.getPage() == null;
 
 		if (!isAdminOnlyEditMode && !securityContext.isVisible(thisNode)) {
 			return;
@@ -1676,8 +1677,6 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (StringUtils.isNotBlank(subKey)) {
 
-				final GraphObject currentDataNode = renderContext.getDataObject();
-
 				// fetch (optional) list of external data elements
 				final Iterable<GraphObject> listData = checkListSources(thisNode, securityContext, renderContext);
 
@@ -1690,18 +1689,17 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 				}
 
-				final GraphObject sourceDataObject = renderContext.getSourceDataObject();
+				final GraphObject dataObject = renderContext.getDataNode(subKey); // renderContext.getSourceDataObject();
 
 				// Render partial with possible top-level repeater limited to a single data object
-				if (depth == 0 && isPartial && sourceDataObject != null) {
-				//if (thisNode.renderDetails() && detailMode) {
+				if (depth == 0 && isPartial && dataObject != null) {
 
-					renderContext.putDataObject(subKey, renderContext.getSourceDataObject());
-					renderContext.setPage(thisNode.getClosestPage());
-
+					renderContext.putDataObject(subKey, dataObject);
 					thisNode.renderContent(renderContext, depth);
 
 				} else {
+
+					final GraphObject currentDataNode = renderContext.getDataNode(subKey); // renderContext.getDataObject();
 
 					if (Iterables.isEmpty(listData) && currentDataNode != null) {
 

@@ -328,6 +328,8 @@
 }
 
 #inheritance-tree.slideOut {
+	width: 32rem;
+	left: -36rem;
 	display: flex;
 	flex-direction: column;
 }

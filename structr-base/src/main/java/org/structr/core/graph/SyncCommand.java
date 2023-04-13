@@ -36,7 +36,6 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.schema.SchemaHelper;
 
 import java.io.*;
@@ -48,6 +47,7 @@ import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+import org.structr.core.entity.SchemaReloadingNode;
 
 /**
  *
@@ -508,7 +508,7 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 		for (NodeInterface nodeObject : nodes) {
 
 			// skip schema
-			if (nodeObject instanceof AbstractSchemaNode) {
+			if (nodeObject instanceof SchemaReloadingNode) {
 				continue;
 			}
 

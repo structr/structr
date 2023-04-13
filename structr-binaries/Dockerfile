@@ -9,7 +9,6 @@ RUN apk update && \
 FROM ghcr.io/graalvm/graalvm-ce:ol8-java11-22.2.0 as main
 RUN gu install js
 COPY --from=build /root/structr-* /var/lib/structr
-RUN microdnf install net-tools iputils
 WORKDIR /var/lib/structr
 EXPOSE 8082
 CMD bin/docker.sh

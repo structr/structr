@@ -1312,7 +1312,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			valid &= ValidationHelper.isValidGloballyUniqueProperty(this, id, errorBuffer);
 		}
 
-		valid &= ValidationHelper.isValidStringMatchingRegex(this, id, "[a-fA-F0-9]{32}", errorBuffer);
+		valid &= ValidationHelper.isValidUuid(this, id, errorBuffer);
 		valid &= ValidationHelper.isValidStringNotBlank(this, type, errorBuffer);
 
 		return valid;

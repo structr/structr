@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Transaction;
 import org.structr.api.*;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -39,19 +38,18 @@ import org.structr.api.search.*;
 import org.structr.api.util.CountResult;
 import org.structr.api.util.NodeWithOwnerResult;
 
-import java.io.*;
 import java.time.Duration;
 import java.util.*;
+import org.neo4j.driver.Record;
 
 /**
  *
  */
-public class BoltDatabaseService extends AbstractDatabaseService implements GraphProperties {
+public class BoltDatabaseService extends AbstractDatabaseService {
 
 	private static final Logger logger                            = LoggerFactory.getLogger(BoltDatabaseService.class.getName());
 	private static final ThreadLocal<SessionTransaction> sessions = new ThreadLocal<>();
 	private final Set<String> supportedQueryLanguages             = new LinkedHashSet<>();
-	private Properties globalGraphProperties                      = null;
 	private CypherRelationshipIndex relationshipIndex             = null;
 	private CypherNodeIndex nodeIndex                             = null;
 	private boolean supportsRelationshipIndexes                   = false;
@@ -59,7 +57,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	private int neo4jMajorVersion                                 = -1;
 	private String errorMessage                                   = null;
 	private String databaseUrl                                    = null;
-	private String databasePath                                   = null;
 	private Driver driver                                         = null;
 	private SessionConfig sessionConfig                           = null;
 
@@ -73,7 +70,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			serviceName = name;
 		}
 
-		this.databasePath         = Settings.DatabasePath.getPrefixedValue(serviceName);
 		databaseUrl               = Settings.ConnectionUrl.getPrefixedValue(serviceName);
 		final String username     = Settings.ConnectionUser.getPrefixedValue(serviceName);
 		final String password     = Settings.ConnectionPassword.getPrefixedValue(serviceName);
@@ -84,9 +80,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		supportedQueryLanguages.add("application/x-cypher-query");
 		supportedQueryLanguages.add("application/cypher");
 		supportedQueryLanguages.add("text/cypher");
-
-		// create db directory if it does not exist
-		new File(databasePath).mkdirs();
 
 		try {
 
@@ -437,11 +430,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 	}
 
 	@Override
-	public GraphProperties getGlobalProperties() {
-		return this;
-	}
-
-	@Override
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
@@ -652,47 +640,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			.build();
 	}
 
-	// ----- interface GraphProperties -----
-	@Override
-	public void setProperty(final String name, final Object value) {
-
-		final Properties properties = getProperties();
-		boolean hasChanges          = false;
-
-		if (value == null) {
-
-			if (properties.containsKey(name)) {
-
-				properties.remove(name);
-				hasChanges = true;
-			}
-
-		} else {
-
-			properties.setProperty(name, value.toString());
-			hasChanges = true;
-		}
-
-		if (hasChanges) {
-
-			final File propertiesFile   = new File(databasePath + "/graph.properties");
-
-			try (final Writer writer = new FileWriter(propertiesFile)) {
-
-				properties.store(writer, "Created by Structr at " + new Date());
-
-			} catch (IOException ioex) {
-
-				logger.warn("Unable to write properties file", ioex);
-			}
-		}
-	}
-
-	@Override
-	public Object getProperty(final String name) {
-		return getProperties().getProperty(name);
-	}
-
 	@Override
 	public CountResult getNodeAndRelationshipCount() {
 
@@ -724,6 +671,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 			case SpatialQueries:
 				return true;
 
+			case NewDistanceFunction:
+				return neo4jMajorVersion >= 5;
+
 			case AuthenticationRequired:
 				return true;
 
@@ -734,6 +684,9 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 				// New db.indexes() format can be used for Neo4j versions >= 4,
 				// which is identical to the version for the reactive flag.
 				return neo4jMajorVersion >= 4;
+
+			case ShowIndexesQuery:
+				return neo4jMajorVersion >= 5;
 		}
 
 		return false;
@@ -781,23 +734,6 @@ public class BoltDatabaseService extends AbstractDatabaseService implements Grap
 		}
 
 		return "0.0.0";
-	}
-
-	private Properties getProperties() {
-
-		if (globalGraphProperties == null) {
-
-			globalGraphProperties = new Properties();
-			final File propertiesFile   = new File(databasePath + "/graph.properties");
-
-			try (final Reader reader = new FileReader(propertiesFile)) {
-
-				globalGraphProperties.load(reader);
-
-			} catch (IOException ioex) {}
-		}
-
-		return globalGraphProperties;
 	}
 
 	private long getCount(final String query, final String resultKey) {

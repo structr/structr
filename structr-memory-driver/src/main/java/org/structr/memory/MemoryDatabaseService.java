@@ -29,17 +29,15 @@ import org.structr.memory.index.MemoryNodeIndex;
 import org.structr.memory.index.MemoryRelationshipIndex;
 import org.structr.memory.index.filter.*;
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
 /**
  */
-public class MemoryDatabaseService extends AbstractDatabaseService implements GraphProperties {
+public class MemoryDatabaseService extends AbstractDatabaseService {
 
 	private static final ThreadLocal<MemoryTransaction> transactions    = new ThreadLocal<>();
-	private static final Map<String, Object> graphProperties            = new HashMap<>();
 	private final MemoryRelationshipRepository relationships            = new MemoryRelationshipRepository();
 	private final MemoryNodeRepository nodes                            = new MemoryNodeRepository();
 	private MemoryRelationshipIndex relIndex                            = null;
@@ -205,11 +203,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	}
 
 	@Override
-	public GraphProperties getGlobalProperties() {
-		return this;
-	}
-
-	@Override
 	public Index<Node> nodeIndex() {
 
 		if (nodeIndex == null) {
@@ -260,16 +253,6 @@ public class MemoryDatabaseService extends AbstractDatabaseService implements Gr
 	@Override
 	public <T> NativeQuery<T> query(final Object query, final Class<T> resultType) {
 		throw new UnsupportedOperationException("Not supported.");
-	}
-
-	@Override
-	public void setProperty(String name, Object value) {
-		graphProperties.put(name, value);
-	}
-
-	@Override
-	public Object getProperty(String name) {
-		return graphProperties.get(name);
 	}
 
 	public Iterable<MemoryNode> getFilteredNodes(final Filter<MemoryNode> filter) {

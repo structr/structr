@@ -35,6 +35,7 @@ import org.structr.schema.SchemaService;
 
 import java.net.URI;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -553,6 +554,36 @@ public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<Sch
 	@Override
 	public void setIsBuiltinType() {
 		this.isPartOfBuiltInSchema = true;
+	}
+
+	@Override
+	public boolean isBlacklisted(final Set<String> blacklist) {
+
+		if (blacklist.contains(name)) {
+			return true;
+		}
+
+		final Object source = root.resolveURI(sourceType);
+		if (source instanceof JsonType) {
+
+			final JsonType t = (JsonType)source;
+
+			if (blacklist.contains(t.getName())) {
+				return true;
+			}
+		}
+
+		final Object target = root.resolveURI(targetType);
+		if (target instanceof JsonType) {
+
+			final JsonType t = (JsonType)target;
+
+			if (blacklist.contains(t.getName())) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	void resolveEndpointTypesForDatabaseSchemaCreation(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {

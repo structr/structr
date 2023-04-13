@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * The Structr configuration settings.
@@ -67,13 +68,13 @@ public class Settings {
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
+	public static final Setting<String> UuidPattern                 = new StringSetting(generalGroup,          "Application", "application.uuid.pattern",                    "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$", "Regex patterns used to validate UUIDs.");
 
 	// clustering
-	public static final Setting<Boolean> ClusterModeEnabled         = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
+	public static final Setting<Boolean> ClusterModeEnabled            = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
 
 	public static final Setting<String> BasePath                       = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                        = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");
-	public static final Setting<String> DatabasePath                   = new StringSetting(generalGroup,             "Paths",       "database.path",                         "db", "Path of the Neo4j db/ directory");
 	public static final Setting<String> FilesPath                      = new StringSetting(generalGroup,             "Paths",       "files.path",                            System.getProperty("user.dir").concat(File.separator + "files"), "Path to the Structr file storage folder");
 	public static final Setting<String> ChangelogPath                  = new StringSetting(generalGroup,             "Paths",       "changelog.path",                        System.getProperty("user.dir").concat(File.separator + "changelog"), "Path to the Structr changelog storage folder");
 	public static final Setting<String> DataExchangePath               = new StringSetting(generalGroup,             "Paths",       "data.exchange.path",                    "exchange" + File.separator, "IMPORTANT: Path is relative to base.path");
@@ -232,6 +233,7 @@ public class Settings {
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
 	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false,  "Turns on logging for requested but non-existing localizations.");
 	public static final Setting<Boolean> useFallbackLocale        = new BooleanSetting(applicationGroup, "Localization", "application.localization.usefallbacklocale",  false,  "Turns on usage of fallback locale if for the current locale no localization is found");
+
 	public static final Setting<String> fallbackLocale            = new StringSetting(applicationGroup,  "Localization", "application.localization.fallbacklocale",     "en_US","The default locale used, if no localization is found and using a fallback is active.");
 	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
 	public static final Setting<Integer> DeploymentNodeBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.nodes.batchsize",             1000,   "Sets the batch size for data deployment when importing nodes.");
@@ -907,6 +909,19 @@ public class Settings {
 			}
 
 		} catch (Throwable t) {}
+
+		return false;
+	}
+
+	public static boolean isValidUuid(final String id) {
+
+		if (id != null) {
+
+			final Pattern pattern = Pattern.compile(Settings.UuidPattern.getValue());
+			if (pattern.matcher(id).matches()) {
+				return true;
+			}
+		}
 
 		return false;
 	}

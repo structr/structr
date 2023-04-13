@@ -28,16 +28,13 @@ import org.structr.core.graph.search.UuidSearchAttribute;
 
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.regex.Pattern;
 
 /**
  *
  *
  */
 public class UuidProperty extends StringProperty {
-
-	public static final Pattern UUID_PATTERN = Pattern.compile("[a-fA-F0-9]{32}");
-
+	
 	public UuidProperty() {
 
 		super("id");

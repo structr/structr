@@ -27,7 +27,9 @@ public enum DatabaseFeature {
 	QueryLanguage,
 	LargeStringIndexing,
 	SpatialQueries,
+	NewDistanceFunction,
 	AuthenticationRequired,
 	RelationshipIndexes,
-	NewDBIndexesFormat
+	NewDBIndexesFormat,
+	ShowIndexesQuery
 }

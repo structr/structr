@@ -16,48 +16,249 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-function createNewEntry(e) {
 
-	let currentTab = $('div.tab-content:visible');
-	if (currentTab) {
+let _Editors = {
+	// fake editors element to allow fastRemove to work normally
+};
 
-		let name = window.prompt("Please enter a key for the new configuration entry.");
-		if (name && name.length) {
+let _Config = {
+	createNewEntry: () => {
 
-			currentTab.append(`
-				<div class="form-group">
-					<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
-					<input type="text" name="${name}">
-					<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
-				</div>
-			`);
+		let currentTab = $('div.tab-content:visible');
+		if (currentTab) {
+
+			let name = window.prompt("Please enter a key for the new configuration entry.");
+			if (name && name.length) {
+
+				currentTab.append(`
+					<div class="form-group">
+						<label class="bold basis-full sm:basis-auto sm:min-w-128">${name}</label>
+						<input type="text" name="${name}">
+						<input type="hidden" name="${name}._settings_group" value="${$(currentTab).attr('id')}">
+					</div>
+				`);
+			}
 		}
+	},
+	databaseConnections: {
+		collectData: (name) => {
+
+	if (!name) {
+		name = 'structr-new-connection';
 	}
-}
 
-function appendInfoTextToElement (text, el, css) {
+	let nameInput    = $('input#name-' + name);
+	let driverSelect = $('select#driver-' + name);
+	let urlInput     = $('input#url-' + name);
+	let dbNameInput  = $('input#database-' + name);
+	let userInput    = $('input#username-' + name);
+	let pwdInput     = $('input#password-' + name);
+	let nowCheckbox  = $('input#connect-checkbox');
 
-	let toggleElement = $(`<span>${_Icons.getSvgIcon(_Icons.iconInfo, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-blue', 'ml-2']))}</span>`);
-	if (css) {
-		toggleElement.css(css);
+	nameInput.parent().removeClass();
+	driverSelect.parent().removeClass();
+	urlInput.parent().removeClass();
+	userInput.parent().removeClass();
+	pwdInput.parent().removeClass();
+
+	let data = {
+		name:     nameInput.val(),
+		driver:   driverSelect.val(),
+		url:      urlInput.val(),
+		database: dbNameInput.val(),
+		username: userInput.val(),
+		password: pwdInput.val(),
+		now:      nowCheckbox && nowCheckbox.is(':checked'),
+		active_section: '#databases'
+	};
+
+	return data;
+},
+		addConnection: (button) => {
+
+			let name = 'structr-new-connection';
+			let data = _Config.databaseConnections.collectData();
+
+			button.dataset.text = button.innerHTML;
+			button.disabled     = true;
+
+			if (data.now) {
+				button.innerHTML = 'Connecting..';
+			}
+
+			let status = $('div#status-' + name);
+			status.addClass('hidden');
+			status.empty();
+
+			if (data.now) {
+				_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+			}
+
+			fetch(_Helpers.getPrefixedRootUrl('/structr/config/add'), {
+				method: 'POST',
+				body: _Config.databaseConnections.convertObjectToFormEncoded(data),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				}
+			}).then(async response => {
+				if (response.ok || response.status === 302) {
+					_Config.databaseConnections.reload();
+				} else {
+					await _Config.databaseConnections.handleErrorResponse(name, response, button);
+				}
+			});
+		},
+		convertObjectToFormEncoded: (obj) => Object.entries(obj).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&'),
+		deleteConnection: (name) => {
+
+			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/delete`, {
+				method: 'POST',
+				body: _Config.databaseConnections.convertObjectToFormEncoded({'active_section': '#databases'}),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				}
+			}).then(async response => {
+				if (response.ok || response.status === 302) {
+					_Config.databaseConnections.reload();
+				} else {
+					await _Config.databaseConnections.handleErrorResponse(name, response);
+				}
+			});
+		},
+		setNeo4jDefaults: () => {
+			$('#driver-structr-new-connection').val('org.structr.bolt.BoltDatabaseService');
+			$('#name-structr-new-connection').val('neo4j-localhost-7687');
+			$('#url-structr-new-connection').val('bolt://localhost:7687');
+			$('#database-structr-new-connection').val('neo4j');
+			$('#username-structr-new-connection').val('neo4j');
+			$('#password-structr-new-connection').val('neo4j');
+		},
+		saveConnection: (name) => {
+
+			let data = _Config.databaseConnections.collectData(name);
+
+			if (data.now) {
+				_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+			}
+
+			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/use`, {
+				method: 'POST',
+				body: _Config.databaseConnections.convertObjectToFormEncoded(data),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				}
+			}).then(async response => {
+				if (response.ok || response.status === 302) {
+					_Config.databaseConnections.reload();
+				} else {
+					await _Config.databaseConnections.handleErrorResponse(name, response);
+				}
+			});
+		},
+		reload: () => {
+
+			_Helpers.hideNonBlockUIOverlay();
+
+			window.location.href = _Helpers.getPrefixedRootUrl('/structr/config#databases');
+			window.location.reload(true);
+		},
+		connect: (button, name) => {
+
+			button.disabled = true;
+			button.dataset.text = button.innerHTML;
+			button.innerHTML = 'Connecting..';
+
+			let status = $('div#status-' + name);
+			status.addClass('hidden');
+			status.empty();
+
+			_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+
+			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/connect`, {
+				method: 'POST',
+				body: _Config.databaseConnections.convertObjectToFormEncoded(_Config.databaseConnections.collectData(name)),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				}
+			}).then(async response => {
+				if (response.ok || response.status === 302) {
+					_Config.databaseConnections.reload();
+				} else {
+					await _Config.databaseConnections.handleErrorResponse(name, response, button);
+				}
+			});
+		},
+		disconnect: (button, name) => {
+
+			button.disabled = true;
+			button.dataset.text = button.innerHTML;
+			button.innerHTML = 'Disconnecting..';
+
+			let status = $('div#status-' + name);
+			status.addClass('hidden');
+			status.empty();
+
+			_Helpers.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
+
+			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/disconnect`, {
+				method: 'POST',
+				body: _Config.databaseConnections.convertObjectToFormEncoded(_Config.databaseConnections.collectData(name)),
+				headers: {
+					'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+				}
+			}).then(async response => {
+				if (response.ok || response.status === 302) {
+					_Config.databaseConnections.reload();
+				} else {
+					await _Config.databaseConnections.handleErrorResponse(name, response, button);
+				}
+			});
+		},
+		handleErrorResponse: async (name, response, button) => {
+
+			_Helpers.hideNonBlockUIOverlay();
+
+			let json = await response.json();
+
+			if (!name) {
+				name = 'structr-new-connection';
+			}
+
+			if (button) {
+				button.disabled = false;
+				button.innerHTML = button.dataset.text;
+			}
+
+			switch (response.status) {
+
+				case 422:
+					if (json.errors && json.errors.length) {
+
+						json.errors.forEach(t => {
+							if (t.property !== undefined && t.token !== undefined) {
+								$('input#' + t.property + '-' + name).parent().addClass(t.token);
+							}
+						});
+
+					} else {
+
+						let status = $('div#status-' + name);
+						status.empty();
+						status.append(json.message);
+						status.removeClass('hidden');
+					}
+					break;
+
+				case 503:
+					let status = $('div#status-' + name);
+					status.empty();
+					status.append(json.message);
+					status.removeClass('hidden');
+					break;
+			}
+		},
 	}
-	let helpElement = $('<span class="context-help-text">' + text + '</span>');
-
-	toggleElement.on("mousemove", (e) => {
-		helpElement.show();
-		helpElement.css({
-			left: e.clientX + 20,
-			top: e.clientY + 10
-		});
-	});
-
-	toggleElement.on("mouseout", (e) => {
-		helpElement.hide();
-	});
-
-	el.appendChild(toggleElement[0]);
-	el.appendChild(helpElement[0]);
-}
+};
 
 /* config search */
 let _Search = {
@@ -74,7 +275,7 @@ let _Search = {
 
     	if (!isLogin && !isWelcome) {
 
-			let searchUiHTML = Structr.createSingleDOMElementFromHTML(`
+			let searchUiHTML = _Helpers.createSingleDOMElementFromHTML(`
 				<div id="search-container">
 					<input id="search-box" placeholder="Search config...">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
@@ -295,37 +496,24 @@ let _Search = {
 	}
 };
 
-const Structr = {
-    getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
-        let prefix = [];
-        const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
-        let entry = pathEntries.shift();
-
-        while (entry !== 'structr' && entry !== undefined) {
-           prefix.push(entry);
-           entry = pathEntries.shift();
-        }
-
-		return `${ (prefix.length ? '/' : '') + prefix.join('/') }${rootUrl}`;
-    },
-	createSingleDOMElementFromHTML: (html) => {
-		let elements = Structr.createDOMElementsFromHTML(html);
-		return elements[0];
-	},
-	createDOMElementsFromHTML: (html) => {
-		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
-		let dummy = document.createElement('template');
-		dummy.innerHTML = html;
-
-		return dummy.content.children;
-	},
-}
-
 document.addEventListener('DOMContentLoaded', () => {
 
 	_Icons.preloadSVGIcons();
 
-	$('#new-entry-button').on('click', createNewEntry);
+	$('#new-entry-button').on('click', _Config.createNewEntry);
+	$('#add-connection').on('click', function () {
+		_Config.databaseConnections.addConnection(this);
+	});
+	$('#set-neo4j-defaults').on('click', _Config.databaseConnections.setNeo4jDefaults);
+	$('.delete-connection[data-connection-name]').on('click', function(e) {
+		_Config.databaseConnections.deleteConnection($(this).data('connectionName'));
+	});
+	$('.connect-connection[data-connection-name]').on('click', function(e) {
+		_Config.databaseConnections.connect(this, $(this).data('connectionName'));
+	});
+	$('.disconnect-connection[data-connection-name]').on('click', function(e) {
+		_Config.databaseConnections.disconnect(this, $(this).data('connectionName'));
+	});
 
 	for (let resetButton of document.querySelectorAll('.reset-key')) {
 		resetButton.addEventListener('click', () => {
@@ -333,12 +521,12 @@ document.addEventListener('DOMContentLoaded', () => {
 			let currentTab = $('#active_section').val();
 			let key        = resetButton.dataset['key'];
 
-			window.location.href = Structr.getPrefixedRootUrl('/structr/config') + '?reset=' + key + currentTab;
+			window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${currentTab}`;
 		});
 	}
 
 	$('#reload-config-button').on('click', function() {
-		window.location.href = Structr.getPrefixedRootUrl('/structr/config') + "?reload" + $('#active_section').val();
+		window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${$('#active_section').val()}`;
 	});
 
 	$('#configTabs a').on('click', function() {
@@ -354,6 +542,8 @@ document.addEventListener('DOMContentLoaded', () => {
 		$('.tab-content').css({
 			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
 		});
+
+		_Helpers.centerNonBlockUIMessage();
 	};
 
 	$(window).resize(function() {
@@ -362,9 +552,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	resizeFunction();
 
-	for (let label of document.querySelectorAll('label.has-comment')) {
-		appendInfoTextToElement(label.dataset['comment'], label);
-	}
+	_Helpers.activateCommentsInElement(document);
 
 	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
 	document.querySelector('a[href$=' + anchor + ']').click();
@@ -411,263 +599,3 @@ document.addEventListener('DOMContentLoaded', () => {
 
 	_Search.init();
 });
-
-function collectData(name) {
-
-	if (!name) {
-		name = 'structr-new-connection';
-	}
-
-	let nameInput    = $('input#name-' + name);
-	let driverSelect = $('select#driver-' + name);
-	let urlInput     = $('input#url-' + name);
-	let dbNameInput  = $('input#database-' + name);
-	let userInput    = $('input#username-' + name);
-	let pwdInput     = $('input#password-' + name);
-	let nowCheckbox  = $('input#connect-checkbox');
-
-	nameInput.parent().removeClass();
-	driverSelect.parent().removeClass();
-	urlInput.parent().removeClass();
-	userInput.parent().removeClass();
-	pwdInput.parent().removeClass();
-
-	let data = {
-		name:     nameInput.val(),
-		driver:   driverSelect.val(),
-		url:      urlInput.val(),
-		database: dbNameInput.val(),
-		username: userInput.val(),
-		password: pwdInput.val(),
-		now:      nowCheckbox && nowCheckbox.is(':checked'),
-		active_section: '#databases'
-	};
-
-	return data;
-}
-
-function addConnection(button) {
-
-	let name = 'structr-new-connection';
-	let data = collectData();
-
-	button.dataset.text = button.innerHTML;
-	button.disabled     = true;
-
-	if (data.now) {
-		button.innerHTML = 'Connecting..';
-	}
-
-	let status = $('div#status-' + name);
-	status.addClass('hidden');
-	status.empty();
-
-	if (data.now) {
-		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
-	}
-
-	fetch(Structr.getPrefixedRootUrl('/structr/config/add'), {
-		method: 'POST',
-		body: convertObjectToFormEncoded(data),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		}
-	}).then(async response => {
-		if (response.ok || response.status === 302) {
-			reload();
-		} else {
-			handleErrorResponse(name, response, button);
-		}
-	});
-}
-
-function convertObjectToFormEncoded (obj) {
-	return Object.entries(obj).map(([key, value]) => {
-		return key + '=' + encodeURIComponent(value);
-	}).join('&');
-}
-
-function deleteConnection(name) {
-
-	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/delete', {
-		method: 'POST',
-		body: convertObjectToFormEncoded({'active_section': '#databases'}),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		}
-	}).then(async response => {
-		if (response.ok || response.status === 302) {
-			reload();
-		} else {
-			handleErrorResponse(name, response);
-		}
-	});
-}
-
-function setNeo4jDefaults() {
-	$('#driver-structr-new-connection').val('org.structr.bolt.BoltDatabaseService');
-	$('#name-structr-new-connection').val('neo4j-localhost-7687');
-	$('#url-structr-new-connection').val('bolt://localhost:7687');
-	$('#database-structr-new-connection').val('neo4j');
-	$('#username-structr-new-connection').val('neo4j');
-	$('#password-structr-new-connection').val('neo4j');
-}
-
-function saveConnection(name) {
-
-	let data = collectData(name);
-
-	if (data.now) {
-		_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
-	}
-
-	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/use', {
-		method: 'POST',
-		body: convertObjectToFormEncoded(data),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		}
-	}).then(async response => {
-		if (response.ok || response.status === 302) {
-			reload();
-		} else {
-			handleErrorResponse(name, response);
-		}
-	});
-}
-
-function reload() {
-
-	_Config.hideNonBlockUILoadingMessage();
-
-	window.location.href = Structr.getPrefixedRootUrl('/structr/config#databases');
-	window.location.reload(true);
-}
-
-function connect(button, name) {
-
-	button.disabled = true;
-	button.dataset.text = button.innerHTML;
-	button.innerHTML = 'Connecting..';
-
-	let status = $('div#status-' + name);
-	status.addClass('hidden');
-	status.empty();
-
-	_Config.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
-
-	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/connect', {
-		method: 'POST',
-		body: convertObjectToFormEncoded(collectData(name)),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		}
-	}).then(async response => {
-		if (response.ok || response.status === 302) {
-			reload();
-		} else {
-			handleErrorResponse(name, response, button);
-		}
-	});
-}
-
-function disconnect(button, name) {
-
-	button.disabled = true;
-	button.dataset.text = button.innerHTML;
-	button.innerHTML = 'Disconnecting..';
-
-	let status = $('div#status-' + name);
-	status.addClass('hidden');
-	status.empty();
-
-	_Config.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
-
-	fetch(Structr.getPrefixedRootUrl('/structr/config/') + name + '/disconnect', {
-		method: 'POST',
-		body: convertObjectToFormEncoded(collectData(name)),
-		headers: {
-			'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-		}
-	}).then(async response => {
-		if (response.ok || response.status === 302) {
-			reload();
-		} else {
-			handleErrorResponse(name, response, button);
-		}
-	});
-}
-
-async function handleErrorResponse(name, response, button) {
-
-	_Config.hideNonBlockUILoadingMessage();
-
-	let json = await response.json();
-
-	if (!name) {
-		name = 'structr-new-connection';
-	}
-
-	if (button) {
-		button.disabled = false;
-		button.innerHTML = button.dataset.text;
-	}
-
-	switch (response.status) {
-
-		case 422:
-			if (json.errors && json.errors.length) {
-
-				json.errors.forEach(t => {
-					if (t.property !== undefined && t.token !== undefined) {
-						$('input#' + t.property + '-' + name).parent().addClass(t.token);
-					}
-				});
-
-			} else {
-
-				let status = $('div#status-' + name);
-				status.empty();
-				status.append(json.message);
-				status.removeClass('hidden');
-			}
-			break;
-
-		case 503:
-			let status = $('div#status-' + name);
-			status.empty();
-			status.append(json.message);
-			status.removeClass('hidden');
-			break;
-	}
-}
-
-
-
-_Config = {
-	nonBlockUIBlockerId: 'non-block-ui-blocker',
-	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	showNonBlockUILoadingMessage: (title, text) => {
-
-		let messageTitle = title || 'Executing Task';
-		let messageText  = text || 'Please wait until the operation has finished...';
-
-		let pageBlockerDiv = $(`<div id="${_Config.nonBlockUIBlockerId}"></div>`);
-		let messageDiv     = $(`<div id="${_Config.nonBlockUIBlockerContentId}"></div>`);
-		messageDiv.html(`
-			<div class="flex items-center justify-center">
-				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${messageTitle}</b>
-			</div>
-			<br>
-			${messageText}
-		`);
-
-
-		$('body').append(pageBlockerDiv);
-		$('body').append(messageDiv);
-	},
-	hideNonBlockUILoadingMessage: () => {
-		$('#' + _Config.nonBlockUIBlockerId).remove();
-		$('#' + _Config.nonBlockUIBlockerContentId).remove();
-	}
-};

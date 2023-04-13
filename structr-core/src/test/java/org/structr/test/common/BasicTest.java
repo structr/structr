@@ -93,8 +93,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void testQuerySoftLimit() {
 
-		Settings.CypherDebugLogging.setValue(true);
-
 		try {
 			Settings.ResultCountSoftLimit.setValue(100);
 			Settings.FetchSize.setValue(100);
@@ -287,8 +285,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test03CascadeDeleteNone() {
 
-		cleanDatabaseAndSchema();
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
@@ -418,8 +414,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test04CascadeDeleteSourceToTarget() {
 
-		cleanDatabaseAndSchema();
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
@@ -546,8 +540,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test05CascadeDeleteTargetToSource() {
 
-		cleanDatabaseAndSchema();
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
@@ -672,8 +664,6 @@ public class BasicTest extends StructrTest {
 	@Test
 	public void test06CascadeDeleteBidirectional() {
 
-		cleanDatabaseAndSchema();
-
 		// setup
 		try (final Tx tx = app.tx()) {
 
@@ -797,8 +787,6 @@ public class BasicTest extends StructrTest {
 	 */
 	@Test
 	public void test07CascadeDeleteConditional() {
-
-		cleanDatabaseAndSchema();
 
 		// setup
 		try (final Tx tx = app.tx()) {

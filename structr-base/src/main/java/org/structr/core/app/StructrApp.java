@@ -25,7 +25,6 @@ import org.structr.agent.Task;
 import org.structr.api.DatabaseService;
 import org.structr.api.NotFoundException;
 import org.structr.api.config.Settings;
-import org.structr.api.graph.GraphProperties;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.service.Command;
@@ -55,18 +54,21 @@ import java.io.IOException;
 import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Stateful facade for accessing the Structr core layer.
  */
 public class StructrApp implements App {
 
-	private static final Logger logger = LoggerFactory.getLogger(StructrApp.class);
+	private static final String INSTANCE_ID = StringUtils.replace(UUID.randomUUID().toString(), "-", "");
+	private static final Logger logger      = LoggerFactory.getLogger(StructrApp.class);
 
+	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
+	private static final Map<URI, Class> schemaIdMap            = new LinkedHashMap<>();
+	private static final Map<Class, URI> typeIdMap              = new LinkedHashMap<>();
 	private static FixedSizeCache<String, Identity> nodeUuidMap = null;
 	private static FixedSizeCache<String, Identity> relUuidMap  = null;
-	private static final URI schemaBaseURI                      = URI.create("https://structr.org/v1.1/#");
-	private static final Object globalConfigLock                = new Object();
 	private final Map<String, Object> appContextStore           = new LinkedHashMap<>();
 	private RelationshipFactory relFactory                      = null;
 	private NodeFactory nodeFactory                             = null;
@@ -383,58 +385,6 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public <T> T getGlobalSetting(final String key, final T defaultValue) throws FrameworkException {
-
-		final DatabaseService service = getDatabaseService();
-		if (service != null) {
-
-			final GraphProperties config = service.getGlobalProperties();
-			T value                      = null;
-
-			if (config != null) {
-				value = (T)config.getProperty(key);
-			}
-
-			if (value == null) {
-				return defaultValue;
-			}
-
-			return value;
-		}
-
-		return defaultValue;
-	}
-
-	@Override
-	public void setGlobalSetting(final String key, final Object value) throws FrameworkException {
-
-		final DatabaseService service = getDatabaseService();
-		if (service != null) {
-
-			final GraphProperties config = service.getGlobalProperties();
-			if (config != null) {
-
-				config.setProperty(key, value);
-			}
-		}
-	}
-
-	@Override
-	public String getInstanceId() throws FrameworkException {
-
-		synchronized (globalConfigLock) {
-
-			String instanceId = (String) getGlobalSetting("structr.instance.id", null);
-			if (instanceId == null) {
-
-				instanceId = NodeServiceCommand.getNextUuid();
-				setGlobalSetting("structr.instance.id", instanceId);
-			}
-			return instanceId;
-		}
-	}
-
-	@Override
 	public FulltextIndexer getFulltextIndexer(final Object... params) {
 
 		final Map<String, StructrModule> modules = StructrApp.getConfiguration().getModules();
@@ -495,12 +445,10 @@ public class StructrApp implements App {
 	}
 
 	public static <T extends GraphObject> URI getSchemaId(final Class<T> type) {
-		initializeSchemaIds();
 		return typeIdMap.get(type);
 	}
 
 	public static Class resolveSchemaId(final URI uri) {
-		initializeSchemaIds();
 		return schemaIdMap.get(uri);
 	}
 
@@ -538,8 +486,8 @@ public class StructrApp implements App {
 
 			} else {
 
-				// next try: interface
-				final Class iface = config.getInterfaces().get(type.getSimpleName());
+				// next try: interface created from SchemaNode (org.structr.dynamic)
+				final Class iface = config.getInterfaces().get("org.structr.dynamic." + type.getSimpleName());
 				if (iface != null) {
 
 					key = config.getPropertyKeyForJSONName(iface, name, false);
@@ -601,10 +549,18 @@ public class StructrApp implements App {
 		return appContextStore;
 	}
 
-	// ----- private static methods -----
-	private static void initializeSchemaIds() {
+	@Override
+	public String getInstanceId() throws FrameworkException {
+		return StructrApp.INSTANCE_ID;
+	}
+
+	public static void initializeSchemaIds() {
 
 		final Map<String, Class> interfaces = StructrApp.getConfiguration().getInterfaces();
+
+		// refresh schema IDs
+		schemaIdMap.clear();
+		typeIdMap.clear();
 
 		// add Structr interfaces here
 		for (final Class type : interfaces.values()) {
@@ -617,16 +573,16 @@ public class StructrApp implements App {
 		}
 	}
 
+	// ----- private static methods -----
 	private static void registerType(final Class type) {
 
 		final URI id = schemaBaseURI.resolve(URI.create(("definitions/" + type.getSimpleName())));
 
+		logger.debug("Registering type {} with {}", type, id);
+
 		schemaIdMap.put(id, type);
 		typeIdMap.put(type, id);
 	}
-
-	private static final Map<URI, Class> schemaIdMap = new LinkedHashMap<>();
-	private static final Map<Class, URI> typeIdMap   = new LinkedHashMap<>();
 
 	// ---------- private methods -----
 	private synchronized Identity getNodeFromCache(final String uuid) {

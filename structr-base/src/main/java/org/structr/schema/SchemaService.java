@@ -57,6 +57,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import org.structr.api.schema.JsonType;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -119,6 +120,7 @@ public class SchemaService implements Service {
 		} else {
 
 			FlushCachesCommand.flushAll();
+			StructrApp.initializeSchemaIds();
 
 			final long t0 = System.currentTimeMillis();
 
@@ -139,6 +141,26 @@ public class SchemaService implements Service {
 					logger.error(ExceptionUtils.getStackTrace(t));
 				}
 
+				// dynamicSchema contains all classes defined in Structr, including those only available in licensed editions
+				// We need to make sure that unlicensed classes are blacklisted; this was previously done in ensureBuiltInTypesExist,
+				// but this method is not called in cluster mode, when the instance is not the cluster coordinator.
+				for (final JsonType t : dynamicSchema.getTypes()) {
+
+					final String name = t.getName();
+
+					for (final URI schemaURI : t.getImplements()) {
+
+						// remove query
+						final URI uri = URI.create(schemaURI.getScheme() + "://" + schemaURI.getHost() + schemaURI.getPath());
+
+						if (dynamicSchema.resolveURI(schemaURI) == null && StructrApp.resolveSchemaId(uri) == null) {
+
+							logger.warn("Unable to resolve built-in interface {} of type {} against Structr schema, source was {}", uri, name, schemaURI);
+
+							SchemaService.blacklist(name);
+						}
+					}
+				}
 
 				try (final Tx tx = app.tx()) {
 
@@ -291,9 +313,12 @@ public class SchemaService implements Service {
 
 						}
 
-						// create properties and views etc.
-						for (final SchemaNode schemaNode : schemaNodes.values()) {
-							schemaNode.createBuiltInSchemaEntities(errorBuffer);
+						if (Services.getInstance().hasExclusiveDatabaseAccess()) {
+
+							// create properties and views etc.
+							for (final SchemaNode schemaNode : schemaNodes.values()) {
+								schemaNode.createBuiltInSchemaEntities(errorBuffer);
+							}
 						}
 
 						success = !errorBuffer.hasError();

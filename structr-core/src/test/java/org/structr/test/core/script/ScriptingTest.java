@@ -22,6 +22,7 @@ import com.google.gson.GsonBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.*;
 import org.structr.api.util.Iterables;
@@ -40,7 +41,6 @@ import org.structr.core.entity.*;
 import org.structr.core.function.DateFormatFunction;
 import org.structr.core.function.FindFunction;
 import org.structr.core.function.NumberFormatFunction;
-import org.structr.core.function.RoundFunction;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
@@ -79,8 +79,6 @@ public class ScriptingTest extends StructrTest {
 
 	@Test
 	public void testSetPropertyWithDynamicNodes() {
-
-		this.cleanDatabaseAndSchema();
 
 		/**
 		 * This test creates two connected SchemaNodes and tests the script-based
@@ -2011,19 +2009,19 @@ public class ScriptingTest extends StructrTest {
 			assertEquals("Invalid get_or_create() result", newUuid2, Scripting.replaceVariables(ctx, null, "${{ Structr.getOrCreate('TestOne', { 'name': 'new-object-2', 'anInt': 13, 'aString': 'string' }) }}"));
 
 			// create_or_update()
-			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			final String newUuid3 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid3);
-			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid3 + "'), 'name')}"));
-			assertEquals("Invalid create_or_update() result",        newUuid3, Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'New Name')}"));
-			assertEquals("Invalid create_or_update() result",  "New Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid3 + "'), 'name')}"));
-			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
+			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
+			assertEquals("Invalid create_or_update() result",        newUuid3, Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'New Name')}"));
+			assertEquals("Invalid create_or_update() result",  "New Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid3 + "'), 'name')}"));
+			final String newUuid4 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid4);
-			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
+			final String newUuid5 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid5);
-			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid5 + "'), 'name')}"));
-			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('User', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
+			assertEquals("Invalid create_or_update() result", "Some Name", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid5 + "'), 'name')}"));
+			final String newUuid6 = Scripting.replaceVariables(ctx, null, "${create_or_update('Principal', 'eMail', 'tester1@test.com', 'name', 'Some Name', 'locale', 'de_DE')}");
 			assertNotNull("Invalid create_or_update() result: User object should have been created but hasn't.", newUuid6);
-			assertEquals("Invalid create_or_update() result", "de_DE", Scripting.replaceVariables(ctx, null, "${get(find('User', '" + newUuid6 + "'), 'locale')}"));
+			assertEquals("Invalid create_or_update() result", "de_DE", Scripting.replaceVariables(ctx, null, "${get(find('Principal', '" + newUuid6 + "'), 'locale')}"));
 
 			// sleep
 			final long t0 = System.currentTimeMillis();
@@ -2033,7 +2031,7 @@ public class ScriptingTest extends StructrTest {
 
 			// random_uuid
 			final String randomUuid = Scripting.replaceVariables(ctx, null, "${random_uuid()}");
-			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, randomUuid.matches("[a-fA-F0-9]{32}"));
+			assertTrue("Invalid UUID returned by random_uuid(): " + randomUuid, Settings.isValidUuid(randomUuid));
 
 			tx.success();
 
@@ -2712,8 +2710,6 @@ public class ScriptingTest extends StructrTest {
 	@Test
 	public void testFindNewlyCreatedObjectByOwner () {
 
-		this.cleanDatabaseAndSchema();
-
 		String userObjects        = "[";
 
 		try (final Tx tx = app.tx()) {
@@ -3273,8 +3269,6 @@ public class ScriptingTest extends StructrTest {
 
 	@Test
 	public void testCryptoFunctions() {
-
-		this.cleanDatabaseAndSchema();
 
 		final ActionContext ctx = new ActionContext(securityContext);
 

@@ -63,6 +63,7 @@ ul.combined-input-select-field {
 	list-style-type: none;
 	font-family: var(--font-inter) ! important;
 	font-size: 1rem;
+	background-color: var(--solid-white);
 	color: var(--body-text);
 	border: 1px solid var(--input-field-border);
 	padding: 0.5rem 0rem;
@@ -70,6 +71,7 @@ ul.combined-input-select-field {
 	line-height: 1.25rem;
 	overflow: scroll;
 	position: absolute;
+	z-index: 1;
 	top: 3.75rem;
 	width: calc(100% - 2px);
 	max-height: 15rem;

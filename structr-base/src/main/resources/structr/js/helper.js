@@ -16,296 +16,724 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-function isIn(s, array) {
-	return (s && array && array.indexOf(s) !== -1);
-}
+let _Helpers = {
+	fastRemoveElement: (element) => {
+		if (!element) {
+			return;
+		}
+		_Helpers.fastRemoveAllChildren(element);
+		element.remove();
+	},
+	fastRemoveAllChildren: (el) => {
+		if (!el) return;
 
-function escapeForHtmlAttributes(str, escapeWhitespace) {
-	if (!(typeof str === 'string'))
-		return str;
-	var escapedStr = str
-		.replace(/&/g, '&amp;')
-		.replace(/</g, '&lt;')
-		.replace(/>/g, '&gt;')
-		.replace(/"/g, '&quot;')
-		.replace(/'/g, '&#39;');
+		// prevent fastRemove from producing errors in other libraries
+		{
+			// do not slice up monaco editors
+			_Editors?.nukeEditorsInDomElement?.(el);
+		}
 
-	return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
-}
+		// memory management block
+		{
+			// destroy select2 and remove event listeners
+			$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+		}
 
-function escapeTags(str) {
-	if (!str)
-		return str;
-	return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+		let fastRemoveAllChildrenInner = (el) => {
 
-function unescapeTags(str) {
-	if (!str)
-		return str;
-	return str
-			.replace(/&nbsp;/g, ' ')
-			.replace(/&amp;/g, '&')
-			.replace(/&lt;/g, '<')
-			.replace(/&gt;/g, '>')
-			.replace(/&quot;/g, '"')
-			.replace(/&#39;/g, '\'');
-}
+			while (el.firstChild) {
+				fastRemoveAllChildrenInner(el.firstChild);
+				el.removeChild(el.firstChild);
+			}
+		};
 
-function utf8_to_b64(str) {
-	return window.btoa(unescape(encodeURIComponent(str)));
-}
-
-// function b64_to_utf8(str) {
-// 	return decodeURIComponent(escape(window.atob(str)));
-// }
-
-// $.fn.reverse = [].reverse;
-
-if (typeof String.prototype.endsWith !== 'function') {
-	String.prototype.endsWith = function(pattern) {
-		var d = this.length - pattern.length;
-		return d >= 0 && this.lastIndexOf(pattern) === d;
-	};
-}
-
-if (typeof String.prototype.startsWith !== 'function') {
-	String.prototype.startsWith = function(str) {
-		return this.indexOf(str) === 0;
-	};
-}
-
-if (typeof String.prototype.capitalize !== 'function') {
-	String.prototype.capitalize = function() {
-		return this.charAt(0).toUpperCase() + this.slice(1);
-	};
-}
-
-if (typeof String.prototype.lpad !== 'function') {
-	String.prototype.lpad = function(padString, length) {
-		var str = this;
-		while (str.length < length)
-			str = padString + str;
-		return str;
-	};
-}
-
-if (typeof String.prototype.contains !== 'function') {
-	String.prototype.contains = function(pattern) {
-		return this.indexOf(pattern) > -1;
-	};
-}
-
-if (typeof String.prototype.splitAndTitleize !== 'function') {
-	String.prototype.splitAndTitleize = function(sep) {
-
-		var res = new Array();
-		var parts = this.split(sep);
-		parts.forEach(function(part) {
-			res.push(part.capitalize());
-		});
-		return res.join(" ");
-	};
-}
-
-if (typeof String.prototype.extractVal !== 'function') {
-	String.prototype.extractVal = function(key) {
-		var pattern = '(' + key + '=")(.*?)"';
-		var re = new RegExp(pattern);
-		var value = this.match(re);
+		fastRemoveAllChildrenInner(el);
+	},
+	setContainerHTML: (container, html) => {
+		_Helpers.fastRemoveAllChildren(container);
+		container.insertAdjacentHTML('beforeend', html);
+	},
+	extractVal: (string, key) => {
+		let pattern = `(${key}=")(.*?)"`;
+		let re      = new RegExp(pattern);
+		let value   = string.match(re);
 		return value && value[2] ? value[2] : undefined;
-	};
-}
-/**
- * Clean text from contenteditable
- *
- * This function will remove any HTML markup and convert
- * any <br> tag into a line feed ('\n').
- */
-function cleanText(input) {
-	if (typeof input !== 'string') {
-		return input;
-	}
-	var output = input
+	},
+	/**
+	 * Clean text from contenteditable
+	 *
+	 * This function will remove any HTML markup and convert
+	 * any <br> tag into a line feed ('\n').
+	 */
+	cleanText: (input) => {
+		if (typeof input !== 'string') {
+			return input;
+		}
+		let output = input
 			.replace(/<div><br><\/div>/ig, '\n')
 			.replace(/<div><\/div>/g, '\n')
 			.replace(/<br(\s*)\/*>/ig, '\n')
 			.replace(/(<([^>]+)>)/ig, "")
 			.replace(/\u00A0/ig, String.fromCharCode(32));
 
-	return output;
+		return output;
+	},
+	unescapeTags: (str) => {
+		if (!str)
+			return str;
+		return str
+			.replace(/&nbsp;/g, ' ')
+			.replace(/&amp;/g, '&')
+			.replace(/&lt;/g, '<')
+			.replace(/&gt;/g, '>')
+			.replace(/&quot;/g, '"')
+			.replace(/&#39;/g, '\'');
+	},
+	escapeTags: (str) => {
+		if (!str)
+			return str;
+		return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+	},
+	escapeForHtmlAttributes: (str, escapeWhitespace) => {
+		if (!(typeof str === 'string'))
+			return str;
+		var escapedStr = str
+			.replace(/&/g, '&amp;')
+			.replace(/</g, '&lt;')
+			.replace(/>/g, '&gt;')
+			.replace(/"/g, '&quot;')
+			.replace(/'/g, '&#39;');
 
-}
-
-/**
- * Expand literal '\n' to newline,
- * which is encoded as '\\n' in HTML attribute values.
- */
-function expandNewline(text) {
-	var output = text.replace(/\\\\n/g, '<br>');
-	return output;
-}
-
-var uuidRegexp = new RegExp('[a-fA-F0-9]{32}');
-function isUUID (str) {
-	return (str.length === 32 && uuidRegexp.test(str));
-}
-
-function shorten(uuid) {
-	return uuid.substring(0, 8);
-}
-
-function urlParam(name) {
-	name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
-	var regexS = "[\\?&]" + name + "=([^&#]*)";
-	var regex = new RegExp(regexS);
-	var res = regex.exec(window.location.href);
-	return (res && res.length ? res[1] : '');
-}
-
-function nvl(value, defaultValue) {
-	var returnValue;
-	if (value === undefined) {
-		returnValue = defaultValue;
-	} else if (value === false) {
-		returnValue = 'false';
-	} else if (value === 0) {
-		returnValue = '0';
-	} else if (!value) {
-		returnValue = defaultValue;
-	} else {
-		returnValue = value;
-	}
-	return returnValue;
-}
-
-String.prototype.toCamel = function() {
-	return this.replace(/(\-[a-z])/g, function(part) {
-		return part.toUpperCase().replace('-', '');
-	});
-};
-
-String.prototype.toUnderscore = function() {
-	return this.replace(/([A-Z])/g, function(m, a, offset) {
-		return (offset > 0 ? '_' : '') + m.toLowerCase();
-	});
-};
-
-function formatValue(value) {
-
-	if (value === undefined || value === null) {
-		return '';
-	}
-
-	if (value.constructor === Object) {
-
-		var out = '';
-		Object.keys(value).forEach(function(key) {
-			out += key + ': ' + formatValue(value[key]) + '\n';
-		});
-		return out;
-
-	} else if (value.constructor === Array) {
-		var out = '';
-		value.forEach(function(val) {
-			out += JSON.stringify(val);
-		});
-		return out;
-
-	} else {
-		return value;
-	}
-}
-
-function blinkGreen(element) {
-	blink($(element), '#6db813', '#81ce25');
-}
-
-function blinkRed(element) {
-	blink($(element), '#a00', '#faa');
-}
-
-function blink(element, color, bgColor) {
-
-	if (!element || !element.length) {
-		return;
-	}
-
-	var fg = element.prop('data-fg-color'), oldFg = fg || element.css('color');
-	var bg = element.prop('data-bg-color'), oldBg = bg || element.css('backgroundColor');
-
-	let hadNoForegroundStyle = (element[0].style.color === '');
-	let hadNoBackgroundStyle = (element[0].style.backgroundColor === '');
-
-	// otherwise hover states can mess with the restoration of the "previous" colors
-	let handleElementsWithoutDirectStyle = () => {
-		if (hadNoForegroundStyle) {
-			element[0].style.color = '';
+		return escapeWhitespace ? escapedStr.replace(/ /g, '&nbsp;') : escapedStr;
+	},
+	utf8_to_b64: (str) => {
+		return window.btoa(unescape(encodeURIComponent(str)));
+	},
+	/**
+	 * Expand literal '\n' to newline,
+	 * which is encoded as '\\n' in HTML attribute values.
+	 */
+	expandNewline: (text) => {
+		return text.replace(/\\\\n/g, '<br>');
+	},
+	capitalize: (string) => {
+		return string.charAt(0).toUpperCase() + string.slice(1);
+	},
+	uuidRegexp: new RegExp('^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$'),
+	isUUID: (str) => (str.length === 32 && _Helpers.uuidRegexp.test(str)),
+	nvl: (value, defaultValue) => {
+		let returnValue;
+		if (value === undefined) {
+			returnValue = defaultValue;
+		} else if (value === false) {
+			returnValue = 'false';
+		} else if (value === 0) {
+			returnValue = '0';
+		} else if (!value) {
+			returnValue = defaultValue;
+		} else {
+			returnValue = value;
 		}
-		if (hadNoBackgroundStyle) {
-			element[0].style.backgroundColor = '';
+		return returnValue;
+	},
+	formatValue: (value) => {
+
+		if (value === undefined || value === null) {
+			return '';
 		}
-	};
 
-	if (!fg) {
-		element.prop('data-fg-color', oldFg);
-	}
+		if (value.constructor === Object) {
 
-	if (!bg) {
-		element.prop('data-bg-color', oldBg);
-	}
+			let out = '';
+			Object.keys(value).forEach(function(key) {
+				out += key + ': ' + _Helpers.formatValue(value[key]) + '\n';
+			});
+			return out;
 
-	if (element[0].nodeName === 'SELECT') {
+		} else if (value.constructor === Array) {
 
-		element.animate({
-			color: color
-		}, 50, function() {
-			$(this).animate({
-				color: oldFg
-			}, 1000, handleElementsWithoutDirectStyle);
-		});
-	} else {
+			let out = '';
+			value.forEach(function(val) {
+				out += JSON.stringify(val);
+			});
+			return out;
 
-		element.animate({
-			color: color,
-			backgroundColor: bgColor
-		}, 50, () => {
+		} else {
+			return value;
+		}
+	},
+	formatValueInputField: (key, obj, isPassword, isReadOnly, isMultiline) => {
+
+		if (obj === undefined || obj === null) {
+
+			return _Helpers.formatRegularValueField(key, '', isMultiline, isReadOnly, isPassword);
+
+		} else if (obj.constructor === Object) {
+
+			let displayName = _Crud.displayName(obj);
+			return `<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${obj.id}" class="node ${obj.type ? obj.type.toLowerCase() : (obj.tag ? obj.tag : 'element')} ${obj.id}_"><span class="abbr-ellipsis abbr-80">${displayName}</span>${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, ['remove'])}</div>`;
+
+		} else if (obj.constructor === Array) {
+
+			return _Helpers.formatArrayValueField(key, obj, isMultiline, isReadOnly, isPassword);
+
+		} else {
+
+			return _Helpers.formatRegularValueField(key, _Helpers.escapeForHtmlAttributes(obj), isMultiline, isReadOnly, isPassword);
+		}
+	},
+	formatArrayValueField: (key, values, isMultiline, isReadOnly, isPassword) => {
+
+		let html           = '';
+		let readonlyHTML   = (isReadOnly ? ' readonly class="readonly"' : '');
+		let inputTypeHTML  = (isPassword ? 'password' : 'text');
+		let removeIconHTML = _Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey']), 'Remove single value');
+
+		for (let value of values) {
+
+			if (isMultiline) {
+
+				html += `<div class="array-attr relative"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password">${value}</textarea>${removeIconHTML}</div>`;
+
+			} else {
+
+				html += `<div class="array-attr relative"><input name="${key}" type="${inputTypeHTML}" value="${value}"${readonlyHTML} autocomplete="new-password">${removeIconHTML}</div>`;
+			}
+		}
+
+		if (isMultiline) {
+
+			html += `<div class="array-attr"><textarea rows="4" name="${key}"${readonlyHTML} autocomplete="new-password"></textarea></div>`;
+
+		} else {
+
+			html += `<div class="array-attr"><input name="${key}" type="${inputTypeHTML}" value=""${readonlyHTML} autocomplete="new-password"></div>`;
+		}
+
+		return html;
+	},
+	formatRegularValueField: (key, value, isMultiline, isReadOnly, isPassword) => {
+
+		if (isMultiline) {
+
+			return `<textarea rows="4" name="${key}"${isReadOnly ? ' readonly class="readonly"' : ''} autocomplete="new-password">${value}</textarea>`;
+
+		} else {
+
+			return `<input name="${key}" type="${isPassword ? 'password' : 'text'}" value="${value}"${isReadOnly ? 'readonly class="readonly"' : ''} autocomplete="new-password">`;
+		}
+	},
+	getElementDisplayName: (entity) => {
+		if (!entity.name) {
+			if (entity.tag === 'option' && entity._html_value) {
+				return `${entity.tag}[value="${_Helpers.escapeForHtmlAttributes(entity._html_value)}"]`;
+			}
+			return (entity?.tag ?? `[${entity.type}]`);
+		}
+		if ((entity?.name ?? '').trim() === '') {
+			return '(blank name)';
+		}
+		return entity.name;
+	},
+	getDateTimePickerFormat: (rawFormat) => {
+
+		let dateTimeFormat;
+		let obj = {};
+		if (rawFormat.indexOf('T') > 0) {
+			dateTimeFormat = rawFormat.split("'T'");
+		} else {
+			dateTimeFormat = rawFormat.split(' ');
+		}
+		let dateFormat = dateTimeFormat[0];
+		obj.dateFormat = DateFormatConverter.convert(moment().toMomentFormatString(dateFormat), DateFormatConverter.momentJs, DateFormatConverter.datepicker);
+
+		let timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
+		if (timeFormat) {
+			obj.timeFormat = DateFormatConverter.convert(moment().toMomentFormatString(timeFormat), DateFormatConverter.momentJs, DateFormatConverter.timepicker);
+		}
+		obj.separator = (rawFormat.indexOf('T') > 0) ? 'T' : ' ';
+		return obj;
+	},
+	blinkGreen: (element) => {
+		_Helpers.blink($(element), '#6db813', '#81ce25');
+	},
+	blinkRed: (element) => {
+		_Helpers.blink($(element), '#a00', '#faa');
+	},
+	blink: (element, color, bgColor) => {
+
+		if (!element) {
+			return;
+		} else if (!element.length) {
+			element = $(element);
+		}
+
+		let fg    = element.prop('data-fg-color');
+		let oldFg = fg || element.css('color');
+		let bg    = element.prop('data-bg-color');
+		let oldBg = bg || element.css('backgroundColor');
+
+		let hadNoForegroundStyle = (element[0].style.color === '');
+		let hadNoBackgroundStyle = (element[0].style.backgroundColor === '');
+
+		// otherwise hover states can mess with the restoration of the "previous" colors
+		let handleElementsWithoutDirectStyle = () => {
+			if (hadNoForegroundStyle) {
+				element[0].style.color = '';
+			}
+			if (hadNoBackgroundStyle) {
+				element[0].style.backgroundColor = '';
+			}
+		};
+
+		if (!fg) {
+			element.prop('data-fg-color', oldFg);
+		}
+
+		if (!bg) {
+			element.prop('data-bg-color', oldBg);
+		}
+
+		if (element[0].nodeName === 'SELECT') {
+
 			element.animate({
-				color: oldFg,
-				backgroundColor: oldBg
-			}, 1000, handleElementsWithoutDirectStyle);
-		});
-	}
-}
+				color: color
+			}, 50, function() {
+				$(this).animate({
+					color: oldFg
+				}, 1000, handleElementsWithoutDirectStyle);
+			});
 
-function getDateTimePickerFormat(rawFormat) {
-	var dateTimeFormat, obj = {};
-	if (rawFormat.indexOf('T') > 0) {
-		dateTimeFormat = rawFormat.split('\'T\'');
-	} else {
-		dateTimeFormat = rawFormat.split(' ');
-	}
-	var dateFormat = dateTimeFormat[0], timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
-	obj.dateFormat = DateFormatConverter.convert(moment().toMomentFormatString(dateFormat), DateFormatConverter.momentJs, DateFormatConverter.datepicker);
-	var timeFormat = dateTimeFormat.length > 1 ? dateTimeFormat[1] : undefined;
-	if (timeFormat) {
-		obj.timeFormat = DateFormatConverter.convert(moment().toMomentFormatString(timeFormat), DateFormatConverter.momentJs, DateFormatConverter.timepicker);
-	}
-	obj.separator = (rawFormat.indexOf('T') > 0) ? 'T' : ' ';
-	return obj;
-}
+		} else {
 
-function getElementDisplayName(entity) {
-	if (!entity.name) {
-		if (entity.tag === 'option' && entity._html_value) {
-			return (entity.tag + '[value="' + escapeForHtmlAttributes(entity._html_value) + '"]');
+			element.animate({
+				color: color,
+				backgroundColor: bgColor
+			}, 50, () => {
+				element.animate({
+					color: oldFg,
+					backgroundColor: oldBg
+				}, 1000, handleElementsWithoutDirectStyle);
+			});
 		}
-		return (entity.tag ? entity.tag : '[' + entity.type + ']');
-	}
-	if (entity.name && (entity.name+'').trim() === '') {
-		return '(blank name)';
-	}
-	return entity.name;
-}
+	},
+	isIn: (s, array) => {
+		return (s && array && array.indexOf(s) !== -1);
+	},
+	urlParam: (name) => {
+		return new URLSearchParams(location.search).get(name) ?? '';
+	},
+	formatKey: (text) => {
+		// don't format custom 'data-*' attributes
+		if (text.startsWith('data-')) {
+			return text;
+		}
+		let result = '';
+		for (let i = 0; i < text.length; i++) {
+			let c = text.charAt(i);
+			if (c === c.toUpperCase()) {
+				result += ' ' + c;
+			} else {
+				result += (i === 0 ? c.toUpperCase() : c);
+			}
+		}
+		return result;
+	},
+	formatBytes: (a, b= 2) => {
+
+		const sizes = ["Bytes","KB","MB","GB","TB","PB","EB","ZB","YB"];
+
+		if (0 === a) return "0 " + sizes[0];
+
+		const c = (0 > b) ? 0 : b;
+		const d = Math.floor(Math.log(a) / Math.log(1024));
+
+		return parseFloat((a/Math.pow(1024,d)).toFixed(c)) + " " + sizes[d]
+	},
+	getErrorTextForStatusCode: (statusCode) => {
+		switch (statusCode) {
+			case 400: return 'Bad request';
+			case 401: return 'Authentication required';
+			case 403: return 'Forbidden';
+			case 404: return 'Not found';
+			case 422: return 'Unprocessable entity';
+			case 500: return 'Internal Error';
+			case 503: return 'Service Unavailable';
+		}
+	},
+	appendInfoTextToElement: (config) => {
+
+		let element            = $(config.element);
+		let appendToElement    = config.appendToElement || element;
+		let text               = config.text || 'No text supplied!';
+		let toggleElementCss   = config.css || {};
+		let toggleElementClass = config.class || undefined;
+		let elementCss         = config.elementCss || {};
+		let helpElementCss     = config.helpElementCss || {};
+		let customToggleIcon   = config.customToggleIcon || _Icons.iconInfo;
+		let customToggleIconClasses = config.customToggleIconClasses || ['icon-blue'];
+		let insertAfter        = config.insertAfter || false;
+		let offsetX            = config.offsetX || 0;
+		let offsetY            = config.offsetY || 0;
+		let width              = config.width || 12;
+		let height             = config.height || 12;
+
+		let createdElements = [];
+
+		let customToggleElement = true;
+		let toggleElement = config.toggleElement;
+		if (!toggleElement) {
+			customToggleElement = false;
+			toggleElement = $(`
+				${(config.noSpan) ? '' : '<span>'}
+					${_Icons.getSvgIcon(customToggleIcon, width, height, _Icons.getSvgIconClassesForColoredIcon(customToggleIconClasses))}
+				${(config.noSpan) ? '' : '</span>'}
+			`);
+
+			createdElements.push(toggleElement);
+		}
+
+		if (toggleElementClass) {
+			toggleElement.addClass(toggleElementClass);
+		}
+		toggleElement.css(toggleElementCss);
+		appendToElement.css(elementCss);
+
+		let helpElement = $(`<span class="context-help-text">${text}</span>`);
+		createdElements.push(helpElement);
+
+		toggleElement
+			.on("mousemove", function(e) {
+				helpElement.show();
+				helpElement.css({
+					left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
+					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
+				});
+			}).on("mouseout", function(e) {
+			helpElement.hide();
+		});
+
+		if (insertAfter) {
+			if (!customToggleElement) {
+				element.after(toggleElement);
+			}
+			appendToElement.after(helpElement);
+		} else {
+			if (!customToggleElement) {
+				element.append(toggleElement);
+			}
+			appendToElement.append(helpElement);
+		}
+
+		helpElement.css(helpElementCss);
+
+		return createdElements;
+	},
+	activateCommentsInElement: (elem, defaults) => {
+
+		let elementsWithComment = elem.querySelectorAll('[data-comment]') || [];
+
+		for (let el of elementsWithComment) {
+
+			if (!el.dataset['commentApplied']) {
+
+				el.dataset.commentApplied = 'true';
+
+				let config = {
+					text: el.dataset['comment'],
+					element: el,
+					css: {
+						'margin': '0 4px',
+						//'vertical-align': 'top'
+					}
+				};
+
+				let elCommentConfig = {};
+				if (el.dataset['commentConfig']) {
+					try {
+						elCommentConfig = JSON.parse(el.dataset['commentConfig']);
+					} catch (e) {
+						console.log('Failed parsing comment config');
+					}
+				}
+
+				// base config is overridden by the defaults parameter which is overridden by the element config
+				let infoConfig = Object.assign(config, defaults, elCommentConfig);
+				_Helpers.appendInfoTextToElement(infoConfig);
+			}
+		}
+	},
+	getDocumentationURLForTopic: (topic) => {
+
+		switch (topic) {
+			case 'security':       return 'https://docs.structr.com/docs/security';
+			case 'schema-enum':    return 'https://docs.structr.com/docs/troubleshooting-guide#enum-property';
+			case 'schema':         return 'https://docs.structr.com/docs/schema';
+			case 'pages':          return 'https://docs.structr.com/docs/pages';
+			case 'flows':          return 'https://docs.structr.com/docs/flow-engine---editor';
+			case 'files':          return 'https://docs.structr.com/docs/files';
+			case 'dashboard':      return 'https://docs.structr.com/docs/the-dashboard';
+			case 'crud':           return 'https://docs.structr.com/docs/data';
+
+			case 'contents':
+			case 'mail-templates':
+			case 'virtual-types':
+			case 'localization':
+			case 'graph':
+			default:
+				return 'https://docs.structr.com/';
+		}
+	},
+	showAvailableIcons: () => {
+
+		let { dialogText } = Structr.dialogSystem.openDialog('Icons');
+
+		dialogText.innerHTML = `<div>
+			<h3>SVG Icons</h3>
+			<table>
+				${[...document.querySelectorAll('body > svg > symbol')].map(el => el.id).sort().map(id =>
+			`<tr>
+						<td>${id}</td>
+						<td>${_Icons.getSvgIcon(id, 24, 24)}</td>
+					</tr>`).join('')}
+			</table>
+		</div>`;
+	},
+	getPrefixedRootUrl: (rootUrl = '/structr/rest') => {
+
+		let prefix = [];
+		const pathEntries = window.location.pathname.split('/')?.filter( pathEntry => pathEntry !== '') ?? [];
+		let entry = pathEntries.shift();
+
+		while (entry !== 'structr' && entry !== undefined) {
+			prefix.push(entry);
+			entry = pathEntries.shift();
+		}
+
+		return `${(prefix.length ? '/' : '')}${prefix.join('/')}${rootUrl}`;
+	},
+	createSingleDOMElementFromHTML: (html) => {
+		let elements = _Helpers.createDOMElementsFromHTML(html);
+		return elements[0];
+	},
+	createDOMElementsFromHTML: (html) => {
+		// use template element so we can create arbitrary HTML which is not parsed but not rendered (otherwise tr/td and some other elements would not work)
+		let dummy = document.createElement('template');
+		dummy.insertAdjacentHTML('beforeend', html);
+
+		return dummy.children;
+	},
+
+	nonBlockUIBlockerId: 'non-block-ui-blocker',
+	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
+	appendNonBlockUIOverlay: (messageHtml) => {
+
+		let pageBlockerDiv = _Helpers.createSingleDOMElementFromHTML(`<div id="${_Helpers.nonBlockUIBlockerId}"></div>`);
+		let messageDiv     = _Helpers.createSingleDOMElementFromHTML(`<div id="${_Helpers.nonBlockUIBlockerContentId}">${messageHtml}</div>`);
+
+		let body = document.querySelector('body');
+		body.appendChild(pageBlockerDiv);
+		body.appendChild(messageDiv);
+
+		if (messageHtml) {
+			// if no message is provided, or more content is added in the caller, then the caller must also call its resize function
+			_Helpers.centerNonBlockUIMessage();
+		}
+
+		return messageDiv;
+	},
+	centerNonBlockUIMessage: () => {
+
+		let messageDiv = document.getElementById(_Helpers.nonBlockUIBlockerContentId);
+		if (messageDiv) {
+			messageDiv.style.top = (window.innerHeight - messageDiv.offsetHeight) / 2 + 'px';
+		}
+	},
+	hideNonBlockUIOverlay: () => {
+		_Helpers.fastRemoveElement(document.getElementById(_Helpers.nonBlockUIBlockerId));
+		_Helpers.fastRemoveElement(document.getElementById(_Helpers.nonBlockUIBlockerContentId));
+	},
+	showNonBlockUILoadingMessage: (title = 'Executing Task', text = 'Please wait until the operation has finished...') => {
+
+		_Helpers.appendNonBlockUIOverlay(`
+			<div>
+				<div class="flex items-center justify-center">
+					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
+				</div>
+				<br>
+				${text}
+			</div>
+		`);
+	},
+	showLoadingSpinner: () => {
+
+		let messageDiv = _Helpers.appendNonBlockUIOverlay(`<div id="structr-loading-spinner">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36)}</div>`);
+
+		messageDiv.style.backgroundColor = 'transparent';
+		messageDiv.style.border = 'none';
+	},
+	hideLoadingSpinner: () => {
+		_Helpers.hideNonBlockUIOverlay();
+	},
+	showNonBlockUITempInfoBox: () => {
+
+		let messageDiv = _Helpers.appendNonBlockUIOverlay(`
+			<div>
+				<div class="infoHeading"></div>
+				<div class="infoMsg min-h-20"></div>
+				<div class="dialogBtn">
+					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
+				</div>
+			</div>
+		`);
+
+		let closeButton = messageDiv.querySelector('.closeButton');
+
+		closeButton.addEventListener('click', (e) => {
+			_Helpers.hideNonBlockUIOverlay();
+		});
+
+		return {
+			headingEl: messageDiv.querySelector('.infoHeading'),
+			messageEl: messageDiv.querySelector('.infoMsg'),
+			buttonsEl: messageDiv.querySelector('.dialogBtn'),
+			closeButton: closeButton
+		};
+	},
+	confirmationPromiseNonBlockUI: (text, defaultOption = true) => {
+
+		return new Promise((resolve, reject) => {
+
+			let messageDiv = _Helpers.appendNonBlockUIOverlay(`
+				<div>
+					<div class="confirmationText mb-4">
+						${text}
+					</div>
+					<button class="yesButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes
+					</button>
+					<button class="noButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No
+					</button>
+				</div>
+			`);
+
+			let yesButton = messageDiv.querySelector('.yesButton');
+			let noButton  = messageDiv.querySelector('.noButton');
+
+			let answerFunction = (e, response) => {
+				e.stopPropagation();
+
+				_Helpers.hideNonBlockUIOverlay();
+
+				resolve(response);
+			};
+
+			yesButton.addEventListener('click', (e) => {
+				answerFunction(e, true);
+			});
+
+			noButton.addEventListener('click', (e) => {
+				answerFunction(e, false);
+			});
+
+			messageDiv.addEventListener('keyup', (e) => {
+				if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
+					answerFunction(e, false);
+				}
+			});
+
+			if (defaultOption === true) {
+				yesButton.focus();
+			} else {
+				noButton.focus();
+			}
+		});
+	},
+	disableElement: (btn) => {
+		btn.classList.add('disabled');
+		btn.disabled = true;
+	},
+	enableElement: (btn) => {
+		btn.classList.remove('disabled');
+		btn.disabled = false;
+	},
+	disableElements: (disabled = false, ...elements) => {
+
+		for (let element of elements) {
+
+			if (element) {
+
+				if (disabled === true) {
+					_Helpers.disableElement(element);
+				} else {
+					_Helpers.enableElement(element);
+				}
+			}
+		}
+	},
+	updateButtonWithSpinnerAndText: (btn, html) => {
+
+		_Helpers.disableElement(btn);
+
+		let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 20, 20, 'ml-2'));
+		btn.innerHTML = html;
+		btn.appendChild(icon);
+	},
+	updateButtonWithSuccessIcon: (btn, html) => {
+
+		let icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['tick', 'icon-green', 'ml-2']));
+		btn.innerHTML = html;
+		btn.appendChild(icon);
+
+		window.setTimeout(() => {
+			icon.remove();
+
+			_Helpers.enableElement(btn);
+		}, 1000);
+	},
+	isImage: (contentType) => (contentType && contentType.indexOf('image') > -1),
+	isVideo: (contentType) => (contentType && contentType.indexOf('video') > -1),
+	requestAnimationFrameWrapper: (key, callback) => {
+		if (key) {
+			cancelAnimationFrame(key);
+		}
+
+		key = requestAnimationFrame(callback);
+	},
+	sort: (collection, sortKey1, sortKey2) => {
+
+		if (!sortKey1) {
+			sortKey1 = "name";
+		}
+
+		collection.sort((a, b) => {
+
+			let primarySortResult = ((a[sortKey1] > b[sortKey1]) ? 1 : ((a[sortKey1] < b[sortKey1]) ? -1 : 0));
+			if (primarySortResult === 0 && sortKey2) {
+
+				primarySortResult = ((a[sortKey2] > b[sortKey2]) ? 1 : ((a[sortKey2] < b[sortKey2]) ? -1 : 0));
+			}
+
+			return primarySortResult;
+		});
+	},
+	debounce: (func, wait, immediate) => {
+		var timeout;
+
+		return function() {
+			var context = this, args = arguments;
+			var later = function() {
+				timeout = null;
+				if (!immediate) func.apply(context, args);
+			};
+			var callNow = immediate && !timeout;
+			clearTimeout(timeout);
+			timeout = setTimeout(later, wait);
+			if (callNow) func.apply(context, args);
+		};
+	},
+};
 
 /**
  * thin wrapper for localStorage with a success-check and error display
@@ -448,7 +876,7 @@ let LSWrapper = new (function() {
 				this.persistToRealLocalStorage(false);
 
 			} else {
-				Structr.error('Failed to save localstorage. The following error occurred: <p>' + e + '</p>', true);
+				Structr.error(`Failed to save localstorage. The following error occurred: <p>${e}</p>`, true);
 			}
 		}
 	};
@@ -473,7 +901,6 @@ let LSWrapper = new (function() {
 		// if localstorage save fails, remove the following elements
 		let pruneKeys = [
 			'structrActiveEditTab',			// last selected properties tab for node
-			'activeFileTabPrefix',			// last selected properties tab for file
 			'structrScrollInfoKey',			// scroll info in editor
 			'structrTreeExpandedIds'		// expanded tree info for pages tree
 		];
@@ -490,15 +917,7 @@ let LSWrapper = new (function() {
 			}
 		}
 	};
-
 });
-
-function fastRemoveAllChildren(el) {
-	if (!el) return;
-	while (el.firstChild) {
-		el.removeChild(el.firstChild);
-	}
-}
 
 /**
  * Encapsulated Console object so we can keep error-handling and console-code in one place
@@ -586,7 +1005,7 @@ let _Console = new (function() {
 									break;
 							}
 
-							let line = 'Console.setMode("' + mode + '")';
+							let line = `Console.setMode("${mode}")`;
 							term.consoleMode = mode;
 							LSWrapper.setItem(consoleModeKey, mode);
 
@@ -613,24 +1032,10 @@ let _Console = new (function() {
 	this.toggleConsole = function() {
 
 		if (_consoleVisible === true) {
-			document.body.classList.remove('console-open');
-			_Console.removeHeaderBlocker();
 			_hideConsole();
 		} else {
-			document.body.classList.add('console-open');
 			_showConsole();
-			_Console.insertHeaderBlocker();
 		}
-	};
-
-	this.insertHeaderBlocker = function () {
-		if (_consoleVisible === true && document.querySelector('.blockUI')) {
-			Structr.header.appendChild(Structr.createSingleDOMElementFromHTML('<div id="header-blocker"></div>'));
-		}
-	};
-
-	this.removeHeaderBlocker = function () {
-		Structr.header.querySelector('#header-blocker')?.remove();
 	};
 
 	// private methods
@@ -724,7 +1129,7 @@ let _Favorites = new (function () {
 
 		let favs = document.getElementById('structr-favorites');
 
-		fastRemoveAllChildren(favs);
+		_Helpers.fastRemoveAllChildren(favs);
 
 		favs.insertAdjacentHTML('beforeend', `
 			<div id="favs-tabs" class="favs-tabs flex-grow flex flex-col">
@@ -735,7 +1140,7 @@ let _Favorites = new (function () {
 		_Favorites.menu      = document.querySelector('#favs-tabs > #fav-menu');
 		_Favorites.container = document.querySelector('#favs-tabs');
 
-		let response = await fetch(Structr.rootUrl + 'me/favorites/fav');
+		let response = await fetch(`${Structr.rootUrl}me/favorites/fav`);
 
 		if (response.ok) {
 
@@ -784,15 +1189,12 @@ let _Favorites = new (function () {
 						lint: true,
 						autocomplete: true,
 						changeFn: (editor, entity) => {
-							if (initialText === editor.getValue()) {
-								dialogSaveButton.disabled = true;
-								dialogSaveButton.classList.add('disabled');
-							} else {
-								dialogSaveButton.disabled = false;
-								dialogSaveButton.classList.remove('disabled');
-							}
+
+							let disabled = (initialText === editor.getValue());
+							_Helpers.disableElements(disabled, dialogSaveButton);
 						},
 						saveFn: (editor, entity) => {
+
 							let newText = editor.getValue();
 							if (initialText === newText) {
 								return;
@@ -801,16 +1203,15 @@ let _Favorites = new (function () {
 							Command.setProperty(id, 'favoriteContent', newText, false, () => {
 
 								let tabLink = _Favorites.menu.querySelector(`#tab-${id}`);
-								blinkGreen(tabLink);
+								_Helpers.blinkGreen(tabLink);
 							});
 
 							initialText = newText;
-							dialogSaveButton.disabled = true;
-							dialogSaveButton.classList.add('disabled');
+							_Helpers.disableElements(true, dialogSaveButton);
 						}
 					};
 
-					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', document.getElementById('editor-' + id), favoriteEditorMonacoConfig);
+					let editor = _Editors.getMonacoEditor(favorite, 'favoriteContent', document.getElementById(`editor-${id}`), favoriteEditorMonacoConfig);
 
 					dialogSaveButton.addEventListener('click', (e) => {
 						e.preventDefault();
@@ -823,7 +1224,7 @@ let _Favorites = new (function () {
 					if (favorite.relationshipId && favorite.relationshipId.length === 32) {
 
 						// close button
-						document.getElementById('button-close-' + id).addEventListener('click', async (e) => {
+						document.getElementById(`button-close-${id}`).addEventListener('click', async (e) => {
 
 							e.preventDefault();
 							e.stopPropagation();
@@ -901,7 +1302,7 @@ let _Favorites = new (function () {
 
 	// public methods
 	this.logoutAction = function() {
-		fastRemoveAllChildren(document.getElementById('structr-favorites'));
+		_Helpers.fastRemoveAllChildren(document.getElementById('structr-favorites'));
 		_hideFavorites();
 	};
 
@@ -926,7 +1327,7 @@ let _Favorites = new (function () {
 	let _hideFavorites = function() {
 		_favsVisible = false;
 		$('#structr-favorites').slideUp('fast');
-		fastRemoveAllChildren($('#structr-favorites')[0]);
+		_Helpers.fastRemoveAllChildren($('#structr-favorites')[0]);
 	};
 });
 

@@ -31,6 +31,7 @@ import org.structr.api.util.Iterables;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
+import org.neo4j.driver.v1.Record;
 
 /**
  *

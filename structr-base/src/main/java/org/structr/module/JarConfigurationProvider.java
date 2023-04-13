@@ -536,7 +536,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		// interface that extends NodeInterface, must be stored
 		if (type.isInterface() && GraphObject.class.isAssignableFrom(type)) {
 
-			reverseInterfaceMap.put(type.getSimpleName(), type);
+			reverseInterfaceMap.putIfAbsent(type.getName(), type);
 		}
 
 		for (final Class interfaceClass : type.getInterfaces()) {
@@ -552,6 +552,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 			}
 
 			classesForInterface.add(type);
+
+			// recurse for interfaces
+			registerEntityType(interfaceClass);
 		}
 
 		try {
@@ -594,6 +597,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					|| view.name().equals(PropertyView.Private)
 					|| view.name().equals(PropertyView.Protected)
 				) {
+
 					registerPropertySet(type, view.name(), keys);
 				}
 
