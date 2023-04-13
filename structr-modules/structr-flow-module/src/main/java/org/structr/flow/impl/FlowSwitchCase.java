@@ -45,7 +45,7 @@ public class FlowSwitchCase extends FlowNode implements Switch, DeployableEntity
 
 		result.put("id", this.getUuid());
 		result.put("type", this.getClass().getSimpleName());
-		result.put("switchCase", this.getProperty(switchCase));
+		result.put("case", this.getProperty(switchCase));
 		result.put("visibleToPublicUsers", this.getProperty(visibleToPublicUsers));
 		result.put("visibleToAuthenticatedUsers", this.getProperty(visibleToAuthenticatedUsers));
 
