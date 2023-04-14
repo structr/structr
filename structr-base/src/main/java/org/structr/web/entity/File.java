@@ -126,7 +126,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
 		// override setProperty methods, but don't call super first (we need the previous value)
-		type.overrideMethod("setProperty",                 false,  File.class.getName() + ".OnSetProperty(this, arg0,arg1,arg2);\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperty",                 false,  File.class.getName() + ".OnSetProperty(this, arg0,arg1);\n\t\treturn super.setProperty(arg0, arg1, false);");
 		type.overrideMethod("setProperties",               false,  File.class.getName() + ".OnSetProperties(this, arg0, arg1, arg2);\n\t\tsuper.setProperties(arg0, arg1, arg2);")
 				// the following lines make the overridden setProperties method more explicit in regards to its parameters
 				.setReturnType("void")
@@ -258,6 +258,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 	Folder getCurrentWorkingDir();
 
+	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value) {
+		OnSetProperty(thisFile, key, value, false);
+	}
 	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
 		if (value == null || isCreation) {
 			return;
