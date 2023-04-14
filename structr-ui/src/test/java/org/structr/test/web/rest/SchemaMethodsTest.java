@@ -18,16 +18,8 @@
  */
 package org.structr.test.web.rest;
 
-<<<<<<< HEAD
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-=======
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
->>>>>>> main
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
