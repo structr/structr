@@ -19,6 +19,9 @@
 package org.structr.xmpp.handler;
 
 import org.jivesoftware.smack.packet.Bind;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.stringprep.XmppStringprepException;
+import org.structr.common.error.FrameworkException;
 import org.structr.xmpp.XMPPContext.StructrXMPPConnection;
 
 /**
@@ -30,7 +33,14 @@ public class BindTypeHandler implements TypeHandler<Bind> {
 	@Override
 	public void handle(final StructrXMPPConnection connection, final Bind bind) {
 
-		connection.setJID(bind.getJid());
-		connection.setResource(bind.getResource());
+		try {
+
+			connection.setJID(String.valueOf(JidCreate.entityFullFrom(bind.getJid())));
+			connection.setResource(String.valueOf(bind.getResource()));
+		} catch (XmppStringprepException e) {
+
+			throw new RuntimeException(new FrameworkException(422, "Could not handle bind event."));
+		}
+
 	}
 }

@@ -34,27 +34,27 @@
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-core</artifactId>
-			<version>4.1.1</version>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
-			<artifactId>smack-java7</artifactId>
-			<version>4.1.1</version>
+			<artifactId>smack-java8</artifactId>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-tcp</artifactId>
-			<version>4.1.1</version>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-extensions</artifactId>
-			<version>4.1.1</version>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.igniterealtime.smack</groupId>
 			<artifactId>smack-im</artifactId>
-			<version>4.1.1</version>
+			<version>4.4.6</version>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>
