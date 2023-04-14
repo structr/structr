@@ -31,6 +31,10 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
+import org.jxmpp.jid.EntityBareJid;
+import org.jxmpp.jid.impl.JidCreate;
+import org.jxmpp.jid.parts.Resourcepart;
+import org.jxmpp.stringprep.XmppStringprepException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.service.InitializationCallback;
@@ -44,6 +48,7 @@ import org.structr.xmpp.handler.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -102,8 +107,6 @@ public class XMPPContext {
 		final XMPPTCPConnectionConfiguration config = XMPPTCPConnectionConfiguration.builder()
 			.setUsernameAndPassword(callback.getUsername(), callback.getPassword())
 			.setSecurityMode(ConnectionConfiguration.SecurityMode.ifpossible)
-//			.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled)
-			.setServiceName(callback.getService())
 			.setHost(callback.getHostName())
 			.setPort(callback.getPort())
 			.build();
@@ -114,7 +117,7 @@ public class XMPPContext {
 			connections.put(callback.getUuid(), new StructrXMPPConnection(callback, connection));
 			connection.connect();
 
-		} catch (IOException | SmackException | XMPPException ex) {
+		} catch (InterruptedException | IOException | SmackException | XMPPException ex) {
 
 			logger.warn("", ex);
 		}
@@ -152,12 +155,12 @@ public class XMPPContext {
 
 				try {
 
-					final Message messageObject = new Message(recipient);
+					final Message messageObject = new Message(JidCreate.entityBareFrom(recipient));
 					messageObject.setBody(message);
 
 					connection.sendStanza(messageObject);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException | XmppStringprepException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -178,13 +181,13 @@ public class XMPPContext {
 					final MultiUserChatManager manager = MultiUserChatManager.getInstanceFor(connection);
 					if (manager != null) {
 
-						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
+						final MultiUserChat chat = manager.getMultiUserChat(JidCreate.entityBareFrom(chatRoom));
 						if (chat != null) {
 
 							// join chat first
 							if (!chat.isJoined()) {
 
-								chat.join(name, password);
+								chat.join(Resourcepart.fromOrNull(name), password);
 							}
 
 							chat.sendMessage(message);
@@ -192,7 +195,7 @@ public class XMPPContext {
 
 					}
 
-				} catch (XMPPErrorException | SmackException ex) {
+				} catch (XMPPErrorException | SmackException | XmppStringprepException | InterruptedException ex) {
 
 					throw new FrameworkException(422, "Connection error: " + ex.getMessage());
 				}
@@ -213,28 +216,15 @@ public class XMPPContext {
 					final MultiUserChatManager manager = MultiUserChatManager.getInstanceFor(connection);
 					if (manager != null) {
 
-						final MultiUserChat chat = manager.getMultiUserChat(chatRoom);
+						final MultiUserChat chat = manager.getMultiUserChat(JidCreate.entityBareFrom(chatRoom));
 						if (chat != null) {
 
-							final DiscussionHistory history = new DiscussionHistory();
-							final long timeout              = TimeUnit.SECONDS.toMillis(10);
-
-							history.setMaxChars(0);
-							history.setMaxStanzas(0);
-
-							if (password != null) {
-
-								chat.join(nickname, password, history, timeout);
-
-							} else {
-
-								chat.join(nickname, "", history, timeout);
-							}
+							chat.join(Resourcepart.fromOrNull(nickname), Objects.requireNonNullElse(password, ""));
 						}
 
 					}
 
-				} catch (XMPPErrorException | SmackException ex) {
+				} catch (XMPPErrorException | SmackException | InterruptedException | XmppStringprepException ex) {
 
 					throw new FrameworkException(422, "Connection error: " + ex.getMessage());
 				}
@@ -256,7 +246,7 @@ public class XMPPContext {
 
 					connection.sendStanza(presence);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -274,11 +264,11 @@ public class XMPPContext {
 
 				try {
 					final Presence presence = new Presence(Presence.Type.subscribe);
-					presence.setTo(to);
+					presence.setTo(JidCreate.bareFrom(to));
 
 					connection.sendStanza(presence);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException | XmppStringprepException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -296,11 +286,11 @@ public class XMPPContext {
 
 				try {
 					final Presence presence = new Presence(Presence.Type.subscribed);
-					presence.setTo(subscriber);
+					presence.setTo(JidCreate.bareFrom(subscriber));
 
 					connection.sendStanza(presence);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException | XmppStringprepException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -318,11 +308,11 @@ public class XMPPContext {
 
 				try {
 					final Presence presence = new Presence(Presence.Type.unsubscribed);
-					presence.setTo(subscriber);
+					presence.setTo(JidCreate.bareFrom(subscriber));
 
 					connection.sendStanza(presence);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException | XmppStringprepException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -340,11 +330,11 @@ public class XMPPContext {
 
 				try {
 					final Presence presence = new Presence(Presence.Type.unsubscribe);
-					presence.setTo(to);
+					presence.setTo(JidCreate.bareFrom(to));
 
 					connection.sendStanza(presence);
 
-				} catch (NotConnectedException nex) {
+				} catch (NotConnectedException | InterruptedException | XmppStringprepException nex) {
 
 					throw new FrameworkException(422, "Not connected");
 				}
@@ -420,34 +410,16 @@ public class XMPPContext {
 			isConnected = false;
 			this.exception = excptn;
 		}
-
 		@Override
-		public void reconnectionSuccessful() {
-			isConnected = true;
-		}
-
-		@Override
-		public void reconnectingIn(final int i) {
-		}
-
-		@Override
-		public void reconnectionFailed(final Exception excptn) {
-
-			isConnected = false;
-			this.exception = excptn;
-		}
-
-		@Override
-		public void processPacket(final Stanza packet) throws NotConnectedException {
-
-			final TypeHandler handler = typeHandlers.get(packet.getClass().getName());
+		public void processStanza(Stanza stanza) throws NotConnectedException, InterruptedException, SmackException.NotLoggedInException {
+			final TypeHandler handler = typeHandlers.get(stanza.getClass().getName());
 			if (handler != null) {
 
-				handler.handle(this, packet);
+				handler.handle(this, stanza);
 
 			} else {
 
-				logger.warn("No type handler for type {}", packet.getClass().getName());
+				logger.warn("No type handler for type {}", stanza.getClass().getName());
 			}
 		}
 	}

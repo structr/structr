@@ -18,8 +18,8 @@
  */
 package org.structr.test.files;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

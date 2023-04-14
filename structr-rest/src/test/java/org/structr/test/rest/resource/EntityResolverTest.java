@@ -18,8 +18,8 @@
  */
 package org.structr.test.rest.resource;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Person;
 import org.structr.test.rest.common.StructrRestTestBase;

@@ -358,7 +358,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "client"),      client),
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "sender"),      request.getFrom()),
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "owner"),       client.getProperty(XMPPClient.owner)),
-					new NodeAttribute(StructrApp.key(XMPPRequest.class, "content"),     request.toXML().toString()),
+					new NodeAttribute(StructrApp.key(XMPPRequest.class, "content"),     request.toXML("").toString()),
 					new NodeAttribute(StructrApp.key(XMPPRequest.class, "requestType"), request.getType())
 				);
 			}

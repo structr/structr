@@ -18,7 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;

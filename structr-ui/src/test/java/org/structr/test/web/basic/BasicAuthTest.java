@@ -18,7 +18,7 @@
  */
 package org.structr.test.web.basic;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
@@ -105,17 +105,17 @@ public class BasicAuthTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body("html.head.title", Matchers.equalTo("Test1")).body("html.body.h1", Matchers.equalTo("Test1")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/test1");
 
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body("html.head.title", Matchers.equalTo("Test2")).body("html.body.h1", Matchers.equalTo("Test2")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/test2");
 
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body("html.head.title", Matchers.equalTo("Test3")).body("html.body.h1", Matchers.equalTo("Test3")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/test3");
 	}
@@ -182,22 +182,22 @@ public class BasicAuthTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-				.given().authentication().basic("tester", "test")
+				.given().auth().basic("tester", "test")
 				.expect().statusCode(200).body(Matchers.equalTo("test1"))
 				.when().get("test1.txt");
 
 		RestAssured
-				.given().authentication().basic("tester", "test")
+				.given().auth().basic("tester", "test")
 				.expect().statusCode(200).body(Matchers.equalTo("test2"))
 				.when().get("test2.txt");
 
 		RestAssured
-				.given().authentication().basic("tester", "test")
+				.given().auth().basic("tester", "test")
 				.expect().statusCode(200).body(Matchers.equalTo("test3"))
 				.when().get("/myFolder/test3.txt");
 
 		RestAssured
-				.given().authentication().basic("tester", "test")
+				.given().auth().basic("tester", "test")
 				.expect().statusCode(200).body(Matchers.equalTo("You said 'Hello' and your name is 'tester'."))
 				.when().get("/myFolder/test4.txt?message=Hello");
 
@@ -244,12 +244,12 @@ public class BasicAuthTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body("html.head.title", Matchers.equalTo("Test1")).body("html.body.h1", Matchers.equalTo("Test1")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/html/test1");
 
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body("html.head.title", Matchers.equalTo("Test2")).body("html.body.h1", Matchers.equalTo("Test2")).body("html.body.div", Matchers.equalTo("Initial body text"))
 			.when().get("/html/test2");
 
@@ -296,12 +296,12 @@ public class BasicAuthTest extends StructrUiTest {
 
 		// test successful basic auth
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body(Matchers.equalTo("test1"))
 			.when().get("test1.txt");
 
 		RestAssured
-			.given().authentication().basic("tester", "test")
+			.given().auth().basic("tester", "test")
 			.expect().statusCode(200).body(Matchers.equalTo("test2"))
 			.when().get("test2.txt");
 	}

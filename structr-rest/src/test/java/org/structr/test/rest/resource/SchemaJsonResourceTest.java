@@ -18,13 +18,13 @@
  */
 package org.structr.test.rest.resource;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
+import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.equalTo;
 
 public class SchemaJsonResourceTest extends StructrRestTestBase {
 
