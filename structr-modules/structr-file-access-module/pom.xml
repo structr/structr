@@ -61,6 +61,12 @@
 			<version>0.1.54</version>
 			<scope>test</scope>
 		</dependency>
+		<dependency>
+			<groupId>io.rest-assured</groupId>
+			<artifactId>rest-assured</artifactId>
+			<optional>true</optional>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
