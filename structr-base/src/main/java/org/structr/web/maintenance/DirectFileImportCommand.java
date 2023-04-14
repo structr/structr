@@ -188,7 +188,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						parentPath = path;
 					}
 
-					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, existing, doIndex);
+					createFileOrFolder(ctx, app, parentPath, path, Files.readAttributes(path, BasicFileAttributes.class), sourcePath, targetPath, mode, existing, doIndex);
 
 					newTargetPath = targetPath + PathHelper.PATH_SEP + PathHelper.clean(path.getFileName().toString());
 
@@ -206,7 +206,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 					@Override
 					public FileVisitResult visitFile(final Path file, final BasicFileAttributes attrs) throws IOException {
-						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, existing, doIndex);
+						return createFileOrFolder(ctx, app, path, file, attrs, sourcePath, newTargetPath, mode, existing, doIndex);
 					}
 
 					@Override
@@ -232,7 +232,7 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 	}
 
 	private FileVisitResult createFileOrFolder(final SecurityContext ctx, final App app, final Path path, final Path file, final BasicFileAttributes attrs,
-			final String sourcePath, final String targetPath, final Existing existing, final boolean doIndex) {
+			final String sourcePath, final String targetPath, final Mode mode, final Existing existing, final boolean doIndex) {
 
 		ctx.setDoTransactionNotifications(false);
 
@@ -315,6 +315,11 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 
 				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
 					IOUtils.copy(is, os);
+				}
+
+				if (mode.equals(Mode.MOVE)) {
+					
+					Files.delete(file);
 				}
 
 				FileHelper.updateMetadata(newFile);

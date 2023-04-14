@@ -18,8 +18,8 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonSchema;

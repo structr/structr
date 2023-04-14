@@ -19,8 +19,8 @@
 package org.structr.test.rest.test;
 
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;

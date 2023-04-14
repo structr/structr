@@ -18,7 +18,7 @@
  */
 package org.structr.test.web.basic;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;

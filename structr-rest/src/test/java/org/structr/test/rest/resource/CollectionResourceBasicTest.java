@@ -18,8 +18,8 @@
  */
 package org.structr.test.rest.resource;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.response.ResponseBody;
+import io.restassured.RestAssured;
+import io.restassured.response.ResponseBody;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.structr.test.rest.entity.TestObject;
 import org.testng.annotations.Test;

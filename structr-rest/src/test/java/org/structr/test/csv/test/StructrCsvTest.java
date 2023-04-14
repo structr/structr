@@ -19,7 +19,7 @@
 package org.structr.test.csv.test;
 
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
