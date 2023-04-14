@@ -18,8 +18,8 @@
  */
 package org.structr.web.common;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;

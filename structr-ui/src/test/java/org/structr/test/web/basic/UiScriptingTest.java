@@ -18,8 +18,8 @@
  */
 package org.structr.test.web.basic;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
 import org.apache.commons.lang3.StringUtils;

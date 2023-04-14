@@ -18,9 +18,9 @@
  */
 package org.structr.test.openapi;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.RequestLoggingFilter;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.RequestLoggingFilter;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
 import org.structr.api.schema.JsonMethod;
 import org.structr.api.schema.JsonSchema;

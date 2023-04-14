@@ -18,9 +18,9 @@
  */
 package org.structr.test.csv.test;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import com.jayway.restassured.internal.RestAssuredResponseImpl;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.internal.RestAssuredResponseImpl;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

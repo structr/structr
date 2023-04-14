@@ -18,7 +18,7 @@
  */
 package org.structr.console.rest;
 
-import com.jayway.restassured.response.Response;
+import io.restassured.response.Response;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.util.Writable;

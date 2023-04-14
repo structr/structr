@@ -18,7 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
