@@ -17,6 +17,17 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 package org.structr.storage.config;
-public record StorageProviderConfig() {
+
+import org.structr.storage.StorageProvider;
+
+import java.util.HashMap;
+import java.util.Map;
+
+public record StorageProviderConfig(String Name, Class<? extends StorageProvider> StorageProviderClass, Map<String, Object> SpecificConfigParameters) {
+
+    public StorageProviderConfig(final String Name, final Class<? extends StorageProvider> StorageProviderClass) {
+
+        this(Name, StorageProviderClass, new HashMap<>());
+    }
 
 }

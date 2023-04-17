@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
@@ -35,8 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryStorageProvider extends AbstractStorageProvider {
 	private static final Map<String, byte[]> dataMap = new ConcurrentHashMap<>();
 
-	public InMemoryStorageProvider(final AbstractFile file) {
-		super(file);
+	public InMemoryStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
+		super(file, config);
 	}
 
 	@Override

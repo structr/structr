@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import java.io.*;
@@ -37,8 +38,8 @@ import static java.nio.file.StandardOpenOption.*;
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
 
-	public LocalFSStorageProvider(final AbstractFile file) {
-		super(file);
+	public LocalFSStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
+		super(file, config);
 	}
 
 	@Override

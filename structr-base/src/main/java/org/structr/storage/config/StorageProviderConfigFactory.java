@@ -18,6 +18,26 @@
  */
 package org.structr.storage.config;
 
+import org.structr.storage.local.LocalFSStorageProvider;
+import org.structr.storage.memory.InMemoryStorageProvider;
+
+import java.util.Map;
+
 public class StorageProviderConfigFactory {
+
+    private static final Map<String, StorageProviderConfig> testProviderConfigs = Map.of(
+            "local", new StorageProviderConfig("local", LocalFSStorageProvider.class),
+            "memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class)
+    );
+
+    public static StorageProviderConfig getConfigByName(final String name) {
+
+        return name != null && testProviderConfigs.containsKey(name) ? testProviderConfigs.get(name) : getDefaultConfig();
+    }
+
+    public static StorageProviderConfig getDefaultConfig() {
+
+        return new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
+    }
 
 }

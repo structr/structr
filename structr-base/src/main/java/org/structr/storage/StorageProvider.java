@@ -18,6 +18,7 @@
  */
 package org.structr.storage;
 
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import javax.activation.DataSource;
@@ -27,6 +28,7 @@ import java.nio.channels.SeekableByteChannel;
 
 public interface StorageProvider extends DataSource {
 	AbstractFile getAbstractFile();
+	StorageProviderConfig getConfig();
 	InputStream getInputStream();
 	OutputStream getOutputStream();
 	OutputStream getOutputStream(final boolean append);
