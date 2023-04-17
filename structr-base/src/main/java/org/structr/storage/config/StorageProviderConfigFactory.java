@@ -21,14 +21,17 @@ package org.structr.storage.config;
 import org.structr.storage.local.LocalFSStorageProvider;
 import org.structr.storage.memory.InMemoryStorageProvider;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class StorageProviderConfigFactory {
 
-    private static final Map<String, StorageProviderConfig> testProviderConfigs = Map.of(
-            "local", new StorageProviderConfig("local", LocalFSStorageProvider.class),
-            "memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class)
-    );
+    private static final Map<String, StorageProviderConfig> testProviderConfigs = new HashMap<>();
+
+    static {
+        testProviderConfigs.put("local", new StorageProviderConfig("local", LocalFSStorageProvider.class));
+        testProviderConfigs.put("memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class));
+    }
 
     public static StorageProviderConfig getConfigByName(final String name) {
 
@@ -38,6 +41,11 @@ public class StorageProviderConfigFactory {
     public static StorageProviderConfig getDefaultConfig() {
 
         return new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
+    }
+
+    public static void SetConfig(final String name, final StorageProviderConfig config) {
+
+        testProviderConfigs.put(name, config);
     }
 
 }

@@ -37,9 +37,11 @@ import static java.nio.file.StandardOpenOption.*;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
 	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
+	private LocalFSHelper fsHelper;
 
 	public LocalFSStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
 		super(file, config);
+		fsHelper = new LocalFSHelper(config);
 	}
 
 	@Override
@@ -47,7 +49,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-			return new FileInputStream(LocalFSHelper.getFileOnDisk(getAbstractFile()));
+			return new FileInputStream(fsHelper.getFileOnDisk(getAbstractFile()));
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
@@ -68,7 +70,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-			return new FileOutputStream(LocalFSHelper.getFileOnDisk(getAbstractFile()), append);
+			return new FileOutputStream(fsHelper.getFileOnDisk(getAbstractFile()), append);
 		} catch (FileNotFoundException ex) {
 
 			logger.error("Could not find file", ex);
@@ -100,7 +102,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 				options.add(TRUNCATE_EXISTING);
 			}
 
-			return FileChannel.open(LocalFSHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
+			return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
 		} catch (IOException ex) {
 
 			logger.error("Could not open file", ex);
@@ -113,7 +115,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 
 		// Check if new provider is different from current one, if so use default implementation
-		if (!this.equals(newFileStorageProvider)) {
+		if (newFileStorageProvider != null && !this.getConfig().Name().equals(newFileStorageProvider.getConfig().Name())) {
 
 			super.moveTo(newFileStorageProvider);
 		}
@@ -124,7 +126,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 			// Check file paths and only move if they differ
 			if (!getAbstractFile().getPath().equals(newFileStorageProvider.getAbstractFile().getPath())) {
 
-				LocalFSHelper.getFileOnDisk(getAbstractFile()).renameTo(LocalFSHelper.getFileOnDisk(newFileStorageProvider.getAbstractFile()));
+				fsHelper.getFileOnDisk(getAbstractFile()).renameTo(fsHelper.getFileOnDisk(newFileStorageProvider.getAbstractFile()));
 			}
 		}
 	}
@@ -132,7 +134,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	@Override
 	public void delete() {
 
-		java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
+		java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
 		if (fileOnDisk.exists() && fileOnDisk.isFile()) {
 
 			fileOnDisk.delete();
@@ -144,7 +146,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 		try {
 
 			ensureFileExists();
-			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
+			java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
 
 			if (fileOnDisk.exists()) {
 
@@ -160,7 +162,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 	private void ensureFileExists() {
 		try {
-			java.io.File fileOnDisk = LocalFSHelper.getFileOnDisk(getAbstractFile());
+			java.io.File fileOnDisk = fsHelper.getFileOnDisk(getAbstractFile());
 
 			if (!fileOnDisk.exists()) {
 

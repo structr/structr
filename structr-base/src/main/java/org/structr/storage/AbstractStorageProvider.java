@@ -60,7 +60,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getSpecificStorageProvider(getAbstractFile(), null);
 
-		if (!this.equals(destinationStorageProvider)) {
+		if (destinationStorageProvider != null && !this.config.Name().equals(destinationStorageProvider.getConfig().Name())) {
 			try {
 
 				// Move binary content from old sp to new sp
