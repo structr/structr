@@ -44,7 +44,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;

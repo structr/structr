@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage.local;
+package org.structr.storage.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

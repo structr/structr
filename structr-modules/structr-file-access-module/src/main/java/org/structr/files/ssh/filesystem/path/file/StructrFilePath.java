@@ -26,7 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -37,8 +37,6 @@ import org.structr.web.entity.Folder;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.channels.Channel;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;

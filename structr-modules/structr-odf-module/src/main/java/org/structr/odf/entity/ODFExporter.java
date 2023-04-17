@@ -34,7 +34,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.common.FileHelper;
