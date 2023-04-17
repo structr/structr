@@ -43,7 +43,13 @@ let _Helpers = {
 
 			while (el.firstChild) {
 				fastRemoveAllChildrenInner(el.firstChild);
-				el.removeChild(el.firstChild);
+
+				try {
+					el.removeChild(el.firstChild);
+				} catch (e) {
+					// silently ignore errors like "The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
+					// console.log(e)
+				}
 			}
 		};
 
@@ -97,7 +103,7 @@ let _Helpers = {
 	escapeForHtmlAttributes: (str, escapeWhitespace) => {
 		if (!(typeof str === 'string'))
 			return str;
-		var escapedStr = str
+		let escapedStr = str
 			.replace(/&/g, '&amp;')
 			.replace(/</g, '&lt;')
 			.replace(/>/g, '&gt;')
@@ -109,23 +115,18 @@ let _Helpers = {
 	utf8_to_b64: (str) => {
 		return window.btoa(unescape(encodeURIComponent(str)));
 	},
-	/**
-	 * Expand literal '\n' to newline,
-	 * which is encoded as '\\n' in HTML attribute values.
-	 */
 	expandNewline: (text) => {
+		// Expand literal '\n' to newline, which is encoded as '\\n' in HTML attribute values.
 		return text.replace(/\\\\n/g, '<br>');
 	},
 	capitalize: (string) => {
 		return string.charAt(0).toUpperCase() + string.slice(1);
 	},
 	uuidRegexp: new RegExp('^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$'),
-	isUUID: (str) => (str.length === 32 && _Helpers.uuidRegexp.test(str)),
+	isUUID: (str) => _Helpers.uuidRegexp.test(str),
 	nvl: (value, defaultValue) => {
 		let returnValue;
-		if (value === undefined) {
-			returnValue = defaultValue;
-		} else if (value === false) {
+		if (value === false) {
 			returnValue = 'false';
 		} else if (value === 0) {
 			returnValue = '0';
@@ -135,32 +136,6 @@ let _Helpers = {
 			returnValue = value;
 		}
 		return returnValue;
-	},
-	formatValue: (value) => {
-
-		if (value === undefined || value === null) {
-			return '';
-		}
-
-		if (value.constructor === Object) {
-
-			let out = '';
-			Object.keys(value).forEach(function(key) {
-				out += key + ': ' + _Helpers.formatValue(value[key]) + '\n';
-			});
-			return out;
-
-		} else if (value.constructor === Array) {
-
-			let out = '';
-			value.forEach(function(val) {
-				out += JSON.stringify(val);
-			});
-			return out;
-
-		} else {
-			return value;
-		}
 	},
 	formatValueInputField: (key, obj, isPassword, isReadOnly, isMultiline) => {
 
