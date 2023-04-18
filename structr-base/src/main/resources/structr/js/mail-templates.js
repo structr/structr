@@ -33,9 +33,7 @@ let _MailTemplates = {
 	mailTemplateSelectedElementKey:  'structrMailTemplatesSelectedElementKey_' + location.port,
 	mailTemplatesPreselectLocaleKey: 'structrMailTemplatesPreselectLocaleKey_' + location.port,
 
-	init: () => {
-		$(window).off('resize').on('resize', _MailTemplates.resize);
-	},
+	init: () => {},
 	unload: () => {
 		_Editors.disposeAllEditors();
 	},
@@ -203,7 +201,6 @@ let _MailTemplates = {
 	},
 	resize: () => {
 		_MailTemplates.moveResizer();
-		Structr.resize();
 	},
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
@@ -241,7 +238,6 @@ let _MailTemplates = {
 		_MailTemplates.mailTemplatesPager.activateFilterElements();
 		_MailTemplates.mailTemplatesPager.setIsPaused(false);
 		_MailTemplates.mailTemplatesPager.refresh();
-
 	},
 	processPagerData: (pagerData) => {
 		if (pagerData && pagerData.length) {

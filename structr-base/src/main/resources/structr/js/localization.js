@@ -40,9 +40,8 @@ let _Localization = {
 	init: () => {},
 	resize: () => {
 		_Localization.moveResizer();
-		Structr.resize();
 	},
-	onload: function() {
+	onload: () => {
 
 		_Localization.init();
 
@@ -122,9 +121,9 @@ let _Localization = {
 		_Localization.moveResizer();
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
 
-		_Localization.resize();
+		Structr.resize();
 	},
-	unload: function() { },
+	unload: () => { },
 	getContextMenuElements: function (div, keyAndDomainObject) {
 
 		let elements = [];
