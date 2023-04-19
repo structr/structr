@@ -400,9 +400,11 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
+				StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString()),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false)
 				);
 

@@ -25,9 +25,15 @@ import java.util.Map;
 
 public record StorageProviderConfig(String Name, Class<? extends StorageProvider> StorageProviderClass, Map<String, Object> SpecificConfigParameters) {
 
-    public StorageProviderConfig(final String Name, final Class<? extends StorageProvider> StorageProviderClass) {
+    public StorageProviderConfig(final String Name, final Class<? extends StorageProvider> StorageProviderClass, final Map<String, Object> SpecificConfigParameters) {
 
-        this(Name, StorageProviderClass, new HashMap<>());
+        this.Name = Name;
+        this.StorageProviderClass = StorageProviderClass;
+        this.SpecificConfigParameters = SpecificConfigParameters != null ? SpecificConfigParameters : new HashMap<>();
+    }
+    public StorageProviderConfig(final String name, final Class<? extends StorageProvider> storageProviderClass) {
+
+        this(name, storageProviderClass, new HashMap<>());
     }
 
 }

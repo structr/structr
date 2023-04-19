@@ -44,6 +44,12 @@ import java.nio.file.Path;
 public class FileSyncWatchEventListener implements WatchEventListener {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileSyncWatchEventListener.class);
+	private final String rootFolderUUID;
+
+	public FileSyncWatchEventListener(final String rootFolderUUID) {
+
+		this.rootFolderUUID = rootFolderUUID;
+	}
 
 	@Override
 	public boolean onDiscover(final Path root, final Path context, final Path path) throws FrameworkException {
@@ -53,7 +59,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			return true;
 		}
 
-		final FolderAndFile obj = handle(root, root.relativize(path), path, true);
+		final FolderAndFile obj = handle(rootFolderUUID, root, path, true);
 		if (obj != null && obj.file != null && obj.file instanceof File) {
 
 			final File fileNode       = (File)obj.file;
@@ -76,7 +82,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onCreate(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		final FolderAndFile obj = handle(root, root.relativize(path), path, true);
+		final FolderAndFile obj = handle(rootFolderUUID, root, path, true);
 		if (obj != null) {
 
 			obj.handle();
@@ -88,7 +94,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onModify(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		final FolderAndFile obj = handle(root, root.relativize(path), path, false);
+		final FolderAndFile obj = handle(rootFolderUUID, root, path, false);
 		if (obj != null) {
 
 			obj.handle();
@@ -100,8 +106,7 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	@Override
 	public boolean onDelete(final Path root, final Path context, final Path path) throws FrameworkException {
 
-		final Path relativePath = root.relativize(path);
-		final FolderAndFile obj = handle(root, relativePath, path, false);
+		final FolderAndFile obj = handle(rootFolderUUID, root, path, false);
 
 		if (obj != null && obj.file != null) {
 
@@ -112,11 +117,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 	}
 
 	// ----- private methods -----
-	private FolderAndFile handle(final Path root, final Path relativePath, final Path path, final boolean create) throws FrameworkException {
+	private FolderAndFile handle(final String rootFolderUUID, final Path root, final Path relativePath, final boolean create) throws FrameworkException {
 
 		// identify mounted folder object
-		final PropertyKey<String> mountTargetKey = StructrApp.key(Folder.class, "mountTarget");
-		final Folder folder                      = StructrApp.getInstance().nodeQuery(Folder.class).and(mountTargetKey, root.toString()).getFirst();
+		final Folder folder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(rootFolderUUID).getFirst();
 
 		if (folder != null) {
 
@@ -148,13 +152,13 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 				final Path relativePathParent = relativePath.getParent();
 				if (relativePathParent == null) {
 
-					return new FolderAndFile(folder, getOrCreate(folder, path, relativePath, create, targetFolderType, targetFileType));
+					return new FolderAndFile(folder, getOrCreate(folder, relativePath.toString(), new java.io.File(relativePath.toUri()).isFile(), create, targetFolderType, targetFileType));
 
 				} else {
 
-					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.toString();
+					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.relativize(relativePath);
 					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathRelativeToRoot);
-					final AbstractFile file         = getOrCreate(parentFolder, path, relativePath, create, targetFolderType, targetFileType);
+					final AbstractFile file         = getOrCreate(parentFolder, pathRelativeToRoot, new java.io.File(relativePath.toUri()).isFile(), create, targetFolderType, targetFileType);
 
 					return new FolderAndFile(folder, file);
 				}
@@ -168,12 +172,10 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return null;
 	}
 
-	private AbstractFile getOrCreate(final Folder parentFolder, final Path fullPath, final Path relativePath, final boolean doCreate, final Class<? extends Folder> folderType, final Class<? extends File> fileType) throws FrameworkException {
+	private AbstractFile getOrCreate(final Folder parentFolder, final String fileName, final boolean isFile, final boolean doCreate, final Class<? extends Folder> folderType, final Class<? extends File> fileType) throws FrameworkException {
 
 		final PropertyKey<Boolean> isExternalKey = StructrApp.key(AbstractFile.class, "isExternal");
 		final PropertyKey<Folder> parentKey      = StructrApp.key(AbstractFile.class, "parent");
-		final String fileName                    = relativePath.getFileName().toString();
-		final boolean isFile                     = !Files.isDirectory(fullPath);
 		final App app                            = StructrApp.getInstance();
 		final Class<? extends AbstractFile> type = isFile ? (fileType != null ? fileType : org.structr.web.entity.File.class) : (folderType != null ? folderType : Folder.class);
 
