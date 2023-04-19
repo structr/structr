@@ -379,13 +379,13 @@ let _Pages = {
 					},
 					{
 						name: '... Template element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleReplaceWithAction('#template');
 						}
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleReplaceWithAction('div');
 						}
 					}

@@ -24,61 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 	});
 
-	$(document).on('mouseup', function() {
+	document.addEventListener('mouseup', () => {
 		_Elements.removeContextMenu();
 	});
-
 });
 
 let _Elements = {
 	dropBlocked: false,
 	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + location.port,
-	elementGroups: [
-		{
-			name: 'Root',
-			elements: ['html', '#content', '#comment', '#template']
-		},
-		{
-			name: 'Metadata',
-			elements: ['head', 'title', 'base', 'link', 'meta', 'style']
-		},
-		{
-			name: 'Sections',
-			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main']
-		},
-		{
-			name: 'Grouping',
-			elements: ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption']
-		},
-		{
-			name: 'Scripting',
-			elements: ['script', 'noscript', 'slot', 'canvas']
-		},
-		{
-			name: 'Tabular',
-			elements: ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
-		},
-		{
-			name: 'Text',
-			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'ruby', 'rt', 'rp', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'bdi', 'bdo', 'span', 'br', 'wbr']
-		},
-		{
-			name: 'Edits',
-			elements: ['ins', 'del']
-		},
-		{
-			name: 'Embedded',
-			elements: ['picture', 'source', 'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'track', 'map', 'area']
-		},
-		{
-			name: 'Forms',
-			elements: ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
-		},
-		{
-			name: 'Interactive',
-			elements: ['dialog', 'details', 'summary', 'command', 'menu']
-		}
-	],
 	mostUsedAttrs: [
 		{
 			elements: ['div'],
