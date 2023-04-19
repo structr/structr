@@ -45,7 +45,7 @@ let _Code = {
 	defaultPage: 1,
 	inSearchBox: false,
 
-	init: function() {
+	init: () => {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
@@ -57,13 +57,8 @@ let _Code = {
 			return 'There are unsaved changes - discard changes?';
 		}
 	},
-	prevAnimFrameReqId_resize: undefined,
 	resize: () => {
-
-		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_resize, () => {
-			_Code.updatedResizers();
-			Structr.resize();
-		});
+		_Code.updatedResizers();
 	},
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
@@ -157,13 +152,9 @@ let _Code = {
 				_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
-			$(window).off('resize').resize(() => {
-				_Code.resize();
-			});
-
 			Structr.unblockMenu(100);
 
-			_Code.resize();
+			Structr.resize();
 			Structr.adaptUiToAvailableFeatures();
 		});
 	},

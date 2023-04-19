@@ -57,7 +57,7 @@ let _Pages = {
 
 	contentSourceId: undefined,
 
-	init: function() {
+	init: () => {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
@@ -67,9 +67,6 @@ let _Pages = {
 		Structr.ensureShadowPageExists();
 	},
 	resize: () => {
-
-		Structr.resize();
-
 		_Pages.resizeColumns();
 	},
 	dialogSizeChanged: () => {
@@ -110,7 +107,7 @@ let _Pages = {
 		let pagesTabSlideoutAction = (e) => {
 			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-				_Pages.resize();
+				Structr.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		};
@@ -127,7 +124,7 @@ let _Pages = {
 			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
 				_Pages.localizations.refreshPagesForLocalizationPreview();
-				_Pages.resize();
+				Structr.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		});
@@ -155,7 +152,7 @@ let _Pages = {
 			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
 				_Widgets.reloadWidgets();
-				_Pages.resize();
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
@@ -164,7 +161,7 @@ let _Pages = {
 			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
 				_Pages.designTools.reload();
-				_Pages.resize();
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
@@ -173,7 +170,7 @@ let _Pages = {
 			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				_Pages.sharedComponents.reload(isDragOpen);
-				_Pages.resize();
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		};
 		componentsTab.addEventListener('click', componentsTabSlideoutAction);
@@ -196,7 +193,7 @@ let _Pages = {
 			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
 				_Pages.unattachedNodes.reload();
-				_Pages.resize();
+				Structr.resize();
 			}, () => {
 				_Pages.unattachedNodes.removeElementsFromUI();
 				_Pages.rightSlideoutClosedCallback();
@@ -690,11 +687,7 @@ let _Pages = {
 
 		UISettings.showSettingsForCurrentModule();
 
-		_Pages.resize();
-
-		$(window).off('resize').resize(function () {
-			_Pages.resize();
-		});
+		Structr.resize();
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
@@ -1336,12 +1329,12 @@ let _Pages = {
 	leftSlideoutClosedCallback: () => {
 
 		LSWrapper.removeItem(_Pages.activeTabLeftKey);
-		_Pages.resize();
+		Structr.resize();
 	},
 	rightSlideoutClosedCallback: () => {
 
 		LSWrapper.removeItem(_Pages.activeTabRightKey);
-		_Pages.resize();
+		Structr.resize();
 	},
 
 	openAndSelectTreeObjectById: (id) => {
@@ -2758,7 +2751,7 @@ console.log(raw)
 						iframe.src = _Pages.previews.getUrlForPreview(pageObj);
 					});
 
-					_Pages.resize();
+					Structr.resize();
 				};
 
 				if (_Pages.previews.loadPreviewTimer) {

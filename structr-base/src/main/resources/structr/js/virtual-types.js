@@ -95,7 +95,7 @@ let _VirtualTypes = {
 		_VirtualTypes.moveResizer();
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
 
-		_VirtualTypes.resize();
+		Structr.resize();
 	},
 	showMain: () => {
 		document.getElementById('virtual-types-main').style.display = 'flex';
@@ -119,7 +119,6 @@ let _VirtualTypes = {
 	},
 	resize: () => {
 		_VirtualTypes.moveResizer();
-		Structr.resize();
 	},
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {

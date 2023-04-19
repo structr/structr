@@ -59,14 +59,9 @@ let _Files = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
-		window.addEventListener('resize', _Files.resize);
 	},
 	resize: () => {
-		if (Structr.isModuleActive(_Files)) {
-			_Files.moveResizer();
-			Structr.resize();
-		}
+		_Files.moveResizer();
 	},
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
@@ -76,11 +71,11 @@ let _Files = {
 			left = left || LSWrapper.getItem(_Files.filesResizerLeftKey) || 300;
 			$('.column-resizer', _Files.filesMain).css({ left: left });
 
-			_Files.fileTree.css({width: left - 14 + 'px'});
-			$('#folder-contents-container').css({width: `calc(100% - ${left + 14}px)`});
+			_Files.fileTree.css({ width: left - 14 + 'px' });
+			$('#folder-contents-container').css({ width: `calc(100% - ${left + 14}px)` });
 		});
 	},
-	onload: function() {
+	onload: () => {
 
 		Structr.setMainContainerHTML(_Files.templates.main());
 
@@ -203,13 +198,9 @@ let _Files = {
 
 		_Files.activateUpload();
 
-		$(window).off('resize').resize(function () {
-			_Files.resize();
-		});
-
 		Structr.unblockMenu(100);
 
-		_Files.resize();
+		Structr.resize();
 		Structr.adaptUiToAvailableFeatures();
 	},
 	getContextMenuElements: (div, entity) => {
@@ -519,7 +510,6 @@ let _Files = {
 
 	},
 	unload: () => {
-		window.removeEventListener('resize', _Files.resize);
 		_Helpers.fastRemoveAllChildren(Structr.mainContainer);
 		_Helpers.fastRemoveAllChildren(Structr.functionBar);
 	},
@@ -741,7 +731,7 @@ let _Files = {
 					}
 				}
 
-				_Files.resize();
+				Structr.resize();
 				_Files.registerFolderLinks();
 			}
 		};
@@ -1542,7 +1532,7 @@ let _Files = {
 			}
 		});
 
-		_Files.resize();
+		Structr.resize();
 	},
 	appendTemplateConfig: (element, editor, file, outerElement, urlForFileAndPreview) => {
 

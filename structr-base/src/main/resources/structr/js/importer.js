@@ -45,10 +45,9 @@ let Importer = {
 		relTypes: [],
 		graphTypes: []
 	},
-
 	init: () => {},
 	resize: () => {},
-	onload: function() {
+	onload: () => {
 
 		Importer.init();
 

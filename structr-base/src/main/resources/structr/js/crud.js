@@ -292,7 +292,7 @@ let _Crud = {
 				_Crud.typeSelected(_Crud.type);
 				_Crud.updateRecentTypeList(_Crud.type);
 
-				_Crud.resize();
+				Structr.resize();
 				Structr.unblockMenu();
 			});
 		});
@@ -362,11 +362,6 @@ let _Crud = {
 		}
 
 		_Crud.init();
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			_Crud.resize();
-		});
 	},
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: (message, delay) => {
@@ -516,7 +511,7 @@ let _Crud = {
 
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
-		_Crud.resize();
+		Structr.resize();
 	},
 	getStoredTypeVisibilityConfig: (singleKey) => {
 
@@ -1892,7 +1887,7 @@ let _Crud = {
 				}
 			}
 
-			_Crud.resize();
+			Structr.resize();
 
 			row[0].querySelector('.actions .edit').addEventListener('click', (e) => {
 				_Crud.showDetails(id, type);
@@ -2303,7 +2298,7 @@ let _Crud = {
 		el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
 		let searchResults = $('.searchResults', el);
 
-		_Crud.resize();
+		Structr.resize();
 
 		let types;
 		let attr = 'name';
@@ -2635,9 +2630,7 @@ type: ${node.type}`;
 			}
 		});
 	},
-	resize: () => {
-		Structr.resize();
-	},
+	resize: () => {},
 	showDetails: (id, type) => {
 
 		if (!type) {

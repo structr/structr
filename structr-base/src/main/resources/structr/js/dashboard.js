@@ -95,11 +95,6 @@ let _Dashboard = {
 
 			_Dashboard.initializeTabsAndTabMenu(dashboardUiConfig);
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
 			Structr.unblockMenu(100);
 
 		} catch (e) {

@@ -157,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					_Entities.showProperties(obj);
 				});
 			} else {
-				new WarningMessage().text('That does not look like a UUID! length != 32').show();
+				new WarningMessage().text('Given string does not validate as a UUID').show();
 			}
 		}
 
@@ -170,7 +170,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					_Elements.openEditContentDialog(obj);
 				});
 			} else {
-				new WarningMessage().text('That does not look like a UUID! length != 32').show();
+				new WarningMessage().text('Given string does not validate as a UUID').show();
 			}
 		}
 
@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
 					_Entities.showAccessControlDialog(obj);
 				});
 			} else {
-				new WarningMessage().text('That does not look like a UUID! length != 32').show();
+				new WarningMessage().text('Given string does not validate as a UUID').show();
 			}
 		}
 
@@ -217,9 +217,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		}
 	});
 
-	$(window).on('resize', () => {
-		Structr.resize();
-	});
+	window.addEventListener('resize', Structr.resize);
 
 	live('.dropdown-select', 'click', (e) => {
 		e.stopPropagation();
@@ -951,12 +949,17 @@ let Structr = {
 			}
 		}
 	},
+	prevAnimFrameReqId_resize: undefined,
 	resize: () => {
 
-		Structr.dialogSystem.resizeDialog();
+		_Helpers.requestAnimationFrameWrapper(Structr.prevAnimFrameReqId_resize, () => {
 
-		// TODO: also call resize function for active module (if exists) ... prevent endless loop ... decide if first the sub-module resize should run or first this
-		// TODO: use requestAnimationFrame wrapper
+			Structr.dialogSystem.resizeDialog();
+
+			// call resize function from active module
+			let activeModule = Structr.getActiveModule();
+			activeModule.resize?.();
+		});
 	},
 	error: (text, confirmationRequired) => {
 
@@ -1241,7 +1244,7 @@ let Structr = {
 
 				Structr.modules['pages'].onload();
 				Structr.adaptUiToAvailableFeatures();
-				_Pages.resize();
+				Structr.resize();
 				$('a#pages_').removeClass('nodeHover').droppable('enable');
 			}
 		});
