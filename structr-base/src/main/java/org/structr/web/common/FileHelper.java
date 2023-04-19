@@ -848,7 +848,8 @@ public class FileHelper {
 			Folder parent = folder;
 
 			partialPath += PathHelper.PATH_SEP + part;
-			folder = (Folder) FileHelper.getFileByAbsolutePath(securityContext, partialPath);
+			AbstractFile potentialFolder = FileHelper.getFileByAbsolutePath(securityContext, partialPath);
+			folder = potentialFolder != null ? (Folder)potentialFolder : null;
 
 			if (folder == null) {
 
