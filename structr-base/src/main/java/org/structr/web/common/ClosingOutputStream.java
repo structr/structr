@@ -18,7 +18,7 @@
  */
 package org.structr.web.common;
 
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;

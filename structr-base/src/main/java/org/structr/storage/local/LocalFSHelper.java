@@ -16,39 +16,38 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage.local;
+package org.structr.storage.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 
-public abstract class LocalFSHelper {
+public class LocalFSHelper {
+	private final StorageProviderConfig config;
 
-	public static java.io.File getFileOnDisk(final AbstractFile thisFile) {
+	public LocalFSHelper(final StorageProviderConfig config) {
+		this.config = config;
+	}
+
+	public java.io.File getFileOnDisk(final AbstractFile thisFile) {
 		return getFileOnDisk(thisFile, false);
 	}
 
-	public static java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
+	public java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
 
 		final Folder parentFolder = thisFile.getParent();
-		if (parentFolder != null) {
-
-			return getFileOnDisk(parentFolder, (File) thisFile, "", create);
-
-		} else {
-
-			return AbstractFile.defaultGetFileOnDisk((File) thisFile, create);
-		}
+		return getFileOnDisk(parentFolder, (File) thisFile, "", create);
 	}
 
-	public static java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
+	public java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
 
-		final String _mountTarget = thisFolder.getMountTarget();
-		final Folder parentFolder = thisFolder.getParent();
+		final String _mountTarget = config.SpecificConfigParameters().containsKey("mountTarget") ? config.SpecificConfigParameters().get("mountTarget").toString() : null;
+		final Folder parentFolder = thisFolder != null ? thisFolder.getParent() : null;
 
 		if (_mountTarget != null) {
 

@@ -16,8 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage;
+package org.structr.storage;
 
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import javax.activation.DataSource;
@@ -27,6 +28,7 @@ import java.nio.channels.SeekableByteChannel;
 
 public interface StorageProvider extends DataSource {
 	AbstractFile getAbstractFile();
+	StorageProviderConfig getConfig();
 	InputStream getInputStream();
 	OutputStream getOutputStream();
 	OutputStream getOutputStream(final boolean append);

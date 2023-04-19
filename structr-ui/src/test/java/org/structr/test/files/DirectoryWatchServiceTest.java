@@ -32,8 +32,11 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.export.StructrSchema;
+import org.structr.storage.config.StorageProviderConfig;
+import org.structr.storage.config.StorageProviderConfigFactory;
+import org.structr.storage.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -52,6 +55,7 @@ import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
@@ -542,10 +546,12 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			);
 
 			// create folder to mount
+			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			final Folder folder = app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			// make folder writable for user

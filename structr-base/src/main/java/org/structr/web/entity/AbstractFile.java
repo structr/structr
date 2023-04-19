@@ -254,6 +254,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
 
+		// ToDo: Implement renameMountedAbstractFile for new fs layer
+		throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+		/*
 		final String _mountTarget = thisFolder.getMountTarget();
 		final Folder parentFolder = thisFolder.getParent();
 
@@ -302,6 +305,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		}
 
 		return false;
+
+		 */
 	}
 
 	static String getFolderPath(final AbstractFile thisFile) {

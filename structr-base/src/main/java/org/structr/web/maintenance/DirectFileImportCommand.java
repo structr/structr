@@ -32,7 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
-import org.structr.core.storage.StorageProviderFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;

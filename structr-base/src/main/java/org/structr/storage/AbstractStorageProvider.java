@@ -16,11 +16,12 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage;
+package org.structr.storage;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import java.io.IOException;
@@ -29,14 +30,21 @@ import java.io.OutputStream;
 
 public abstract class AbstractStorageProvider implements StorageProvider {
 	private final AbstractFile file;
+	private final StorageProviderConfig config;
 
-	public AbstractStorageProvider(final AbstractFile file) {
+	public AbstractStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
 		this.file = file;
+		this.config = config;
 	}
 
 	@Override
 	public AbstractFile getAbstractFile() {
 		return file;
+	}
+
+	@Override
+	public StorageProviderConfig getConfig() {
+		return this.config;
 	}
 
 	@Override
@@ -52,7 +60,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getSpecificStorageProvider(getAbstractFile(), null);
 
-		if (!this.equals(destinationStorageProvider)) {
+		if (destinationStorageProvider != null && !this.config.Name().equals(destinationStorageProvider.getConfig().Name())) {
 			try {
 
 				// Move binary content from old sp to new sp

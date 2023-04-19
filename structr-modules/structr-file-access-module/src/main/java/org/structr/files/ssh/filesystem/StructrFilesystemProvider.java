@@ -20,7 +20,7 @@ package org.structr.files.ssh.filesystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.core.storage.util.VirtualFileChannel;
+import org.structr.storage.util.VirtualFileChannel;
 
 import java.io.IOException;
 import java.net.URI;

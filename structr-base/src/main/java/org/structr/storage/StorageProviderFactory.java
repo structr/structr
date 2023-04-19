@@ -16,44 +16,46 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage;
+package org.structr.storage;
 
-import org.structr.core.storage.local.LocalFSStorageProvider;
-import org.structr.core.storage.memory.InMemoryStorageProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.common.error.FrameworkException;
+import org.structr.storage.config.StorageProviderConfig;
+import org.structr.storage.config.StorageProviderConfigFactory;
+import org.structr.storage.local.LocalFSStorageProvider;
+import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
+import java.lang.reflect.InvocationTargetException;
+
 public abstract class StorageProviderFactory {
+	private static final Logger logger = LoggerFactory.getLogger(StorageProviderFactory.class);
 	public static StorageProvider getStorageProvider(final AbstractFile file) {
-		final String provider = getProviderType(file);
 
-		if (provider == null) {
-			return new LocalFSStorageProvider(file);
-		}
-
-		switch (provider) {
-			case "memory":
-				return new InMemoryStorageProvider(file);
-			default:
-				return new LocalFSStorageProvider(file);
-		}
+		return getSpecificStorageProvider(file, getProviderConfigName(file));
 	}
 
 	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String forcedProvider) {
+		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(forcedProvider);
+		final Class<? extends StorageProvider> storageProviderClass = config.StorageProviderClass();
 
-		if (forcedProvider == null) {
-			return new LocalFSStorageProvider(file);
+		if (storageProviderClass != null) {
+
+			try {
+
+				return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageProviderConfig.class).newInstance(file, config);
+			} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+
+				logger.error("Could not instantiate storage provider.", ex);
+			}
 		}
 
-		switch (forcedProvider) {
-			case "memory":
-				return new InMemoryStorageProvider(file);
-			default:
-				return new LocalFSStorageProvider(file);
-		}
+		return null;
 	}
 
-	private static String getProviderType(final AbstractFile abstractFile) {
+	private static String getProviderConfigName(final AbstractFile abstractFile) {
 
 		if (abstractFile.getStorageProvider() != null) {
 
@@ -69,7 +71,7 @@ public abstract class StorageProviderFactory {
 				return parentFolder.getStorageProvider();
 			} else {
 
-				return getProviderType(parentFolder);
+				return getProviderConfigName(parentFolder);
 			}
 		}
 

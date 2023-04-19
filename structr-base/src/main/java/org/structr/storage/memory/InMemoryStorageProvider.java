@@ -16,13 +16,14 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.storage.memory;
+package org.structr.storage.memory;
 
 import org.apache.commons.compress.utils.SeekableInMemoryByteChannel;
 import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
-import org.structr.core.storage.AbstractStorageProvider;
-import org.structr.core.storage.StorageProvider;
+import org.structr.storage.AbstractStorageProvider;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 
@@ -35,8 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class InMemoryStorageProvider extends AbstractStorageProvider {
 	private static final Map<String, byte[]> dataMap = new ConcurrentHashMap<>();
 
-	public InMemoryStorageProvider(final AbstractFile file) {
-		super(file);
+	public InMemoryStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
+		super(file, config);
 	}
 
 	@Override

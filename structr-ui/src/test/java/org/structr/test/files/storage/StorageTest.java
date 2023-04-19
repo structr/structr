@@ -25,6 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -36,8 +37,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Scanner;
 
-import static org.testng.AssertJUnit.assertEquals;
-import static org.testng.AssertJUnit.fail;
+import static org.testng.AssertJUnit.*;
 
 
 public class StorageTest extends StructrUiTest {
@@ -112,6 +112,7 @@ public class StorageTest extends StructrUiTest {
 
 			// Move from default (local) to local storage provider
 			file.setProperty(storageProviderKey, "local");
+			var localStorageProvider = StorageProviderFactory.getStorageProvider(file);
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
@@ -120,6 +121,11 @@ public class StorageTest extends StructrUiTest {
 
 			// Move from local to memory storage provider
 			file.setProperty(storageProviderKey, "memory");
+			var memoryStorageProvider = StorageProviderFactory.getStorageProvider(file);
+
+			assert(!localStorageProvider.equals(memoryStorageProvider));
+			assertEquals(localStorageProvider.getConfig().Name(), "local");
+			assertEquals(memoryStorageProvider.getConfig().Name(), "memory");
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
