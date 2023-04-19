@@ -37,11 +37,8 @@ let _Flows = {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
-		window.addEventListener('resize', _Flows.resize);
 	},
 	resize: () => {
-		Structr.resize();
 		_Flows.moveResizer();
 	},
 	dialogSizeChanged: () => {
@@ -325,7 +322,7 @@ let _Flows = {
 
 		Structr.unblockMenu(100);
 
-		_Flows.resize();
+		Structr.resize();
 
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
@@ -508,7 +505,6 @@ let _Flows = {
 
 	},
 	unload: () => {
-		window.removeEventListener('resize', _Flows.resize);
 		_Helpers.fastRemoveAllChildren(document.querySelector('#main .searchBox'));
 		_Helpers.fastRemoveAllChildren(document.querySelector('#main #flows-main'));
 	},

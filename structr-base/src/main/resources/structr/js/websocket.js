@@ -323,7 +323,7 @@ let StructrWS = {
 								_Helpers.blinkGreen(progr);
 								window.setTimeout(() => {
 									progr.fadeOut('fast');
-									_Files.resize();
+									Structr.resize();
 								}, 1000);
 							}
 						}

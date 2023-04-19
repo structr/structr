@@ -367,7 +367,7 @@ let _Widgets = {
 			}
 		}
 
-		_Pages.resize();
+		Structr.resize();
 	},
 	getTreeParent: (element, treePath, suffix) => {
 

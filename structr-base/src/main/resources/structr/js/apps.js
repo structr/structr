@@ -41,11 +41,6 @@ let _Apps = {
 
 			_Apps.loadData();
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
 			Structr.unblockMenu(100);
 		});
 	},

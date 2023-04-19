@@ -292,7 +292,7 @@ let _Crud = {
 				_Crud.typeSelected(_Crud.type);
 				_Crud.updateRecentTypeList(_Crud.type);
 
-				_Crud.resize();
+				Structr.resize();
 				Structr.unblockMenu();
 			});
 		});
@@ -362,11 +362,6 @@ let _Crud = {
 		}
 
 		_Crud.init();
-
-		$(window).off('resize');
-		$(window).on('resize', function() {
-			_Crud.resize();
-		});
 	},
 	messageTimeout: undefined,
 	showLoadingMessageAfterDelay: (message, delay) => {
@@ -516,7 +511,7 @@ let _Crud = {
 
 		_Crud.highlightCurrentType(_Crud.type);
 		_Crud.filterTypes($('#crudTypesSearch').val().toLowerCase());
-		_Crud.resize();
+		Structr.resize();
 	},
 	getStoredTypeVisibilityConfig: (singleKey) => {
 
@@ -694,7 +689,10 @@ let _Crud = {
 		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
 	},
 	isFunctionProperty: (key, type) => {
-		return ("org.structr.core.property.FunctionProperty" === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type][key].className);
+	},
+	isCypherProperty: (key, type) => {
+		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type][key].className);
 	},
 	/**
 	 * Return true if the combination of the given property key
@@ -708,7 +706,7 @@ let _Crud = {
 	 * and the given type is a read-only property
 	 */
 	readOnly: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].readOnly);
+		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && (_Crud.keys[type][key].readOnly === true || _Crud.isCypherProperty(key, type)));
 	},
 	/**
 	 * Return the related type of the given property key
@@ -1785,6 +1783,7 @@ let _Crud = {
 		let cells = _Crud.cells(id, key);
 
 		for (let cell of cells) {
+
 			_Helpers.fastRemoveAllChildren(cell[0]);
 			_Crud.populateCell(id, key, _Crud.type, oldValue, cell);
 		}
@@ -1888,7 +1887,7 @@ let _Crud = {
 				}
 			}
 
-			_Crud.resize();
+			Structr.resize();
 
 			row[0].querySelector('.actions .edit').addEventListener('click', (e) => {
 				_Crud.showDetails(id, type);
@@ -1904,13 +1903,15 @@ let _Crud = {
 	},
 	populateCell: (id, key, type, value, cell) => {
 
-		var isRel = _Crud.types[type].isRel;
-		var isCollection = _Crud.isCollection(key, type);
-		var isEnum = _Crud.isEnum(key, type);
-		var relatedType = _Crud.relatedType(key, type);
-		var readOnly = _Crud.readOnly(key, type);
-		var simpleType;
-		var isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId');
+		let isRel            = _Crud.types[type].isRel;
+		let isCollection     = _Crud.isCollection(key, type);
+		let isEnum           = _Crud.isEnum(key, type);
+		let isCypher         = _Crud.isCypherProperty(key, type);
+		let relatedType      = _Crud.relatedType(key, type);
+		let readOnly         = _Crud.readOnly(key, type);
+		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId');
+		let propertyType     = _Crud.keys[type][key].type;
+		let simpleType;
 
 		if (readOnly) {
 			cell.addClass('readonly');
@@ -1922,10 +1923,10 @@ let _Crud = {
 				return;
 			}
 
-			var propertyType = _Crud.keys[type][key].type;
-
 			if (propertyType === 'Boolean') {
+
 				cell.append(`<input name="${key}" ${readOnly ? 'class="readonly" readonly disabled ' : ''}type="checkbox" ${value ? 'checked="checked"' : ''}>`);
+
 				if (!readOnly) {
 					$('input', cell).on('change', function() {
 						if (id) {
@@ -1942,17 +1943,21 @@ let _Crud = {
 						}
 					});
 				}
+
 			} else if (propertyType === 'Date') {
-				cell.html(_Helpers.nvl(_Helpers.formatValue(value), _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
+
+				cell.html(_Helpers.nvl(value, _Icons.getSvgIcon(_Icons.iconDatetime, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-lightgray']))));
 
 				if (!readOnly) {
-					var format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
-					var dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+
+					let format = _Crud.isFunctionProperty(key, type) ? "yyyy-MM-dd'T'HH:mm:ssZ" : _Crud.getFormat(key, type);
+					let dateTimePickerFormat = _Helpers.getDateTimePickerFormat(format);
+
 					cell.on('click', function(event) {
 						event.preventDefault();
 						var self = $(this);
 						var oldValue = self.text().trim();
-						self.html('<input name="' + key + '" class="__value" type="text" size="40">');
+						self.html(`<input name="${key}" class="__value" type="text" size="40">`);
 						var input = $('input', self);
 						input.val(oldValue);
 
@@ -1990,11 +1995,13 @@ let _Crud = {
 						self.off('click');
 					});
 				}
+
 			} else if (isEnum) {
-				var format = _Crud.getFormat(key, type);
-				cell.text(_Helpers.nvl(_Helpers.formatValue(value), ''));
+
+				let format = _Crud.getFormat(key, type);
+				cell.text(_Helpers.nvl(value, ''));
 				if (!readOnly) {
-					cell.on('click', function(event) {
+					cell.on('click', function (event) {
 						event.preventDefault();
 						_Crud.appendEnumSelect(cell, id, key, format);
 					});
@@ -2003,19 +2010,22 @@ let _Crud = {
 					}
 				}
 
-				//} else if (propertyType === 'String[]') {
+			} else if (isCypher) {
+
+				cell.text((value === undefined || value === null) ? '' : JSON.stringify(value));
+
 			} else if (isCollection) { // Array types
 
 				let values = value || [];
 
 				if (!id) {
 
-					let focusAndActivateField = function(el) {
-						$(el).focus().on('keydown', function(e) {
+					let focusAndActivateField = function (el) {
+						$(el).focus().on('keydown', function (e) {
 							if (e.which === 9) { // tab key
 								e.stopPropagation();
-								cell.append('<input name="' + key + '" size="4">');
-								focusAndActivateField(cell.find('[name="' + key + '"]').last());
+								cell.append(`<input name="${key}" size="4">`);
+								focusAndActivateField(cell.find(`[name="${key}"]`).last());
 								return false;
 							}
 						});
@@ -2023,17 +2033,18 @@ let _Crud = {
 					};
 
 					// create dialog
-					_Schema.getTypeInfo(type, function(typeInfo) {
-						cell.append('<input name="' + key + '" size="4">');
-						focusAndActivateField(cell.find('[name="' + key + '"]').last());
+					_Schema.getTypeInfo(type, function (typeInfo) {
+						cell.append(`<input name="${key}" size="4">`);
+						focusAndActivateField(cell.find(`[name="${key}"]`).last());
 					});
 
 				} else {
+
 					// update existing object
-					_Schema.getTypeInfo(type, function(typeInfo) {
+					_Schema.getTypeInfo(type, function (typeInfo) {
 						cell.append(_Helpers.formatArrayValueField(key, values, typeInfo.format === 'multi-line', typeInfo.readOnly, false));
-						cell.find('[name="' + key + '"]').each(function(i, el) {
-							_Entities.activateInput(el, id, null, typeInfo, function() {
+						cell.find(`[name="${key}"]`).each(function (i, el) {
+							_Entities.activateInput(el, id, null, typeInfo, function () {
 								_Crud.crudRefresh(id, key);
 							});
 						});
@@ -2041,7 +2052,9 @@ let _Crud = {
 				}
 
 			} else {
-				cell.text(_Helpers.nvl(_Helpers.formatValue(value), ''));
+
+				cell.text(_Helpers.nvl(value, ''));
+
 				if (!readOnly) {
 					cell.on('click', function(event) {
 						event.preventDefault();
@@ -2126,6 +2139,7 @@ let _Crud = {
 		}
 
 		if (id && !isSourceOrTarget && !readOnly && !relatedType && propertyType !== 'Boolean') {
+
 			cell.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['crud-clear-value', 'icon-lightgrey', 'cursor-pointer'])));
 
 			$('.crud-clear-value', cell).on('click', function(e) {
@@ -2152,7 +2166,7 @@ let _Crud = {
 			}
 		});
 		input.on('change', function() {
-			var newValue = input.val();
+			let newValue = input.val();
 			if (id) {
 				_Crud.crudUpdate(id, key, newValue, oldValue);
 			}
@@ -2284,7 +2298,7 @@ let _Crud = {
 		el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
 		let searchResults = $('.searchResults', el);
 
-		_Crud.resize();
+		Structr.resize();
 
 		let types;
 		let attr = 'name';
@@ -2312,7 +2326,7 @@ let _Crud = {
 				// only search in node types
 				types = Object.keys(_Crud.types).filter(t => !_Crud.types[t].isRel);
 			}
-			if (searchString.match(/^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/)) {
+			if (_Helpers.isUUID(searchString)) {
 				attr = 'uuid';
 				types = ['AbstractNode'];
 			}
@@ -2616,9 +2630,7 @@ type: ${node.type}`;
 			}
 		});
 	},
-	resize: () => {
-		Structr.resize();
-	},
+	resize: () => {},
 	showDetails: (id, type) => {
 
 		if (!type) {

@@ -39,7 +39,6 @@ let _Contents = {
 	},
 	resize: () => {
 		_Contents.moveResizer();
-		Structr.resize();
 	},
 	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
@@ -141,13 +140,9 @@ let _Contents = {
 
 		_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-		$(window).off('resize').resize(function() {
-			_Contents.resize();
-		});
-
 		Structr.unblockMenu(100);
 
-		_Contents.resize();
+		Structr.resize();
 	},
 	getContextMenuElements: function (div, entity) {
 

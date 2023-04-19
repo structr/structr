@@ -429,10 +429,6 @@ let _Graph = {
 			cypherQueryBox.setAttribute('rows', cypherQueryBox.value.split('\n').length);
 		});
 
-		$(window).off('resize').resize(function() {
-			_Graph.resize();
-		});
-
 		$('#newSelectionGroup').trigger('click');
 		Structr.unblockMenu(100);
 	},
@@ -641,7 +637,6 @@ let _Graph = {
 	},
 
 	resize: () => {
-		Structr.resize();
 
 		// var windowHeight = $(window).height();
 		// var windowWidth = $(window).width();
@@ -775,7 +770,7 @@ let _Graph = {
 				});
 			});
 			_Graph.filterNodeTypes(_Graph.filteredNodeTypes);
-			_Graph.resize();
+			Structr.resize();
 		});
 	},
 

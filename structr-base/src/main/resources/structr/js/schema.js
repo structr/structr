@@ -97,15 +97,11 @@ let _Schema = {
 				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
 			}
 
-			_Schema.init(() => {
-				_Schema.resize();
+			_Schema.init(null,() => {
+				Structr.resize();
 			});
 
 			Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('schema'));
-
-			$(window).off('resize').on('resize', () => {
-				_Schema.resize();
-			});
 		});
 	},
 	getLeftResizerKey: () => {
@@ -124,7 +120,7 @@ let _Schema = {
 
 		_Helpers.fastRemoveAllChildren(_Schema.ui.canvas[0]);
 		_Schema.init({ x: window.scrollX, y: window.scrollY }, callback);
-		_Schema.resize();
+		Structr.resize();
 	},
 	storePositions: () => {
 		for (let n of _Schema.ui.canvas[0].querySelectorAll('.node')) {
@@ -172,7 +168,7 @@ let _Schema = {
 				if (_Schema.ui.selectedNodes.length > 0) {
 					_Schema.ui.updateSelectedNodes();
 				}
-				_Schema.resize();
+				Structr.resize();
 			}
 		});
 
@@ -233,7 +229,7 @@ let _Schema = {
 				_Schema.ui.selectRel($(this));
 			});
 
-			_Schema.resize();
+			Structr.resize();
 
 			Structr.unblockMenu(500);
 
@@ -817,7 +813,7 @@ let _Schema = {
 
 									_Schema.storePositions();
 									_Schema.ui.updateSelectedNodes();
-									_Schema.resize();
+									Structr.resize();
 								}
 							});
 							x++;
@@ -3696,8 +3692,6 @@ let _Schema = {
 	},
 	resize: () => {
 
-		Structr.resize();
-
 		if (_Schema.ui.canvas) {
 
 			let zoom           = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
@@ -5003,7 +4997,7 @@ let _Schema = {
 			el.style["transformOrigin"] = oString;
 
 			instance.setZoom(zoom);
-			_Schema.resize();
+			Structr.resize();
 		},
 		getSchemaCSSTransform: () => {
 			return `scale(${_Schema.ui.zoomLevel})`;
