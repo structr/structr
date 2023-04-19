@@ -90,10 +90,10 @@ let _Security = {
 				elements.push({
 					name: `Remove ${entity.name} from ${$('.name_', parentGroupEl).attr('title')}`,
 					clickHandler: () => {
+
 						Command.removeFromCollection(parentGroupId, 'members', entity.id, async () => {
 							await _UsersAndGroups.refreshGroups();
 						});
-						return false;
 					}
 				});
 			}
@@ -106,16 +106,14 @@ let _Security = {
 				name: 'Basic',
 				clickHandler: () => {
 					_Entities.showProperties(entity, 'general');
-					return false;
 				}
 			});
 		}
 
 		elements.push({
 			name: 'Properties',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -130,10 +128,7 @@ let _Security = {
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete ' + entity.type,
 			clickHandler: () => {
-
 				_Entities.deleteNode(entity);
-
-				return false;
 			}
 		});
 

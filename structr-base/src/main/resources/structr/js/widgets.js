@@ -42,10 +42,9 @@ let _Widgets = {
 				name: 'Edit',
 				clickHandler: () => {
 
-					Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+					Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
 						_Widgets.editWidget(entity, true);
 					});
-					return false;
 				}
 			});
 
@@ -55,9 +54,7 @@ let _Widgets = {
 				icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
 				name: 'View',
 				clickHandler: () => {
-
 					_Widgets.editWidget(entity, false);
-					return false;
 				}
 			});
 		}
@@ -68,7 +65,6 @@ let _Widgets = {
 			name: 'Properties',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -79,9 +75,7 @@ let _Widgets = {
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {
-
 				_Entities.deleteNode(entity);
-				return false;
 			}
 		});
 

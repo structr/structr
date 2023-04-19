@@ -257,7 +257,6 @@ let _Pages = {
 				name: 'Insert div element',
 				clickHandler: () => {
 					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
-					return false;
 				}
 			});
 		}
@@ -281,7 +280,7 @@ let _Pages = {
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleInsertBeforeAction('div');
 						}
 					}
@@ -303,7 +302,7 @@ let _Pages = {
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleInsertAfterAction('div');
 						}
 					}
@@ -320,7 +319,6 @@ let _Pages = {
 				name: 'Edit',
 				clickHandler: () => {
 					_Entities.editEmptyDiv(entity);
-					return false;
 				}
 			});
 		}
@@ -333,9 +331,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
-				clickHandler: function () {
+				clickHandler: () => {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-					return false;
 				}
 			});
 
@@ -356,13 +353,13 @@ let _Pages = {
 					},
 					{
 						name: '... Template element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleWrapInHTMLAction('#template');
 						}
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleWrapInHTMLAction('div');
 						}
 					}
@@ -397,9 +394,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone Page',
-				clickHandler: function () {
+				clickHandler: () => {
 					Command.clonePage(entity.id);
-					return false;
 				}
 			});
 		}
@@ -411,17 +407,15 @@ let _Pages = {
 			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
 					name: 'Deselect element',
-					clickHandler: function () {
+					clickHandler: () => {
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			} else {
 				elements.push({
 					name: 'Select element',
-					clickHandler: function () {
+					clickHandler: () => {
 						_Elements.selectEntity(entity);
-						return false;
 					}
 				});
 			}
@@ -432,9 +426,8 @@ let _Pages = {
 
 				elements.push({
 					name: 'Convert to Shared Component',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.createComponent(entity.id);
-						return false;
 					}
 				});
 			}
@@ -460,10 +453,9 @@ let _Pages = {
 			if (isSelectedEntitySharedComponent) {
 				elements.push({
 					name: 'Link shared component here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 
@@ -472,10 +464,9 @@ let _Pages = {
 			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
 				elements.push({
 					name: 'Clone selected element here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			}
@@ -483,10 +474,9 @@ let _Pages = {
 			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
 				elements.push({
 					name: 'Move selected element here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			}
@@ -501,37 +491,38 @@ let _Pages = {
 				elements: [
 					{
 						name: 'Expand subtree',
-						clickHandler: function() {
+						clickHandler: () => {
+
 							$(div).find('.node').each(function(i, el) {
 								if (!_Entities.isExpanded(el)) {
 									_Entities.toggleElement(entity.id, el);
 								}
 							});
+
 							if (!_Entities.isExpanded(div)) {
 								_Entities.toggleElement(entity.id, div);
 							}
-							return false;
 						}
 					},
 					{
 						name: 'Expand subtree recursively',
-						clickHandler: function() {
+						clickHandler: () => {
 							_Entities.expandRecursively([entity.id]);
-							return false;
 						}
 					},
 					{
 						name: 'Collapse subtree',
-						clickHandler: function() {
+						clickHandler: () => {
+
 							$(div).find('.node').each(function(i, el) {
 								if (_Entities.isExpanded(el)) {
 									_Entities.toggleElement(entity.id, el);
 								}
 							});
+
 							if (_Entities.isExpanded(div)) {
 								_Entities.toggleElement(entity.id, div);
 							}
-							return false;
 						}
 					}
 				]
@@ -548,11 +539,11 @@ let _Pages = {
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
-				clickHandler: function () {
+				clickHandler: () => {
+
 					Command.removeChild(entity.id, () => {
 						_Pages.unattachedNodes.blinkUI();
 					});
-					return false;
 				}
 			});
 		}
@@ -565,16 +556,7 @@ let _Pages = {
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
-
-					if (isContent) {
-
-						_Entities.deleteNode(entity);
-
-					} else {
-
-						_Entities.deleteNode(entity, true);
-					}
-					return false;
+					_Entities.deleteNode(entity, (isContent === false));
 				}
 			});
 		}
@@ -2016,7 +1998,7 @@ let _Pages = {
 		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
 		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
-		getContextMenuElements: function (div, wrappedEntity) {
+		getContextMenuElements: (div, wrappedEntity) => {
 
 			let entity         = wrappedEntity.entity;
 			const isSchemaNode = (entity.type === 'SchemaNode');
@@ -2027,16 +2009,14 @@ let _Pages = {
 
 				elements.push({
 					name: 'Go to Schema Node',
-					clickHandler: function() {
+					clickHandler: () => {
 
-						let pathToOpen = 'custom--' + entity.id;
+						let pathToOpen = `/root/${entity.isBuiltinType ? 'builtin' : 'custom'}/${entity.id}`;
 
 						window.location.href = '#code';
-						window.setTimeout(function() {
+						window.setTimeout(() => {
 							_Code.findAndOpenNode(pathToOpen, false);
 						}, 1000);
-
-						return false;
 					}
 				});
 			}
@@ -2301,7 +2281,6 @@ let _Pages = {
 					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
 					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
 				clickHandler: (el, item, e) => {
-					e.stopPropagation();
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
