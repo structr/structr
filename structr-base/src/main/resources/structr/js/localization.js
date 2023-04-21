@@ -124,7 +124,7 @@ let _Localization = {
 		Structr.resize();
 	},
 	unload: () => { },
-	getContextMenuElements: function (div, keyAndDomainObject) {
+	getContextMenuElements: (div, keyAndDomainObject) => {
 
 		let elements = [];
 
@@ -132,7 +132,6 @@ let _Localization = {
 			name: 'Edit',
 			clickHandler: () => {
 				_Localization.showLocalizationsForKeyAndDomainObject(keyAndDomainObject);
-				return false;
 			}
 		});
 
@@ -142,17 +141,14 @@ let _Localization = {
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Localization',
-			clickHandler: () => {
+			clickHandler: async () => {
 
-				_Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`).then(confirm => {
-					if (confirm === true) {
-						_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
+				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`);
+				if (confirm === true) {
+					_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
-						_Localization.localizationDetailContainer.style.display = 'none';
-					}
-				});
-
-				return false;
+					_Localization.localizationDetailContainer.style.display = 'none';
+				}
 			}
 		});
 

@@ -226,9 +226,8 @@ let _VirtualTypes = {
 
 		elements.push({
 			name: 'Edit',
-			clickHandler: function() {
+			clickHandler: () => {
 				_VirtualTypes.showVirtualTypeDetails(virtualType.id);
-				return false;
 			}
 		});
 
@@ -238,31 +237,29 @@ let _VirtualTypes = {
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Virtual Type',
-			clickHandler: () => {
+			clickHandler: async () => {
 
-				_Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`).then(confirm => {
-					if (confirm === true) {
+				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`);
 
-						Command.get(virtualType.id, 'id,properties', (vt) => {
+				if (confirm === true) {
 
-							let promises = vt.properties.map((vp) => {
-								return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
-							});
+					Command.get(virtualType.id, 'id,properties', (vt) => {
 
-							promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
-
-							Promise.all(promises).then(() => {
-
-								_VirtualTypes.virtualTypesPager.refresh();
-								window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
-
-								div.remove();
-							});
+						let promises = vt.properties.map((vp) => {
+							return fetch(Structr.rootUrl + vp.id, { method: 'DELETE' });
 						});
-					}
-				});
 
-				return false;
+						promises.push(fetch(Structr.rootUrl + vt.id, { method: 'DELETE' }))
+
+						Promise.all(promises).then(() => {
+
+							_VirtualTypes.virtualTypesPager.refresh();
+							window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
+
+							div.remove();
+						});
+					});
+				}
 			}
 		});
 

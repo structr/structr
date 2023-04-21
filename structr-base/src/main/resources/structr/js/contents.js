@@ -181,7 +181,6 @@ let _Contents = {
 				name: 'Edit',
 				clickHandler: () => {
 					_Contents.editItem(entity);
-					return false;
 				}
 			});
 		}
@@ -209,8 +208,6 @@ let _Contents = {
 					Promise.all(removePromises).then(values => {
 						_Contents.refreshTree();
 					});
-
-					return false;
 				}
 			});
 		}
@@ -219,7 +216,6 @@ let _Contents = {
 			name: 'Properties',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -244,8 +240,6 @@ let _Contents = {
 				_Entities.deleteNodes(nodesToDelete, false, () => {
 					_Contents.refreshTree();
 				});
-
-				return false;
 			}
 		});
 

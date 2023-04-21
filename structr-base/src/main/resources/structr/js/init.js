@@ -35,8 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
 
-
-
 	loginBox = $('#login');
 
 	document.querySelector('#loginForm').addEventListener('submit', (e) => {
@@ -414,7 +412,7 @@ let Structr = {
 	},
 	login: (text) => {
 
-		if (!Structr.dialogSystem.isLoginDialogOpen()) {
+		if (Structr.dialogSystem.isLoginDialogOpen() === false) {
 
 			_Favorites.logoutAction();
 			_Console.logoutAction();

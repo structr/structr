@@ -842,7 +842,7 @@ let _Dashboard = {
 
 									Command.get(data.id, null, (obj) => {
 
-										let pathToOpen = (obj.schemaNode) ? 'custom--' + obj.schemaNode.id + '-methods-' + obj.id : 'globals--' + obj.id;
+										let pathToOpen = (obj.schemaNode) ? `/root/custom/${obj.schemaNode.id}/methods/${obj.id}` : `/globals/${obj.id}`;
 
 										window.location.href = '#code';
 										window.setTimeout(() => {
