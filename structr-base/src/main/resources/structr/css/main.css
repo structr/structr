@@ -4383,6 +4383,9 @@ table.props td.__value {
 .whitespace-nowrap {
 	white-space: nowrap;
 }
+.break-word {
+	word-break: break-word;
+}
 .align-baseline {
 	vertical-align: baseline;
 }
