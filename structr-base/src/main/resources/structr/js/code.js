@@ -587,9 +587,9 @@ let _Code = {
 		let path = obj?.data?.path || '';
 
 		/* The tree construction is now based on obj.data.key, together with
-				 * additional information like type, parent etc. That means all nodes
-				 * must specify a data object (see below for example).
-				 */
+		 * additional information like type, parent etc. That means all nodes
+		 * must specify a data object (see below for example).
+		 */
 
 		if (id === '#') {
 
@@ -2445,30 +2445,21 @@ let _Code = {
 					tree.open_node(node);
 				}
 
-				let selectedNode = tree.get_node(node);
+				let selectedNode = tree.get_node(node, true);
 				if (selectedNode) {
 
 					// depending on the depth we select a different parent level
-					let parentToScrollTo = id;
+					let parentToScrollTo = selectedNode;
 					switch (selectedNode.parents.length) {
-						case 1:
-						case 2:
-						case 3:
-							parentToScrollTo = id;
-							break;
 						case 4:
-							parentToScrollTo = tree.get_parent(node);
+							parentToScrollTo = tree.get_node(tree.get_parent(node), true);
 							break;
 						case 5:
-							parentToScrollTo = tree.get_parent(tree.get_parent(node));
+							parentToScrollTo = tree.get_node(tree.get_parent(tree.get_parent(node)), true)
 							break;
 					}
 
-					// also scroll into view if node is in tree
-					let domNode = document.getElementById( parentToScrollTo ) ;
-					if (domNode) {
-						domNode.scrollIntoView();
-					}
+					parentToScrollTo.scrollIntoView();
 				}
 
 				if (_Code.searchIsActive()) {

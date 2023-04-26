@@ -24,61 +24,14 @@ document.addEventListener("DOMContentLoaded", () => {
 		e.preventDefault();
 	});
 
-	$(document).on('mouseup', function() {
+	document.addEventListener('mouseup', () => {
 		_Elements.removeContextMenu();
 	});
-
 });
 
 let _Elements = {
 	dropBlocked: false,
 	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + location.port,
-	elementGroups: [
-		{
-			name: 'Root',
-			elements: ['html', '#content', '#comment', '#template']
-		},
-		{
-			name: 'Metadata',
-			elements: ['head', 'title', 'base', 'link', 'meta', 'style']
-		},
-		{
-			name: 'Sections',
-			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main']
-		},
-		{
-			name: 'Grouping',
-			elements: ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption']
-		},
-		{
-			name: 'Scripting',
-			elements: ['script', 'noscript', 'slot', 'canvas']
-		},
-		{
-			name: 'Tabular',
-			elements: ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
-		},
-		{
-			name: 'Text',
-			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'ruby', 'rt', 'rp', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'bdi', 'bdo', 'span', 'br', 'wbr']
-		},
-		{
-			name: 'Edits',
-			elements: ['ins', 'del']
-		},
-		{
-			name: 'Embedded',
-			elements: ['picture', 'source', 'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'track', 'map', 'area']
-		},
-		{
-			name: 'Forms',
-			elements: ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
-		},
-		{
-			name: 'Interactive',
-			elements: ['dialog', 'details', 'summary', 'command', 'menu']
-		}
-	],
 	mostUsedAttrs: [
 		{
 			elements: ['div'],
@@ -468,13 +421,13 @@ let _Elements = {
 			el.on('mouseup', function(e) {
 				e.stopPropagation();
 
-				let preventClose = true;
+				let stayOpen = false;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
-					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem, e);
+					stayOpen = contextMenuItem.clickHandler($(this), contextMenuItem, e);
 				}
 
-				if (!preventClose) {
+				if (stayOpen !== true) {
 					_Elements.removeContextMenu();
 				}
 			});
@@ -504,11 +457,33 @@ let _Elements = {
 				ul.addClass('hidden');
 			}
 
-			if (Object.prototype.toString.call(element) === '[object Array]') {
+			if (Array.isArray(element)) {
 
-				element.forEach(function (el) {
+				for (let el of element) {
 					addContextMenuElements(ul, el, hidden, forcedClickHandler, prepend);
-				});
+				}
+
+			} else if (typeof element === 'string') {
+
+				if (element === '|') {
+
+					if (prepend) {
+						ul.prepend('<hr />');
+					} else {
+						ul.append('<hr />');
+					}
+
+				} else {
+
+					let listElement = $(`<li>${element}</li>`);
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
+
+					if (prepend) {
+						ul.prepend(listElement);
+					} else {
+						ul.append(listElement);
+					}
+				}
 
 			} else if (Object.prototype.toString.call(element) === '[object Object]') {
 
@@ -553,28 +528,6 @@ let _Elements = {
 					let subListElement = $(`<ul class="element-group ${cssPositionClasses}"></ul>`);
 					menuEntry.append(subListElement);
 					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend);
-				}
-
-			} else if (Object.prototype.toString.call(element) === '[object String]') {
-
-				if (element === '|') {
-
-					if (prepend) {
-						ul.prepend('<hr />');
-					} else {
-						ul.append('<hr />');
-					}
-
-				} else {
-
-					var listElement = $(`<li>${element}</li>`);
-					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
-
-					if (prepend) {
-						ul.prepend(listElement);
-					} else {
-						ul.append(listElement);
-					}
 				}
 			}
 		};
@@ -645,11 +598,11 @@ let _Elements = {
 	isInheritGranteesChecked: () => {
 		return UISettings.getValueForSetting(UISettings.pages.settings.inheritGranteesKey);
 	},
-	removeContextMenu: function() {
+	removeContextMenu: () => {
 		$('#add-child-dialog').remove();
 		$('.contextMenuActive').removeClass('contextMenuActive');
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		// 1. dedicated context menu for type
 		if (entity.type === 'Widget') {
@@ -686,7 +639,6 @@ let _Elements = {
 					name: 'Access Control and Visibility',
 					clickHandler: () => {
 						_Entities.showAccessControlDialog(entity);
-						return false;
 					}
 				},
 				'|'
@@ -700,14 +652,12 @@ let _Elements = {
 					name: 'Make element visible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-						return false;
 					}
 				},
 				{
 					name: 'Make element invisible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-						return false;
 					}
 				}
 			]
@@ -720,14 +670,12 @@ let _Elements = {
 					name: 'Make subtree visible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-						return false;
 					}
 				},
 				{
 					name: 'Make subtree invisible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-						return false;
 					}
 				}
 			];
@@ -740,16 +688,14 @@ let _Elements = {
 			elements: [
 				{
 					name: 'Make element visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-						return false;
 					}
 				},
 				{
 					name: 'Make element invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-						return false;
 					}
 				}
 			]
@@ -761,16 +707,14 @@ let _Elements = {
 				'|',
 				{
 					name: 'Make subtree visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-						return false;
 					}
 				},
 				{
 					name: 'Make subtree invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-						return false;
 					}
 				}
 			];

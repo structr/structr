@@ -35,8 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
 
-
-
 	loginBox = $('#login');
 
 	document.querySelector('#loginForm').addEventListener('submit', (e) => {
@@ -414,7 +412,7 @@ let Structr = {
 	},
 	login: (text) => {
 
-		if (!Structr.dialogSystem.isLoginDialogOpen()) {
+		if (Structr.dialogSystem.isLoginDialogOpen() === false) {
 
 			_Favorites.logoutAction();
 			_Console.logoutAction();
@@ -2777,7 +2775,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'flex', 'rounded-md', 'p-6', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'break-word', 'flex', 'rounded-md', 'p-6', 'm-1', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 

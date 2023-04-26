@@ -242,7 +242,6 @@ let _Files = {
 						name: 'Edit source',
 						clickHandler: () => {
 							_Files.editFile(entity);
-							return false;
 						}
 					});
 
@@ -253,7 +252,6 @@ let _Files = {
 						name: 'Edit Image',
 						clickHandler: () => {
 							_Files.editImage(entity);
-							return false;
 						}
 					});
 				}
@@ -265,7 +263,6 @@ let _Files = {
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: () => {
 						_Files.editFile(entity);
-						return false;
 					}
 				});
 			}
@@ -277,7 +274,6 @@ let _Files = {
 			name: 'Basic',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
-				return false;
 			}
 		});
 
@@ -285,7 +281,6 @@ let _Files = {
 			name: 'Properties',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -300,13 +295,13 @@ let _Files = {
 					clickHandler: () => {
 
 						for (let el of selectedElements) {
+
 							let id = Structr.getId(el);
 
 							Command.favorites('remove', id, () => {
 								Structr.node(id).remove();
 							});
 						}
-						return false;
 					}
 				});
 
@@ -318,14 +313,13 @@ let _Files = {
 					clickHandler: () => {
 
 						for (let el of selectedElements) {
+
 							let obj = StructrModel.obj(Structr.getId(el));
 
 							if (obj.isFavoritable) {
 								Command.favorites('add', obj.id, () => {});
 							}
 						}
-
-						return false;
 					}
 				});
 			}
@@ -334,18 +328,13 @@ let _Files = {
 
 				elements.push({
 					name: 'Copy Download URL',
-					clickHandler: () => {
-						// do not make the click handler async because it would return a promise instead of the boolean
+					clickHandler: async () => {
 
-						(async () => {
-							// fake the a element so we do not need to look up the server
-							let a = document.createElement('a');
-							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-							a.href = possiblyUpdatedEntity.path;
-							await navigator.clipboard.writeText(a.href);
-						})();
-
-						return false;
+						// fake the a element so we do not need to look up the server
+						let a = document.createElement('a');
+						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
+						a.href = possiblyUpdatedEntity.path;
+						await navigator.clipboard.writeText(a.href);
 					}
 				});
 
@@ -353,14 +342,11 @@ let _Files = {
 					name: 'Download File',
 					icon: _Icons.getMenuSvgIcon('download-icon'),
 					clickHandler: () => {
-						// do not make the click handler async because it would return a promise instead of the boolean
 
 						let a = document.createElement('a');
 						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
 						a.href = `${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
 						a.click();
-
-						return false;
 					}
 				});
 			}
@@ -370,7 +356,6 @@ let _Files = {
 					name: 'Unpack archive',
 					clickHandler: () => {
 						_Files.unpackArchive(entity);
-						return false;
 					}
 				});
 			}
@@ -382,7 +367,6 @@ let _Files = {
 						name: 'Import CSV',
 						clickHandler: () => {
 							Importer.importCSVDialog(entity, false);
-							return false;
 						}
 					});
 				}
@@ -395,7 +379,6 @@ let _Files = {
 						name: 'Import XML',
 						clickHandler: () => {
 							Importer.importXMLDialog(entity, false);
-							return false;
 						}
 					});
 				}
@@ -431,8 +414,6 @@ let _Files = {
 						_Files.refreshTree();
 					});
 				}
-
-				return false;
 			}
 		});
 
