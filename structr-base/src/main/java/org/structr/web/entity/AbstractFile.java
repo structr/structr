@@ -39,7 +39,9 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
+import org.structr.storage.config.StorageProviderConfigFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
@@ -346,14 +348,17 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean isMounted(final AbstractFile thisFile) {
 
-		if (thisFile.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null) {
+		final boolean hasMountTarget = StorageProviderConfigFactory.getEffectiveConfig(thisFile) != null && StorageProviderConfigFactory.getEffectiveConfig(thisFile).SpecificConfigParameters().containsKey("mountTarget");
+		final boolean watchServiceHasMountedFolder = StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
+
+		if (hasMountTarget && watchServiceHasMountedFolder) {
 			return true;
 		}
 
 		final Folder parent = thisFile.getParent();
 		if (parent != null) {
 
-			return parent.isMounted();
+			return AbstractFile.isMounted(parent);
 		}
 
 		return false;

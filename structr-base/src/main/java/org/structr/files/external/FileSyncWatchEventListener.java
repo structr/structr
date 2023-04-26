@@ -149,17 +149,19 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			final String mountFolderPath = folder.getProperty(StructrApp.key(Folder.class, "path"));
 			if (mountFolderPath != null) {
 
-				final Path relativePathParent = relativePath.getParent();
+				final Path relativePathParent   = relativePath.getParent();
+				LoggerFactory.getLogger(FileSyncWatchEventListener.class).info(relativePath.toString());
+				final boolean isFile            = new java.io.File(relativePath.toUri()).isFile();
+
 				if (relativePathParent == null) {
 
-					return new FolderAndFile(folder, getOrCreate(folder, relativePath.toString(), new java.io.File(relativePath.toUri()).isFile(), create, targetFolderType, targetFileType));
-
+					return new FolderAndFile(folder, getOrCreate(folder, relativePath.toString(), isFile, create, targetFolderType, targetFileType));
 				} else {
 
-					final String pathRelativeToRoot = folder.getPath() + "/" + relativePathParent.relativize(relativePath);
-					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), pathRelativeToRoot);
-					final AbstractFile file         = getOrCreate(parentFolder, pathRelativeToRoot, new java.io.File(relativePath.toUri()).isFile(), create, targetFolderType, targetFileType);
-
+					final Path fileOrFolderPath     = relativePathParent.relativize(relativePath);
+					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), folder.getPath());
+					final AbstractFile file         = getOrCreate(parentFolder, fileOrFolderPath.toString() , isFile, create, targetFolderType, targetFileType);
+					logger.info("Created or got folder/file with uuid:" + file.getUuid());
 					return new FolderAndFile(folder, file);
 				}
 

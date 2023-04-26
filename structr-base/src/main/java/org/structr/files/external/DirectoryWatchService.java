@@ -61,6 +61,16 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		setDaemon(true);
 	}
 
+	public boolean isMounted(final String folderUuid) {
+
+		boolean isMounted = false;
+		synchronized (watchedRoots) {
+
+			isMounted = watchedRoots.containsKey(folderUuid);
+		}
+		return isMounted;
+	}
+
 	public void mountFolder(final Folder folder) {
 
 		final boolean watchContents = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
@@ -546,7 +556,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					if (StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst() != null) {
+					logger.info("Checking folder with uuid: " + uuid);
+					if (uuid == null || StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst() != null) {
 
 						canStart = true;
 						break;
