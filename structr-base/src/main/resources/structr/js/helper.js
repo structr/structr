@@ -30,13 +30,17 @@ let _Helpers = {
 		// prevent fastRemove from producing errors in other libraries
 		{
 			// do not slice up monaco editors
-			_Editors?.nukeEditorsInDomElement?.(el);
+			if (_Editors) {
+				_Editors?.nukeEditorsInDomElement?.(el);
+			}
 		}
 
 		// memory management block
 		{
 			// destroy select2 and remove event listeners
-			$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+			if ($().select2) {
+				$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+			}
 		}
 
 		let fastRemoveAllChildrenInner = (el) => {
