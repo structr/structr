@@ -333,13 +333,15 @@ let _Schema = {
 			let { dialogText } = Structr.dialogSystem.openDialog(title, callbackCancel, ['schema-edit-dialog']);
 
 			dialogText.insertAdjacentHTML('beforeend', `
-				<div id="tabs" class="flex flex-col h-full overflow-hidden">
-					<ul class="flex-shrink-0"></ul>
+				<div class="schema-details flex flex-col h-full overflow-hidden">
+					<div id="tabs">
+						<ul class="flex-shrink-0"></ul>
+					</div>
 				</div>
 			`);
 
 			let mainTabs  = dialogText.querySelector('#tabs');
-			let contentEl = dialogText.querySelector('#tabs');
+			let contentEl = dialogText.querySelector('.schema-details');
 
 			let tabControls;
 
