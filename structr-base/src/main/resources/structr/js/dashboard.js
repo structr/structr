@@ -95,7 +95,7 @@ let _Dashboard = {
 
 			_Dashboard.initializeTabsAndTabMenu(dashboardUiConfig);
 
-			Structr.unblockMenu(100);
+			Structr.mainMenu.unblock(100);
 
 		} catch (e) {
 
@@ -991,11 +991,11 @@ let _Dashboard = {
 				let subMenuConfigContainer  = document.querySelector('#sub-menu-entries-config');
 
 				let newMenuConfig = {
-					main: [].map.call(mainMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; }),
-					sub: [].map.call(subMenuConfigContainer.querySelectorAll('div.menu-item'), (el) => { return el.dataset.name; })
+					main: [...mainMenuConfigContainer.querySelectorAll('div.menu-item')].map(el => el.dataset.name),
+					sub:  [...subMenuConfigContainer.querySelectorAll('div.menu-item')].map(el => el.dataset.name)
 				};
 
-				Structr.updateMainMenu(newMenuConfig);
+				Structr.mainMenu.update(newMenuConfig);
 			},
 
 			showConfigurableSettings: () => {

@@ -430,7 +430,7 @@ let _Graph = {
 		});
 
 		$('#newSelectionGroup').trigger('click');
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 	},
 	unload: () => {
 

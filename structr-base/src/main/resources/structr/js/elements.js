@@ -818,13 +818,13 @@ let _Elements = {
 	},
 	openEditContentDialog: (entity) => {
 
-		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit content of ${entity?.name ?? entity.id}`, null, ['popup-dialog-with-editor']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit content of ${entity?.name ?? entity.id}`, null, ['popup-dialog-with-editor']);
 
 		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 		dialogMeta.insertAdjacentHTML('beforeend', `<span class="editor-info"></span>`);
 
-		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 		let editorInfo       = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
 
@@ -857,7 +857,7 @@ let _Elements = {
 
 					Command.patch(entity.id, text1, text2, () => {
 
-						Structr.dialogSystem.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 						_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
 						Command.getProperty(entity.id, 'content', (newText) => {
@@ -865,7 +865,7 @@ let _Elements = {
 						});
 
 						if (close === true) {
-							Structr.dialogSystem.clickDialogCancelButton();
+							_Dialogs.custom.clickDialogCancelButton();
 						}
 					});
 				}
@@ -944,7 +944,7 @@ let _Elements = {
 
 					Command.patch(entity.id, text1, text2, () => {
 
-						Structr.dialogSystem.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 						_Helpers.disableElements(true, saveButton);
 
 						Command.getProperty(entity.id, 'content', (newText) => {

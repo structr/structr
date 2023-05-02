@@ -128,7 +128,7 @@ let _MailTemplates = {
 			_MailTemplates.saveMailTemplate();
 		})
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 

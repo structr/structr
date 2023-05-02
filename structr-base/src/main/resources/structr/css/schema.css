@@ -265,17 +265,7 @@
 	background-color: var(--very-very-light-yellow);
 }
 
-.schema-details .new-name,
-.schema-details .new-relationshipType,
-.schema .new-name {
-	margin: -2px 0 -2px 0;
-}
-
-.schema-details .edit-schema-object:hover, #code-main .edit-schema-object:hover {
-	cursor: pointer;
-}
-
-.schema-details .edit-schema-object, #code-main .edit-schema-object {
+.schema-edit-dialog .edit-schema-object, #code-main .edit-schema-object {
 	border-bottom: .1rem dashed var(--gray-999);
 }
 

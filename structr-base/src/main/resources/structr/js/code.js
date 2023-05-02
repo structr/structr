@@ -86,7 +86,7 @@ let _Code = {
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
 		document.getElementById('code-context-container').style.width = `calc(${right}px - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth - left - right}px - 4rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${Math.floor(window.innerWidth - left - right)}px - 4rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -152,7 +152,7 @@ let _Code = {
 				_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
-			Structr.unblockMenu(100);
+			Structr.mainMenu.unblock(100);
 
 			Structr.resize();
 			Structr.adaptUiToAvailableFeatures();
@@ -214,7 +214,7 @@ let _Code = {
 					event.preventDefault();
 					event.stopPropagation();
 
-					if (!Structr.dialogSystem.isDialogOpen()) {
+					if (!_Dialogs.custom.isDialogOpen()) {
 						runButton.click();
 					}
 				}
@@ -1472,10 +1472,12 @@ let _Code = {
 	updateMethodNameDisplay: () => {
 		_Code.resetMethodNameInput(document.getElementById('method-name-input')?.value);
 	},
-	displaySchemaMethodContent: (data, lastOpenTab) => {
+	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
 		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+
+			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
 			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
@@ -1622,7 +1624,7 @@ let _Code = {
 				let afterSaveCallback = () => {
 
 					_Code.additionalDirtyChecks = [];
-					_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'), true);
+					_Code.displaySchemaMethodContent(data);
 
 					// refresh parent in case icon changed
 					_Code.refreshNode(data.path.slice(0, data.path.lastIndexOf('/')));
@@ -1639,7 +1641,7 @@ let _Code = {
 				_Code.additionalDirtyChecks = [];
 				_Editors.disposeEditorModel(result.id, 'source');
 				_Editors.disposeEditorModel(result.id, 'openAPIReturnType');
-				_Code.displaySchemaMethodContent(data, $('li.active', _Code.codeContents).data('name'));
+				_Code.displaySchemaMethodContent(data);
 			});
 
 			// delete button
@@ -1682,12 +1684,15 @@ let _Code = {
 			}
 
 			let activateTab = (tabName) => {
+
+				LSWrapper.setItem(`${_Entities.activeEditTabPrefix}_${data.id}`, tabName);
+
 				$('.method-tab-content', _Code.codeContents).hide();
 				$('li[data-name]', _Code.codeContents).removeClass('active');
 
-				let activeTab = $('#tabView-' + tabName, _Code.codeContents);
+				let activeTab = $(`#tabView-${tabName}`, _Code.codeContents);
 				activeTab.show();
-				$('li[data-name="' + tabName + '"]', _Code.codeContents).addClass('active');
+				$(`li[data-name="${tabName}"]`, _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
 
@@ -2476,10 +2481,10 @@ let _Code = {
 		}
 	},
 	showSchemaRecompileMessage: () => {
-		_Helpers.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
+		_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'code-compilation-message');
 	},
 	hideSchemaRecompileMessage:  () => {
-		_Helpers.hideNonBlockUIOverlay();
+		_Dialogs.loadingMessage.hide('code-compilation-message');
 	},
 	updatePathLocationStack: (path) => {
 
@@ -2608,7 +2613,7 @@ let _Code = {
 
 		let parent = parts.join('-');
 
-		_Helpers.confirmationPromiseNonBlockUI(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
+		_Dialogs.confirmation.showPromise(`<h3>${title}</h3><p>${(text || '')}</p>`).then((confirm) => {
 
 			if (confirm === true) {
 
@@ -2634,16 +2639,16 @@ let _Code = {
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
 		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
 
-		let runButton = Structr.dialogSystem.prependCustomDialogButton(`
+		let runButton = _Dialogs.custom.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 18, 'mr-2')}
 				<span>Run</span>
 			</button>
 		`);
 
-		let clearButton = Structr.dialogSystem.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
+		let clearButton = _Dialogs.custom.appendCustomDialogButton('<button id="clear-log" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Clear output</button>');
 
 		window.setTimeout(() => {
 			runButton.focus();
@@ -2761,7 +2766,6 @@ let _Code = {
 			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
 	},
-
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -2909,15 +2913,11 @@ let _Code = {
 			<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}"></h2>
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
-					<div class="mb-2">
-						<div id="method-actions"></div>
-					</div>
-					<div class="mb-2">
-						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
-								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
-							</label>
-						</div>
+					<div id="method-actions"></div>
+					<div class="checkbox hidden entity-method">
+						<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+							<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
+						</label>
 					</div>
 				</div>
 			</div>
@@ -2951,7 +2951,7 @@ let _Code = {
 
 					<div class="min-w-48">
 						<label class="block mb-5">Enabled</label>
-						<input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output
+						<label class="flex"><input type="checkbox" data-property="includeInOpenAPI"> Include in OpenAPI output</label>
 					</div>
 
 					<div class="min-w-48">
@@ -3044,7 +3044,7 @@ let _Code = {
 		`,
 		propertyRemote: config => `
 			<h2>Relationship (:${config.sourceNode.name})-[:${config.entity.relationshipType}]-&gt;(:${config.targetNode.name})</h2>
-			<div id="type-actions" class="mb-4"></div>
+			<div id="type-actions"></div>
 
 			<div class="tabs-container code-tabs">
 				<ul></ul>
@@ -3119,7 +3119,7 @@ let _Code = {
 		`,
 		type: config => `
 			<h2>Type ${config.type.name}</h2>
-			<div id="type-actions" class="mb-4"></div>
+			<div id="type-actions"></div>
 
 			<div class="tabs-container code-tabs">
 				<ul></ul>

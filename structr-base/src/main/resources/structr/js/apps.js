@@ -41,7 +41,7 @@ let _Apps = {
 
 			_Apps.loadData();
 
-			Structr.unblockMenu(100);
+			Structr.mainMenu.unblock(100);
 		});
 	},
 	loadData: async () => {
@@ -82,7 +82,7 @@ let _Apps = {
 
 				if (_Apps.deployServletAvailable) {
 
-					let confirm = await Structr.confirmationPromiseNonBlockUI(`
+					let confirm = await _Dialogs.confirmation.showPromise(`
 						<h3>Install "${app.name}"?</h3>
 						<p>The current application will be <b>REMOVED</b>!</p>
 						<p>Make sure you have a backup or nothing important in this installation!</p>

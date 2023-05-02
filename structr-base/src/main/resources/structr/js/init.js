@@ -16,48 +16,18 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-var loginBox;
 
 document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.innerHTML = Structr.templates.mainBody();
 	_Icons.preloadSVGIcons();
 
-	$.blockUI.defaults.overlayCSS.opacity        = .6;
-	$.blockUI.defaults.overlayCSS.cursor         = 'default';
-	$.blockUI.defaults.applyPlatformOpacityRules = false;
-
-	Structr.header        = document.getElementById('header');
-	Structr.mainContainer = document.getElementById('main');
-	Structr.functionBar   = document.getElementById('function-bar');
-
+	Structr.header                   = document.getElementById('header');
+	Structr.mainContainer            = document.getElementById('main');
+	Structr.functionBar              = document.getElementById('function-bar');
 	Structr.mainContainerOffscreen   = document.createElement('div');
 	Structr.functionBarOffscreen     = document.createElement('div');
 	Structr.dialogContainerOffscreen = document.createElement('div');
-
-	loginBox = $('#login');
-
-	document.querySelector('#loginForm').addEventListener('submit', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-
-		let username = document.querySelector('#usernameField').value;
-		let password = document.querySelector('#passwordField').value;
-
-		Structr.doLogin(username, password);
-		return false;
-	});
-
-	document.querySelector('#two-factor-form').addEventListener('submit', (e) => {
-		e.stopPropagation();
-		e.preventDefault();
-
-		let tfaToken = $('#twoFactorTokenField').val();
-		let tfaCode  = $('#twoFactorCodeField').val();
-
-		Structr.doTFALogin(tfaCode, tfaToken);
-		return false;
-	});
 
 	document.querySelector('#logout_').addEventListener('click', (e) => {
 		e.stopPropagation();
@@ -70,7 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		if (isHashReset === false) {
 
 			let anchor = new URL(window.location.href).hash.substring(1);
-			if (anchor === 'logout' || Structr.dialogSystem.isLoginDialogOpen()) {
+			if (anchor === 'logout' || _Dialogs.loginDialog.isOpen()) {
 				return;
 			}
 
@@ -102,10 +72,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	StructrWS.init();
 
-	$('body').keyup(function(e) {
+	document.body.addEventListener('keyup', (event) => {
 
-		// unwrap jquery event
-		let event   = e?.originalEvent ?? e;
 		let keyCode = event.keyCode;
 		let code    = event.code;
 
@@ -116,22 +84,20 @@ document.addEventListener("DOMContentLoaded", () => {
 				return false;
 			}
 
-			Structr.dialogSystem.checkSaveOrCloseOnEscape();
+			_Dialogs.custom.checkSaveOrCloseOnEscape();
 		}
 		return false;
 	});
 
-	$('body').on('keydown', function(e) {
+	document.body.addEventListener('keydown', (event) => {
 
-		// unwrap jquery event
-		let event   = e?.originalEvent ?? e;
 		let keyCode = event.keyCode;
 		let code    = event.code;
 
 		// ctrl-s / cmd-s
 		if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 			event.preventDefault();
-			Structr.dialogSystem.clickSaveButton();
+			_Dialogs.custom.clickSaveButton();
 		}
 
 		// Ctrl-Alt-c
@@ -151,7 +117,7 @@ document.addEventListener("DOMContentLoaded", () => {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
 			if (uuid && _Helpers.isUUID(uuid)) {
-				Command.get(uuid, null, function (obj) {
+				Command.get(uuid, null, (obj) => {
 					_Entities.showProperties(obj);
 				});
 			} else {
@@ -196,7 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
 		// Ctrl-Alt-e
 		if ((code === 'KeyE' || keyCode === 69) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
-			let { dialogText } = Structr.dialogSystem.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
+			let { dialogText } = _Dialogs.custom.openDialog('Bulk Editing Helper (Ctrl-Alt-E)');
 			new RefactoringHelper(dialogText).show();
 		}
 
@@ -254,9 +220,6 @@ let Structr = {
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
 	subModule: undefined,
-	lastMenuEntry: undefined,
-	lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
-	menuBlocked: undefined,
 	expandedIdsKey: 'structrTreeExpandedIds_' + location.port,
 	edition: '',
 	classes: [],
@@ -264,11 +227,6 @@ let Structr = {
 	msgCount: 0,
 	legacyRequestParameters: false,
 	diffMatchPatch: undefined,
-	defaultBlockUICss: {
-		cursor: 'default',
-		border: 'none',
-		backgroundColor: 'transparent'
-	},
 	abbreviations: {
 		visibleToPublicUsers: "Public",
 		visibleToAuthenticatedUsers: "Auth. Vis."
@@ -309,7 +267,7 @@ let Structr = {
 			movedOffscreen = true;
 		}
 
-		let dialogBox = Structr.dialogSystem.getDialogBoxElement();
+		let dialogBox = _Dialogs.custom.getDialogBoxElement();
 		if (dialogBox && dialogBox.offsetParent) {
 
 			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
@@ -348,7 +306,7 @@ let Structr = {
 
 		if (Structr.dialogContainerOffscreen.children.length > 0) {
 
-			Structr.dialogSystem.restoreDialog();
+			_Dialogs.custom.restoreDialog();
 
 			movedBack = true;
 		}
@@ -374,17 +332,12 @@ let Structr = {
 		_Helpers.fastRemoveAllChildren(Structr.mainContainerOffscreen);
 		_Helpers.fastRemoveAllChildren(Structr.functionBarOffscreen);
 		_Helpers.fastRemoveAllChildren(Structr.dialogContainerOffscreen);
-		Structr.dialogSystem.clearDialogElements();
+		_Dialogs.custom.clearDialogElements();
 		_Elements.removeContextMenu();
 	},
 	refreshUi: (isLogin = false) => {
 
-		// TODO: remove after updating login box to non blockUI
-		$.unblockUI({
-			fadeOut: 25
-		});
-
-		_Helpers.showLoadingSpinner();
+		_Dialogs.spinner.show();
 
 		Structr.clearMain();
 
@@ -392,7 +345,7 @@ let Structr = {
 
 			StructrWS.startPing();
 
-			_Helpers.hideLoadingSpinner();
+			_Dialogs.spinner.hide();
 
 			_Console.initConsole();
 
@@ -410,82 +363,18 @@ let Structr = {
 	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
 	},
-	login: (text) => {
-
-		if (Structr.dialogSystem.isLoginDialogOpen() === false) {
-
-			_Favorites.logoutAction();
-			_Console.logoutAction();
-
-			Structr.clearMain();
-
-			// show login box
-			$.blockUI({
-				fadeIn: 25,
-				fadeOut: 25,
-				message: loginBox,
-				forceInput: true,
-				css: Structr.defaultBlockUICss
-			});
-		}
-
-		$('#logout_').html('Login');
-
-		if (text) {
-			$('#errorText').html(text);
-			$('#errorText-two-factor').html(text);
-		}
-	},
-	clearLoginForm: () => {
-		loginBox.find('#usernameField').val('');
-		loginBox.find('#passwordField').val('');
-		loginBox.find('#errorText').empty();
-
-		loginBox.find('#two-factor').hide();
-		loginBox.find('#two-factor #two-factor-qr-code').hide();
-		loginBox.find('#two-factor img').attr('src', '');
-
-		loginBox.find('#errorText-two-factor').empty();
-		loginBox.find('#twoFactorTokenField').val('');
-		loginBox.find('#twoFactorCodeField').val('');
-	},
-	show2FALoginBox: (data) => {
-
-		$('#errorText').html('');
-		$('#errorText-two-factor').html('');
-
-		$('table.username-password', loginBox).hide();
-		$('#two-factor', loginBox).show();
-
-		if (data.qrdata) {
-			$('#two-factor #two-factor-qr-code').show();
-			$('#two-factor img', loginBox).attr('src', `data:image/png;base64, ${data.qrdata}`);
-		}
-
-		$('#twoFactorTokenField').val(data.token);
-		$('#twoFactorCodeField').val('').focus();
-	},
-	doLogin: (username, password) => {
+	doLogin: (loginData) => {
 		Structr.renewSessionId(() => {
-			Command.login({
-				username: username,
-				password: password
-			});
+			Command.login(loginData);
 		});
 	},
-	doTFALogin: (twoFactorCode, twoFacorToken) => {
-		Structr.renewSessionId(() => {
-			Command.login({
-				twoFactorCode: twoFactorCode,
-				twoFactorToken: twoFacorToken
-			});
-		});
-	},
-	doLogout: (text) => {
+	doLogout: () => {
 
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
+
+		Structr.mainMenu.reset();
 
 		if (Command.logout(StructrWS.user)) {
 
@@ -498,7 +387,7 @@ let Structr = {
 				versionInfo.textContent = '';
 			}
 
-			Structr.login(text);
+			_Dialogs.loginDialog.show();
 			return true;
 		}
 
@@ -534,12 +423,12 @@ let Structr = {
 
 			Structr.determineModule();
 
-			Structr.lastMenuEntry = ((!isLogin && Structr.mainModule && Structr.mainModule !== 'logout') ? Structr.mainModule : Structr.getActiveModuleName());
-			if (!Structr.lastMenuEntry) {
-				Structr.lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
+			Structr.mainMenu.lastMenuEntry = ((!isLogin && Structr.mainModule && Structr.mainModule !== 'logout') ? Structr.mainModule : Structr.getActiveModuleName());
+			if (!Structr.mainMenu.lastMenuEntry) {
+				Structr.mainMenu.lastMenuEntry = Structr.getActiveModuleName() || 'dashboard';
 			}
 			Structr.updateVersionInfo(0, isLogin);
-			Structr.doActivateModule(Structr.lastMenuEntry);
+			Structr.activateModule(Structr.mainMenu.lastMenuEntry);
 
 			callback();
 		});
@@ -551,390 +440,6 @@ let Structr = {
 		const navState     = anchor.split(':');
 		Structr.mainModule = navState[0];
 		Structr.subModule  = navState.length > 1 ? navState[1] : null;
-	},
-	dialogSystem: {
-		isMaximized: false,
-		dialogMaximizedKey: `structrDialogMaximized_${location.port}`,
-		dialogDataKey: `structrDialogData_${location.port}`,
-
-		elements: {
-			dialogMsg: null,
-			dialogCancelButton: null,
-			dialogSaveButton: null,
-			saveAndClose: null,
-			dialogBtn: null,
-			dialogTitle: null,
-			dialogText: null,
-			dialogMeta: null
-		},
-		clearDialogElements: () => {
-
-			if (Structr.dialogSystem.elements.dialogBox) {
-				_Helpers.fastRemoveElement(Structr.dialogSystem.elements.dialogBox);
-			}
-
-			Structr.dialogSystem.elements.dialogBox           = null;
-			Structr.dialogSystem.elements.dialogText          = null;
-			Structr.dialogSystem.elements.dialogMsg           = null;
-			Structr.dialogSystem.elements.dialogBtn           = null;
-			Structr.dialogSystem.elements.dialogTitle         = null;
-			Structr.dialogSystem.elements.dialogMeta          = null;
-			Structr.dialogSystem.elements.dialogCancelButton  = null;
-			Structr.dialogSystem.elements.dialogSaveButton    = null;
-			Structr.dialogSystem.elements.saveAndClose        = null;
-		},
-		updateGlobalDialogVariables: () => {
-
-			Structr.dialogSystem.elements.dialogBox           = document.querySelector('#dialogBox');
-			Structr.dialogSystem.elements.dialogText          = Structr.dialogSystem.elements.dialogBox.querySelector('.dialogText');
-			Structr.dialogSystem.elements.dialogMsg           = Structr.dialogSystem.elements.dialogBox.querySelector('.dialogMsg');
-			Structr.dialogSystem.elements.dialogBtn           = Structr.dialogSystem.elements.dialogBox.querySelector('.dialogBtn');
-			Structr.dialogSystem.elements.dialogTitle         = Structr.dialogSystem.elements.dialogBox.querySelector('.dialogTitle');
-			Structr.dialogSystem.elements.dialogMeta          = Structr.dialogSystem.elements.dialogBox.querySelector('.dialogMeta');
-			Structr.dialogSystem.elements.dialogCancelButton  = Structr.dialogSystem.elements.dialogBox.querySelector('.closeButton');
-			Structr.dialogSystem.elements.dialogSaveButton    = Structr.dialogSystem.elements.dialogBox.querySelector('.save');
-		},
-
-		getDialogTextElement: () => {
-			return Structr.dialogSystem.elements.dialogText;
-		},
-		getDialogMetaElement: () => {
-			return Structr.dialogSystem.elements.dialogMeta;
-		},
-		getDialogBoxElement: () => {
-			return Structr.dialogSystem.elements.dialogBox;
-		},
-
-		isDialogOpen: () => {
-			return (Structr.dialogSystem.elements.dialogBox && Structr.dialogSystem.elements.dialogBox.offsetParent);
-		},
-		isLoginDialogOpen: () => {
-			return (loginBox && loginBox.length && loginBox.is(':visible'));
-		},
-		setDialogSize: (windowWidth, windowHeight, dialogWidth, dialogHeight) => {
-
-			let horizontalOffset = 130;
-
-			let dialogTextWrapperElement = document.querySelector('#dialogBox .dialogTextWrapper');
-			if (dialogTextWrapperElement) {
-
-				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 3rem)`;
-				dialogTextWrapperElement.style.height = `${dialogHeight - horizontalOffset}px`;
-			}
-
-			// needed for maximized dialog
-			let blockPageElement = document.querySelector('.blockPage');
-			if (blockPageElement) {
-
-				let left = (windowWidth - dialogWidth) / 2;
-				let top  = (windowHeight - dialogHeight) / 2;
-
-				blockPageElement.style.width = `${dialogWidth}px`;
-				blockPageElement.style.top   = `${top}px`;
-				blockPageElement.style.left  = `${left}px`;
-			}
-		},
-		getDialogDimensions: (marginLeft, marginTop) => {
-
-			let winW = $(window).width();
-			let winH = $(window).height();
-
-			let width  = Math.min(900, winW - marginLeft);
-			let height = Math.min(600, winH - marginTop);
-
-			return {
-				width:  width,
-				height: height,
-				left:   (winW - width) / 2,
-				top:    (winH - height) / 2
-			};
-		},
-		resizeDialog: () => {
-
-			Structr.dialogSystem.isMaximized = LSWrapper.getItem(Structr.dialogSystem.dialogMaximizedKey);
-
-			if (Structr.dialogSystem.isMaximized) {
-
-				Structr.dialogSystem.maximizeDialogButtonAction();
-
-			} else {
-
-				// Calculate dimensions of dialog
-				if (Structr.dialogSystem.isDialogOpen() && !Structr.dialogSystem.isLoginDialogOpen()) {
-					Structr.dialogSystem.setDialogSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
-
-					if (Structr.dialogSystem.getMinimizeDialogButton()) Structr.dialogSystem.getMinimizeDialogButton().style.display = 'none';
-					if (Structr.dialogSystem.getMaximizeDialogButton()) Structr.dialogSystem.getMaximizeDialogButton().style.display = 'block';
-				}
-			}
-
-			_Helpers.centerNonBlockUIMessage();
-		},
-		openDialog: (text = '', callbackCancel, customClasses = []) => {
-
-			let dimensions = Structr.dialogSystem.getDialogDimensions(24, 24);
-			Structr.dialogSystem.blockUI(dimensions);
-
-			Structr.dialogSystem.getMinimizeDialogButton().addEventListener('click', Structr.dialogSystem.minimizeDialogButtonAction);
-			Structr.dialogSystem.getMaximizeDialogButton().addEventListener('click', Structr.dialogSystem.maximizeDialogButtonAction);
-			Structr.dialogSystem.getCloseDialogButton().addEventListener('click', Structr.dialogSystem.clickDialogCancelButton);
-
-			Structr.dialogSystem.clearDialogElements();
-			Structr.dialogSystem.updateGlobalDialogVariables();
-
-			Structr.dialogSystem.elements.dialogBox.classList.add(...["dialog", ...customClasses]);
-
-			Structr.dialogSystem.elements.dialogTitle.textContent = text;
-
-			let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
-
-			newCancelButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-
-				Structr.dialogSystem.dialogCancelBaseAction();
-
-				if (callbackCancel) {
-					window.setTimeout(callbackCancel, 100);
-				}
-			});
-
-			Structr.resize();
-
-			dimensions.text = text;
-			LSWrapper.setItem(Structr.dialogSystem.dialogDataKey, JSON.stringify(dimensions));
-
-			return {
-				dialogText: Structr.dialogSystem.elements.dialogText,
-				dialogMeta: Structr.dialogSystem.elements.dialogMeta
-			};
-		},
-		showMeta: () => {
-
-			let meta = Structr.dialogSystem.getDialogMetaElement();
-
-			if (meta) {
-				meta.style.display = null;
-			}
-		},
-		blockUI: (dialogConfig) => {
-
-			let dialogHTML = `
-				<div id="dialogBox" class="dialog">
-					<i title="Fullscreen Mode" id="maximizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMaximizeDialog, 18, 18)}</i>
-					<i title="Window Mode" id="minimizeDialog" class="window-icon minmax">${_Icons.getSvgIcon(_Icons.iconMinimizeDialog, 18, 18)}</i>
-					<i title="Close" id="closeDialog" class="window-icon close">${_Icons.getSvgIcon(_Icons.iconCrossIcon, 18, 18)}</i>
-
-					<h2 class="dialogTitle"></h2>
-
-					<div class="dialogTextWrapper">
-						<div class="dialogText"></div>
-					</div>
-
-					<div class="dialogMsg"></div>
-
-					<div class="dialogMeta"></div>
-
-					<div class="dialogBtn flex"></div>
-				</div>
-			`;
-
-			let message = $(dialogConfig.elements ?? dialogHTML);
-
-			$.blockUI({
-				fadeIn: 25,
-				fadeOut: 25,
-				message: message,
-				css: Object.assign({
-					width: dialogConfig.width + 'px',
-					height: dialogConfig.height + 'px',
-					top: dialogConfig.top + 'px',
-					left: dialogConfig.left + 'px'
-				}, Structr.defaultBlockUICss),
-				themedCSS: {
-					width: dialogConfig.width + 'px',
-					height: dialogConfig.height + 'px',
-					top: dialogConfig.top + 'px',
-					left: dialogConfig.left + 'px'
-				},
-				width: dialogConfig.width + 'px',
-				height: dialogConfig.height + 'px',
-				top: dialogConfig.top + 'px',
-				left: dialogConfig.left + 'px'
-			});
-		},
-		getMinimizeDialogButton: () => document.querySelector('#minimizeDialog'),
-		getMaximizeDialogButton: () => document.querySelector('#maximizeDialog'),
-		getCloseDialogButton: () => document.querySelector('#closeDialog'),
-		maximizeDialogButtonAction: () => {
-
-			// Calculate dimensions of dialog
-			if (Structr.dialogSystem.isDialogOpen() && !Structr.dialogSystem.isLoginDialogOpen()) {
-				Structr.dialogSystem.setDialogSize($(window).width(), $(window).height(), $(window).width() - 24, $(window).height() - 24);
-			}
-
-			Structr.dialogSystem.isMaximized = true;
-			if (Structr.dialogSystem.getMinimizeDialogButton()) Structr.dialogSystem.getMinimizeDialogButton().style.display = 'block';
-			if (Structr.dialogSystem.getMaximizeDialogButton()) Structr.dialogSystem.getMaximizeDialogButton().style.display = 'none';
-
-			LSWrapper.setItem(Structr.dialogSystem.dialogMaximizedKey, '1');
-
-			Structr.getActiveModule()?.dialogSizeChanged?.();
-		},
-		minimizeDialogButtonAction: () => {
-
-			Structr.dialogSystem.isMaximized = false;
-			LSWrapper.removeItem(Structr.dialogSystem.dialogMaximizedKey);
-			Structr.resize();
-
-			Structr.getActiveModule()?.dialogSizeChanged?.();
-		},
-		dialogCancelBaseAction: () => {
-
-			Structr.dialogSystem.clearDialogElements();
-
-			$.unblockUI({
-				fadeOut: 25
-			});
-
-			Structr.focusSearchField();
-
-			LSWrapper.removeItem(Structr.dialogSystem.dialogDataKey);
-		},
-		clickDialogCancelButton: () => {
-			if (Structr.dialogSystem.elements.dialogCancelButton && Structr.dialogSystem.elements.dialogCancelButton.offsetParent && !Structr.dialogSystem.elements.dialogCancelButton.disabled) {
-				Structr.dialogSystem.elements.dialogCancelButton.click();
-			}
-		},
-		clickSaveButton: () => {
-			if (Structr.dialogSystem.elements.dialogSaveButton && Structr.dialogSystem.elements.dialogSaveButton.offsetParent && !Structr.dialogSystem.elements.dialogSaveButton.disabled) {
-				Structr.dialogSystem.elements.dialogSaveButton.click();
-			}
-		},
-		clickSaveAndCloseButton: () => {
-			if (Structr.dialogSystem.elements.dialogSaveButton && Structr.dialogSystem.elements.dialogSaveButton.offsetParent && !Structr.dialogSystem.elements.dialogSaveButton.disabled) {
-				Structr.dialogSystem.elements.dialogSaveButton.click();
-			}
-		},
-		checkSaveOrCloseOnEscape: () => {
-
-			if (Structr.dialogSystem.isDialogOpen() && Structr.dialogSystem.elements.dialogSaveButton && Structr.dialogSystem.elements.dialogSaveButton.offsetParent && !Structr.dialogSystem.elements.dialogSaveButton.disabled) {
-
-				let saveBeforeExit = confirm('Save changes?');
-				if (saveBeforeExit) {
-					Structr.dialogSystem.clickSaveButton();
-
-					window.setTimeout(Structr.dialogSystem.clickDialogCancelButton, 500);
-				}
-
-			} else {
-
-				Structr.dialogSystem.clickDialogCancelButton();
-			}
-
-		},
-		restoreDialog: () => {
-
-			let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogSystem.dialogDataKey));
-			if (!dialogData) {
-				dialogData = Structr.dialogSystem.getDialogDimensions(24, 24);
-			}
-
-			dialogData.elements = Structr.dialogContainerOffscreen.children;
-
-			window.setTimeout(() => {
-
-				Structr.dialogSystem.blockUI(dialogData);
-				Structr.resize();
-
-			}, 1000);
-		},
-		updateOrCreateDialogCloseButton: () => {
-
-			if (Structr.dialogSystem.elements.dialogCancelButton) {
-				// removes attached event handlers but leaves the HTML intact
-				Structr.dialogSystem.elements.dialogCancelButton.replaceWith(Structr.dialogSystem.elements.dialogCancelButton.cloneNode(true));
-			} else {
-				Structr.dialogSystem.elements.dialogBtn.insertAdjacentHTML('afterbegin', '<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>');
-			}
-			Structr.dialogSystem.elements.dialogCancelButton = Structr.dialogSystem.elements.dialogBtn.querySelector('.closeButton');
-
-			return Structr.dialogSystem.elements.dialogCancelButton;
-		},
-		replaceDialogCloseButton: (button, inPlace = true) => {
-
-			if (!Structr.dialogSystem.elements.dialogCancelButton) {
-				Structr.dialogSystem.elements.dialogBtn.appendChild(button);
-			} else {
-				if (inPlace) {
-					Structr.dialogSystem.elements.dialogCancelButton.replaceWith(button);
-				} else {
-					_Helpers.fastRemoveElement(Structr.dialogSystem.elements.dialogCancelButton);
-					Structr.dialogSystem.elements.dialogBtn.appendChild(button);
-				}
-			}
-
-			Structr.dialogSystem.elements.dialogCancelButton = button;
-		},
-		updateOrCreateDialogSaveButton: (defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
-
-			if (Structr.dialogSystem.elements.dialogSaveButton) {
-				Structr.dialogSystem.elements.dialogSaveButton.replaceWith(Structr.dialogSystem.elements.dialogSaveButton.cloneNode(true));
-			} else {
-				Structr.dialogSystem.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">Save</button>`);
-			}
-
-			Structr.dialogSystem.elements.dialogSaveButton = Structr.dialogSystem.elements.dialogBtn.querySelector('#dialogSaveButton');
-
-			return Structr.dialogSystem.elements.dialogSaveButton;
-		},
-		updateOrCreateDialogSaveAndCloseButton: (defaultClasses = ['hover:bg-gray-100', 'focus:border-gray-666', 'active:border-green']) => {
-
-			if (Structr.dialogSystem.elements.saveAndClose) {
-				Structr.dialogSystem.elements.saveAndClose.replaceWith(Structr.dialogSystem.elements.saveAndClose.cloneNode(true));
-			} else {
-				Structr.dialogSystem.elements.dialogBtn.insertAdjacentHTML('beforeend', `<button id="dialogSaveAndCloseButton" disabled="disabled" class="disabled ${defaultClasses.join(' ')}">Save and close</button>`);
-			}
-
-			Structr.dialogSystem.elements.saveAndClose = Structr.dialogSystem.elements.dialogBtn.querySelector('#dialogSaveAndCloseButton');
-
-			return Structr.dialogSystem.elements.saveAndClose;
-		},
-		appendCustomDialogButton: (buttonHtml) => {
-
-			let button = _Helpers.createSingleDOMElementFromHTML(buttonHtml);
-			Structr.dialogSystem.elements.dialogBtn.appendChild(button);
-
-			return button;
-		},
-		prependCustomDialogButton: (buttonHtml) => {
-
-			let button = _Helpers.createSingleDOMElementFromHTML(buttonHtml);
-			Structr.dialogSystem.elements.dialogBtn.prepend(button);
-
-			return button;
-		},
-		showAndHideInfoBoxMessage: (msg, msgClass, delayTime = 2000, fadeTime = 1000) => {
-
-			if (Structr.dialogSystem.elements.dialogMsg) {
-
-				_Helpers.fastRemoveAllChildren(Structr.dialogSystem.elements.dialogMsg);
-
-				let newDiv = _Helpers.createSingleDOMElementFromHTML(`
-					<div class="infoBox ${msgClass} flex items-center p-2">
-						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(msgClass), 16, 16, ['mr-2'])}
-						<div>
-							${msg}
-						</div>
-					</div>
-				`);
-
-				Structr.dialogSystem.elements.dialogMsg.appendChild(newDiv);
-
-				window.setTimeout(() => {
-					$(newDiv).fadeOut(fadeTime, () => { newDiv.remove(); });
-				}, delayTime);
-			}
-		},
 	},
 	focusSearchField: () => {
 
@@ -952,11 +457,14 @@ let Structr = {
 
 		_Helpers.requestAnimationFrameWrapper(Structr.prevAnimFrameReqId_resize, () => {
 
-			Structr.dialogSystem.resizeDialog();
+			_Dialogs.custom.resizeDialog();
 
-			// call resize function from active module
-			let activeModule = Structr.getActiveModule();
-			activeModule.resize?.();
+			if (StructrWS.user) {
+
+				// call resize function of active module
+				let activeModule = Structr.getActiveModule();
+				activeModule.resize?.();
+			}
 		});
 	},
 	error: (text, confirmationRequired) => {
@@ -1054,38 +562,29 @@ let Structr = {
 
 		messageBuilder.show();
 	},
-	blockMenu: () => {
-		Structr.menuBlocked = true;
-		$('#menu > ul > li > a').attr('disabled', 'disabled').addClass('disabled');
-	},
-	unblockMenu: (ms) => {
-		// Wait ms before releasing the main menu
-		window.setTimeout(() => {
-			Structr.menuBlocked = false;
-			$('#menu > ul > li > a').removeAttr('disabled', 'disabled').removeClass('disabled');
-		}, ms || 0);
-	},
 	requestActivateModule: (event, name) => {
-		if (Structr.menuBlocked) {
+		if (Structr.mainMenu.isBlocked) {
 			return false;
 		}
 
 		event.stopPropagation();
 		if (Structr.getActiveModuleName() !== name || Structr.mainContainer.children.length === 0) {
-			return Structr.doActivateModule(name);
+			return Structr.activateModule(name);
 		}
 
 		return true;
 	},
-	doActivateModule: (name) => {
+	activateModule: (name) => {
 
 		Structr.determineModule();
 
 		if (Structr.modules[name]) {
+
 			let activeModule = Structr.getActiveModule();
 
 			let moduleAllowsNavigation = true;
 			if (activeModule && activeModule.unload) {
+
 				let moduleOverride = activeModule.unload();
 				if (moduleOverride === false) {
 					moduleAllowsNavigation = false;
@@ -1093,8 +592,9 @@ let Structr = {
 			}
 
 			if (moduleAllowsNavigation) {
+
 				Structr.clearMain();
-				Structr.activateMenuEntry(name);
+				Structr.mainMenu.activateEntry(name);
 				Structr.modules[name].onload();
 				Structr.adaptUiToAvailableFeatures();
 			}
@@ -1103,27 +603,10 @@ let Structr = {
 
 		} else {
 
-			Structr.unblockMenu();
+			Structr.mainMenu.unblock();
 		}
 
 		return true;
-	},
-	activateMenuEntry: (name) => {
-		Structr.blockMenu();
-		let menuEntry = $(`#${name}_`);
-		let li = menuEntry.parent();
-		if (li.hasClass('active')) {
-			return false;
-		}
-		Structr.lastMenuEntry = name;
-		$('.menu li').removeClass('active');
-		li.addClass('active');
-		document.title = `Structr ${menuEntry.text()}`;
-		window.location.hash = Structr.lastMenuEntry;
-
-		if (Structr.lastMenuEntry && Structr.lastMenuEntry !== 'logout') {
-			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
-		}
 	},
 	registerModule: (module) => {
 		let name = module._moduleName;
@@ -1136,7 +619,7 @@ let Structr = {
 		}
 	},
 	getActiveModuleName: () => {
-		return Structr.lastMenuEntry || LSWrapper.getItem(Structr.lastMenuEntryKey);
+		return Structr.mainMenu.lastMenuEntry || LSWrapper.getItem(Structr.mainMenu.lastMenuEntryKey);
 	},
 	getActiveModule: () => {
 		return Structr.modules[Structr.getActiveModuleName()];
@@ -1230,7 +713,7 @@ let Structr = {
 				e.stopPropagation();
 				$('a#pages_').droppable('disable');
 
-				Structr.activateMenuEntry('pages');
+				Structr.mainMenu.activateEntry('pages');
 				window.location.href = '/structr/#pages';
 
 				if (_Files.filesMain && _Files.filesMain.length) {
@@ -1446,7 +929,7 @@ let Structr = {
 				};
 			}
 
-			Structr.updateMainMenu(userConfigMenu);
+			Structr.mainMenu.update(userConfigMenu);
 
 			if (envInfo.resultCountSoftLimit !== undefined) {
 				_Crud.resultCountSoftLimit = envInfo.resultCountSoftLimit;
@@ -1469,33 +952,98 @@ let Structr = {
 			}
 		});
 	},
-	updateMainMenu: (menuConfig) => {
+	mainMenu: {
+		lastMenuEntry: undefined,
+		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
+		isBlocked: false,
+		update: (menuConfig, updateLS = true) => {
 
-		LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
-
-		let menu      = document.querySelector('#menu');
-		let submenu   = document.querySelector('#submenu');
-		let hamburger = document.querySelector('#menu li.submenu-trigger');
-
-		// first move all elements from main menu to submenu
-		submenu.append(...menu.querySelectorAll('li[data-name]'));
-
-		// then filter the items by availability in edition
-		for (let menuItem of submenu.querySelectorAll('li[data-name]')) {
-			let name = menuItem.dataset.name;
-			if (!Structr.availableMenuItems.includes(name)) {
-				menuItem.classList.add('hidden');
+			if (updateLS === true) {
+				LSWrapper.setItem(Structr.keyMenuConfig, menuConfig);
 			}
-		}
 
-		for (let entry of menuConfig.main) {
-			hamburger.before(menu.querySelector(`li[data-name="${entry}"]`))
-		}
+			let menu      = document.querySelector('#menu');
+			let submenu   = document.querySelector('#submenu');
+			let hamburger = document.querySelector('#menu li.submenu-trigger');
 
-		// sort submenu
-		for (let entry of menuConfig.sub) {
-			submenu.querySelector('li:last-of-type').after(menu.querySelector(`li[data-name="${entry}"]`))
-		}
+			// first move all elements from main menu to submenu
+			submenu.append(...menu.querySelectorAll('li[data-name]'));
+
+			// then filter the items by availability in edition
+			for (let menuItem of submenu.querySelectorAll('li[data-name]')) {
+				let name = menuItem.dataset.name;
+				if (!Structr.availableMenuItems.includes(name)) {
+					menuItem.classList.add('hidden');
+				}
+			}
+
+			if (menuConfig) {
+
+				for (let entry of menuConfig.main) {
+					hamburger.before(menu.querySelector(`li[data-name="${entry}"]`))
+				}
+
+				// sort submenu
+				for (let entry of menuConfig.sub) {
+					submenu.querySelector('li:last-of-type').after(menu.querySelector(`li[data-name="${entry}"]`))
+				}
+			}
+		},
+		block: () => {
+
+			Structr.mainMenu.isBlocked = true;
+
+			for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
+				menuEntry.disabled = true;
+				menuEntry.classList.add('disabled');
+			}
+		},
+		unblock: (timeoutInMs = 0) => {
+
+			window.setTimeout(() => {
+
+				Structr.mainMenu.isBlocked = false;
+
+				for (let menuEntry of document.querySelectorAll('#menu > ul > li > a')) {
+					menuEntry.disabled = false;
+					menuEntry.classList.remove('disabled');
+				}
+
+			}, timeoutInMs);
+		},
+		reset: () => {
+
+			Structr.mainMenu.update(null, false);
+
+			let submenu = document.querySelector('#submenu');
+			submenu.classList.remove('visible');
+		},
+		activateEntry: (name) => {
+
+			Structr.mainMenu.block();
+
+			let menuEntry = document.querySelector(`#${name}_`);
+
+			let li = menuEntry.closest('li');
+			if (li.classList.contains('active')) {
+				return false;
+			}
+
+			Structr.mainMenu.lastMenuEntry = name;
+
+			for (let menuEntry of document.querySelectorAll('.menu li')) {
+				menuEntry.classList.remove('active');
+			}
+
+			li.classList.add('active');
+
+			document.title       = `Structr ${menuEntry.textContent.trim()}`;
+			window.location.hash = Structr.mainMenu.lastMenuEntry;
+
+			if (Structr.mainMenu.lastMenuEntry && Structr.mainMenu.lastMenuEntry !== 'logout') {
+				LSWrapper.setItem(Structr.mainMenu.lastMenuEntryKey, Structr.mainMenu.lastMenuEntry);
+			}
+		},
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: (el) => {
@@ -2213,16 +1761,15 @@ let Structr = {
 			}
 		}
 	},
-
 	showReconnectDialog: () => {
 
 		let restoreDialogText = '';
-		let dialogData = JSON.parse(LSWrapper.getItem(Structr.dialogSystem.dialogDataKey));
+		let dialogData = JSON.parse(LSWrapper.getItem(_Dialogs.custom.dialogDataKey));
 		if (dialogData && dialogData.text) {
 			restoreDialogText = `<div>The dialog</div><b>"${dialogData.text}"</b><div>will be restored after reconnect.</div>`;
 		}
 
-		_Helpers.appendNonBlockUIOverlay(`
+		let reconnectDialog = `
 			<div id="reconnect-dialog">
 				<div class="flex flex-col gap-y-4 items-center justify-center">
 					<div class="flex items-center">
@@ -2240,9 +1787,15 @@ let Structr = {
 					</div>
 				</div>
 			</div>
-		`);
-	},
+		`;
 
+		_Dialogs.basic.append(reconnectDialog, { padding: '1rem' });
+	},
+	hideReconnectDialog: () => {
+		// remove reconnect dialog
+		let reconnectMessage = document.getElementById('reconnect-dialog');
+		_Dialogs.basic.removeBlockerAround(reconnectMessage);
+	},
 	ensureShadowPageExists: () => {
 
 		return new Promise((resolve, reject) => {
@@ -2388,79 +1941,71 @@ let Structr = {
 			<div id="function-bar"></div>
 			<div id="main"></div>
 
-			<div id="login" class="dialog">
+			<div id="menu-area"></div>
+		`,
+		defaultDialogMarkup: config => ``,
+		loginDialogMarkup: `
+			<div id="login" class="dialog p-6 text-left">
 
 				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
 
-				<form id="loginForm" action="javascript:void(0)">
-					<table class="username-password">
-						<tr>
-							<td><label for="usernameField">Username:</label></td>
-							<td><input id="usernameField" type="text" name="username" autofocus autocomplete="username" required></td>
-						</tr>
-						<tr>
-							<td><label for="passwordField">Password:</label></td>
-							<td><input id="passwordField" type="password" name="password" autocomplete="current-password" required></td>
-						</tr>
-						<tr>
-							<td colspan="2" class="btn">
-								<span id="errorText"></span>
-							</td>
-						</tr>
-						<tr class="username-pw">
-							<td colspan="2" class="btn">
-								<button id="loginButton" name="login" class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
-								</button>
-							</td>
-						</tr>
-					</table>
+				<form id="login-username-password" action="javascript:void(0);">
+
+					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+
+						<div class="self-center" style="">
+							<label for="usernameField">Username:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="usernameField" type="text" name="username" autocomplete="username" required class="w-full p-1 box-border">
+						</div>
+
+						<div class="self-center">
+							<label for="passwordField">Password:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full p-1 box-border">
+						</div>
+
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
+							</button>
+						</div>
+					</div>
 				</form>
 
-				<form id="two-factor-form" action="javascript:void(0)">
-					<div id="two-factor" style="display:none;">
-						<div id="two-factor-qr-code" style="display:none;">
-							<div><img></div>
-							<div id="two-factor-qr-info">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
+				<form id="login-two-factor" action="javascript:void(0);" style="display:none;">
+
+					<div id="two-factor" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+
+						<div id="two-factor-qr-code" class="col-span-2 text-center" style="display: none;">
+							<div>
+								<img>
+							</div>
+							<div class="mt-2 mb-3">Scan this QR Code with a Google Authenticator compatible app to log in.</div>
 						</div>
-						<table>
-							<tr>
-								<td>
-									<label for="twoFactorTokenField">Two-Factor Code:</label>
-								</td>
-								<td>
-									<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
-									<input id="twoFactorCodeField" type="text" name="twoFactorCode" required>
-								</td>
-							</tr>
-							<tr>
-								<td colspan="2" class="btn">
-									<span id="errorText-two-factor"></span>
-								</td>
-							</tr>
-							<tr>
-								<td colspan="2" class="btn">
-									<button id="loginButtonTFA" name="login" class="inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-										${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login 2FA
-									</button>
-								</td>
-							</tr>
-						</table>
+
+						<div class="self-center">
+							<label for="twoFactorTokenField">2FA Code:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
+							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full p-1 box-border">
+						</div>
+
+						<div id="self-center" class="col-span-2 mt-2 text-right">
+							<button id="loginButtonTFA" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login 2FA
+							</button>
+						</div>
 					</div>
 				</form>
 			</div>
-
-			<!--div id="tempInfoBox" class="dialog">
-				<div class="infoHeading"></div>
-				<div class="infoMsg"></div>
-				<div class="dialogBtn">
-					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
-				</div>
-			</div-->
-
-			<div id="menu-area"></div>
-		`,
-		defaultDialogMarkup: config => ``
+		`
 	}
 };
 
@@ -3120,17 +2665,17 @@ window.addEventListener('beforeunload', (event) => {
 	if (event.target === document) {
 
 		let activeModule = Structr.getActiveModule();
-		if (activeModule && activeModule.beforeunloadHandler && typeof activeModule.beforeunloadHandler === "function") {
+		if (activeModule && activeModule.beforeunloadHandler && typeof activeModule.beforeunloadHandler === 'function') {
 			let ret = activeModule.beforeunloadHandler();
 			if (ret) {
 				event.returnValue = ret;
 			}
 			// persist last menu entry
-			LSWrapper.setItem(Structr.lastMenuEntryKey, Structr.lastMenuEntry);
+			LSWrapper.setItem(Structr.mainMenu.lastMenuEntryKey, Structr.mainMenu.lastMenuEntry);
 		}
 
 		// Remove dialog data in case of page reload
-		LSWrapper.removeItem(Structr.dialogSystem.dialogDataKey);
+		LSWrapper.removeItem(_Dialogs.custom.dialogDataKey);
 		LSWrapper.save();
 	}
 });

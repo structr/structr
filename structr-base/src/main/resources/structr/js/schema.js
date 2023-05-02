@@ -231,7 +231,7 @@ let _Schema = {
 
 			Structr.resize();
 
-			Structr.unblockMenu(500);
+			Structr.mainMenu.unblock(500);
 
 			let showSchemaOverlays = LSWrapper.getItem(_Schema.showSchemaOverlaysKey, true);
 			_Schema.ui.updateOverlayVisibility(showSchemaOverlays);
@@ -251,10 +251,10 @@ let _Schema = {
 		Structr.adaptUiToAvailableFeatures();
 	},
 	showSchemaRecompileMessage: () => {
-		_Helpers.showNonBlockUILoadingMessage('Schema is compiling', 'Please wait...');
+		_Dialogs.loadingMessage.show('Schema is compiling', 'Please wait...', 'schema-compilation-message');
 	},
 	hideSchemaRecompileMessage:  () => {
-		_Helpers.hideNonBlockUIOverlay();
+		_Dialogs.loadingMessage.hide('schema-compilation-message');
 	},
 	loadSchema: async () => {
 
@@ -287,7 +287,7 @@ let _Schema = {
 		if (_Schema.currentNodeDialogId !== null) {
 
 			// we break the current dialog the hard way (because if we 'click' the close button we might re-open the previous dialog
-			Structr.dialogSystem.dialogCancelBaseAction();
+			_Dialogs.custom.dialogCancelBaseAction();
 
 			let currentView = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${_Schema.currentNodeDialogId}`);
 
@@ -320,9 +320,11 @@ let _Schema = {
 
 		Command.get(id, null, (entity) => {
 
-			let title = (entity.type === "SchemaRelationshipNode") ? `(:${_Schema.nodeData[entity.sourceId].name})-[:${entity.relationshipType}]-&gt;(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
+			let isRelationship = (entity.type === "SchemaRelationshipNode");
+			let title          = isRelationship ? `(:${_Schema.nodeData[entity.sourceId].name})—[:${entity.relationshipType}]—►(:${_Schema.nodeData[entity.targetId].name})` : entity.name;
 
 			let callbackCancel = () => {
+
 				_Schema.currentNodeDialogId = null;
 
 				callback?.();
@@ -330,7 +332,7 @@ let _Schema = {
 				_Schema.ui.jsPlumbInstance.repaintEverything();
 			};
 
-			let { dialogText } = Structr.dialogSystem.openDialog(title, callbackCancel, ['schema-edit-dialog']);
+			let { dialogText } = _Dialogs.custom.openDialog(title, callbackCancel, ['schema-edit-dialog']);
 
 			dialogText.insertAdjacentHTML('beforeend', `
 				<div class="schema-details flex flex-col h-full overflow-hidden">
@@ -345,7 +347,7 @@ let _Schema = {
 
 			let tabControls;
 
-			if (entity.type === "SchemaRelationshipNode") {
+			if (isRelationship) {
 				tabControls = _Schema.relationships.loadRelationship(entity, mainTabs, contentEl, _Schema.nodeData[entity.sourceId], _Schema.nodeData[entity.targetId], targetView, callbackCancel);
 			} else {
 				tabControls = _Schema.nodes.loadNode(entity, mainTabs, contentEl, targetView, callbackCancel);
@@ -356,8 +358,10 @@ let _Schema = {
 				button.remove();
 			}
 
-			let cancelButton = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard All' }));
-			let saveButton   = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Save All' }));
+			let cancelButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard All' }));
+			let saveButton   = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Save All' }));
+
+			_Dialogs.custom.setDialogSaveButton(saveButton);
 
 			saveButton.addEventListener('click', async (e) => {
 
@@ -394,7 +398,7 @@ let _Schema = {
 
 			if (Structr.isModuleActive(_Schema)) {
 
-				let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
+				let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
 
 				newCancelButton.addEventListener('click', async (e) => {
 
@@ -406,14 +410,14 @@ let _Schema = {
 						if (hasChanges) {
 
 							_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = true;
-							allowNavigation = await _Helpers.confirmationPromiseNonBlockUI("Really close with unsaved changes?")
+							allowNavigation = await _Dialogs.confirmation.showPromise("Really close with unsaved changes?")
 						}
 
 						_Schema.bulkDialogsGeneral.closeWithoutSavingChangesQuestionOpen = false;
 
 						if (allowNavigation === true) {
 
-							Structr.dialogSystem.dialogCancelBaseAction();
+							_Dialogs.custom.dialogCancelBaseAction();
 
 							if (additionalCallback) {
 								additionalCallback();
@@ -694,7 +698,7 @@ let _Schema = {
 								});
 
 								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
-									let confirm = await _Helpers.confirmationPromiseNonBlockUI(`
+									let confirm = await _Dialogs.confirmation.showPromise(`
 										<h3>Delete schema node '${entity.name}'?</h3>
 										<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
 									`);
@@ -874,7 +878,7 @@ let _Schema = {
 			let tabControls = {
 				basic            : _Schema.nodes.appendBasicNodeInfo(basicTabContent, entity, mainTabs),
 				schemaProperties : _Schema.properties.appendLocalProperties(localPropsTabContent, entity),
-				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs); }),
+				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); }),
 				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
 				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
 				schemaGrants     : _Schema.nodes.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
@@ -898,12 +902,14 @@ let _Schema = {
 		},
 		showCreateTypeDialog: async () => {
 
-			let { dialogText } = Structr.dialogSystem.openDialog("Create Type", null, ['schema-edit-dialog']);
+			let { dialogText } = _Dialogs.custom.openDialog("Create Type", null, ['schema-edit-dialog']);
 
 			_Schema.nodes.showCreateNewTypeDialog(dialogText);
 
-			let saveButton    = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
-			let discardButton = Structr.dialogSystem.appendCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+			let discardButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+			let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
+
+			_Dialogs.custom.setDialogSaveButton(saveButton);
 
 			saveButton.addEventListener('click', async (e) => {
 
@@ -926,9 +932,9 @@ let _Schema = {
 			});
 
 			// replace old cancel button with "discard button" to enable global ESC handler
-			Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
+			_Dialogs.custom.replaceDialogCloseButton(discardButton, false);
 			discardButton.addEventListener('click', (e) => {
-				Structr.dialogSystem.dialogCancelBaseAction();
+				_Dialogs.custom.dialogCancelBaseAction();
 			});
 		},
 		populateBasicTypeInfo: (container, entity) => {
@@ -1035,7 +1041,7 @@ let _Schema = {
 
 				tabContent.querySelector('.edit-parent-type')?.addEventListener('click', async () => {
 
-					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to parent type?"));
+					let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to parent type?"));
 					if (okToNavigate) {
 						_Schema.openEditDialog(entity.extendsClass.id, undefined, () => {
 
@@ -1532,7 +1538,7 @@ let _Schema = {
 					editLink.addEventListener('click', async (e) => {
 						e.stopPropagation();
 
-						let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+						let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to related type?"));
 						if (okToNavigate) {
 							_Schema.openEditDialog(editLink.dataset['objectId']);
 						}
@@ -1694,7 +1700,7 @@ let _Schema = {
 			let sourceId = Structr.getIdFromPrefixIdString(info.sourceId, 'id_');
 			let targetId = Structr.getIdFromPrefixIdString(info.targetId, 'id_');
 
-			let { dialogText } = Structr.dialogSystem.openDialog("Create Relationship", ['schema-edit-dialog']);
+			let { dialogText } = _Dialogs.custom.openDialog("Create Relationship", ['schema-edit-dialog']);
 
 			dialogText.insertAdjacentHTML('beforeend', _Schema.templates.relationshipBasicTab());
 
@@ -1740,8 +1746,10 @@ let _Schema = {
 
 			if (Structr.isModuleActive(_Schema)) {
 
-				let discardButton = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
-				let saveButton    = Structr.dialogSystem.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
+				let discardButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
+				let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
+
+				_Dialogs.custom.setDialogSaveButton(saveButton);
 
 				saveButton.addEventListener('click', async () => {
 
@@ -1760,7 +1768,7 @@ let _Schema = {
 				});
 
 				// replace old cancel button with "discard button" to enable global ESC handler
-				Structr.dialogSystem.replaceDialogCloseButton(discardButton, false);
+				_Dialogs.custom.replaceDialogCloseButton(discardButton, false);
 				discardButton.addEventListener('click', () => {
 
 					_Schema.currentNodeDialogId = null;
@@ -1768,7 +1776,7 @@ let _Schema = {
 					_Schema.ui.jsPlumbInstance.repaintEverything();
 					_Schema.ui.jsPlumbInstance.detach(info.connection);
 
-					Structr.dialogSystem.dialogCancelBaseAction();
+					_Dialogs.custom.dialogCancelBaseAction();
 				});
 			}
 
@@ -1960,7 +1968,7 @@ let _Schema = {
 		},
 		askDeleteRelationship: (resId, name) => {
 
-			_Helpers.confirmationPromiseNonBlockUI(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`).then(async confirm => {
+			_Dialogs.confirmation.showPromise(`<h3>Delete schema relationship${(name ? ` '${name}'` : '')}?</h3>`).then(async confirm => {
 				if (confirm === true) {
 					await _Schema.relationships.removeRelationshipDefinition(resId);
 				}
@@ -2040,7 +2048,7 @@ let _Schema = {
 						indexedCb.checked = shouldIndex;
 
 						_Helpers.blink(indexedCb.closest('td'), '#fff', '#bde5f8');
-						Structr.dialogSystem.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Automatically updated indexed flag to default behavior for property type (you can still override this)', 'info', 2000, 200);
 					}
 				});
 
@@ -2355,16 +2363,16 @@ let _Schema = {
 
 			Command.get(id, `id,name,contentType,${key}`, (entity) => {
 
-				let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
-				Structr.dialogSystem.showMeta();
+				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit ${key} of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
+				_Dialogs.custom.showMeta();
 
 				let initialText = entity[key] || '';
 
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-				let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-				let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+				let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+				let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 				let editorInfo       = dialogMeta.querySelector('.editor-info');
 				_Editors.appendEditorOptionsElement(editorInfo);
 
@@ -2388,7 +2396,7 @@ let _Schema = {
 
 						Command.setProperty(entity.id, key, text2, false, () => {
 
-							Structr.dialogSystem.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
@@ -2397,7 +2405,7 @@ let _Schema = {
 							});
 
 							if (close === true) {
-								Structr.dialogSystem.clickDialogCancelButton();
+								_Dialogs.custom.clickDialogCancelButton();
 							}
 						});
 					},
@@ -2430,8 +2438,8 @@ let _Schema = {
 
 			Command.get(id, 'id,name,format', (entity) => {
 
-				let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit cypher query of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
-				Structr.dialogSystem.showMeta();
+				let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit cypher query of ${entity.name}`, closeCallback, ['popup-dialog-with-editor']);
+				_Dialogs.custom.showMeta();
 
 				let key         = 'format';
 				let initialText = entity[key] || '';
@@ -2439,8 +2447,8 @@ let _Schema = {
 				dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 				dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-				let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-				let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+				let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+				let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 				let editorInfo       = dialogMeta.querySelector('.editor-info');
 				_Editors.appendEditorOptionsElement(editorInfo);
 
@@ -2468,7 +2476,7 @@ let _Schema = {
 
 							_Schema.hideSchemaRecompileMessage();
 
-							Structr.dialogSystem.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
+							_Dialogs.custom.showAndHideInfoBoxMessage('Code saved.', 'success', 2000, 200);
 							_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
 							Command.getProperty(entity.id, key, (newText) => {
@@ -2476,7 +2484,7 @@ let _Schema = {
 							});
 
 							if (close === true) {
-								Structr.dialogSystem.clickDialogCancelButton();
+								_Dialogs.custom.clickDialogCancelButton();
 							}
 						});
 					},
@@ -2560,10 +2568,14 @@ let _Schema = {
 			'1': 'one',
 			'*': 'many'
 		},
-		asyncEditSchemaObjectLinkHandler: async (el, mainTabs) => {
-			let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Helpers.confirmationPromiseNonBlockUI("There are unsaved changes - really navigate to related type?"));
+		asyncEditSchemaObjectLinkHandler: async (el, mainTabs, previousEntityId) => {
+			let okToNavigate = !_Schema.bulkDialogsGeneral.hasUnsavedChangesInTabs(mainTabs) || (await _Dialogs.confirmation.showPromise("There are unsaved changes - really navigate to related type?"));
 			if (okToNavigate) {
-				_Schema.openEditDialog(el.dataset['objectId']);
+				_Schema.openEditDialog(el.dataset['objectId'], undefined, () => {
+					window.setTimeout(() => {
+						_Schema.openEditDialog(previousEntityId);
+					}, 250);
+				});
 			}
 		},
 		appendRemote: (container, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
@@ -2731,17 +2743,16 @@ let _Schema = {
 
 				if (Structr.isModuleActive(_Schema)) {
 
-					row.querySelector('.edit-schema-object').addEventListener('click', async (e) => {
-						e.stopPropagation();
+					for (let otherSchemaTypeLink of row.querySelectorAll('.edit-schema-object')) {
 
-						let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row.closest('table'));
+						otherSchemaTypeLink.addEventListener('click', async (e) => {
+							e.stopPropagation();
 
-						if (!unsavedChanges || confirm("Really switch to other type? There are unsaved changes which will be lost!")) {
 							editSchemaObjectLinkHandler(e.target);
-						}
 
-						return false;
-					});
+							return false;
+						});
+					}
 
 				} else {
 
@@ -3624,7 +3635,7 @@ let _Schema = {
 
 			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-				let { dialogText } = Structr.dialogSystem.openDialog('Global Schema Methods', () => {
+				let { dialogText } = _Dialogs.custom.openDialog('Global Schema Methods', () => {
 
 					_Schema.currentNodeDialogId = null;
 
@@ -3965,8 +3976,8 @@ let _Schema = {
 			if (status === 'success') {
 				_Schema.reload();
 			} else {
-				if (Structr.dialogSystem.isDialogOpen()) {
-					Structr.dialogSystem.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
+				if (_Dialogs.custom.isDialogOpen()) {
+					_Dialogs.custom.showAndHideInfoBoxMessage(status, 'error', 2000, 200);
 				}
 			}
 		});
@@ -4015,7 +4026,7 @@ let _Schema = {
 
 		$('#clear-schema').on('click', async (e) => {
 
-			let confirm = await _Helpers.confirmationPromiseNonBlockUI('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>');
+			let confirm = await _Dialogs.confirmation.showPromise('<h3>Delete schema?</h3><p>This will remove all dynamic schema information, but not your other data.</p><p>&nbsp;</p>');
 
 			if (confirm === true) {
 
@@ -4348,7 +4359,7 @@ let _Schema = {
 	},
 	openTypeVisibilityDialog: () => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog('Schema Type Visibility', null, ['full-height-dialog-text']);
+		let { dialogText } = _Dialogs.custom.openDialog('Schema Type Visibility', null, ['full-height-dialog-text']);
 
 		let visibilityTables = [
 			{
@@ -4669,7 +4680,7 @@ let _Schema = {
 						let nodeId = delIcon.closest('li').dataset['id'];
 						if (nodeId) {
 
-							let confirm = await _Helpers.confirmationPromiseNonBlockUI(`
+							let confirm = await _Dialogs.confirmation.showPromise(`
 								<h3>Delete schema node '${delIcon.closest('a').textContent.trim()}'?</h3>
 								<p>This will delete all incoming and outgoing schema relationships as well,<br> but no data will be removed.</p>
 							`);
@@ -5316,7 +5327,7 @@ let _Schema = {
 					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-baseline mb-4">
 
 						<div class="text-right pb-2 truncate">
-							<span id="source-type-name" class="edit-schema-object relationship-emphasis"></span>
+							<span id="source-type-name" class="edit-schema-object font-medium cursor-pointer"></span>
 						</div>
 
 						<div class="flex items-center justify-around">
@@ -5344,7 +5355,7 @@ let _Schema = {
 						</div>
 
 						<div class="text-left pb-2 truncate">
-							<span id="target-type-name" class="edit-schema-object relationship-emphasis"></span>
+							<span id="target-type-name" class="edit-schema-object font-medium cursor-pointer"></span>
 						</div>
 
 						<div></div>
@@ -5549,8 +5560,8 @@ let _Schema = {
 			<tr data-relationship-id="${config.rel.id}" data-property-name="${config.propertyName}" data-target-collection="${config.targetCollection}">
 				<td><input size="15" type="text" class="property-name related" value="${config.attributeName}" /></td>
 				<td>
-					${config.arrowLeft}&mdash;<i class="cardinality ${config.cardinalityClassLeft}"></i>&mdash;[:<span class="edit-schema-object" data-object-id="${config.rel.id}">${config.relType}</span>]&mdash;<i class="cardinality ${config.cardinalityClassRight}"></i>&mdash;${config.arrowRight}
-					<span class="edit-schema-object" data-object-id="${config.relatedNodeId}">${config.relatedNodeType}</span>
+					${config.arrowLeft}&mdash;<i class="cardinality ${config.cardinalityClassLeft}"></i>&mdash;[:<span class="edit-schema-object font-medium cursor-pointer" data-object-id="${config.rel.id}">${config.relType}</span>]&mdash;<i class="cardinality ${config.cardinalityClassRight}"></i>&mdash;${config.arrowRight}
+					<span class="edit-schema-object font-medium cursor-pointer" data-object-id="${config.relatedNodeId}">${config.relatedNodeType}</span>
 				</td>
 				<td class="centered">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}

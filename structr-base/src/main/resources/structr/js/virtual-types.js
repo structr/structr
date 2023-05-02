@@ -90,7 +90,7 @@ let _VirtualTypes = {
 
 		_Helpers.activateCommentsInElement(_VirtualTypes.virtualTypeDetail);
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		_VirtualTypes.moveResizer();
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _VirtualTypes.virtualTypesResizerLeftKey, 300, _VirtualTypes.moveResizer);
@@ -239,7 +239,7 @@ let _VirtualTypes = {
 			name: 'Delete Virtual Type',
 			clickHandler: async () => {
 
-				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`<p>Do you really want to delete the virtual type "<b>${virtualType.name}</b>" with all its virtual properties?</p>`);
 
 				if (confirm === true) {
 
@@ -416,7 +416,7 @@ let _VirtualTypes = {
 	},
 	deleteVirtualProperty: (id, row) => {
 
-		_Helpers.confirmationPromiseNonBlockUI('<p>Do you really want to delete the virtual property?</p>').then(async confirm => {
+		_Dialogs.confirmation.showPromise('<p>Do you really want to delete the virtual property?</p>').then(async confirm => {
 
 			if (confirm === true) {
 

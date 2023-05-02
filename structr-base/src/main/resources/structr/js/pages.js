@@ -77,13 +77,13 @@ let _Pages = {
 	},
 	onload: () => {
 
-		// TODO: remove!... but if removed, pages has a horizontal scrollbar caused by the right slideouts
+		// if removed, pages has a horizontal scrollbar caused by the right slideouts (is removed in "unload" method)
 		document.querySelector('body').style.position = 'fixed';
 
 		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 		if (urlHash) {
-			Structr.menuBlocked = false;
-			window.location.hash = urlHash;
+			Structr.mainMenu.isBlocked = false;
+			window.location.hash       = urlHash;
 		}
 
 		Structr.setMainContainerHTML(_Pages.templates.main());
@@ -674,7 +674,7 @@ let _Pages = {
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
-		Structr.unblockMenu(500);
+		Structr.mainMenu.unblock(500);
 
 		document.getElementById(_Pages.getActiveTabLeft())?.click();
 		document.getElementById(_Pages.getActiveTabRight())?.click();
@@ -730,7 +730,7 @@ let _Pages = {
 		$('#import_page').on('click', (e) => {
 			e.stopPropagation();
 
-			let { dialogText } = Structr.dialogSystem.openDialog('Import Template');
+			let { dialogText } = _Dialogs.custom.openDialog('Import Template');
 
 			dialogText.insertAdjacentHTML('beforeend', `
 				<h3>Create page from source code ...</h3>
@@ -761,7 +761,7 @@ let _Pages = {
 				$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
-			let startImportButton = Structr.dialogSystem.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
+			let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
 
 			startImportButton.addEventListener('click', (e) => {
 				e.stopPropagation();
@@ -796,7 +796,7 @@ let _Pages = {
 
 			} else {
 
-				let { dialogText } = Structr.dialogSystem.openDialog('Select Template to Create New Page');
+				let { dialogText } = _Dialogs.custom.openDialog('Select Template to Create New Page');
 
 				let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
 				dialogText.appendChild(container);
@@ -811,7 +811,7 @@ let _Pages = {
 						Command.create({ type: 'Page' }, (page) => {
 							Structr.removeExpandedNode(page.id);
 							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-							Structr.dialogSystem.dialogCancelBaseAction();
+							_Dialogs.custom.dialogCancelBaseAction();
 						});
 					});
 
@@ -824,7 +824,7 @@ let _Pages = {
 				let createSimplePageButton = container.querySelector('#create-simple-page');
 				createSimplePageButton.addEventListener('click', () => {
 					Command.createSimplePage();
-					Structr.dialogSystem.dialogCancelBaseAction();
+					_Dialogs.custom.dialogCancelBaseAction();
 				});
 			}
 		});
@@ -1030,7 +1030,7 @@ let _Pages = {
 
 			case '#pages:basic':
 
-				let dialogConfig = _Dialogs.getDialogConfigForEntity(obj);
+				let dialogConfig = _Entities.basicTab.getBasicTabConfig(obj);
 
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
 				let basicContainer = document.querySelector('#center-pane .basic-container');
@@ -3228,7 +3228,7 @@ console.log(raw)
 				let deleteUnattachedNodesButton = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
-					let confirm = await _Helpers.confirmationPromiseNonBlockUI('<p>Delete all DOM elements without parent?</p>');
+					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
 					if (confirm === true) {
 						Command.deleteUnattachedNodes();
 
@@ -3688,7 +3688,7 @@ console.log(raw)
 
 					<div class="grid grid-cols-2 gap-8">
 
-						<div class="option-tile">
+						<div>
 							<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
 							<select class="select2" id="event-select">
 								<option value="none">None</option>
@@ -3700,7 +3700,7 @@ console.log(raw)
 							</select>
 						</div>
 
-						<div class="option-tile">
+						<div>
 							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
 							<select class="select2" id="action-select">
 								<option value="none">No action</option>
@@ -3715,44 +3715,45 @@ console.log(raw)
 							</select>
 						</div>
 
-						<div class="hidden opacity-0 option-tile options-custom-event">
+						<div class="hidden opacity-0 options-custom-event">
 							<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
 							<input type="text" id="custom-event-input">
 						</div>
 
-						<div class="hidden opacity-0 option-tile options-custom-action">
+						<div class="hidden opacity-0 options-custom-action">
 							<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
 							<input type="text" id="custom-action-input">
 						</div>
 
-						<div class="option-tile option-any uuid-container-for-all-events">
-							<div class="option-tile hidden event-options options-delete">
+						<div>
+							<!-- exists so it is always displayed -->
+							<div class="hidden event-options options-delete">
 								<label class="block mb-2" for="delete-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
 								<input type="text" id="delete-target-input">
 							</div>
-							<div class="option-tile hidden event-options options-method">
+							<div class="hidden event-options options-method">
 								<label class="block mb-2" for="method-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
 								<input type="text" id="method-target-input">
 							</div>
-							<div class="option-tile hidden event-options options-custom">
+							<div class="hidden event-options options-custom">
 								<label class="block mb-2" for="custom-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
 								<input type="text" id="custom-target-input">
 							</div>
-							<div class="option-tile hidden event-options options-update">
+							<div class="hidden event-options options-update">
 								<label class="block mb-2" for="update-target-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
 								<input type="text" id="update-target-input">
 							</div>
 						</div>
 
-						<!--div class="row hidden event-options options-prev-page options-next-page">
-							<div class="option-tile">
+						<!--div class="hidden event-options options-prev-page options-next-page">
+							<div>
 								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
 								<input type="text" id="pagination-name-input">
 							</div>
 						</div-->
 
-						<div class="row hidden event-options options-create options-update">
-							<div class="option-tile">
+						<div class="hidden event-options options-create options-update">
+							<div class="relative">
 								<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
 								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
 								<select class="required combined-input-select-field" id="data-type-select">
@@ -3761,15 +3762,15 @@ console.log(raw)
 							</div>
 						</div>
 
-						<div class="row hidden event-options options-method">
-							<div class="option-tile">
+						<div class="hidden event-options options-method">
+							<div>
 								<label class="block mb-2" for="method-name-input">Name of method to execute</label>
 								<input type="text" id="method-name-input">
 							</div>
 						</div>
 
-						<!--div class="row hidden event-options options-update">
-							<div class="option-tile">
+						<!--div class="hidden event-options options-update">
+							<div>
 								<label class="block mb-2" for="update-property-input">Name of property to update</label>
 								<input type="text" id="update-property-input">
 							</div>
@@ -3777,7 +3778,7 @@ console.log(raw)
 
 						<div class="col-span-2 hidden event-options event-drop">
 							<h3>Drag & Drop</h3>
-							<div class="option-tile">
+							<div>
 								<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
 								<ul class="mb-2">
 									<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
@@ -3801,7 +3802,7 @@ console.log(raw)
 							<h3>Follow-up Actions</h3>
 							<div class="grid grid-cols-2 gap-8 event-options">
 
-								<div class="option-tile">
+								<div>
 									<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
 									<select class="select2" id="success-behaviour-select">
 										<option value="nothing">Nothing</option>
@@ -3812,11 +3813,11 @@ console.log(raw)
 										<option value="fire-event">Raise a custom event</option>
 									</select>
 								</div>
-								<div class="hidden option-tile option-success option-success-partial-refresh">
+								<div class="hidden option-success option-success-partial-refresh">
 									<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
 									<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
 								</div>
-								<div class="hidden option-tile option-success-partial-refresh-linked">
+								<div class="hidden option-success-partial-refresh-linked">
 									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
 									<input type="hidden" id="success-partial-refresh-linked-input" value="">
 									<div class="element-dropzone link-reload-element-dropzone">
@@ -3826,18 +3827,18 @@ console.log(raw)
 										</div>
 									</div>
 								</div>
-								<div class="hidden option-tile option-success option-success-navigate-to-url">
+								<div class="hidden option-success option-success-navigate-to-url">
 									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
 									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 								</div>
-								<div class="hidden option-tile option-success option-success-fire-event">
+								<div class="hidden option-success option-success-fire-event">
 									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
 									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
 								</div>
 							</div>
 
 							<div class="grid grid-cols-2 gap-8 mt-4 event-options">
-								<div class="option-tile">
+								<div>
 									<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
 									<select class="select2" id="failure-behaviour-select">
 										<option value="nothing">Nothing</option>
@@ -3848,15 +3849,15 @@ console.log(raw)
 										<option value="fire-event">Raise a custom event</option>
 									</select>
 								</div>
-								<div class="hidden option-tile option-failure option-failure-partial-refresh">
+								<div class="hidden option-failure option-failure-partial-refresh">
 									<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
 									<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
 								</div>
-								<div class="hidden option-tile option-failure option-failure-navigate-to-url">
+								<div class="hidden option-failure option-failure-navigate-to-url">
 									<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
 									<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
 								</div>
-								<div class="hidden option-tile option-failure option-failure-fire-event">
+								<div class="hidden option-failure option-failure-fire-event">
 									<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
 									<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
 								</div>
@@ -3864,7 +3865,7 @@ console.log(raw)
 							</div>
 						</div>
 
-						<div class="option-tile col-span-2">
+						<div class="col-span-2">
 							<button type="button" class="action" id="save-event-mapping-button">Save</button>
 						</div>
 
@@ -3878,12 +3879,12 @@ console.log(raw)
 
 				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
 
-					<div class="option-tile">
+					<div>
 						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>
 						<input type="text" class="parameter-name-input" placeholder="Name" value="${config.parameterName || ''}">
 					</div>
 
-					<div class="option-tile">
+					<div>
 						<label class="block mb-2" for="parameter-type-select" data-comment="Select the type of this parameter.">Parameter type</label>
 						<select class="parameter-type-select">
 							<option>-- Select --</option>
@@ -3897,17 +3898,17 @@ console.log(raw)
 						</select>
 					</div>
 
-					<div class="hidden col-span-2 option-tile parameter-value parameter-constant-value">
+					<div class="hidden col-span-2 parameter-value parameter-constant-value">
 						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
 						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 option-tile parameter-value parameter-script-expression">
+					<div class="hidden col-span-2 parameter-value parameter-script-expression">
 						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
 						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 option-tile parameter-value parameter-user-input">
+					<div class="hidden col-span-2 parameter-value parameter-user-input">
 						<label class="block mb-2" data-comment="Drag a form input element (&amp;lt;input&amp;gt;, &amp;lt;textarea&amp;gt; or &amp;lt;select&amp;gt;) and drop it here">Form input element</label>
 						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
 						<div class="element-dropzone link-existing-element-dropzone">
@@ -3918,19 +3919,19 @@ console.log(raw)
 						</div>
 					</div>
 
-					<div class="hidden col-span-2 option-tile parameter-value parameter-method-result">
+					<div class="hidden col-span-2 parameter-value parameter-method-result">
 						<label class="block mb-2" data-comment="The method will be evaluated and the result passed as parameter value">Method</label>
 						<input type="text" class="parameter-method-result-input" placeholder="Method name" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 option-tile parameter-value parameter-flow-result">
+					<div class="hidden col-span-2 parameter-value parameter-flow-result">
 						<label class="block mb-2" data-comment="The selected Flow will be evaluated and the result passed as parameter value">Flow result</label>
 						<select class="parameter-flow-result-input">
 							<option value="">-- Select flow --</option>
 						</select>
 					</div>
 
-					<div class="option-tile">
+					<div>
 						<label class="hidden block mb-2">Actions</label>
 						<i class="block mt-4 cursor-pointer parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
 					</div>

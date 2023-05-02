@@ -580,12 +580,12 @@ let _Editors = {
 
 				if (_Speech.isCommand('save', interim)) {
 
-					Structr.dialogSystem.clickSaveButton();
+					_Dialogs.custom.clickSaveButton();
 
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
 
 					_Speech.toggleStartStop(speechBtn, function() {
-						Structr.dialogSystem.clickSaveAndCloseButton();
+						_Dialogs.custom.clickSaveAndCloseButton();
 					});
 
 				} else if (_Speech.isCommand('close', interim)) {

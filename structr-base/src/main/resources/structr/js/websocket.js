@@ -129,7 +129,7 @@ let StructrWS = {
 	},
 	onopen: (workerMessage) => {
 
-		_Helpers.hideNonBlockUIOverlay();
+		Structr.hideReconnectDialog();
 
 		let wasDisconnect = Structr.moveOffscreenUIOnscreen();
 
@@ -181,9 +181,10 @@ let StructrWS = {
 			if (!sessionValid) {
 
 				Structr.clearMain();
-				Structr.login(msg);
+				_Dialogs.loginDialog.show();
+				_Dialogs.loginDialog.appendErrorMessage(msg);
 
-			} else if (!StructrWS.user || StructrWS.user !== data.data.username || Structr.dialogSystem.isLoginDialogOpen()) {
+			} else if (!StructrWS.user || StructrWS.user !== data.data.username || _Dialogs.loginDialog.isOpen()) {
 
 				if (StructrWS.skipNext100Code === true) {
 
@@ -204,11 +205,8 @@ let StructrWS = {
 					*/
 
 					Structr.updateUsername(data.data.username);
-					loginBox.hide();
-					Structr.clearLoginForm();
 
-					$('table.username-password', loginBox).show();
-					$('table.twofactor', loginBox).hide();
+					_Dialogs.loginDialog.hide();
 
 					Structr.refreshUi((command === 'LOGIN'));
 				}
@@ -236,9 +234,11 @@ let StructrWS = {
 				StructrWS.userId = null;
 
 				if (data.data.reason === 'sessionLimitExceeded') {
-					Structr.login('Max. number of sessions exceeded.');
+					_Dialogs.loginDialog.show();
+					_Dialogs.loginDialog.appendErrorMessage('Max. number of sessions exceeded.');
 				} else {
-					Structr.login('Wrong username or password!');
+					_Dialogs.loginDialog.show();
+					_Dialogs.loginDialog.appendErrorMessage('Wrong username or password!');
 				}
 
 			} else if (code === 401) {
@@ -246,23 +246,20 @@ let StructrWS = {
 				StructrWS.user   = null;
 				StructrWS.userId = null;
 
-				if (data.data.reason === 'twofactortoken') {
-
-					Structr.clearLoginForm();
-					$('table.username-password', loginBox).show();
-					$('table.twofactor', loginBox).hide();
+				if (data.data.reason === 'invalidTwoFactorToken') {
+					_Dialogs.loginDialog.hideTwoFactor();
 				}
 
-				Structr.login(msg || '');
+				_Dialogs.loginDialog.show();
+				_Dialogs.loginDialog.appendErrorMessage(msg);
 
 			} else if (code === 202) {
 
 				StructrWS.user   = null;
 				StructrWS.userId = null;
 
-				Structr.login('');
-
-				Structr.show2FALoginBox(data.data);
+				_Dialogs.loginDialog.show();
+				_Dialogs.loginDialog.showTwoFactor(data.data);
 
 			} else {
 
@@ -296,9 +293,9 @@ let StructrWS = {
 
 					let msgObj = JSON.parse(msg);
 
-					if (Structr.dialogSystem.isDialogOpen()) {
+					if (_Dialogs.custom.isDialogOpen()) {
 
-						Structr.dialogSystem.showAndHideInfoBoxMessage(`${msgObj.size} bytes saved to ${msgObj.name}`, messageType, 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage(`${msgObj.size} bytes saved to ${msgObj.name}`, messageType, 2000, 200);
 
 					} else {
 
@@ -545,7 +542,7 @@ let StructrWS = {
 					}
 				}
 
-				if (command === 'CREATE' && entity.isPage && Structr.lastMenuEntry === _Pages._moduleName) {
+				if (command === 'CREATE' && entity.isPage && Structr.mainMenu.lastMenuEntry === _Pages._moduleName) {
 
 					if (entity.createdBy === StructrWS.userId) {
 						window.setTimeout(() => {
@@ -568,7 +565,7 @@ let StructrWS = {
 		} else if (command === 'PROGRESS') {
 
 			let msgObj = JSON.parse(data.message);
-			Structr.dialogSystem.showAndHideInfoBoxMessage(msgObj.message, 'info');
+			_Dialogs.custom.showAndHideInfoBoxMessage(msgObj.message, 'info');
 
 		} else if (command === 'FINISHED') {
 
@@ -620,7 +617,7 @@ let StructrWS = {
 				StructrWS.userId = null;
 				Structr.clearMain();
 
-				Structr.login();
+				_Dialogs.loginDialog.show();
 			}
 		}
 	},

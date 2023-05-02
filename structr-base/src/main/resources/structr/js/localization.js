@@ -116,7 +116,7 @@ let _Localization = {
 		_Localization.localizationDetailSaveButton = $('#localization-fields-save').on('click', _Localization.saveButtonAction);
 		_Localization.localizationsDetailList      = $('#localization-detail-table tbody');
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		_Localization.moveResizer();
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Localization.localizationResizerLeftKey, 340, _Localization.moveResizer);
@@ -143,9 +143,9 @@ let _Localization = {
 			name: 'Delete Localization',
 			clickHandler: async () => {
 
-				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`<p>Do you really want to delete the complete localizations for "<b>${keyAndDomainObject.name}</b>" ${(keyAndDomainObject.domain ? ` in domain "<b>${keyAndDomainObject.domain}</b>"` : ' with empty domain')} ?</p>`);
 				if (confirm === true) {
-					_Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
+					await _Localization.deleteCompleteLocalization((keyAndDomainObject.name ? keyAndDomainObject.name : null), (keyAndDomainObject.domain ? keyAndDomainObject.domain : null));
 
 					_Localization.localizationDetailContainer.style.display = 'none';
 				}
@@ -454,7 +454,7 @@ let _Localization = {
 
 			let key    = _Localization.localizationDetailKey.val();
 			let domain = _Localization.localizationDetailDomain.val();
-			let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
+			let confirm = await _Dialogs.confirmation.showPromise(`<p>Really delete localization "${(localization.localizedName || '')}" for key "${key}"${(domain ? ` in domain "${domain}"` : ' with empty domain')}?</p>`);
 
 			if (confirm === true) {
 
