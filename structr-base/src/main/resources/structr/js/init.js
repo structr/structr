@@ -2387,7 +2387,7 @@ class MessageBuilder {
 						<div class="message-text">
 							${this.params.text}
 						</div>
-						<div class="message-buttons">
+						<div class="message-buttons text-right mb-1">
 							${this.getButtonHtml()}
 						</div>
 					</div>

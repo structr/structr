@@ -2253,13 +2253,6 @@ th.center {
 	overflow: auto;
 }
 
-#info-area .message-buttons {
-	position: relative;
-	text-align: right;
-	margin-bottom: -6px;
-	margin: 2px -3px -8px 0;
-}
-
 #info-area .message-buttons:empty {
 	margin: 0;
 }
