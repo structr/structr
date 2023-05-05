@@ -1958,7 +1958,7 @@ let Structr = {
 						</div>
 
 						<div class="self-center">
-							<input id="usernameField" type="text" name="username" autocomplete="username" required class="w-full p-1 box-border">
+							<input id="usernameField" type="text" name="username" autocomplete="username" required class="w-full box-border">
 						</div>
 
 						<div class="self-center">
@@ -1966,7 +1966,7 @@ let Structr = {
 						</div>
 
 						<div class="self-center">
-							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full p-1 box-border">
+							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full box-border">
 						</div>
 
 						<div class="self-center col-span-2 mt-2 text-right">
