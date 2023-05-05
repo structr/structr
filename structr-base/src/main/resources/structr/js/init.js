@@ -1890,7 +1890,7 @@ let Structr = {
 
 	templates: {
 		mainBody: config => `
-			<div id="info-area" class="blockMsg"></div>
+			<div id="info-area"></div>
 			<div id="header">
 
 				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo'])}
@@ -2320,7 +2320,7 @@ class MessageBuilder {
 	show() {
 
 		let uniqueMessageAlreadyPresented = false;
-		let allClasses                    = ['message', 'break-word', 'flex', 'rounded-md', 'p-6', 'm-1', this.typeClass, this.params.uniqueClass];
+		let allClasses                    = ['message', 'break-word', 'flex', 'rounded-md', 'pt-5', 'pl-5', 'pr-3', 'pb-3', 'm-1', this.typeClass, this.params.uniqueClass];
 
 		if (this.params.uniqueClass) {
 

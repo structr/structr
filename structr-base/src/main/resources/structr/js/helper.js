@@ -393,8 +393,8 @@ let _Helpers = {
 					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
 			}).on("mouseout", function(e) {
-			helpElement.hide();
-		});
+				helpElement.hide();
+			});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
