@@ -297,7 +297,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return map;
 	}
 
-	private Set<String> getViewNamesOfType (StructrTypeDefinition type, final String view) {
+	private Set<String> getViewNamesOfType(final StructrTypeDefinition type, final String view) {
 
 		final ConfigurationProvider configuration = StructrApp.getConfiguration();
 		Class typeClass = configuration.getNodeEntityClass(type.name);
@@ -318,7 +318,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 		return viewNames;
 	}
 
-	private Map<String, Object> serializeOpenAPIForTypes (Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
+	private Map<String, Object> serializeOpenAPIForTypes(final Set<StructrTypeDefinition> typeDefinitions, final Map<String, Object> schemas, final String tag, String view) {
 
 		final Set<String> typeWhiteList = new LinkedHashSet<>(Arrays.asList("User", "File", "Image", "NodeInterface"));
 		final Map<String, Object> map   = new TreeMap<>();
@@ -336,7 +336,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 					map.put(typeName, typeMap);
 					typeMap.put("allOf", allOf);
 
-					// base type must be resolve and added as well, but only if base type isn't included in tag itself.
+					// base type must be resolved and added as well, but only if base type isn't included in tag itself.
 					final URI baseTypeReference = type.getExtends();
 
 					if (StringUtils.isEmpty(view) && baseTypeReference != null && !StringUtils.equals(viewName, PropertyView.All)) {
