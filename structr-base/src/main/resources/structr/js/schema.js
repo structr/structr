@@ -2014,6 +2014,8 @@ let _Schema = {
 				_Schema.properties.setAttributesInRow(prop, row);
 				_Schema.properties.bindRowEvents(prop, row, overrides);
 
+				_Schema.properties.checkProperty(row);
+
 				_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
 			}
 
@@ -2304,10 +2306,47 @@ let _Schema = {
 			$('.caching-enabled', tr).prop('checked', property.isCachingEnabled);
 			$('.type-hint', tr).val(property.typeHint || "null");
 		},
+		checkProperty: (row) => {
+
+			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
+
+			if (propertyInfoUI.propertyType === 'Function') {
+
+				let container = row[0].querySelector('.indexed').closest('td');
+
+				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
+			}
+		},
+		checkFunctionProperty: (propertyInfoUI, containerForWarning) => {
+
+			let warningClassName = 'indexed-function-property-warning';
+			let existingWarning  = containerForWarning.querySelector(`.${warningClassName}`);
+
+			if (propertyInfoUI.indexed === true && (!propertyInfoUI.typeHint || propertyInfoUI.typeHint === '')) {
+
+				if (!existingWarning) {
+
+					let warningEl = _Helpers.createSingleDOMElementFromHTML(`<span class="${warningClassName}"></span>`);
+					containerForWarning.append(warningEl);
+
+					_Helpers.appendInfoTextToElement({
+						element: warningEl,
+						text: `Searching on this attribute only works if a type hint is set along with the indexed flag. A re-indexing may be necessary if applied after data has already been created.`,
+						customToggleIcon: _Icons.iconWarningYellowFilled,
+					});
+				}
+
+			} else {
+
+				_Helpers.fastRemoveElement(existingWarning);
+			}
+		},
 		rowChanged: (property, row) => {
 
 			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
 			let hasChanges     = false;
+
+			_Schema.properties.checkProperty(row);
 
 			for (let key in propertyInfoUI) {
 
