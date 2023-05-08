@@ -497,7 +497,7 @@ let _Dialogs = {
 			if (elements) {
 
 				let dialog = _Dialogs.basic.append();
-				dialog.append(elements);
+				dialog.append(...elements);
 				return dialog;
 
 			} else {
@@ -597,6 +597,8 @@ let _Dialogs = {
 			window.setTimeout(() => {
 
 				_Dialogs.custom.blockUI(Structr.dialogContainerOffscreen.children);
+				_Dialogs.custom.clearDialogElements();
+				_Dialogs.custom.updateGlobalDialogVariables();
 				Structr.resize();
 
 			}, 1000);
