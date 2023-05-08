@@ -1555,8 +1555,6 @@ let _Pages = {
 
 				if (eventSelectElement.value === 'none') {
 
-					// TODO: When selecting "none", should we delete the mapping?
-
 					eventSelectElement.classList.add('required');
 
 				} else {
@@ -1853,11 +1851,22 @@ let _Pages = {
 
 				actionMappingObject.id = entity.triggeredActions[0].id;
 
-				console.log('ActionMapping object already exists, updating...', actionMappingObject);
-				Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
-					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
-					updateEventMappingInterface(entity, actionMappingObject);
-				});
+				if (actionMappingObject.event === 'none') {
+
+					console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
+					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
+					Command.deleteNode(actionMappingObject.id, undefined, () => {
+						updateEventMappingInterface(entity, actionMappingObject);
+					});
+
+				} else {
+
+					console.log('ActionMapping object already exists, updating...', actionMappingObject);
+					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
+						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
+						updateEventMappingInterface(entity, actionMappingObject);
+					});
+				}
 
 			} else {
 
