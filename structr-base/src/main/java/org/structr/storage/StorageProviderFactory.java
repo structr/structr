@@ -38,6 +38,7 @@ public abstract class StorageProviderFactory {
 	}
 
 	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String configName) {
+		// Get config by name and get provider class to instantiate via reflection
 		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(configName);
 		final Class<? extends StorageProvider> storageProviderClass = config.StorageProviderClass();
 
@@ -45,6 +46,7 @@ public abstract class StorageProviderFactory {
 
 			try {
 
+				// Try to instantiate requested provider with given file and config
 				return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageProviderConfig.class).newInstance(file, config);
 			} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
 
@@ -63,11 +65,13 @@ public abstract class StorageProviderFactory {
 
 	public static AbstractFile getProviderConfigSupplier(final AbstractFile abstractFile) {
 
+		// Check if abstract file itself offers a provider
 		if (abstractFile.getStorageProvider() != null) {
 
 			return abstractFile;
 		}
 
+		// check the files parent
 		final Folder parentFolder = abstractFile.getParent();
 
 		if (parentFolder != null) {
@@ -77,6 +81,7 @@ public abstract class StorageProviderFactory {
 				return parentFolder;
 			} else {
 
+				// Parent did not have info, so recursively go up the hierarchy
 				return getProviderConfigSupplier(parentFolder);
 			}
 		}

@@ -48,8 +48,10 @@ public class LocalFSHelper {
 
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
 
+		// Check if configuration contains a mountTarget, indicating a mounted/mapped folder
 		final String _mountTarget = config.SpecificConfigParameters().containsKey("mountTarget") ? config.SpecificConfigParameters().get("mountTarget").toString() : null;
 
+		// Handle mounted folders
 		if (_mountTarget != null) {
 
 			final AbstractFile configSupplier = StorageProviderFactory.getProviderConfigSupplier(file);

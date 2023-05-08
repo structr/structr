@@ -91,6 +91,8 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 		return dataMap.get(getAbstractFile().getUuid()) != null ? dataMap.get(getAbstractFile().getUuid()).length : 0;
 	}
 
+	// ---------------------- Private utility classes ----------------------
+
 	private class SavingInMemorySeekableByteChannel extends SeekableInMemoryByteChannel {
 		public SavingInMemorySeekableByteChannel() {
 			super(0);

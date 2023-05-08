@@ -23,7 +23,6 @@ import org.structr.storage.local.LocalFSStorageProvider;
 import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,8 +32,11 @@ public class StorageProviderConfigFactory {
     private static final StorageProviderConfig defaultConfig                = new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
 
     static {
-        providerConfigs.put("local", new StorageProviderConfig("local", LocalFSStorageProvider.class));
-        providerConfigs.put("memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class));
+        final StorageProviderConfig localConfig  = new StorageProviderConfig("local", LocalFSStorageProvider.class);
+        final StorageProviderConfig memoryConfig = new StorageProviderConfig("memory", InMemoryStorageProvider.class);
+
+        providerConfigs.put(localConfig.Name(), localConfig);
+        providerConfigs.put(memoryConfig.Name(), memoryConfig);
     }
 
     public static StorageProviderConfig getConfigByName(final String name) {
@@ -52,9 +54,9 @@ public class StorageProviderConfigFactory {
         return defaultConfig;
     }
 
-    public static void SetConfig(final String name, final StorageProviderConfig config) {
+    public static void registerConfig(final StorageProviderConfig config) {
 
-        providerConfigs.put(name, config);
+        providerConfigs.put(config.Name(), config);
     }
 
 }

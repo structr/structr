@@ -32,7 +32,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.export.StructrSchema;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.storage.config.StorageProviderConfigFactory;
@@ -99,7 +98,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create folder to mount
-			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
 
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted1"),
@@ -172,7 +171,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			);
 
 			// create folder to mount
-			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
 
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted2"),
@@ -251,7 +250,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				logger.info("Mounting directory..");
 
 				// create folder to mount
-				StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
 
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
@@ -409,7 +408,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
-				StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
 
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
@@ -557,7 +556,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			);
 
 			// create folder to mount
-			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
 
 			final Folder folder = app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted"),
