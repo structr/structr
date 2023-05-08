@@ -20,12 +20,14 @@ package org.structr.storage.local;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
+import java.nio.file.Path;
 
 public class LocalFSHelper {
 	private final StorageProviderConfig config;
@@ -41,22 +43,24 @@ public class LocalFSHelper {
 	public java.io.File getFileOnDisk(final AbstractFile thisFile, final boolean create) {
 
 		final Folder parentFolder = thisFile.getParent();
-		return getFileOnDisk(parentFolder, (File) thisFile, "", create);
+		return getFileOnDisk(parentFolder, (File) thisFile, create);
 	}
 
-	public java.io.File getFileOnDisk(final Folder thisFolder, final File file, final String path, final boolean create) {
+	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
 
 		final String _mountTarget = config.SpecificConfigParameters().containsKey("mountTarget") ? config.SpecificConfigParameters().get("mountTarget").toString() : null;
-		final Folder parentFolder = thisFolder != null ? thisFolder.getParent() : null;
 
 		if (_mountTarget != null) {
 
-			final String fullPath         = Folder.removeDuplicateSlashes(_mountTarget + "/" + path + "/" + file.getProperty(File.name));
-			final java.io.File fileOnDisk = new java.io.File(fullPath);
+			final AbstractFile configSupplier = StorageProviderFactory.getProviderConfigSupplier(file);
+			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
+
+			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getProperty(File.name));
+			final java.io.File fileOnDisk     = new java.io.File(fullPath);
 
 			fileOnDisk.getParentFile().mkdirs();
 
-			if (create && !thisFolder.isExternal()) {
+			if (create && !parentFolder.isExternal()) {
 
 				try {
 
@@ -71,9 +75,6 @@ public class LocalFSHelper {
 
 			return fileOnDisk;
 
-		} else if (parentFolder != null) {
-
-			return getFileOnDisk(parentFolder, file, thisFolder.getProperty(Folder.name) + "/" + path, create);
 		}
 
 		// default implementation (store in UUID-indexed tree)

@@ -55,11 +55,17 @@ public abstract class StorageProviderFactory {
 		return null;
 	}
 
-	private static String getProviderConfigName(final AbstractFile abstractFile) {
+	public static String getProviderConfigName(final AbstractFile abstractFile) {
+
+		final AbstractFile supplier = getProviderConfigSupplier(abstractFile);
+		return supplier != null ? supplier.getStorageProvider() : null;
+	}
+
+	public static AbstractFile getProviderConfigSupplier(final AbstractFile abstractFile) {
 
 		if (abstractFile.getStorageProvider() != null) {
 
-			return abstractFile.getStorageProvider();
+			return abstractFile;
 		}
 
 		final Folder parentFolder = abstractFile.getParent();
@@ -68,10 +74,10 @@ public abstract class StorageProviderFactory {
 
 			if (parentFolder.getStorageProvider() != null) {
 
-				return parentFolder.getStorageProvider();
+				return parentFolder;
 			} else {
 
-				return getProviderConfigName(parentFolder);
+				return getProviderConfigSupplier(parentFolder);
 			}
 		}
 

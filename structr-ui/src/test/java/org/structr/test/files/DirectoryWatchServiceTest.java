@@ -98,10 +98,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// mount directory
 		try (final Tx tx = app.tx()) {
 
+			// create folder to mount
+			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted1"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -168,11 +171,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent1)
 			);
 
+			// create folder to mount
+			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted2"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent2),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -244,10 +250,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
+				// create folder to mount
+				StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString()),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountScanInterval"), 2)
 				);
 
@@ -675,9 +684,10 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 	private String readFile(final File file) throws IOException {
 
-		try (final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream()) {
+		try (final InputStream is = file.getInputStream()) {
 
-			return IOUtils.toString(is, "utf-8");
+			final String content = IOUtils.toString(is, "utf-8");
+			return content;
 		}
 	}
 }

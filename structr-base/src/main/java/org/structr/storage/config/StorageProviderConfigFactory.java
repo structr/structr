@@ -18,6 +18,7 @@
  */
 package org.structr.storage.config;
 
+import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.local.LocalFSStorageProvider;
 import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
@@ -42,25 +43,7 @@ public class StorageProviderConfigFactory {
 
     public static StorageProviderConfig getEffectiveConfig(final AbstractFile abstractFile) {
 
-        if (abstractFile.getStorageProvider() != null) {
-
-            return getConfigByName(abstractFile.getStorageProvider());
-        }
-
-        final Folder parentFolder = abstractFile.getParent();
-
-        if (parentFolder != null) {
-
-            if (parentFolder.getStorageProvider() != null) {
-
-                return getConfigByName(parentFolder.getStorageProvider());
-            } else {
-
-                return getEffectiveConfig(parentFolder);
-            }
-        }
-
-        return null;
+        return getConfigByName(StorageProviderFactory.getProviderConfigName(abstractFile));
     }
 
     public static StorageProviderConfig getDefaultConfig() {

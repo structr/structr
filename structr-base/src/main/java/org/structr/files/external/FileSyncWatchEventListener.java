@@ -116,6 +116,11 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 		return true;
 	}
 
+	public String getRootFolderUUID() {
+
+		return this.rootFolderUUID;
+	}
+
 	// ----- private methods -----
 	private FolderAndFile handle(final String rootFolderUUID, final Path root, final Path relativePath, final boolean create) throws FrameworkException {
 
@@ -150,7 +155,6 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 			if (mountFolderPath != null) {
 
 				final Path relativePathParent   = relativePath.getParent();
-				LoggerFactory.getLogger(FileSyncWatchEventListener.class).info(relativePath.toString());
 				final boolean isFile            = new java.io.File(relativePath.toUri()).isFile();
 
 				if (relativePathParent == null) {
@@ -158,10 +162,18 @@ public class FileSyncWatchEventListener implements WatchEventListener {
 					return new FolderAndFile(folder, getOrCreate(folder, relativePath.toString(), isFile, create, targetFolderType, targetFileType));
 				} else {
 
-					final Path fileOrFolderPath     = relativePathParent.relativize(relativePath);
-					final Folder parentFolder       = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), folder.getPath());
-					final AbstractFile file         = getOrCreate(parentFolder, fileOrFolderPath.toString() , isFile, create, targetFolderType, targetFileType);
-					logger.info("Created or got folder/file with uuid:" + file.getUuid());
+					// Virtual path to parent
+					final Path relativePathToParentFolder    = root.relativize(relativePathParent);
+
+					// Virtual path to fileOrFolder
+					final Path fileOrFolderPath              = relativePathParent.relativize(relativePath);
+
+					final Path virtualPathToParent           = Path.of(mountFolderPath).resolve(relativePathToParentFolder);
+
+					final Folder parentFolder                = FileHelper.createFolderPath(SecurityContext.getSuperUserInstance(), virtualPathToParent.toString());
+					//logger.debug("Trying to create folder/file with parameters path:{}, parent:{}", fileOrFolderPath.toFile(), parentFolder);
+					final AbstractFile file                  = getOrCreate(parentFolder, fileOrFolderPath.toString() , isFile, create, targetFolderType, targetFileType);
+					//logger.debug("Created or got folder/file with uuid:" + file.getUuid() + " and path: " + file.getPath());
 					return new FolderAndFile(folder, file);
 				}
 
