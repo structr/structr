@@ -37,8 +37,8 @@ public abstract class StorageProviderFactory {
 		return getSpecificStorageProvider(file, getProviderConfigName(file));
 	}
 
-	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String forcedProvider) {
-		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(forcedProvider);
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String configName) {
+		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(configName);
 		final Class<? extends StorageProvider> storageProviderClass = config.StorageProviderClass();
 
 		if (storageProviderClass != null) {

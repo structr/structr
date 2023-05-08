@@ -22,23 +22,24 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.storage.local.LocalFSStorageProvider;
 import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StorageProviderConfigFactory {
 
-    private static final Map<String, StorageProviderConfig> testProviderConfigs = new HashMap<>();
+    private static final Map<String, StorageProviderConfig> providerConfigs = new ConcurrentHashMap<>();
+    private static final StorageProviderConfig defaultConfig                = new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
 
     static {
-        testProviderConfigs.put("local", new StorageProviderConfig("local", LocalFSStorageProvider.class));
-        testProviderConfigs.put("memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class));
+        providerConfigs.put("local", new StorageProviderConfig("local", LocalFSStorageProvider.class));
+        providerConfigs.put("memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class));
     }
 
     public static StorageProviderConfig getConfigByName(final String name) {
 
-        return name != null && testProviderConfigs.containsKey(name) ? testProviderConfigs.get(name) : getDefaultConfig();
+        return name != null && providerConfigs.containsKey(name) ? providerConfigs.get(name) : getDefaultConfig();
     }
 
     public static StorageProviderConfig getEffectiveConfig(final AbstractFile abstractFile) {
@@ -48,12 +49,12 @@ public class StorageProviderConfigFactory {
 
     public static StorageProviderConfig getDefaultConfig() {
 
-        return new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
+        return defaultConfig;
     }
 
     public static void SetConfig(final String name, final StorageProviderConfig config) {
 
-        testProviderConfigs.put(name, config);
+        providerConfigs.put(name, config);
     }
 
 }
