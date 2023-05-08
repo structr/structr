@@ -497,7 +497,7 @@ let _Dialogs = {
 			if (elements) {
 
 				let dialog = _Dialogs.basic.append();
-				dialog.append(elements);
+				dialog.append(...elements);
 				return dialog;
 
 			} else {
@@ -597,6 +597,8 @@ let _Dialogs = {
 			window.setTimeout(() => {
 
 				_Dialogs.custom.blockUI(Structr.dialogContainerOffscreen.children);
+				_Dialogs.custom.clearDialogElements();
+				_Dialogs.custom.updateGlobalDialogVariables();
 				Structr.resize();
 
 			}, 1000);
@@ -669,26 +671,26 @@ let _Dialogs = {
 
 			return button;
 		},
-		showAndHideInfoBoxMessage: (msg, msgClass, delayTime = 2000, fadeTime = 1000) => {
+		showAndHideInfoBoxMessage: (msg, msgClass, stayTime = 2000, fadeoutTime = 1000) => {
 
 			if (_Dialogs.custom.elements.dialogMsg) {
 
 				_Helpers.fastRemoveAllChildren(_Dialogs.custom.elements.dialogMsg);
 
 				let newDiv = _Helpers.createSingleDOMElementFromHTML(`
-				<div class="infoBox ${msgClass} flex items-center p-2">
-					${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(msgClass), 16, 16, ['mr-2'])}
-					<div>
-						${msg}
+					<div class="infoBox ${msgClass} flex items-center p-2">
+						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(msgClass), 16, 16, ['mr-2'])}
+						<div>
+							${msg}
+						</div>
 					</div>
-				</div>
-			`);
+				`);
 
 				_Dialogs.custom.elements.dialogMsg.appendChild(newDiv);
 
 				window.setTimeout(() => {
-					$(newDiv).fadeOut(fadeTime, () => { newDiv.remove(); });
-				}, delayTime);
+					$(newDiv).fadeOut(fadeoutTime, () => { newDiv.remove(); });
+				}, stayTime);
 			}
 		}
 	}

@@ -3157,7 +3157,7 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="confirmation-key" data-comment="Used for self-registration and password reset. If a confirmation key is set, log in via password is prevented.">Confirmation Key</label>
+							<label class="block mb-2" for="confirmation-key" data-comment="Used for self-registration and password reset. If a confirmation key is set, log in via password is prevented, unless <code>registration.allowloginbeforeconfirmation</code> is enabled via structr.conf">Confirmation Key</label>
 							<input type="text" id="confirmation-key" name="confirmationKey">
 						</div>
 					</div>

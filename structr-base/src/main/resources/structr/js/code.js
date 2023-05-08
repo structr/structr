@@ -304,7 +304,13 @@ let _Code = {
 			if (p.multiple === true) {
 				data[p.dataset.property] = Array.prototype.map.call(p.selectedOptions, (o) => o.value);
 			} else {
+
 				data[p.dataset.property] = p.value;
+
+				// add exception for typeHint
+				if (p.dataset.property === 'typeHint' && p.value === 'null') {
+					data.typeHint = null;
+				}
 			}
 		}
 
@@ -2230,8 +2236,7 @@ let _Code = {
 			_Code.saveEntityAction(property);
 		};
 
-		let buttons = $('#property-buttons');
-
+		let buttons     = $('#property-buttons');
 		let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
@@ -2245,41 +2250,46 @@ let _Code = {
 		if (!property.schemaNode.isBuiltinType) {
 
 			_Code.displaySvgActionButton('#property-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete property', () => {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'No data will be removed.', data);
+				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'No data will be removed.', data);
 			});
 		}
+
+		let changeHandler = () => {
+
+			_Code.updateDirtyFlag(property);
+
+			if (property.propertyType === 'Function') {
+
+				let propertyInfoUI = _Code.collectPropertyData(property);
+				let container      = buttons[0].querySelector('#property-indexed').closest('div');
+
+				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
+			}
+		};
 
 		if (property.propertyType !== 'Function') {
 			$('#property-type-hint-input').parent().remove();
 		} else {
-			$('#property-type-hint-input').val(property.typeHint);
+			$('#property-type-hint-input').val(property.typeHint || 'null');
 		}
 
 		if (property.propertyType === 'Cypher') {
 			$('#property-format-input').parent().remove();
 		}
 
-		$('select', buttons).on('change', function() {
-			_Code.updateDirtyFlag(property);
-		});
-
-		$('input[type=checkbox]', buttons).on('change', function() {
-			_Code.updateDirtyFlag(property);
-		});
-
-		$('input[type=text]', buttons).on('keyup', function() {
-			_Code.updateDirtyFlag(property);
-		});
+		$('select', buttons).on('change', changeHandler);
+		$('input[type=checkbox]', buttons).on('change', changeHandler);
+		$('input[type=text]', buttons).on('keyup', changeHandler);
 
 		if (property.schemaNode.isBuiltinType) {
 			$('button#delete-property-button').parent().remove();
 		} else {
 			$('button#delete-property-button').on('click', function() {
-				_Code.deleteSchemaEntity(property, 'Delete property ' + property.name + '?', 'Property values will not be removed from data nodes.', data);
+				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
 			});
 		}
 
-		_Code.updateDirtyFlag(property);
+		changeHandler();
 
 		if (typeof callback === 'function') {
 			callback();
@@ -3058,11 +3068,24 @@ let _Code = {
 					<div id="property-actions"></div>
 				</div>
 				<div class="mb-4 grid grid-cols-4 gap-4">
-					<div class="col-span-3"><label class="block mb-1 font-semibold">Name</label><input type="text" id="property-name-input" data-property="name" value="${config.property.name}" /></div>
-					<div class="col-span-1"><label class="block mb-1 font-semibold">Default value</label><input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}" /></div>
-					<div class="col-span-1"><label class="block mb-1 font-semibold">Content type</label><input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}" /></div>
-					<div class="col-span-2"><label class="block mb-1 font-semibold">Format</label><input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}" /></div>
-					<div class="col-span-1"><label class="block mb-1 font-semibold">Type hint</label>
+					<div class="col-span-3">
+						<label class="block mb-1 font-semibold">Name</label>
+						<input type="text" id="property-name-input" data-property="name" value="${config.property.name}">
+					</div>
+					<div class="col-span-1">
+						<label class="block mb-1 font-semibold">Default value</label>
+						<input type="text" id="property-default-input" data-property="defaultValue" value="${config.property.defaultValue || ''}">
+					</div>
+					<div class="col-span-1">
+						<label class="block mb-1 font-semibold">Content type</label>
+						<input type="text" id="property-content-type-input" data-property="contentType" value="${config.property.contentType || ''}">
+					</div>
+					<div class="col-span-2">
+						<label class="block mb-1 font-semibold">Format</label>
+						<input type="text" id="property-format-input" data-property="format" value="${config.property.format || ''}">
+					</div>
+					<div class="col-span-1">
+						<label class="block mb-1 font-semibold">Type hint</label>
 						<select id="property-type-hint-input" class="type-hint" data-property="typeHint">
 							<optgroup label="Type Hint">
 								<option value="null">-</option>
@@ -3075,7 +3098,10 @@ let _Code = {
 							</optgroup>
 						</select>
 					</div>
-					<div class="col-span-2 ${config.dbNameClass}"><label class="block mb-1 font-semibold">Database name</label><input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}" /></div>
+					<div class="col-span-2 ${config.dbNameClass}">
+						<label class="block mb-1 font-semibold">Database name</label>
+						<input type="text" id="property-dbname-input" data-property="dbName" value="${config.property.dbName || ''}">
+					</div>
 				</div>
 
 				<div class="mb-4">
@@ -3083,11 +3109,21 @@ let _Code = {
 						<label class="font-semibold">Options</label>
 					</div>
 					<div class="mt-2 grid grid-cols-3 gap-4">
-						<div><label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''} />Property value must be unique</label></div>
-						<div><label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''} />Include in composite uniqueness</label></div>
-						<div><label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''} />Property value must not be null</label></div>
-						<div><label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''} />Property value is indexed</label></div>
-						<div><label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''} />Property value can be cached</label></div>
+						<div>
+							<label><input type="checkbox" id="property-unique" data-property="unique" ${config.property.unique ? 'checked' : ''}>Property value must be unique</label>
+						</div>
+						<div>
+							<label><input type="checkbox" id="property-composite" data-property="compound" ${config.property.compound ? 'checked' : ''}>Include in composite uniqueness</label>
+						</div>
+						<div>
+							<label><input type="checkbox" id="property-notnull" data-property="notNull" ${config.property.notNull ? 'checked' : ''}>Property value must not be null</label>
+						</div>
+						<div>
+							<label><input type="checkbox" id="property-indexed" data-property="indexed" ${config.property.indexed ? 'checked' : ''}>Property value is indexed</label>
+						</div>
+						<div>
+							<label><input type="checkbox" id="property-cached" data-property="isCachingEnabled" ${config.property.isCachingEnabled ? 'checked' : ''}>Property value can be cached</label>
+						</div>
 					</div>
 				</div>
 			</div>
