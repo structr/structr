@@ -121,7 +121,7 @@ let _Flows = {
 
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
 
-				_Helpers.confirmationPromiseNonBlockUI(`Really delete flow ${id}?`).then(confirm => {
+				_Dialogs.confirmation.showPromise(`Really delete flow ${id}?`).then(confirm => {
 					if (confirm === true) {
 						persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
 							_Flows.refreshTree();
@@ -320,7 +320,7 @@ let _Flows = {
 
 		_TreeHelper.addSvgIconReplacementBehaviorToTree($(flowsTree));
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
 
@@ -619,12 +619,12 @@ let _Flows = {
 		let entity       = detail.entity; // proxy object
 		let propertyName = detail.propertyName;
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`Edit ${flowNodeType}`, null, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Edit ${flowNodeType}`, null, ['popup-dialog-with-editor']);
 
 		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 
-		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		let initialText = entity[propertyName] || '';
 
@@ -648,7 +648,7 @@ let _Flows = {
 				_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
 
 				if (close === true) {
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				}
 			}
 		};

@@ -589,26 +589,8 @@ public class ConfigServlet extends AbstractServletBase {
 	private Document createLoginDocument(final HttpServletRequest request, final PrintWriter writer) {
 
 		final Document doc = new Document(writer);
-		final Tag body     = setupDocument(request, doc).css("login");
-		final Tag loginBox = body.block("div").id("login").css("dialog").attr(new Style("display: block; margin: auto; margin-top: 200px;"));
 
-		loginBox.block("svg").attr(new Attr("title", "Structr Logo")).css("logo-login").block("use").attr(new Attr("href", "#structr-logo"));
-		loginBox.block("p").text("Welcome to the " + TITLE + ". Please log in with the <b>super-user</b> password which can be found in your structr.conf.");
-
-		final Tag form     = loginBox.block("form").attr(new Attr("action", prefixLocation(ConfigServletLocation)), new Attr("method", "post"));
-		final Tag table    = form.block("table");
-		final Tag row1     = table.block("tr");
-
-		row1.block("td").block("label").attr(new Attr("for", "passwordField")).text("Password:");
-		row1.block("td").empty("input").attr(new Attr("autofocus", "true")).id("passwordField").attr(new Type("password"), new Name("password"), new Attr("required", "required"));
-
-		final Tag row2     = table.block("tr");
-		final Tag cell13   = row2.block("td").attr(new Attr("colspan", "2")).css("btn");
-		final Tag button   = cell13.block("button").id("loginButton").attr(new Name("login")).css("inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green");
-		button.block("svg").attr(new Attr("width", 16), new Attr("height", 16)).css("mr-2").block("use").attr(new Attr("href", "#visibility-lock-key"));
-		button.block("span").text(" Login");
-
-		cell13.empty("input").attr(new Type("hidden"), new Name("action"), new Value("login"));
+		setupDocument(request, doc).css("login");
 
 		return doc;
 	}
@@ -629,6 +611,7 @@ public class ConfigServlet extends AbstractServletBase {
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/lib/jquery-3.3.1.min.js"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/icons.js"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/helper.js"));
+		head.block("script").attr(new Src(applicationRootPath + "/structr/js/dialogs.js"));
 		head.block("script").attr(new Src(applicationRootPath + "/structr/js/config.js"));
 
 		final Tag body = doc.block("body");

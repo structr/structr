@@ -77,15 +77,15 @@ let Importer = {
 
 		Importer.updateJobTable();
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 	},
 	unload: () => {
 		Importer.schemaTypeCachePopulated = false;
 	},
-	isShowNotifications: function() {
+	isShowNotifications: () => {
 		return UISettings.getValueForSetting(UISettings.importer.settings.showNotificationsKey);
 	},
-	updateJobTable: function () {
+	updateJobTable: () => {
 
 		window.clearTimeout(Importer.timeout);
 
@@ -271,9 +271,9 @@ let Importer = {
 
 		Importer.clearSchemaTypeCache();
 
-		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Import CSV from ${file.name}`, Importer.unload);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV from ${file.name}`, Importer.unload);
 
-		let startButton = Structr.dialogSystem.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
+		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action disabled" disabled id="start-import">Start import</button>');
 
 		dialogMeta.insertAdjacentHTML('beforeend', Importer.templates.dialogConfigurations({type: 'csv'}));
 
@@ -757,11 +757,11 @@ let Importer = {
 
 		let configuration = {};
 
-		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Import XML from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import XML from ${file.name}`, Importer.unload, ['full-height-dialog-text']);
 
-		let prevButton = Structr.dialogSystem.prependCustomDialogButton('<button id="prev-element">Previous</button>');
-		let nextButton = Structr.dialogSystem.prependCustomDialogButton('<button id="next-element">Next</button>');
-		let startButton = Structr.dialogSystem.prependCustomDialogButton('<button class="action" id="start-import">Start import</button>');
+		let prevButton = _Dialogs.custom.prependCustomDialogButton('<button id="prev-element">Previous</button>');
+		let nextButton = _Dialogs.custom.prependCustomDialogButton('<button id="next-element">Next</button>');
+		let startButton = _Dialogs.custom.prependCustomDialogButton('<button class="action" id="start-import">Start import</button>');
 
 		let html = Importer.templates.dialogConfigurations({type: 'xml'});
 		dialogMeta.insertAdjacentHTML('beforeend', html);

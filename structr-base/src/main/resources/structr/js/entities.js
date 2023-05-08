@@ -52,7 +52,7 @@ let _Entities = {
 			<br>
 		`;
 
-		_Helpers.confirmationPromiseNonBlockUI(confirmationHtml).then(confirm => {
+		_Dialogs.confirmation.showPromise(confirmationHtml).then(confirm => {
 
 			if (confirm === true) {
 
@@ -65,7 +65,7 @@ let _Entities = {
 	},
 	deleteNode: (entity, recursive, callback) => {
 
-		_Helpers.confirmationPromiseNonBlockUI(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
 			if (confirm === true) {
 				Command.deleteNode(entity.id, recursive);
 
@@ -76,7 +76,7 @@ let _Entities = {
 	},
 	deleteEdge: (entity, recursive, callback) => {
 
-		_Helpers.confirmationPromiseNonBlockUI(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
 			if (confirm === true) {
 				Command.deleteRelationship(entity.id, recursive);
 
@@ -295,14 +295,14 @@ let _Entities = {
 	},
 	editEmptyDiv: (entity) => {
 
-		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Edit source of "${entity?.name ?? entity.id}"`, null, ['popup-dialog-with-editor']);
-		Structr.dialogSystem.showMeta();
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit source of "${entity?.name ?? entity.id}"`, null, ['popup-dialog-with-editor']);
+		_Dialogs.custom.showMeta();
 
 		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 		dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
 
-		let dialogSaveButton   = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndCloseButton = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let dialogSaveButton   = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 		let editorInfo         = dialogMeta.querySelector('.editor-info');
 		_Editors.appendEditorOptionsElement(editorInfo);
 
@@ -331,7 +331,7 @@ let _Entities = {
 
 				Command.patch(entity.id, text1, text2, () => {
 
-					Structr.dialogSystem.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+					_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
 					_Helpers.disableElements(true, dialogSaveButton, saveAndCloseButton);
 
 					Command.getProperty(entity.id, 'content', (newText) => {
@@ -341,14 +341,14 @@ let _Entities = {
 
 				Command.saveNode(`<div data-structr-hash="${entity.id}">${editor.getValue()}</div>`, entity.id, () => {
 
-					Structr.dialogSystem.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
+					_Dialogs.custom.showAndHideInfoBoxMessage('Node source saved and DOM tree rebuilt.', 'success', 2000, 200);
 
 					if (_Entities.isExpanded(Structr.node(entity.id))) {
 						$('.expand_icon_svg', Structr.node(entity.id)).click().click();
 					}
 
 					if (close === true) {
-						Structr.dialogSystem.clickDialogCancelButton();
+						_Dialogs.custom.clickDialogCancelButton();
 					}
 				});
 			}
@@ -402,11 +402,9 @@ let _Entities = {
 	},
 	showProperties: (obj, activeViewOverride) => {
 
-		let handleGraphObject;
-
 		_Entities.getSchemaProperties(obj.type, 'custom', (properties) => {
 
-			handleGraphObject = (entity) => {
+			let handleGraphObject = (entity) => {
 
 				let views      = ['ui'];
 				let activeView = 'ui';
@@ -443,14 +441,14 @@ let _Entities = {
 							}
 						}
 
-						tabTexts._html_ = 'HTML Attributes';
+						tabTexts._html_ = 'HTML';
 						tabTexts.ui     = 'Advanced';
 						tabTexts.custom = 'Custom Properties';
 
 						dialogTitle = `Edit properties of ${entity?.type ?? ''} node ${entity?.name ?? entity.id}`;
 					}
 
-					let { dialogText } = Structr.dialogSystem.openDialog(dialogTitle, null, ['full-height-dialog-text']);
+					let { dialogText } = _Dialogs.custom.openDialog(dialogTitle, null, ['full-height-dialog-text']);
 
 					dialogText.insertAdjacentHTML('beforeend', `
 						<div id="tabs" class="flex flex-col h-full overflow-hidden">
@@ -461,7 +459,7 @@ let _Entities = {
 					let mainTabs  = dialogText.querySelector('#tabs');
 					let contentEl = dialogText.querySelector('#tabs');
 
-					_Dialogs.findAndAppendCustomTypeDialog(entity, mainTabs, contentEl);
+					_Entities.basicTab.appendBasicTypeTab(entity, mainTabs, contentEl);
 
 					_Entities.appendViews(entity, views, tabTexts, mainTabs, contentEl, typeInfo);
 
@@ -741,7 +739,7 @@ let _Entities = {
 									Command.removeFromCollection(entity.id, key, node.id, () => {
 										nodeEl.remove();
 										_Helpers.blinkGreen(cell);
-										Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+										_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 									});
 									return false;
 								});
@@ -882,7 +880,7 @@ let _Entities = {
 													if (!newVal) {
 														nodeEl.remove();
 														_Helpers.blinkGreen(valueCell);
-														Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
+														_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" has been removed from property "${key}".`, 'success', 2000, 1000);
 													} else {
 														_Helpers.blinkRed(valueCell);
 													}
@@ -900,7 +898,7 @@ let _Entities = {
 							valueCell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-green'])));
 
 							$('.add', valueCell).on('click', function() {
-								let { dialogText } = Structr.dialogSystem.openDialog(`Add ${typeInfo[key].type}`);
+								let { dialogText } = _Dialogs.custom.openDialog(`Add ${typeInfo[key].type}`);
 								_Entities.displaySearch(id, key, typeInfo[key].type, $(dialogText), isCollection);
 							});
 
@@ -933,10 +931,10 @@ let _Entities = {
 						if (!newVal) {
 							if (key.indexOf('_custom_html_') === -1) {
 								_Helpers.blinkGreen(valueCell);
-								Structr.dialogSystem.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
+								_Dialogs.custom.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
 							} else {
 								icon.closest('tr').remove();
-								Structr.dialogSystem.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+								_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 							}
 
 							if (key === 'name') {
@@ -1026,7 +1024,7 @@ let _Entities = {
 
 						Command.setProperty(id, newKey, val, false, () => {
 							_Helpers.blinkGreen(exitedInput);
-							Structr.dialogSystem.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
+							_Dialogs.custom.showAndHideInfoBoxMessage(`New property "${newKey}" has been added and saved with value "${val}".`, 'success', 2000, 1000);
 
 							keyInput.replaceWith(key);
 							valInput.name = newKey;
@@ -1039,7 +1037,7 @@ let _Entities = {
 
 								_Entities.setProperty(id, key, null, false, (newVal) => {
 									row.remove();
-									Structr.dialogSystem.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
+									_Dialogs.custom.showAndHideInfoBoxMessage(`Custom HTML property "${key}" has been removed`, 'success', 2000, 1000);
 								});
 							});
 
@@ -1135,7 +1133,7 @@ let _Entities = {
 											_Pages.refreshCenterPane(StructrModel.obj(id), location.hash);
 										}
 
-										Structr.dialogSystem.clickDialogCancelButton();
+										_Dialogs.custom.clickDialogCancelButton();
 									});
 								}
 							});
@@ -1152,7 +1150,7 @@ let _Entities = {
 			} else if (e.keyCode === 27) {
 
 				if (searchString.trim() === '') {
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				}
 
 				if (_Entities.clearSearchResults(el)) {
@@ -1336,7 +1334,7 @@ let _Entities = {
 						input.val(newVal);
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
-					Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
+					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 
 					if (onUpdateCallback) {
 						onUpdateCallback();
@@ -1363,7 +1361,7 @@ let _Entities = {
 					_Entities.activateInput(el, id, pageId, typeInfo);
 				});
 				valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
-				Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
+				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}.`, 'success', 2000, 200);
 
 				if (onUpdateCallback) {
 					onUpdateCallback();
@@ -1498,7 +1496,7 @@ let _Entities = {
 					return $(`<span class="flex items-center gap-2 ${isSelection ? 'select-selection-with-icon' : 'select-result-with-icon'}">${icon} ${state.text}</span>`);
 				};
 
-				let dropdownParent = Structr.dialogSystem.isDialogOpen() ? $(Structr.dialogSystem.getDialogBoxElement()) : $('body');
+				let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
 
 				ownerSelect.select2({
 					allowClear: true,
@@ -1562,7 +1560,7 @@ let _Entities = {
 			visibleToAuthenticatedUsers: entity.visibleToAuthenticatedUsers
 		};
 
-		let { dialogText } = Structr.dialogSystem.openDialog('Access Control and Visibility', () => {
+		let { dialogText } = _Dialogs.custom.openDialog('Access Control and Visibility', () => {
 
 			if (Structr.isModuleActive(_Crud)) {
 
@@ -2048,8 +2046,8 @@ let _Entities = {
 	},
 	toggleElement: (id, nodeContainer, isExpanded, callback) => {
 
-		let el            = $(nodeContainer);
-		let toggleIcon    = el.children('.expand_icon_svg').first();
+		let el         = $(nodeContainer);
+		let toggleIcon = el.children('.expand_icon_svg').first();
 
 		if (_Entities.isExpanded(el)) {
 
@@ -2150,7 +2148,7 @@ let _Entities = {
 				if (Structr.isModuleActive(_Pages)) {
 
 //					_Pages.reloadPreviews();
-					console.log('reload preview?');
+// 					console.log('reload preview?');
 
 				} else if (Structr.isModuleActive(_Contents)) {
 
@@ -2200,7 +2198,7 @@ let _Entities = {
 				}
 				input.val(newVal);
 				let valueMsg = (newVal !== undefined || newVal !== null) ? `value "${newVal}` : 'empty value';
-				Structr.dialogSystem.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}`, 'success', 2000, 200);
+				_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}" with ${valueMsg}`, 'success', 2000, 200);
 
 			} else {
 
@@ -2209,34 +2207,995 @@ let _Entities = {
 		});
 	},
 
-	templates: {
-		multipleInputsRow: config => `
-			<div class="event-options options-properties options-update multiple-properties">
+	basicTab: {
+		getBasicTabConfig: (entity) => {
 
-				<div class="grid grid-cols-5 gap-8 hidden event-options options-reload-target mb-4">
-					<div class="option-tile flat">
-						<label class="hidden mb-1">Name</label>
-						<input type="text" class="multiple-input-name-input" placeholder="Name of input element" data-structr-id="${config.id}">
+			let registeredDialogs = {
+				'DEFAULT_DOM_NODE': { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.defaultDomDialog },
+				'A':                { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.aDialog },
+				'Button':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.buttonDialog },
+				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.contentDialog },
+				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.divDialog },
+				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.fileDialog },
+				'Image':            { id: 'general', title: 'Advanced',    appendDialogForEntityToContainer: _Entities.basicTab.fileDialog },
+				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.folderDialog },
+				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.inputDialog },
+				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.ldapGroupDialog, condition: () => { return Structr.isModulePresent('ldap-client'); } },
+				'Option':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.optionDialog },
+				'Page':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.pageDialog },
+				'Template':         { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.contentDialog },
+				'User':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.userDialog }
+			};
+
+			let dialogConfig = registeredDialogs[entity.type];
+
+			if (!dialogConfig && entity.isDOMNode) {
+				dialogConfig = registeredDialogs['DEFAULT_DOM_NODE'];
+			}
+
+			if (!dialogConfig && entity.isUser) {
+				dialogConfig = registeredDialogs['User'];
+			}
+
+			return dialogConfig;
+		},
+		appendBasicTypeTab: (entity, mainTabs, contentEl) => {
+
+			let dialogConfig = _Entities.basicTab.getBasicTabConfig(entity);
+
+			if (dialogConfig) {
+
+				if (dialogConfig.condition === undefined || (typeof dialogConfig.condition === 'function' && dialogConfig.condition())) {
+
+					let wrapperFn = (contentElement) => {
+						dialogConfig.appendDialogForEntityToContainer($(contentElement), entity);
+					}
+
+					// call method with the same callback object for initial callback and show callback
+					let tabContent = _Entities.appendPropTab(entity, mainTabs, contentEl, dialogConfig.id, dialogConfig.title, true, wrapperFn, true);
+
+					wrapperFn(tabContent);
+				}
+			}
+		},
+		showCustomProperties: async (el, entity) => {
+
+			return new Promise((resolve, reject) => {
+
+				let customContainer = $('div#custom-properties-container', el);
+
+				_Schema.getTypeInfo(entity.type, (typeInfo) => {
+
+					_Entities.listProperties(entity, 'custom', customContainer, typeInfo, (properties) => {
+
+						// make container visible when custom properties exist
+						if (Object.keys(properties).length > 0) {
+							$('div#custom-properties-parent').removeClass("hidden");
+						}
+
+						$('input.dateField', customContainer).each(function(i, input) {
+							_Entities.activateDatePicker($(input));
+						});
+
+						resolve();
+					});
+				});
+			});
+		},
+		showShowHideConditionOptions: (el) => {
+
+			let showConditionsInput  = $('input#show-conditions', el);
+			let showConditionsSelect = $('select#show-conditions-templates', el);
+			let hideConditionsInput  = $('input#hide-conditions', el);
+			let hideConditionsSelect = $('select#hide-conditions-templates', el);
+
+			showConditionsSelect.on('change', () => {
+				showConditionsInput.val(showConditionsSelect.val());
+				showConditionsInput[0].dispatchEvent(new Event('change'));
+			});
+			hideConditionsSelect.on('change', () => {
+				hideConditionsInput.val(hideConditionsSelect.val());
+				hideConditionsInput[0].dispatchEvent(new Event('change'));
+			});
+		},
+		showChildContentEditor:(el, entity) => {
+
+			let textContentContainer = el.find('#child-content-editor')[0];
+
+			if (entity && entity.children && entity.children.length === 1 && entity.children[0].type === 'Content') {
+
+				if (textContentContainer) {
+
+					textContentContainer.classList.remove('hidden');
+
+					let child    = entity.children[0];
+					let modelObj = StructrModel.obj(child.id) ?? child;
+
+					let populateDialog = (child) => {
+						_Entities.basicTab.populateInputFields($(textContentContainer), child);
+						_Entities.basicTab.registerDeferredSimpleInputChangeHandlers($(textContentContainer), child, true);
+					};
+
+					if (!modelObj.content) {
+						Command.get(modelObj.id, 'id,type,content', populateDialog);
+					} else {
+						populateDialog(modelObj);
+					}
+				}
+			}
+		},
+		showRenderingOptions: (el, entity) => {
+
+			// Disable render options on certain elements
+			if (['html', 'body', 'head', 'title', 'style', 'meta', 'link', 'script', 'base'].includes(entity.tag)) {
+				return;
+			}
+
+			let renderingOptionsContainer = $('#rendering-options-container', el);
+
+			if (renderingOptionsContainer.length) {
+
+				renderingOptionsContainer.removeClass('hidden');
+
+				let renderingModeSelect = $('select#rendering-mode-select', renderingOptionsContainer);
+				renderingModeSelect.select2();
+
+				Command.getProperty(entity.id, 'data-structr-rendering-mode', (result) => {
+					renderingModeSelect.val(result);
+					renderingModeSelect.trigger('change');
+				});
+
+				renderingModeSelect.on('change', () => {
+					let renderingMode = renderingModeSelect.val() === '' ? null : renderingModeSelect.val();
+					_Entities.setPropertyWithFeedback(entity, 'data-structr-rendering-mode', renderingMode, renderingModeSelect, null);
+				});
+			}
+		},
+		getValueFromFormElement: (el) => {
+
+			if (el.tagName === 'SELECT' && el.multiple === true) {
+				return [].map.call(el.selectedOptions, (o) => o.value);
+			} else if (el.tagName === 'INPUT' && el.type === 'date') {
+				return new Date(el.value);
+			} else if (el.tagName === 'INPUT' && el.type === 'checkbox') {
+				return el.checked;
+			} else if (el.tagName === 'INPUT' && el.type === 'radio') {
+				if (el.checked === true) {
+					return el.value;
+				} else {
+					return null;
+				}
+			}
+
+			return el.value;
+		},
+		registerDeferredSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull) => {
+
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity, emptyStringInsteadOfNull, true);
+		},
+		registerSimpleInputChangeHandlers: (el, entity, emptyStringInsteadOfNull, isDeferredChangeHandler = false) => {
+
+			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+				let shouldDeferChangeHandler = inputEl.dataset['deferChangeHandler'];
+
+				if (shouldDeferChangeHandler !== 'true' || (shouldDeferChangeHandler === 'true' && isDeferredChangeHandler === true) ) {
+
+					inputEl.addEventListener('change', () => {
+
+						let key      = inputEl.name;
+						let oldVal   = entity[key];
+						let newVal   = _Entities.basicTab.getValueFromFormElement(inputEl);
+						let isChange = (oldVal !== newVal) && !((oldVal === null || oldVal === undefined) && newVal === '');
+
+						if (isChange) {
+
+							let blinkElement = (inputEl.type === 'checkbox') ? $(inputEl).parent() : null;
+
+							_Entities.setPropertyWithFeedback(entity, key, newVal || (emptyStringInsteadOfNull ? '' : null), $(inputEl), blinkElement);
+						}
+					});
+				}
+			}
+		},
+		populateInputFields: (el, entity) => {
+
+			for (let inputEl of el[0].querySelectorAll('textarea[name], input[name]')) {
+
+				let val = entity[inputEl.name];
+				if (val != undefined && val != null) {
+					if (inputEl.type === 'checkbox') {
+						inputEl.checked = val;
+					} else {
+						inputEl.value = val;
+					}
+				}
+			}
+		},
+		focusInput: (el, selector) => {
+
+			if (selector) {
+				$(selector, el).focus().select();
+			} else {
+				$('input:first', el).focus().select();
+			}
+		},
+		setNull: (id, key, input) => {
+
+			Command.setProperty(id, key, null, false, () => {
+				input.val(null);
+				_Helpers.blinkGreen(input);
+				_Dialogs.custom.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
+			});
+		},
+		addHtmlPropertiesToEntity: (entity, callback) => {
+
+			Command.get(entity.id, null, (htmlProperties) => {
+
+				StructrModel.update(Object.assign(htmlProperties, entity));
+
+				callback(entity);
+			}, '_html_');
+		},
+
+		// ----- custom dialogs -----
+		ldapGroupDialog: (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.ldapGroup({ group: entity }));
+
+			let dnInput     = $('input#ldap-group-dn');
+			let pathInput   = $('input#ldap-group-path');
+			let filterInput = $('input#ldap-group-filter');
+			let scopeInput  = $('input#ldap-group-scope');
+
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+			// dialog logic here..
+			$('.clear-ldap-group-dn', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'distinguishedName', dnInput); });
+			$('.clear-ldap-group-path', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'path', pathInput); });
+			$('.clear-ldap-group-filter', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'filter', filterInput); });
+			$('.clear-ldap-group-scope', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'scope', scopeInput); });
+
+			$('button#ldap-sync-button').on('click', async () => {
+
+				let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/update`, {
+					method: 'POST'
+				});
+
+				if (response.ok) {
+					_Dialogs.custom.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
+				} else {
+					_Dialogs.custom.showAndHideInfoBoxMessage('LDAP group could not be updated', 'warning', 5000, 200);
+				}
+			});
+
+			_Entities.basicTab.focusInput(el);
+		},
+		fileDialog: (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.fileOptions({ file: entity }));
+
+			if (Structr.isModulePresent('text-search')) {
+
+				$('#content-extraction').removeClass('hidden');
+
+				$('button#extract-structure-button').on('click', async () => {
+
+					_Dialogs.custom.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+
+					let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/extractStructure`, {
+						method: 'POST'
+					});
+
+					if (response.ok) {
+						_Dialogs.custom.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+					}
+				});
+			}
+
+			_Entities.basicTab.populateInputFields(el, entity);
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+			_Helpers.activateCommentsInElement(el[0]);
+
+			_Entities.basicTab.focusInput(el);
+		},
+		folderDialog: (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.folderOptions({ file: entity }));
+
+			_Entities.basicTab.populateInputFields(el, entity);
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+			_Helpers.activateCommentsInElement(el[0]);
+		},
+		aDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			});
+		},
+		buttonDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			});
+		},
+		inputDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.inputOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+			});
+		},
+		divDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+			});
+		},
+		userDialog: (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.userOptions({ entity: entity, user: entity }));
+
+			_Entities.basicTab.populateInputFields(el, entity);
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+			_Helpers.activateCommentsInElement(el[0]);
+
+			$('button#set-password-button').on('click', (e) => {
+				let input = $('input#password-input');
+				_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+			});
+
+			_Entities.basicTab.focusInput(el);
+
+			_Entities.basicTab.showCustomProperties(el, entity);
+		},
+		pageDialog: async (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.pageOptions({ entity: entity, page: entity }));
+
+			_Entities.basicTab.populateInputFields(el, entity);
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+			_Pages.previews.configurePreview(entity, el[0]);
+
+			_Entities.basicTab.focusInput(el);
+
+			await _Entities.basicTab.showCustomProperties(el, entity);
+
+			_Helpers.activateCommentsInElement(el[0]);
+		},
+		defaultDomDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			});
+		},
+		contentDialog: (el, entity) => {
+
+			el.html(_Entities.basicTab.templates.contentOptions({ entity: entity }));
+
+			_Entities.basicTab.populateInputFields(el, entity);
+			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+			_Entities.basicTab.focusInput(el);
+
+			_Entities.basicTab.showCustomProperties(el, entity);
+			_Entities.basicTab.showShowHideConditionOptions(el, entity);
+		},
+		optionDialog: (el, entity) => {
+
+			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
+
+				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			});
+		},
+
+		templates: {
+			nameTile: config => `
+				<div class="${(config.doubleWide === true ? 'col-span-2' : '')}">
+					<label class="block mb-2" for="name-input">Name</label>
+					<input type="text" id="name-input" autocomplete="off" name="name">
+				</div>
+			`,
+			htmlClassTile: config => `
+				<div>
+					<label class="block mb-2" for="class-input">CSS Class</label>
+					<input type="text" id="class-input" name="_html_class">
+				</div>
+			`,
+			htmlIdTile: config => `
+				<div>
+					<label class="block mb-2" for="id-input">HTML ID</label>
+					<input type="text" id="id-input" name="_html_id">
+				</div>
+			`,
+			htmlStyleTile: config => `
+				<div class="col-span-2">
+					<label class="block mb-2" for="style-input">Style</label>
+					<input type="text" id="style-input" name="_html_style">
+				</div>
+			`,
+			htmlTitleTile: config => `
+				<div>
+					<label class="block mb-2" for="title-input">Title</label>
+					<input type="text" id="title-input" name="_html_title">
+				</div>
+			`,
+			htmlTypeTile: config => `
+				<div>
+					<label class="block mb-2" for="type-input">Type</label>
+					<input type="text" id="type-input" name="_html_type">
+				</div>
+			`,
+			aOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						<div class="col-span-2">
+							<label class="block mb-2" for="href-input">HREF attribute</label>
+							<input type="text" id="href-input" name="_html_href">
+						</div>
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+						${_Entities.basicTab.templates.contentPartial(config)}
+
 					</div>
-					<div class="option-tile flat">
-						<label class="hidden mb-1">Property key</label>
-						<input type="text" class="multiple-input-property-key-input" placeholder="Property key to update" data-structr-id="${config.id}">
+
+					${_Entities.basicTab.templates.renderingOptions(config)}
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+				</div>
+			`,
+			buttonOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						${_Entities.basicTab.templates.htmlTitleTile(config)}
+
+						${_Entities.basicTab.templates.htmlTypeTile(config)}
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+						${_Entities.basicTab.templates.contentPartial()}
 					</div>
-					<div class="option-tile flat">
-						<label class="hidden mb-1">CSS id</label>
-						<input type="text" class="multiple-input-css-id-input" placeholder="CSS id attribute" data-structr-id="${config.id}">
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+				</div>
+			`,
+			contentOptions: config => `
+				<div id="default-dom-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
 					</div>
-					<div class="option-tile flat">
-						<label class="hidden mb-1">Value</label>
-						<input type="text" class="multiple-input-value-input" placeholder="Value expression" data-structr-id="${config.id}">
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+				</div>
+			`,
+			contentPartial: config => `
+				<div id="child-content-editor" class="col-span-2 hidden">
+					<label class="block mb-2" for="content-input">Text Content</label>
+					<textarea id="content-input" name="content" data-defer-change-handler="true"></textarea>
+				</div>
+			`,
+			customPropertiesPartial: config => `
+				<div id="custom-properties-parent" class="hidden">
+					<h3>Custom Attributes</h3>
+					<div id="custom-properties-container"></div>
+				</div>
+			`,
+			defaultDOMOptions: config => `
+				<div id="default-dom-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+						${_Entities.basicTab.templates.contentPartial()}
+
 					</div>
-					<div class="option-tile flat">
-						<label class="hidden mb-1">Actions</label>
-						<i class="block mt-2 cursor-pointer multiple-input-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
+
+					${_Entities.basicTab.templates.renderingOptions(config)}
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+				</div>
+			`,
+			divOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+					</div>
+
+					${_Entities.basicTab.templates.renderingOptions(config)}
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+
+				</div>
+			`,
+			includeInFrontendExport: config => `
+				<div class="mb-2 flex items-center">
+					<input type="checkbox" name="includeInFrontendExport" id="includeInFrontendExport">
+					<label for="includeInFrontendExport" data-comment-config='{"insertAfter":true}' data-comment="If checked this file/folder is exported in the deployment process. If a parent folder has this flag enabled, it will automatically be exported and the flag does not need to be set.">Include in frontend export</label>
+				</div>
+			`,
+			fileOptions: config => `
+				<div id="file-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(config)}
+
+						<div>
+							<label class="block mb-2" for="content-type-input">Content Type</label>
+							<input type="text" id="content-type-input" autocomplete="off" name="contentType">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="cache-for-seconds-input" class="block">Cache for n seconds</label>
+							<input type="text" id="cache-for-seconds-input" value="" name="cacheForSeconds">
+						</div>
+
+						<div>
+
+							<label class="block mb-2">Options</label>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="isTemplate" id="isTemplate">
+								<label for="isTemplate">Is template (dynamic file)</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="dontCache" id="dontCache">
+								<label for="dontCache">Caching disabled</label>
+							</div>
+
+							${_Entities.basicTab.templates.includeInFrontendExport(config)}
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="useAsJavascriptLibrary" id="useAsJavascriptLibrary">
+								<label for="useAsJavascriptLibrary" data-comment-config='{"insertAfter":true}' data-comment="If checked this file can be included via <code>$.includeJs(fileName)</code> in any other server-side JavaScript context.<br><br>File must have content-type <code>text/javascript</code> or <code>application/javascript</code>">Use As Javascript Library</label>
+							</div>
+						</div>
+					</div>
+
+					<div id="content-extraction" class="hidden">
+						<h3>Content Extraction</h3>
+						<div>
+							<p>Extract text content from this document or image and store it in a StructuredDocument node with StructuredTextNode children.</p>
+							<button type="button" class="action" id="extract-structure-button">Extract document content</button>
+						</div>
+					</div>
+				</div>
+			`,
+			folderOptions: config => `
+				<div id="file-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(config)}
+
+						<div>
+
+							<label class="block mb-2">Options</label>
+
+							${_Entities.basicTab.templates.includeInFrontendExport(config)}
+
+						</div>
+					</div>
+				</div>
+			`,
+			inputOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						${_Entities.basicTab.templates.htmlTypeTile(config)}
+
+						<div>
+							<label class="block mb-2" for="placeholder-input">Placeholder</label>
+							<input type="text" id="placeholder-input" name="_html_placeholder">
+						</div>
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.htmlTitleTile(config)}
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+					</div>
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+				</div>
+			`,
+			ldapGroup: config => `
+				<div id="ldap-group-config">
+					<h3>Synchronize this group using distinguished name (prioritized if set)</h3>
+
+					<div class="mb-3">
+						<input type="text" size="80" id="ldap-group-dn" placeholder="Distinguished Name" name="distinguishedName">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-dn', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					</div>
+
+					<h3>Synchronize this group using path, filter and scope (if distinguished name not set above)</h3>
+
+					<div class="mb-3">
+						<input type="text" size="80" id="ldap-group-path" placeholder="Path" name="path">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-path', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					</div>
+
+					<div class="mb-3">
+						<input type="text" size="80" id="ldap-group-filter" placeholder="Filter" name="filter">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-filter', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					</div>
+
+					<div class="mb-3">
+						<input type="text" size="80" id="ldap-group-scope" placeholder="Scope" name="scope">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['clear-ldap-group-scope', 'icon-lightgrey', 'cursor-pointer']), 'Clear value')}
+					</div>
+
+					<div class="mb-3">
+						<button type="button" class="action" id="ldap-sync-button">Synchronize now</button>
+					</div>
+
+					<div>
+						<a href="/structr/config" target="_blank">Open Structr configuration</a>
+					</div>
+				</div>
+			`,
+			optionOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(Object.assign({ doubleWide: true }, config))}
+
+						${_Entities.basicTab.templates.htmlClassTile(config)}
+
+						${_Entities.basicTab.templates.htmlIdTile(config)}
+
+						${_Entities.basicTab.templates.htmlStyleTile(config)}
+
+						${_Entities.basicTab.templates.repeaterPartial(config)}
+
+						<div>
+							<label class="block mb-2" for="selected-input">Selected</label>
+							<input type="text" id="selected-input" name="_html_selected">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="selected-values-input">Selected Values Expression</label>
+							<input type="text" id="selected-values-input" name="selectedValues">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="value-input">Value</label>
+							<input type="text" id="value-input" name="_html_value">
+						</div>
+
+						<div><!-- occupy space in grid UI --></div>
+
+						${_Entities.basicTab.templates.visibilityPartial(config)}
+
+						${_Entities.basicTab.templates.contentPartial()}
+					</div>
+
+					${_Entities.basicTab.templates.renderingOptions(config)}
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+
+				</div>
+			`,
+			pageOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(config)}
+
+						<div>
+							<label class="block mb-2" for="content-type-input">Content Type</label>
+							<input type="text" id="content-type-input" name="contentType">
+						</div>
+
+						<div>
+							<label  class="mb-2"for="category-input">Category</label>
+							<input type="text" id="category-input" name="category">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="show-on-error-codes-input">Show on Error Codes</label>
+							<input type="text" id="show-on-error-codes-input" name="showOnErrorCodes">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="position-input">Position</label>
+							<input type="text" id="position-input" name="position">
+						</div>
+
+						<div>
+
+							<label class="block mb-2">Options</label>
+
+							<div class="mb-2 flex items-center">
+								<label for="dont-cache-checkbox" data-comment="Especially important for dynamic pages which are visible to public users.">
+									<input type="checkbox" name="dontCache" id="dont-cache-checkbox"> Caching disabled
+								</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<label for="page-creates-raw-data-checkbox">
+									<input type="checkbox" name="pageCreatesRawData" id="page-creates-raw-data-checkbox"> Use binary encoding for output
+								</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<label for="_auto-refresh" data-comment="Auto-refresh page preview on changes (if page preview is active)">
+									<input id="_auto-refresh" type="checkbox" ${(LSWrapper.getItem(_Pages.autoRefreshDisabledKey + config.entity.id) ? '' : ' checked="checked"')}> Auto-refresh
+								</label>
+							</div>
+
+						</div>
+
+						<div>
+							<label class="block mb-2" for="_details-object-id" data-comment="UUID of detail object to append to preview URL">Preview Detail Object</label>
+							<input id="_details-object-id" type="text" value="${(LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) ? LSWrapper.getItem(_Pages.detailsObjectIdKey + config.entity.id) : '')}">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="_request-parameters" data-comment="Request parameters to append to preview URL">Preview Request Parameters</label>
+							<div class="flex items-baseline">
+								<code>?</code>
+								<input id="_request-parameters" type="text" value="${(LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) ? LSWrapper.getItem(_Pages.requestParametersKey + config.entity.id) : '')}">
+							</div>
+						</div>
+					</div>
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+
+				</div>
+			`,
+			renderingOptions: config => `
+				<div id="rendering-options-container" class="hidden">
+					<h3>Rendering Options</h3>
+
+					<div class="grid grid-cols-2 gap-8">
+
+						<div>
+							<label class="block mb-3" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
+							<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
+								<option value="">Eager (default)</option>
+								<option value="load">When page has finished loading</option>
+								<option value="delayed">With a delay after page has finished loading</option>
+								<option value="visible">When element becomes visible</option>
+								<option value="periodic">With periodic updates</option>
+							</select>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="rendering-delay-or-interval">Delay or interval in milliseconds</label>
+							<input type="number" id="rendering-delay-or-interval" name="data-structr-delay-or-interval">
+						</div>
+					</div>
+				</div>
+			`,
+				repeaterPartial: config => `
+				<div>
+					<label class="block mb-2" for="function-query-input">Function Query</label>
+					<input type="text" id="function-query-input" name="functionQuery">
+				</div>
+
+				<div>
+					<label class="block mb-2" for="data-key-input">Data Key</label>
+					<input type="text" id="data-key-input" name="dataKey">
+				</div>
+			`,
+			userOptions: config => `
+				<div id="div-options" class="quick-access-options">
+
+					<div class="grid grid-cols-2 gap-8">
+
+						${_Entities.basicTab.templates.nameTile(config)}
+
+						<div>
+							<label class="block mb-2" for="e-mail-input">eMail</label>
+							<input type="text" id="e-mail-input" autocomplete="off" name="eMail">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="password-input">Password</label>
+							<input class="mb-2" type="password" id="password-input" autocomplete="new-password" value="****** HIDDEN ******">
+							<button class="action" type="button" id="set-password-button">Set Password</button>
+						</div>
+
+						<div>
+
+							<label class="block mb-2">Options</label>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="isAdmin" id="isAdmin">
+								<label for="isAdmin">Is Admin User</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="skipSecurityRelationships" id="skipSecurityRelationships">
+								<label for="skipSecurityRelationships">Skip Security Relationships</label>
+							</div>
+
+							<div class="mb-2 flex items-center">
+								<input type="checkbox" name="isTwoFactorUser" id="isTwoFactorUser">
+								<label for="isTwoFactorUser">Enable Two-Factor Authentication for this User</label>
+							</div>
+						</div>
+
+						<div>
+							<label class="block mb-2" for="password-attempts-input" data-comment="The number of failed login attempts for this user. Depending on the configuration a user is blocked after a certain number of failed login attempts. The user must then reset their password (if allowed via the configuration) or this counter must be reset by an admin.<br><br>Before that threshold is reached, the counter is reset on each successful login.">Failed Login Attempts</label>
+							<input type="text" id="password-attempts-input" name="passwordAttempts">
+						</div>
+
+						<div>
+							<label class="block mb-2" for="confirmation-key" data-comment="Used for self-registration and password reset. If a confirmation key is set, log in via password is prevented, unless <code>registration.allowloginbeforeconfirmation</code> is enabled via structr.conf">Confirmation Key</label>
+							<input type="text" id="confirmation-key" name="confirmationKey">
+						</div>
+					</div>
+
+					${_Entities.basicTab.templates.customPropertiesPartial(config)}
+
+				</div>
+			`,
+			showHideConditionTemplates: config => `
+				<option value="" disabled selected>Example ${config.type} conditions...</option>
+				<option value="">(none)</option>
+				<option>true</option>
+				<option>false</option>
+				<option>me.isAdmin</option>
+				<option>empty(current)</option>
+				<option>not(empty(current))</option>
+			`,
+			visibilityPartial: config => `
+				<div>
+					<label class="block mb-2" for="show-conditions">Show Conditions</label>
+					<div class="flex">
+						<input id="show-conditions" type="text" name="showConditions">
+						<select id="show-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'show' })}
+						</select>
 					</div>
 				</div>
 
-			</div>
-		`,
+				<div>
+					<label class="block mb-2" for="hide-conditions">Hide Conditions</label>
+					<div class="flex">
+						<input id="hide-conditions" type="text" name="hideConditions">
+						<select id="hide-conditions-templates" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Entities.basicTab.templates.showHideConditionTemplates({ type: 'hide' })}
+						</select>
+					</div>
+				</div>
+			`
+		}
 	}
-}
+};

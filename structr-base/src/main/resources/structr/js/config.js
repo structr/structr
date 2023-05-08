@@ -17,11 +17,107 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+document.addEventListener('DOMContentLoaded', () => {
+	_Config.init();
+});
+
 let _Editors = {
 	// fake editors element to allow fastRemove to work normally
 };
 
 let _Config = {
+	resize: () => {
+		$('.tab-content').css({
+			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
+		});
+
+		_Dialogs.basic.centerAll();
+	},
+	init: () => {
+
+		_Icons.preloadSVGIcons();
+
+		window.addEventListener('resize', _Config.resize);
+
+		if (document.body.classList.contains('login')) {
+
+			_Dialogs.configLoginDialog.show();
+
+		} else {
+
+			document.querySelector('#new-entry-button').addEventListener('click', _Config.createNewEntry);
+
+			_Config.databaseConnections.init();
+
+			for (let resetButton of document.querySelectorAll('.reset-key')) {
+
+				resetButton.addEventListener('click', () => {
+
+					let currentTab = $('#active_section').val();
+					let key        = resetButton.dataset['key'];
+
+					window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${currentTab}`;
+				});
+			}
+
+			document.querySelector('#reload-config-button').addEventListener('click', () => {
+				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${$('#active_section').val()}`;
+			});
+
+			$('#configTabs a').on('click', function() {
+				$('#configTabs li').removeClass('active');
+				$('.tab-content').hide();
+				let el = $(this);
+				el.parent().addClass('active');
+				$('#active_section').val(el.attr('href'));
+				$(el.attr('href')).show();
+			});
+
+			_Helpers.activateCommentsInElement(document);
+
+			let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
+			document.querySelector(`a[href$=${anchor}]`).click();
+
+			let toggleButtonClicked = (button) => {
+
+				let target = document.querySelector(`#${button.dataset['target']}`);
+				if (target) {
+
+					let value = button.dataset['value'];
+					let list  = target.value;
+					let parts = list.split(" ");
+
+					// remove empty elements
+					parts = parts.filter(p => (p.length >= 2));
+
+					let pos = parts.indexOf(value);
+					if (pos >= 0) {
+
+						parts.splice(pos, 1);
+						button.classList.remove('active');
+
+					} else {
+
+						parts.push(value);
+						button.classList.add('active');
+					}
+
+					target.value = parts.filter(e => (e && e.length)).join(' ');
+				}
+			};
+
+			for (let button of document.querySelectorAll('button.toggle-option')) {
+
+				button.addEventListener('click', () => {
+					toggleButtonClicked(button);
+				});
+			}
+
+			_Search.init();
+		}
+
+		_Config.resize();
+	},
 	createNewEntry: () => {
 
 		let currentTab = $('div.tab-content:visible');
@@ -41,39 +137,77 @@ let _Config = {
 		}
 	},
 	databaseConnections: {
+		loadingMessageId: 'config-database-loading',
+		init: () => {
+
+			for (let collapsed of document.querySelectorAll('.new-connection.collapsed')) {
+
+				collapsed.addEventListener('click', () => {
+					collapsed.classList.remove('collapsed');
+				});
+			}
+
+			let addConnectionButton = document.querySelector('#add-connection');
+			addConnectionButton.addEventListener('click', () => {
+				_Config.databaseConnections.addConnection(addConnectionButton);
+			});
+
+			document.querySelector('#set-neo4j-defaults').addEventListener('click', _Config.databaseConnections.setNeo4jDefaults);
+
+			for (let deleteButton of document.querySelectorAll('.delete-connection[data-connection-name]')) {
+
+				deleteButton.addEventListener('click', (e) => {
+					_Config.databaseConnections.deleteConnection(deleteButton.dataset.connectionName);
+				});
+			}
+
+			for (let connectButton of document.querySelectorAll('.connect-connection[data-connection-name]')) {
+
+				connectButton.addEventListener('click', (e) => {
+					_Config.databaseConnections.connect(connectButton, connectButton.dataset.connectionName);
+				});
+			}
+
+			for (let disconnectButton of document.querySelectorAll('.disconnect-connection[data-connection-name]')) {
+
+				disconnectButton.addEventListener('click', (e) => {
+					_Config.databaseConnections.disconnect(disconnectButton, disconnectButton.dataset.connectionName);
+				});
+			}
+		},
 		collectData: (name) => {
 
-	if (!name) {
-		name = 'structr-new-connection';
-	}
+			if (!name) {
+				name = 'structr-new-connection';
+			}
 
-	let nameInput    = $('input#name-' + name);
-	let driverSelect = $('select#driver-' + name);
-	let urlInput     = $('input#url-' + name);
-	let dbNameInput  = $('input#database-' + name);
-	let userInput    = $('input#username-' + name);
-	let pwdInput     = $('input#password-' + name);
-	let nowCheckbox  = $('input#connect-checkbox');
+			let nameInput    = $('input#name-' + name);
+			let driverSelect = $('select#driver-' + name);
+			let urlInput     = $('input#url-' + name);
+			let dbNameInput  = $('input#database-' + name);
+			let userInput    = $('input#username-' + name);
+			let pwdInput     = $('input#password-' + name);
+			let nowCheckbox  = $('input#connect-checkbox');
 
-	nameInput.parent().removeClass();
-	driverSelect.parent().removeClass();
-	urlInput.parent().removeClass();
-	userInput.parent().removeClass();
-	pwdInput.parent().removeClass();
+			nameInput.parent().removeClass();
+			driverSelect.parent().removeClass();
+			urlInput.parent().removeClass();
+			userInput.parent().removeClass();
+			pwdInput.parent().removeClass();
 
-	let data = {
-		name:     nameInput.val(),
-		driver:   driverSelect.val(),
-		url:      urlInput.val(),
-		database: dbNameInput.val(),
-		username: userInput.val(),
-		password: pwdInput.val(),
-		now:      nowCheckbox && nowCheckbox.is(':checked'),
-		active_section: '#databases'
-	};
+			let data = {
+				name:     nameInput.val(),
+				driver:   driverSelect.val(),
+				url:      urlInput.val(),
+				database: dbNameInput.val(),
+				username: userInput.val(),
+				password: pwdInput.val(),
+				now:      nowCheckbox && nowCheckbox.is(':checked'),
+				active_section: '#databases'
+			};
 
-	return data;
-},
+			return data;
+		},
 		addConnection: (button) => {
 
 			let name = 'structr-new-connection';
@@ -91,7 +225,7 @@ let _Config = {
 			status.empty();
 
 			if (data.now) {
-				_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+				_Dialogs.loadingMessage.show('Connection is being established', 'Please wait...', _Config.databaseConnections.loadingMessageId);
 			}
 
 			fetch(_Helpers.getPrefixedRootUrl('/structr/config/add'), {
@@ -126,19 +260,20 @@ let _Config = {
 			});
 		},
 		setNeo4jDefaults: () => {
-			$('#driver-structr-new-connection').val('org.structr.bolt.BoltDatabaseService');
-			$('#name-structr-new-connection').val('neo4j-localhost-7687');
-			$('#url-structr-new-connection').val('bolt://localhost:7687');
-			$('#database-structr-new-connection').val('neo4j');
-			$('#username-structr-new-connection').val('neo4j');
-			$('#password-structr-new-connection').val('neo4j');
+
+			document.querySelector('#driver-structr-new-connection').value   = 'org.structr.bolt.BoltDatabaseService';
+			document.querySelector('#name-structr-new-connection').value     = 'neo4j-localhost-7687';
+			document.querySelector('#url-structr-new-connection').value      = 'bolt://localhost:7687';
+			document.querySelector('#database-structr-new-connection').value = 'neo4j';
+			document.querySelector('#username-structr-new-connection').value = 'neo4j';
+			document.querySelector('#password-structr-new-connection').value = 'neo4j';
 		},
 		saveConnection: (name) => {
 
 			let data = _Config.databaseConnections.collectData(name);
 
 			if (data.now) {
-				_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+				_Dialogs.loadingMessage.show('Database connection is being established', 'Please wait...', _Config.databaseConnections.loadingMessageId);
 			}
 
 			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/use`, {
@@ -157,22 +292,22 @@ let _Config = {
 		},
 		reload: () => {
 
-			_Helpers.hideNonBlockUIOverlay();
+			_Dialogs.loadingMessage.hide(_Config.databaseConnections.loadingMessageId);
 
 			window.location.href = _Helpers.getPrefixedRootUrl('/structr/config#databases');
 			window.location.reload(true);
 		},
 		connect: (button, name) => {
 
-			button.disabled = true;
+			button.disabled     = true;
 			button.dataset.text = button.innerHTML;
-			button.innerHTML = 'Connecting..';
+			button.innerHTML    = 'Connecting..';
 
-			let status = $('div#status-' + name);
+			let status = $(`div#status-${name}`);
 			status.addClass('hidden');
 			status.empty();
 
-			_Helpers.showNonBlockUILoadingMessage('Connection is being established', 'Please wait...');
+			_Dialogs.loadingMessage.show('Database connection is being established', 'Please wait...', _Config.databaseConnections.loadingMessageId);
 
 			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/connect`, {
 				method: 'POST',
@@ -198,7 +333,7 @@ let _Config = {
 			status.addClass('hidden');
 			status.empty();
 
-			_Helpers.showNonBlockUILoadingMessage('Database is being disconnected', 'Please wait...');
+			_Dialogs.loadingMessage.show('Database is being disconnected', 'Please wait...', _Config.databaseConnections.loadingMessageId);
 
 			fetch(`${_Helpers.getPrefixedRootUrl('/structr/config/')}${name}/disconnect`, {
 				method: 'POST',
@@ -216,7 +351,7 @@ let _Config = {
 		},
 		handleErrorResponse: async (name, response, button) => {
 
-			_Helpers.hideNonBlockUIOverlay();
+			_Dialogs.loadingMessage.hide(_Config.databaseConnections.loadingMessageId);
 
 			let json = await response.json();
 
@@ -225,7 +360,7 @@ let _Config = {
 			}
 
 			if (button) {
-				button.disabled = false;
+				button.disabled  = false;
 				button.innerHTML = button.dataset.text;
 			}
 
@@ -236,7 +371,7 @@ let _Config = {
 
 						json.errors.forEach(t => {
 							if (t.property !== undefined && t.token !== undefined) {
-								$('input#' + t.property + '-' + name).parent().addClass(t.token);
+								$(`input#${t.property}-${name}`).parent().addClass(t.token);
 							}
 						});
 
@@ -257,6 +392,38 @@ let _Config = {
 					break;
 			}
 		},
+	},
+	templates: {
+		configLoginDialogMarkup: `
+			<div id="login" class="dialog p-6 text-left">
+
+				${_Icons.getSvgIcon(_Icons.iconStructrLogo, 90, 24, ['logo-login'])}
+
+				<p>Welcome to the Structr Configuration Editor. Please log in with the <b>super-user</b> password which can be found in your structr.conf.</p>
+
+				<form action="/structr/config" method="post">
+
+					<div id="username-password" class="gap-y-2 grid ml-1 mr-4" style="grid-template-columns: 35fr 65fr;">
+
+						<div class="self-center">
+							<label for="passwordField">Password:</label>
+						</div>
+
+						<div class="self-center">
+							<input id="passwordField" type="password" name="password" autocomplete="current-password" required class="w-full p-1 box-border">
+						</div>
+
+						<div class="self-center col-span-2 mt-2 text-right">
+							<button id="loginButton" name="login" class="inline-flex mr-0 items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								${_Icons.getSvgIcon(_Icons.iconVisibilityKey, 16, 16, ['mr-2'])} Login
+							</button>
+
+							<input type="hidden" name="action" value="login">
+						</div>
+					</div>
+
+			</div>
+		`
 	}
 };
 
@@ -495,107 +662,3 @@ let _Search = {
 		}
 	}
 };
-
-document.addEventListener('DOMContentLoaded', () => {
-
-	_Icons.preloadSVGIcons();
-
-	$('#new-entry-button').on('click', _Config.createNewEntry);
-	$('#add-connection').on('click', function () {
-		_Config.databaseConnections.addConnection(this);
-	});
-	$('#set-neo4j-defaults').on('click', _Config.databaseConnections.setNeo4jDefaults);
-	$('.delete-connection[data-connection-name]').on('click', function(e) {
-		_Config.databaseConnections.deleteConnection($(this).data('connectionName'));
-	});
-	$('.connect-connection[data-connection-name]').on('click', function(e) {
-		_Config.databaseConnections.connect(this, $(this).data('connectionName'));
-	});
-	$('.disconnect-connection[data-connection-name]').on('click', function(e) {
-		_Config.databaseConnections.disconnect(this, $(this).data('connectionName'));
-	});
-
-	for (let resetButton of document.querySelectorAll('.reset-key')) {
-		resetButton.addEventListener('click', () => {
-
-			let currentTab = $('#active_section').val();
-			let key        = resetButton.dataset['key'];
-
-			window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reset=${key}${currentTab}`;
-		});
-	}
-
-	$('#reload-config-button').on('click', function() {
-		window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${$('#active_section').val()}`;
-	});
-
-	$('#configTabs a').on('click', function() {
-		$('#configTabs li').removeClass('active');
-		$('.tab-content').hide();
-		let el = $(this);
-		el.parent().addClass('active');
-		$('#active_section').val(el.attr('href'));
-		$(el.attr('href')).show();
-	});
-
-	let resizeFunction = () => {
-		$('.tab-content').css({
-			height: $(window).height() - $('#header').height() - $('#configTabs .tabs-menu').height() - 124
-		});
-
-		_Helpers.centerNonBlockUIMessage();
-	};
-
-	$(window).resize(function() {
-		resizeFunction();
-	});
-
-	resizeFunction();
-
-	_Helpers.activateCommentsInElement(document);
-
-	let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
-	document.querySelector('a[href$=' + anchor + ']').click();
-
-	let toggleButtonClicked = (button) => {
-		let target = document.querySelector('#' + button.dataset['target']);
-		if (target) {
-
-			let value = button.dataset['value'];
-			let list  = target.value;
-			let parts = list.split(" ");
-
-			// remove empty elements
-			parts = parts.filter(p => (p.length >= 2));
-
-			let pos = parts.indexOf(value);
-			if (pos >= 0) {
-
-				parts.splice(pos, 1);
-				button.classList.remove('active');
-
-			} else {
-
-				parts.push(value);
-				button.classList.add('active');
-			}
-
-			target.value = parts.filter(e => (e && e.length)).join(' ');
-		}
-	};
-
-	for (let button of document.querySelectorAll('button.toggle-option')) {
-
-		button.addEventListener('click', () => {
-			toggleButtonClicked(button);
-		});
-	}
-
-	for (let collapsed of document.querySelectorAll('.new-connection.collapsed')) {
-		collapsed.addEventListener('click', () => {
-			collapsed.classList.remove('collapsed');
-		});
-	}
-
-	_Search.init();
-});

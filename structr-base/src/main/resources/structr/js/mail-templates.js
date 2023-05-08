@@ -128,7 +128,7 @@ let _MailTemplates = {
 			_MailTemplates.saveMailTemplate();
 		})
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _MailTemplates.mailTemplatesResizerLeftKey, 300, _MailTemplates.moveResizer);
 
@@ -140,9 +140,8 @@ let _MailTemplates = {
 
 		elements.push({
 			name: 'Properties',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -170,7 +169,6 @@ let _MailTemplates = {
 						window.setTimeout(_MailTemplates.checkMainVisibility, 200);
 					}
 				});
-				return false;
 			}
 		});
 

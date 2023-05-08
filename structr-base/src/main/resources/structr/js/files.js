@@ -198,7 +198,7 @@ let _Files = {
 
 		_Files.activateUpload();
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
 		Structr.adaptUiToAvailableFeatures();
@@ -242,7 +242,6 @@ let _Files = {
 						name: 'Edit source',
 						clickHandler: () => {
 							_Files.editFile(entity);
-							return false;
 						}
 					});
 
@@ -253,7 +252,6 @@ let _Files = {
 						name: 'Edit Image',
 						clickHandler: () => {
 							_Files.editImage(entity);
-							return false;
 						}
 					});
 				}
@@ -265,7 +263,6 @@ let _Files = {
 					name: 'Edit File' + ((fileCount > 1) ? 's' : ''),
 					clickHandler: () => {
 						_Files.editFile(entity);
-						return false;
 					}
 				});
 			}
@@ -277,7 +274,6 @@ let _Files = {
 			name: 'Basic',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'general');
-				return false;
 			}
 		});
 
@@ -285,7 +281,6 @@ let _Files = {
 			name: 'Properties',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -300,13 +295,13 @@ let _Files = {
 					clickHandler: () => {
 
 						for (let el of selectedElements) {
+
 							let id = Structr.getId(el);
 
 							Command.favorites('remove', id, () => {
 								Structr.node(id).remove();
 							});
 						}
-						return false;
 					}
 				});
 
@@ -318,14 +313,13 @@ let _Files = {
 					clickHandler: () => {
 
 						for (let el of selectedElements) {
+
 							let obj = StructrModel.obj(Structr.getId(el));
 
 							if (obj.isFavoritable) {
 								Command.favorites('add', obj.id, () => {});
 							}
 						}
-
-						return false;
 					}
 				});
 			}
@@ -334,18 +328,13 @@ let _Files = {
 
 				elements.push({
 					name: 'Copy Download URL',
-					clickHandler: () => {
-						// do not make the click handler async because it would return a promise instead of the boolean
+					clickHandler: async () => {
 
-						(async () => {
-							// fake the a element so we do not need to look up the server
-							let a = document.createElement('a');
-							let possiblyUpdatedEntity = StructrModel.obj(entity.id);
-							a.href = possiblyUpdatedEntity.path;
-							await navigator.clipboard.writeText(a.href);
-						})();
-
-						return false;
+						// fake the a element so we do not need to look up the server
+						let a = document.createElement('a');
+						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
+						a.href = possiblyUpdatedEntity.path;
+						await navigator.clipboard.writeText(a.href);
 					}
 				});
 
@@ -353,14 +342,11 @@ let _Files = {
 					name: 'Download File',
 					icon: _Icons.getMenuSvgIcon('download-icon'),
 					clickHandler: () => {
-						// do not make the click handler async because it would return a promise instead of the boolean
 
 						let a = document.createElement('a');
 						let possiblyUpdatedEntity = StructrModel.obj(entity.id);
 						a.href = `${possiblyUpdatedEntity.path}?filename=${possiblyUpdatedEntity.name}`;
 						a.click();
-
-						return false;
 					}
 				});
 			}
@@ -370,7 +356,6 @@ let _Files = {
 					name: 'Unpack archive',
 					clickHandler: () => {
 						_Files.unpackArchive(entity);
-						return false;
 					}
 				});
 			}
@@ -382,7 +367,6 @@ let _Files = {
 						name: 'Import CSV',
 						clickHandler: () => {
 							Importer.importCSVDialog(entity, false);
-							return false;
 						}
 					});
 				}
@@ -395,7 +379,6 @@ let _Files = {
 						name: 'Import XML',
 						clickHandler: () => {
 							Importer.importXMLDialog(entity, false);
-							return false;
 						}
 					});
 				}
@@ -431,8 +414,6 @@ let _Files = {
 						_Files.refreshTree();
 					});
 				}
-
-				return false;
 			}
 		});
 
@@ -1194,10 +1175,7 @@ let _Files = {
 	},
 	unpackArchive: (d) => {
 
-		let { headingEl, messageEl, buttonsEl, closeButton } = _Helpers.showNonBlockUITempInfoBox()
-
-		closeButton.style.display = 'none';
-		messageEl.insertAdjacentHTML('beforeend', `
+		let message = `
 			<div class="flex items-center justify-center">
 				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}
 				<div>Unpacking Archive - please stand by...</div>
@@ -1207,12 +1185,15 @@ let _Files = {
 				You can safely close this popup and work during this operation.<br>
 				You will be notified when the extraction has finished.
 			</p>
-		`);
+		`;
+
+		let { headingEl, messageEl, closeButton } = _Dialogs.tempInfoBox.show(message);
+
+		closeButton.style.display = 'none';
 
 		window.setTimeout(() => {
 			closeButton.style.display = null;
 		}, 500);
-
 
 		Command.unarchive(d.id, _Files.currentWorkingDir ? _Files.currentWorkingDir.id : undefined, (data) => {
 
@@ -1222,8 +1203,6 @@ let _Files = {
 
 				let closed = (messageEl.offsetParent === null);
 
-				let message = `Extraction of '${data.filename}' finished successfully.`;
-
 				if (closed) {
 
 					new SuccessMessage().requiresConfirmation("Close").show();
@@ -1231,19 +1210,19 @@ let _Files = {
 				} else {
 
 					_Helpers.fastRemoveAllChildren(messageEl);
-					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} ${message}</div>`);
+					messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, ['mr-2', 'icon-green'])} Extraction of '${data.filename}' finished successfully.</div>`);
 				}
 
 			} else {
 
 				_Helpers.fastRemoveAllChildren(messageEl);
-				messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed</div>`);
+				messageEl.insertAdjacentHTML('beforeend', `<div class="flex justify-center">${_Icons.getSvgIcon(_Icons.iconErrorRedFilled, 16, 16, ['mr-2'])} Extraction failed.</div>`);
 			}
 		});
 	},
 	editImage: (image) => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog(image.name);
+		let { dialogText } = _Dialogs.custom.openDialog(image.name);
 
 		let imagePath = image.path;
 
@@ -1259,8 +1238,8 @@ let _Files = {
 
 		let x,y,w,h;
 
-		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		dialogSaveButton.addEventListener('click', (e) => {
 			e.preventDefault();
@@ -1275,7 +1254,7 @@ let _Files = {
 			dialogSaveButton.click();
 
 			window.setTimeout(() => {
-				Structr.dialogSystem.clickDialogCancelButton();
+				_Dialogs.custom.clickDialogCancelButton();
 			}, 500);
 		});
 
@@ -1337,7 +1316,7 @@ let _Files = {
 
 		if (hasBeenWarned === false && hasFileAboveThreshold === true) {
 
-			_Helpers.confirmationPromiseNonBlockUI(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(confirm => {
+			_Dialogs.confirmation.showPromise(`At least one file size is greater than ${fileThresholdKB} KB, do you really want to open that in an editor?`).then(confirm => {
 				if (confirm === true) {
 					_Files.editFile(file, true);
 				}
@@ -1345,8 +1324,8 @@ let _Files = {
 
 		} else {
 
-			let { dialogText } = Structr.dialogSystem.openDialog('Edit files', null, ['popup-dialog-with-editor']);
-			Structr.dialogSystem.showMeta();
+			let { dialogText } = _Dialogs.custom.openDialog('Edit files', null, ['popup-dialog-with-editor']);
+			_Dialogs.custom.showMeta();
 
 			dialogText.insertAdjacentHTML('beforeend', '<div id="files-tabs" class="files-tabs flex flex-col h-full"><ul></ul></div>');
 
@@ -1412,8 +1391,8 @@ let _Files = {
 	},
 	editFileWithMonaco: async (file, editorContainer) => {
 
-		let saveButton         = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndCloseButton = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let saveButton         = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		editorContainer.insertAdjacentHTML('beforeend', '<div class="editor h-full overflow-hidden"></div><div id="template-preview"><textarea readonly></textarea></div>');
 
@@ -1444,7 +1423,7 @@ let _Files = {
 			changeFn: monacoChangeFn
 		};
 
-		let dialogMeta = Structr.dialogSystem.getDialogMetaElement();
+		let dialogMeta = _Dialogs.custom.getDialogMetaElement();
 
 		_Helpers.fastRemoveAllChildren(dialogMeta);
 		dialogMeta.insertAdjacentHTML('beforeend', '<span class="editor-info"></span>');
@@ -1509,7 +1488,7 @@ let _Files = {
 			}
 		};
 
-		let newCancelButton = Structr.dialogSystem.updateOrCreateDialogCloseButton();
+		let newCancelButton = _Dialogs.custom.updateOrCreateDialogCloseButton();
 
 		newCancelButton.addEventListener('click', async (e) => {
 
@@ -1517,7 +1496,7 @@ let _Files = {
 
 				e.stopPropagation();
 
-				Structr.dialogSystem.dialogCancelBaseAction();
+				_Dialogs.custom.dialogCancelBaseAction();
 			}
 		});
 
@@ -1746,12 +1725,12 @@ let _Files = {
 
 		_Schema.getTypeInfo('Folder', (typeInfo) => {
 
-			let { dialogText } = Structr.dialogSystem.openDialog('Mount Folder');
+			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder');
 
 			dialogText.insertAdjacentHTML('beforeend', _Files.templates.mountDialog({typeInfo: typeInfo}));
 			_Helpers.activateCommentsInElement(dialogText);
 
-			let mountButton = Structr.dialogSystem.prependCustomDialogButton('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
+			let mountButton = _Dialogs.custom.prependCustomDialogButton('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
 
 			mountButton.addEventListener('click', () => {
 
@@ -1774,11 +1753,11 @@ let _Files = {
 
 				if (!mountConfig.name) {
 
-					Structr.dialogSystem.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
+					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
 
 				} else if (!mountConfig.mountTarget) {
 
-					Structr.dialogSystem.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
+					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
 
 				} else {
 
@@ -1786,7 +1765,7 @@ let _Files = {
 					mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
 					Command.create(mountConfig);
 
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				}
 			});
 		});

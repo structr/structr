@@ -210,13 +210,19 @@ let _Editors = {
 			// check linting updates for this element max every 10 seconds (unless forced)
 			storageContainer.decorations = storageContainer?.decorations ?? [];
 			let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
-			storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+
+			if (!storageContainer.instance) {
+				storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+			}
+			if (storageContainer.instance) {
+				storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+			}
 		}
 	},
 	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
-		let response   = await fetch(Structr.rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
+		let response   = await fetch(`${Structr.rootUrl}_runtimeEventLog?type=Scripting&seen=false&${Structr.getRequestParameterName('pageSize')}=100`);
 
 		if (response.ok) {
 
@@ -421,7 +427,8 @@ let _Editors = {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
-			readOnly: customConfig.readOnly
+			readOnly: customConfig.readOnly,
+			fixedOverflowWidgets: true
 		});
 
 		// dispose previously existing editors
@@ -573,12 +580,12 @@ let _Editors = {
 
 				if (_Speech.isCommand('save', interim)) {
 
-					Structr.dialogSystem.clickSaveButton();
+					_Dialogs.custom.clickSaveButton();
 
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
 
 					_Speech.toggleStartStop(speechBtn, function() {
-						Structr.dialogSystem.clickSaveAndCloseButton();
+						_Dialogs.custom.clickSaveAndCloseButton();
 					});
 
 				} else if (_Speech.isCommand('close', interim)) {

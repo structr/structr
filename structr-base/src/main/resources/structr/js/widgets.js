@@ -42,10 +42,9 @@ let _Widgets = {
 				name: 'Edit',
 				clickHandler: () => {
 
-					Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
+					Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
 						_Widgets.editWidget(entity, true);
 					});
-					return false;
 				}
 			});
 
@@ -55,9 +54,7 @@ let _Widgets = {
 				icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
 				name: 'View',
 				clickHandler: () => {
-
 					_Widgets.editWidget(entity, false);
-					return false;
 				}
 			});
 		}
@@ -68,7 +65,6 @@ let _Widgets = {
 			name: 'Properties',
 			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -79,9 +75,7 @@ let _Widgets = {
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {
-
 				_Entities.deleteNode(entity);
-				return false;
 			}
 		});
 
@@ -209,7 +203,7 @@ let _Widgets = {
 	},
 	showWidgetServersDialog: () => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog('Widget Servers');
+		let { dialogText } = _Dialogs.custom.openDialog('Widget Servers');
 
 		dialogText.insertAdjacentHTML('beforeend', _Widgets.templates.serversDialog());
 
@@ -243,7 +237,7 @@ let _Widgets = {
 
 					let el      = e.target;
 					let acdnID  = el.closest('div').dataset.acdnId;
-					let confirm = await _Helpers.confirmationPromiseNonBlockUI('Really delete Widget Server URL?');
+					let confirm = await _Dialogs.confirmation.showPromise('Really delete Widget Server URL?');
 
 					if (confirm === true) {
 
@@ -450,7 +444,7 @@ let _Widgets = {
 	},
 	editWidget: (entity, isLocalWidget) => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`${isLocalWidget ? 'Edit widget "' : 'Viewing remote widget "'}${entity.name}"`, null, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog(`${isLocalWidget ? 'Edit widget "' : 'Viewing remote widget "'}${entity.name}"`, null, ['popup-dialog-with-editor']);
 
 		dialogText.insertAdjacentHTML('beforeend', `
 			<div class="widgets-tabs flex flex-col h-full overflow-hidden">
@@ -494,8 +488,8 @@ let _Widgets = {
 			return changed;
 		};
 
-		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
-		let saveAndClose     = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		let editorChangeHandler = (editor, origEntity, propertyName) => {
 
@@ -538,11 +532,11 @@ let _Widgets = {
 
 					Command.setProperties(entity.id, widgetData, () => {
 
-						Structr.dialogSystem.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
 
 						if (closeAfterSave) {
 
-							Structr.dialogSystem.clickDialogCancelButton();
+							_Dialogs.custom.clickDialogCancelButton();
 
 						} else {
 
@@ -642,8 +636,8 @@ let _Widgets = {
 
 			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
 
-				let { dialogText } = Structr.dialogSystem.openDialog('Configure Widget');
-				let appendWidgetButton = Structr.dialogSystem.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
+				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget');
+				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
 
 				if ((widgetDescription === null || widgetDescription.trim() === "")) {
 					widgetDescription = '<p>Fill out the following parameters to correctly configure the widget.</p>'
@@ -750,7 +744,7 @@ let _Widgets = {
 
 					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
 
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				});
 
 			} else {
