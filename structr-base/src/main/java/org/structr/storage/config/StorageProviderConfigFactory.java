@@ -19,8 +19,8 @@
 package org.structr.storage.config;
 
 import org.structr.storage.StorageProviderFactory;
-import org.structr.storage.local.LocalFSStorageProvider;
-import org.structr.storage.memory.InMemoryStorageProvider;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.providers.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
 
 import java.util.Map;

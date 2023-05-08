@@ -35,7 +35,7 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.storage.config.StorageProviderConfigFactory;
-import org.structr.storage.local.LocalFSStorageProvider;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;

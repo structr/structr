@@ -20,11 +20,8 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.storage.config.StorageProviderConfigFactory;
-import org.structr.storage.local.LocalFSStorageProvider;
-import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
