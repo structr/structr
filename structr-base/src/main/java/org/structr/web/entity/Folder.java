@@ -160,18 +160,7 @@ public interface Folder extends AbstractFile, ContextAwareEntity {
 
 	public static boolean isMounted(final Folder thisFolder) {
 
-		final boolean isThisMounted = (thisFolder.getMountTarget() != null);
-
-		if (!isThisMounted) {
-
-			final Folder parent = thisFolder.getParent();
-			if (parent != null) {
-
-				return parent.isMounted();
-			}
-		}
-
-		return isThisMounted;
+		return AbstractFile.isMounted(thisFolder);
 	}
 
 	static void setHasParent(final Folder thisFolder) throws FrameworkException {
