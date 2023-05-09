@@ -3447,7 +3447,7 @@ let _Schema = {
 
 							Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-								container.remove();
+								_Helpers.fastRemoveAllChildren(container);
 
 								_Schema.methods.appendMethods(container, null, methods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
