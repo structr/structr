@@ -273,12 +273,14 @@ let Structr = {
 			let reconnectDialogElement = dialogBox.querySelector('#reconnect-dialog')
 			if (!reconnectDialogElement) {
 
+				let parent = dialogBox.parentNode;
+
 				_Helpers.fastRemoveAllChildren(Structr.dialogContainerOffscreen);
 				Structr.dialogContainerOffscreen.append(dialogBox);
 
-				// blockUI saves the element itself on the window object... pretty evil
-				$(window).data('blockUI.history', null);
 				movedOffscreen = true;
+
+				_Dialogs.basic.removeBlockerAround(parent);
 			}
 		}
 

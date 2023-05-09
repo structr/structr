@@ -3914,10 +3914,10 @@ ul.combined-input-select-field {
 	padding: 0.5rem 0rem;
 	border-radius: 0.25rem;
 	line-height: 1.25rem;
-	overflow: scroll;
+	overflow: auto;
 	position: absolute;
 	z-index: 1;
-	top: 3.75rem;
+	top: 3.25rem;
 	width: calc(100% - 2px);
 	max-height: 15rem;
 }
@@ -3925,7 +3925,7 @@ ul.combined-input-select-field {
 ul.combined-input-select-field li {
 	list-style-type: none;
 	padding: .5rem;
-	cursor: default;
+	cursor: pointer;
 }
 
 ul.combined-input-select-field li:hover {
@@ -3978,11 +3978,20 @@ ul.combined-input-select-field li:hover {
 .right-2 {
 	right: .5rem;
 }
+.right-3 {
+	right: .75rem;
+}
 .top-0 {
 	top: 0;
 }
 .top-1 {
 	top: .25rem;
+}
+.top-2 {
+	top: .5rem;
+}
+.top-3 {
+	top: .75rem;
 }
 .top-4 {
 	top: 1rem;

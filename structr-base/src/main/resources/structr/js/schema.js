@@ -355,7 +355,7 @@ let _Schema = {
 
 			// remove bulk edit save/discard buttons
 			for (let button of dialogText.querySelectorAll('.discard-all, .save-all')) {
-				button.remove();
+				_Helpers.fastRemoveElement(button);
 			}
 
 			let cancelButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard All' }));
@@ -959,11 +959,11 @@ let _Schema = {
 				}
 
 				if (!entity.extendsClass) {
-					container.querySelector('.edit-parent-type').remove();
+					_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 				}
 
 			} else {
-				container.querySelector('.extends-type').remove();
+				_Helpers.fastRemoveElement(container.querySelector('.extends-type'));
 			}
 
 			container.querySelector('[data-property="changelogDisabled"]').checked      = (true === entity.changelogDisabled);
@@ -1217,7 +1217,7 @@ let _Schema = {
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
 
-			container.querySelector('.edit-parent-type').remove();
+			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 
 			_Schema.nodes.appendTypeHierarchy(container);
 			_Schema.nodes.activateTagsSelect(container);
@@ -2136,7 +2136,7 @@ let _Schema = {
 
 						Command.get(entity.id, null, (reloadedEntity) => {
 
-							container.remove();
+							_Helpers.fastRemoveAllChildren(container);
 
 							_Schema.properties.appendLocalProperties(container, reloadedEntity, overrides, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
@@ -2882,7 +2882,7 @@ let _Schema = {
 				});
 
 				tr.querySelector('.discard-changes').addEventListener('click', () => {
-					tr.remove();
+					_Helpers.fastRemoveElement(tr);
 					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
 			});
@@ -3447,7 +3447,7 @@ let _Schema = {
 
 							Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-								container.remove();
+								_Helpers.fastRemoveAllChildren(container);
 
 								_Schema.methods.appendMethods(container, null, methods, optionalAfterSaveCallback);
 								_Schema.hideSchemaRecompileMessage();
@@ -3529,7 +3529,7 @@ let _Schema = {
 				if (fakeTr.classList.contains('editing')) {
 					document.querySelector('#methods-container-right').style.display = 'none';
 				}
-				fakeTr.remove();
+				_Helpers.fastRemoveElement(fakeTr);
 
 				_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
 
