@@ -2474,7 +2474,11 @@ let _Code = {
 							break;
 					}
 
-					parentToScrollTo.scrollIntoView();
+					if (parentToScrollTo.length) {
+						parentToScrollTo[0].scrollIntoView();
+					} else {
+						parentToScrollTo.scrollIntoView();
+					}
 				}
 
 				if (_Code.searchIsActive()) {
