@@ -584,22 +584,19 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 				final PropertyKey[] keys   = view.properties();
 				final Class declaringClass = field.getDeclaringClass();
 
-				// register view and properties only when they weren't defined in declaring superclass
-				// or were defined by an interface or a non-dynamic class
-				if (type.equals(declaringClass)
-					|| declaringClass.isInterface()
-					|| !declaringClass.getName().startsWith("org.structr.dynamic")
-					|| type.getInterfaces().length > 0
-					|| view.name().equals(PropertyView.All)
+				// Register views and properties
+				// Overwrite the view definition of superclasses for non-builtin views
+				final boolean overwrite = type.equals(declaringClass)
+					&& !( view.name().equals(PropertyView.All)
 					|| view.name().equals(PropertyView.Custom)
 					|| view.name().equals(PropertyView.Html)
 					|| view.name().equals(PropertyView.Public)
 					|| view.name().equals(PropertyView.Private)
 					|| view.name().equals(PropertyView.Protected)
-				) {
+					|| view.name().equals(PropertyView.Ui)
+				);
 
-					registerPropertySet(type, view.name(), keys);
-				}
+				registerPropertySet(type, view.name(), overwrite, keys);
 
 				for (final PropertyKey propertyKey : keys) {
 
@@ -840,14 +837,15 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	 * property set will be registered
 	 * @param propertySet the set of property keys to register for the given
 	 * view
+	 * @param forceOverwrite if true, remove properties from existing views
+	 * that are not contained in the new property set
 	 */
-	@Override
-	public void registerPropertySet(Class type, String propertyView, PropertyKey... propertySet) {
+	public void registerPropertySet(final Class type, final String propertyView, final boolean forceOverwrite, PropertyKey... propertySet) {
 
-		Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
+		final Map<String, Set<PropertyKey>> propertyViewMap = getPropertyViewMapForType(type);
 		Set<PropertyKey> properties = propertyViewMap.get(propertyView);
 
-		if (properties == null) {
+		if (forceOverwrite || properties == null) {
 			properties = new LinkedHashSet<>();
 			propertyViewMap.put(propertyView, properties);
 		}
@@ -868,9 +866,25 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 		}
 	}
 
+	/**
+	 * Registers the given set of property keys for the view with name
+	 * <code>propertyView</code> and the given prefix of entities with the
+	 * given type.
+	 *
+	 * @param type the type of the entities for which the view will be
+	 * registered
+	 * @param propertyView the name of the property view for which the
+	 * property set will be registered
+	 * @param propertySet the set of property keys to register for the given
+	 * view
+	 */
+	@Override
+	public void registerPropertySet(final Class type, final String propertyView, final PropertyKey... propertySet) {
+		registerPropertySet(type, propertyView, false, propertySet);
+	}
+
 	@Override
 	public void registerPropertySet(final Class type, final String propertyView, final String propertyName) {
-
 		this.registerPropertySet(type, propertyView, this.getPropertyKeyForJSONName(type, propertyName));
 	}
 
@@ -882,7 +896,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 	@Override
 	public PropertyKey getPropertyKeyForDatabaseName(Class type, String dbName, boolean createGeneric) {
 
-		Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
+		final Map<String, PropertyKey> classDBNamePropertyMap = getClassDBNamePropertyMapForType(type);
 		PropertyKey key = classDBNamePropertyMap.get(dbName);
 
 		if (key == null) {

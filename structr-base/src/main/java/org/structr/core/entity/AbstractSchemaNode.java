@@ -34,6 +34,7 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.Schema;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  *
@@ -172,24 +173,8 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		@Override
 		public boolean execute(final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
-			final ConfigurationProvider config = StructrApp.getConfiguration();
-			final Set<String> viewNames        = new HashSet<>();
+			final ConfigurationProvider config  = StructrApp.getConfiguration();
 
-			// do not create nodes for the internal views
-			viewNames.add(View.INTERNAL_GRAPH_VIEW);
-			viewNames.add(PropertyView.All);
-
-			final NodeInterface schemaNode = StructrApp.getInstance().getNodeById(node.getUuid());
-			if (schemaNode != null) {
-
-				final Iterable<SchemaView> views = schemaNode.getProperty(schemaViews);
-				if (views != null) {
-
-					for (final SchemaView view : views) {
-						viewNames.add(view.getProperty(AbstractNode.name));
-					}
-				}
-			}
 			// determine runtime type
 			Class builtinClass = config.getNodeEntityClass(node.getClassName());
 			if (builtinClass == null) {
@@ -200,43 +185,61 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 
 			if (builtinClass != null) {
 
-				for (final String view : config.getPropertyViewsForType(builtinClass)) {
+				createViewNodesForClass(node, builtinClass, config, null);
 
-					if (!viewNames.contains(view)) {
-
-						final Set<String> viewPropertyNames   = new HashSet<>();
-						final List<SchemaProperty> properties = new LinkedList<>();
-
-						// collect names of properties in the given view
-						for (final PropertyKey key : config.getPropertySet(builtinClass, view)) {
-
-							if (key.isPartOfBuiltInSchema()) {
-								viewPropertyNames.add(key.jsonName());
-							}
-						}
-
-						// collect schema properties that match the view
-						for (final SchemaProperty schemaProperty : node.getProperty(SchemaNode.schemaProperties)) {
-
-							final String schemaPropertyName = schemaProperty.getProperty(SchemaProperty.name);
-							if (viewPropertyNames.contains(schemaPropertyName)) {
-
-								properties.add(schemaProperty);
-							}
-						}
-
-						// create view node
-						StructrApp.getInstance(node.getSecurityContext()).create(SchemaView.class,
-							new NodeAttribute(SchemaView.schemaNode, node),
-							new NodeAttribute(SchemaView.name, view),
-							new NodeAttribute(SchemaView.schemaProperties, properties),
-							new NodeAttribute(SchemaView.isBuiltinView, true)
-						);
-					}
+				final Class superClass = builtinClass.getSuperclass();
+				if (superClass != null) {
+					final AbstractSchemaNode parentNode = ((AbstractSchemaNode) node).getProperty(SchemaNode.extendsClass);
+					createViewNodesForClass(node, superClass, config, parentNode);
 				}
+
 			}
 
 			return true;
+		}
+
+		private static void createViewNodesForClass(final AbstractSchemaNode schemaNode, final Class cls, final ConfigurationProvider config, final AbstractSchemaNode parentNode) throws FrameworkException {
+
+			final Set<String> existingViewNames = Iterables.toList(schemaNode.getSchemaViews()).stream().map(v -> v.getName()).collect(Collectors.toSet());
+
+			for (final String view : config.getPropertyViewsForType(cls)) {
+
+				// Don't create duplicate and internal views
+				if (existingViewNames.contains(view)) {
+					continue;
+				}
+
+				final Set<String> viewPropertyNames   = new HashSet<>();
+				final List<SchemaProperty> properties = new LinkedList<>();
+
+				// collect names of properties in the given view
+				for (final PropertyKey key : config.getPropertySet(cls, view)) {
+
+					if (parentNode != null || key.isPartOfBuiltInSchema()) {
+						viewPropertyNames.add(key.jsonName());
+					}
+				}
+
+				// collect schema properties that match the view
+				// if parentNode is set, we're adding inherited properties from the parent node
+				for (final SchemaProperty schemaProperty : (parentNode != null ? parentNode : schemaNode).getProperty(SchemaNode.schemaProperties)) {
+
+					final String schemaPropertyName = schemaProperty.getProperty(SchemaProperty.name);
+					if (viewPropertyNames.contains(schemaPropertyName)) {
+
+						properties.add(schemaProperty);
+					}
+				}
+
+				// create view node
+				StructrApp.getInstance(schemaNode.getSecurityContext()).create(SchemaView.class,
+						new NodeAttribute(SchemaView.schemaNode, schemaNode),
+						new NodeAttribute(SchemaView.name, view),
+						new NodeAttribute(SchemaView.schemaProperties, properties),
+						new NodeAttribute(SchemaView.isBuiltinView, true)
+				);
+
+			}
 		}
 	}
 }
