@@ -18,59 +18,45 @@
  */
 package org.structr.storage.config;
 
-import org.structr.storage.local.LocalFSStorageProvider;
-import org.structr.storage.memory.InMemoryStorageProvider;
+import org.structr.storage.StorageProviderFactory;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.providers.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.Folder;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StorageProviderConfigFactory {
 
-    private static final Map<String, StorageProviderConfig> testProviderConfigs = new HashMap<>();
+    private static final Map<String, StorageProviderConfig> providerConfigs = new ConcurrentHashMap<>();
+    private static final StorageProviderConfig defaultConfig                = new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
 
     static {
-        testProviderConfigs.put("local", new StorageProviderConfig("local", LocalFSStorageProvider.class));
-        testProviderConfigs.put("memory", new StorageProviderConfig("memory", InMemoryStorageProvider.class));
+        final StorageProviderConfig localConfig  = new StorageProviderConfig("local", LocalFSStorageProvider.class);
+        final StorageProviderConfig memoryConfig = new StorageProviderConfig("memory", InMemoryStorageProvider.class);
+
+        providerConfigs.put(localConfig.Name(), localConfig);
+        providerConfigs.put(memoryConfig.Name(), memoryConfig);
     }
 
     public static StorageProviderConfig getConfigByName(final String name) {
 
-        return name != null && testProviderConfigs.containsKey(name) ? testProviderConfigs.get(name) : getDefaultConfig();
+        return name != null && providerConfigs.containsKey(name) ? providerConfigs.get(name) : getDefaultConfig();
     }
 
     public static StorageProviderConfig getEffectiveConfig(final AbstractFile abstractFile) {
 
-        if (abstractFile.getStorageProvider() != null) {
-
-            return getConfigByName(abstractFile.getStorageProvider());
-        }
-
-        final Folder parentFolder = abstractFile.getParent();
-
-        if (parentFolder != null) {
-
-            if (parentFolder.getStorageProvider() != null) {
-
-                return getConfigByName(parentFolder.getStorageProvider());
-            } else {
-
-                return getEffectiveConfig(parentFolder);
-            }
-        }
-
-        return null;
+        return getConfigByName(StorageProviderFactory.getProviderConfigName(abstractFile));
     }
 
     public static StorageProviderConfig getDefaultConfig() {
 
-        return new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
+        return defaultConfig;
     }
 
-    public static void SetConfig(final String name, final StorageProviderConfig config) {
+    public static void registerConfig(final StorageProviderConfig config) {
 
-        testProviderConfigs.put(name, config);
+        providerConfigs.put(config.Name(), config);
     }
 
 }

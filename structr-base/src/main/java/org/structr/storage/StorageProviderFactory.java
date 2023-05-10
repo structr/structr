@@ -20,11 +20,8 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.storage.config.StorageProviderConfigFactory;
-import org.structr.storage.local.LocalFSStorageProvider;
-import org.structr.storage.memory.InMemoryStorageProvider;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
@@ -37,14 +34,16 @@ public abstract class StorageProviderFactory {
 		return getSpecificStorageProvider(file, getProviderConfigName(file));
 	}
 
-	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String forcedProvider) {
-		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(forcedProvider);
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String configName) {
+		// Get config by name and get provider class to instantiate via reflection
+		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(configName);
 		final Class<? extends StorageProvider> storageProviderClass = config.StorageProviderClass();
 
 		if (storageProviderClass != null) {
 
 			try {
 
+				// Try to instantiate requested provider with given file and config
 				return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageProviderConfig.class).newInstance(file, config);
 			} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
 
@@ -55,23 +54,32 @@ public abstract class StorageProviderFactory {
 		return null;
 	}
 
-	private static String getProviderConfigName(final AbstractFile abstractFile) {
+	public static String getProviderConfigName(final AbstractFile abstractFile) {
 
+		final AbstractFile supplier = getProviderConfigSupplier(abstractFile);
+		return supplier != null ? supplier.getStorageProvider() : null;
+	}
+
+	public static AbstractFile getProviderConfigSupplier(final AbstractFile abstractFile) {
+
+		// Check if abstract file itself offers a provider
 		if (abstractFile.getStorageProvider() != null) {
 
-			return abstractFile.getStorageProvider();
+			return abstractFile;
 		}
 
+		// check the files parent
 		final Folder parentFolder = abstractFile.getParent();
 
 		if (parentFolder != null) {
 
 			if (parentFolder.getStorageProvider() != null) {
 
-				return parentFolder.getStorageProvider();
+				return parentFolder;
 			} else {
 
-				return getProviderConfigName(parentFolder);
+				// Parent did not have info, so recursively go up the hierarchy
+				return getProviderConfigSupplier(parentFolder);
 			}
 		}
 

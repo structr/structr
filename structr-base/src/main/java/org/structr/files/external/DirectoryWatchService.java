@@ -207,7 +207,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 								continue;
 							}
 
-							addToQueue(eventQueue, new WatchEventItem(watchedRoots.get(root.toString()), root, (Path)key.watchable(), event));
+							// Find folder info in watched roots by root path
+							for (FolderInfo curInfo : watchedRoots.values()) {
+
+								if (curInfo.root.equals(root.toString())) {
+									addToQueue(eventQueue, new WatchEventItem(curInfo , root, (Path)key.watchable(), event));
+									break;
+								}
+							}
 						}
 
 						key.reset();
@@ -373,7 +380,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		return result;
 	}
 
-	private void scanDirectoryTree(final WatchEventListener listener, final boolean registerWatchKey, final Path root, final Path path) throws IOException {
+	private void scanDirectoryTree(final FileSyncWatchEventListener listener, final boolean registerWatchKey, final Path root, final Path path) throws IOException {
 
 		final Set<FileVisitOption> options = new LinkedHashSet<>();
 
@@ -441,7 +448,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		for (final File directory : directories) {
 
 			// recurse (but not in a new thread)
-			new ScanWorker(null, registerWatchKey, root, directory.getAbsolutePath(), false).run();
+			new ScanWorker(listener.getRootFolderUUID(), registerWatchKey, root, directory.getAbsolutePath(), false).run();
 		}
 	}
 
@@ -556,7 +563,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					logger.info("Checking folder with uuid: " + uuid);
 					if (uuid == null || StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst() != null) {
 
 						canStart = true;

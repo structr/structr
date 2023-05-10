@@ -58,8 +58,10 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public void moveTo(final StorageProvider newFileStorageProvider) {
+		// Either use provided destination provider or instantiate new one with a blank config
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getSpecificStorageProvider(getAbstractFile(), null);
 
+		// Only try to move binary content, if destinationProvider exists and it's unique key does not equal the curernt provider
 		if (destinationStorageProvider != null && !this.config.Name().equals(destinationStorageProvider.getConfig().Name())) {
 			try {
 

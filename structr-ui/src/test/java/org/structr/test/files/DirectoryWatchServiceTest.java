@@ -32,11 +32,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.export.StructrSchema;
 import org.structr.storage.config.StorageProviderConfig;
 import org.structr.storage.config.StorageProviderConfigFactory;
-import org.structr.storage.local.LocalFSStorageProvider;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -98,10 +97,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// mount directory
 		try (final Tx tx = app.tx()) {
 
+			// create folder to mount
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted1"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -168,11 +170,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent1)
 			);
 
+			// create folder to mount
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted2"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent2),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -244,10 +249,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
+				// create folder to mount
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString()),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountScanInterval"), 2)
 				);
 
@@ -400,7 +408,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
-				StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
 
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
@@ -548,7 +556,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			);
 
 			// create folder to mount
-			StorageProviderConfigFactory.SetConfig("testMount", new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
 
 			final Folder folder = app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted"),
@@ -675,9 +683,10 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 	private String readFile(final File file) throws IOException {
 
-		try (final InputStream is = StorageProviderFactory.getStorageProvider(file).getInputStream()) {
+		try (final InputStream is = file.getInputStream()) {
 
-			return IOUtils.toString(is, "utf-8");
+			final String content = IOUtils.toString(is, "utf-8");
+			return content;
 		}
 	}
 }

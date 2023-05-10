@@ -35,9 +35,6 @@ public interface StorageProvider extends DataSource {
 	default SeekableByteChannel getSeekableByteChannel() {
 		return getSeekableByteChannel(false, false);
 	}
-	default SeekableByteChannel getSeekableByteChannel(boolean append) {
-		return getSeekableByteChannel(append, false);
-	}
 	SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate);
 	void moveTo(final StorageProvider newFileStorageProvider);
 	void delete();
