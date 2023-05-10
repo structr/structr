@@ -3154,7 +3154,11 @@ let _Schema = {
 				let id   = prop.dataset.propertyId;
 
 				if (names.includes(name)) {
-					inheritedProperties.push({ id: id });
+					const data = { name: name };
+					if (id && id !== 'null') {
+						data.id = id;
+					}
+					inheritedProperties.push(data);
 				}
 			}
 
@@ -3175,15 +3179,16 @@ let _Schema = {
 		},
 		getInfoFromRow: (tr, schemaNodeEntity) => {
 
-			let sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedVals();
+			const sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedVals();
 
-			return {
+			const data = {
 				name: tr.querySelector('.view.property-name').value,
 				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
 				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
-				excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
+				//excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
 				sortOrder: sortedAttrs.join(',')
 			};
+			return data;
 		},
 		rowChanged: (tr, entity, initialViewConfig) => {
 

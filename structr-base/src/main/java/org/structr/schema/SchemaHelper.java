@@ -608,7 +608,7 @@ public class SchemaHelper {
 			extendsAbstractNode = false;
 		}
 
-		/*
+        /*
 		// check superclass
 		if (!extendsAbstractNode && !superClass.startsWith("org.structr.dynamic.") && !SchemaHelper.hasType(superClass)) {
 
@@ -980,19 +980,19 @@ public class SchemaHelper {
 				final Set<SchemaProperty> schemaProperties = Iterables.toSet(schemaView.getProperty(SchemaView.schemaProperties));
 
 				// Add properties inherited from superclass
-				if (entity instanceof SchemaNode) {
-
-					final SchemaNode parentNode = ((SchemaNode) entity).getProperty(SchemaNode.extendsClass);
-
-					if (parentNode != null) {
-
-						final Optional<SchemaView> possibleView = Iterables.toList(parentNode.getSchemaViews()).stream().filter(v -> v.getName().equals(viewName)).findFirst();
-
-						if (possibleView.isPresent()) {
-							schemaProperties.addAll(Iterables.toList(possibleView.get().getProperty(SchemaView.schemaProperties)));
-						}
-					}
-				}
+//				if (entity instanceof SchemaNode) {
+//
+//					final SchemaNode parentNode = ((SchemaNode) entity).getProperty(SchemaNode.extendsClass);
+//
+//					if (parentNode != null) {
+//
+//						final Optional<SchemaView> possibleView = Iterables.toList(parentNode.getSchemaViews()).stream().filter(v -> v.getName().equals(viewName)).findFirst();
+//
+//						if (possibleView.isPresent()) {
+//							schemaProperties.addAll(Iterables.toList(possibleView.get().getProperty(SchemaView.schemaProperties)));
+//						}
+//					}
+//				}
 
 				for (final SchemaProperty property : schemaProperties) {
 
@@ -1280,7 +1280,7 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-		/*
+        /*
 		Methods are collected and grouped by name. There can be multiple methods with the same
 		name, which must be combined into a single method.
 		*/
@@ -1967,9 +1967,9 @@ public class SchemaHelper {
 				if (!queryTypeNames.contains(queryTypeName)) {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, targetNode))
-						.build()
+							.name(queryTypeName)
+							.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, targetNode))
+							.build()
 					).build());
 
 					queryTypeNames.add(queryTypeName);
@@ -1987,9 +1987,9 @@ public class SchemaHelper {
 				if (!queryTypeNames.contains(queryTypeName)) {
 
 					arguments.add(GraphQLArgument.newArgument().name(propertyName).type(GraphQLInputObjectType.newInputObject()
-						.name(queryTypeName)
-						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, sourceNode))
-						.build()
+							.name(queryTypeName)
+							.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, sourceNode))
+							.build()
 					).build());
 
 					queryTypeNames.add(queryTypeName);
@@ -2008,19 +2008,19 @@ public class SchemaHelper {
 					if (selectionType == null) {
 
 						selectionType = GraphQLInputObjectType.newInputObject()
-							.name(selectionName)
-							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
-							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
-							.build();
+								.name(selectionName)
+								.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+								.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+								.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
+								.build();
 
 						selectionTypes.put(selectionName, selectionType);
 					}
 
 					arguments.add(GraphQLArgument.newArgument()
-						.name(name)
-						.type(selectionType)
-						.build()
+							.name(name)
+							.type(selectionType)
+							.build()
 					);
 				}
 			}
@@ -2031,9 +2031,9 @@ public class SchemaHelper {
 
 				// manual registration for built-in relationships that are not dynamic
 				arguments.add(GraphQLArgument.newArgument().name("owner").type(GraphQLInputObjectType.newInputObject()
-					.name(ownerTypeName)
-					.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, schemaNodes.get("Principal")))
-					.build()
+						.name(ownerTypeName)
+						.fields(getGraphQLInputFieldsForType(schemaNodes, selectionTypes, schemaNodes.get("Principal")))
+						.build()
 				).build());
 
 				queryTypeNames.add(ownerTypeName);
@@ -2068,11 +2068,11 @@ public class SchemaHelper {
 				if (selectionType == null) {
 
 					selectionType = GraphQLInputObjectType.newInputObject()
-						.name(selectionName)
-						.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
-						.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
-						.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
-						.build();
+							.name(selectionName)
+							.field(GraphQLInputObjectField.newInputObjectField().name("_contains").type(Scalars.GraphQLString).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_equals").type(getGraphQLInputTypeForProperty(property)).build())
+							.field(GraphQLInputObjectField.newInputObjectField().name("_conj").type(Scalars.GraphQLString).build())
+							.build();
 
 					selectionTypes.put(selectionName, selectionType);
 				}
