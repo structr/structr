@@ -75,10 +75,6 @@
 	max-height: 16px;
 }
 
-#dashboard-deployment .chosen-container .chosen-results {
-	max-height: 240px ! important;
-}
-
 #global-method-comment {
 	display: inline-block;
 	width: 47.5%;
@@ -133,36 +129,6 @@
 
 #dashboard-deployment h3 {
 	margin-top: 0;
-}
-
-#dashboard .chosen-container {
-	margin: 0 .5rem 1rem 0;
-	cursor: pointer;
-}
-
-#dashboard .chosen-container .chosen-search-input {
-	line-height: 1rem;
-	height: 1rem;
-	cursor: pointer;
-	margin-top: .3rem ! important;
-	margin-bottom: 0 ! important;
-}
-
-#dashboard .chosen-container .search-field {
-	height: 1.7rem;
-	/*padding-top: 3px;*/
-	cursor: pointer;
-}
-
-#dashboard .chosen-container .chosen-choices {
-	/*margin-top: -3px;*/
-	padding: .3rem .5rem;
-	border-radius: 3px;
-	cursor: pointer;
-}
-
-#dashboard .chosen-container .chosen-choices li.search-choice .search-choice-close {
-	top: .25rem;
 }
 
 #dashboard-server-log textarea {
@@ -252,3 +218,9 @@
 	white-space: nowrap;
 }
 /* END: runtime event log */
+
+/* select2 */
+#dashboard .select2-container {
+	margin: 0 0 1rem 0;
+	cursor: pointer;
+}

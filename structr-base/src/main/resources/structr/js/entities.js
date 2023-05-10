@@ -1590,7 +1590,6 @@ let _Entities = {
 	addPrincipal: (entity, principal, permissions, allowRecursive, container) => {
 
 		$(`#newPrincipal option[value="${principal.id}"]`, container).remove();
-		$('#newPrincipal', container).trigger('chosen:updated');
 
 		if ($(`#principals ._${principal.id}`, container).length > 0) {
 			return;
@@ -1622,7 +1621,6 @@ let _Entities = {
 				if (!$('input:checked', row).length) {
 
 					$('#newPrincipal', container).append(_Entities.templateForPrincipalOption(principal));
-					$('#newPrincipal', container).trigger('chosen:updated');
 
 					row.remove();
 				}

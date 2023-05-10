@@ -858,13 +858,13 @@ let _Crud = {
 
 				configIcon.addEventListener('click', (e) => {
 
-					let { dialogText } = _Dialogs.custom.openDialog(`<h3>Configure columns for type ${type}</h3>`);
+					let { dialogText } = _Dialogs.custom.openDialog(`Configure columns for type ${type}`);
 
 					let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 					_Helpers.enableElement(saveAndCloseButton);
 
 					dialogText.insertAdjacentHTML('beforeend', _Crud.templates.configureColumns());
-					let columnSelect = dialogText.querySelector('div.dialogText #columns-select');
+					let columnSelect = dialogText.querySelector('#columns-select');
 
 					fetch(`${Structr.rootUrl}_schema/${type}/${_Crud.defaultView}`).then(async response => {
 
@@ -887,13 +887,14 @@ let _Crud = {
 								}
 
 								let properties   = Object.fromEntries(data.result.map(prop => [prop.jsonName, prop]));
-								let hiddenKeys   = _Crud.getHiddenKeys(type);
+								let hiddenKeys   = _Crud.getHiddenKeys(type).filter(attr => currentOrder.indexOf(attr) === -1);
 
 								let orderedColumnsSet = new Set(currentOrder);
 								for (let key of Object.keys(properties)) {
 									orderedColumnsSet.add(key);
 								}
-								columnSelect.innerHTML = Array.from(orderedColumnsSet).map(key => {
+
+								let options = Array.from(orderedColumnsSet).map(key => {
 									let isHidden   = hiddenKeys.includes(key);
 									let isIdOrType = (key === 'id' || key === 'type');
 									let isSelected = ((!isHidden || isIdOrType) ? 'selected' : '');
@@ -901,25 +902,31 @@ let _Crud = {
 
 									return `<option value="${key}" ${isSelected} ${isDisabled}>${key}</option>`;
 								}).join('');
+								columnSelect.insertAdjacentHTML('beforeend', options);
 
-								let jqSelect = $(columnSelect);
+								let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+								let jqSelect       = $(columnSelect);
 
-								jqSelect.chosen({
+								jqSelect.select2({
 									search_contains: true,
 									width: '100%',
-									display_selected_options: false,
-									hide_results_on_select: false,
-									display_disabled_options: false
-								}).chosenSortable();
+									dropdownParent: dropdownParent,
+									dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+									containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+									closeOnSelect: false,
+									scrollAfterSelect: false
+								}).select2Sortable();
 
 								saveAndCloseButton.addEventListener('click', (e) => {
 									e.stopPropagation();
 
-									_Crud.saveSortOrderOfColumns(type, jqSelect.sortedVals());
+									_Crud.saveSortOrderOfColumns(type, jqSelect.sortedValues());
 									_Crud.reloadList();
 
 									_Dialogs.custom.clickDialogCancelButton();
-								})
+								});
+
+								console.log(jqSelect);
 							}
 						}
 					});
@@ -3037,6 +3044,19 @@ type: ${node.type}`;
 			<div>
 				<h3>Configure and sort columns here</h3>
 
+				<style>
+					/* inline style to prevent style from leaking */
+					.select2-selection__choice[title=id], .select2-selection__choice[title=type] {
+						border: 1px solid var(--input-field-border);
+						color: #666;
+					}
+
+					.select2-selection__choice[title=id] span.select2-selection__choice__remove,
+					.select2-selection__choice[title=type] span.select2-selection__choice__remove {
+						display: none;
+					}
+				</style>
+
 				<p>This sets the global sort order for this type - on all views. Depending on the current view, you may see properties here, which are not contained in the view.</p>
 
 				<div class="mb-4">
@@ -3044,7 +3064,7 @@ type: ${node.type}`;
 						<label class="font-semibold">Columns</label>
 					</div>
 					<div id="view-properties">
-						<select id="columns-select" class="property-attrs view chosen-sortable" multiple="multiple"></select>
+						<select id="columns-select" class="view" multiple="multiple"></select>
 					</div>
 				</div>
 			</div>
