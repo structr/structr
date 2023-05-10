@@ -43,8 +43,10 @@ public abstract class ContextFactory {
 				//.allowHostClassLookup(new StructrClassPredicate())
 				.fileSystem(new PolyglotFilesystem())
 				.allowIO(true)
+				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
-				.option("js.ecmascript-version", "latest");
+				.option("js.ecmascript-version", "latest")
+				.option("js.temporal", "true");
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
