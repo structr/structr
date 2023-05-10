@@ -26,33 +26,34 @@ let flowsMain, flowsTree, flowsCanvas, nodeEditor;
 let flowEditor, flowId;
 const methodPageSize = 10000, methodPage = 1;
 
-document.addEventListener("DOMContentLoaded", function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Flows);
 });
 
 let _Flows = {
 	_moduleName: 'flows',
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
-	init: function() {
+	init: () => {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
-		window.addEventListener('resize', _Flows.resize);
 	},
 	resize: () => {
-		Structr.resize(() => {
-			_Flows.moveResizer();
-		});
+		_Flows.moveResizer();
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
+	prevAnimFrameReqId_moveResizer: undefined,
 	moveResizer: (left) => {
-		left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
-		flowsMain.querySelector('.column-resizer').style.left = left + 'px';
-		flowsTree.style.width   = left - 14 + 'px';
-		if (nodeEditor) nodeEditor.style.width = '100%';
+
+		_Helpers.requestAnimationFrameWrapper(_Flows.prevAnimFrameReqId_moveResizer, () => {
+
+			left = left || LSWrapper.getItem(_Flows.flowsResizerLeftKey) || 300;
+			flowsMain.querySelector('.column-resizer').style.left = left + 'px';
+			flowsTree.style.width = left - 14 + 'px';
+			if (nodeEditor) nodeEditor.style.width = '100%';
+		});
 	},
 	onload: () => {
 
@@ -110,7 +111,7 @@ let _Flows = {
 				if (r !== null && r !== undefined && r.id !== null && r.id !== undefined) {
 					_Flows.refreshTree(() => {
 						$(flowsTree).jstree("deselect_all");
-						$(flowsTree).jstree(true).select_node('li[id=\"' + r.id + '\"]');
+						$(flowsTree).jstree(true).select_node(`li[id="${r.id}"]`);
 					});
 				}
 			});
@@ -119,14 +120,13 @@ let _Flows = {
 		function deleteFlow(id) {
 
 			if (!document.querySelector(".delete_flow_icon").getAttribute('class').includes('disabled')) {
-				Structr.confirmation('Really delete flow ' + id + '?', () => {
-					persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
-						_Flows.refreshTree();
 
-						$.unblockUI({
-							fadeOut: 25
+				_Dialogs.confirmation.showPromise(`Really delete flow ${id}?`).then(confirm => {
+					if (confirm === true) {
+						persistence.deleteNode({type:"FlowContainer", id: flowId}).then(() => {
+							_Flows.refreshTree();
 						});
-					});
+					}
 				});
 			}
 		}
@@ -134,15 +134,15 @@ let _Flows = {
 		async function getPackageByEffectiveName(name) {
 			let nameComponents = name.split("/");
 			nameComponents = nameComponents.slice(1, nameComponents.length);
-			let packages = await rest.get(Structr.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
+			let packages = await rest.get(_Helpers.getPrefixedRootUrl('/structr/rest/FlowContainerPackage?effectiveName=' + encodeURIComponent(nameComponents.join("."))));
 			return packages.result.length > 0 ? packages.result[0] : null;
 		}
 
-		let rest = new Rest();
+		let rest        = new Rest();
 		let persistence = new Persistence();
 
-		Structr.mainContainer.innerHTML = _Flows.templates.main();
-		Structr.functionBar.innerHTML = _Flows.templates.functions();
+		Structr.setMainContainerHTML(_Flows.templates.main());
+		Structr.setFunctionBarHTML(_Flows.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
@@ -186,7 +186,7 @@ let _Flows = {
 
 		_Flows.init();
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('flows'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('flows'));
 
 		flowsMain   = document.querySelector('#flows-main');
 		flowsTree   = document.querySelector('#flows-tree');
@@ -320,9 +320,9 @@ let _Flows = {
 
 		_TreeHelper.addSvgIconReplacementBehaviorToTree($(flowsTree));
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
-		_Flows.resize();
+		Structr.resize();
 
 		$(flowsTree).on('select_node.jstree', function(a, b) {
 
@@ -505,15 +505,14 @@ let _Flows = {
 
 	},
 	unload: () => {
-		window.removeEventListener('resize', _Flows.resize);
-		fastRemoveAllChildren(document.querySelector('#main .searchBox'));
-		fastRemoveAllChildren(document.querySelector('#main #flows-main'));
+		_Helpers.fastRemoveAllChildren(document.querySelector('#main .searchBox'));
+		_Helpers.fastRemoveAllChildren(document.querySelector('#main #flows-main'));
 	},
 	load: (id, callback) => {
 
 		let list = [];
 
-		let createFlowEntry = function(d) {
+		let createFlowEntry = (d) => {
 
 			return {
 				id: d.id,
@@ -620,16 +619,12 @@ let _Flows = {
 		let entity       = detail.entity; // proxy object
 		let propertyName = detail.propertyName;
 
-		Structr.dialog("Edit " + flowNodeType, () => {}, () => {}, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Edit ${flowNodeType}`, null, ['popup-dialog-with-editor']);
 
-		dialogText.append('<div class="editor h-full"></div>');
-		dialogBtn.append(`
-			<button id="editorSave" disabled="disabled" class="disabled">Save</button>
-			<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
-		`);
+		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
 
-		let dialogSaveButton = dialogBtn[0].querySelector('#editorSave');
-		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		let initialText = entity[propertyName] || '';
 
@@ -642,47 +637,26 @@ let _Flows = {
 			isAutoscriptEnv: true,
 			changeFn: (editor, entity) => {
 
-				let editorText = editor.getValue();
-
-				if (initialText === editorText) {
-					dialogSaveButton.disabled = true;
-					dialogSaveButton.classList.add('disabled');
-					saveAndClose.disabled = true;
-					saveAndClose.classList.add('disabled');
-				} else {
-					dialogSaveButton.disabled = null;
-					dialogSaveButton.classList.remove('disabled');
-					saveAndClose.disabled = null;
-					saveAndClose.classList.remove('disabled');
-				}
+				let disabled = (initialText === editor.getValue());
+				_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
 			},
-			saveFn: (editor, entity) => {
+			saveFn: (editor, entity, close = false) => {
 
 				element.value = editor.getValue();
 				element.dispatchEvent(new Event('change'));
 
-				dialogSaveButton.disabled = true;
-				dialogSaveButton.classList.add('disabled');
-				saveAndClose.disabled = true;
-				saveAndClose.classList.add('disabled');
+				_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+
+				if (close === true) {
+					_Dialogs.custom.clickDialogCancelButton();
+				}
 			}
 		};
 
-		let editor = _Editors.getMonacoEditor(entity, propertyName, dialogText[0].querySelector('.editor'), editorConfig);
+		let editor = _Editors.getMonacoEditor(entity, propertyName, dialogText.querySelector('.editor'), editorConfig);
 
+		_Editors.resizeVisibleEditors();
 		Structr.resize();
-
-		saveAndClose.addEventListener('click', (e) => {
-			e.stopPropagation();
-
-			editorConfig.saveFn(editor, entity);
-
-			setTimeout(function() {
-				dialogSaveButton.remove();
-				saveAndClose.remove();
-				dialogCancelButton.click();
-			}, 500);
-		});
 
 		dialogSaveButton.addEventListener('click', (e) => {
 			e.stopPropagation();
@@ -690,20 +664,13 @@ let _Flows = {
 			editorConfig.saveFn(editor, entity);
 		});
 
-		dialogCancelButton.on('click', function(e) {
-			dialogSaveButton.remove();
-			saveAndClose.remove();
-			return false;
+		saveAndClose.addEventListener('click', (e) => {
+			e.stopPropagation();
+
+			editorConfig.saveFn(editor, entity, true);
 		});
 
-		editor.focus();
-
-		window.setTimeout(() => {
-			_Editors.resizeVisibleEditors();
-
-			$('.closeButton', dialogBtn).blur();
-			editor.focus();
-		}, 10);
+		_Editors.focusEditor(editor);
 	},
 
 	initFlow: (id) => {
@@ -722,14 +689,14 @@ let _Flows = {
 		let persistence = new Persistence();
 
 		persistence.getNodesById(id, new FlowContainer()).then( r => {
-			document.title = "Flow - " + r[0].name;
+			document.title = `Flow - ${r[0].name}`;
 
 			let rootElement = document.querySelector("#nodeEditor");
 			flowEditor = new FlowEditor(rootElement, r[0], {deactivateInternalEvents: true});
 
 			flowEditor.waitForInitialization().then( () => {
 
-				rest.post(Structr.rootUrl + 'FlowContainer/' + r[0].id + "/getFlowNodes").then((res) => {
+				rest.post(`${Structr.rootUrl}FlowContainer/${r[0].id}/getFlowNodes`).then((res) => {
 
 					let result = res.result;
 
@@ -747,7 +714,7 @@ let _Flows = {
 
 				}).then(() => {
 
-					rest.post(Structr.rootUrl  + 'FlowContainer/' + r[0].id + "/getFlowRelationships").then((res) => {
+					rest.post(`${Structr.rootUrl}FlowContainer/${r[0].id}/getFlowRelationships`).then((res) => {
 
 						let result = res.result;
 
@@ -770,12 +737,11 @@ let _Flows = {
 						flowEditor.disableRelationshipEvents = false;
 
 						// activate buttons
-						document.querySelector('.run_flow_icon').classList.remove('disabled');
-						document.querySelector('.run_flow_icon').disabled = false;
-						document.querySelector('.delete_flow_icon').classList.remove('disabled');
-						document.querySelector('.delete_flow_icon').disabled = false;
-						document.querySelector('.layout_icon').classList.remove('disabled');
-						document.querySelector('.layout_icon').disabled = false;
+						let runBtn    = document.querySelector('.run_flow_icon');
+						let deleteBtn = document.querySelector('.delete_flow_icon');
+						let layoutBtn = document.querySelector('.layout_icon');
+
+						_Helpers.disableElements(false, runBtn, deleteBtn, layoutBtn);
 					});
 				});
 			});
@@ -786,11 +752,11 @@ let _Flows = {
 		main: config => `
 			<div class="tree-main" id="flows-main">
 				<div class="column-resizer"></div>
-			
+
 				<div class="tree-container" id="flows-tree-container">
 					<div class="tree" id="flows-tree"></div>
 				</div>
-			
+
 				<div class="tree-contents-container" id="flows-canvas-container">
 					<div class="tree-contents tree-contents-with-top-buttons" id="flows-canvas"></div>
 				</div>
@@ -798,20 +764,20 @@ let _Flows = {
 		`,
 		functions: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/flow-editor.css">
-			
+
 			<div class="inline-flex">
 
 				<input class="mr-2" id="name-input" type="text" placeholder="Enter flow name" autocomplete="off">
-				
+
 				<button id="create-new-flow" class="action inline-flex items-center">
 					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add
 				</button>
 			</div>
-			
+
 			<button class="delete_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['mr-2', 'icon-red']))} Delete flow
 			</button>
-			
+
 			<label class="mr-4">
 				Highlight:
 				<select id="flow-focus-select" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -822,15 +788,15 @@ let _Flows = {
 					<option value="exception">Exception Handling</option>
 				</select>
 			</label>
-			
+
 			<button class="run_flow_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				${_Icons.getSvgIcon(_Icons.iconRunButton, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['mr-2']))} Run
 			</button>
-			
+
 			<button class="reset_view_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset view
 			</button>
-			
+
 			<button class="layout_icon button flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green disabled" disabled>
 				${_Icons.getSvgIcon(_Icons.iconMagicWand, 16, 16, 'mr-2')} Layout
 			</button>

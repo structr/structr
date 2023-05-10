@@ -124,7 +124,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 										if (declaringEntity instanceof SchemaProperty) {
 
-											final SchemaProperty schemaProperty = (SchemaProperty)declaringEntity;
+											final SchemaProperty schemaProperty = (SchemaProperty) declaringEntity;
 											property.put(new GenericProperty("declaringPropertyType"), schemaProperty.getPropertyType().name());
 										}
 									}

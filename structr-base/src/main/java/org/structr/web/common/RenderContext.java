@@ -512,7 +512,11 @@ public class RenderContext extends ActionContext {
 
 					case "page":
 						hints.reportExistingKey(key);
-						return getPage();
+						Page page = getPage();
+						if (page == null && entity instanceof DOMNode) {
+							page = ((DOMNode) entity).getOwnerDocument();
+						}
+						return page;
 
 					case "parent":
 

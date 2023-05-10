@@ -71,17 +71,14 @@ if ('webkitSpeechRecognition' in window) {
 			if (_Speech.recognition.recognizing) {
 				_Speech.recognition.stop();
 				_Speech.reset(btn);
-				if (callback) {
-					callback();
-				}
+
+				callback?.();
 			} else {
 				_Speech.recognition.start();
 				_Speech.recognition.recognizing = true;
 				btn.addClass('active');
 
-				if (callback) {
-					callback();
-				}
+				callback?.();
 			}
 		},
 		isCommand: function (command, text) {

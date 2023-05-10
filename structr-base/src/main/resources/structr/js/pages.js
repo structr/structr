@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Pages);
 	Structr.classes.push('page');
 });
@@ -57,7 +57,7 @@ let _Pages = {
 
 	contentSourceId: undefined,
 
-	init: function() {
+	init: () => {
 
 		_Pager.initPager('pages',   'Page', 1, 25, 'name', 'asc');
 		_Pager.initPager('files',   'File', 1, 25, 'name', 'asc');
@@ -66,32 +66,31 @@ let _Pages = {
 
 		Structr.ensureShadowPageExists();
 	},
-	resize: function() {
-
-		Structr.resize();
-
-		$('body').css({
-			position: 'fixed'
-		});
-
+	resize: () => {
 		_Pages.resizeColumns();
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
-	onload: function() {
+	unload: () => {
+		document.querySelector('body').style.position = null;
+	},
+	onload: () => {
+
+		// if removed, pages has a horizontal scrollbar caused by the right slideouts (is removed in "unload" method)
+		document.querySelector('body').style.position = 'fixed';
 
 		let urlHash = LSWrapper.getItem(_Pages.urlHashKey);
 		if (urlHash) {
-			Structr.menuBlocked = false;
-			window.location.hash = urlHash;
+			Structr.mainMenu.isBlocked = false;
+			window.location.hash       = urlHash;
 		}
 
-		Structr.mainContainer.innerHTML = _Pages.templates.main();
+		Structr.setMainContainerHTML(_Pages.templates.main());
 
 		_Pages.init();
 
-		Structr.updateMainHelpLink(Structr.getDocumentationURLForTopic('pages'));
+		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('pages'));
 
 		_Pages.pagesSlideout           = $('#pages');
 		_Pages.localizationsSlideout   = $('#localizations');
@@ -106,9 +105,9 @@ let _Pages = {
 
 		let pagesTab = document.getElementById('pagesTab');
 		let pagesTabSlideoutAction = (e) => {
-			_Pages.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], (params) => {
+			Structr.slideouts.leftSlideoutTrigger(pagesTab, _Pages.pagesSlideout, [_Pages.localizationsSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, pagesTab.id);
-				_Pages.resize();
+				Structr.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		};
@@ -122,10 +121,10 @@ let _Pages = {
 
 		let localizationsTab = document.getElementById('localizationsTab');
 		localizationsTab.addEventListener('click', () => {
-			_Pages.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], (params) => {
+			Structr.slideouts.leftSlideoutTrigger(localizationsTab, _Pages.localizationsSlideout, [_Pages.pagesSlideout], () => {
 				LSWrapper.setItem(_Pages.activeTabLeftKey, localizationsTab.id);
 				_Pages.localizations.refreshPagesForLocalizationPreview();
-				_Pages.resize();
+				Structr.resize();
 				_Entities.highlightSelectedElementOnSlideoutOpen();
 			}, _Pages.leftSlideoutClosedCallback);
 		});
@@ -137,11 +136,9 @@ let _Pages = {
 		});
 
 		let refreshLocalizationsButton = document.querySelector('#localizations button.refresh');
-		refreshLocalizationsButton.addEventListener('click', () => {
-			_Pages.localizations.refreshLocalizations();
-		});
+		refreshLocalizationsButton.addEventListener('click', _Pages.localizations.refreshLocalizations);
 
-		Structr.appendInfoTextToElement({
+		_Helpers.appendInfoTextToElement({
 			element: refreshLocalizationsButton,
 			text: "On this tab you can load the localizations requested for the given locale on the currently previewed page (including the UUID of the details object and the query parameters which are also used for the preview).<br><br>The retrieval process works just as rendering the page. If you request the locale \"en_US\" you might get Localizations for \"en\" as a fallback if no exact match is found.<br><br>If no Localization could be found, an empty input field is rendered where you can quickly create the missing Localization.",
 			insertAfter: true,
@@ -152,34 +149,28 @@ let _Pages = {
 
 		let widgetsTab = document.getElementById('widgetsTab');
 		widgetsTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
-				if (params.isOpenAction) {
-					_Widgets.reloadWidgets();
-				}
-				_Pages.resize();
+				_Widgets.reloadWidgets();
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
 		let paletteTab = document.getElementById('paletteTab');
 		paletteTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
-				if (params.isOpenAction) {
-					_Pages.designTools.reload();
-				}
-				_Pages.resize();
+				_Pages.designTools.reload();
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		});
 
 		let componentsTab = document.getElementById('componentsTab');
-		let componentsTabSlideoutAction = () => {
-			_Pages.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+		let componentsTabSlideoutAction = (isDragOpen = false) => {
+			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
-				if (params.isOpenAction) {
-					_Pages.sharedComponents.reload();
-				}
-				_Pages.resize();
+				_Pages.sharedComponents.reload(isDragOpen);
+				Structr.resize();
 			}, _Pages.rightSlideoutClosedCallback);
 		};
 		componentsTab.addEventListener('click', componentsTabSlideoutAction);
@@ -192,22 +183,20 @@ let _Pages = {
 				let isColumnResizer          = $(ui.draggable).hasClass('column-resizer');
 
 				if (!isComponentsSlideoutOpen && !isColumnResizer) {
-					componentsTabSlideoutAction();
+					componentsTabSlideoutAction(true);
 				}
 			}
 		});
 
 		let elementsTab = document.getElementById('elementsTab');
 		elementsTab.addEventListener('click', () => {
-			_Pages.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
-				if (params.isOpenAction) {
-					_Pages.unattachedNodes.reload();
-				}
-				_Pages.resize();
-			}, (wasOpen) => {
+				_Pages.unattachedNodes.reload();
+				Structr.resize();
+			}, () => {
 				_Pages.unattachedNodes.removeElementsFromUI();
-				_Pages.rightSlideoutClosedCallback(wasOpen);
+				_Pages.rightSlideoutClosedCallback();
 			});
 		});
 
@@ -268,7 +257,6 @@ let _Pages = {
 				name: 'Insert div element',
 				clickHandler: () => {
 					Command.createAndAppendDOMNode(entity.pageId, entity.id, 'div', _Dragndrop.getAdditionalDataForElementCreation('div'), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
-					return false;
 				}
 			});
 		}
@@ -292,7 +280,7 @@ let _Pages = {
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleInsertBeforeAction('div');
 						}
 					}
@@ -314,7 +302,7 @@ let _Pages = {
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleInsertAfterAction('div');
 						}
 					}
@@ -331,7 +319,6 @@ let _Pages = {
 				name: 'Edit',
 				clickHandler: () => {
 					_Entities.editEmptyDiv(entity);
-					return false;
 				}
 			});
 		}
@@ -344,9 +331,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone',
-				clickHandler: function () {
+				clickHandler: () => {
 					Command.cloneNode(entity.id, (entity.parent ? entity.parent.id : null), true);
-					return false;
 				}
 			});
 
@@ -367,13 +353,13 @@ let _Pages = {
 					},
 					{
 						name: '... Template element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleWrapInHTMLAction('#template');
 						}
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleWrapInHTMLAction('div');
 						}
 					}
@@ -390,13 +376,13 @@ let _Pages = {
 					},
 					{
 						name: '... Template element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleReplaceWithAction('#template');
 						}
 					},
 					{
 						name: '... div element',
-						clickHandler: function () {
+						clickHandler: () => {
 							handleReplaceWithAction('div');
 						}
 					}
@@ -408,9 +394,8 @@ let _Pages = {
 			elements.push({
 				icon: _Icons.getMenuSvgIcon(_Icons.iconClone),
 				name: 'Clone Page',
-				clickHandler: function () {
+				clickHandler: () => {
 					Command.clonePage(entity.id);
-					return false;
 				}
 			});
 		}
@@ -422,17 +407,15 @@ let _Pages = {
 			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
 					name: 'Deselect element',
-					clickHandler: function () {
+					clickHandler: () => {
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			} else {
 				elements.push({
 					name: 'Select element',
-					clickHandler: function () {
+					clickHandler: () => {
 						_Elements.selectEntity(entity);
-						return false;
 					}
 				});
 			}
@@ -443,9 +426,8 @@ let _Pages = {
 
 				elements.push({
 					name: 'Convert to Shared Component',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.createComponent(entity.id);
-						return false;
 					}
 				});
 			}
@@ -471,10 +453,9 @@ let _Pages = {
 			if (isSelectedEntitySharedComponent) {
 				elements.push({
 					name: 'Link shared component here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.cloneComponent(_Elements.selectedEntity.id, entity.id);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 
@@ -483,10 +464,9 @@ let _Pages = {
 			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
 				elements.push({
 					name: 'Clone selected element here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.cloneNode(_Elements.selectedEntity.id, entity.id, true);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			}
@@ -494,10 +474,9 @@ let _Pages = {
 			if (isSamePage && !isThisEntityDirectParentOfSelectedEntity && !isSelectedEntityInShadowPage && !isDescendantOfSelectedEntity(entity)) {
 				elements.push({
 					name: 'Move selected element here',
-					clickHandler: function () {
+					clickHandler: () => {
 						Command.appendChild(_Elements.selectedEntity.id, entity.id, entity.pageId);
 						_Elements.unselectEntity();
-						return false;
 					}
 				});
 			}
@@ -512,37 +491,38 @@ let _Pages = {
 				elements: [
 					{
 						name: 'Expand subtree',
-						clickHandler: function() {
+						clickHandler: () => {
+
 							$(div).find('.node').each(function(i, el) {
 								if (!_Entities.isExpanded(el)) {
 									_Entities.toggleElement(entity.id, el);
 								}
 							});
+
 							if (!_Entities.isExpanded(div)) {
 								_Entities.toggleElement(entity.id, div);
 							}
-							return false;
 						}
 					},
 					{
 						name: 'Expand subtree recursively',
-						clickHandler: function() {
+						clickHandler: () => {
 							_Entities.expandRecursively([entity.id]);
-							return false;
 						}
 					},
 					{
 						name: 'Collapse subtree',
-						clickHandler: function() {
+						clickHandler: () => {
+
 							$(div).find('.node').each(function(i, el) {
 								if (_Entities.isExpanded(el)) {
 									_Entities.toggleElement(entity.id, el);
 								}
 							});
+
 							if (_Entities.isExpanded(div)) {
 								_Entities.toggleElement(entity.id, div);
 							}
-							return false;
 						}
 					}
 				]
@@ -559,11 +539,11 @@ let _Pages = {
 				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 				classes: ['menu-bolder', 'danger'],
 				name: 'Remove Node',
-				clickHandler: function () {
+				clickHandler: () => {
+
 					Command.removeChild(entity.id, () => {
 						_Pages.unattachedNodes.blinkUI();
 					});
-					return false;
 				}
 			});
 		}
@@ -576,16 +556,7 @@ let _Pages = {
 				classes: ['menu-bolder', 'danger'],
 				name: `Delete ${entity.type}`,
 				clickHandler: () => {
-
-					if (isContent) {
-
-						_Entities.deleteNode(undefined, entity);
-
-					} else {
-
-						_Entities.deleteNode(undefined, entity, true);
-					}
-					return false;
+					_Entities.deleteNode(entity, (isContent === false));
 				}
 			});
 		}
@@ -596,21 +567,21 @@ let _Pages = {
 	},
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
-		Structr.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveLeftResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveLeftResizer, () => {
 			_Pages.resizeColumns(left, null);
 		});
 	},
 	prevAnimFrameReqId_moveRightResizer: undefined,
 	moveRightResizer: (right) => {
-		Structr.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveRightResizer, () => {
+		_Helpers.requestAnimationFrameWrapper(_Pages.prevAnimFrameReqId_moveRightResizer, () => {
 			_Pages.resizeColumns(null, right);
 		});
 	},
-	resizeColumns: function(pxLeft, pxRight) {
+	resizeColumns: (pxLeft, pxRight) => {
 
 		if (!pxLeft && !pxRight) {
-			pxLeft  = LSWrapper.getItem(_Pages.pagesResizerLeftKey)  || _Pages.leftTabMinWidth;
-			pxRight = LSWrapper.getItem(_Pages.pagesResizerRightKey) || _Pages.rightTabMinWidth;
+			pxLeft  = LSWrapper.getItem(_Pages.getLeftResizerKey())  || _Pages.leftTabMinWidth;
+			pxRight = LSWrapper.getItem(_Pages.getRightResizerKey()) || _Pages.rightTabMinWidth;
 		}
 
 		let leftResizer       = document.querySelector('.column-resizer-left');
@@ -634,19 +605,19 @@ let _Pages = {
 
 			if (pxLeft) {
 
-				leftResizer.style.left = 'calc(' + leftPos + 'px + 0rem)';
+				leftResizer.style.left = `calc(${leftPos}px + 0rem)`;
 
-				if (openLeftSlideout) openLeftSlideout.style.width = 'calc(' + leftPos + 'px - 3rem)';
+				if (openLeftSlideout) openLeftSlideout.style.width = `calc(${leftPos}px - 3rem)`;
 
-				_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 3rem)';
+				_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 3rem)`;
 
-				if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+				if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 2rem)`;
 
 			} else {
 
 				if (leftPos === 0) {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 2rem)`;
 
 					let columnResizerLeft = '4rem';
 					leftResizer.style.left = columnResizerLeft;
@@ -654,10 +625,10 @@ let _Pages = {
 
 				} else {
 
-					if (tabsMenu) tabsMenu.style.marginLeft = 'calc(' + leftPos + 'px + 0rem)';
+					if (tabsMenu) tabsMenu.style.marginLeft = `calc(${leftPos}px + 0rem)`;
 
-					leftResizer.style.left = 'calc(' + leftPos + 'px - 1rem)';
-					_Pages.centerPane.style.marginLeft = 'calc(' + leftPos + 'px + 2rem)';
+					leftResizer.style.left = `calc(${leftPos}px - 1rem)`;
+					_Pages.centerPane.style.marginLeft = `calc(${leftPos}px + 2rem)`;
 				}
 			}
 		}
@@ -666,11 +637,11 @@ let _Pages = {
 
 			if (pxRight) {
 
-				rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px + 0rem)';
+				rightResizer.style.left = `calc(${window.innerWidth - rightPos}px + 0rem)`;
 
-				if (openRightSlideout) openRightSlideout.style.width = 'calc(' + rightPos + 'px - 7rem)';
+				if (openRightSlideout) openRightSlideout.style.width = `calc(${rightPos}px - 7rem)`;
 
-				_Pages.centerPane.style.marginRight = 'calc(' + rightPos + 'px - 1rem)';
+				_Pages.centerPane.style.marginRight = `calc(${rightPos}px - 1rem)`;
 
 			} else {
 
@@ -682,8 +653,8 @@ let _Pages = {
 
 				} else {
 
-					rightResizer.style.left = 'calc(' + (window.innerWidth - rightPos) + 'px - 3rem)';
-					_Pages.centerPane.style.marginRight = 'calc(' + (rightPos) + 'px + 2rem)';
+					rightResizer.style.left = `calc(${window.innerWidth - rightPos}px - 3rem)`;
+					_Pages.centerPane.style.marginRight = `calc(${rightPos}px + 2rem)`;
 				}
 			}
 		}
@@ -692,22 +663,18 @@ let _Pages = {
 	},
 	refresh: () => {
 
-		fastRemoveAllChildren(_Pages.pagesTree[0]);
+		_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 
-		Structr.functionBar.innerHTML = _Pages.templates.functions();
+		Structr.setFunctionBarHTML(_Pages.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
 
-		_Pages.resize();
+		Structr.resize();
 
-		$(window).off('resize').resize(function () {
-			_Pages.resize();
-		});
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.getLeftResizerKey(), _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
+		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.getRightResizerKey(), _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
 
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-left'), _Pages.pagesResizerLeftKey, _Pages.leftTabMinWidth, _Pages.moveLeftResizer);
-		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer-right'), _Pages.pagesResizerRightKey, _Pages.rightTabMinWidth, _Pages.moveRightResizer, true);
-
-		Structr.unblockMenu(500);
+		Structr.mainMenu.unblock(500);
 
 		document.getElementById(_Pages.getActiveTabLeft())?.click();
 		document.getElementById(_Pages.getActiveTabRight())?.click();
@@ -718,19 +685,25 @@ let _Pages = {
 			menuLink.onclick = (event) => _Pages.activateCenterPane(menuLink);
 		}
 
-		let pagesPager = $('#pagesPager');
-		let pPager     = _Pager.addPager('pages', pagesPager, true, 'Page', null, null, null, null, true, true);
+		let pagerElement = document.querySelector('#pagesPager');
+		let pPager = _Pager.addPager('pages', pagerElement, true, 'Page', null, null, null, null, true);
 
 		pPager.cleanupFunction = () => {
-			fastRemoveAllChildren(_Pages.pagesTree[0]);
+			_Helpers.fastRemoveAllChildren(_Pages.pagesTree[0]);
 		};
 
-		let filerEl = $('#pagesPagerFilters');
+		pagerElement.insertAdjacentHTML('beforeend', `
+			<div id="pagesPagerFilters">
+				Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
+				<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category">
+			</div>
+		`);
+		let filerEl = pagerElement.querySelector('#pagesPagerFilters');
 		pPager.activateFilterElements(filerEl);
 		pPager.setIsPaused(false);
 		pPager.refresh();
 
-		fetch(Structr.rootUrl + 'Page/category').then((response) => {
+		fetch(`${Structr.rootUrl}Page/category`).then((response) => {
 			if (response.ok) {
 				return response.json();
 			}
@@ -747,32 +720,19 @@ let _Pages = {
 			let helpText = 'Filter pages by page category.';
 			if (categories.length > 0) {
 				helpText += 'Available categories: \n\n' + categories.join('\n');
+			} else {
+				helpText += '\nNo categories available - these can be set in the advanced attributes of a page.';
 			}
 
-			$('input.category-filter', filerEl).attr('title', helpText);
+			filerEl.querySelector('input.category-filter').title = helpText;
 		});
-
-		/*
-		var bulkEditingHelper = $(
-			'<button type="button" title="Open Bulk Editing Helper (Ctrl-Alt-E)" class="icon-button">'
-			+ _Icons.getSvgIcon(_Icons.iconMagicWand)
-			+ '</button>');
-		pPager.appendFilterElements(bulkEditingHelper);
-		bulkEditingHelper.on('click', e => {
-			Structr.dialog('Bulk Editing Helper (Ctrl-Alt-E)');
-			new RefactoringHelper(dialog).show();
-		});
-		*/
 
 		$('#import_page').on('click', (e) => {
 			e.stopPropagation();
 
-			Structr.dialog('Import Template', function() {}, function() {});
+			let { dialogText } = _Dialogs.custom.openDialog('Import Template');
 
-			dialog.empty();
-			dialogMsg.empty();
-
-			dialog.append(`
+			dialogText.insertAdjacentHTML('beforeend', `
 				<h3>Create page from source code ...</h3>
 				<textarea id="_code" name="code" cols="40" rows="5" placeholder="Paste HTML code here"></textarea>
 
@@ -782,7 +742,7 @@ let _Pages = {
 						<td><label for="name">Name of new page:</label></td>
 						<td><input id="_name" name="name" size="20"></td></tr>
 					<tr>
-						<td><label for="publicVisibilty">Visible to public</label></td>
+						<td><label for="publicVisibility">Visible to public</label></td>
 						<td><input type="checkbox" id="_publicVisible" name="publicVisibility"></td></tr>
 					<tr>
 						<td><label for="authVisibilty">Visible to authenticated users</label></td>
@@ -796,23 +756,23 @@ let _Pages = {
 				</table>
 			`);
 
-			$('#_address', dialog).on('blur', function() {
+			$('#_address', $(dialogText)).on('blur', function() {
 				let addr = $(this).val().replace(/\/+$/, "");
-				$('#_name', dialog).val(addr.substring(addr.lastIndexOf("/") + 1));
+				$('#_name', $(dialogText)).val(addr.substring(addr.lastIndexOf("/") + 1));
 			});
 
-			dialog.append('<button class="action" id="startImport">Start Import</button>');
+			let startImportButton = _Dialogs.custom.appendCustomDialogButton('<button class="action" id="startImport">Start Import</button>');
 
-			$('#startImport').on('click', function(e) {
+			startImportButton.addEventListener('click', (e) => {
 				e.stopPropagation();
 
-				let code                  = $('#_code', dialog).val();
-				let address               = $('#_address', dialog).val();
-				let name                  = $('#_name', dialog).val();
-				let publicVisible         = $('#_publicVisible', dialog).prop('checked');
-				let authVisible           = $('#_authVisible', dialog).prop('checked');
-				let includeInExport       = $('#_includeInExport', dialog).prop('checked');
-				let processDeploymentInfo = $('#_processDeploymentInfo', dialog).prop('checked');
+				let code                  = $('#_code', $(dialogText)).val();
+				let address               = $('#_address', $(dialogText)).val();
+				let name                  = $('#_name', $(dialogText)).val();
+				let publicVisible         = $('#_publicVisible', $(dialogText)).prop('checked');
+				let authVisible           = $('#_authVisible', $(dialogText)).prop('checked');
+				let includeInExport       = $('#_includeInExport', $(dialogText)).prop('checked');
+				let processDeploymentInfo = $('#_processDeploymentInfo', $(dialogText)).prop('checked');
 
 				if (code.length > 0) {
 					address = null;
@@ -833,43 +793,38 @@ let _Pages = {
 			if (pageTemplates.length === 0) {
 
 				Command.createSimplePage();
-				Structr.dialogCancelBaseAction();
 
 			} else {
 
-				Structr.dialog('Select Template to Create New Page', () => {}, () => {});
+				let { dialogText } = _Dialogs.custom.openDialog('Select Template to Create New Page');
 
-				dialog.empty();
-				dialogMsg.empty();
-				let dialogDom = Structr.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
-				dialog.append(dialogDom);
-
-				let container = $('#template-tiles');
+				let container = _Helpers.createSingleDOMElementFromHTML('<div id="template-tiles"></div>');
+				dialogText.appendChild(container);
 
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = Structr.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
 						Command.create({ type: 'Page' }, (page) => {
 							Structr.removeExpandedNode(page.id);
 							Command.appendWidget(widget.source, page.id, page.id, null, {}, true);
-							Structr.dialogCancelBaseAction();
+							_Dialogs.custom.dialogCancelBaseAction();
 						});
 					});
 
 				}
 
 				// default page
-				let defaultTile = Structr.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div>');
+				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div>');
 				container.append(defaultTile);
 
-				let createSimplePageButton = dialogDom.querySelector('#create-simple-page');
+				let createSimplePageButton = container.querySelector('#create-simple-page');
 				createSimplePageButton.addEventListener('click', () => {
 					Command.createSimplePage();
-					Structr.dialogCancelBaseAction();
+					_Dialogs.custom.dialogCancelBaseAction();
 				});
 			}
 		});
@@ -888,7 +843,6 @@ let _Pages = {
 		}
 	},
 	removePage: (page) => {
-
 		Structr.removeExpandedNode(page.id);
 	},
 	deactivateAllFunctionBarTabs: () => {
@@ -967,7 +921,7 @@ let _Pages = {
 		tab.classList.add('active');
 	},
 	activateSubmenuLink: (selector) => {
-		let submenuLink = document.querySelector('#function-bar .tabs-menu li a[href="' + selector + '"]');
+		let submenuLink = document.querySelector(`#function-bar .tabs-menu li a[href="${selector}"]`);
 		if (submenuLink) {
 			let tab = submenuLink.closest('li');
 			_Pages.activateSubmenuTabElement(tab);
@@ -990,7 +944,7 @@ let _Pages = {
 		_Pages.refreshCenterPane(obj, new URL(link.href).hash);
 	},
 	emptyCenterPane: () => {
-		fastRemoveAllChildren(_Pages.centerPane);
+		_Helpers.fastRemoveAllChildren(_Pages.centerPane);
 	},
 	refreshCenterPane: (obj, urlHash) => {
 
@@ -1012,19 +966,13 @@ let _Pages = {
 			urlHash = '#pages:html';
 		}
 
-		let contentContainers = _Pages.centerPane.querySelectorAll('.content-container');
-
-		for (const contentContainer of contentContainers) {
-			_Pages.centerPane.removeChild(contentContainer);
-		}
-
+		_Pages.emptyCenterPane();
 		_Pages.adaptFunctionBarTabs(obj);
 
 		if (!urlHash) {
 			urlHash = new URL(location.href).hash;
 		}
-		let activeLink = document.querySelector('#function-bar .tabs-menu li a[href="' + urlHash + '"]');
-
+		let activeLink = document.querySelector(`#function-bar .tabs-menu li a[href="${urlHash}"]`);
 
 		if (activeLink) {
 
@@ -1082,7 +1030,7 @@ let _Pages = {
 
 			case '#pages:basic':
 
-				let dialogConfig = _Dialogs.getDialogConfigForEntity(obj);
+				let dialogConfig = _Entities.basicTab.getBasicTabConfig(obj);
 
 				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.basic());
 				let basicContainer = document.querySelector('#center-pane .basic-container');
@@ -1176,7 +1124,7 @@ let _Pages = {
 				let eventsContainer = document.querySelector('#center-pane .events-container');
 
 				_Schema.getTypeInfo(obj.type, (typeInfo) => {
-					_Entities.dataBindingDialog(obj, $(eventsContainer), typeInfo);
+					_Pages.eventActionMappingDialog(obj, eventsContainer, typeInfo);
 				});
 				break;
 
@@ -1219,7 +1167,7 @@ let _Pages = {
 					<div class="node-selector"></div>
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
-						<b title="${escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
 						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
@@ -1296,22 +1244,6 @@ let _Pages = {
 			});
 		}
 	},
-	saveInlineElement: (el, callback) => {
-		let self = $(el);
-		_Pages.contentSourceId = self.attr('data-structr-id');
-		let text = unescapeTags(cleanText(self.html()));
-		self.attr('contenteditable', false);
-		self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-
-		Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
-			if (_Pages.contentSourceId === obj.id) {
-				if (callback) {
-					callback();
-				}
-				_Pages.contentSourceId = null;
-			}
-		});
-	},
 	appendElementElement: (entity, refNode, refNodeIsParent) => {
 
 		entity  = StructrModel.ensureObject(entity);
@@ -1370,60 +1302,628 @@ let _Pages = {
 	getActiveTabRight: () => {
 		return LSWrapper.getItem(_Pages.activeTabRightKey);
 	},
-	leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+	getLeftResizerKey: () => {
+		return _Pages.pagesResizerLeftKey;
+	},
+	getRightResizerKey: () => {
+		return _Pages.pagesResizerRightKey;
+	},
+	leftSlideoutClosedCallback: () => {
 
-		let leftResizer = document.querySelector('.column-resizer-left');
+		LSWrapper.removeItem(_Pages.activeTabLeftKey);
+		Structr.resize();
+	},
+	rightSlideoutClosedCallback: () => {
 
-		if (!$(triggerEl).hasClass('noclick')) {
+		LSWrapper.removeItem(_Pages.activeTabRightKey);
+		Structr.resize();
+	},
 
-			if (slideoutElement.position().left < -1) {
-				Structr.closeLeftSlideOuts(otherSlideouts, closeCallback);
-				Structr.openLeftSlideOut(triggerEl, slideoutElement, openCallback);
-				if (leftResizer) {
-					leftResizer.classList.remove('hidden');
-				}
-			} else {
-				Structr.closeLeftSlideOuts([slideoutElement], closeCallback);
-				if (leftResizer) {
-					leftResizer.classList.add('hidden');
-				}
+	openAndSelectTreeObjectById: (id) => {
+
+		_Entities.deselectAllElements();
+
+		if (!Structr.node(id)) {
+			_Pages.expandTreeNode(id);
+		} else {
+			let treeEl = Structr.node(id);
+			if (treeEl) {
+				_Entities.highlightElement(treeEl);
 			}
 		}
+
+		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
 	},
-	rightSlideoutClickTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
+	eventActionMappingDialog: (entity, container, typeInfo) => {
 
-		if (!$(triggerEl).hasClass('noclick')) {
+		_Helpers.activateCommentsInElement(container);
 
-			if (Math.abs(slideoutElement.position().left - $(window).width()) <= 3) {
-				Structr.closeSlideOuts(otherSlideouts, closeCallback);
-				Structr.openSlideOut(triggerEl, slideoutElement, openCallback);
-				document.querySelector('.column-resizer-right').classList.remove('hidden');
-			} else {
-				Structr.closeSlideOuts([slideoutElement], closeCallback);
-				document.querySelector('.column-resizer-right').classList.add('hidden');
+		let eventSelectElement               = container.querySelector('#event-select');
+		let actionSelectElement              = container.querySelector('#action-select');
+
+		let customEventInput                 = container.querySelector('#custom-event-input');
+		let customActionInput                = container.querySelector('#custom-action-input');
+
+		let dataTypeSelect                   = container.querySelector('#data-type-select');
+		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
+		let dataTypeInput                    = container.querySelector('#data-type-input');
+		let methodNameInput                  = container.querySelector('#method-name-input');
+
+		let idExpressionInput                = container.querySelector('#id-expression-input');
+
+		let addParameterMappingButton        = container.querySelector('.em-add-parameter-mapping-button');
+		let addParameterMappingForTypeButton = container.querySelector('.em-add-parameter-mapping-for-type-button');
+
+		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
+		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
+		let successNavigateToURLInput        = container.querySelector('#success-navigate-to-url-input');
+		let successFireEventInput            = container.querySelector('#success-fire-event-input');
+
+		let failureBehaviourSelect           = container.querySelector('#failure-behaviour-select');
+		let failurePartialRefreshInput       = container.querySelector('#failure-partial-refresh-input');
+		let failureNavigateToURLInput        = container.querySelector('#failure-navigate-to-url-input');
+		let failureFireEventInput            = container.querySelector('#failure-fire-event-input');
+
+		let saveButton                       = container.querySelector('#save-event-mapping-button');
+
+		let actionMapping;
+
+		Command.getByType('SchemaNode', 1000, 1, 'name', 'asc', 'id,name', false, result => {
+			dataTypeSelect.insertAdjacentHTML('beforeend', result.map(typeObj => `<option>${typeObj.name}</option>`).join(''));
+			dataTypeSelectUl.insertAdjacentHTML('beforeend', result.map(typeObj => `<li data-value="${typeObj.name}">${typeObj.name}</li>`).join(''));
+		});
+
+		if (entity.triggeredActions && entity.triggeredActions.length) {
+
+			actionMapping = entity.triggeredActions[0];
+
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
+				//console.log('Using first object for event action mapping:', result);
+				updateEventMappingInterface(entity, result);
+			});
+		}
+
+		if (saveButton) {
+			saveButton.addEventListener('click', () => {
+				saveEventMappingData(entity);
+				saveParameterMappings();
+			});
+		}
+
+		eventSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
+
+		// combined type select and input
+		{
+			let showDataTypeList = () => { dataTypeSelectUl.classList.remove('hidden'); };
+			let hideDataTypeList = () => { dataTypeSelectUl.classList.add('hidden'); };
+
+			dataTypeSelect.addEventListener('change', e => {
+				dataTypeInput.value = dataTypeSelect.value;
+			});
+
+			dataTypeSelect.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+				showDataTypeList();
+			});
+
+			dataTypeSelectUl.addEventListener('mousedown', e => {
+				e.preventDefault(); // => catches click
+			});
+
+			dataTypeSelectUl.addEventListener('click', e => {
+				if (e.target.dataset.value) {
+					dataTypeInput.value  = e.target.dataset.value;
+					dataTypeSelect.value = dataTypeInput.value;
+
+					saveEventMappingData(entity);
+
+					hideDataTypeList();
+				}
+			});
+
+			container.addEventListener('mousedown', e => {
+				if (e.defaultPrevented === false) {
+					hideDataTypeList();
+				}
+			});
+
+			dataTypeInput.addEventListener('keyup', e => {
+				const el  = e.target;
+				const key = e.key;
+
+				if (key === 'Escape') {
+
+					dataTypeSelectUl.classList.add('hidden');
+					return;
+
+				} else if (key === 'Enter') {
+
+					saveEventMappingData(entity);
+					dataTypeSelectUl.classList.add('hidden');
+					return;
+				}
+
+				for (let child of dataTypeSelectUl.children) {
+
+					if (child.dataset.value && child.dataset.value.match(el.value)) {
+						child.classList.remove('hidden');
+					} else {
+						child.classList.add('hidden');
+					}
+				}
+
+				showDataTypeList();
+			});
+		}
+
+		addParameterMappingButton.addEventListener('click', e => {
+
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+				actionMapping = result.triggeredActions[0];
+				Command.create({type: 'ParameterMapping', actionMapping: actionMapping.id}, (parameterMapping) => {
+					getAndAppendParameterMapping(parameterMapping.id);
+				});
+			});
+		});
+
+		addParameterMappingForTypeButton.addEventListener('click', e => {
+
+			Command.get(entity.id, 'id,type,triggeredActions', (result) => {
+
+				actionMapping = result.triggeredActions[0];
+
+				Command.getSchemaInfo(dataTypeSelect.value, result => {
+
+					let properties = result.filter(property => !property.system);
+					//console.log(properties); return;
+
+					for (const property of properties) {
+
+						Command.create({
+							type: 'ParameterMapping',
+							parameterName: property.jsonName,
+							actionMapping: actionMapping.id
+						}, (parameterMapping) => {
+							getAndAppendParameterMapping(parameterMapping.id);
+						});
+
+					}
+				});
+			});
+		});
+
+		successBehaviourSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+
+			saveEventMappingData(entity);
+		});
+
+		failureBehaviourSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+
+			saveEventMappingData(entity);
+		});
+
+		const updateEventMappingInterface = (entity, actionMapping) => {
+
+			if (!actionMapping) {
+				console.warn('No actionMapping object given', entity);
+				return;
 			}
-		}
-	},
-	leftSlideoutClosedCallback: (wasOpen) => {
-		if (wasOpen) {
-			LSWrapper.removeItem(_Pages.activeTabLeftKey);
 
-			_Pages.resize();
-		}
-	},
-	rightSlideoutClosedCallback: (wasOpen) => {
-		if (wasOpen) {
-			LSWrapper.removeItem(_Pages.activeTabRightKey);
+			//console.log('updateEventMapping', entity, actionMapping);
 
-			_Pages.resize();
-		}
+			// TODO: Find better solution for the following conversion which is necessary because of 'previous-page' vs. 'prev-page'
+			if (actionMapping.action === 'previous-page') {
+				actionMapping.action = 'prev-page';
+			}
+
+			if (actionMapping.event === 'custom') {
+				customEventInput.value  = actionMapping.event;
+				customActionInput.value = actionMapping.action;
+			}
+
+			eventSelectElement.value         = actionMapping.event;
+			actionSelectElement.value        = actionMapping.action;
+
+			methodNameInput.value            = actionMapping.method;
+			dataTypeSelect.value             = actionMapping.dataType;
+			dataTypeInput.value              = actionMapping.dataType;
+
+			idExpressionInput.value          = actionMapping.idExpression;
+
+			successBehaviourSelect.value     = actionMapping.successBehaviour;
+			successPartialRefreshInput.value = actionMapping.successPartial;
+			successNavigateToURLInput.value  = actionMapping.successURL;
+			successFireEventInput.value      = actionMapping.successEvent;
+
+			failureBehaviourSelect.value     = actionMapping.failureBehaviour;
+			failurePartialRefreshInput.value = actionMapping.failurePartial;
+			failureNavigateToURLInput.value  = actionMapping.failureURL;
+			failureFireEventInput.value      = actionMapping.failureEvent;
+
+			// UI-only block
+			{
+
+				// Hide everything that is dynamic and depends on event and action being set
+				for (let any of document.querySelectorAll('.em-event-element, .em-action-element')) {
+					any.classList.add('hidden');
+				}
+
+				if (eventSelectElement.value === 'none') {
+
+					eventSelectElement.classList.add('required');
+
+				} else {
+
+					eventSelectElement.classList.remove('required');
+
+					// show all elements that are shown for non-empty event values
+					for (let any of document.querySelectorAll('.em-event-any')) {
+						any.classList.remove('hidden');
+					}
+
+					if (actionSelectElement.value != 'none') {
+
+						actionSelectElement.classList.remove('required');
+
+						for (let any of document.querySelectorAll('.em-action-any')) {
+							any.classList.remove('hidden');
+						}
+
+					} else {
+						actionSelectElement.classList.add('required');
+					}
+
+					// show all relevant for event
+					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
+						eventRelevant.classList.remove('hidden');
+					}
+
+					// show all relevant for action
+					for (let actionRelevant of document.querySelectorAll(`.em-action-${actionSelectElement.value}`)) {
+						actionRelevant.classList.remove('hidden');
+					}
+
+
+					// success-behaviour
+					{
+						// hide all
+						for (let successOption of document.querySelectorAll('.option-success')){
+							successOption.classList.add('hidden');
+						}
+
+						// show selected
+						for (let successOption of document.querySelectorAll(`.option-success-${successBehaviourSelect.value}`)) {
+							successOption.classList.remove('hidden');
+						}
+					}
+
+
+					// failure behaviour
+					{
+						// hide all
+						for (let failOption of document.querySelectorAll('.option-failure')) {
+							failOption.classList.add('hidden');
+						}
+
+						// show selected
+						for (let failOption of document.querySelectorAll(`.option-failure-${failureBehaviourSelect.value}`)) {
+							failOption.classList.remove('hidden');
+						}
+					}
+				}
+			}
+
+
+			// remove existing parameter mappings
+			for (const parameterMappingElement of document.querySelectorAll('.em-parameter-mapping')) {
+				_Helpers.fastRemoveElement(parameterMappingElement);
+			}
+
+			// append mapped parameters
+			Command.get(actionMapping.id, 'id,parameterMappings', (actionMapping) => {
+				for (const parameterMapping of actionMapping.parameterMappings) {
+					getAndAppendParameterMapping(parameterMapping.id);
+				}
+			});
+
+			// if (entity.triggeredActions && entity.triggeredActions.length) {
+			//
+			// 	// TODO: Support multiple actions per DOM element
+			// 	let actionMapping = entity.triggeredActions[0];
+
+			// Activate dropzone if success behaviour is partial-refresh-linked
+			if (actionMapping.successBehaviour === 'partial-refresh-linked') {
+
+				const parentElement = document.querySelector('.option-success-partial-refresh-linked');
+				activateReloadTargetsElementDropzone(parentElement);
+
+				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+					for (const successTarget of actionMapping.successTargets) {
+						Command.get(successTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, obj);
+						});
+					}
+				});
+			}
+		};
+
+		const activateReloadTargetsElementDropzone = (parentElement) => {
+
+			const dropzoneElement = parentElement.querySelector('.link-reload-element-dropzone');
+
+			if (dropzoneElement) {
+
+				$(dropzoneElement).droppable({
+
+					drop: (e, el) => {
+
+						e.preventDefault();
+						e.stopPropagation();
+
+						let sourceEl = $(el.draggable);
+						let sourceId = Structr.getId(sourceEl);
+
+						if (!sourceId) {
+							return false;
+						}
+
+						let obj = StructrModel.obj(sourceId);
+
+						// Ignore shared components
+						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+							return false;
+						}
+
+						parentElement.querySelector('#success-partial-refresh-linked-input').value = sourceId;
+						_Elements.dropBlocked = false;
+
+						const newReloadingActions = [...obj.reloadingActions];
+						newReloadingActions.push({ id: actionMapping.id });
+						//console.log('drop successTargets', obj, newReloadingActions);
+						Command.setProperty(obj.id, 'reloadingActions', newReloadingActions);
+
+						addLinkedElementToDropzone(parentElement, obj);
+					}
+				});
+			}
+		};
+
+		const addLinkedElementToDropzone = (parentElement, obj) => {
+			const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
+			_Entities.appendRelatedNode($(dropzoneElement), obj, (nodeEl) => {
+				$('.remove', nodeEl).on('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					parentElement.querySelector('._' + obj.id).remove();
+					dropzoneElement.classList.remove('hidden');
+					Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
+						Command.setProperty(actionMapping.id, 'successTargets', actionMapping.successTargets = actionMapping.successTargets.filter(t => t.id !== obj.id));
+					});
+
+				});
+			});
+			//const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
+			//dropzoneElement.classList.add('hidden');
+		};
+
+		const getAndAppendParameterMapping = (id) => {
+
+			Command.get(id, 'id,name,parameterName,parameterType,constantValue,scriptExpression,inputElement', parameterMapping => {
+
+				//console.log('Append parameter mapping element for', parameterMapping);
+
+				const container = document.querySelector('.em-parameter-mappings-container');
+				container.insertAdjacentHTML('beforeend', _Pages.templates.parameterMappingRow(parameterMapping));
+				const row = container.querySelector(`.em-parameter-mapping[data-structr-id="${id}"]`);
+
+				const parameterTypeSelector = row.querySelector('.parameter-type-select');
+				parameterTypeSelector.value = parameterMapping.parameterType;
+				row.querySelector(`.parameter-${parameterTypeSelector.value}`)?.classList.remove('hidden');
+				activateUserInputDropzone(row);
+
+				parameterTypeSelector.addEventListener('change', e => {
+					const selectElement = e.target;
+					const value = selectElement.value;
+					for (let el of row.querySelectorAll('.em-parameter-value')) {
+						el.classList.add('hidden');
+					}
+					row.querySelector(`.parameter-${value}`)?.classList.remove('hidden');
+					activateUserInputDropzone(row);
+				});
+
+				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
+				if (parameterMapping.parameterType === 'user-input' && parameterMapping.inputElement) {
+					replaceDropzoneByUserInputElement(row, parameterMapping.inputElement);
+				}
+
+				const constantValueInputElement = row.querySelector('.parameter-constant-value-input');
+				if (parameterMapping.constantValue) {
+					constantValueInputElement.value = parameterMapping.constantValue;
+				}
+
+				const scriptExpressionInputElement = row.querySelector('.parameter-script-expression-input');
+				if (parameterMapping.scriptExpression) {
+					scriptExpressionInputElement.value = parameterMapping.scriptExpression;
+				}
+
+				activateRemoveIcon(parameterMapping);
+				_Helpers.activateCommentsInElement(container);
+
+			}, null);
+		};
+
+		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
+			const userInputArea = rowElement.querySelector('.parameter-user-input');
+			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
+				$('.remove', nodeEl).on('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					userInputArea.querySelector('.node').remove();
+					dropzoneElement.classList.remove('hidden');
+				});
+			});
+			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
+			dropzoneElement.classList.add('hidden');
+		};
+
+		const activateRemoveIcon = (parameterMapping) => {
+			let parameterMappingElement = document.querySelector(`.em-parameter-mapping[data-structr-id="${parameterMapping.id}"]`);
+			let removeIcon = parameterMappingElement.querySelector('.em-parameter-mapping-remove-button');
+			removeIcon?.addEventListener('click', e => {
+				Command.deleteNode(parameterMapping.id, false, () => {
+					parameterMappingElement.remove();
+				});
+			});
+		};
+
+		const activateUserInputDropzone = (parentElement) => {
+
+			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
+
+			if (dropzoneElement) {
+
+				$(dropzoneElement).droppable({
+
+					drop: (e, el) => {
+
+						e.preventDefault();
+						e.stopPropagation();
+
+						let sourceEl = $(el.draggable);
+						let sourceId = Structr.getId(sourceEl);
+
+						if (!sourceId) {
+							return false;
+						}
+
+						let obj = StructrModel.obj(sourceId);
+
+						// Ignore shared components
+						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
+							return false;
+						}
+
+						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
+						_Elements.dropBlocked = false;
+
+						let userInputName = obj['_html_name'];
+						if (userInputName) {
+
+							let parameterNameInput = parentElement.querySelector('.parameter-name-input');
+							if (parameterNameInput.value === '') {
+								parameterNameInput.value = userInputName;
+							}
+						}
+
+						replaceDropzoneByUserInputElement(parentElement, obj);
+					}
+				});
+			}
+		};
+
+		const saveEventMappingData = (entity) => {
+
+			let actionMappingObject = {
+				type:             'ActionMapping',
+				event:            eventSelectElement?.value,
+				action:           actionSelectElement?.value,
+				method:           methodNameInput?.value,
+				dataType:         dataTypeInput?.value ?? dataTypeSelect?.value,
+				idExpression:     idExpressionInput.value,
+				successBehaviour: successBehaviourSelect?.value,
+				successPartial:   successPartialRefreshInput?.value,
+				successURL:       successNavigateToURLInput?.value,
+				successEvent:     successFireEventInput?.value,
+				failureBehaviour: failureBehaviourSelect?.value,
+				failurePartial:   failurePartialRefreshInput?.value,
+				failureURL:       failureNavigateToURLInput?.value,
+				failureEvent:     failureFireEventInput?.value
+			};
+
+			//console.log(actionMappingObject);
+
+			if (entity.triggeredActions && entity.triggeredActions.length) {
+
+				actionMappingObject.id = entity.triggeredActions[0].id;
+
+				if (actionMappingObject.event === 'none') {
+
+					console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
+					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
+					Command.deleteNode(actionMappingObject.id, undefined, () => {
+						updateEventMappingInterface(entity, actionMappingObject);
+					});
+
+				} else {
+
+					console.log('ActionMapping object already exists, updating...', actionMappingObject);
+					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
+						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
+						updateEventMappingInterface(entity, actionMappingObject);
+					});
+				}
+
+			} else {
+
+				actionMappingObject.triggerElements = [ entity.id ];
+
+				console.log('No ActionMapping object exists, create one and update data...');
+				Command.create(actionMappingObject, (actionMapping) => {
+					//console.log('Successfully created new ActionMapping object:', actionMapping);
+					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
+					updateEventMappingInterface(entity, actionMapping);
+				});
+			}
+		};
+
+		const saveParameterMappings = () => {
+
+			const inputDefinitions = [
+				{ key: 'parameterName',    selector: '.em-parameter-mapping .parameter-name-input' },
+				{ key: 'parameterType',    selector: '.em-parameter-mapping .parameter-type-select' },
+				{ key: 'constantValue',    selector: '.em-parameter-mapping .parameter-constant-value-input' },
+				{ key: 'scriptExpression', selector: '.em-parameter-mapping .parameter-script-expression-input' },
+				{ key: 'inputElement',     selector: '.em-parameter-mapping .parameter-user-input-input' },
+				{ key: 'methodResult',     selector: '.em-parameter-mapping .parameter-method-result-input' },
+				{ key: 'flowResult',       selector: '.em-parameter-mapping .parameter-flow-result-input' }
+			];
+
+			//console.log('save parameter mappings', inputDefinitions, parameterMappings);
+
+			for (const parameterMappingElement of container.querySelectorAll('.em-parameter-mapping')) {
+
+				const parameterMappingId = parameterMappingElement.dataset['structrId'];
+				//console.log(parameterMappingId);
+				const parameterMappingData = { id: parameterMappingId };
+				for (const inputDefinition of inputDefinitions) {
+
+					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
+
+						const value = inp.value;
+						if (value) {
+							//console.log(inputDefinition.key, value);
+							parameterMappingData[inputDefinition.key] = value;
+						}
+					}
+				}
+
+				//console.log(parameterMappingData);
+				Command.setProperties(parameterMappingId, parameterMappingData);
+			}
+		};
+
 	},
 
 	localizations: {
 		lastSelectedPageKey: 'structrLocalizationsLastSelectedPageKey_' + location.port,
 		lastUsedLocaleKey: 'structrLocalizationsLastUsedLocale_' + location.port,
 		wrapperTypeForContextMenu: 'WrappedLocalizationForPreview',
-		getContextMenuElements: function (div, wrappedEntity) {
+		getContextMenuElements: (div, wrappedEntity) => {
 
 			let entity         = wrappedEntity.entity;
 			const isSchemaNode = (entity.type === 'SchemaNode');
@@ -1434,16 +1934,14 @@ let _Pages = {
 
 				elements.push({
 					name: 'Go to Schema Node',
-					clickHandler: function() {
+					clickHandler: () => {
 
-						let pathToOpen = 'custom--' + entity.id;
+						let pathToOpen = `/root/${entity.isBuiltinType ? 'builtin' : 'custom'}/${entity.id}`;
 
 						window.location.href = '#code';
-						window.setTimeout(function() {
+						window.setTimeout(() => {
 							_Code.findAndOpenNode(pathToOpen, false);
 						}, 1000);
-
-						return false;
 					}
 				});
 			}
@@ -1455,7 +1953,7 @@ let _Pages = {
 
 			let pageSelect       = document.getElementById('localization-preview-page');
 			let localeInput      = document.querySelector('#localizations input.locale');
-			fastRemoveAllChildren(pageSelect);
+			_Helpers.fastRemoveAllChildren(pageSelect);
 
 			let lastSelectedPage = LSWrapper.getItem(_Pages.localizations.lastSelectedPageKey);
 			let lastUsedLocale   = LSWrapper.getItem(_Pages.localizations.lastUsedLocaleKey);
@@ -1492,7 +1990,7 @@ let _Pages = {
 			let pageSelect             = document.getElementById('localization-preview-page');
 
 			if (!locale) {
-				blinkRed(localeInput);
+				_Helpers.blinkRed(localeInput);
 				return;
 			}
 
@@ -1506,7 +2004,7 @@ let _Pages = {
 			let localizationIdKey = 'localizationId';
 			let previousValueKey  = 'previousValue';
 
-			fastRemoveAllChildren(localizationsContainer);
+			_Helpers.fastRemoveAllChildren(localizationsContainer);
 
 			if (localizations.length == 0) {
 
@@ -1518,13 +2016,14 @@ let _Pages = {
 
 					let modelNode = (res.node) ? StructrModel.createFromData(res.node) : { type: "Untraceable source (probably static method)", isFake: true };
 					let tbody     = _Pages.localizations.getNodeForLocalization(localizationsContainer, modelNode);
-					let row       = Structr.createSingleDOMElementFromHTML(`<tr>
-							<td><div class="key-column allow-break">${escapeForHtmlAttributes(res.key)}</div></td>
+					let row       = _Helpers.createSingleDOMElementFromHTML(`
+						<tr>
+							<td><div class="key-column allow-break">${_Helpers.escapeForHtmlAttributes(res.key)}</div></td>
 							<td class="domain-column">${res.domain}</td>
 							<td class="locale-column">${((res.localization !== null) ? res.localization.locale : res.locale)}</td>
 							<td class="input"><input class="localized-value" placeholder="...">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'delete', 'mr-2', 'ml-2']))}</td>
-						</tr>`
-					);
+						</tr>
+					`);
 					let input     = row.querySelector('input.localized-value');
 
 					if (res.localization) {
@@ -1548,7 +2047,7 @@ let _Pages = {
 						let id = input.dataset[localizationIdKey];
 
 						if (id) {
-							_Entities.deleteNodes(this, [{id: id, name: input.value}], false, () => {
+							_Entities.deleteNodes([{id: id, name: input.value}], false, () => {
 								row.classList.remove('has-value');
 								input.value = '';
 								delete input.dataset[localizationIdKey];
@@ -1573,7 +2072,7 @@ let _Pages = {
 							if (localizationId) {
 
 								Command.setProperties(localizationId, { localizedName: newValue }, () => {
-									blinkGreen(input);
+									_Helpers.blinkGreen(input);
 									input.dataset[previousValueKey] = newValue;
 								});
 
@@ -1590,7 +2089,7 @@ let _Pages = {
 										input.dataset[localizationIdKey] = createdLocalization.id;
 										input.dataset[previousValueKey]  = newValue;
 										row.classList.add('has-value');
-										blinkGreen(input);
+										_Helpers.blinkGreen(input);
 									});
 							}
 						}
@@ -1609,8 +2108,9 @@ let _Pages = {
 				return existing.querySelector('tbody');
 			}
 
-			let displayName = getElementDisplayName(entity);
-			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, ['mr-2']) : _Icons.getSvgIconForElementNode(entity, ['mr-2'])) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, ['mr-2']);
+			let displayName = _Helpers.getElementDisplayName(entity);
+			let iconClasses = ['mr-2', 'flex-shrink-0'];
+			let iconHTML    = (entity.isDOMNode) ? (entity.isContent ?_Icons.getSvgIconForContentNode(entity, iconClasses) : _Icons.getSvgIconForElementNode(entity, iconClasses)) : _Icons.getSvgIcon(_Icons.iconSchemaNodeDefault, 16, 16, iconClasses);
 			let detailHtml  = '';
 
 			if (entity.type === 'Content') {
@@ -1622,16 +2122,16 @@ let _Pages = {
 				if (entity.name) {
 					detailHtml = displayName;
 				} else {
-					detailHtml = escapeTags(entity.content);
+					detailHtml = _Helpers.escapeTags(entity.content);
 				}
 
 			} else if (!entity.isDOMNode) {
-				detailHtml = `<b title="${escapeForHtmlAttributes(entity.type)}" class="tag_ name_">${entity.type}</b>`;
+				detailHtml = `<b title="${_Helpers.escapeForHtmlAttributes(entity.type)}" class="tag_ name_">${entity.type}</b>`;
 			} else {
-				detailHtml = `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`;
+				detailHtml = `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`;
 			}
 
-			let div = Structr.createSingleDOMElementFromHTML(`
+			let div = _Helpers.createSingleDOMElementFromHTML(`
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
 						<div class="node-selector"></div>
@@ -1706,7 +2206,6 @@ let _Pages = {
 					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
 					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
 				clickHandler: (el, item, e) => {
-					e.stopPropagation();
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
@@ -1932,23 +2431,8 @@ let _Pages = {
 									self.toggleClass('structr-element-container-selected');
 								}
 
-								_Entities.deselectAllElements();
-//								_Pages.databinding.displayDataBinding(structrId);
+								_Pages.openAndSelectTreeObjectById(structrId);
 
-								console.log('Clicked on', e.target);
-
-								if (!Structr.node(structrId)) {
-									console.log('_Pages.expandTreeNode(', structrId,');');
-									_Pages.expandTreeNode(structrId);
-								} else {
-									var treeEl = Structr.node(structrId);
-									if (treeEl && !selected) {
-										console.log('_Entities.highlightElement(', treeEl	,');');
-										_Entities.highlightElement(treeEl);
-									}
-								}
-
-								LSWrapper.setItem(_Entities.selectedObjectIdKey, structrId);
 								return false;
 							},
 							mouseover: function(e) {
@@ -1990,11 +2474,12 @@ let _Pages = {
 			while (child) {
 
 				if (child.nodeType === 8) {
-					let id = child.nodeValue.extractVal('data-structr-id');
+					let id = _Helpers.extractVal(child.nodeValue, 'data-structr-id');
+					console.log(id);
 
 					if (id) {
-						let raw = child.nodeValue.extractVal('data-structr-raw-value');
-
+						let raw = _Helpers.extractVal(child.nodeValue, 'data-structr-raw-value');
+console.log(raw)
 						if (raw !== undefined) {
 							comments.push({
 								id: id,
@@ -2029,7 +2514,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $('<div data-structr-id="' + c.id + '" data-structr-raw-content="' + escapeForHtmlAttributes(c.rawContent, false) + '"></div>');
+					let newDiv = $(`<div data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></div>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);
@@ -2070,7 +2555,7 @@ let _Pages = {
 							// Store old text in global var and attribute
 							_Pages.textBeforeEditing = self.text();
 
-							let srcText = expandNewline(self.attr('data-structr-raw-content'));
+							let srcText = _Helpers.expandNewline(self.attr('data-structr-raw-content'));
 
 							// Replace only if it differs (e.g. for variables)
 							if (srcText !== _Pages.textBeforeEditing) {
@@ -2082,10 +2567,26 @@ let _Pages = {
 						},
 						blur: function(e) {
 							e.stopPropagation();
-							_Pages.saveInlineElement(this, callback);
+							_Pages.previews.saveInlineElement(this, callback);
 						}
 					});
 				});
+			});
+		},
+		saveInlineElement: (el, callback) => {
+			let self = $(el);
+			_Pages.contentSourceId = self.attr('data-structr-id');
+
+			let text = _Helpers.unescapeTags(_Helpers.cleanText(self.html()));
+
+			self.attr('contenteditable', false);
+			self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
+
+			Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
+				if (_Pages.contentSourceId === obj.id) {
+					callback?.();
+					_Pages.contentSourceId = null;
+				}
 			});
 		},
 		isPreviewActive: () => {
@@ -2154,7 +2655,7 @@ let _Pages = {
 						iframe.src = _Pages.previews.getUrlForPreview(pageObj);
 					});
 
-					_Pages.resize();
+					Structr.resize();
 				};
 
 				if (_Pages.previews.loadPreviewTimer) {
@@ -2196,7 +2697,7 @@ let _Pages = {
 				let newVal = detailsObjectIdInput.value;
 				if (newVal !== oldVal) {
 
-					blinkGreen(detailsObjectIdInput);
+					_Helpers.blinkGreen(detailsObjectIdInput);
 
 					if (newVal === '') {
 						LSWrapper.removeItem(_Pages.detailsObjectIdKey + entity.id);
@@ -2215,7 +2716,7 @@ let _Pages = {
 				let newVal = requestParametersInput.value;
 				if (newVal !== oldVal) {
 
-					blinkGreen(requestParametersInput);
+					_Helpers.blinkGreen(requestParametersInput);
 
 					if (newVal === '') {
 						LSWrapper.removeItem(_Pages.requestParametersKey + entity.id);
@@ -2237,7 +2738,7 @@ let _Pages = {
 				} else {
 					LSWrapper.setItem(key, '1');
 				}
-				blinkGreen(autoRefreshCheckbox.parentNode);
+				_Helpers.blinkGreen(autoRefreshCheckbox.parentNode);
 			});
 		},
 	},
@@ -2322,7 +2823,7 @@ let _Pages = {
 			`;
 
 			let designTools = document.getElementById('palette');
-			fastRemoveAllChildren(designTools);
+			_Helpers.fastRemoveAllChildren(designTools);
 			designTools.insertAdjacentHTML('afterbegin', html);
 
 			let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
@@ -2467,7 +2968,7 @@ let _Pages = {
 
 			const updateUrlHistorySelect = () => {
 				let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
-				fastRemoveAllChildren(urlHistorySelectEl);
+				_Helpers.fastRemoveAllChildren(urlHistorySelectEl);
 				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option></option>');
 				for (let urlHistoryEntry of (LSWrapper.getItem('design-tools-url-history') || []).reverse()) {
 					urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option>' + urlHistoryEntry + '</option>');
@@ -2549,36 +3050,39 @@ let _Pages = {
 				//changeFn: (editor, entity) => { },
 				isAutoscriptEnv: true,
 				//saveFn: saveFunction,
-				//saveFnText: 'SAVE TEXT FÜRS CONTEXT MENU IIRC'
+				//saveFnText: 'SAVE TEXT'
 			};
 
 			let sourceEditorArea = document.getElementById('design-tool-source-editor-area');
 			//let sourceEditor = _Editors.getMonacoEditor({ id: 'dummy-id'}, 'id', $(sourceEditorArea), sourceEditorConfig);
 
 			_Pages.designTools.sourceEditor = monaco.editor.create(sourceEditorArea, sourceEditorConfig);
-
 		}
 	},
 
 	sharedComponents: {
-		reload: () => {
+		reload: (isDragOpen = false) => {
 
 			if (!_Pages.componentsSlideout) return;
 
-			Command.listComponents(1000, 1, 'name', 'asc', function(result) {
+			Command.listComponents(1000, 1, 'name', 'asc', (result) => {
 
-				_Pages.componentsSlideout.find(':not(.slideout-activator)').remove();
+				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
 
 				_Pages.componentsSlideout.append(`
 					<div id="newComponentDropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green']))}
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 							Drop element here to create a new shared component
 						</div>
 					</div>
 				`);
 				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
+
+				if (isDragOpen === true) {
+					_Pages.sharedComponents.highlightNewSharedComponentDropZone();
+				}
 
 				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
 				_Pages.components = $('#componentsArea', _Pages.componentsSlideout);
@@ -2607,7 +3111,7 @@ let _Pages = {
 				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
-		createNew: function(el) {
+		createNew: (el) => {
 
 			_Elements.dropBlocked = true;
 
@@ -2628,6 +3132,9 @@ let _Pages = {
 
 			_Elements.dropBlocked = false;
 		},
+		highlightNewSharedComponentDropZone: () => {
+			$('.element-dropzone').addClass("allow-drop");
+		}
 	},
 
 	unattachedNodes: {
@@ -2643,16 +3150,15 @@ let _Pages = {
 					</button>
 				`);
 
-				let btn = $('#delete-all-unattached-nodes');
-				btn.on('click', function() {
-					Structr.confirmation('<p>Delete all DOM elements without parent?</p>',
-						function() {
-							Command.deleteUnattachedNodes();
-							$.unblockUI({
-								fadeOut: 25
-							});
-							Structr.closeSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
-						});
+				let deleteUnattachedNodesButton = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
+
+				deleteUnattachedNodesButton.addEventListener('click', async () => {
+					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
+					if (confirm === true) {
+						Command.deleteUnattachedNodes();
+
+						Structr.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+					}
 				});
 
 				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
@@ -2661,13 +3167,13 @@ let _Pages = {
 
 					let count = result.length;
 					if (count > 0) {
-						btn.html(`${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`);
-						btn.removeClass('disabled');
-						btn.addClass('hover:bg-gray-100');
-						btn.prop('disabled', false);
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
+						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
+
+						_Helpers.disableElements(false, deleteUnattachedNodesButton);
 					} else {
-						btn.text('No unused elements');
-						btn.removeClass('hover:bg-gray-100');
+						deleteUnattachedNodesButton.textContent = 'No unused elements';
+						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
 
 					_Elements.appendEntitiesToDOMElement(result, _Pages.unusedElementsTree);
@@ -2675,10 +3181,10 @@ let _Pages = {
 			}
 		},
 		removeElementsFromUI: () => {
-			fastRemoveAllChildren(_Pages.unusedElementsTree[0]);
+			_Helpers.fastRemoveAllChildren(_Pages.unusedElementsTree[0]);
 		},
 		blinkUI: () => {
-			blinkGreen('#elementsTab');
+			_Helpers.blinkGreen(document.getElementById('elementsTab'));
 		}
 	},
 
@@ -2705,10 +3211,10 @@ let _Pages = {
 
 						if (page.type !== 'ShadowDocument') {
 
-							let div = Structr.createSingleDOMElementFromHTML(`
+							let div = _Helpers.createSingleDOMElementFromHTML(`
 								<div class="node page ${_Pages.linkableDialog.nodeClasses}">
 									<div class="node-container flex items-center gap-x-2 p-2">
-										${_Icons.getSvgIcon(_Icons.iconDomTreePageIcon, 16, 16, ['icon-grey'])}<b title="${escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
+										${_Icons.getSvgIcon(_Icons.iconDomTreePageIcon, 16, 16, ['icon-grey'])}<b title="${_Helpers.escapeForHtmlAttributes(page.name)}" class="name_ abbr-ellipsis abbr-120">${page.name}</b>
 									</div>
 								</div>
 							`);
@@ -2718,7 +3224,7 @@ let _Pages = {
 							_Pages.linkableDialog.handleLinkableElement(div, entity, page);
 						}
 					}
-				}, undefined, undefined, undefined, true);
+				}, undefined, undefined, true);
 
 				linkPagePager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkPagePager.activateFilterElements();
@@ -2737,7 +3243,7 @@ let _Pages = {
 					for (let folder of folders) {
 						_Pages.linkableDialog.appendFolder(entity, foldersToLink, folder);
 					}
-				}, null, 'id,name,hasParent', undefined, true);
+				}, null, 'id,name,hasParent', true);
 
 				linkFolderPager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkFolderPager.activateFilterElements();
@@ -2749,10 +3255,10 @@ let _Pages = {
 
 					for (let file of files) {
 
-						let div = Structr.createSingleDOMElementFromHTML(`
+						let div = _Helpers.createSingleDOMElementFromHTML(`
 							<div class="node file ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
+									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b title="${_Helpers.escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-120">${file.name}</b>
 								</div>
 							</div>
 						`);
@@ -2761,7 +3267,7 @@ let _Pages = {
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, file);
 					}
-				}, null, 'id,name,contentType,linkingElementsIds,path', undefined, true);
+				}, null, 'id,name,contentType,linkingElementsIds,path', true);
 
 				linkFilesPager.appendFilterElements('<span style="white-space: nowrap;">Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name"><label><input type="checkbox"  class="filter" data-attribute="hasParent"> Include subdirectories</label></span>');
 				linkFilesPager.activateFilterElements();
@@ -2780,8 +3286,8 @@ let _Pages = {
 
 					for (let image of images) {
 
-						let div = Structr.createSingleDOMElementFromHTML(`
-							<div class="node file ${_Pages.linkableDialog.nodeClasses}" title="${escapeForHtmlAttributes(image.path)}">
+						let div = _Helpers.createSingleDOMElementFromHTML(`
+							<div class="node file ${_Pages.linkableDialog.nodeClasses}" title="${_Helpers.escapeForHtmlAttributes(image.path)}">
 								<div class="node-container flex items-center gap-x-2 p-2">
 									${_Icons.getImageOrIcon(image)}<b class="name_ abbr-ellipsis abbr-120">${image.name}</b>
 								</div>
@@ -2792,7 +3298,7 @@ let _Pages = {
 
 						_Pages.linkableDialog.handleLinkableElement(div, entity, image);
 					}
-				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall', undefined, true);
+				}, null, 'id,name,contentType,linkingElementsIds,path,tnSmall', true);
 
 				linkImagePager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name" placeholder="Name"></span>');
 				linkImagePager.activateFilterElements();
@@ -2802,10 +3308,10 @@ let _Pages = {
 		},
 		appendFolder: (entityToLinkTo, folderEl, subFolder) => {
 
-			let subFolderEl = Structr.createSingleDOMElementFromHTML(`
+			let subFolderEl = _Helpers.createSingleDOMElementFromHTML(`
 				<div class="node folder ${(subFolder.hasParent ? 'sub ' : '')}${_Pages.linkableDialog.nodeClasses}">
 					<div class="node-container flex items-center gap-x-2 p-2">
-						${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}<b title="${escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
+						${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}<b title="${_Helpers.escapeForHtmlAttributes(subFolder.name)}" class="name_ abbr-ellipsis abbr-200">${subFolder.name}</b>
 					</div>
 				</div>
 			`);
@@ -2857,10 +3363,10 @@ let _Pages = {
 
 					Command.get(f.id, 'id,name,contentType,linkingElementsIds,path', (file) => {
 
-						let div = Structr.createSingleDOMElementFromHTML(`
+						let div = _Helpers.createSingleDOMElementFromHTML(`
 							<div class="node file sub ${_Pages.linkableDialog.nodeClasses}">
 								<div class="node-container flex items-center gap-x-2 p-2">
-									${_Icons.getFileIconSVG(file)}<b title="${escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
+									${_Icons.getSvgIcon(_Icons.getFileIconSVG(file))}<b title="${_Helpers.escapeForHtmlAttributes(file.path)}" class="name_ abbr-ellipsis abbr-200">${file.name}</b>
 								</div>
 							</div>
 						`);
@@ -2873,7 +3379,7 @@ let _Pages = {
 		},
 		handleLinkableElement: (div, entityToLinkTo, linkableObject) => {
 
-			if (isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
+			if (_Helpers.isIn(entityToLinkTo.id, linkableObject.linkingElementsIds)) {
 				div.classList.add('nodeActive');
 			}
 
@@ -2936,12 +3442,7 @@ let _Pages = {
 
 			<div id="pages" class="slideOut slideOutLeft">
 				<div id="pages-controls">
-					<div id="pagesPager">
-						<div id="pagesPagerFilters">
-							Filters: <input type="text" class="filter" data-attribute="name" placeholder="Name" title="Here you can filter the pages list by page name" autocomplete="new-password"/>
-							<input type="text" class="filter page-label category-filter" data-attribute="category" placeholder="Category" />
-						</div>
-					</div>
+					<div id="pagesPager"></div>
 
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -3021,7 +3522,6 @@ let _Pages = {
 			</div>
 
 			<div id="palette" class="slideOut slideOutRight">
-				<div id="paletteArea"></div>
 			</div>
 
 			<div class="slideout-activator right" id="componentsTab">
@@ -3035,7 +3535,6 @@ let _Pages = {
 			</div>
 
 			<div id="components" class="slideOut slideOutRight">
-				<div class="inner"></div>
 			</div>
 
 			<div class="slideout-activator right" id="elementsTab">
@@ -3108,7 +3607,283 @@ let _Pages = {
 					</div>
 				</div>
 
-				<div class="events-container"></div>
+				<div class="events-container">
+
+					<h3>Event Action Mapping</h3>
+
+					<div class="grid grid-cols-2 gap-8">
+
+						<div>
+							<label class="block mb-2" data-comment="Select the event type that triggers the action.">Event</label>
+
+							<select class="select2" id="event-select">
+								<option value="none">None</option>
+								<option value="click">Click</option>
+								<option value="change">Change</option>
+								<option value="focusout">Focus out</option>
+								<option value="drop">Drop</option>
+								<option value="custom">Custom frontend event</option>
+							</select>
+						</div>
+
+						<div class="hidden em-event-element em-event-any">
+							<label class="block mb-2" data-comment="Select the action that is triggered by the event.">Action</label>
+
+							<select class="select2" id="action-select">
+								<option value="none">No action</option>
+								<option value="create">Create new object</option>
+								<option value="update">Update object</option>
+								<option value="delete">Delete object</option>
+								<option value="method">Execute method</option>
+								<option value="flow">Execute flow</option>
+								<option value="custom">Custom action</option>
+								<option value="next-page">Next page</option>
+								<option value="prev-page">Previous page</option>
+							</select>
+						</div>
+
+						<div class="hidden em-event-element em-event-custom">
+							<label class="block mb-2" for="custom-event-input" data-comment="Define the frontend event that triggers the action.">Frontend event</label>
+							<input type="text" id="custom-event-input">
+						</div>
+
+						<div class="hidden em-event-element em-action-custom">
+							<label class="block mb-2" for="custom-action-input" data-comment="Define the backend action that is triggered by the event.">Backend action</label>
+							<input type="text" id="custom-action-input">
+						</div>
+
+						<div><!-- exists so it is always displayed -->
+
+							<div class="hidden em-action-element em-action-update em-action-delete em-action-method em-action-custom">
+
+								<div class="hidden em-action-element em-action-update">
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be updated.">UUID of data object to update</label>
+								</div>
+
+								<div class="hidden em-action-element em-action-delete">
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object that shall be deleted on click.">UUID of data object to delete</label>
+								</div>
+
+								<div class="hidden em-action-element em-action-method">
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
+								</div>
+
+								<div class="hidden em-action-element em-action-custom">
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the target data object.">UUID of action target object</label>
+								</div>
+
+								<input type="text" id="id-expression-input">
+							</div>
+
+						</div>
+
+						<!--div class="hidden options-prev-page options-next-page				em-action-element em-action-next-page em-action-prev-page">
+							<div>
+								<label class="block mb-2" for="pagination-name-input" data-comment="Define the name of the pagination request parameter (usually &quot;page&quot;).">Pagination request parameter</label>
+								<input type="text" id="pagination-name-input">
+							</div>
+						</div-->
+
+						<div class="hidden em-action-element em-action-create em-action-update">
+							<div class="relative">
+								<label class="block mb-2" for="data-type-select" data-comment="Define the type of data object to create or update">Enter or select type of data object</label>
+								<input type="text" class="combined-input-select-field" id="data-type-input" placeholder="Custom type or script expression">
+								<select class="required combined-input-select-field" id="data-type-select">
+									<option value="">Select type from schema</option>
+								</select>
+								<ul class="combined-input-select-field hidden"></ul>
+							</div>
+						</div>
+
+						<div class="hidden options-method em-action-element em-action-method">
+							<div>
+								<label class="block mb-2" for="method-name-input">Name of method to execute</label>
+								<input type="text" id="method-name-input">
+							</div>
+						</div>
+
+						<div class="col-span-2 hidden em-event-element em-event-drop">
+							<h3>Drag & Drop</h3>
+							<div>
+								<label class="block mb-2">The following additional configuration is required to enable drag & drop.</label>
+								<ul class="mb-2">
+									<li>Make other elements draggable: set the <code>draggable</code> attribute to <code>true</code>.</li>
+									<li>Add a custom data attribute with the value <code>data()</code> to the drop target, e.g. <code>data-payload</code> etc.</li>
+									<li>The custom data attribute will be sent to the method when a drop event occurs.</li>
+								<ul>
+							</div>
+						</div>
+
+						<div class="col-span-2 hidden em-action-element em-action-any">
+							<h3>Parameter Mapping
+								<i class="m-2 em-add-parameter-mapping-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add parameter')}</i>
+								<i class="m-2 em-add-parameter-mapping-for-type-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconListAdd,16,16,[], 'Add parameters for all properties')}</i>
+							</h3>
+
+							<div class="em-parameter-mappings-container"></div>
+
+						</div>
+
+						<div class="col-span-2 hidden em-action-element em-action-any">
+							<h3>Follow-up Actions</h3>
+							<div class="grid grid-cols-2 gap-8">
+
+								<div>
+									<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
+									<select class="select2" id="success-behaviour-select">
+										<option value="nothing">Nothing</option>
+										<option value="full-page-reload">Reload the current page</option>
+										<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
+										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+										<option value="navigate-to-url">Navigate to a new page</option>
+										<option value="fire-event">Raise a custom event</option>
+									</select>
+								</div>
+
+								<div class="hidden option-success option-success-partial-refresh">
+									<label class="block mb-2" for="success-partial-refresh-input" data-comment="Define the area(s) of the current page that should be refreshed by its CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+									<input type="text" id="success-partial-refresh-input" placeholder="Enter CSS ID(s)">
+								</div>
+
+								<div class="hidden option-success option-success-partial-refresh-linked">
+									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
+									<input type="hidden" id="success-partial-refresh-linked-input" value="">
+									<div class="element-dropzone link-reload-element-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+										</div>
+									</div>
+								</div>
+
+								<div class="hidden option-success option-success-navigate-to-url">
+									<label class="block mb-2" for="success-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on success">Success URL</label>
+									<input type="text" id="success-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+								</div>
+
+								<div class="hidden option-success option-success-fire-event">
+									<label class="block mb-2" for="success-fire-event-input" data-comment="Define event that should be raised.">Event to raise on success</label>
+									<input type="text" id="success-fire-event-input" placeholder="Enter an event name">
+								</div>
+							</div>
+
+							<div class="grid grid-cols-2 gap-8 mt-4">
+								<div>
+									<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
+									<select class="select2" id="failure-behaviour-select">
+										<option value="nothing">Nothing</option>
+										<option value="full-page-reload">Reload the current page</option>
+										<option value="partial-refresh">Refresh section(s) by ID</option>
+										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
+										<option value="navigate-to-url">Navigate to a new page</option>
+										<option value="fire-event">Raise a custom event</option>
+									</select>
+								</div>
+
+								<div class="hidden option-failure option-failure-partial-refresh">
+									<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
+									<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
+								</div>
+
+								<div class="hidden option-failure option-failure-navigate-to-url">
+									<label class="block mb-2" for="failure-navigate-to-url-input" data-comment="Define the relative or absolute URL of the page to load on failure">Failure URL</label>
+									<input type="text" id="failure-navigate-to-url-input" placeholder="Enter a relative or absolute URL">
+								</div>
+
+								<div class="hidden option-failure option-failure-fire-event">
+									<label class="block mb-2" for="failure-fire-event-input" data-comment="Define event that should be raised.">Event to raise on failure</label>
+									<input type="text" id="failure-fire-event-input" placeholder="Enter an event name">
+								</div>
+							</div>
+						</div>
+
+						<div class="col-span-2">
+							<button type="button" class="action" id="save-event-mapping-button">Save</button>
+						</div>
+
+					</div>
+
+				</div>
+			</div>
+		`,
+		parameterMappingRow: config => `
+			<div class="em-parameter-mapping" data-structr-id="${config.id}">
+
+				<div class="grid grid-cols-5 gap-8 hidden options-reload-target mb-4">
+
+					<div>
+						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>
+						<input type="text" class="parameter-name-input" placeholder="Name" value="${config.parameterName || ''}">
+					</div>
+
+					<div>
+						<label class="block mb-2" for="parameter-type-select" data-comment="Select the type of this parameter.">Parameter type</label>
+						<select class="parameter-type-select">
+							<option>-- Select --</option>
+							<option value="user-input">User Input</option>
+							<option value="page-param">Request parameter for page</option>
+							<option value="pagesize-param">Request parameter for page size</option>
+							<option value="constant-value">Constant value</option>
+							<option value="script-expression">Script expression</option>
+							<option value="method-result">Result of method call</option>
+							<option value="flow-result">Result of flow</option>
+						</select>
+					</div>
+
+					<div class="hidden col-span-2 em-parameter-value parameter-constant-value">
+						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
+						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 em-parameter-value parameter-script-expression">
+						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
+						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 em-parameter-value parameter-user-input">
+						<label class="block mb-2" data-comment="Drag a form input element (&amp;lt;input&amp;gt;, &amp;lt;textarea&amp;gt; or &amp;lt;select&amp;gt;) and drop it here">Form input element</label>
+						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
+						<div class="element-dropzone link-existing-element-dropzone">
+							<div class="info-icon h-16 flex items-center justify-center">
+								<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing form input element here 
+							</div>
+						</div>
+					</div>
+
+					<div class="hidden col-span-2 em-parameter-value parameter-method-result">
+						<label class="block mb-2" data-comment="The method will be evaluated and the result passed as parameter value">Method</label>
+						<input type="text" class="parameter-method-result-input" placeholder="Method name" value="${config.value || ''}">
+					</div>
+
+					<div class="hidden col-span-2 em-parameter-value parameter-flow-result">
+						<label class="block mb-2" data-comment="The selected Flow will be evaluated and the result passed as parameter value">Flow result</label>
+						<select class="parameter-flow-result-input">
+							<option value="">-- Select flow --</option>
+						</select>
+					</div>
+
+					<div>
+						<label class="hidden block mb-2">Actions</label>
+						<i class="block mt-4 cursor-pointer em-parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
+					</div>
+
+				</div>
+
+				<!--div class="hidden em-action-element em-action-create em-action-update">
+					<div id="link-existing-element-dropzone" class="element-dropzone">
+						<div class="info-icon h-16 flex items-center justify-center">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])} Drop existing input or select elements here
+						</div>
+					</div>
+				</div>
+
+				<div class="options-properties">
+					<button class="inline-flex items-center add-property-input-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new input</button>
+					<button class="inline-flex items-center add-property-select-button hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd)} Create new select</button>
+				</div-->
+
 			</div>
 		`,
 		preview: config => `

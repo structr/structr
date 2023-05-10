@@ -18,9 +18,10 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import com.jayway.restassured.filter.session.SessionFilter;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
+
+import io.restassured.filter.session.SessionFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;

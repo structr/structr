@@ -17,10 +17,11 @@
 	<version>4.3-SNAPSHOT</version>
 
 	<properties>
-		<jetty.version>11.0.10</jetty.version>
+		<jetty.version>11.0.15</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
 		<imageio.version>3.8.0</imageio.version>
-		<batik.version>1.14</batik.version>
+		<batik.version>1.16</batik.version>
+		<graal.version>22.3.2</graal.version>
 	</properties>
 
 	<dependencies>
@@ -75,8 +76,9 @@
 			<version>${jetty.version}</version>
 		</dependency>
 		<dependency>
-			<groupId>com.jayway.restassured</groupId>
+			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
+			<optional>true</optional>
 		</dependency>
 		<dependency>
 			<groupId>commons-codec</groupId>
@@ -150,8 +152,16 @@
 		<dependency>
 			<groupId>org.graalvm.sdk</groupId>
 			<artifactId>graal-sdk</artifactId>
-			<version>22.2.0</version>
+			<version>${graal.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.graalvm.tools/chromeinspector -->
+		<dependency>
+			<groupId>org.graalvm.tools</groupId>
+			<artifactId>chromeinspector</artifactId>
+			<version>${graal.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
@@ -408,7 +418,6 @@
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-rasterizer-ext</artifactId>
 			<version>${batik.version}</version>
-			<scope>provided</scope>
 			<exclusions>
 				<exclusion>
 					<groupId>org.apache.xmlgraphics</groupId>
@@ -420,25 +429,21 @@
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-extension</artifactId>
 			<version>${batik.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-anim</artifactId>
 			<version>${batik.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-svggen</artifactId>
 			<version>${batik.version}</version>
-			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>batik-transcoder</artifactId>
 			<version>${batik.version}</version>
-			<scope>provided</scope>
 			<!--
             There seems to be some weirdness in the
             Batik/FOP poms (Batik depends on FOP 0.20-5) that screws things up,
@@ -580,7 +585,15 @@
 					<shortRevisionLength>5</shortRevisionLength>
 				</configuration>
 			</plugin>
-		</plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>17</source>
+                    <target>17</target>
+                </configuration>
+            </plugin>
+        </plugins>
 
 		<!-- Added to make m2e happy, thanks to http://stackoverflow.com/questions/8706017/maven-dependency-plugin-goals-copy-dependencies-unpack-is-not-supported-b -->
 		<pluginManagement>

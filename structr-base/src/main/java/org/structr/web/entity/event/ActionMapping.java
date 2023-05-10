@@ -60,13 +60,13 @@ public interface ActionMapping extends NodeInterface {
 		type.addStringProperty("successBehaviour", PropertyView.Ui).setHint("Behaviour after successful execution of action");
 		type.addStringProperty("successPartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on success");
 		type.addStringProperty("successURL",       PropertyView.Ui).setHint("URL to navigate to on success");
-		type.addStringProperty("successEvent",     PropertyView.Ui).setHint("Event to fire on success");
+		type.addStringProperty("successEvent",     PropertyView.Ui).setHint("Event to raise on success");
 
 
 		type.addStringProperty("failureBehaviour", PropertyView.Ui).setHint("Behaviour after failure execution of action");
 		type.addStringProperty("failurePartial",   PropertyView.Ui).setHint("CSS selector for partial to refresh on failure");
 		type.addStringProperty("failureURL",       PropertyView.Ui).setHint("URL to navigate to on failure");
-		type.addStringProperty("failureEvent",     PropertyView.Ui).setHint("Event to fire on failure");
+		type.addStringProperty("failureEvent",     PropertyView.Ui).setHint("Event to raise on failure");
 
 	}}
 

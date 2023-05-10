@@ -31,8 +31,7 @@ let _Editors = {
 				model:     ...,
 				viewState: ...,
 				instanceDisposables: [],
-				modelDisposables:    [],
-				decorations:         []
+				modelDisposables:    []
 			},
 			lastScriptErrorLookup: 0
 		}	*/
@@ -83,6 +82,20 @@ let _Editors = {
 	disposeEditor: (id, propertyName) => {
 
 		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+		_Editors.disposeInstanceForStorageContainer(container);
+
+	},
+	disposeEditorModel: (id, propertyName) => {
+
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+		_Editors.disposeModelForStorageContainer(container);
+	},
+	disposeInstanceForStorageContainer: (container) => {
+
+		if (container.instance && container.instance.customConfig) {
+			// before disposing the instance, remove our customConfig to enable garbage collection
+			container.instance.customConfig = null;
+		}
 
 		container?.instance?.dispose();
 		delete container?.instance;
@@ -92,11 +105,6 @@ let _Editors = {
 			disposable.dispose();
 		}
 		delete container?.instanceDisposables;
-	},
-	disposeEditorModel: (id, propertyName) => {
-
-		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
-		_Editors.disposeModelForStorageContainer(container);
 	},
 	disposeModelForStorageContainer: (container) => {
 
@@ -108,25 +116,38 @@ let _Editors = {
 		}
 		delete container?.modelDisposables;
 	},
+	nukeAllEditors: () => {
+
+		for (let id in _Editors.editors) {
+			_Editors.nukeEditorsById(id);
+		}
+	},
 	nukeEditorsById: (id) => {
 
 		for (let propertyName in _Editors.editors?.[id] ?? {}) {
-
-			let container = _Editors.getContainerForIdAndProperty(id, propertyName);
-
-			container?.instance?.dispose();
-			container?.model?.dispose();
-
-			// dispose previous disposables
-			for (let disposable of container?.instanceDisposables ?? []) {
-				disposable.dispose();
-			}
-			for (let disposable of container?.modelDisposables ?? []) {
-				disposable.dispose();
-			}
+			_Editors.nukeEditor(id, propertyName);
 		}
 
 		delete _Editors.editors?.[id];
+	},
+	nukeEditor: (id, propertyName) =>{
+
+		let container = _Editors.getContainerForIdAndProperty(id, propertyName);
+
+		_Editors.disposeInstanceForStorageContainer(container);
+		_Editors.disposeModelForStorageContainer(container);
+
+		delete _Editors.editors?.[id]?.[propertyName];
+	},
+	nukeEditorsInDomElement: (el) => {
+
+		for (let monacoContainer of el.querySelectorAll('[data-monaco-entity-id][data-monaco-entity-property-name]')) {
+
+			let id           = monacoContainer.dataset['monacoEntityId'];
+			let propertyName = monacoContainer.dataset['monacoEntityPropertyName'];
+
+			_Editors.nukeEditor(id, propertyName);
+		}
 	},
 	saveViewState: (id, propertyName) => {
 
@@ -186,15 +207,21 @@ let _Editors = {
 			storageContainer.lastScriptErrorLookup = performance.now();
 
 			// check linting updates for this element max every 10 seconds (unless forced)
-			storageContainer.decorations = storageContainer?.decorations ?? [];
-			let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
-			storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+			let newErrorEvents = await _Editors.getScriptErrors(entity, errorPropertyName);
+
+			if (!storageContainer.instance) {
+				storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
+			}
+			if (storageContainer.instance) {
+				storageContainer?.decorationsCollection?.clear();
+				storageContainer.decorationsCollection = storageContainer.instance.createDecorationsCollection(newErrorEvents);
+			}
 		}
 	},
 	getScriptErrors: async (entity, errorAttributeName) => {
 
 		let schemaType = entity?.type ?? '';
-		let response   = await fetch(Structr.rootUrl + '_runtimeEventLog?type=Scripting&seen=false&' + Structr.getRequestParameterName('pageSize') + '=100');
+		let response   = await fetch(`${Structr.rootUrl}_runtimeEventLog?type=Scripting&seen=false&${Structr.getRequestParameterName('pageSize')}=100`);
 
 		if (response.ok) {
 
@@ -233,7 +260,7 @@ let _Editors = {
 						}
 
 						// prevent duplicate error messages
-						let key = entity.id + '.' + entity.name + ':' + fromLine + ':' + fromCol + toLine + ':' + toCol;
+						let key = `${entity.id}.${entity.name}:${fromLine}:${fromCol}${toLine}:${toCol}`;
 						if (!keys[key]) {
 
 							keys[key] = true;
@@ -246,7 +273,7 @@ let _Editors = {
 									className: 'monaco-editor-warning-line',
 									glyphMarginClassName: _Icons.monacoGlyphMarginClassName,
 									glyphMarginHoverMessage: {
-										value: '[' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '] __Scripting error:__ \n\n ' + message,
+										value: `[${date.toLocaleDateString()} ${date.toLocaleTimeString()}] __Scripting error__` + '\n\n' + message
 									}
 								}
 							});
@@ -261,7 +288,7 @@ let _Editors = {
 	prevAnimFrameReqId_resizeVisibleEditors: undefined,
 	resizeVisibleEditors: () => {
 
-		Structr.requestAnimationFrameWrapper(_Editors.prevAnimFrameReqId_resizeVisibleEditors, () => {
+		_Helpers.requestAnimationFrameWrapper(_Editors.prevAnimFrameReqId_resizeVisibleEditors, () => {
 
 			for (let id in _Editors.editors) {
 
@@ -346,7 +373,7 @@ let _Editors = {
 
 			// add identical provider to all languages and decide in the provider if completions should be shown
 			for (let lang of monaco.languages.getLanguages()) {
-				monaco.languages.registerCompletionItemProvider(lang.id, defaultCompletionProvider);
+				monaco.languages.registerCompletionItemProvider({ language: lang.id }, defaultCompletionProvider);
 			}
 		}
 	},
@@ -354,7 +381,7 @@ let _Editors = {
 
 		let uri = monaco.Uri.from({
 			scheme: 'file', // keeps history even after switching editors in code
-			path: '/' + id + '/' + propertyName,
+			path:   `/${id}/${propertyName}`,
 		});
 
 		uri.structr_uuid     = id;
@@ -399,7 +426,8 @@ let _Editors = {
 			model: storageContainer.model,
 			value: editorText,
 			language: language,
-			readOnly: customConfig.readOnly
+			readOnly: customConfig.readOnly,
+			fixedOverflowWidgets: true
 		});
 
 		// dispose previously existing editors
@@ -417,6 +445,9 @@ let _Editors = {
 		}
 
 		let monacoInstance = monaco.editor.create(domElement, monacoConfig);
+
+		domElement.dataset['monacoEntityId']           = entity.id;
+		domElement.dataset['monacoEntityPropertyName'] = propertyName;
 
 		storageContainer.instance            = monacoInstance;
 		storageContainer.instanceDisposables = [];
@@ -453,7 +484,7 @@ let _Editors = {
 		if (customConfig.saveFn) {
 
 			storageContainer.instanceDisposables.push(monacoInstance.addAction({
-				id: 'editor-save-action-' + entity.id + '-' + propertyName,
+				id: `editor-save-action-${entity.id}-${propertyName}`,
 				label: customConfig.saveFnText || 'Save',
 				keybindings: [
 					monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS
@@ -528,6 +559,7 @@ let _Editors = {
 		return mode;
 	},
 	updateMonacoEditorLanguage: (editor, newLanguage) => {
+
 		if (newLanguage === 'auto') {
 			newLanguage = _Editors.getMonacoEditorModeForContent(editor.getValue());
 		}
@@ -547,12 +579,12 @@ let _Editors = {
 
 				if (_Speech.isCommand('save', interim)) {
 
-					dialogSaveButton.click();
+					_Dialogs.custom.clickSaveButton();
 
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
 
 					_Speech.toggleStartStop(speechBtn, function() {
-						buttonArea.querySelector('#saveAndClose').click();
+						_Dialogs.custom.clickSaveAndCloseButton();
 					});
 
 				} else if (_Speech.isCommand('close', interim)) {
@@ -653,12 +685,11 @@ let _Editors = {
 
 			editor.addCommand(monaco.KeyCode.Escape, () => {
 
-				ignoreKeyUp = true;
+				Structr.ignoreKeyUp = true;
 				action();
 
 			}, context);
 		}
-
 	},
 	getDefaultEditorOptionsForStorage: () => {
 		/**
@@ -764,12 +795,12 @@ let _Editors = {
 	},
 	appendEditorOptionsElement: (element) => {
 
-		let dropdown = Structr.createSingleDOMElementFromHTML(`
+		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
 			<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="top" data-wants-fixed="true">
 					${_Icons.getSvgIcon(_Icons.iconTextSettings)}
 				</button>
-				
+
 				<div class="dropdown-menu-container" style="display: none;">
 					<div class="font-bold pt-4 pb-2">Global Editor Settings</div>
 					<div class="editor-setting flex items-center p-1">
@@ -779,7 +810,7 @@ let _Editors = {
 							<option>on</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Wrapping Indent</label>
 						<select name="wrappingIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -789,7 +820,7 @@ let _Editors = {
 							<option>deepIndent</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Indentation</label>
 						<select name="indentation" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -797,12 +828,12 @@ let _Editors = {
 							<option>spaces</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Tab Size</label>
 						<input name="tabSize" type="number" min="1" value="8" style="width: 3rem;">
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Auto-Indent</label>
 						<select name="autoIndent" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -813,7 +844,7 @@ let _Editors = {
 							<option>keep</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Theme</label>
 						<select name="theme" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -822,7 +853,7 @@ let _Editors = {
 							<option value="hc-black">High Contrast Dark</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Line Highlight Rendering</label>
 						<select name="renderLineHighlight" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -832,11 +863,11 @@ let _Editors = {
 							<option>none</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="folding" type="checkbox"> Enable Code Folding</label>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label class="flex-grow">Show Folding Controls</label>
 						<select name="showFoldingControls" class="min-w-48 hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -844,29 +875,29 @@ let _Editors = {
 							<option>mouseover</option>
 						</select>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="renderWhitespace" type="checkbox"> Render Whitespace</label>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="roundedSelection" type="checkbox"> Rounded selection</label>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="mouseWheelZoom" type="checkbox"> Mouse Wheel Zoom</label>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="scrollBeyondLastLine" type="checkbox"> Scroll beyond last line</label>
 					</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label><input name="minimapEnabled" type="checkbox"> Show Mini Map</label>
 					</div>
-					
+
 					<div class="font-bold pt-4 pb-2">Global Editor Behaviour Settings</div>
-					
+
 					<div class="editor-setting flex items-center p-1">
 						<label data-comment="This means that <u>unsaved</u> changes are stored in-memory and such changes are restored even after opening other editors or user interfaces in the admin UI. They are only lost after a page reload or navigation event.<br><br>This may lead to confusing situations where the editor shows unsaved html/code and the html/code is not shown/run because it is not saved. Be aware of such situations!"><input name="restoreModels" type="checkbox"> Restore text models</label>
 					</div>
@@ -893,7 +924,7 @@ let _Editors = {
 			settingControlSelect.addEventListener('change', (e) => {
 				_Editors.updateSavedEditorOption(settingControlSelect.name, settingControlSelect.value);
 
-				blinkGreen(settingControlSelect.closest('.editor-setting'));
+				_Helpers.blinkGreen(settingControlSelect.closest('.editor-setting'));
 			});
 		}
 
@@ -903,12 +934,12 @@ let _Editors = {
 				let value = (settingControlInput.type === 'checkbox' ? settingControlInput.checked : settingControlInput.value);
 				_Editors.updateSavedEditorOption(settingControlInput.name, value);
 
-				blinkGreen(settingControlInput.closest('.editor-setting'));
+				_Helpers.blinkGreen(settingControlInput.closest('.editor-setting'));
 			});
 		}
 
 		element.appendChild(dropdown);
 
-		Structr.activateCommentsInElement(dropdown);
+		_Helpers.activateCommentsInElement(dropdown);
 	}
 };

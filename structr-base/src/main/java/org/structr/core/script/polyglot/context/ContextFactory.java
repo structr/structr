@@ -20,6 +20,7 @@ package org.structr.core.script.polyglot.context;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Engine;
+import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
@@ -31,8 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 public abstract class ContextFactory {
-
-	private static final Engine engine = Engine.create();
+	private static final Engine engine = buildEngine();
 
 	// javascript context builder
 	private static final Context.Builder jsBuilder = Context.newBuilder("js")
@@ -41,14 +41,12 @@ public abstract class ContextFactory {
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
 				//.allowHostClassLookup(new StructrClassPredicate())
-				// TODO: Add configurable chrome debug
-				//.option("inspect", "4242")
-				//.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID().toString())
-				.allowExperimentalOptions(true)
 				.fileSystem(new PolyglotFilesystem())
 				.allowIO(true)
+				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
-				.option("js.ecmascript-version", "latest");
+				.option("js.ecmascript-version", "latest")
+				.option("js.temporal", "true");
 
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
@@ -57,7 +55,24 @@ public abstract class ContextFactory {
 				.allowHostAccess(AccessProvider.getHostAccessConfig());
 				//.allowHostClassLookup(new StructrClassPredicate());
 
+	public static Engine buildEngine() {
+		Engine.Builder engineBuilder = Engine.newBuilder();
 
+		// Generic options
+		engineBuilder
+				.allowExperimentalOptions(true);
+
+		// Debugging
+		if (Settings.ScriptingDebugger.getValue(false)) {
+			engineBuilder
+					// TODO: Add configurable chrome debug
+					.option("inspect", "4242")
+					.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID())
+					.option("inspect.Suspend", "false");
+		}
+
+		return engineBuilder.build();
+	}
 
 	public static Context getContext(final String language) throws FrameworkException {
 		return getContext(language, null, null);

@@ -18,8 +18,7 @@
  */
 package org.structr.test.rest.common;
 
-
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -105,7 +104,6 @@ public abstract class StructrRestTestBase {
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
 		Settings.SuperUserName.setValue("superadmin");

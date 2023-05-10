@@ -62,8 +62,9 @@
 
 		<!-- Tests -->
 		<dependency>
-			<groupId>com.jayway.restassured</groupId>
+			<groupId>io.rest-assured</groupId>
 			<artifactId>rest-assured</artifactId>
+			<optional>true</optional>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
@@ -71,7 +72,6 @@
 			<artifactId>testng</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 
 	<build>

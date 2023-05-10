@@ -21,18 +21,13 @@ package org.structr.rest.common;
 import jakarta.servlet.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.structr.api.config.Settings;
 import org.structr.rest.servlet.MetricsServlet;
-
 import java.io.IOException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 
 /**
  */
 public class MetricsFilter implements jakarta.servlet.Filter {
-
-	private static final Pattern UUID_PATTERN = Pattern.compile("[a-fA-F0-9]{32}");
 
 	@Override
 	public void init(FilterConfig filterConfig) throws ServletException {
@@ -58,21 +53,22 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 
 		} finally {
 
-			final double duration    = Double.valueOf(System.currentTimeMillis() - t0) / 1000.0;
+			final double duration    = (System.currentTimeMillis() - t0) / 1000.0;
 			final StringBuilder buf  = new StringBuilder();
 			final String method      = req.getMethod();
 			final String servletPath = req.getServletPath();
-			final String path        = req.getPathInfo();
 			final int status         = resp.getStatus();
+
 
 			buf.append(servletPath);
 
+			String path = req.getPathInfo();
 			if (path != null) {
 
 				// replace UUIDs with placeholder string to avoid polluting the stats
-				final Matcher matcher = UUID_PATTERN.matcher(path);
+				path = path.replaceAll(Settings.UuidPattern.getValue(), "<uuid>");
 
-				buf.append(matcher.replaceAll("<uuid>"));
+				buf.append(path);
 			}
 
 			MetricsServlet.HTTP_REQUEST_COUNTER.labels(method, buf.toString(), Integer.toString(status)).inc();

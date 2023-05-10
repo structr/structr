@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(function() {
+document.addEventListener("DOMContentLoaded", () => {
 
 	// disable default contextmenu on our contextmenu *once*, so it doesnt fire/register once per element
 	$(document).on('contextmenu', '#menu-area', function(e) {
@@ -24,61 +24,14 @@ $(function() {
 		e.preventDefault();
 	});
 
-	$(document).on('mouseup', function() {
+	document.addEventListener('mouseup', () => {
 		_Elements.removeContextMenu();
 	});
-
 });
 
 let _Elements = {
 	dropBlocked: false,
 	inheritVisibilityFlagsKey: 'inheritVisibilityFlags_' + location.port,
-	elementGroups: [
-		{
-			name: 'Root',
-			elements: ['html', '#content', '#comment', '#template']
-		},
-		{
-			name: 'Metadata',
-			elements: ['head', 'title', 'base', 'link', 'meta', 'style']
-		},
-		{
-			name: 'Sections',
-			elements: ['body', 'section', 'nav', 'article', 'aside', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'hgroup', 'header', 'footer', 'address', 'main']
-		},
-		{
-			name: 'Grouping',
-			elements: ['div', 'p', 'hr', 'ol', 'ul', 'li', 'dl', 'dt', 'dd', 'pre', 'blockquote', 'figure', 'figcaption']
-		},
-		{
-			name: 'Scripting',
-			elements: ['script', 'noscript', 'slot', 'canvas']
-		},
-		{
-			name: 'Tabular',
-			elements: ['table', 'tr', 'td', 'th', 'caption', 'colgroup', 'col', 'tbody', 'thead', 'tfoot']
-		},
-		{
-			name: 'Text',
-			elements: ['a', 'em', 'strong', 'small', 's', 'cite', 'q', 'dfn', 'abbr', 'ruby', 'rt', 'rp', 'data', 'time', 'code', 'var', 'samp', 'kbd', 'sub', 'sup', 'i', 'b', 'u', 'mark', 'bdi', 'bdo', 'span', 'br', 'wbr']
-		},
-		{
-			name: 'Edits',
-			elements: ['ins', 'del']
-		},
-		{
-			name: 'Embedded',
-			elements: ['picture', 'source', 'img', 'iframe', 'embed', 'object', 'param', 'video', 'audio', 'track', 'map', 'area']
-		},
-		{
-			name: 'Forms',
-			elements: ['form', 'input', 'button', 'select', 'datalist', 'optgroup', 'option', 'textarea', 'fieldset', 'legend', 'label', 'keygen', 'output', 'progress', 'meter']
-		},
-		{
-			name: 'Interactive',
-			elements: ['dialog', 'details', 'summary', 'command', 'menu']
-		}
-	],
 	mostUsedAttrs: [
 		{
 			elements: ['div'],
@@ -321,14 +274,14 @@ let _Elements = {
 		_Entities.ensureExpanded(parent);
 
 		let id          = entity.id;
-		let displayName = getElementDisplayName(entity);
+		let displayName = _Helpers.getElementDisplayName(entity);
 
 		let html = `
 			<div id="id_${id}" class="${elementClasses.join(' ')}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
 					${_Icons.getSvgIconForElementNode(entity)}
-					<span class="abbr-ellipsis abbr-pages-tree"><b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${displayName !== entity.type.toLowerCase() ? '<span class="class-id-attrs">&nbsp;&nbsp;' + entity.type.toLowerCase() + '</span>': ''}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${displayName !== entity.type.toLowerCase() ? '<span class="class-id-attrs">&nbsp;&nbsp;' + entity.type.toLowerCase() + '</span>': ''}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -409,7 +362,7 @@ let _Elements = {
 
 		return `<span class="class-id-attrs">${htmlIdString}${htmlClassString}</span>`;
 	},
-	enableContextMenuOnElement: function(div, entity) {
+	enableContextMenuOnElement: (div, entity) => {
 
 		_Elements.disableBrowserContextMenuOnElement(div);
 
@@ -423,15 +376,14 @@ let _Elements = {
 		});
 
 	},
-	disableBrowserContextMenuOnElement: function (div) {
+	disableBrowserContextMenuOnElement: (div) => {
 
 		$(div).on("contextmenu", function(e) {
 			e.stopPropagation();
 			e.preventDefault();
 		});
-
 	},
-	activateContextMenu:function(e, div, entity) {
+	activateContextMenu: (e, div, entity) => {
 
 		let menuElements = _Elements.getContextMenuElements(div, entity);
 
@@ -451,7 +403,7 @@ let _Elements = {
 			leftOrRight = 'right';
 		}
 
-		let cssPositionClasses = leftOrRight + ' ' + topOrBottom;
+		let cssPositionClasses = `${leftOrRight} ${topOrBottom}`;
 
 		_Elements.removeContextMenu();
 
@@ -469,13 +421,13 @@ let _Elements = {
 			el.on('mouseup', function(e) {
 				e.stopPropagation();
 
-				let preventClose = true;
+				let stayOpen = false;
 
 				if (contextMenuItem.clickHandler && (typeof contextMenuItem.clickHandler === 'function')) {
-					preventClose = contextMenuItem.clickHandler($(this), contextMenuItem, e);
+					stayOpen = contextMenuItem.clickHandler($(this), contextMenuItem, e);
 				}
 
-				if (!preventClose) {
+				if (stayOpen !== true) {
 					_Elements.removeContextMenu();
 				}
 			});
@@ -505,11 +457,33 @@ let _Elements = {
 				ul.addClass('hidden');
 			}
 
-			if (Object.prototype.toString.call(element) === '[object Array]') {
+			if (Array.isArray(element)) {
 
-				element.forEach(function (el) {
+				for (let el of element) {
 					addContextMenuElements(ul, el, hidden, forcedClickHandler, prepend);
-				});
+				}
+
+			} else if (typeof element === 'string') {
+
+				if (element === '|') {
+
+					if (prepend) {
+						ul.prepend('<hr />');
+					} else {
+						ul.append('<hr />');
+					}
+
+				} else {
+
+					let listElement = $(`<li>${element}</li>`);
+					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
+
+					if (prepend) {
+						ul.prepend(listElement);
+					} else {
+						ul.append(listElement);
+					}
+				}
 
 			} else if (Object.prototype.toString.call(element) === '[object Object]') {
 
@@ -518,14 +492,14 @@ let _Elements = {
 				}
 
 				let menuEntry        = $('<li class="element-group-switch"></li>');
-				let menuEntryContent = $('<span class="menu-entry-container items-center">' + (element.icon || '') + '</span>');
+				let menuEntryContent = $(`<span class="menu-entry-container items-center">${element.icon || ''}</span>`);
 
 				for (let cls of (element.classes || [])) {
 					menuEntry.addClass(cls);
 				}
 
 				if (element.html) {
-					let menuEntryHtml   = $('<span class="menu-entry-html">' + element.html + '</span>');
+					let menuEntryHtml   = $(`<span class="menu-entry-html">${element.html}</span>`);
 					menuEntryContent.append(menuEntryHtml);
 
 					// if (element.changeHandler) {
@@ -533,7 +507,7 @@ let _Elements = {
 					// }
 
 				} else if (element.name) {
-					let menuEntryText = $('<span class="menu-entry-text">' + element.name + '</span>');
+					let menuEntryText = $(`<span class="menu-entry-text">${element.name}</span>`);
 					menuEntryContent.append(menuEntryText);
 				}
 
@@ -549,33 +523,11 @@ let _Elements = {
 
 				if (element.elements) {
 
-					menuEntryContent.append(_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 10, 10, ['icon-grey', '-mr-2']));
+					menuEntryContent.append(_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 10, 10, ['icon-grey']));
 
-					let subListElement = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+					let subListElement = $(`<ul class="element-group ${cssPositionClasses}"></ul>`);
 					menuEntry.append(subListElement);
 					addContextMenuElements(subListElement, element.elements, true, (forcedClickHandler ? forcedClickHandler : element.forcedClickHandler), prepend);
-				}
-
-			} else if (Object.prototype.toString.call(element) === '[object String]') {
-
-				if (element === '|') {
-
-					if (prepend) {
-						ul.prepend('<hr />');
-					} else {
-						ul.append('<hr />');
-					}
-
-				} else {
-
-					var listElement = $('<li>' + element + '</li>');
-					registerPlaintextContextMenuItemHandler(listElement, element, forcedClickHandler, prepend);
-
-					if (prepend) {
-						ul.prepend(listElement);
-					} else {
-						ul.append(listElement);
-					}
 				}
 			}
 		};
@@ -600,7 +552,7 @@ let _Elements = {
 			});
 		};
 
-		let mainMenuList = $('<ul class="element-group ' + cssPositionClasses + '"></ul>');
+		let mainMenuList = $(`<ul class="element-group ${cssPositionClasses}"></ul>`);
 		$('#add-child-dialog').append(mainMenuList);
 		menuElements.forEach(function (mainEl) {
 			addContextMenuElements(mainMenuList, mainEl, false);
@@ -646,11 +598,11 @@ let _Elements = {
 	isInheritGranteesChecked: () => {
 		return UISettings.getValueForSetting(UISettings.pages.settings.inheritGranteesKey);
 	},
-	removeContextMenu: function() {
+	removeContextMenu: () => {
 		$('#add-child-dialog').remove();
 		$('.contextMenuActive').removeClass('contextMenuActive');
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		// 1. dedicated context menu for type
 		if (entity.type === 'Widget') {
@@ -687,7 +639,6 @@ let _Elements = {
 					name: 'Access Control and Visibility',
 					clickHandler: () => {
 						_Entities.showAccessControlDialog(entity);
-						return false;
 					}
 				},
 				'|'
@@ -701,14 +652,12 @@ let _Elements = {
 					name: 'Make element visible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, false);
-						return false;
 					}
 				},
 				{
 					name: 'Make element invisible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, false);
-						return false;
 					}
 				}
 			]
@@ -721,14 +670,12 @@ let _Elements = {
 					name: 'Make subtree visible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', true, true);
-						return false;
 					}
 				},
 				{
 					name: 'Make subtree invisible',
 					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToAuthenticatedUsers', false, true);
-						return false;
 					}
 				}
 			];
@@ -741,16 +688,14 @@ let _Elements = {
 			elements: [
 				{
 					name: 'Make element visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', true, false);
-						return false;
 					}
 				},
 				{
 					name: 'Make element invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', false, false);
-						return false;
 					}
 				}
 			]
@@ -762,16 +707,14 @@ let _Elements = {
 				'|',
 				{
 					name: 'Make subtree visible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', true, true);
-						return false;
 					}
 				},
 				{
 					name: 'Make subtree invisible',
-					clickHandler: function() {
+					clickHandler: () => {
 						Command.setProperty(entity.id, 'visibleToPublicUsers', false, true);
-						return false;
 					}
 				}
 			];
@@ -825,8 +768,8 @@ let _Elements = {
 		let isActiveNode = entity.isActiveNode();
 		let isTemplate   = (entity.type === 'Template');
 		let name         = entity.name;
-		let displayName  = getElementDisplayName(entity);
-		let nameText     = (name ? `<b title="${escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${escapeTags(entity.content) || '&nbsp;'}</span>`);
+		let displayName  = _Helpers.getElementDisplayName(entity);
+		let nameText     = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
 
 		let html = `
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
@@ -875,16 +818,15 @@ let _Elements = {
 	},
 	openEditContentDialog: (entity) => {
 
-		Structr.dialog(`Edit content of ${entity.name ? entity.name : entity.id}`, () => {}, () => {}, ['popup-dialog-with-editor']);
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Edit content of ${entity?.name ?? entity.id}`, null, ['popup-dialog-with-editor']);
 
-		dialogBtn.append(`
-			<button id="saveFile" disabled="disabled" class="disabled">Save</button>
-			<button id="saveAndClose" disabled="disabled" class="disabled">Save and close</button>
-		`);
-		dialog.append('<div class="editor h-full"></div>');
+		dialogText.insertAdjacentHTML('beforeend', '<div class="editor h-full"></div>');
+		dialogMeta.insertAdjacentHTML('beforeend', `<span class="editor-info"></span>`);
 
-		let dialogSaveButton = dialogBtn[0].querySelector('#saveFile');
-		let saveAndClose     = dialogBtn[0].querySelector('#saveAndClose');
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
+		let editorInfo       = dialogMeta.querySelector('.editor-info');
+		_Editors.appendEditorOptionsElement(editorInfo);
 
 		Command.get(entity.id, 'content,contentType', (data) => {
 
@@ -901,19 +843,95 @@ let _Elements = {
 				forceAllowAutoComplete: true,
 				changeFn: (editor, entity) => {
 
-					let editorText = editor.getValue();
+					let disabled = (initialText === editor.getValue());
+					_Helpers.disableElements(disabled, dialogSaveButton, saveAndClose);
+				},
+				saveFn: (editor, entity, close = false) => {
 
-					if (initialText === editorText) {
-						dialogSaveButton.disabled = true;
-						dialogSaveButton.classList.add('disabled');
-						saveAndClose.disabled = true;
-						saveAndClose.classList.add('disabled');
-					} else {
-						dialogSaveButton.disabled = null;
-						dialogSaveButton.classList.remove('disabled');
-						saveAndClose.disabled = null;
-						saveAndClose.classList.remove('disabled');
+					let text1 = initialText || '';
+					let text2 = editor.getValue();
+
+					if (text1 === text2) {
+						return;
 					}
+
+					Command.patch(entity.id, text1, text2, () => {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+						_Helpers.disableElements(true, dialogSaveButton, saveAndClose);
+
+						Command.getProperty(entity.id, 'content', (newText) => {
+							initialText = newText;
+						});
+
+						if (close === true) {
+							_Dialogs.custom.clickDialogCancelButton();
+						}
+					});
+				}
+			};
+
+			let editor = _Editors.getMonacoEditor(entity, 'source', dialogText.querySelector('.editor'), openEditDialogMonacoConfig);
+
+			Structr.resize();
+
+			dialogSaveButton.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				openEditDialogMonacoConfig.saveFn(editor, entity);
+			});
+
+			saveAndClose.addEventListener('click', (e) => {
+				e.stopPropagation();
+
+				openEditDialogMonacoConfig.saveFn(editor, entity, true);
+			});
+
+			_Editors.resizeVisibleEditors();
+		});
+	},
+	displayCentralEditor: (entity) => {
+
+		let centerPane             = document.querySelector('#center-pane');
+		let contentEditorContainer = _Helpers.createSingleDOMElementFromHTML(_Pages.templates.contentEditor());
+
+		centerPane.appendChild(contentEditorContainer);
+
+		Command.get(entity.id, 'content,contentType', (data) => {
+			entity.contentType = data.contentType;
+
+			let initialText = data.content;
+			let buttonArea  = contentEditorContainer.querySelector('.editor-button-container');
+			let infoArea    = contentEditorContainer.querySelector('.editor-info-container');
+			let contentBox  = contentEditorContainer.querySelector('.editor');
+			let saveButton  = _Helpers.createSingleDOMElementFromHTML('<button id="editorSave" disabled="disabled" class="disabled">Save</button>');
+
+			buttonArea.appendChild(saveButton);
+
+			const availableContentTypes = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
+			infoArea.insertAdjacentHTML('beforeend', `
+				<label for="contentTypeSelect">Content-Type: </label>
+				<select class="contentType_" id="contentTypeSelect">
+					${availableContentTypes.map(type => `<option ${(type === entity.contentType ? 'selected' : '')} value="${type}">${type}</option>`).join('')}
+				</select>
+				<span class="editor-info"></span>
+			`);
+
+			let editorInfo = infoArea.querySelector('.editor-info');
+			_Editors.appendEditorOptionsElement(editorInfo);
+
+			let contentType = entity.contentType || 'text/plain';
+
+			let centralEditorMonacoConfig = {
+				value: initialText || '',
+				language: contentType,
+				lint: true,
+				autocomplete: true,
+				forceAllowAutoComplete: true,
+				changeFn: (editor, entity) => {
+
+					let disabled = (initialText === editor.getValue());
+					_Helpers.disableElements(disabled, saveButton);
 				},
 				saveFn: (editor, entity) => {
 
@@ -925,11 +943,9 @@ let _Elements = {
 					}
 
 					Command.patch(entity.id, text1, text2, () => {
-						Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-						dialogSaveButton.disabled = true;
-						dialogSaveButton.classList.add('disabled');
-						saveAndClose.disabled = true;
-						saveAndClose.classList.add('disabled');
+
+						_Dialogs.custom.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
+						_Helpers.disableElements(true, saveButton);
 
 						Command.getProperty(entity.id, 'content', (newText) => {
 							initialText = newText;
@@ -938,152 +954,44 @@ let _Elements = {
 				}
 			};
 
-			let editor = _Editors.getMonacoEditor(entity, 'source', dialog[0].querySelector('.editor'), openEditDialogMonacoConfig);
+			let editor = _Editors.getMonacoEditor(entity, 'content', contentBox, centralEditorMonacoConfig);
 
 			Structr.resize();
 
-			dialogSaveButton.addEventListener('click', (e) => {
-				e.stopPropagation();
-				openEditDialogMonacoConfig.saveFn(editor, entity);
-			});
-			saveAndClose.addEventListener('click', (e) => {
-				e.stopPropagation();
+			if (entity.isFavoritable) {
 
-				openEditDialogMonacoConfig.saveFn(editor, entity);
+				let addToFavoritesButton = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconAddToFavorites, 16, 16, ['add-to-favorites']));
+				buttonArea.appendChild(addToFavoritesButton);
 
-				setTimeout(function() {
-					dialogSaveButton.remove();
-					saveAndClose.remove();
-					dialogCancelButton.click();
-				}, 500);
-			});
-
-			dialogMeta.append(`<span class="editor-info"></span>`);
-
-			let editorInfo = dialogMeta[0].querySelector('.editor-info');
-			_Editors.appendEditorOptionsElement(editorInfo);
-
-			Structr.resize();
-
-			_Editors.resizeVisibleEditors();
-		});
-	},
-	displayCentralEditor: (entity) => {
-
-		let previewsContainer      = document.querySelector('#center-pane');
-		let contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
-
-		if (contentEditorContainer) {
-			previewsContainer.removeChild(contentEditorContainer);
-		}
-
-		previewsContainer.insertAdjacentHTML('afterbegin', _Pages.templates.contentEditor());
-
-		contentEditorContainer = document.querySelector('#center-pane .content-editor-container');
-
-		Command.get(entity.id, 'content,contentType', (data) => {
-			entity.contentType = data.contentType;
-			_Elements.editContentInCentralEditor(entity, data.content, contentEditorContainer);
-		});
-	},
-	editContentInCentralEditor: function (entity, initialText, element) {
-
-		let buttonArea = element.querySelector('.editor-button-container') || dialogBtn;
-		let infoArea   = element.querySelector('.editor-info-container')   || dialogMeta;
-		let contentBox = element.querySelector('.editor');
-		buttonArea.insertAdjacentHTML('beforeend', `<button id="editorSave" disabled="disabled" class="disabled">Save</button>`);
-		let saveButton = buttonArea.querySelector('.save-button') || document.querySelector('#editorSave');
-
-		const availableContentTypes = ['text/plain', 'text/html', 'text/xml', 'text/css', 'text/javascript', 'text/markdown', 'text/textile', 'text/mediawiki', 'text/tracwiki', 'text/confluence', 'text/asciidoc'];
-		infoArea.insertAdjacentHTML('beforeend', `
-			<label for="contentTypeSelect">Content-Type: </label>
-			<select class="contentType_" id="contentTypeSelect">
-				${availableContentTypes.map(type => `<option ${(type === entity.contentType ? 'selected' : '')} value="${type}">${type}</option>`).join('')}
-			</select>
-			<span class="editor-info"></span>
-		`);
-
-		let contentType = entity.contentType || 'text/plain';
-
-		let centralEditorMonacoConfig = {
-			value: initialText || '',
-			language: contentType,
-			lint: true,
-			autocomplete: true,
-			forceAllowAutoComplete: true,
-			changeFn: (editor, entity) => {
-
-				let editorText = editor.getValue();
-
-				if (initialText === editorText) {
-					saveButton.disabled = true;
-					saveButton.classList.add('disabled');
-				} else {
-					saveButton.disabled = null;
-					saveButton.classList.remove('disabled');
-				}
-			},
-			saveFn: (editor, entity) => {
-
-				let text1 = initialText || '';
-				let text2 = editor.getValue();
-
-				if (text1 === text2) {
-					return;
-				}
-
-				Command.patch(entity.id, text1, text2, function () {
-
-					Structr.showAndHideInfoBoxMessage('Content saved.', 'success', 2000, 200);
-					saveButton.disabled = true;
-					saveButton.classList.add('disabled');
-
-					Command.getProperty(entity.id, 'content', function (newText) {
-						initialText = newText;
+				addToFavoritesButton.addEventListener('click', (e) => {
+					Command.favorites('add', entity.id, () => {
+						_Helpers.blinkGreen(e.target.closest('.add-to-favorites'));
 					});
 				});
 			}
-		};
 
-		let editor = _Editors.getMonacoEditor(entity, 'content', contentBox, centralEditorMonacoConfig);
+			_Editors.enableSpeechToTextForEditor(editor, buttonArea);
 
-		let editorInfo = infoArea.querySelector('.editor-info');
-		_Editors.appendEditorOptionsElement(editorInfo);
+			saveButton.addEventListener('click', (e) => {
+				e.stopPropagation();
 
-		Structr.resize();
+				centralEditorMonacoConfig.saveFn(editor, entity);
+			});
 
-		if (entity.isFavoritable) {
+			infoArea.querySelector('#contentTypeSelect').addEventListener('change', (e) => {
 
-			buttonArea.insertAdjacentHTML('beforeend', _Icons.getSvgIcon(_Icons.iconAddToFavorites, 16, 16, ['add-to-favorites']));
+				contentType = e.target.value;
 
-			buttonArea.querySelector('.add-to-favorites').addEventListener('click', (e) => {
-				Command.favorites('add', entity.id, () => {
-					blinkGreen(e.target.closest('.add-to-favorites'));
+				entity.setProperty('contentType', contentType, false, () => {
+
+					_Editors.updateMonacoEditorLanguage(editor, contentType);
+
+					_Helpers.blinkGreen(e.target);
 				});
 			});
-		}
 
-		_Editors.enableSpeechToTextForEditor(editor, buttonArea);
-
-		saveButton.addEventListener('click', (e) => {
-			e.stopPropagation();
-
-			centralEditorMonacoConfig.saveFn(editor, entity);
+			_Editors.focusEditor(editor);
 		});
-
-		infoArea.querySelector('#contentTypeSelect').addEventListener('change', (e) => {
-
-			contentType = e.target.value;
-
-			entity.setProperty('contentType', contentType, false, () => {
-
-				_Editors.updateMonacoEditorLanguage(editor, contentType);
-
-				blinkGreen(e.target);
-			});
-		});
-
-		editor.focus();
 	},
 	getSuggestedWidgets: (entity, callback) => {
 

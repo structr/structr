@@ -223,9 +223,9 @@ let StructrModel = {
 			obj.remove();
 		}
 
-		if (graphBrowser) {
+		if (_Graph.graphBrowser) {
 			try {
-				graphBrowser.graph.dropElement(id);
+				_Graph.graphBrowser.graph.dropElement(id);
 			} catch (e) {}
 		}
 	},
@@ -304,7 +304,7 @@ let StructrModel = {
 
 		let inputElement = $('td.' + key + '_ input', element);
 		let newValue     = obj[key];
-		let attrElement  = element.children(':not(.node)').find('.' + key + '_');
+		let attrElement  = element.children(':not(.node)').find(`.${key}_`);
 
 		if (attrElement && $(attrElement).length) {
 
@@ -316,7 +316,7 @@ let StructrModel = {
 
 			} else {
 
-				blinkGreen(attrElement);
+				_Helpers.blinkGreen(attrElement);
 
 				if (attrElement && tag === 'select') {
 
@@ -351,18 +351,7 @@ let StructrModel = {
 
 		if (key === 'name') {
 
-			if (Structr.getClass(element) === 'page') {
-
-				if (Structr.isModuleActive(_Pages)) {
-					// update tab and reload iframe
-					var tabNameElement = $('#show_' + id).children('.name_');
-
-					blinkGreen(tabNameElement);
-
-					tabNameElement.attr('title', newValue).html(newValue);
-				}
-
-			} else if (Structr.getClass(element) === 'folder') {
+			if (Structr.getClass(element) === 'folder') {
 
 				if (Structr.isModuleActive(_Files)) {
 					_Files.refreshNode(id, newValue);
@@ -382,8 +371,8 @@ let StructrModel = {
 
 			let element = Structr.node(id);
 
-			if (graphBrowser) {
-				graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
+			if (_Graph.graphBrowser) {
+				_Graph.graphBrowser.updateNode(id, obj, ['name', 'tag', 'id', 'type'], {label: 'name', nodeType: 'type'});
 			}
 
 			if (!element) {
@@ -400,7 +389,7 @@ let StructrModel = {
 			}
 
 			// update HTML 'class' and 'id' attributes
-			if (isIn('_html_id', Object.keys(obj)) || isIn('_html_class', Object.keys(obj))) {
+			if (_Helpers.isIn('_html_id', Object.keys(obj)) || _Helpers.isIn('_html_class', Object.keys(obj))) {
 
 				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
@@ -434,13 +423,13 @@ let StructrModel = {
 
 			} else if (element.hasClass('file')) {
 
-				icon   = _Icons.getFileIconSVG(obj);
+				icon   = _Icons.getSvgIcon(_Icons.getFileIconSVG(obj));
 				iconEl = element.closest('tr').children('td.file-icon').find('svg');
 
 				if (Structr.isModuleActive(_Files)) {
 					let row = element.closest('tr');
 					if (row.length) {
-						$('td.size', row).text(_Files.formatBytes(obj.size, 0));
+						$('td.size', row).text(_Helpers.formatBytes(obj.size, 0));
 					}
 				}
 
@@ -457,19 +446,19 @@ let StructrModel = {
 
 			_Entities.updateNewAccessControlIconInElement(obj, element);
 
-			let displayName = getElementDisplayName(obj);
+			let displayName = _Helpers.getElementDisplayName(obj);
 
 			if (obj.hasOwnProperty('name')) {
 
 				// Did name change from null?
 				if ((obj.type === 'Template' || obj.isContent)) {
 					if (obj.name) {
-						element.children('.node-container').find('.content_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.node-container').find('.content_').replaceWith(`<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`);
 
-						element.children('.node-container').find('.name_').replaceWith('<b title="' + escapeForHtmlAttributes(displayName) + '" class="tag_ name_">' + displayName + '</b>');
+						element.children('.node-container').find('.name_').replaceWith(`<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>`);
 
 					} else {
-						element.children('.node-container').find('.name_').html(escapeTags(obj.content));
+						element.children('.node-container').find('.name_').html(_Helpers.escapeTags(obj.content));
 					}
 				} else {
 					element.children('.node-container').find('.name_').attr('title', displayName).html(displayName);
@@ -510,7 +499,7 @@ let StructrModel = {
 				try {
 					StructrModel.callbacks[callback](entity, resultSize, errorOccurred);
 				} catch (e) {
-					console.log('Exception caught: ', e, ', callback:', StructrModel.callbacks[callback], entity);
+					console.trace('Exception caught: ', e, ', callback:', StructrModel.callbacks[callback], entity);
 				}
 			}
 			StructrModel.clearCallback(callback);
@@ -828,7 +817,7 @@ StructrWidget.prototype.setProperty = function(key, value, recursive, callback) 
 
 StructrWidget.prototype.append = function() {
 	if (Structr.isModuleActive(_Pages)) {
-		StructrModel.expand(_Widgets.appendWidgetElement(this), this);
+		StructrModel.expand(_Widgets.appendWidgetElement(this, false), this);
 	}
 };
 
@@ -868,13 +857,16 @@ StructrElement.prototype.remove = function() {
 		let modelEntity = StructrModel.obj(this.parent.id);
 		if (modelEntity) {
 
-			modelEntity.children = modelEntity.children.filter(function(child) {
-				return child.id === this.id;
-			});
+			if (modelEntity.children) {
+				modelEntity.children = modelEntity.children.filter(child => child.id === this.id);
+			}
+
+			if (modelEntity.childContainers) {
+				modelEntity.childContainers = modelEntity.childContainers.filter(child => child.id === this.id);
+			}
+
 			if (modelEntity.childrenIds) {
-				modelEntity.childrenIds = modelEntity.childrenIds.filter(function(childId) {
-					return childId === this.id;
-				});
+				modelEntity.childrenIds = modelEntity.childrenIds.filter(childId => childId === this.id);
 			}
 		}
 	}

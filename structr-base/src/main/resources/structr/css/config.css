@@ -76,10 +76,6 @@ body {
 	min-width: initial ! important;
 }
 
-body.login {
-	background-color: #606060;
-}
-
 #configTabs {
 	margin: 1rem 2rem 0 2rem;
 	height: calc(100vh - 10rem);
@@ -145,10 +141,6 @@ form.config-form div.buttons input[type=reset] {
 #services-table td:nth-child(1) {
 	min-width: 20rem;
 	font-weight: bold;
-}
-
-#login #loginButton {
-	margin-top: 1rem;
 }
 
 #menu {

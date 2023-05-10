@@ -18,7 +18,7 @@
  */
 package org.structr.bolt.factory;
 
-import org.apache.commons.lang.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.index.AbstractIndex;
 import org.structr.api.index.AbstractQueryFactory;
 import org.structr.api.search.QueryPredicate;
@@ -46,7 +46,7 @@ public class UuidQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery> 
 		}
 
 		final String uuid = ((UuidQuery)predicate).getUuid();
-		if (StringUtils.isNotBlank(uuid) && uuid.length() == 32) {
+		if (Settings.isValidUuid(uuid)) {
 
 			query.addSimpleParameter(predicate.getName(), "=", uuid);
 

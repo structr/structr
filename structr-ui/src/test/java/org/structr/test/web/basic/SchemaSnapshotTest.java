@@ -51,9 +51,6 @@ public class SchemaSnapshotTest extends StructrUiTest {
 		// 1. step: create schema with all possible (primitive) property types
 		try {
 
-			// create new instance id
-			app.getInstanceId();
-
 			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
 
 			// a customer

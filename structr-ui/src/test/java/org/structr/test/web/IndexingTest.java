@@ -18,7 +18,7 @@
  */
 package org.structr.test.web;
 
-import com.jayway.restassured.RestAssured;
+import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.core.Services;
@@ -50,7 +50,6 @@ public abstract class IndexingTest extends StructrUiTest {
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
 		Settings.SuperUserName.setValue("superadmin");

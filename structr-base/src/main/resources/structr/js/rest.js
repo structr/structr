@@ -18,49 +18,81 @@
  */
 document.addEventListener('DOMContentLoaded', () => {
 
-    let allElements = document.querySelectorAll('ul.collapsibleList > li');
+	let collapsibleListClass = 'collapsibleList';
+	let collapsedClass       = 'collapsibleListClosed';
+	let expandedClass        = 'collapsibleListOpen';
 
-    let expandAll = () => {
-        for (let el of allElements) {
-            el.classList.remove('collapsibleListClosed');
-            el.classList.add('collapsibleListOpen');
-        }
-    };
+	let resultList    = document.querySelector(`#right > ul > li > ul > li > ul.${collapsibleListClass}`);
 
-    let collapseAll = () => {
-        for (let el of allElements) {
-            el.classList.remove('collapsibleListOpen');
-            el.classList.add('collapsibleListClosed');
-        }
-    };
+	let expandAll = () => {
+		for (let el of resultList.querySelectorAll(`.${collapsedClass}`)) {
+			el.classList.remove(collapsedClass);
+			el.classList.add(expandedClass);
+		}
+	};
 
-    let initialize = () => {
+	let collapseAll = () => {
+		for (let el of resultList.querySelectorAll(`.${expandedClass}`)) {
+			el.classList.remove(expandedClass);
+			el.classList.add(collapsedClass);
+		}
+	};
 
-        let totalNumberOfRootElements = document.querySelectorAll('#right > ul > li > ul > li > ul.collapsibleList > li').length;
-        for (let el of allElements) {
+	let toggleElement = (el) => {
+		el.classList.toggle(expandedClass);
+		el.classList.toggle(collapsedClass);
+	};
 
-            if (el.querySelector('ul')) {
+	let isObject = (el) => {
+		return (el.previousElementSibling.textContent === '{');
+	};
 
-                if (totalNumberOfRootElements > 5) {
-                    el.classList.add('collapsibleListClosed');
-                } else {
-                    el.classList.add('collapsibleListOpen');
-                }
+	let initialize = () => {
 
-                el.addEventListener('click', (e) => {
-                    e.stopPropagation();
+		// first set all possible lists to "open" status
+		for (let ul of resultList.querySelectorAll(`ul.${collapsibleListClass}`)) {
 
-                    if (e.target == el || e.target.parentNode === el) {
-                        el.classList.toggle('collapsibleListClosed');
-                        el.classList.toggle('collapsibleListOpen');
-                    }
-                });
-            }
-        }
-    };
+			ul.closest('li')?.classList.add(expandedClass);
+		}
 
-    initialize();
+		for (let expandedElement of resultList.querySelectorAll(`.${expandedClass}`)) {
 
-    document.querySelector('button.expand')?.addEventListener('click', expandAll);
-    document.querySelector('button.collapse')?.addEventListener('click', collapseAll);
+			// prepare count
+			for (let child of expandedElement.children) {
+
+				if (child.classList.contains(collapsibleListClass)) {
+
+					if (isObject(child)) {
+						child.dataset.count = '...';
+					} else {
+						child.dataset.count = '' + child.children.length;
+					}
+				}
+			}
+
+			if (expandedElement.querySelector('ul')) {
+
+				expandedElement.addEventListener('click', (e) => {
+					e.stopPropagation();
+
+					toggleElement(e.target.closest('li'));
+				});
+			}
+		}
+
+		// do not auto-collapse if root element is object
+		if (!isObject(resultList)) {
+
+			let totalNumberOfResults = document.querySelectorAll(`#right > ul > li > ul > li > ul.${collapsibleListClass} > li`).length;
+
+			if (totalNumberOfResults > 5) {
+				collapseAll();
+			}
+		}
+	};
+
+	initialize();
+
+	document.querySelector('button.expand')?.addEventListener('click', expandAll);
+	document.querySelector('button.collapse')?.addEventListener('click', collapseAll);
 });

@@ -45,13 +45,6 @@
 	box-shadow: 0 0 .625rem 0 rgba(0, 0, 0, 0.1);
 }
 
-/*#virtual-type-detail {*/
-/*    padding: 1rem;*/
-/*    vertical-align: top;*/
-/*    overflow: auto;*/
-/*    height: 100%;*/
-/*}*/
-
 #virtual-type-detail th {
 	white-space: nowrap;
 }
@@ -74,7 +67,6 @@
 
 #virtual-type-detail-table, #virtual-properties-table {
 	width: 100%;
-	display: table;
 	margin-bottom: 1rem;
 }
 

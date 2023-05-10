@@ -114,7 +114,7 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 
 				newNode = (DOMNode) document.createComment("#comment");
 
-			} else if ("template".equals(tagName)) {
+			} else if ("#template".equals(tagName)) {
 
 				newNode = (DOMNode) document.createTextNode("#template");
 
@@ -128,8 +128,9 @@ public class ReplaceWithCommand extends CreateAndAppendDOMNodeCommand {
 					logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
 				}
 
-			} else if ("content".equals(tagName)) {
+			} else if ("#content".equals(tagName)) {
 
+				// TODO: this can not work - content elements can not have children!
 				newNode = (DOMNode) document.createTextNode("#text");
 
 			} else {

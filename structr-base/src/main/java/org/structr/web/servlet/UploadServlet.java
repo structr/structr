@@ -28,18 +28,19 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
-import java.util.Collection;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.jetty.io.QuietException;
 import org.eclipse.jetty.server.MultiPartFormInputStream;
-import org.eclipse.jetty.server.MultiPartParser;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
 import org.structr.api.config.Settings;
-import org.structr.common.*;
+import org.structr.common.AccessMode;
+import org.structr.common.PathHelper;
+import org.structr.common.Permission;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.IJsonInput;
@@ -50,7 +51,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.entity.AbstractNode;
-import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.rest.JsonInputGSONAdapter;
@@ -58,8 +58,6 @@ import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.rest.servlet.AbstractServletBase;
 import org.structr.schema.SchemaHelper;
-import org.structr.util.FileUtils;
-import org.structr.util.StreamUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.AbstractFile;
@@ -68,10 +66,10 @@ import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
 
 /**
  * Simple upload servlet.
@@ -79,7 +77,6 @@ import java.util.regex.Matcher;
 public class UploadServlet extends AbstractServletBase implements HttpServiceServlet {
 
 	private static final Logger logger                             = LoggerFactory.getLogger(UploadServlet.class.getName());
-	private static final ThreadLocalMatcher threadLocalUUIDMatcher = new ThreadLocalMatcher("[a-fA-F0-9]{32}");
 	private static final String REDIRECT_AFTER_UPLOAD_PARAMETER    = "redirectOnSuccess";
 	private static final String APPEND_UUID_ON_REDIRECT_PARAMETER  = "appendUuidOnRedirect";
 	private static final String UPLOAD_FOLDER_PATH_PARAMETER       = "uploadFolderPath";
@@ -463,10 +460,7 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 				return;
 			}
 
-			Matcher matcher = threadLocalUUIDMatcher.get();
-			matcher.reset(uuid);
-
-			if (!matcher.matches()) {
+			if (!Settings.isValidUuid(uuid)) {
 
 				response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 				response.getOutputStream().write("ERROR (400): URL path doesn't end with UUID.\n".getBytes("UTF-8"));

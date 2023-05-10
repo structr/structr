@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-$(document).ready(function() {
+document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Apps);
 });
 
@@ -31,22 +31,17 @@ let _Apps = {
 
 		_Apps.init();
 
-		fetch(Structr.getPrefixedRootUrl('/structr/deploy')).then((result) => {
+		fetch(Structr.deployRoot).then((result) => {
 			_Apps.deployServletAvailable = (result.status !== 404);
 		}).then(() => {
 
-			Structr.mainContainer.innerHTML = _Apps.templates.apps({ hideInfo: _Apps.deployServletAvailable });
+			Structr.setMainContainerHTML(_Apps.templates.apps({ hideInfo: _Apps.deployServletAvailable }));
 
 			_Apps.appsContainer = Structr.mainContainer.querySelector('#apps');
 
 			_Apps.loadData();
 
-			$(window).off('resize');
-			$(window).on('resize', function() {
-				Structr.resize();
-			});
-
-			Structr.unblockMenu(100);
+			Structr.mainMenu.unblock(100);
 		});
 	},
 	loadData: async () => {
@@ -67,11 +62,7 @@ let _Apps = {
 
 		let container = $('#' + category.id);
 
-		category.apps.sort(function(a, b) {
-			if (a.position > b.position) return 1;
-			if (a.position < b.position) return -1;
-			return 0;
-		});
+		_Helpers.sort(category.apps, 'position');
 
 		for (let app of category.apps) {
 			_Apps.appendTile(container, app);
@@ -86,22 +77,24 @@ let _Apps = {
 
 		let form = $tile.find('form');
 		if (form.length > 0) {
-			form[0].addEventListener('submit', (e) => {
+			form[0].addEventListener('submit', async (e) => {
 				e.preventDefault();
 
 				if (_Apps.deployServletAvailable) {
 
-					Structr.confirmation(
-						`<h3>Install "${app.name}"?</h3><p>The current application will be <b>REMOVED</b>!</p><p>Make sure you have a backup or nothing important in this installation!</p>`,
-						() => {
-							$.unblockUI({ fadeOut: 25 });
+					let confirm = await _Dialogs.confirmation.showPromise(`
+						<h3>Install "${app.name}"?</h3>
+						<p>The current application will be <b>REMOVED</b>!</p>
+						<p>Make sure you have a backup or nothing important in this installation!</p>
+					`);
 
-							LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
-							LSWrapper.save(() => {
-								form.submit();
-							});
-						}
-					);
+					if (confirm === true) {
+
+						LSWrapper.removeItem(_Schema.hiddenSchemaNodesKey);
+						LSWrapper.save(() => {
+							form.submit();
+						});
+					}
 
 				} else {
 					_Apps.showDeploymentServletUnavailableMessage(app);
@@ -111,9 +104,14 @@ let _Apps = {
 			});
 		}
 	},
-	showDeploymentServletUnavailableMessage: function(app) {
+	showDeploymentServletUnavailableMessage: (app) => {
 
-		new MessageBuilder().title(`Unable to install "${app.name}"`).warning('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.').requiresConfirmation().allowConfirmAll().show();
+		new WarningMessage()
+			.title(`Unable to install "${app.name}"`)
+			.text('The <code>DeploymentServlet</code> needs to be activated in <code>structr.conf</code> for the installation process to work.')
+			.requiresConfirmation()
+			.allowConfirmAll()
+			.show();
 	},
 
 	templates: {

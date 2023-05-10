@@ -30,6 +30,15 @@ public class Iterables {
 
 	private static final Logger logger = LoggerFactory.getLogger(Iterables.class);
 
+	/**
+	 * Adds all elements of an iterable to an existing collection.
+	 *
+	 * @param collection The existing collection the elements of the iterable are added to
+	 * @param iterable The iterable whose elements are added to the collection
+	 * @return The modified collection
+	 * @param <T> Type of the elements in the iterable
+	 * @param <C> Type of the elements in the existing collection
+	 */
 	public static <T, C extends Collection<T>> C addAll(final C collection, final Iterable<? extends T> iterable) {
 
 		final Iterator<? extends T> iterator = iterable.iterator();

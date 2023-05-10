@@ -397,7 +397,7 @@ public class RegistrationResource extends Resource {
 			changedProperties.put(confirmationKeyKey, confKey);
 			user.setProperties(securityContext, changedProperties);
 
-		} else if (autoCreate) {
+		} else if (autoCreate == true) {
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -430,7 +430,7 @@ public class RegistrationResource extends Resource {
 
 		} else {
 
-			throw new FrameworkException(503, "User self-registration is not configured correctly.");
+			throw new FrameworkException(503, "User auto-creation is disabled, unable to register user");
 		}
 
 		return user;

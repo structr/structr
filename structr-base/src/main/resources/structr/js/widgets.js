@@ -31,29 +31,40 @@ let _Widgets = {
 	localWidgetsCollapsedKey: 'structrWidgetLocalCollapsedKey_' + location.port,
 	remoteWidgetsCollapsedKey: 'structrWidgetRemoteCollapsedKey_' + location.port,
 
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		let elements = [];
 
-		elements.push({
-			icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
-			name: 'Edit',
-			clickHandler: function () {
+		if (entity.isLocalWidget === true) {
 
-				Command.get(entity.id, 'id,type,name,source,configuration,description', function(entity) {
-					_Widgets.editWidget(entity, true);
-				});
-				return false;
-			}
-		});
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconPencilEdit),
+				name: 'Edit',
+				clickHandler: () => {
+
+					Command.get(entity.id, 'id,type,name,source,configuration,description', (entity) => {
+						_Widgets.editWidget(entity, true);
+					});
+				}
+			});
+
+		} else {
+
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconEyeOpen),
+				name: 'View',
+				clickHandler: () => {
+					_Widgets.editWidget(entity, false);
+				}
+			});
+		}
 
 		_Elements.appendContextMenuSeparator(elements);
 
 		elements.push({
 			name: 'Properties',
-			clickHandler: function() {
+			clickHandler: () => {
 				_Entities.showProperties(entity, 'ui');
-				return false;
 			}
 		});
 
@@ -64,9 +75,7 @@ let _Widgets = {
 			classes: ['menu-bolder', 'danger'],
 			name: 'Delete Widget',
 			clickHandler: () => {
-
-				_Entities.deleteNode(this, entity);
-				return false;
+				_Entities.deleteNode(entity);
 			}
 		});
 
@@ -74,10 +83,9 @@ let _Widgets = {
 
 		return elements;
 	},
-
 	reloadWidgets: () => {
 
-		fastRemoveAllChildren(_Pages.widgetsSlideout);
+		_Helpers.fastRemoveAllChildren(_Pages.widgetsSlideout[0]);
 
 		let templateConfig = {
 			localCollapsed: LSWrapper.getItem(_Widgets.localWidgetsCollapsedKey, false),
@@ -99,7 +107,7 @@ let _Widgets = {
 
 		$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
 			e.preventDefault();
-			Command.create({type: 'Widget'});
+			Command.create({ type: 'Widget' });
 		});
 
 		_Widgets.localWidgetsEl.droppable({
@@ -136,13 +144,13 @@ let _Widgets = {
 		});
 
 		_Pager.initPager('local-widgets', 'Widget', 1, 1000, 'treePath', 'asc');
-		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl, true, 'Widget', 'public', (entities) => {
+		let _wPager = _Pager.addPager('local-widgets', _Widgets.localWidgetsEl[0], true, 'Widget', 'public', (entities) => {
 
 			for (let entity of entities) {
 				StructrModel.create(entity, null, false);
 				_Widgets.appendWidgetElement(entity, false, _Widgets.localWidgetsEl);
 			}
-		}, undefined, undefined, undefined, true);
+		}, undefined, undefined, true);
 
 		_wPager.appendFilterElements('<span style="white-space: nowrap;">Filter: <input type="text" class="filter" data-attribute="name"></span>');
 		_wPager.activateFilterElements();
@@ -195,42 +203,45 @@ let _Widgets = {
 	},
 	showWidgetServersDialog: () => {
 
-		Structr.dialog('Widget Servers');
-		dialogText.html(_Widgets.templates.serversDialog());
+		let { dialogText } = _Dialogs.custom.openDialog('Widget Servers');
 
-		Structr.activateCommentsInElement(dialogText[0], { helpElementCss: { 'font-size': '13px'} });
+		dialogText.insertAdjacentHTML('beforeend', _Widgets.templates.serversDialog());
 
-		_Widgets.updateWidgetServersTable();
+		_Helpers.activateCommentsInElement(dialogText, { helpElementCss: { 'font-size': '13px'} });
 
-		dialogText[0].querySelector('button#save-widget-server').addEventListener('click', () => {
+		_Widgets.updateWidgetServersTable(dialogText);
+
+		dialogText.querySelector('button#save-widget-server').addEventListener('click', () => {
 			let name = document.querySelector('#new-widget-server-name').value;
 			let url  = document.querySelector('#new-widget-server-url').value;
 
 			Command.createApplicationConfigurationDataNode(_Widgets.applicationConfigurationDataNodeKey, name, url, () => {
-				_Widgets.updateWidgetServersTable();
+				_Widgets.updateWidgetServersTable(dialogText);
 				_Widgets.updateWidgetServerSelector();
 			});
 		});
 	},
-	updateWidgetServersTable: () => {
+	updateWidgetServersTable: (dialogText) => {
 
 		_Widgets.getConfiguredWidgetServers((appConfigDataNodes) => {
 
-			let html = _Widgets.templates.serversTable({ servers: appConfigDataNodes });
-			let container = dialogText[0].querySelector('#widget-servers-container');
+			let html      = _Widgets.templates.serversTable({ servers: appConfigDataNodes });
+			let container = dialogText.querySelector('#widget-servers-container');
 
+			_Helpers.fastRemoveAllChildren(container);
 			container.innerHTML = html;
 
 			for (let deleteIcon of container.querySelectorAll('.delete')) {
 
-				deleteIcon.addEventListener('click', function(e) {
+				deleteIcon.addEventListener('click', async (e) => {
 
-					let el     = e.target;
-					let acdnID = el.closest('div').dataset.acdnId;
+					let el      = e.target;
+					let acdnID  = el.closest('div').dataset.acdnId;
+					let confirm = await _Dialogs.confirmation.showPromise('Really delete Widget Server URL?');
 
-					Structr.confirmation('Really delete Widget Server URL?', () => {
+					if (confirm === true) {
 
-						Command.deleteNode(acdnID, false, function() {
+						Command.deleteNode(acdnID, false, () => {
 
 							let currentServer = LSWrapper.getItem(_Widgets.widgetServerKey);
 							let needsRefresh = (_Widgets.widgetServerSelector.value === currentServer);
@@ -244,15 +255,9 @@ let _Widgets = {
 								}
 							});
 
-							$.unblockUI({
-								fadeOut: 25
-							});
-
 							_Widgets.showWidgetServersDialog();
 						});
-					}, () => {
-						_Widgets.showWidgetServersDialog();
-					});
+					}
 				});
 			}
 
@@ -265,7 +270,7 @@ let _Widgets = {
 
 					Command.setProperty(acdnID, key, el.value, false, () => {
 
-						blinkGreen($(el));
+						_Helpers.blinkGreen($(el));
 
 						_Widgets.updateWidgetServerSelector();
 					});
@@ -282,7 +287,7 @@ let _Widgets = {
 				selectedServerURL: LSWrapper.getItem(_Widgets.widgetServerKey, _Widgets.defaultWidgetServerUrl)
 			};
 
-			let newElement = Structr.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
+			let newElement = _Helpers.createSingleDOMElementFromHTML(_Widgets.templates.serversSelector(templateConfig));
 
 			if (_Widgets.widgetServerSelector && _Widgets.widgetServerSelector?.parentNode) {
 
@@ -313,7 +318,7 @@ let _Widgets = {
 			_Widgets.remoteWidgetsEl.empty();
 			_Widgets.remoteWidgetData = [];
 
-			_Widgets.fetchRemoteWidgets(url + '?sort=treePath&sort=name', url + '?_sort=treePath&_sort=name').then(function(data) {
+			_Widgets.fetchRemoteWidgets(url + '?_sort=treePath&_sort=name', url + '?sort=treePath&sort=name').then(function(data) {
 
 				for (let entity of data) {
 					let obj = StructrModel.create(entity, null, false);
@@ -330,7 +335,7 @@ let _Widgets = {
 			});
 
 		} else {
-			new MessageBuilder().warning().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
+			new WarningMessage().text('Can not display local widgets as remote widgets. Please select another widget server!').show();
 		}
 	},
 	repaintRemoteWidgets: () => {
@@ -356,7 +361,7 @@ let _Widgets = {
 			}
 		}
 
-		_Pages.resize();
+		Structr.resize();
 	},
 	getTreeParent: (element, treePath, suffix) => {
 
@@ -368,7 +373,7 @@ let _Widgets = {
 
 		if (newParent.length === 0) {
 			_Widgets.appendFolderElement(parent, idString, title);
-			newParent = $('#' + idString + '_folder');
+			newParent = $(`#${idString}_folder`);
 		}
 
 		parent = newParent;
@@ -389,27 +394,21 @@ let _Widgets = {
 			<div id="${id}_folder" class="widget-folder"></div>
 		`);
 
-		let div = $('#' + id + '_folder');
+		let div = $(`#${id}_folder`);
 
 		_Widgets.appendVisualExpandIcon(div.children('.node-container'), id, name, true, false);
 	},
-	appendWidgetElement: function(widget, remote, el) {
+	appendWidgetElement: (widget, remote, el) => {
 
 		let parent = _Widgets.getTreeParent(el ? el : (remote ? _Widgets.remoteWidgetsEl : _Widgets.localWidgetsEl), widget.treePath, remote ? '_remote' : '_local');
 		let div    = Structr.node(widget.id);
 
 		if (!div) {
 
-			let style = 'width: 24px;';
-
-			if (!widget.svgIconPath) {
-				style = 'width: 24px; opacity: 0.5;';
-			}
-
 			parent.append(`
-				<div id="id_${widget.id}" class="widget p-1 m-2 hover:icon-active">
-					<img style="${style}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}"/>
-					<span title="${escapeForHtmlAttributes(widget.name)}" class="flex-grow mt-4">${widget.name}</span>
+				<div id="id_${widget.id}" class="widget p-2 hover:icon-active">
+					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}">
+					<span title="${_Helpers.escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow mt-4">${widget.name}</span>
 				</div>
 			`);
 			div = Structr.node(widget.id);
@@ -427,74 +426,58 @@ let _Widgets = {
 
 		_Entities.setMouseOver(div, false);
 
-		let iconsContainer = div.children('.node-container').children('.icons-container');
+		if (!remote) {
 
-		if (remote) {
-
-			div.children('b.name_').off('click').css({cursor: 'move'});
-
-			// let eyeIcon = $(_Icons.getSvgIcon(_Icons.iconEyeOpen, 16, 16, ['svg_eye_icon', 'icon-grey', 'cursor-pointer', 'node-action-icon']));
-			// iconsContainer.append(eyeIcon);
-			//
-			// eyeIcon.on('click', () => {
-			// 	_Widgets.editWidget(widget, false);
-			// });
-
-		} else {
-
-			_Entities.appendContextMenuIcon(iconsContainer, widget);
-
-			_Elements.enableContextMenuOnElement(div, widget);
+			div.children('.name_').off('click').on('click', (e) => {
+				e.stopPropagation();
+				_Entities.makeAttributeEditable(div, widget.id, '.name_', 'name', (el) => {
+					_Helpers.blinkGreen(el);
+				});
+			});
 		}
+
+		widget.isLocalWidget = (remote === false);
+
+		_Elements.enableContextMenuOnElement(div, widget);
 
 		return div;
 	},
-	editWidget: function(entity, allowEdit) {
+	editWidget: (entity, isLocalWidget) => {
 
-		Structr.dialog((allowEdit ? 'Edit widget "' : 'Source code of "') + entity.name + '"', () => {}, () => {}, ['popup-dialog-with-editor']);
+		let { dialogText } = _Dialogs.custom.openDialog(`${isLocalWidget ? 'Edit widget "' : 'Viewing remote widget "'}${entity.name}"`, null, ['popup-dialog-with-editor']);
 
-		let id = "widget-dialog";
-		dialogHead.append(`
-			<div id="${id}_head">
-				<div id="tabs">
-					<ul id="widget-dialog-tabs">
-						<li data-name="source">Source</li>
-						<li data-name="config">Configuration</li>
-						<li data-name="description">Description</li>
-						<li data-name="selectors">Options</li>
-						<li data-name="help">Help</li>
-					</ul>
-				</div>
+		dialogText.insertAdjacentHTML('beforeend', `
+			<div class="widgets-tabs flex flex-col h-full overflow-hidden">
+				<ul id="widget-dialog-tabs" class="flex-shrink-0">
+					<li data-name="source">Source</li>
+					<li data-name="config">Configuration</li>
+					<li data-name="description">Description</li>
+					${isLocalWidget ? '<li data-name="selectors">Options</li>' : '' }
+					<li data-name="help">Help</li>
+				</ul>
+				<div class="widget-tab-content flex-grow" id="tabView-source"><div class="editor h-full overflow-hidden"></div></div>
+				<div class="widget-tab-content flex-grow" id="tabView-config"><div class="editor h-full overflow-hidden"></div></div>
+				<div class="widget-tab-content flex-grow" id="tabView-description"><div class="editor h-full overflow-hidden"></div></div>
+				${isLocalWidget ? '<div class="widget-tab-content" id="tabView-selectors"></div>' : '' }
+				<div class="widget-tab-content overflow-y-auto" id="tabView-help">${_Widgets.templates.help()}</div>
 			</div>
 		`);
-		dialogText.append(`<div id="${id}_content"></div>`);
 
-		let mainTabs   = $('#tabs', dialogHead);
-		let contentDiv = $('#' + id + '_content', dialogText);
+		let ul = $('ul', $(dialogText));
 
-		let ul = mainTabs.children('ul');
-
-		let activateTab = function (tabName) {
-			$('.widget-tab-content', contentDiv).hide();
+		let activateTab = (tabName) => {
+			$('.widget-tab-content', $(dialogText)).hide();
 			$('li', ul).removeClass('active');
-			$('#tabView-' + tabName, contentDiv).show();
-			$('li[data-name="' + tabName + '"]', ul).addClass('active');
-			Structr.resize();
+			$(`#tabView-${tabName}`, $(dialogText)).show();
+			$(`li[data-name="${tabName}"]`, ul).addClass('active');
 
+			Structr.resize();
 			_Editors.resizeVisibleEditors();
 		};
 
-		$('#widget-dialog-tabs > li', mainTabs).on('click', function(e) {
+		$('li', ul).on('click', function(e) {
 			activateTab($(this).data('name'));
 		});
-
-		contentDiv.append(`
-			<div class="tab widget-tab-content h-full" id="tabView-source"><div class="editor h-full"></div></div>
-			<div class="tab widget-tab-content h-full" id="tabView-config"><div class="editor h-full"></div></div>
-			<div class="tab widget-tab-content h-full" id="tabView-description"><div class="editor h-full"></div></div>
-			<div class="tab widget-tab-content" id="tabView-selectors"></div>
-			<div class="tab widget-tab-content" id="tabView-help"></div>
-		`);
 
 		let changes = {};
 		let widgetChanged = () => {
@@ -505,51 +488,33 @@ let _Widgets = {
 			return changed;
 		};
 
-		let updateButtonStatus = () => {
-			if (widgetChanged()) {
-				dialogSaveButton.prop("disabled", false).removeClass('disabled');
-				saveAndClose.prop("disabled", false).removeClass('disabled');
-			} else {
-				dialogSaveButton.prop("disabled", true).addClass('disabled');
-				saveAndClose.prop("disabled", true).addClass('disabled');
-			}
-		};
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
+		let saveAndClose     = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 
 		let editorChangeHandler = (editor, origEntity, propertyName) => {
 
 			changes[propertyName] = ((entity[propertyName] || '') !== editor.getValue());
 
-			if (allowEdit) {
-				updateButtonStatus();
+			if (isLocalWidget) {
+				_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
 			}
 		};
 
 		let baseEditorConfig = {
-			readOnly: !allowEdit,
+			readOnly: (isLocalWidget === false),
 			changeFn: editorChangeHandler
 		};
 
-		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        contentDiv[0].querySelector('#tabView-source .editor'),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
-		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', contentDiv[0].querySelector('#tabView-config .editor'),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
-		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   contentDiv[0].querySelector('#tabView-description .editor'), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
+		let sourceEditor      = _Editors.getMonacoEditor(entity, 'source',        dialogText.querySelector('#tabView-source .editor'),      Object.assign({}, baseEditorConfig, { language: 'text/html', forceAllowAutoComplete: true }));
+		let configEditor      = _Editors.getMonacoEditor(entity, 'configuration', dialogText.querySelector('#tabView-config .editor'),      Object.assign({}, baseEditorConfig, { language: 'application/json' }));
+		let descriptionEditor = _Editors.getMonacoEditor(entity, 'description',   dialogText.querySelector('#tabView-description .editor'), Object.assign({}, baseEditorConfig, { language: 'text/html' }));
 
-		// allow editing of selectors property
-		_Schema.getTypeInfo(entity.type, (typeInfo) => {
-			_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
-		});
+		if (isLocalWidget) {
 
-		let html = _Widgets.templates.help();
-		$('#tabView-help', contentDiv).append(html);
-
-		if (allowEdit) {
-
-			dialogBtn.append(`
-				<button id="editorSave" disabled="disabled" class="disabled">Save Widget</button>
-				<button id="saveAndClose" disabled="disabled" class="disabled"> Save and close</button>
-			`);
-
-			dialogSaveButton = $('#editorSave', dialogBtn);
-			saveAndClose     = $('#saveAndClose', dialogBtn);
+			// allow editing of selectors property
+			_Schema.getTypeInfo(entity.type, (typeInfo) => {
+				_Entities.listProperties(entity, 'editWidget', $('#tabView-selectors'), typeInfo);
+			});
 
 			let saveWidgetFunction = (closeAfterSave) => {
 
@@ -567,11 +532,14 @@ let _Widgets = {
 
 					Command.setProperties(entity.id, widgetData, () => {
 
-						Structr.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
+						_Dialogs.custom.showAndHideInfoBoxMessage('Widget saved.', 'success', 2000, 200);
 
 						if (closeAfterSave) {
-							dialogCancelButton.click();
+
+							_Dialogs.custom.clickDialogCancelButton();
+
 						} else {
+
 							let modelObj = StructrModel.obj(entity.id);
 							modelObj.source        = widgetData.source;
 							modelObj.configuration = widgetData.configuration;
@@ -582,7 +550,7 @@ let _Widgets = {
 
 							changes = {};
 
-							updateButtonStatus();
+							_Helpers.disableElements(!widgetChanged(), dialogSaveButton, saveAndClose);
 						}
 					});
 
@@ -592,22 +560,17 @@ let _Widgets = {
 				}
 			};
 
-			saveAndClose.on('click', function() {
+			saveAndClose.addEventListener('click', () => {
 				saveWidgetFunction(true);
 			});
 
-			dialogSaveButton.on('click', function() {
+			dialogSaveButton.addEventListener('click', () => {
 				saveWidgetFunction(false);
 			});
 		}
 
 		activateTab('source');
 	},
-	// appendWidgetSelectorEditor: function (container, entity, allowEdit) {
-	//
-	// 	let html = _Widgets.templates.editSelectors();
-	// 	container.append(html);
-	// },
 	appendVisualExpandIcon: function(el, id, name, hasChildren, expand) {
 
 		if (hasChildren) {
@@ -621,6 +584,7 @@ let _Widgets = {
 			let expandIcon = el.children('.' + expandIconClassName).first();
 
 			let expandClickHandler = (e) => {
+
 				e.stopPropagation();
 
 				let childNodes = el.parent().children('.node');
@@ -652,7 +616,7 @@ let _Widgets = {
 			});
 		}
 	},
-	insertWidgetIntoPage: function(widget, target, pageId, callback) {
+	insertWidgetIntoPage: (widget, target, pageId, callback) => {
 
 		let url               = _Widgets.getWidgetServerUrl();
 		let widgetSource      = widget.source;
@@ -663,7 +627,7 @@ let _Widgets = {
 			try {
 				widgetConfig = JSON.parse(widgetConfig);
 			} catch (e) {
-				new MessageBuilder().error("Cannot parse Widget configuration").show();
+				new ErrorMessage().text("Cannot parse Widget configuration").show();
 				return;
 			}
 		}
@@ -672,35 +636,30 @@ let _Widgets = {
 
 			if ((widgetDescription !== null && widgetDescription !== "") || widgetConfig ) {
 
-				Structr.dialog('Configure Widget', function() {}, function() {});
+				let { dialogText } = _Dialogs.custom.openDialog('Configure Widget');
+				let appendWidgetButton = _Dialogs.custom.appendCustomDialogButton('<button id="appendWidget">Append Widget</button>');
 
-				if ((widgetDescription === null || widgetDescription === "")) {
-					dialogText.append('<p>Fill out the following parameters to correctly configure the widget.</p>');
-				} else {
-					dialogText.append(widgetDescription);
+				if ((widgetDescription === null || widgetDescription.trim() === "")) {
+					widgetDescription = '<p>Fill out the following parameters to correctly configure the widget.</p>'
 				}
 
-				dialogText.append('<table class="props widget-props"></table>');
+				dialogText.insertAdjacentHTML('beforeend', `
+					${widgetDescription}
+					<table class="props widget-props"></table>
+				`);
 
-				let table = $('table', dialogText);
+				let table = $('table', $(dialogText));
 
 				let getOptionsAsText = (options, defaultValue) => {
 
-					let buffer = '';
-
 					if (Object.prototype.toString.call(options) === '[object Array]') {
-						for (let option of options) {
-							buffer += `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`;
-						}
+
+						return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')}>${option}</option>`).join('');
 
 					} else if (Object.prototype.toString.call(options) === '[object Object]') {
 
-						for (let option in options) {
-							buffer += `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`;
-						}
+						return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
 					}
-
-					return buffer;
 				};
 
 				let sortedWidgetConfig = _Widgets.sortWidgetConfigurationByPosition(widgetConfig);
@@ -733,7 +692,7 @@ let _Widgets = {
 
 								let delayedAppendOptions = function (options) {
 									delayedAppendFunction = new function() {
-										$('select#' + cleanedLabel).append(getOptionsAsText(options, defaultValue));
+										$(`select#${cleanedLabel}`).append(getOptionsAsText(options, defaultValue));
 									};
 								};
 
@@ -763,16 +722,16 @@ let _Widgets = {
 					}
 
 					if (fieldConfig.help) {
-						Structr.appendInfoTextToElement({
+						_Helpers.appendInfoTextToElement({
 							text: fieldConfig.help,
-							element: $('#label-' + cleanedLabel)
+							element: $(`#label-${cleanedLabel}`)
 						});
 					}
 				}
 
-				dialog.append('<button id="appendWidget">Append Widget</button>');
+				appendWidgetButton.addEventListener('click', (e) => {
 
-				$('#appendWidget').on('click', function(e) {
+					e.stopPropagation();
 
 					let attrs = {};
 
@@ -783,38 +742,30 @@ let _Widgets = {
 						}
 					}
 
-					e.stopPropagation();
 					Command.appendWidget(widgetSource, target.id, pageId, url, attrs, widgetConfig.processDeploymentInfo, callback);
 
-					dialogCancelButton.click();
-					return false;
+					_Dialogs.custom.clickDialogCancelButton();
 				});
 
 			} else {
 
 				Command.appendWidget(widgetSource, target.id, pageId, url, {}, (widgetConfig ? widgetConfig.processDeploymentInfo : false), callback);
 			}
+
 		} else {
-			new MessageBuilder().warning("Ignoring empty Widget").show();
+			new WarningMessage().text("Ignoring empty Widget").show();
 		}
 	},
-	sortWidgetConfigurationByPosition: function (config) {
-		let flattenedConfig = [];
+	sortWidgetConfigurationByPosition: (config) => {
 
-		for (let key in config) {
-			let val = config[key];
-			flattenedConfig.push([val.position, key, val]);
-		}
+		let entries = Object.entries(config);
+		entries.sort((a, b) => {
+			return a[1].position - b[1].position;
+		})
 
-		let sortedConfig = flattenedConfig.sort(function (a, b) {
-			return (a[0] - b[0]);
-		});
-
-		return sortedConfig.map(function(el) {
-			return [el[1], el[2]];
-		});
+		return entries;
 	},
-	fetchRemotePageTemplateWidgets: async function() {
+	fetchRemotePageTemplateWidgets: async () => {
 
 		let url = _Widgets.getWidgetServerUrl() || _Widgets.defaultWidgetServerUrl;
 
@@ -822,16 +773,16 @@ let _Widgets = {
 
 		if (!url.startsWith(document.location.origin)) {
 
-			let widgets = await _Widgets.fetchRemoteWidgets(url + '?isPageTemplate=true&_sort=name', url + '?isPageTemplate=true&sort=name');
+			let widgets = await _Widgets.fetchRemoteWidgets(`${url}?isPageTemplate=true&_sort=name`, url + '?isPageTemplate=true&sort=name');
 			return widgets;
 		}
 
 		return [];
 	},
-	fetchLocalPageTemplateWidgets: async function() {
+	fetchLocalPageTemplateWidgets: async () => {
 
 		try {
-			let response = await fetch(Structr.rootUrl + 'Widget?isPageTemplate=true&' + Structr.getRequestParameterName('sort') + '=name');
+			let response = await fetch(`${Structr.rootUrl}Widget?isPageTemplate=true&${Structr.getRequestParameterName('sort')}=name`);
 			if (response && response.ok) {
 
 				let json = await response.json();

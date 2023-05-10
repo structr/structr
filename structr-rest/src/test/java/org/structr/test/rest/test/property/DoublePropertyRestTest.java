@@ -18,9 +18,9 @@
  */
 package org.structr.test.rest.test.property;
 
-import com.jayway.restassured.RestAssured;
-import com.jayway.restassured.filter.log.ResponseLoggingFilter;
-import com.jayway.restassured.response.Response;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
+import io.restassured.response.Response;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 

@@ -28,7 +28,7 @@ import java.util.Arrays;
 
 public class SplitFunction extends CoreFunction {
 
-	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, splitChars])}. Example: ${split(this.commaSeparatedItems)}";
+	public static final String ERROR_MESSAGE_SPLIT = "Usage: ${split(str[, separator])}. Example: ${split(this.commaSeparatedItems)}";
 
 	@Override
 	public String getName() {
@@ -37,7 +37,7 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String getSignature() {
-		return "str [, splitChars ]";
+		return "str [, separator ]";
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class SplitFunction extends CoreFunction {
 
 			if (sources.length >= 2) {
 				splitExpr = sources[1].toString();
-				return Arrays.asList(StringUtils.split(toSplit, splitExpr));
+				return Arrays.asList(StringUtils.splitByWholeSeparator(toSplit, splitExpr));
 			} else {
 
 				return Arrays.asList(toSplit.split(splitExpr));
@@ -77,6 +77,6 @@ public class SplitFunction extends CoreFunction {
 
 	@Override
 	public String shortDescription() {
-		return "Splits the given string";
+		return "Splits the given string by the whole separator string";
 	}
 }

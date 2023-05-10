@@ -18,9 +18,7 @@
  */
 package org.structr.test.web.advanced;
 
-import com.jayway.restassured.RestAssured;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.restassured.RestAssured;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -43,7 +41,6 @@ import static org.testng.AssertJUnit.fail;
  */
 public class ProxyServletTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(ProxyServletTest.class);
 
 	@Parameters("testDatabaseConnection")
 	@BeforeClass(alwaysRun = true)
@@ -57,7 +54,6 @@ public class ProxyServletTest extends StructrUiTest {
 
 		// example for new configuration setup
 		Settings.BasePath.setValue(basePath);
-		Settings.DatabasePath.setValue(basePath + "/db");
 		Settings.FilesPath.setValue(basePath + "/files");
 
 		Settings.SuperUserName.setValue("superadmin");
