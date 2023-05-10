@@ -191,24 +191,6 @@
 								</buildx>
 							</build>
 						</image>
-						<image>
-							<name>structr/structr:python-${project.version}</name>
-							<registry>https://index.docker.io/v1/</registry>
-							<build>
-								<skip>${skipPythonDocker}</skip>
-								<contextDir>${project.basedir}</contextDir>
-								<dockerFile>Dockerfile-Python</dockerFile>
-								<args>
-									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
-								</args>
-								<buildx>
-									<builderName>multiarch</builderName>
-									<platforms>
-										<platform>linux/amd64</platform>
-									</platforms>
-								</buildx>
-							</build>
-						</image>
 					</images>
 				</configuration>
 				<executions>
