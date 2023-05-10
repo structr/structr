@@ -46,6 +46,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
+import org.structr.api.search.ComparisonQuery;
 
 /**
  *
@@ -636,6 +637,26 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			// everything else
 			currentGroup.getSearchAttributes().add(new EmptySearchAttribute(key, null));
 		}
+
+		assertPropertyIsIndexed(key);
+
+		return this;
+	}
+
+	@Override
+	public <P> org.structr.core.app.Query<T> startsWith(final PropertyKey<P> key, final P prefix, final boolean caseSensitive) {
+
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Operation.startsWith : ComparisonQuery.Operation.caseInsensitiveStartsWith, prefix, Occurrence.EXACT));
+
+		assertPropertyIsIndexed(key);
+
+		return this;
+	}
+
+	@Override
+	public <P> org.structr.core.app.Query<T> endsWith(final PropertyKey<P> key, final P suffix, final boolean caseSensitive) {
+
+		currentGroup.getSearchAttributes().add(new ComparisonSearchAttribute(key, caseSensitive ? ComparisonQuery.Operation.endsWith : ComparisonQuery.Operation.caseInsensitiveEndsWith, suffix, Occurrence.EXACT));
 
 		assertPropertyIsIndexed(key);
 
