@@ -1338,7 +1338,6 @@ button.action.disabled:hover {
 }
 
 .dialog {
-	display: none;
 	padding: 1rem;
 	background-color: var(--solid-white);
 }
@@ -1486,21 +1485,7 @@ button.action.disabled:hover {
 }
 
 #login {
-	padding-top: 16px;
-	padding-left: 16px;
 	width: 264px;
-	text-align: left ! important;
-	margin: 0 auto;
-}
-
-#login table, #login tr, #login td {
-	background-color: transparent ! important;
-	margin: 0;
-	padding: 4px;
-}
-
-#login #errorText, #login #errorText-two-factor {
-	color: var(--light-red);
 }
 
 .errorText img {
@@ -1508,42 +1493,16 @@ button.action.disabled:hover {
 	margin-top: 4px;
 }
 
-#login input {
-	width: 150px;
-	border: 1px solid var(--gray-ccc);
-	margin: 0;
-	padding: 2px 4px;
-}
-
-#login .btn {
-	text-align: right;
-	text-decoration: none;
-}
-
-#login #loginButton {
-	margin: 0 0 6px 0;
-}
-
 #login .logo-login {
-	margin: 8px auto 14px auto;
+	margin: .5rem auto 1.5rem auto;
 	display: block;
 	width: 100px;
 	height: 27px;
 	color: var(--gray-555);
 }
 
-#login #two-factor-qr-code {
-	text-align: center;
-}
-
-#login #two-factor-qr-code #two-factor-qr-info {
-	margin-top: 8px;
-	margin-bottom: 10px;
-}
-
 #files-main h1, #images h1, #code-main h1, #flows-main h1 {
 	color: var(--gray-333);
-	/*font-size: 16px;*/
 	font-weight: bold;
 	margin: 8px 0;
 	padding: 0;
@@ -1554,7 +1513,6 @@ button.action.disabled:hover {
 #files-main .selected, #files-main .selected:hover,
 #contents-main .selected, #contents-main .selected:hover {
 	color: var(--gray-333) ! important;
-	/*border: 1px solid transparent ! important;*/
 	background: var(--structr-light-green-transparent) ! important;
 }
 
@@ -2120,48 +2078,9 @@ th.center {
 	text-align: center ! important;
 }
 
-
-/**
- * non-blockUI blocker
- */
-
-#non-block-ui-blocker {
-	z-index: 9998;
-	position: fixed;
-	top: 0px;
-	left: 0px;
-	border: none;
-	margin: 0px;
-	padding: 0px;
-	width: 100%;
-	height: 100%;
-	cursor: initial;
-	background-color: var(--solid-black);
-	opacity: 0.6;
-}
-
-#non-block-ui-blocker-content {
-	z-index: 9999;
-	position: fixed;
-	width: 30vw;
-	top: 40vh;
-	left: 35vw;
-	background-color: var(--gray-eee);
-	border: 1px solid var(--gray-999);
-	text-align: center;
-	padding: 18px;
-	/*font-size: 11pt;*/
-}
-
-#non-block-ui-blocker-content img {
-	vertical-align: middle;
-	margin: 4px;
-}
-
 /*
  * Apps
  */
-
 #apps {
 	height: 100%;
 	overflow-y: scroll;
@@ -2334,13 +2253,6 @@ th.center {
 	overflow: auto;
 }
 
-#info-area .message-buttons {
-	position: relative;
-	text-align: right;
-	margin-bottom: -6px;
-	margin: 2px -3px -8px 0;
-}
-
 #info-area .message-buttons:empty {
 	margin: 0;
 }
@@ -2380,10 +2292,6 @@ table#relationship-options {
 
 #relationship-options #basic-options > * {
 	vertical-align: text-top;
-}
-
-#relationship-options #basic-options .relationship-emphasis {
-	font-weight: 600;
 }
 
 #relationship-options #basic-options input[disabled] {
@@ -3419,6 +3327,7 @@ span.context-help-text {
 	font-weight: normal;
 	text-align: left;
 	z-index: 1012;
+	word-break: break-word;
 }
 
 .show-all tr.hidden {
@@ -3489,6 +3398,10 @@ table.refactoring-helper td input {
 
 .select2-container--default .select2-search--dropdown .select2-search__field {
 	background-color: var(--solid-white);
+}
+
+.select2-selection.required, input.required {
+	border: 1px solid red !important;
 }
 
 dl.help-definitions dt {
@@ -3974,6 +3887,52 @@ table.props td.__value {
 }
 
 /**
+ * combined input and select field
+ */
+input.combined-input-select-field, select.combined-input-select-field {
+	position: absolute;
+}
+
+input.combined-input-select-field {
+	width: calc(100% - 2rem) !important;
+	border-right: none;
+	z-index: 1;
+}
+
+select.combined-input-select-field {
+	width: 50%;
+	right: 0;
+}
+
+ul.combined-input-select-field {
+	list-style-type: none;
+	font-family: var(--font-inter) ! important;
+	font-size: 1rem;
+	background-color: var(--solid-white);
+	color: var(--body-text);
+	border: 1px solid var(--input-field-border);
+	padding: 0.5rem 0rem;
+	border-radius: 0.25rem;
+	line-height: 1.25rem;
+	overflow: auto;
+	position: absolute;
+	z-index: 1;
+	top: 3.25rem;
+	width: calc(100% - 2px);
+	max-height: 15rem;
+}
+
+ul.combined-input-select-field li {
+	list-style-type: none;
+	padding: .5rem;
+	cursor: pointer;
+}
+
+ul.combined-input-select-field li:hover {
+	background-color: var(--input-background);
+}
+
+/**
  * Design tools
  */
 /*#design-tools-area input {*/
@@ -4019,11 +3978,20 @@ table.props td.__value {
 .right-2 {
 	right: .5rem;
 }
+.right-3 {
+	right: .75rem;
+}
 .top-0 {
 	top: 0;
 }
 .top-1 {
 	top: .25rem;
+}
+.top-2 {
+	top: .5rem;
+}
+.top-3 {
+	top: .75rem;
 }
 .top-4 {
 	top: 1rem;
@@ -4072,6 +4040,9 @@ table.props td.__value {
 }
 .justify-around {
 	justify-content: space-around;
+}
+.self-center {
+	align-self: center;
 }
 .h-4 {
 	height: 1rem;
@@ -4285,29 +4256,14 @@ table.props td.__value {
 	font-size: 2.25rem;
 	line-height: 2.5rem;
 }
+.font-medium {
+	font-weight: 500;
+}
 .font-semibold {
 	font-weight: 600;
 }
 .font-bold {
 	font-weight: 700;
-}
-.pl-2 {
-	padding-left: .5rem;
-}
-.pr-2 {
-	padding-right: .5rem;
-}
-.pr-4 {
-	padding-right: 1rem;
-}
-.pr-6 {
-	padding-right: 1.5rem;
-}
-.pb-2 {
-	padding-bottom: .5rem;
-}
-.pb-4 {
-	padding-bottom: 1rem;
 }
 .p-0 {
 	padding: 0;
@@ -4336,11 +4292,47 @@ table.props td.__value {
 .p-8 {
 	padding: 2rem;
 }
+.pl-2 {
+	padding-left: .5rem;
+}
+.pl-5 {
+	padding-left: 1.25rem;
+}
+.pr-2 {
+	padding-right: .5rem;
+}
+.pr-3 {
+	padding-right: .75rem;
+}
+.pr-4 {
+	padding-right: 1rem;
+}
+.pr-6 {
+	padding-right: 1.5rem;
+}
+.pb-2 {
+	padding-bottom: .5rem;
+}
+.pb-3 {
+	padding-bottom: .75rem;
+}
+.pb-4 {
+	padding-bottom: 1rem;
+}
 .pt-1 {
 	padding-top: .25rem;
 }
+.pt-2 {
+	padding-top: .5rem;
+}
+.pt-3 {
+	padding-top: .75rem;
+}
 .pt-4 {
 	padding-top: 1rem;
+}
+.pt-5 {
+	padding-top: 1.25rem;
 }
 .px-2 {
 	padding-left: .5rem;
@@ -4577,9 +4569,6 @@ table.props td.__value {
 }
 .bg-white {
 	background-color: var(--solid-white);
-}
-.box-border {
-	box-sizing: border-box;
 }
 .odd\:bg-white:nth-child(even) {
 	background-color: var(--solid-white);

@@ -293,7 +293,7 @@ let _Crud = {
 				_Crud.updateRecentTypeList(_Crud.type);
 
 				Structr.resize();
-				Structr.unblockMenu();
+				Structr.mainMenu.unblock();
 			});
 		});
 
@@ -438,7 +438,7 @@ let _Crud = {
 
 			document.querySelector('#delete' + type).addEventListener('click', async () => {
 
-				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`
+				let confirm = await _Dialogs.confirmation.showPromise(`
 					<h3>WARNING: Really delete all objects of type '${type}'${((exactTypeCheckbox.checked === true) ? '' : ' and of inheriting types')}?</h3>
 					<p>This will delete all objects of the type (<b>${((exactTypeCheckbox.checked === true) ? 'excluding' : 'including')}</b> all objects of inheriting types).</p>
 					<p>Depending on the amount of objects this can take a while.</p>
@@ -858,9 +858,9 @@ let _Crud = {
 
 				configIcon.addEventListener('click', (e) => {
 
-					let { dialogText } = Structr.dialogSystem.openDialog(`<h3>Configure columns for type ${type}</h3>`);
+					let { dialogText } = _Dialogs.custom.openDialog(`<h3>Configure columns for type ${type}</h3>`);
 
-					let saveAndCloseButton = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton();
+					let saveAndCloseButton = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton();
 					_Helpers.enableElement(saveAndCloseButton);
 
 					dialogText.insertAdjacentHTML('beforeend', _Crud.templates.configureColumns());
@@ -918,7 +918,7 @@ let _Crud = {
 									_Crud.saveSortOrderOfColumns(type, jqSelect.sortedVals());
 									_Crud.reloadList();
 
-									Structr.dialogSystem.clickDialogCancelButton();
+									_Dialogs.custom.clickDialogCancelButton();
 								})
 							}
 						}
@@ -1253,7 +1253,7 @@ let _Crud = {
 	},
 	crudExport: (type) => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`Export ${type} list as CSV`);
+		let { dialogText } = _Dialogs.custom.openDialog(`Export ${type} list as CSV`);
 
 		if (!Structr.activeModules.csv) {
 			dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
@@ -1263,7 +1263,7 @@ let _Crud = {
 		let exportArea = _Helpers.createSingleDOMElementFromHTML('<textarea class="exportArea"></textarea>');
 		dialogText.appendChild(exportArea);
 
-		let copyBtn = Structr.dialogSystem.appendCustomDialogButton('<button id="copyToClipboard" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy to Clipboard</button>');
+		let copyBtn = _Dialogs.custom.appendCustomDialogButton('<button id="copyToClipboard" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Copy to Clipboard</button>');
 
 		copyBtn.addEventListener('click', async () => {
 			await navigator.clipboard.writeText(exportArea.value);
@@ -1287,8 +1287,8 @@ let _Crud = {
 	},
 	crudImport: (type) => {
 
-		let { dialogText, dialogMeta } = Structr.dialogSystem.openDialog(`Import CSV data for type ${type}`);
-		Structr.dialogSystem.showMeta();
+		let { dialogText, dialogMeta } = _Dialogs.custom.openDialog(`Import CSV data for type ${type}`);
+		_Dialogs.custom.showMeta();
 
 		if (!Structr.activeModules.csv) {
 			dialogText.insertAdjacentHTML('beforeend', 'CSV Module is not included in the current license. See <a href="https://structr.com/editions">Structr Edition Info</a> for more information.');
@@ -1337,7 +1337,7 @@ let _Crud = {
 			importArea.focus();
 		}, 200);
 
-		let startImportBtn = Structr.dialogSystem.appendCustomDialogButton('<button class="action">Start Import</button>');
+		let startImportBtn = _Dialogs.custom.appendCustomDialogButton('<button class="action">Start Import</button>');
 
 		startImportBtn.addEventListener('click', async () => {
 
@@ -1534,7 +1534,7 @@ let _Crud = {
 
 			} else {
 
-				if (response.status !== 422 || Structr.dialogSystem.isDialogOpen()) {
+				if (response.status !== 422 || _Dialogs.custom.isDialogOpen()) {
 					Structr.errorFromResponse(data, url, { statusCode: response.status, requiresConfirmation: true });
 				}
 				_Crud.showCreateError(type, data, onError);
@@ -1549,9 +1549,9 @@ let _Crud = {
 
 		} else {
 
-			let dialogText = Structr.dialogSystem.getDialogTextElement();
+			let dialogText = _Dialogs.custom.getDialogTextElement();
 
-			if (!Structr.dialogSystem.isDialogOpen()) {
+			if (!_Dialogs.custom.isDialogOpen()) {
 				console.log('show create dialog!');
 				let elements = _Crud.showCreate(type);
 				dialogText = elements.dialogText;
@@ -1588,7 +1588,7 @@ let _Crud = {
 							errorText += ` ${error.detail}`;
 						}
 
-						Structr.dialogSystem.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
+						_Dialogs.custom.showAndHideInfoBoxMessage(errorText, 'error', 2000, 1000);
 
 						input.css({
 							backgroundColor: '#fee',
@@ -1894,7 +1894,7 @@ let _Crud = {
 			});
 
 			row[0].querySelector('.actions .delete').addEventListener('click', async (e) => {
-				let confirm = await _Helpers.confirmationPromiseNonBlockUI(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
+				let confirm = await _Dialogs.confirmation.showPromise(`<p>Are you sure you want to delete <b>${type}</b> ${id}?</p>`);
 				if (confirm === true) {
 					_Crud.crudDelete(type, id);
 				}
@@ -2075,15 +2075,13 @@ let _Crud = {
 
 			$('.add', cell).on('click', function() {
 
-				let { dialogText } = Structr.dialogSystem.openDialog('Add ' + simpleType);
+				let { dialogText } = _Dialogs.custom.openDialog('Add ' + simpleType);
 				_Crud.displaySearch(type, id, key, simpleType, $(dialogText));
-
 			});
 
 			if (_Crud.keys[type][key] && _Crud.keys[type][key].className.indexOf('CollectionIdProperty') === -1 && _Crud.keys[type][key].className.indexOf("CollectionNotionProperty") === -1) {
 
 				_Crud.appendCellPager(cell, id, type, key);
-
 			}
 
 		} else {
@@ -2097,7 +2095,6 @@ let _Crud = {
 				} else if (key === 'targetId') {
 					simpleType = _Crud.relInfo[type].target;
 				}
-
 			}
 
 			if (value) {
@@ -2111,15 +2108,15 @@ let _Crud = {
 					cell.append(_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['add', 'icon-lightgrey', 'cursor-pointer'])));
 					$('.add', cell).on('click', function() {
 
-						if (!Structr.dialogSystem.isDialogOpen() || isRel == false) {
+						if (!_Dialogs.custom.isDialogOpen() || isRel == false) {
 
-							let { dialogText } = Structr.dialogSystem.openDialog(`Add ${simpleType} to ${key}`);
+							let { dialogText } = _Dialogs.custom.openDialog(`Add ${simpleType} to ${key}`);
 							_Crud.displaySearch(type, id, key, simpleType, $(dialogText));
 
 						} else {
 
 							//TODO
-							let dialogText = $(Structr.dialogSystem.getDialogTextElement());
+							let dialogText = $(_Dialogs.custom.getDialogTextElement());
 
 							var btn = $(this);
 							$('#entityForm').hide();
@@ -2463,7 +2460,7 @@ type: ${node.type}`;
 			} else if (e.keyCode === 27) {
 
 				if (searchString.trim() === '') {
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				}
 
 				_Crud.clearSearchResults(el);
@@ -2538,7 +2535,7 @@ type: ${node.type}`;
 
 			_Crud.crudUpdateObj(id, JSON.stringify(updateObj), () => {
 				_Crud.crudRefresh(id, key);
-				Structr.dialogSystem.clickDialogCancelButton();
+				_Dialogs.custom.clickDialogCancelButton();
 			});
 		}
 
@@ -2650,8 +2647,8 @@ type: ${node.type}`;
 		let availableKeys = Object.keys(typeDef);
 		let visibleKeys   = _Crud.filterKeys(type, availableKeys);
 
-		if (Structr.dialogSystem.isDialogOpen()) {
-			Structr.dialogSystem.clickDialogCancelButton();
+		if (_Dialogs.custom.isDialogOpen()) {
+			_Dialogs.custom.clickDialogCancelButton();
 		}
 
 		let view = _Crud.view[type] || 'ui';
@@ -2670,7 +2667,7 @@ type: ${node.type}`;
 
 			let node = data.result;
 
-			let { dialogText } = Structr.dialogSystem.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
+			let { dialogText } = _Dialogs.custom.openDialog(`Details of ${type} ${node?.name ?? node.id}`);
 
 			dialogText.insertAdjacentHTML('beforeend', `<table class="props" id="details_${node.id}"><tr><th>Name</th><th>Value</th>`);
 
@@ -2712,7 +2709,7 @@ type: ${node.type}`;
 		}
 		let typeDef = _Crud.types[type];
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`Create new ${type}`);
+		let { dialogText } = _Dialogs.custom.openDialog(`Create new ${type}`);
 
 		dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
 
@@ -2742,7 +2739,7 @@ type: ${node.type}`;
 			}
 		}
 
-		let dialogSaveButton = Structr.dialogSystem.updateOrCreateDialogSaveButton();
+		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
 		_Helpers.enableElement(dialogSaveButton);
 
 		dialogSaveButton.addEventListener('click', () => {

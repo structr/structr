@@ -140,7 +140,7 @@ let _Contents = {
 
 		_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
 	},
@@ -661,13 +661,13 @@ let _Contents = {
 	},
 	editItem: (item) => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog(`Edit ${item.name}`);
+		let { dialogText } = _Dialogs.custom.openDialog(`Edit ${item.name}`);
 
 		Command.get(item.id, null, (entity) => {
 
-			let saveAndCloseButtonLocal = Structr.dialogSystem.updateOrCreateDialogSaveAndCloseButton(['action']);
-			let saveButtonLocal         = Structr.dialogSystem.updateOrCreateDialogSaveButton(['action']);
-			let refreshButton           = Structr.dialogSystem.appendCustomDialogButton('<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>');
+			let saveAndCloseButtonLocal = _Dialogs.custom.updateOrCreateDialogSaveAndCloseButton(['action']);
+			let saveButtonLocal         = _Dialogs.custom.updateOrCreateDialogSaveButton(['action']);
+			let refreshButton           = _Dialogs.custom.appendCustomDialogButton('<button id="refresh" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Refresh</button>');
 
 			_Entities.getSchemaProperties(entity.type, 'custom', (properties) => {
 
@@ -738,7 +738,7 @@ let _Contents = {
 
 						$(relatedNodesList).children('.add').on('click', function() {
 
-							let { dialogText } = Structr.dialogSystem.openDialog(`Add ${prop.type}`, () => {
+							let { dialogText } = _Dialogs.custom.openDialog(`Add ${prop.type}`, () => {
 								_Contents.editItem(item);
 							});
 
@@ -765,7 +765,7 @@ let _Contents = {
 												if (!newVal) {
 
 													_Helpers.blinkGreen(relatedNodes);
-													Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
+													_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
 													nodeEl.remove();
 
 												} else {
@@ -796,7 +796,7 @@ let _Contents = {
 													let nodeEl = $('._' + node.id, relatedNodes);
 													nodeEl.remove();
 													_Helpers.blinkGreen(relatedNodes);
-													Structr.dialogSystem.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
+													_Dialogs.custom.showAndHideInfoBoxMessage(`Related node "${node.name || node.id}" was removed from property "${key}".`, 'success', 2000, 1000);
 												});
 												return false;
 											});
@@ -909,7 +909,7 @@ let _Contents = {
 				e.stopPropagation();
 				saveButtonLocal.click();
 				window.setTimeout(() => {
-					Structr.dialogSystem.clickDialogCancelButton();
+					_Dialogs.custom.clickDialogCancelButton();
 				}, 1000);
 			});
 

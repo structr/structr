@@ -73,7 +73,7 @@ let _Security = {
 			}
 		}
 
-		Structr.unblockMenu(100);
+		Structr.mainMenu.unblock(100);
 	},
 	getContextMenuElements: (div, entity) => {
 

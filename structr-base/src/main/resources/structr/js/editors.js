@@ -31,8 +31,7 @@ let _Editors = {
 				model:     ...,
 				viewState: ...,
 				instanceDisposables: [],
-				modelDisposables:    [],
-				decorations:         []
+				modelDisposables:    []
 			},
 			lastScriptErrorLookup: 0
 		}	*/
@@ -208,14 +207,14 @@ let _Editors = {
 			storageContainer.lastScriptErrorLookup = performance.now();
 
 			// check linting updates for this element max every 10 seconds (unless forced)
-			storageContainer.decorations = storageContainer?.decorations ?? [];
-			let newErrorEvents           = await _Editors.getScriptErrors(entity, errorPropertyName);
+			let newErrorEvents = await _Editors.getScriptErrors(entity, errorPropertyName);
 
 			if (!storageContainer.instance) {
 				storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
 			}
 			if (storageContainer.instance) {
-				storageContainer.decorations = storageContainer.instance.deltaDecorations(storageContainer.decorations, newErrorEvents);
+				storageContainer?.decorationsCollection?.clear();
+				storageContainer.decorationsCollection = storageContainer.instance.createDecorationsCollection(newErrorEvents);
 			}
 		}
 	},
@@ -274,7 +273,7 @@ let _Editors = {
 									className: 'monaco-editor-warning-line',
 									glyphMarginClassName: _Icons.monacoGlyphMarginClassName,
 									glyphMarginHoverMessage: {
-										value: '[' + date.toLocaleDateString() + ' ' + date.toLocaleTimeString() + '] __Scripting error:__ \n\n ' + message,
+										value: `[${date.toLocaleDateString()} ${date.toLocaleTimeString()}] __Scripting error__` + '\n\n' + message
 									}
 								}
 							});
@@ -374,7 +373,7 @@ let _Editors = {
 
 			// add identical provider to all languages and decide in the provider if completions should be shown
 			for (let lang of monaco.languages.getLanguages()) {
-				monaco.languages.registerCompletionItemProvider(lang.id, defaultCompletionProvider);
+				monaco.languages.registerCompletionItemProvider({ language: lang.id }, defaultCompletionProvider);
 			}
 		}
 	},
@@ -382,7 +381,7 @@ let _Editors = {
 
 		let uri = monaco.Uri.from({
 			scheme: 'file', // keeps history even after switching editors in code
-			path: `/${id}/${propertyName}`,
+			path:   `/${id}/${propertyName}`,
 		});
 
 		uri.structr_uuid     = id;
@@ -580,12 +579,12 @@ let _Editors = {
 
 				if (_Speech.isCommand('save', interim)) {
 
-					Structr.dialogSystem.clickSaveButton();
+					_Dialogs.custom.clickSaveButton();
 
 				} else if (_Speech.isCommand('saveAndClose', interim)) {
 
 					_Speech.toggleStartStop(speechBtn, function() {
-						Structr.dialogSystem.clickSaveAndCloseButton();
+						_Dialogs.custom.clickSaveAndCloseButton();
 					});
 
 				} else if (_Speech.isCommand('close', interim)) {

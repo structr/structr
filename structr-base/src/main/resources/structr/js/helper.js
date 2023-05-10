@@ -30,30 +30,34 @@ let _Helpers = {
 		// prevent fastRemove from producing errors in other libraries
 		{
 			// do not slice up monaco editors
-			_Editors?.nukeEditorsInDomElement?.(el);
+			if (_Editors) {
+				_Editors?.nukeEditorsInDomElement?.(el);
+			}
 		}
 
 		// memory management block
 		{
 			// destroy select2 and remove event listeners
-			$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+			if ($().select2) {
+				$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+			}
 		}
 
-		let fastRemoveAllChildrenInner = (el) => {
+		_Helpers.fastRemoveAllChildrenInner(el);
+	},
+	fastRemoveAllChildrenInner: (el) => {
 
-			while (el.firstChild) {
-				fastRemoveAllChildrenInner(el.firstChild);
+		while (el.firstChild) {
 
-				try {
-					el.removeChild(el.firstChild);
-				} catch (e) {
-					// silently ignore errors like "The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
-					// console.log(e)
-				}
+			_Helpers.fastRemoveAllChildrenInner(el.firstChild);
+
+			try {
+				el.removeChild(el.firstChild);
+			} catch (e) {
+				// silently ignore errors like "The node to be removed is no longer a child of this node. Perhaps it was moved in a 'blur' event handler?"
+				// console.log(e)
 			}
-		};
-
-		fastRemoveAllChildrenInner(el);
+		}
 	},
 	setContainerHTML: (container, html) => {
 		_Helpers.fastRemoveAllChildren(container);
@@ -241,6 +245,10 @@ let _Helpers = {
 			return;
 		} else if (!element.length) {
 			element = $(element);
+
+			if (!element.length) {
+				return;
+			}
 		}
 
 		let fg    = element.prop('data-fg-color');
@@ -385,8 +393,8 @@ let _Helpers = {
 					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
 				});
 			}).on("mouseout", function(e) {
-			helpElement.hide();
-		});
+				helpElement.hide();
+			});
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -461,16 +469,16 @@ let _Helpers = {
 	},
 	showAvailableIcons: () => {
 
-		let { dialogText } = Structr.dialogSystem.openDialog('Icons');
+		let { dialogText } = _Dialogs.custom.openDialog('Icons');
 
 		dialogText.innerHTML = `<div>
 			<h3>SVG Icons</h3>
 			<table>
 				${[...document.querySelectorAll('body > svg > symbol')].map(el => el.id).sort().map(id =>
-			`<tr>
-						<td>${id}</td>
-						<td>${_Icons.getSvgIcon(id, 24, 24)}</td>
-					</tr>`).join('')}
+				`<tr>
+					<td>${id}</td>
+					<td>${_Icons.getSvgIcon(id, 24, 24)}</td>
+				</tr>`).join('')}
 			</table>
 		</div>`;
 	},
@@ -499,132 +507,6 @@ let _Helpers = {
 		return dummy.children;
 	},
 
-	nonBlockUIBlockerId: 'non-block-ui-blocker',
-	nonBlockUIBlockerContentId: 'non-block-ui-blocker-content',
-	appendNonBlockUIOverlay: (messageHtml) => {
-
-		let pageBlockerDiv = _Helpers.createSingleDOMElementFromHTML(`<div id="${_Helpers.nonBlockUIBlockerId}"></div>`);
-		let messageDiv     = _Helpers.createSingleDOMElementFromHTML(`<div id="${_Helpers.nonBlockUIBlockerContentId}">${messageHtml}</div>`);
-
-		let body = document.querySelector('body');
-		body.appendChild(pageBlockerDiv);
-		body.appendChild(messageDiv);
-
-		if (messageHtml) {
-			// if no message is provided, or more content is added in the caller, then the caller must also call its resize function
-			_Helpers.centerNonBlockUIMessage();
-		}
-
-		return messageDiv;
-	},
-	centerNonBlockUIMessage: () => {
-
-		let messageDiv = document.getElementById(_Helpers.nonBlockUIBlockerContentId);
-		if (messageDiv) {
-			messageDiv.style.top = (window.innerHeight - messageDiv.offsetHeight) / 2 + 'px';
-		}
-	},
-	hideNonBlockUIOverlay: () => {
-		_Helpers.fastRemoveElement(document.getElementById(_Helpers.nonBlockUIBlockerId));
-		_Helpers.fastRemoveElement(document.getElementById(_Helpers.nonBlockUIBlockerContentId));
-	},
-	showNonBlockUILoadingMessage: (title = 'Executing Task', text = 'Please wait until the operation has finished...') => {
-
-		_Helpers.appendNonBlockUIOverlay(`
-			<div>
-				<div class="flex items-center justify-center">
-					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
-				</div>
-				<br>
-				${text}
-			</div>
-		`);
-	},
-	showLoadingSpinner: () => {
-
-		let messageDiv = _Helpers.appendNonBlockUIOverlay(`<div id="structr-loading-spinner">${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36)}</div>`);
-
-		messageDiv.style.backgroundColor = 'transparent';
-		messageDiv.style.border = 'none';
-	},
-	hideLoadingSpinner: () => {
-		_Helpers.hideNonBlockUIOverlay();
-	},
-	showNonBlockUITempInfoBox: () => {
-
-		let messageDiv = _Helpers.appendNonBlockUIOverlay(`
-			<div>
-				<div class="infoHeading"></div>
-				<div class="infoMsg min-h-20"></div>
-				<div class="dialogBtn">
-					<button class="closeButton hover:bg-gray-100 focus:border-gray-666 active:border-green">Close</button>
-				</div>
-			</div>
-		`);
-
-		let closeButton = messageDiv.querySelector('.closeButton');
-
-		closeButton.addEventListener('click', (e) => {
-			_Helpers.hideNonBlockUIOverlay();
-		});
-
-		return {
-			headingEl: messageDiv.querySelector('.infoHeading'),
-			messageEl: messageDiv.querySelector('.infoMsg'),
-			buttonsEl: messageDiv.querySelector('.dialogBtn'),
-			closeButton: closeButton
-		};
-	},
-	confirmationPromiseNonBlockUI: (text, defaultOption = true) => {
-
-		return new Promise((resolve, reject) => {
-
-			let messageDiv = _Helpers.appendNonBlockUIOverlay(`
-				<div>
-					<div class="confirmationText mb-4">
-						${text}
-					</div>
-					<button class="yesButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} Yes
-					</button>
-					<button class="noButton inline-flex items-center hover:bg-gray-100 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} No
-					</button>
-				</div>
-			`);
-
-			let yesButton = messageDiv.querySelector('.yesButton');
-			let noButton  = messageDiv.querySelector('.noButton');
-
-			let answerFunction = (e, response) => {
-				e.stopPropagation();
-
-				_Helpers.hideNonBlockUIOverlay();
-
-				resolve(response);
-			};
-
-			yesButton.addEventListener('click', (e) => {
-				answerFunction(e, true);
-			});
-
-			noButton.addEventListener('click', (e) => {
-				answerFunction(e, false);
-			});
-
-			messageDiv.addEventListener('keyup', (e) => {
-				if (e.key === 'Escape' || e.code === 'Escape' || e.keyCode === 27) {
-					answerFunction(e, false);
-				}
-			});
-
-			if (defaultOption === true) {
-				yesButton.focus();
-			} else {
-				noButton.focus();
-			}
-		});
-	},
 	disableElement: (btn) => {
 		btn.classList.add('disabled');
 		btn.disabled = true;
