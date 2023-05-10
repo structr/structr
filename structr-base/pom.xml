@@ -21,6 +21,7 @@
 		<jaxb.version>2.3.3</jaxb.version>
 		<imageio.version>3.8.0</imageio.version>
 		<batik.version>1.16</batik.version>
+		<graal.version>22.3.2</graal.version>
 	</properties>
 
 	<dependencies>
@@ -151,8 +152,16 @@
 		<dependency>
 			<groupId>org.graalvm.sdk</groupId>
 			<artifactId>graal-sdk</artifactId>
-			<version>22.2.0</version>
+			<version>${graal.version}</version>
 		</dependency>
+		<!-- https://mvnrepository.com/artifact/org.graalvm.tools/chromeinspector -->
+		<dependency>
+			<groupId>org.graalvm.tools</groupId>
+			<artifactId>chromeinspector</artifactId>
+			<version>${graal.version}</version>
+			<scope>runtime</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.mongodb</groupId>
 			<artifactId>mongodb-driver-sync</artifactId>
