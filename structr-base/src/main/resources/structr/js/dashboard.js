@@ -409,24 +409,18 @@ let _Dashboard = {
 
 					for (let typesSelectElemSelector of ['#data-export-types-input', '#zip-data-export-types-input']) {
 
-						let topOffset       = 0;
 						let typesSelectElem = $(typesSelectElemSelector);
 
 						$('.custom-types', typesSelectElem).append(customTypes.map((type) => `<option>${type.name}</option>`).join(''));
 						$('.builtin-types', typesSelectElem).append(builtinTypes.map((type) => `<option>${type.name}</option>`).join(''));
 
-						typesSelectElem.chosen({
+						typesSelectElem.select2({
 							search_contains: true,
 							width: 'calc(100% - 2rem)',
-							hide_results_on_select: false,
-							display_selected_options: false,
-							display_disabled_options: false
-						}).on('chosen:showing_dropdown', (e) => {
-							$('.chosen-results').on('scroll', (e) => {
-								topOffset = $('.chosen-results').scrollTop();
-							});
-						}).on('change', (e) => {
-							$('.chosen-results').scrollTop(topOffset);
+							dropdownParent: typesSelectElem.parent(),
+							dropdownCssClass: ':all:',
+							closeOnSelect: false,
+							scrollAfterSelect: false
 						});
 					}
 				});
@@ -1156,10 +1150,12 @@ let _Dashboard = {
 								<h3>Data export to server directory</h3>
 								<div>
 									<input type="text" id="data-export-target-input" placeholder="Server directory path for data export">
-									<select id="data-export-types-input" data-placeholder="Please select data type(s) to export" multiple="multiple">
-										<optgroup label="Custom Types" class="custom-types"></optgroup>
-										<optgroup label="Builtin Types" class="builtin-types"></optgroup>
-									</select>
+									<div>
+										<select id="data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
+											<optgroup label="Custom Types" class="custom-types"></optgroup>
+											<optgroup label="Builtin Types" class="builtin-types"></optgroup>
+										</select>
+									</div>
 									<button class="action" id="do-data-export">Export data to server directory</button>
 								</div>
 							</div>
@@ -1179,7 +1175,7 @@ let _Dashboard = {
 								${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 								<div>
 									<input type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}">
-									<select id="zip-data-export-types-input" data-placeholder="Please select data type(s) to export" multiple="multiple">
+									<select id="zip-data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
 										<optgroup label="Custom Types" class="custom-types"></optgroup>
 										<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 									</select>

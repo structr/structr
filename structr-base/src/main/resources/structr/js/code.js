@@ -2305,7 +2305,7 @@ let _Code = {
 				Command.get(view.schemaNode.id, null, (reloadedEntity) => {
 
 					let formData                = _Code.collectChangedPropertyData(view);
-					let sortedAttrs             = $('.property-attrs.view').sortedVals();
+					let sortedAttrs             = $('.property-attrs.view').sortedValues();
 					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
 					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
@@ -2344,7 +2344,7 @@ let _Code = {
 					}
 				}
 
-				select.dispatchEvent(new CustomEvent('chosen:updated'));
+				select.dispatchEvent(new CustomEvent('change'));
 			});
 		});
 
@@ -2391,18 +2391,19 @@ let _Code = {
 			}
 
 			let changeFn = () => {
-				let sortedAttrs = $(viewSelectElem).sortedVals();
+				let sortedAttrs = $(viewSelectElem).sortedValues();
 				$('input#view-sort-order').val(sortedAttrs.join(','));
 				_Code.updateDirtyFlag(view);
 			};
 
-			$(viewSelectElem).chosen({
+			$(viewSelectElem).select2({
 				search_contains: true,
 				width: '100%',
-				display_selected_options: false,
-				hide_results_on_select: false,
-				display_disabled_options: false
-			}).on('change', changeFn).chosenSortable(changeFn);
+				dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+				closeOnSelect: false,
+				scrollAfterSelect: false
+			}).on('change', changeFn).select2Sortable(changeFn);
 		});
 	},
 	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
