@@ -333,7 +333,7 @@ let _Crud = {
 
 				_Crud.search(searchString, crudMain, null, function(e, node) {
 					e.preventDefault();
-					_Crud.showDetails(node.id, node.type);
+					_Entities.showProperties(node, 'ui');
 					return false;
 				});
 
