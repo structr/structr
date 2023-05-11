@@ -408,14 +408,14 @@ let StructrModel = {
 			let iconEl = element.children('.typeIcon');
 			if (element.hasClass('element')) {
 
-				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? ['typeIcon-nochildren'] : []);
+				icon   = _Icons.getSvgIconForElementNode(obj, (!obj.children || obj.children.length === 0) ? [_Icons.typeIconClassNoChildren] : []);
 				iconEl = element.children('.node-container').children('.typeIcon');
 
 			} else if (element.hasClass('content')) {
 
 				let iconClasses = ['typeIcon'];
 				if (!obj.children || obj.children.length === 0) {
-					iconClasses.push('typeIcon-nochildren')
+					iconClasses.push(_Icons.typeIconClassNoChildren)
 				}
 
 				icon   = _Icons.getSvgIconForContentNode(obj, iconClasses);

@@ -775,7 +775,7 @@ let _Elements = {
 			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
-					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', 'typeIcon-nochildren'])}
+					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren])}
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
