@@ -1687,7 +1687,7 @@ let _Schema = {
 			let allow = true;
 
 			// check relationshipType against regex
-			let match = relDef.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
+			let match = relInfo.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
 			if (match === null) {
 				allow = false;
 				_Helpers.blinkRed(container.querySelector('#relationship-type-name'));

@@ -27,10 +27,7 @@ import org.structr.api.service.LicenseManager;
 import org.structr.api.service.Service;
 import org.structr.common.*;
 import org.structr.core.*;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.entity.GenericNode;
-import org.structr.core.entity.Relation;
+import org.structr.core.entity.*;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.GenericProperty;
@@ -594,6 +591,9 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					|| view.name().equals(PropertyView.Private)
 					|| view.name().equals(PropertyView.Protected)
 					|| view.name().equals(PropertyView.Ui)
+					|| view.name().equals(View.INTERNAL_GRAPH_VIEW)
+					|| view.name().equals(SchemaRelationshipNode.exportView.name())
+					|| view.name().equals(SchemaRelationshipNode.schemaView.name())
 				);
 
 				registerPropertySet(type, view.name(), overwrite, keys);
