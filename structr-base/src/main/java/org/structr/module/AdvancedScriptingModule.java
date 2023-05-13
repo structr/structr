@@ -111,6 +111,8 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new FindNotFunction());
 		Functions.put(licenseManager, new FindSortFunction());
 		Functions.put(licenseManager, new FindPageFunction());
+		Functions.put(licenseManager, new FindStartsWithFunction());
+		Functions.put(licenseManager, new FindEndsWithFunction());
 	}
 
 	@Override

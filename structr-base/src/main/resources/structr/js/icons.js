@@ -18,6 +18,9 @@
  */
 let _Icons = {
 
+	typeIconClass: 'typeIcon',
+	typeIconClassNoChildren: 'typeIcon-nochildren',
+
 	preloadSVGIcons: () => {
 		// this should be super fast because we inserted a preload rule to the index.html
 		fetch('icon/sprites.svg').then(response => {
@@ -201,7 +204,10 @@ let _Icons = {
 
 		let dummy = document.createElement('div');
 		dummy.innerHTML = html;
-		element.replaceWith(dummy.firstChild);
+		let newSvgIcon = dummy.firstChild;
+		element.replaceWith(newSvgIcon);
+
+		return newSvgIcon;
 	},
 	getSvgIconFromSvgElement: (element) => {
 

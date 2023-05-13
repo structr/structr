@@ -52,7 +52,6 @@ let _Dialogs = {
 						left: 35vw;
 						background-color: var(--gray-eee);
 						box-shadow: 0 0 .1rem var(--gray-999);
-						text-align: center;
 					">
 						${messageHtml}
 					</div>
@@ -207,7 +206,7 @@ let _Dialogs = {
 		show: (messageHtml = '') => {
 
 			let tempInfoMessage = `
-				<div>
+				<div class="text-center">
 					<div class="infoHeading"></div>
 					<div class="infoMsg min-h-20">
 						${messageHtml}
@@ -237,7 +236,7 @@ let _Dialogs = {
 			return new Promise((resolve, reject) => {
 
 				let confirmationMessage = `
-					<div>
+					<div class="text-center">
 						<div class="confirmationText mb-4">
 							${text}
 						</div>
@@ -293,10 +292,10 @@ let _Dialogs = {
 			_Dialogs.spinner.hide();
 
 			let spinnerHTML = `
-			<div id="${_Dialogs.spinner.id}">
-				${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36)}
-			</div>
-		`;
+				<div id="${_Dialogs.spinner.id}">
+					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 36, 36)}
+				</div>
+			`;
 
 			_Dialogs.basic.append(spinnerHTML, {
 				backgroundColor : 'transparent',
@@ -318,14 +317,14 @@ let _Dialogs = {
 			_Dialogs.loadingMessage.hide(messageId);
 
 			let loadingMessage = `
-			<div id="${messageId}">
-				<div class="flex items-center justify-center">
-					${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
+				<div id="${messageId}" class="text-center">
+					<div class="flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconWaitingSpinner, 24, 24, 'mr-2')}<b>${title}</b>
+					</div>
+					<br>
+					${text}
 				</div>
-				<br>
-				${text}
-			</div>
-		`;
+			`;
 
 			_Dialogs.basic.append(loadingMessage, { padding: '1rem' });
 		},
@@ -426,23 +425,26 @@ let _Dialogs = {
 
 			_Dialogs.custom.isMaximized = LSWrapper.getItem(_Dialogs.custom.dialogMaximizedKey);
 
-			if (_Dialogs.custom.isMaximized) {
+			if (_Dialogs.custom.isDialogOpen()) {
 
-				_Dialogs.custom.maximizeDialogButtonAction();
+				if (_Dialogs.custom.isMaximized) {
 
-			} else {
+					_Dialogs.custom.maximizeDialogButtonAction();
 
-				// Calculate dimensions of dialog
-				if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
+				} else {
 
-					_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+					// Calculate dimensions of dialog
+					if (_Dialogs.custom.isDialogOpen() && !_Dialogs.loginDialog.isOpen()) {
 
-					if (_Dialogs.custom.getMinimizeDialogButton()) _Dialogs.custom.getMinimizeDialogButton().style.display = 'none';
-					if (_Dialogs.custom.getMaximizeDialogButton()) _Dialogs.custom.getMaximizeDialogButton().style.display = 'block';
+						_Dialogs.custom.setDialogSize($(window).width(), $(window).height(), Math.min(900, $(window).width() - 24), Math.min(600, $(window).height() - 24));
+
+						if (_Dialogs.custom.getMinimizeDialogButton()) _Dialogs.custom.getMinimizeDialogButton().style.display = 'none';
+						if (_Dialogs.custom.getMaximizeDialogButton()) _Dialogs.custom.getMaximizeDialogButton().style.display = 'block';
+					}
 				}
-			}
 
-			_Dialogs.basic.centerAll();
+				_Dialogs.basic.centerAll();
+			}
 		},
 		openDialog: (dialogTitleText = '', callbackCancel, customClasses = []) => {
 

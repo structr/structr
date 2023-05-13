@@ -4,12 +4,12 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-binaries</artifactId>
-	<version>4.3-SNAPSHOT</version>
+	<version>5.0-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>4.3-SNAPSHOT</version>
+		<version>5.0-SNAPSHOT</version>
 	</parent>
 
 	<build>
@@ -187,24 +187,6 @@
 									<platforms>
 										<platform>linux/amd64</platform>
 										<platform>linux/arm64</platform>
-									</platforms>
-								</buildx>
-							</build>
-						</image>
-						<image>
-							<name>structr/structr:python-${project.version}</name>
-							<registry>https://index.docker.io/v1/</registry>
-							<build>
-								<skip>${skipPythonDocker}</skip>
-								<contextDir>${project.basedir}</contextDir>
-								<dockerFile>Dockerfile-Python</dockerFile>
-								<args>
-									<STRUCTR_VERSION>${project.version}-${maven.build.timestamp}.${buildNumber}</STRUCTR_VERSION>
-								</args>
-								<buildx>
-									<builderName>multiarch</builderName>
-									<platforms>
-										<platform>linux/amd64</platform>
 									</platforms>
 								</buildx>
 							</build>

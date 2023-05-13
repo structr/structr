@@ -136,7 +136,7 @@ let _Security = {
 
 		return elements;
 	},
-	selectTab: function(subModule) {
+	selectTab: (subModule) => {
 
 		LSWrapper.setItem(_Security.securityTabKey, subModule);
 
@@ -174,27 +174,27 @@ let _Security = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/security.css">
-			
+
 			<div class="main-app-box" id="security">
-			
+
 				<div id="securityTabs" class="tabs-contents">
-			
+
 					<div id="usersAndGroups" class="tab-content">
-			
+
 						<div id="usersAndGroups-inner">
 							<div id="users">
 								<div id="users-controls"></div>
 								<div id="users-list"></div>
 							</div>
-			
+
 							<div id="groups">
 								<div id="groups-controls"></div>
 								<div id="groups-list"></div>
 							</div>
 						</div>
-			
+
 					</div>
-			
+
 					<div id="resourceAccess" class="tab-content">
 						<div id="resourceAccesses"></div>
 					</div>
@@ -214,12 +214,12 @@ let _Security = {
 		`,
 		newGroupButton: config => `
 			<div class="flex items-center mb-8">
-			
+
 				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="group-type">
 					<option value="Group">Group</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
-			
+
 				<button class="action add_group_icon inline-flex items-center" id="add-group-button">
 					${_Icons.getSvgIcon(_Icons.iconGroupAdd, 16, 16, 'mr-2')}
 					<span>Add Group</span>
@@ -228,12 +228,12 @@ let _Security = {
 		`,
 		newUserButton: config => `
 			<div class="flex items-center mb-8">
-			
+
 				<select class="select-create-type mr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green" id="user-type">
 					<option value="User">User</option>
 					${config.types.map(type => `<option value="${type}">${type}</option>`).join('')}
 				</select>
-			
+
 				<button class="action add_user_icon inline-flex items-center" id="add-user-button">
 					${_Icons.getSvgIcon(_Icons.iconUserAdd, 16, 16, 'mr-2')}
 					<span>Add User</span>
@@ -248,7 +248,7 @@ let _Security = {
 						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} Add Grant
 					</button>
 				</div>
-			
+
 				<div id="filter-resource-access-grants" class="flex items-center">
 					<input type="text" class="filter" data-attribute="signature" placeholder="Filter/Search...">
 					<label class="ui-setting-checkbox inline-flex ml-4">
@@ -410,7 +410,7 @@ let _UsersAndGroups = {
 
 				let userName = userEl.querySelector('.name_');
 				if (userName) {
-					let displayName = ((user.name) ? user.name : ((user.eMail) ? '[' + user.eMail + ']' : '[unnamed]'));
+					let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
 
 					userName.setAttribute('title', displayName);
 					userName.textContent = displayName;
@@ -561,7 +561,8 @@ let _UsersAndGroups = {
 		let groupElement = $(`
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
-					${_Icons.getIconForPrincipal(group)}<b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					${_Icons.getIconForPrincipal(group)}
+					<b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -614,11 +615,15 @@ let _UsersAndGroups = {
 
 			// request animation frame is especially important if a name is completely removed!
 
-			for (let groupEl of document.querySelectorAll('.' + _UsersAndGroups.groupNodeClassPrefix + group.id)) {
+			for (let groupEl of document.querySelectorAll(`.${_UsersAndGroups.groupNodeClassPrefix}${group.id}`)) {
 
 				let icon = groupEl.querySelector('svg.typeIcon');
 				if (icon) {
-					_Icons.replaceSvgElementWithRawSvg(icon, _Icons.getIconForPrincipal(group));
+					let newIcon = _Icons.replaceSvgElementWithRawSvg(icon, _Icons.getIconForPrincipal(group));
+
+					if (icon.classList.contains(_Icons.typeIconClassNoChildren)) {
+						newIcon.classList.add(_Icons.typeIconClassNoChildren);
+					}
 				}
 
 				let groupName = groupEl.querySelector('.name_');

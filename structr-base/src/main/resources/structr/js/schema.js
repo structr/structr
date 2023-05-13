@@ -1687,7 +1687,7 @@ let _Schema = {
 			let allow = true;
 
 			// check relationshipType against regex
-			let match = relDef.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
+			let match = relInfo.relationshipType.match(/^[a-zA-Z][a-zA-Z0-9_]*$/);
 			if (match === null) {
 				allow = false;
 				_Helpers.blinkRed(container.querySelector('#relationship-type-name'));
@@ -2874,9 +2874,9 @@ let _Schema = {
 				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.viewNew());
 				tbody.appendChild(tr);
 
-				_Schema.views.appendViewSelectionElement(tr, { name: 'new' }, entity, (chosenElement) => {
+				_Schema.views.appendViewSelectionElement(tr, { name: 'new' }, entity, (selectElement) => {
 
-					chosenElement.chosenSortable();
+					selectElement.select2Sortable();
 
 					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
 				});
@@ -2991,7 +2991,7 @@ let _Schema = {
 			let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.view({ view: view, type: entity }));
 			tbody.appendChild(tr);
 
-			_Schema.views.appendViewSelectionElement(tr, view, entity, (chosenElement) => {
+			_Schema.views.appendViewSelectionElement(tr, view, entity, (selectElement) => {
 
 				// store initial configuration for later comparison
 				let initialViewConfig = _Schema.views.getInfoFromRow(tr, entity);
@@ -2999,8 +2999,7 @@ let _Schema = {
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				chosenElement.chosenSortable(function() {
-					// sort order changed
+				selectElement.select2Sortable(() => {
 					_Schema.views.rowChanged(tr, entity, initialViewConfig);
 				});
 
@@ -3009,13 +3008,11 @@ let _Schema = {
 		},
 		bindRowEvents: (tr, entity, view, initialViewConfig) => {
 
-			let viewInfoChangeHandler = (event, params) => {
-				_Schema.views.rowChanged(tr, entity, initialViewConfig);
-			};
+			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(tr, entity, initialViewConfig); };
 
 			tr.querySelector('.view.property-name').addEventListener('change', viewInfoChangeHandler);
 
-			// required jquery change handler for chosen plugin
+			// jquery is required for change handler of select2 plugin
 			$(tr.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
 
 			tr.querySelector('.discard-changes').addEventListener('click', () => {
@@ -3032,7 +3029,7 @@ let _Schema = {
 						}
 					}
 
-					select.dispatchEvent(new CustomEvent('chosen:updated'));
+					select.dispatchEvent(new CustomEvent('change'));
 
 					tr.classList.remove('to-delete');
 					tr.classList.remove('has-changes');
@@ -3086,15 +3083,16 @@ let _Schema = {
 					_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 				}
 
-				let chosenElement = $(viewSelectElem).chosen({
+				let selectElement = $(viewSelectElem).select2({
 					search_contains: true,
 					width: '100%',
-					display_selected_options: false,
-					hide_results_on_select: false,
-					display_disabled_options: false
+					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					closeOnSelect: false,
+					scrollAfterSelect: false
 				});
 
-				callback(chosenElement);
+				callback(selectElement);
 			});
 		},
 		findSchemaPropertiesByNodeAndName: (entity, names) => {
@@ -3154,7 +3152,11 @@ let _Schema = {
 				let id   = prop.dataset.propertyId;
 
 				if (names.includes(name)) {
-					inheritedProperties.push({ id: id });
+					const data = { name: name };
+					if (id && id !== 'null') {
+						data.id = id;
+					}
+					inheritedProperties.push(data);
 				}
 			}
 
@@ -3175,15 +3177,16 @@ let _Schema = {
 		},
 		getInfoFromRow: (tr, schemaNodeEntity) => {
 
-			let sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedVals();
+			const sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedValues();
 
-			return {
+			const data = {
 				name: tr.querySelector('.view.property-name').value,
 				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
 				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
-				excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
+				//excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
 				sortOrder: sortedAttrs.join(',')
 			};
+			return data;
 		},
 		rowChanged: (tr, entity, initialViewConfig) => {
 
@@ -3220,7 +3223,7 @@ let _Schema = {
 			}
 
 			let viewPropertiesSelect = row.querySelector('.view.property-attrs');
-			if ($(viewPropertiesSelect).sortedVals().length === 0) {
+			if ($(viewPropertiesSelect).sortedValues().length === 0) {
 
 				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
 				return false;

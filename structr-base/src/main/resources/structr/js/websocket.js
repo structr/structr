@@ -530,7 +530,7 @@ let StructrWS = {
 							for (let syncedId of synced) {
 								let syncedEl = Structr.node(syncedId);
 								if (syncedEl && syncedEl.length) {
-									let newIcon = entity.isContent ? _Icons.getSvgIconForContentNode(entity, ['typeIcon', 'typeIcon-nochildren']) : _Icons.getSvgIconForElementNode(entity);
+									let newIcon = entity.isContent ? _Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren]) : _Icons.getSvgIconForElementNode(entity);
 									let existingIcon = syncedEl.children('.typeIcon');
 									if (existingIcon.length) {
 										_Icons.replaceSvgElementWithRawSvg(existingIcon[0], newIcon)

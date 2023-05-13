@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph.search;
 
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.ComparisonQuery;
 import org.structr.api.search.Occurrence;
@@ -31,7 +32,7 @@ import org.structr.core.property.PropertyKey;
 public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements ComparisonQuery {
 
 	private PropertyKey<T> searchKey = null;
-	private T searchValue		     = null;
+	private T searchValue	         = null;
 	private Operation operation      = null;
 
 	public ComparisonSearchAttribute(final PropertyKey<T> searchKey, final Operation operation, final Object value, final Occurrence occur) {
@@ -45,13 +46,16 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 			if (!(searchKey instanceof FunctionProperty)) {
 
 				PropertyConverter converter = searchKey.inputConverter(SecurityContext.getSuperUserInstance());
-
 				if (converter != null) {
+
 					this.searchValue = (T) converter.convert(value);
+
 				} else {
+
 					try {
-						
+
 						this.searchValue = (T)value.toString();
+
 					} catch (Throwable t) {
 
 						LoggerFactory.getLogger(ComparisonSearchAttribute.class).warn("Could not convert given value. " + t.getMessage());
@@ -94,46 +98,74 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 
 		final T value = entity.getProperty(searchKey);
 
-		if (value != null && this.searchValue != null) {
+		if (value != null && searchValue != null) {
 
-			if (value instanceof Comparable && this.searchValue instanceof Comparable) {
+			if (value instanceof Comparable && searchValue instanceof Comparable) {
 
 				final Comparable a = (Comparable)value;
-				final Comparable b = (Comparable)this.searchValue;
+				final Comparable b = (Comparable)searchValue;
+
+				final String s1    = stringOrNull(value);
+				final String s2    = stringOrNull(searchValue);
 
 				switch (this.operation) {
-					case equal:
+
+					case equal -> {
 						return a.compareTo(b) == 0;
-					case notEqual:
+					}
+
+					case notEqual -> {
 						return a.compareTo(b) != 0;
-					case greater:
+					}
+
+					case greater -> {
 						return a.compareTo(b) > 0;
-					case greaterOrEqual:
+					}
+
+					case greaterOrEqual -> {
 						return a.compareTo(b) >= 0;
-					case less:
+					}
+
+					case less -> {
 						return a.compareTo(b) < 0;
-					case lessOrEqual:
+					}
+
+					case lessOrEqual -> {
 						return a.compareTo(b) <= 0;
-					// FixMe: The following operations need special handling, which isn't included in the Comparable interface.
-					case startsWith:
-						return true;
-					case endsWith:
-						return true;
-					case contains:
-						return true;
-					case caseInsensitiveStartsWith:
-						return true;
-					case caseInsensitiveEndsWith:
-						return true;
-					case caseInsensitiveContains:
-						return true;
+					}
 
+					case startsWith -> {
+						return s1 != null && s2 != null && StringUtils.startsWith(s1, s2);
+					}
+
+					case endsWith -> {
+						return s1 != null && s2 != null && StringUtils.endsWith(s1, s2);
+					}
+
+					case contains -> {
+						return s1 != null && s2 != null && StringUtils.contains(s1, s2);
+					}
+
+					case caseInsensitiveStartsWith -> {
+						return s1 != null && s2 != null && StringUtils.startsWithIgnoreCase(s1, s2);
+					}
+
+					case caseInsensitiveEndsWith -> {
+						return s1 != null && s2 != null && StringUtils.endsWithIgnoreCase(s1, s2);
+					}
+
+					case caseInsensitiveContains -> {
+						return s1 != null && s2 != null && StringUtils.containsIgnoreCase(s1, s2);
+					}
 				}
-
 			}
+
 		} else if (value == null && operation.equals(Operation.isNull)) {
+
 			return true;
+
 		} else if (value != null && operation.equals(Operation.isNotNull)) {
+
 			return true;
 		}
 
@@ -148,5 +180,15 @@ public class ComparisonSearchAttribute<T> extends SearchAttribute<T> implements 
 	@Override
 	public boolean isExactMatch() {
 		return true;
+	}
+
+	// ----- private methods -----
+	private String stringOrNull(final Object value) {
+
+		if (value instanceof String) {
+			return (String)value;
+		}
+
+		return null;
 	}
 }

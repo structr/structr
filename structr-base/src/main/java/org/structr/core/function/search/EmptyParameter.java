@@ -32,6 +32,7 @@ public class EmptyParameter extends SearchParameter {
 		return "Empty(" + key + ")";
 	}
 
+	@Override
 	public boolean isEmptyPredicate() {
 		return true;
 	}

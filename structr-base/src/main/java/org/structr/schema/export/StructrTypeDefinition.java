@@ -1932,49 +1932,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	void resolveInheritanceRelationships(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
 		if (unresolvedSuperclassName != null && this.schemaNode != null) {
-
 			this.schemaNode.setProperty(SchemaNode.extendsClass, schemaNodes.get(unresolvedSuperclassName));
-
-			if (this.schemaNode instanceof SchemaNode) {
-
-				for (final SchemaView view : this.schemaNode.getSchemaViews()) {
-
-					final String nonGraphPropertiesString = view.getProperty(SchemaView.nonGraphProperties);
-					if (StringUtils.isBlank(nonGraphPropertiesString)) {
-						continue;
-					}
-
-					final List<String>         nonGraphProperties = Arrays.asList(nonGraphPropertiesString.split("[\\s,]+"));
-					final List<SchemaProperty> excludedProperties = new LinkedList<>();
-
-					final SchemaNode parentNode = ((SchemaNode) this.schemaNode).getProperty(SchemaNode.extendsClass);
-					if (parentNode != null) {
-
-						final Optional<SchemaView> possibleView = Iterables.toList(parentNode.getSchemaViews()).stream().filter(v -> v.getName().equals(view.getName())).findFirst();
-
-						if (possibleView.isPresent()) {
-
-							final List<SchemaProperty> parentProperties   = Iterables.toList(possibleView.get().getProperty(SchemaView.schemaProperties));
-
-							for (final SchemaProperty parentProperty : parentProperties) {
-
-								if (!nonGraphProperties.stream().anyMatch(s -> s.equals(parentProperty.getName()))) {
-
-									// add an exclusion here because otherwise the parent property would be automatically added
-									excludedProperties.add(parentProperty);
-								}
-							}
-
-
-						}
-					}
-
-					view.setProperty(SchemaView.excludedProperties, excludedProperties);
-
-				}
-			}
-
-
 		}
 	}
 
