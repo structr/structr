@@ -1004,9 +1004,12 @@ let _Schema = {
 		},
 		activateTagsSelect: (container, changeFn) => {
 
+			let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+
 			$('#tags-select', $(container)).select2({
 				tags: true,
-				width: '100%'
+				width: '100%',
+				dropdownParent: dropdownParent
 			}).on('change', () => {
 				changeFn?.();
 			});
@@ -3092,7 +3095,7 @@ let _Schema = {
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					closeOnSelect: false,
 					scrollAfterSelect: false,
-					dropdownParent:dropdownParent
+					dropdownParent: dropdownParent
 				});
 
 				callback(selectElement);
