@@ -3083,13 +3083,16 @@ let _Schema = {
 					_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 				}
 
+				let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+
 				let selectElement = $(viewSelectElem).select2({
 					search_contains: true,
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					closeOnSelect: false,
-					scrollAfterSelect: false
+					scrollAfterSelect: false,
+					dropdownParent:dropdownParent
 				});
 
 				callback(selectElement);
