@@ -658,7 +658,7 @@ let _Widgets = {
 
 					} else if (Object.prototype.toString.call(options) === '[object Object]') {
 
-						return options.map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
+						return Object.keys(options).map(option => `<option ${((option === defaultValue) ? 'selected' : '')} value="${option}">${options[option]}</option>`).join('');
 					}
 				};
 
