@@ -26,16 +26,11 @@ let _Code = {
 	codeTree: undefined,
 	codeContents: undefined,
 	codeContext: undefined,
-	pathLocationStack: [],
-	pathLocationIndex: 0,
-	searchThreshold: 3,
-	searchTextLength: 0,
 	lastClickedPath: '',
 	layouter: null,
 	seed: 42,
 	availableTags: [],
 	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
-	codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
@@ -43,14 +38,11 @@ let _Code = {
 	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
-	inSearchBox: false,
 
 	init: () => {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
-		$(window).off('keydown', _Code.handleKeyDownEvent).on('keydown', _Code.handleKeyDownEvent);
 	},
 	beforeunloadHandler: () => {
 		if (_Code.isDirty()) {
@@ -95,10 +87,11 @@ let _Code = {
 		let allow = _Code.testAllowNavigation();
 		if (allow) {
 
+			document.removeEventListener('keydown', _Code.handleKeyDownEvent);
+
 			_Code.runCurrentEntitySaveAction = null;
 			_Editors.disposeAllEditors();
 
-			_Helpers.fastRemoveAllChildren(document.querySelector('.searchBox'));
 			_Helpers.fastRemoveAllChildren(document.querySelector('#code-main'));
 		}
 
@@ -113,24 +106,10 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule();
 
-			let codeSearchInput = document.querySelector('#tree-search-input');
-			_Code.inSearchBox = false;
-			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
-			codeSearchInput.addEventListener('blur',  () => { _Code.inSearchBox = false; });
-			codeSearchInput.addEventListener('input', _Helpers.debounce(_Code.doSearch, 300));
+			document.addEventListener('keydown', _Code.handleKeyDownEvent);
 
-			$('#tree-forward-button').on('click', _Code.pathLocationForward);
-			$('#tree-back-button').on('click', _Code.pathLocationBackward);
-			$('.clearSearchIcon').on('click', _Code.cancelSearch);
-
-			$(window).on('keydown.search', function(e) {
-				if (_Code.searchIsActive()) {
-					if (e.key === 'Escape') {
-						_Code.cancelSearch();
-					}
-				};
-			});
-
+			_Code.pathLocations.init();
+			_Code.search.init();
 			_Code.init();
 
 			_Code.codeMain     = $('#code-main');
@@ -148,7 +127,7 @@ let _Code = {
 			_Code.codeTree.on('select_node.jstree', _Code.handleTreeClick);
 			_Code.codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-			_Code.loadRecentlyUsedElements(() => {
+			_Code.recentElements.loadRecentlyUsedElements(() => {
 				_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
@@ -217,6 +196,12 @@ let _Code = {
 					if (!_Dialogs.custom.isDialogOpen()) {
 						runButton.click();
 					}
+				}
+			}
+
+			if (_Code.search.searchIsActive()) {
+				if (e.key === 'Escape') {
+					_Code.search.cancelSearch();
 				}
 			}
 		}
@@ -527,80 +512,6 @@ let _Code = {
 			});
 		}
 	},
-	loadRecentlyUsedElements: (doneCallback) => {
-
-		let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-
-		for (let element of recentElements) {
-
-			let nameIsUndefined = !element.name;
-			let notSvgIcon      = !element.iconSvg;
-
-			if (!nameIsUndefined && !notSvgIcon) {
-				_Code.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
-			}
-		}
-
-		doneCallback();
-	},
-	addRecentlyUsedEntity: (entity, path, fromStorage) => {
-
-		let name      = _Code.getDisplayNameInRecentsForType(entity);
-		let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
-		let localPath = path;
-
-		// don't add search results to recently used elements (we cannot construct the path)
-		if (localPath.indexOf('root/searchresults/') !== 0) {
-			_Code.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
-		}
-	},
-	addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
-
-		if (!fromStorage) {
-
-			let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-			let updatedList    = recentElements.filter((recentElement) => { return (recentElement.id !== id); });
-			updatedList.unshift({ id: id, name: name, iconSvg: iconSvg, path: path });
-
-			// keep list at length 10
-			while (updatedList.length > 10) {
-
-				let toRemove = updatedList.pop();
-				$('#recently-used-' + toRemove.id).remove();
-			}
-
-			$('#recently-used-' + id).remove();
-
-			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
-		}
-
-		let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
-
-		if (fromStorage) {
-			_Code.codeContext.append(recentlyUsedButton);
-		} else {
-			_Code.codeContext.prepend(recentlyUsedButton);
-		}
-
-		recentlyUsedButton.on('click.recently-used', () => {
-			_Code.findAndOpenNode(path, true);
-		});
-		$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
-			e.stopPropagation();
-			_Code.deleteRecentlyUsedElement(id);
-		});
-	},
-	deleteRecentlyUsedElement: (recentlyUsedElementId) => {
-
-		let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-
-		let filteredRecentElements = recentElements.filter((recentElement) => {
-			return (recentElement.id !== recentlyUsedElementId);
-		});
-		$('#recently-used-' + recentlyUsedElementId).remove();
-
-		LSWrapper.setItem(_Code.codeRecentElementsKey, filteredRecentElements);
-	},
 	refreshTree: () => {
 		_TreeHelper.refreshTree(_Code.codeTree);
 	},
@@ -701,7 +612,7 @@ let _Code = {
 				}
 			];
 
-			if (_Code.searchIsActive()) {
+			if (_Code.search.searchIsActive()) {
 
 				defaultEntries.unshift({
 					id:       path + '/searchresults',
@@ -1109,7 +1020,7 @@ let _Code = {
 	},
 	showSwaggerUI: (data) => {
 
-		_Code.updatePathLocationStack(data.path);
+		_Code.pathLocations.updatePathLocationStack(data.path);
 		_Code.lastClickedPath = data.path;
 
 		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
@@ -1143,6 +1054,7 @@ let _Code = {
 		Command.get(data.id, null, entity => {
 
 			let mapFn = (rel, out) => {
+
 				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 				return {
@@ -1180,32 +1092,6 @@ let _Code = {
 		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 
 		_Code.runCurrentEntitySaveAction = null;
-	},
-	getDisplayNameInRecentsForType: (entity) => {
-
-		let displayName = entity.name;
-
-		switch (entity.type) {
-			case 'SchemaNode':
-				displayName = 'Type ' + entity.name;
-				break;
-
-			case 'SchemaMethod':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					displayName = entity.schemaNode.name + '.' + entity.name + '()';
-				} else {
-					displayName = entity.name + '()';
-				}
-				break;
-
-			case 'SchemaProperty':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					displayName = entity.schemaNode.name + '.' + entity.name;
-				}
-				break;
-		}
-
-		return displayName;
 	},
 	hasVisibleChildren: (id, entity) => {
 
@@ -1362,7 +1248,7 @@ let _Code = {
 
 			let entity = json.result;
 
-			_Code.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
@@ -1372,7 +1258,7 @@ let _Code = {
 
 			// remove bulk edit save/discard buttons
 			for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-				button.remove();
+				_Helpers.fastRemoveElement(button);
 			}
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -1433,7 +1319,7 @@ let _Code = {
 
 					// remove bulk edit save/discard buttons
 					for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-						button.remove();
+						_Helpers.fastRemoveElement(button);
 					}
 
 					_Code.runCurrentEntitySaveAction = () => {
@@ -1485,7 +1371,7 @@ let _Code = {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
@@ -1566,7 +1452,7 @@ let _Code = {
 
 				let parameterTplRow = $('.template', apiTab);
 				let parameterContainer = parameterTplRow.parent();
-				parameterTplRow.remove();
+				_Helpers.fastRemoveElement(parameterTplRow[0]);
 
 				let addParameterRow = (parameter) => {
 
@@ -1597,7 +1483,7 @@ let _Code = {
 					parameterContainer.append(clone);
 
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						clone.remove();
+						_Helpers.fastRemoveElement(clone);
 
 						_Code.updateDirtyFlag(result);
 					});
@@ -1822,7 +1708,7 @@ let _Code = {
 
 		_WorkingSets.getWorkingSet(data.id, function(workingSet) {
 
-			_Code.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
@@ -1995,7 +1881,7 @@ let _Code = {
 	displayPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2023,7 +1909,7 @@ let _Code = {
 	displayRemotePropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2045,7 +1931,7 @@ let _Code = {
 	displayViewsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2064,11 +1950,11 @@ let _Code = {
 	displayGlobalMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
+		_Code.recentElements.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
@@ -2086,7 +1972,7 @@ let _Code = {
 	displayMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2106,7 +1992,7 @@ let _Code = {
 	displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2120,7 +2006,7 @@ let _Code = {
 
 		Command.get(data.id, null, (result) => {
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			if (result.propertyType) {
 
@@ -2159,7 +2045,7 @@ let _Code = {
 
 		Command.get(data.id, null, (result) => {
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
 			_Code.displayDefaultViewOptions(result, undefined, data);
@@ -2290,13 +2176,13 @@ let _Code = {
 		};
 
 		if (property.propertyType !== 'Function') {
-			$('#property-type-hint-input').parent().remove();
+			_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
 		} else {
 			$('#property-type-hint-input').val(property.typeHint || 'null');
 		}
 
 		if (property.propertyType === 'Cypher') {
-			$('#property-format-input').parent().remove();
+			_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
 		}
 
 		$('select', buttons).on('change', changeHandler);
@@ -2304,7 +2190,7 @@ let _Code = {
 		$('input[type=text]', buttons).on('keyup', changeHandler);
 
 		if (property.schemaNode.isBuiltinType) {
-			$('button#delete-property-button').parent().remove();
+			_Helpers.fastRemoveElement($('button#delete-property-button').parent()[0]);
 		} else {
 			$('button#delete-property-button').on('click', function() {
 				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
@@ -2428,10 +2314,6 @@ let _Code = {
 			}).on('change', changeFn).select2Sortable(changeFn);
 		});
 	},
-	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
-
-
-	},
 	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
 
 		let button     = _Helpers.createSingleDOMElementFromHTML(_Code.templates.actionButton({ iconSvg: iconSvg, suffix: suffix, name: name }));
@@ -2444,20 +2326,6 @@ let _Code = {
 	},
 	getEditorModeForContent: (content) => {
 		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
-	},
-	updateRecentlyUsed: (entity, path, updateLocationStack) => {
-
-		_Code.addRecentlyUsedEntity(entity, path);
-
-		// add recently used types to corresponding working set
-		if (entity.type === 'SchemaNode') {
-			_WorkingSets.addRecentlyUsed(entity.name);
-		}
-
-		if (updateLocationStack) {
-			_Code.updatePathLocationStack(path);
-			_Code.lastClickedPath = path;
-		}
 	},
 	findAndOpenNode: (path, updateLocationStack) => {
 		let tree = $('#code-tree').jstree(true);
@@ -2504,7 +2372,7 @@ let _Code = {
 					}
 				}
 
-				if (_Code.searchIsActive()) {
+				if (_Code.search.searchIsActive()) {
 					tree.element[0].scrollTo(0,0);
 				}
 			}
@@ -2522,120 +2390,6 @@ let _Code = {
 	},
 	hideSchemaRecompileMessage:  () => {
 		_Dialogs.loadingMessage.hide('code-compilation-message');
-	},
-	updatePathLocationStack: (path) => {
-
-		let pos = _Code.pathLocationStack.indexOf(path);
-		if (pos >= 0) {
-
-			_Code.pathLocationStack.splice(pos, 1);
-		}
-
-		// remove tail of stack when click history branches
-		if (_Code.pathLocationIndex !== _Code.pathLocationStack.length - 1) {
-
-			_Code.pathLocationStack.splice(_Code.pathLocationIndex + 1, _Code.pathLocationStack.length - _Code.pathLocationIndex);
-		}
-
-		// add element to the end of the stack
-		_Code.pathLocationStack.push(path);
-		_Code.pathLocationIndex = _Code.pathLocationStack.length - 1;
-
-		_Code.updatePathLocationButtons();
-	},
-	pathLocationForward: () => {
-
-		_Code.pathLocationIndex += 1;
-		let pos = _Code.pathLocationIndex;
-
-		_Code.updatePathLocationButtons();
-
-		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
-
-			let path = _Code.pathLocationStack[pos];
-			_Code.findAndOpenNode(path, false);
-
-		} else {
-			_Code.pathLocationIndex -= 1;
-		}
-
-		_Code.updatePathLocationButtons();
-	},
-	pathLocationBackward: () => {
-
-		_Code.pathLocationIndex -= 1;
-		let pos = _Code.pathLocationIndex;
-
-		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
-
-			let path = _Code.pathLocationStack[pos];
-			_Code.findAndOpenNode(path, false);
-
-		} else {
-
-			_Code.pathLocationIndex += 1;
-		}
-
-		_Code.updatePathLocationButtons();
-	},
-	updatePathLocationButtons: () => {
-
-		let stackSize       = _Code.pathLocationStack.length;
-		let forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
-		let backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
-
-		let forwardButton = document.querySelector('#tree-forward-button');
-		if (forwardButton) {
-			forwardButton.disabled = forwardDisabled;
-
-			if (forwardDisabled) {
-				forwardButton.classList.add('icon-lightgrey');
-			} else {
-				forwardButton.classList.remove('icon-lightgrey');
-			}
-		}
-
-		let backButton = document.querySelector('#tree-back-button');
-		if (backButton) {
-			backButton.disabled = backDisabled;
-
-			if (backDisabled) {
-				backButton.classList.add('icon-lightgrey');
-			} else {
-				backButton.classList.remove('icon-lightgrey');
-			}
-		}
-	},
-	doSearch: () => {
-
-		let tree      = $('#code-tree').jstree(true);
-		let input     = $('#tree-search-input');
-		let text      = input.val();
-		let threshold = _Code.searchThreshold;
-
-		let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
-
-		if (text.length >= threshold) {
-			clearSearchIcon.classList.add('block');
-		} else {
-			clearSearchIcon.classList.remove('block');
-		}
-
-		if (text.length >= threshold || (_Code.searchTextLength >= threshold && text.length <= _Code.searchTextLength)) {
-			tree.refresh();
-		}
-
-		_Code.searchTextLength = text.length;
-	},
-	searchIsActive: () => {
-
-		let text = $('#tree-search-input').val();
-		return (text && text.length >= _Code.searchThreshold);
-	},
-	cancelSearch: () => {
-
-		$('#tree-search-input').val('');
-		_Code.doSearch();
 	},
 	activateLastClicked: () => {
 
@@ -2802,6 +2556,257 @@ let _Code = {
 			let escapedId = id.replaceAll('/', '\\/');
 			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
+	},
+	search: {
+		searchThreshold: 3,
+		searchTextLength: 0,
+		getSearchInputElement: () => {
+			return document.querySelector('#tree-search-input');
+		},
+		init: () => {
+
+			let codeSearchInput = _Code.search.getSearchInputElement();
+
+			codeSearchInput.addEventListener('input', _Helpers.debounce(_Code.search.doSearch, 300));
+			$('.clearSearchIcon').on('click', _Code.search.cancelSearch);
+		},
+		doSearch: () => {
+
+			let tree = $('#code-tree').jstree(true);
+			let text = _Code.search.getSearchInputElement().value;
+
+			let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
+
+			if (text.length >= _Code.search.searchThreshold) {
+				clearSearchIcon.classList.add('block');
+			} else {
+				clearSearchIcon.classList.remove('block');
+			}
+
+			if (text.length >= _Code.search.searchThreshold || (_Code.search.searchTextLength >= _Code.search.searchThreshold && text.length <= _Code.search.searchTextLength)) {
+				tree.refresh();
+			}
+
+			_Code.search.searchTextLength = text.length;
+		},
+		inSearchBox: () => {
+			return document.activeElement === _Code.search.getSearchInputElement();
+		},
+		searchIsActive: () => {
+
+			let text = _Code.search.getSearchInputElement().value;
+			return (text && text.length >= _Code.search.searchThreshold);
+		},
+		cancelSearch: () => {
+
+			_Code.search.getSearchInputElement().value = '';
+			_Code.search.doSearch();
+		},
+	},
+	recentElements: {
+		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
+		loadRecentlyUsedElements: (doneCallback) => {
+
+			let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+
+			for (let element of recentElements) {
+
+				let nameIsUndefined = !element.name;
+				let notSvgIcon      = !element.iconSvg;
+
+				if (!nameIsUndefined && !notSvgIcon) {
+					_Code.recentElements.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
+				}
+			}
+
+			doneCallback();
+		},
+		addRecentlyUsedEntity: (entity, path, fromStorage) => {
+
+			let name      = _Code.recentElements.getDisplayNameInRecentsForType(entity);
+			let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
+			let localPath = path;
+
+			// don't add search results to recently used elements (we cannot construct the path)
+			if (localPath.indexOf('root/searchresults/') !== 0) {
+				_Code.recentElements.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
+			}
+		},
+		addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
+
+			if (!fromStorage) {
+
+				let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+				let updatedList    = recentElements.filter((recentElement) => (recentElement.id !== id));
+				updatedList.unshift({ id: id, name: name, iconSvg: iconSvg, path: path });
+
+				// keep list at length 10
+				while (updatedList.length > 10) {
+
+					let toRemove = updatedList.pop();
+					_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + toRemove.id));
+				}
+
+				_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + id));
+
+				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
+			}
+
+			let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
+
+			if (fromStorage) {
+				_Code.codeContext.append(recentlyUsedButton);
+			} else {
+				_Code.codeContext.prepend(recentlyUsedButton);
+			}
+
+			recentlyUsedButton.on('click.recently-used', () => {
+				_Code.findAndOpenNode(path, true);
+			});
+
+			$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
+				e.stopPropagation();
+				_Code.recentElements.deleteRecentlyUsedElement(id);
+			});
+		},
+		deleteRecentlyUsedElement: (recentlyUsedElementId) => {
+
+			let recentElements         = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+			let filteredRecentElements = recentElements.filter((recentElement) => (recentElement.id !== recentlyUsedElementId));
+
+			_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + recentlyUsedElementId));
+
+			LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, filteredRecentElements);
+		},
+		updateRecentlyUsed: (entity, path, updateLocationStack) => {
+
+			_Code.recentElements.addRecentlyUsedEntity(entity, path);
+
+			// add recently used types to corresponding working set
+			if (entity.type === 'SchemaNode') {
+				_WorkingSets.addRecentlyUsed(entity.name);
+			}
+
+			if (updateLocationStack) {
+				_Code.pathLocations.updatePathLocationStack(path);
+				_Code.lastClickedPath = path;
+			}
+		},
+		getDisplayNameInRecentsForType: (entity) => {
+
+			let displayName = entity.name;
+
+			switch (entity.type) {
+				case 'SchemaNode':
+					displayName = `Type ${entity.name}`;
+					break;
+
+				case 'SchemaMethod':
+					if (entity.schemaNode && entity.schemaNode.name) {
+						displayName = `${entity.schemaNode.name}.${entity.name}()`;
+					} else {
+						displayName = `${entity.name}()`;
+					}
+					break;
+
+				case 'SchemaProperty':
+					if (entity.schemaNode && entity.schemaNode.name) {
+						displayName = `${entity.schemaNode.name}.${entity.name}`;
+					}
+					break;
+			}
+
+			return displayName;
+		},
+	},
+	pathLocations: {
+		stack: [],
+		currentIndex: 0,
+		init: () => {
+			_Code.pathLocations.getForwardButton().addEventListener('click', _Code.pathLocations.goForward);
+			_Code.pathLocations.getBackwardButton().addEventListener('click', _Code.pathLocations.goBackward);
+		},
+		getForwardButton: () => document.querySelector('#tree-forward-button'),
+		getBackwardButton: () => document.querySelector('#tree-back-button'),
+		updatePathLocationStack: (path) => {
+
+			let pos = _Code.pathLocations.stack.indexOf(path);
+			if (pos >= 0) {
+
+				_Code.pathLocations.stack.splice(pos, 1);
+			}
+
+			// remove tail of stack when click history branches
+			if (_Code.pathLocations.currentIndex !== _Code.pathLocations.stack.length - 1) {
+
+				_Code.pathLocations.stack.splice(_Code.pathLocations.currentIndex + 1, _Code.pathLocations.stack.length - _Code.pathLocations.currentIndex);
+			}
+
+			// add element to the end of the stack
+			_Code.pathLocations.stack.push(path);
+			_Code.pathLocations.currentIndex = _Code.pathLocations.stack.length - 1;
+
+			_Code.pathLocations.updateButtons();
+		},
+		goForward: () => {
+
+			_Code.pathLocations.currentIndex += 1;
+			let pos = _Code.pathLocations.currentIndex;
+
+			_Code.pathLocations.updateButtons();
+
+			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
+
+				let path = _Code.pathLocations.stack[pos];
+				_Code.findAndOpenNode(path, false);
+
+			} else {
+				_Code.pathLocations.currentIndex -= 1;
+			}
+
+			_Code.pathLocations.updateButtons();
+		},
+		goBackward: () => {
+
+			_Code.pathLocations.currentIndex -= 1;
+			let pos = _Code.pathLocations.currentIndex;
+
+			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
+
+				let path = _Code.pathLocations.stack[pos];
+				_Code.findAndOpenNode(path, false);
+
+			} else {
+
+				_Code.pathLocations.currentIndex += 1;
+			}
+
+			_Code.pathLocations.updateButtons();
+		},
+		updateButtons: () => {
+
+			let stackSize       = _Code.pathLocations.stack.length;
+			let forwardDisabled = stackSize <= 1 || _Code.pathLocations.currentIndex >= stackSize - 1;
+			let backDisabled    = stackSize <= 1 || _Code.pathLocations.currentIndex <= 0;
+
+			let forwardButton = _Code.pathLocations.getForwardButton();
+			forwardButton.disabled = forwardDisabled;
+
+			if (forwardDisabled) {
+				forwardButton.classList.add('icon-lightgrey');
+			} else {
+				forwardButton.classList.remove('icon-lightgrey');
+			}
+
+			let backButton = _Code.pathLocations.getBackwardButton();
+			backButton.disabled = backDisabled;
+
+			if (backDisabled) {
+				backButton.classList.add('icon-lightgrey');
+			} else {
+				backButton.classList.remove('icon-lightgrey');
+			}
+		},
 	},
 	templates: {
 		main: config => `
