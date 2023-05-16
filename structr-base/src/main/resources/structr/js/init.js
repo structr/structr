@@ -1996,7 +1996,7 @@ let Structr = {
 
 						<div class="self-center">
 							<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
-							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full p-1 box-border">
+							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full box-border">
 						</div>
 
 						<div id="self-center" class="col-span-2 mt-2 text-right">

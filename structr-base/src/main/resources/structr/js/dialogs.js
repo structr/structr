@@ -442,9 +442,9 @@ let _Dialogs = {
 						if (_Dialogs.custom.getMaximizeDialogButton()) _Dialogs.custom.getMaximizeDialogButton().style.display = 'block';
 					}
 				}
-
-				_Dialogs.basic.centerAll();
 			}
+
+			_Dialogs.basic.centerAll();
 		},
 		openDialog: (dialogTitleText = '', callbackCancel, customClasses = []) => {
 
