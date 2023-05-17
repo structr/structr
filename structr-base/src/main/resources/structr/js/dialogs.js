@@ -197,7 +197,7 @@ let _Dialogs = {
 				width: ''
 			});
 
-			document.querySelector('#usernameField').focus();
+			document.querySelector('#passwordField').focus();
 
 			_Dialogs.basic.centerAll();
 		}
