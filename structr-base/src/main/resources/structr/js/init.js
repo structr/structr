@@ -2342,7 +2342,7 @@ class MessageBuilder {
 					this.params.uniqueCount++;
 
 					existingMessage.dataset['uniqueCount'] = this.params.uniqueCount;
-					existingMessage.querySelector('b.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
+					existingMessage.querySelector('span.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
 				}
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
@@ -2455,7 +2455,7 @@ class MessageBuilder {
 	};
 
 	getUniqueCountElement() {
-		return `<b class="uniqueCount m-0">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</b>`;
+		return `<span class="uniqueCount ml-1">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 };
 
