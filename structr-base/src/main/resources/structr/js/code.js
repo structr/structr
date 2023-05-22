@@ -2238,28 +2238,33 @@ let _Code = {
 		let buttons = $('#view-buttons');
 		buttons.prepend(_Code.templates.viewOptions({ view: view }));
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+		if (_Schema.views.isViewEditable(view)) {
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-			_Code.revertFormData(view);
-			Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-				let select = document.querySelector('#view-properties .property-attrs');
-				for (let prop of data) {
-					let option = select.querySelector(`option[value="${prop.name}"]`);
-					if (option) {
-						option.selected = prop.isSelected;
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.revertFormData(view);
+				Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+
+					let select = document.querySelector('#view-properties .property-attrs');
+					for (let prop of data) {
+						let option = select.querySelector(`option[value="${prop.name}"]`);
+						if (option) {
+							option.selected = prop.isSelected;
+						}
 					}
-				}
 
-				select.dispatchEvent(new CustomEvent('change'));
+					select.dispatchEvent(new CustomEvent('change'));
+				});
 			});
-		});
+		}
 
-		// delete button
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-			_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
-		});
+		if (_Schema.views.isDeleteViewAllowed(view)) {
+
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
+				_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
+			});
+		}
 
 		_Code.updateDirtyFlag(view);
 
@@ -2277,7 +2282,9 @@ let _Code = {
 
 		Command.listSchemaProperties(view.schemaNode.id, view.name, (properties) => {
 
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = document.querySelector('#view-properties .property-attrs');
+			viewSelectElem.disabled = !viewIsEditable;
 
 			if (view.sortOrder) {
 
@@ -2298,20 +2305,25 @@ let _Code = {
 				_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 			}
 
-			let changeFn = () => {
-				let sortedAttrs = $(viewSelectElem).sortedValues();
-				$('input#view-sort-order').val(sortedAttrs.join(','));
-				_Code.updateDirtyFlag(view);
-			};
-
-			$(viewSelectElem).select2({
+			let viewSelect2 = $(viewSelectElem).select2({
 				search_contains: true,
 				width: '100%',
 				dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			}).on('change', changeFn).select2Sortable(changeFn);
+			})
+
+			if (viewIsEditable) {
+
+				let changeFn = () => {
+					let sortedAttrs = $(viewSelectElem).sortedValues();
+					$('input#view-sort-order').val(sortedAttrs.join(','));
+					_Code.updateDirtyFlag(view);
+				};
+
+				viewSelect2.on('change', changeFn).select2Sortable(changeFn);
+			}
 		});
 	},
 	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
@@ -3208,7 +3220,7 @@ let _Code = {
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Name</label>
-						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" />
+						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" ${_Schema.views.isViewNameChangeForbidden(config.view) === true ? 'disabled' : ''}>
 					</div>
 				</div>
 
@@ -3219,7 +3231,7 @@ let _Code = {
 					<input type="text" id="view-sort-order" class="hidden" data-property="sortOrder" value="${config.view.sortOrder || ''}">
 					<div id="view-properties">
 						<div class="view-properties-select">
-							${_Schema.templates.viewPropertiesSelect(config)}
+							<select class="property-attrs view" multiple="multiple"></select>
 						</div>
 					</div>
 				</div>
