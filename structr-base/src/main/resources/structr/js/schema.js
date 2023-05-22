@@ -2850,6 +2850,19 @@ let _Schema = {
 			],
 			addButtonText: 'Add view'
 		},
+		protectedViewsList: ['all', 'ui', 'custom'],
+		isViewEditable: (view) => {
+			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
+		},
+		isDeleteViewAllowed: (view) => {
+			return (view.isBuiltinView === false && _Schema.views.protectedViewsList.includes(view.name) === false);
+		},
+		isViewNameChangeForbidden: (view) => {
+			return (view.isBuiltinView === true || _Schema.views.protectedViewsList.includes(view.name) === true);
+		},
+		isViewPropertiesChangeForbidden: (view) => {
+			return _Schema.views.protectedViewsList.includes(view.name);
+		},
 		appendViews: (container, entity, optionalAfterSaveCallback) => {
 
 			let viewsTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(_Schema.views.viewsTableConfig));
@@ -3063,18 +3076,6 @@ let _Schema = {
 				})
 				removeAction.disabled = false;
 			}
-		},
-		isViewEditable: (view) => {
-			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
-		},
-		isDeleteViewAllowed: (view) => {
-			return (view.isBuiltinView !== true);
-		},
-		isViewNameChangeForbidden: (view) => {
-			return (view.isBuiltinView === true);
-		},
-		isViewPropertiesChangeForbidden: (view) => {
-			return (view.name === 'all' || view.name === 'ui' || view.name === 'custom');
 		},
 		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
 
