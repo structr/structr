@@ -488,25 +488,42 @@ let _Code = {
 				_Code.showSchemaRecompileMessage();
 			}
 
-			Command.setProperties(entity.id, formData, () => {
+			fetch(Structr.rootUrl + entity.id, {
+				method: 'PUT',
+				body: JSON.stringify(formData)
+			}).then(async response => {
 
-				_Code.addAvailableTagsForEntities([formData]);
+				if (response.ok) {
 
-				Object.assign(entity, formData);
-				_Code.updateDirtyFlag(entity);
+					_Code.addAvailableTagsForEntities([formData]);
 
-				if (formData.name) {
-					_Code.refreshTree();
-				}
+					Object.assign(entity, formData);
+					_Code.updateDirtyFlag(entity);
 
-				if (compileRequired) {
+					if (formData.name) {
+						_Code.refreshTree();
+					}
+
+					if (compileRequired) {
+						_Code.hideSchemaRecompileMessage();
+					}
+					_Code.showSaveAction(formData);
+
+					if (typeof callback === 'function') {
+						callback();
+					}
+
+				} else {
+
+					let data = await response.json();
+
+					Structr.errorFromResponse(data);
+
 					_Code.hideSchemaRecompileMessage();
 				}
-				_Code.showSaveAction(formData);
+			})
+			Command.setProperties(entity.id, formData, () => {
 
-				if (typeof callback === 'function') {
-					callback();
-				}
 			});
 		}
 	},
@@ -1461,23 +1478,6 @@ let _Code = {
 			});
 		});
 	},
-	resetMethodNameInput: (value) => {
-
-		const methodNameInputField = document.getElementById('method-name-input');
-		const methodNameSpan       = document.getElementById('method-name-output');
-
-		methodNameInputField.classList.add('hidden');
-		methodNameSpan.classList.remove('hidden');
-
-		if (value) {
-			methodNameSpan.innerText = methodNameInputField.value + '()';
-		} else {
-			methodNameInputField.value = methodNameSpan.innerText.replace('()', '');
-		}
-	},
-	updateMethodNameDisplay: () => {
-		_Code.resetMethodNameInput(document.getElementById('method-name-input')?.value);
-	},
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
@@ -1492,22 +1492,53 @@ let _Code = {
 
 			LSWrapper.setItem(_Code.codeLastOpenMethodKey, result.id);
 
-			let methodNameInput = document.getElementById('method-name-input');
-			methodNameInput.addEventListener('keyup', (e) => {
+			// method name input,etc
+			{
+				let methodNameOutputElement    = document.getElementById('method-name-output');
+				let methodNameInputElement     = document.getElementById('method-name-input');
+				let methodNameContainerElement = document.getElementById('method-name-container');
+				let currentMethodName          = result.name;
 
-				if (e.key === 'Escape') {
-					_Code.resetMethodNameInput();
-				} else if (e.key === 'Enter') {
-					_Code.updateMethodNameDisplay();
-				}
+				let setMethodNameInUI = (name) => {
 
-				_Code.updateDirtyFlag(result);
-			});
+					currentMethodName                 = name;
+					methodNameOutputElement.innerText = currentMethodName;
 
-			methodNameInput.addEventListener('blur', (e) => {
+					methodNameInputElement.classList.add('hidden');
+					methodNameContainerElement.classList.remove('hidden');
 
-				_Code.resetMethodNameInput();
-			});
+					_Editors.resizeVisibleEditors();
+					_Code.updateDirtyFlag(result);
+				};
+
+				methodNameInputElement.addEventListener('keyup', (e) => {
+
+					if (e.key === 'Escape') {
+						setMethodNameInUI(currentMethodName);
+					} else if (e.key === 'Enter') {
+						setMethodNameInUI(methodNameInputElement.value);
+					}
+
+					_Code.updateDirtyFlag(result);
+				});
+
+				methodNameInputElement.addEventListener('blur', (e) => {
+					methodNameInputElement.value = currentMethodName;
+					setMethodNameInUI(currentMethodName);
+				});
+
+				methodNameContainerElement.addEventListener('click', (e) => {
+
+					e.stopPropagation();
+					methodNameContainerElement.classList.add('hidden');
+
+					const methodNameInputField = methodNameInputElement;
+					methodNameInputField?.classList.remove('hidden');
+					methodNameInputField?.focus();
+
+					_Editors.resizeVisibleEditors();
+				});
+			}
 
 			// Source Editor
 			let sourceMonacoConfig = {
@@ -1701,15 +1732,6 @@ let _Code = {
 				$(`li[data-name="${tabName}"]`, _Code.codeContents).addClass('active');
 
 				window.setTimeout(() => { _Editors.resizeVisibleEditors(); }, 250);
-
-				document.getElementById('method-name-output').addEventListener('click', (e) => {
-					e.stopPropagation();
-					const el = e.target;
-					el.classList.add('hidden');
-					const methodNameInputField = document.getElementById('method-name-input');
-					methodNameInputField?.classList.remove('hidden');
-					methodNameInputField?.focus();
-				});
 			};
 
 			$('li[data-name]', _Code.codeContents).off('click').on('click', function(e) {
@@ -2305,7 +2327,7 @@ let _Code = {
 				Command.get(view.schemaNode.id, null, (reloadedEntity) => {
 
 					let formData                = _Code.collectChangedPropertyData(view);
-					let sortedAttrs             = $('.property-attrs.view').sortedVals();
+					let sortedAttrs             = $('.property-attrs.view').sortedValues();
 					formData.schemaProperties   = _Schema.views.findSchemaPropertiesByNodeAndName(reloadedEntity, sortedAttrs);
 					formData.nonGraphProperties = _Schema.views.findNonGraphProperties(reloadedEntity, sortedAttrs);
 
@@ -2344,7 +2366,7 @@ let _Code = {
 					}
 				}
 
-				select.dispatchEvent(new CustomEvent('chosen:updated'));
+				select.dispatchEvent(new CustomEvent('change'));
 			});
 		});
 
@@ -2391,18 +2413,19 @@ let _Code = {
 			}
 
 			let changeFn = () => {
-				let sortedAttrs = $(viewSelectElem).sortedVals();
+				let sortedAttrs = $(viewSelectElem).sortedValues();
 				$('input#view-sort-order').val(sortedAttrs.join(','));
 				_Code.updateDirtyFlag(view);
 			};
 
-			$(viewSelectElem).chosen({
+			$(viewSelectElem).select2({
 				search_contains: true,
 				width: '100%',
-				display_selected_options: false,
-				hide_results_on_select: false,
-				display_disabled_options: false
-			}).on('change', changeFn).chosenSortable(changeFn);
+				dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+				closeOnSelect: false,
+				scrollAfterSelect: false
+			}).on('change', changeFn).select2Sortable(changeFn);
 		});
 	},
 	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
@@ -2923,8 +2946,12 @@ let _Code = {
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
-			<h2><span id="method-name-output">${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '') + config.method.name}()</span>
-			<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}"></h2>
+			<h2>
+				<span id="method-name-container">
+					<span>${(config.method.schemaNode ? config.method.schemaNode.name + '.' : '')}</span><span id="method-name-output">${config.method.name}</span><span>()</span>
+				</span>
+				<input class="hidden font-bold text-lg " type="text" id="method-name-input" data-property="name" size="60" value="${config.method.name}" autocomplete="off">
+			</h2>
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>

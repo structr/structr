@@ -39,6 +39,7 @@ public class PredicateBinding implements ProxyObject {
 
 	private final Map<String, Function<Object, Object>> predicateBindings = Map.ofEntries(
 		Map.entry("within_distance", Functions.get("find.within_distance")),
+		Map.entry("withinDistance",  Functions.get("find.within_distance")),
 		Map.entry("sort",            Functions.get("find.sort")),
 		Map.entry("page",            Functions.get("find.page")),
 		Map.entry("not",             Functions.get("find.not")),
@@ -47,6 +48,10 @@ public class PredicateBinding implements ProxyObject {
 		Map.entry("or",              Functions.get("find.or")),
 		Map.entry("and",             Functions.get("find.and")),
 		Map.entry("contains",        Functions.get("find.contains")),
+		Map.entry("starts_with",     Functions.get("find.starts_with")),
+		Map.entry("ends_with",       Functions.get("find.ends_with")),
+		Map.entry("startsWith",      Functions.get("find.starts_with")),
+		Map.entry("endsWith",        Functions.get("find.ends_with")),
 		Map.entry("range",           Functions.get("find.range"))
 	);
 

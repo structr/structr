@@ -60,7 +60,9 @@ public abstract class ContextFactory {
 
 		// Generic options
 		engineBuilder
-				.allowExperimentalOptions(true);
+				.allowExperimentalOptions(true)
+				//.option("lsp", "true")
+				;
 
 		// Debugging
 		if (Settings.ScriptingDebugger.getValue(false)) {

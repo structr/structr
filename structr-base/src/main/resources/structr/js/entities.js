@@ -1590,7 +1590,6 @@ let _Entities = {
 	addPrincipal: (entity, principal, permissions, allowRecursive, container) => {
 
 		$(`#newPrincipal option[value="${principal.id}"]`, container).remove();
-		$('#newPrincipal', container).trigger('chosen:updated');
 
 		if ($(`#principals ._${principal.id}`, container).length > 0) {
 			return;
@@ -1622,7 +1621,6 @@ let _Entities = {
 				if (!$('input:checked', row).length) {
 
 					$('#newPrincipal', container).append(_Entities.templateForPrincipalOption(principal));
-					$('#newPrincipal', container).trigger('chosen:updated');
 
 					row.remove();
 				}
@@ -1775,7 +1773,7 @@ let _Entities = {
 			let typeIcon    = $(nodeContainer.children('.typeIcon').first());
 			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 
-			typeIcon.removeClass('typeIcon-nochildren').before(`<i class="expand_icon_svg ${icon}"></i>`);
+			typeIcon.removeClass(_Icons.typeIconClassNoChildren).before(`<i class="expand_icon_svg ${icon}"></i>`);
 
 			button = $(nodeContainer.children('.expand_icon_svg').first());
 
@@ -1797,7 +1795,7 @@ let _Entities = {
 			}
 
 		} else {
-			nodeContainer.children('.typeIcon').addClass('typeIcon-nochildren');
+			nodeContainer.children('.typeIcon').addClass(_Icons.typeIconClassNoChildren);
 		}
 
 		_Pages.registerDetailClickHandler($(nodeContainer), entity);
@@ -1813,7 +1811,7 @@ let _Entities = {
 		let expandIcon = $(el.children('.expand_icon_svg').first());
 		expandIcon.remove();
 
-		el.children('.typeIcon').addClass('typeIcon-nochildren');
+		el.children('.typeIcon').addClass(_Icons.typeIconClassNoChildren);
 	},
 	makeSelectable: (el) => {
 		let node = $(el).closest('.node');
