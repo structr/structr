@@ -393,7 +393,7 @@ let StructrModel = {
 
 				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
-					classIdAttrsEl.replaceWith(_Elements.classIdString(obj._html_id, obj._html_class));
+					classIdAttrsEl.replaceWith(_Elements.classIdString(obj));
 				}
 			}
 

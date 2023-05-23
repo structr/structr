@@ -2135,7 +2135,7 @@ let _Pages = {
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
 						<div class="node-selector"></div>
-						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity)}</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
 					<table>
