@@ -1049,7 +1049,9 @@ let _Pages = {
 				let basicContainer = document.querySelector('#center-pane .basic-container');
 
 				if (dialogConfig) {
-					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj);
+					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj).then(() => {
+						_Helpers.activateCommentsInElement(basicContainer);
+					});
 				}
 
 				break;
@@ -2488,11 +2490,10 @@ let _Pages = {
 
 				if (child.nodeType === 8) {
 					let id = _Helpers.extractVal(child.nodeValue, 'data-structr-id');
-					console.log(id);
 
 					if (id) {
 						let raw = _Helpers.extractVal(child.nodeValue, 'data-structr-raw-value');
-console.log(raw)
+
 						if (raw !== undefined) {
 							comments.push({
 								id: id,
