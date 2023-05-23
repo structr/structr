@@ -3125,7 +3125,7 @@ i.fa-sitemap {
 
 .column-resizer-blocker {
 	display: none;
-	z-index: 2;
+	z-index: 4;
 	position: absolute;
 	top: 0;
 	left: 0;
