@@ -46,6 +46,7 @@ let _Pages = {
 	paletteSlideout: undefined,
 	componentsSlideout: undefined,
 	unusedElementsSlideout: undefined,
+	previewSlideout: undefined,
 
 	components: undefined,
 	unusedElementsTree: undefined,
@@ -102,6 +103,7 @@ let _Pages = {
 		_Pages.componentsSlideout      = $('#components');
 		_Pages.unusedElementsSlideout  = $('#elements');
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
+		_Pages.previewSlideout         = $('#previewSlideout');
 
 		let pagesTab = document.getElementById('pagesTab');
 		let pagesTabSlideoutAction = (e) => {
@@ -149,7 +151,7 @@ let _Pages = {
 
 		let widgetsTab = document.getElementById('widgetsTab');
 		widgetsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
 				_Widgets.reloadWidgets();
 				Structr.resize();
@@ -158,7 +160,7 @@ let _Pages = {
 
 		let paletteTab = document.getElementById('paletteTab');
 		paletteTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
 				_Pages.designTools.reload();
 				Structr.resize();
@@ -167,7 +169,7 @@ let _Pages = {
 
 		let componentsTab = document.getElementById('componentsTab');
 		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				_Pages.sharedComponents.reload(isDragOpen);
 				Structr.resize();
@@ -190,12 +192,23 @@ let _Pages = {
 
 		let elementsTab = document.getElementById('elementsTab');
 		elementsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
 				_Pages.unattachedNodes.reload();
 				Structr.resize();
 			}, () => {
 				_Pages.unattachedNodes.removeElementsFromUI();
+				_Pages.rightSlideoutClosedCallback();
+			});
+		});
+
+		let previewTab = document.getElementById('previewTab');
+		previewTab.addEventListener('click', () => {
+			Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
+				_Pages.previews.updatePreviewSlideout();
+				Structr.resize();
+			}, () => {
 				_Pages.rightSlideoutClosedCallback();
 			});
 		});
@@ -2615,7 +2628,9 @@ console.log(raw)
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-		showPreviewInIframe: (pageId, highlightElementId) => {
+		showPreviewInIframe: (pageId, highlightElementId, parentElement) => {
+
+			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
 
 			if (pageId) {
 
@@ -2628,9 +2643,9 @@ console.log(raw)
 
 					Command.get(pageId, 'id,name,path,site', (pageObj) => {
 
-						_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
+						parentElement.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
-						let iframe = _Pages.centerPane.querySelector('iframe');
+						let iframe = parentElement.querySelector('iframe');
 
 						if (highlightElementId) {
 							_Entities.highlightElement(Structr.node(highlightElementId));
@@ -2685,6 +2700,23 @@ console.log(raw)
 
 			if (_Pages.previews.isPreviewForActiveForPage(pageId)) {
 				_Pages.previews.reloadPreviewInIframe();
+			}
+
+			if (_Pages.previewSlideout.hasClass('open')) {
+				_Pages.previews.updatePreviewSlideout();
+			}
+
+		},
+		updatePreviewSlideout: () => {
+			_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
+			let pageId = _Pages.previews.activePreviewPageId, elementId = _Pages.centerPane.dataset['elementId'];
+			if (pageId) {
+				_Pages.previews.showPreviewInIframe(pageId, _Pages.previews.activePreviewHighlightElementId, _Pages.previewSlideout);
+			} else if (elementId) {
+				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
+					pageId = entity.isPage ? entity.id : entity.pageId;
+					_Pages.previews.showPreviewInIframe(pageId, elementId, _Pages.previewSlideout);
+				});
 			}
 		},
 		configurePreview: (entity, container) => {
@@ -3549,6 +3581,33 @@ console.log(raw)
 
 			<div id="elements" class="slideOut slideOutRight">
 				<div id="elementsArea"></div>
+			</div>
+
+			<div class="slideout-activator right" id="previewTab">
+				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
+					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
+						<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
+						<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
+					</g>
+				</svg>
+				<br>
+				Preview
+			</div>
+
+			<div id="previewSlideout" class="slideOut slideOutRight">
 			</div>
 		`,
 		functions: config => `

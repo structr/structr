@@ -634,6 +634,9 @@ img.disabled {
 #elementsTab {
 	top: 22rem;
 }
+#previewTab {
+	top: 28rem;
+}
 
 
 /*
@@ -642,7 +645,8 @@ img.disabled {
 #widgetsTab,
 #paletteTab,
 #componentsTab,
-#elementsTab {
+#elementsTab,
+#previewTab {
 	right: 0;
 }
 

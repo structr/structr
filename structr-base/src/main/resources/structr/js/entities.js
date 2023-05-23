@@ -3083,7 +3083,7 @@ let _Entities = {
 					<div class="grid grid-cols-2 gap-8">
 
 						<div>
-							<label class="block mb-3" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
+							<label class="block mb-2" for="rendering-mode-select" data-comment="Select update mode for this element to activate lazy or periodic loading.">Load/Update Mode</label>
 							<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
 								<option value="">Eager (default)</option>
 								<option value="load">When page has finished loading</option>
