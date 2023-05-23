@@ -965,6 +965,10 @@ let _Pages = {
 
 		_Pages.centerPane.dataset['elementId'] = obj.id;
 
+		if (_Pages.previewSlideout.hasClass('open')) {
+			_Pages.previews.updatePreviewSlideout();
+		}
+
 		if (UISettings.getValueForSetting(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
@@ -1868,7 +1872,7 @@ let _Pages = {
 
 				if (actionMappingObject.event === 'none') {
 
-					console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
+					//console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
 						updateEventMappingInterface(entity, actionMappingObject);
@@ -1876,7 +1880,7 @@ let _Pages = {
 
 				} else {
 
-					console.log('ActionMapping object already exists, updating...', actionMappingObject);
+					//console.log('ActionMapping object already exists, updating...', actionMappingObject);
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
 						updateEventMappingInterface(entity, actionMappingObject);
@@ -1887,7 +1891,7 @@ let _Pages = {
 
 				actionMappingObject.triggerElements = [ entity.id ];
 
-				console.log('No ActionMapping object exists, create one and update data...');
+				//console.log('No ActionMapping object exists, create one and update data...');
 				Command.create(actionMappingObject, (actionMapping) => {
 					//console.log('Successfully created new ActionMapping object:', actionMapping);
 					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
@@ -2678,7 +2682,11 @@ let _Pages = {
 					window.clearTimeout(_Pages.previews.loadPreviewTimer);
 				}
 
-				_Pages.previews.loadPreviewTimer = window.setTimeout(innerFn, 100);
+				if (parentElement) {
+					innerFn();
+				} else {
+					_Pages.previews.loadPreviewTimer = window.setTimeout(innerFn, 100);
+				}
 			}
 		},
 		showPreviewInIframeIfVisible: (pageId, highlightElementId) => {
@@ -2709,16 +2717,11 @@ let _Pages = {
 
 		},
 		updatePreviewSlideout: () => {
-			_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
-			let pageId = _Pages.previews.activePreviewPageId, elementId = _Pages.centerPane.dataset['elementId'];
-			if (pageId) {
-				_Pages.previews.showPreviewInIframe(pageId, _Pages.previews.activePreviewHighlightElementId, _Pages.previewSlideout);
-			} else if (elementId) {
-				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
-					pageId = entity.isPage ? entity.id : entity.pageId;
-					_Pages.previews.showPreviewInIframe(pageId, elementId, _Pages.previewSlideout);
-				});
-			}
+			let elementId = _Pages.centerPane.dataset['elementId'];
+			Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
+				_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
+				_Pages.previews.showPreviewInIframe(entity.isPage ? entity.id : entity.pageId, elementId, _Pages.previewSlideout);
+			});
 		},
 		configurePreview: (entity, container) => {
 
@@ -2867,7 +2870,7 @@ let _Pages = {
 			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
 
 				Command.importPageAsTemplate(urlInput.value, pageNameInput.value, pageTemplateNameInput.value, (newPage) => {
-					console.log('Page imported as template', newPage);
+					//console.log('Page imported as template', newPage);
 
 					//Command.setProperty(newPage.children[0].id)
 
@@ -2935,8 +2938,8 @@ let _Pages = {
 							let templateTmpEl       = templateTmpDoc.createElement('html');
 							templateTmpEl.innerHTML = templateContent;
 
-							console.log(parentTemplateContent);
-							console.log(templateContent);
+							//console.log(parentTemplateContent);
+							//console.log(templateContent);
 
 							// TODO: Bei der Suche in Child-Elementen muss der relative Pfad berücksichtigt werden.
 							// Das Matching muss von der Stelle aus gemacht werden, wo das ${include_child()} im Parent-Template steht.
@@ -2956,7 +2959,7 @@ let _Pages = {
 
 								selectedEl.outerHTML = '${include_child(\'' + newChildTemplateName + '\')}';
 
-								console.log('Match!');
+								//console.log('Match!');
 
 								// If it matches, replace by ${include_child(...)} expression
 
@@ -2979,7 +2982,7 @@ let _Pages = {
 								});
 
 							} else {
-								console.log('No match, step down to', template);
+								//console.log('No match, step down to', template);
 								createChildTemplates(template, templateContent);
 							}
 						});
