@@ -410,6 +410,90 @@ public class UiScriptingTest extends StructrUiTest {
 	}
 
 	@Test
+	public void testSpecialHeaderPropertiesWithUnallowedProperty() {
+
+		String uuid = null;
+
+		// schema setup
+		try (final Tx tx = app.tx()) {
+
+			// create list of 100 folders
+			final List<Folder> folders = new LinkedList<>();
+			for (int i=0; i<100; i++) {
+
+				folders.add(createTestNode(Folder.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i)));
+			}
+
+			// create parent folder
+			final Folder parent = createTestNode(Folder.class,
+					new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Parent"),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders)
+			);
+
+			uuid = parent.getUuid();
+
+			// create function property that returns folder children
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+			schemaNode.setProperty(new StringProperty("_testFunction"), "Function(this.folders)");
+
+			// create admin user
+			createTestNode(User.class,
+					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
+					new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
+					new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName("Folder").getFirst();
+
+			// create view without property "folders"
+			final SchemaProperty testFn = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName("testFunction").getFirst();
+
+			app.create(SchemaView.class,
+					new NodeAttribute<>(SchemaView.name, "someprops"),
+					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+					new NodeAttribute<>(SchemaView.schemaProperties, List.of(testFn)),
+					new NodeAttribute<>(SchemaView.nonGraphProperties, "id,type,name")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception");
+		}
+
+		RestAssured.basePath = "/structr/rest";
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view and should no be returned
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.expect()
+				.statusCode(200)
+				.body("result.folders",      Matchers.nullValue())
+				.when()
+				.get("/Folder/" + uuid + "/someprops");
+	}
+
+	@Test
 	public void testFunctionQueryWithJavaScriptAndRepeater() {
 
 		try (final Tx tx = app.tx()) {
