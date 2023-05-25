@@ -3037,7 +3037,7 @@ let _Schema = {
 				nameInput.disabled = true;
 				nameInput.classList.add('cursor-not-allowed');
 			} else {
-				nameInput.addEventListener('change', viewInfoChangeHandler);
+				nameInput.addEventListener('input', viewInfoChangeHandler);
 			}
 
 			// jquery is required for change handler of select2 plugin
