@@ -84,7 +84,6 @@ let _Code = {
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
 		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
 		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth}px - ${left}px - ${right} - 4rem)`;
-		console.log(`calc(${window.innerWidth} - ${left} - ${right} - 4rem)`)
 
 		_Editors.resizeVisibleEditors();
 	},
