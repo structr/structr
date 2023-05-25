@@ -448,15 +448,6 @@ public abstract class StreamingWriter {
 							// the name property from the ui view, in case it was overwritten
 							PropertyKey localKey = key;
 
-							if (View.INTERNAL_GRAPH_VIEW.equals(localPropertyView)) {
-
-								if (AbstractNode.name.equals(localKey)) {
-
-									// replace key
-									localKey = StructrApp.key(source.getClass(), AbstractNode.name.jsonName());
-								}
-							}
-
 							final Object value = source.getProperty(localKey, range);
 							if (value != null) {
 

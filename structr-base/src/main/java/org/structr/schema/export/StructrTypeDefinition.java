@@ -50,7 +50,7 @@ import java.util.Map.Entry;
  */
 public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implements JsonType, StructrDefinition {
 
-	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_graph", "_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
+	public static final Set<String> VIEW_BLACKLIST = new LinkedHashSet<>(Arrays.asList("_html_", "all", "category", "custom", "editWidget", "effectiveNameView", "export", "fav", "schema", "ui"));
 	public static final Set<String> TagBlacklist   = new LinkedHashSet<>(Arrays.asList("core", "default", "html", "ui"));
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrTypeDefinition.class);
@@ -970,32 +970,29 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 		for (final SchemaView view : schemaNode.getProperty(AbstractSchemaNode.schemaViews)) {
 
-			if (!View.INTERNAL_GRAPH_VIEW.equals(view.getName())) {
+			final Set<String> propertySet = new TreeSet<>();
+			for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
+				propertySet.add(property.getName());
+			}
 
-				final Set<String> propertySet = new TreeSet<>();
-				for (final SchemaProperty property : view.getProperty(SchemaView.schemaProperties)) {
-					propertySet.add(property.getName());
-				}
+			final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
+			if (nonGraphProperties != null) {
 
-				final String nonGraphProperties = view.getProperty(SchemaView.nonGraphProperties);
-				if (nonGraphProperties != null) {
+				for (final String property : nonGraphProperties.split("[, ]+")) {
+					final String trimmed = property.trim();
 
-					for (final String property : nonGraphProperties.split("[, ]+")) {
-						final String trimmed = property.trim();
-
-						if (StringUtils.isNotBlank(trimmed)) {
-							propertySet.add(trimmed);
-						}
+					if (StringUtils.isNotBlank(trimmed)) {
+						propertySet.add(trimmed);
 					}
 				}
+			}
 
-				if (!propertySet.isEmpty()) {
-					views.put(view.getName(), propertySet);
+			if (!propertySet.isEmpty()) {
+				views.put(view.getName(), propertySet);
 
-					final String order = view.getProperty(SchemaView.sortOrder);
-					if (order != null) {
-						viewOrder.put(view.getName(), order);
-					}
+				final String order = view.getProperty(SchemaView.sortOrder);
+				if (order != null) {
+					viewOrder.put(view.getName(), order);
 				}
 			}
 		}

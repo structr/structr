@@ -30,8 +30,6 @@ import org.structr.core.property.Property;
  */
 public class View {
 
-	public static final String INTERNAL_GRAPH_VIEW = "_graph";
-
 	private Property[] properties = null;
 	private String name = null;
 

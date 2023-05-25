@@ -70,10 +70,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		id, type, relType, sourceId, targetId
 	);
 
-	public static final View graphView = new View(AbstractRelationship.class, View.INTERNAL_GRAPH_VIEW,
-		id, type, relType, sourceNode, targetNode
-	);
-
 	public boolean internalSystemPropertiesUnlocked = false;
 
 	private long transactionId                 = -1;

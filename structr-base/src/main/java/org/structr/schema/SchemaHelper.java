@@ -1678,10 +1678,7 @@ public class SchemaHelper {
 
 				for (final String view : propertyViews) {
 
-					if (!View.INTERNAL_GRAPH_VIEW.equals(view)) {
-
-						views.put(view, getPropertiesForView(securityContext, type, view));
-					}
+					views.put(view, getPropertiesForView(securityContext, type, view));
 				}
 			}
 		}

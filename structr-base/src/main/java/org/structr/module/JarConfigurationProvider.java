@@ -591,7 +591,6 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					|| view.name().equals(PropertyView.Private)
 					|| view.name().equals(PropertyView.Protected)
 					|| view.name().equals(PropertyView.Ui)
-					|| view.name().equals(View.INTERNAL_GRAPH_VIEW)
 					|| view.name().equals(SchemaRelationshipNode.exportView.name())
 					|| view.name().equals(SchemaRelationshipNode.schemaView.name())
 				);
