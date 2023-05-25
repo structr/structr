@@ -600,10 +600,10 @@ let _Elements = {
 		repositionMenu();
 	},
 	isInheritVisibilityFlagsChecked: () => {
-		return UISettings.getValueForSetting(UISettings.pages.settings.inheritVisibilityFlagsKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.inheritVisibilityFlagsKey);
 	},
 	isInheritGranteesChecked: () => {
-		return UISettings.getValueForSetting(UISettings.pages.settings.inheritGranteesKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.inheritGranteesKey);
 	},
 	removeContextMenu: () => {
 		$('#add-child-dialog').remove();

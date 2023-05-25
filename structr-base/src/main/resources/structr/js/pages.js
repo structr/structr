@@ -969,14 +969,14 @@ let _Pages = {
 			_Pages.previews.updatePreviewSlideout();
 		}
 
-		if (UISettings.getValueForSetting(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
+		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
 			urlHash = '#pages:editor';
 		}
 
-		if (UISettings.getValueForSetting(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
+		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/

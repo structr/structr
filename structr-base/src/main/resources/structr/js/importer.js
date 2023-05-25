@@ -83,7 +83,7 @@ let Importer = {
 		Importer.schemaTypeCachePopulated = false;
 	},
 	isShowNotifications: () => {
-		return UISettings.getValueForSetting(UISettings.importer.settings.showNotificationsKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups.importer.settings.showNotificationsKey);
 	},
 	updateJobTable: () => {
 

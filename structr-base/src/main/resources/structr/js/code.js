@@ -25,7 +25,6 @@ let _Code = {
 	codeMain: undefined,
 	codeTree: undefined,
 	codeContents: undefined,
-	codeContext: undefined,
 	lastClickedPath: '',
 	layouter: null,
 	seed: 42,
@@ -52,33 +51,40 @@ let _Code = {
 	resize: () => {
 		_Code.updatedResizers();
 	},
+	leftTabMinWidth: 300,
+	rightTabMinWidth: 240,
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
-			left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 			_Code.updatedResizers(left, null);
 		});
 	},
 	prevAnimFrameReqId_moveRightResizer: undefined,
-	moveRightResizer: (left) => {
+	moveRightResizer: (right) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {
-			left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
-			_Code.updatedResizers(null, left);
+			_Code.updatedResizers(null, right);
 		});
 	},
 	updatedResizers: (left, right) => {
 
-		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
-		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
+		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || _Code.leftTabMinWidth;
+		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || _Code.rightTabMinWidth;
+
+		if (_Code.recentElements.isVisible() === false) {
+			right = '3rem';
+		} else {
+			right = right + 'px';
+		}
 
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `${window.innerWidth - right}px`;
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
-		document.getElementById('code-context-container').style.width = `calc(${right}px - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${Math.floor(window.innerWidth - left - right)}px - 4rem)`;
+		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth}px - ${left}px - ${right} - 4rem)`;
+		console.log(`calc(${window.innerWidth} - ${left} - ${right} - 4rem)`)
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -108,6 +114,7 @@ let _Code = {
 
 			document.addEventListener('keydown', _Code.handleKeyDownEvent);
 
+			_Code.recentElements.init();
 			_Code.pathLocations.init();
 			_Code.search.init();
 			_Code.init();
@@ -115,7 +122,6 @@ let _Code = {
 			_Code.codeMain     = $('#code-main');
 			_Code.codeTree     = $('#code-tree');
 			_Code.codeContents = $('#code-contents');
-			_Code.codeContext  = $('#code-context');
 
 			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
 			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
@@ -2145,7 +2151,7 @@ let _Code = {
 		};
 
 		let buttons     = $('#property-buttons');
-		let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+		let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
@@ -2617,6 +2623,10 @@ let _Code = {
 	},
 	recentElements: {
 		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
+		init: () => {
+			_Code.recentElements.updateVisibility();
+		},
+		isVisible: () => UISettings.getValueForSetting(UISettings.settingGroups.code.settings.showRecentsInCodeArea),
 		loadRecentlyUsedElements: (doneCallback) => {
 
 			let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
@@ -2664,19 +2674,20 @@ let _Code = {
 				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
 			}
 
-			let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
+			let recentlyUsedButton = _Helpers.createSingleDOMElementFromHTML(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
 
+			let codeContext  = document.querySelector('#code-context');
 			if (fromStorage) {
-				_Code.codeContext.append(recentlyUsedButton);
+				codeContext.append(recentlyUsedButton)
 			} else {
-				_Code.codeContext.prepend(recentlyUsedButton);
+				codeContext.prepend(recentlyUsedButton);
 			}
 
-			recentlyUsedButton.on('click.recently-used', () => {
+			recentlyUsedButton.addEventListener('click', () => {
 				_Code.findAndOpenNode(path, true);
 			});
 
-			$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
+			recentlyUsedButton.querySelector('.remove-recently-used').addEventListener('click', (e) => {
 				e.stopPropagation();
 				_Code.recentElements.deleteRecentlyUsedElement(id);
 			});
@@ -2730,6 +2741,19 @@ let _Code = {
 
 			return displayName;
 		},
+		updateVisibility: () => {
+
+			let codeContext  = document.querySelector('#code-context');
+			if (_Code.recentElements.isVisible()) {
+				codeContext.classList.remove('hidden');
+				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
+			} else {
+				codeContext.classList.add('hidden');
+				document.querySelector('.column-resizer-right')?.classList.add('hidden');
+			}
+
+			Structr.resize();
+		}
 	},
 	pathLocations: {
 		stack: [],
@@ -2847,23 +2871,31 @@ let _Code = {
 			</div>
 		`,
 		functions: config => `
-			<div class="tree-search-container flex" id="tree-search-container">
-				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
-					${_Icons.getSvgIcon(_Icons.iconChevronLeftFilled, 12, 12)}
-				</button>
-				<div class="relative">
-					<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+			<div class="flex-grow">
+
+				<div class="tree-search-container flex" id="tree-search-container">
+
+					<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
+						${_Icons.getSvgIcon(_Icons.iconChevronLeftFilled, 12, 12)}
+					</button>
+
+					<div class="relative">
+						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+					</div>
+
+					<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
+						${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 12, 12)}
+					</button>
+
 				</div>
-				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
-					${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 12, 12)}
-				</button>
+
 			</div>
 		`,
 		actionButton: config => `
 			<button id="action-button-${config.suffix}" class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<div class="action-button-icon">
-					${config.iconSvg ? config.iconSvg : ''}
+					${config.iconSvg ?? ''}
 				</div>
 
 				<div>${config.name}</div>

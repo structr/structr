@@ -1982,7 +1982,7 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 			let tableConfig = {
 				class: 'local schema-props',
