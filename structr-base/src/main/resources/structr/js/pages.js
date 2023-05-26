@@ -27,7 +27,7 @@ let _Pages = {
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
-	leftTabMinWidth: 400,
+	leftTabMinWidth: 410,
 	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
