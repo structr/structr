@@ -28,35 +28,36 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StorageProviderConfigFactory {
 
-    private static final Map<String, StorageProviderConfig> providerConfigs = new ConcurrentHashMap<>();
-    private static final StorageProviderConfig defaultConfig                = new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
+	private static final Map<String, StorageProviderConfig> providerConfigs = new ConcurrentHashMap<>();
+	private static final StorageProviderConfig defaultConfig = new StorageProviderConfig("default-local", LocalFSStorageProvider.class);
 
-    static {
-        final StorageProviderConfig localConfig  = new StorageProviderConfig("local", LocalFSStorageProvider.class);
-        final StorageProviderConfig memoryConfig = new StorageProviderConfig("memory", InMemoryStorageProvider.class);
+	static {
 
-        providerConfigs.put(localConfig.Name(), localConfig);
-        providerConfigs.put(memoryConfig.Name(), memoryConfig);
-    }
+		final StorageProviderConfig localConfig = new StorageProviderConfig("local", LocalFSStorageProvider.class);
+		final StorageProviderConfig memoryConfig = new StorageProviderConfig("memory", InMemoryStorageProvider.class);
 
-    public static StorageProviderConfig getConfigByName(final String name) {
+		providerConfigs.put(localConfig.Name(), localConfig);
+		providerConfigs.put(memoryConfig.Name(), memoryConfig);
+	}
 
-        return name != null && providerConfigs.containsKey(name) ? providerConfigs.get(name) : getDefaultConfig();
-    }
+	public static StorageProviderConfig getConfigByName(final String name) {
 
-    public static StorageProviderConfig getEffectiveConfig(final AbstractFile abstractFile) {
+		return name != null && providerConfigs.containsKey(name) ? providerConfigs.get(name) : getDefaultConfig();
+	}
 
-        return getConfigByName(StorageProviderFactory.getProviderConfigName(abstractFile));
-    }
+	public static StorageProviderConfig getEffectiveConfig(final AbstractFile abstractFile) {
 
-    public static StorageProviderConfig getDefaultConfig() {
+		return getConfigByName(StorageProviderFactory.getProviderConfigName(abstractFile));
+	}
 
-        return defaultConfig;
-    }
+	public static StorageProviderConfig getDefaultConfig() {
 
-    public static void registerConfig(final StorageProviderConfig config) {
+		return defaultConfig;
+	}
 
-        providerConfigs.put(config.Name(), config);
-    }
+	public static void registerConfig(final StorageProviderConfig config) {
+
+		providerConfigs.put(config.Name(), config);
+	}
 
 }
