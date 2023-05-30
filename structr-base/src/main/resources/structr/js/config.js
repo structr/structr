@@ -21,6 +21,10 @@ document.addEventListener('DOMContentLoaded', () => {
 	_Config.init();
 });
 
+window.addEventListener('load', () => {
+	_Config.resize();
+});
+
 let _Editors = {
 	// fake editors element to allow fastRemove to work normally
 };
@@ -115,8 +119,6 @@ let _Config = {
 
 			_Search.init();
 		}
-
-		_Config.resize();
 	},
 	createNewEntry: () => {
 
