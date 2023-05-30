@@ -51,8 +51,8 @@ let _Code = {
 	resize: () => {
 		_Code.updatedResizers();
 	},
-	leftTabMinWidth: 300,
-	rightTabMinWidth: 240,
+	leftTabMinWidth: 360,
+	rightTabMinWidth: 300,
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
 
@@ -122,8 +122,8 @@ let _Code = {
 			_Code.codeTree     = $('#code-tree');
 			_Code.codeContents = $('#code-contents');
 
-			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, _Code.leftTabMinWidth, _Code.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, _Code.rightTabMinWidth, _Code.moveRightResizer, true);
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -2611,7 +2611,7 @@ let _Code = {
 		},
 		searchIsActive: () => {
 
-			let text = _Code.search.getSearchInputElement().value;
+			let text = _Code.search.getSearchInputElement()?.value;
 			return (text && text.length >= _Code.search.searchThreshold);
 		},
 		cancelSearch: () => {
