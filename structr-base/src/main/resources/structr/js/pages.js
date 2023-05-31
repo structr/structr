@@ -2134,7 +2134,7 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = escapeTags(entity.content);
+				detailHtml = _Helpers.escapeTags(entity.content);
 
 			} else if (entity.type === 'Template') {
 
