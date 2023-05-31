@@ -384,7 +384,7 @@ let StructrModel = {
 				StructrModel.refreshKey(id, key);
 			}
 
-			if (Structr.isModuleActive(_Pages)) {
+			if (Structr.isModuleActive(_Pages) && obj.isPage) {
 				_Pages.previews.modelForPageUpdated(obj.pageId);
 			}
 
