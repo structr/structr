@@ -381,7 +381,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
 
-			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, propertyView));
+			final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, view));
 			final Set<String> customView = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {
