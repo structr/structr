@@ -658,7 +658,7 @@ let _Files = {
 			e.preventDefault();
 			e.stopPropagation();
 
-			let el = $(this);
+			let el       = $(this);
 			let targetId = el.data('targetId');
 
 			let openTargetNode = () => {
@@ -906,6 +906,7 @@ let _Files = {
 		let filePath        = d.path;
 		let iconSize        = (tilesModeActive || imageModeActive) ? 40 : 16;
 		let fileIcon        = _Icons.getSvgIcon((d.isFolder ? _Icons.getFolderIconSVG(d) : _Icons.getFileIconSVG(d)), iconSize, iconSize);
+		let parentIdString  = d.parentId ? `data-parent-id="${d.parentId}"` : '';
 
 		if (listModeActive) {
 
@@ -920,7 +921,7 @@ let _Files = {
 			if (d.isFolder) {
 
 				row.append(`
-					<td class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${_Icons.getSvgIcon(_Icons.getFolderIconSVG(d), 16, 16)}</td>
+					<td class="is-folder file-icon" data-target-id="${d.id}" ${parentIdString}>${fileIcon}</td>
 					<td>
 						<div id="id_${d.id}" class="node folder flex items-center justify-between">
 							<b class="name_ leading-8 truncate">${name}</b>
@@ -963,7 +964,7 @@ let _Files = {
 
 				tile.append(`
 					<div id="id_${d.id}" class="node folder">
-						<div class="is-folder file-icon" data-target-id="${d.id}" data-parent-id="${d.parentId}">${fileIcon}</div>
+						<div class="is-folder file-icon" data-target-id="${d.id}" ${parentIdString}>${fileIcon}</div>
 						<b class="name_ abbr-ellipsis abbr-75pc">${name}</b>
 						<div class="icons-container flex items-center"></div>
 					</div>
