@@ -421,13 +421,17 @@ public class UiScriptingTest extends StructrUiTest {
 			final List<Folder> folders = new LinkedList<>();
 			for (int i=0; i<100; i++) {
 
-				folders.add(createTestNode(Folder.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i)));
+				folders.add(createTestNode(Folder.class,
+						new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i),
+						new NodeAttribute<>(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), true)
+				));
 			}
 
 			// create parent folder
 			final Folder parent = createTestNode(Folder.class,
 					new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Parent"),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders)
+					new NodeAttribute<>(StructrApp.key(Folder.class, "folders"), folders),
+					new NodeAttribute<>(StructrApp.key(AbstractNode.class, "visibleToAuthenticatedUsers"), true)
 			);
 
 			uuid = parent.getUuid();
@@ -441,6 +445,12 @@ public class UiScriptingTest extends StructrUiTest {
 					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "admin"),
 					new NodeAttribute<>(StructrApp.key(User.class, "password"), "admin"),
 					new NodeAttribute<>(StructrApp.key(User.class, "isAdmin"),  true)
+			);
+
+			// create non-admin user
+			createTestNode(User.class,
+					new NodeAttribute<>(StructrApp.key(User.class, "name"),     "testuser"),
+					new NodeAttribute<>(StructrApp.key(User.class, "password"), "testuser")
 			);
 
 			tx.success();
@@ -465,6 +475,13 @@ public class UiScriptingTest extends StructrUiTest {
 					new NodeAttribute<>(SchemaView.nonGraphProperties, "id,type,name")
 			);
 
+			// create resource access grant for user
+			createTestNode(ResourceAccess.class,
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprop"),
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1),
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "visibleToAuthenticatedUsers"), true)
+			);
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -473,7 +490,28 @@ public class UiScriptingTest extends StructrUiTest {
 			fail("Unexpected exception");
 		}
 
+		// for admin it should work as requested
 		RestAssured.basePath = "/structr/rest";
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should no be returned because it is run by admin
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", "admin" , "X-Password", "admin")
+				.expect()
+				.statusCode(200)
+				.body("result.folders",      Matchers.notNullValue())
+				.body("result.testFunction", Matchers.notNullValue())
+				.when()
+				.get("/Folder/" + uuid + "/someprops");
+
+		// for regular user it should prevent the additional attributes from being shown
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
@@ -485,7 +523,7 @@ public class UiScriptingTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-				.headers("X-User", "admin" , "X-Password", "admin")
+				.headers("X-User", "testuser" , "X-Password", "testuser")
 				.expect()
 				.statusCode(200)
 				.body("result.folders",      Matchers.nullValue())
