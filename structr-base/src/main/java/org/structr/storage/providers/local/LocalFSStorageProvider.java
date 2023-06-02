@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.core.app.StructrApp;
 import org.structr.storage.AbstractStorageProvider;
 import org.structr.storage.StorageProvider;
-import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import java.io.*;
@@ -34,13 +33,21 @@ import java.nio.file.OpenOption;
 import java.util.Set;
 
 import static java.nio.file.StandardOpenOption.*;
+import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSStorageProvider extends AbstractStorageProvider {
-	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
-	private LocalFSHelper fsHelper;
 
-	public LocalFSStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
+	private static final Logger logger = LoggerFactory.getLogger(LocalFSStorageProvider.class);
+	private final LocalFSHelper fsHelper;
+
+	public LocalFSStorageProvider(final AbstractFile file) {
+		this(file, null);
+	}
+
+	public LocalFSStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+
 		super(file, config);
+
 		fsHelper = new LocalFSHelper(config);
 	}
 
@@ -115,7 +122,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 
 		// Check if new provider is different from current one, if so use default implementation
-		if (newFileStorageProvider != null && !this.getConfig().Name().equals(newFileStorageProvider.getConfig().Name())) {
+		if (newFileStorageProvider != null && !this.getProviderName().equals(newFileStorageProvider.getProviderName())) {
 
 			super.moveTo(newFileStorageProvider);
 		}

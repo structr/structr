@@ -29,13 +29,16 @@ import org.structr.storage.StorageProviderFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
-import org.structr.web.function.GetContentFunction;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 import java.util.Scanner;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.storage.providers.memory.InMemoryStorageProvider;
+import org.structr.web.entity.StorageConfiguration;
 
 import static org.testng.AssertJUnit.*;
 
@@ -48,14 +51,17 @@ public class StorageTest extends StructrUiTest {
 
 		try (Tx tx = app.tx()){
 
+			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, Map.of());
+			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
+
 			PropertyMap folderProps = new PropertyMap();
 			folderProps.put(StructrApp.key(Folder.class, "name"), "local");
-			folderProps.put(StructrApp.key(Folder.class, "storageProvider"), "local");
+			folderProps.put(StructrApp.key(Folder.class, "storageConfiguration"), local);
 			Folder folder = app.create(Folder.class, folderProps);
 
 			PropertyMap folderProps2 = new PropertyMap();
 			folderProps2.put(StructrApp.key(Folder.class, "name"), "memory");
-			folderProps2.put(StructrApp.key(Folder.class, "storageProvider"), "memory");
+			folderProps2.put(StructrApp.key(Folder.class, "storageConfiguration"), memory);
 			Folder folder2 = app.create(Folder.class, folderProps2);
 
 			PropertyMap fileProps = new PropertyMap();
@@ -91,9 +97,12 @@ public class StorageTest extends StructrUiTest {
 	@Test
 	public void testStorageBinaryMigrationForFile() {
 
-		try (Tx tx = app.tx()){
+		try (Tx tx = app.tx()) {
 
-			final PropertyKey<String> storageProviderKey = StructrApp.key(File.class, "storageProvider");
+			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, Map.of());
+			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
+
+			final PropertyKey<StorageConfiguration> storageConfigurationKey = StructrApp.key(File.class, "storageConfiguration");
 
 			PropertyMap fileProps = new PropertyMap();
 			fileProps.put(StructrApp.key(File.class, "name"), "testFile.txt");
@@ -111,7 +120,7 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			// Move from default (local) to local storage provider
-			file.setProperty(storageProviderKey, "local");
+			file.setProperty(storageConfigurationKey, local);
 			var localStorageProvider = StorageProviderFactory.getStorageProvider(file);
 
 			// Check if data is still equal after migration
@@ -120,12 +129,12 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			// Move from local to memory storage provider
-			file.setProperty(storageProviderKey, "memory");
+			file.setProperty(storageConfigurationKey, memory);
 			var memoryStorageProvider = StorageProviderFactory.getStorageProvider(file);
 
-			assert(!localStorageProvider.equals(memoryStorageProvider));
-			assertEquals(localStorageProvider.getConfig().Name(), "local");
-			assertEquals(memoryStorageProvider.getConfig().Name(), "memory");
+			assertFalse(localStorageProvider.equals(memoryStorageProvider));
+			assertEquals(localStorageProvider.getProviderName(), "local");
+			assertEquals(memoryStorageProvider.getProviderName(), "memory");
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
@@ -133,7 +142,7 @@ public class StorageTest extends StructrUiTest {
 			assertEquals(payload, result);
 
 			// Move from memory to default storage provider
-			file.setProperty(storageProviderKey, null);
+			file.setProperty(storageConfigurationKey, null);
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();

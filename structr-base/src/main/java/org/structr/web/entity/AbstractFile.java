@@ -41,7 +41,6 @@ import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
-import org.structr.storage.config.StorageProviderConfigFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
@@ -51,6 +50,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 
 /**
  * Base class for filesystem objects in structr.
@@ -62,6 +63,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final JsonSchema schema     = SchemaService.getDynamicSchema();
 		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
 		final JsonObjectType type   = schema.addType("AbstractFile");
+		final JsonObjectType conf   = schema.addType("StorageConfiguration");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
@@ -74,7 +76,6 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("storageProvider",                           PropertyView.Public, PropertyView.Ui);
 
 		type.addBooleanProperty("hasParent").setIndexed(true);
 
@@ -83,7 +84,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
-		type.addPropertyGetter("storageProvider", String.class);
+
+		type.addPropertyGetter("storageConfiguration", StorageConfiguration.class);
 
 		type.addPropertySetter("hasParent", Boolean.TYPE);
 
@@ -108,6 +110,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
 		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration");
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
@@ -120,6 +123,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
 
 		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "storageConfiguration");
 	}}
 
 	void setParent(final Folder parent) throws FrameworkException;
@@ -129,7 +133,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	String getPath();
 	String getFolderPath();
 
-	String getStorageProvider();
+	StorageConfiguration getStorageConfiguration();
 
 	boolean isMounted();
 	boolean isExternal();
@@ -348,7 +352,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean isMounted(final AbstractFile thisFile) {
 
-		final boolean hasMountTarget = StorageProviderConfigFactory.getEffectiveConfig(thisFile) != null && StorageProviderConfigFactory.getEffectiveConfig(thisFile).SpecificConfigParameters().containsKey("mountTarget");
+		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(thisFile);
+		final boolean hasMountTarget               = provider.getMountTarget() != null;
 		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
 
 		if (hasMountTarget && watchServiceHasMountedFolder) {

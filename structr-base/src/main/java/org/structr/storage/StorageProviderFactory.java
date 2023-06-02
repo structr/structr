@@ -20,50 +20,96 @@ package org.structr.storage;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.storage.config.StorageProviderConfig;
-import org.structr.storage.config.StorageProviderConfigFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.Map;
+import java.util.Map.Entry;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.NodeAttribute;
+import org.structr.core.graph.Tx;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
+import org.structr.web.entity.StorageConfiguration;
 
 public abstract class StorageProviderFactory {
-	private static final Logger logger = LoggerFactory.getLogger(StorageProviderFactory.class);
-	public static StorageProvider getStorageProvider(final AbstractFile file) {
 
-		return getSpecificStorageProvider(file, getProviderConfigName(file));
+	private static final Logger logger = LoggerFactory.getLogger(StorageProviderFactory.class);
+
+	/**
+	 * Creates a new storage configuration. Caution, this method does not check for uniqueness
+	 * of the configuration name or validates the implementation class.
+	 *
+	 * @param name the name
+	 * @param impl the class implementing StorageProvider
+	 * @param configuration optional configuration options
+	 * @return a new storage provider config with the given configuration, or null
+	 */
+	public static StorageConfiguration createConfig(final String name, final Class impl, final Map<String, String> configuration) throws FrameworkException {
+
+		final App app = StructrApp.getInstance();
+
+		try (final Tx tx = app.tx()) {
+
+			final StorageConfiguration sc = app.create(StorageConfiguration.class,
+				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "name"),     name),
+				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "provider"), impl.getName())
+			);
+
+			for (final Entry<String, String> c : configuration.entrySet()) {
+				sc.addEntry(c.getKey(), c.getValue());
+			}
+
+			tx.success();
+
+			return sc;
+		}
 	}
 
-	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final String configName) {
-		// Get config by name and get provider class to instantiate via reflection
-		final StorageProviderConfig config = StorageProviderConfigFactory.getConfigByName(configName);
-		final Class<? extends StorageProvider> storageProviderClass = config.StorageProviderClass();
+	public static StorageProvider getStorageProvider(final AbstractFile file) {
 
-		if (storageProviderClass != null) {
+		final StorageConfiguration config = StorageProviderFactory.getStorageConfiguration(file);
+		if (config != null) {
 
-			try {
+			return getSpecificStorageProvider(file, config);
+		}
 
-				// Try to instantiate requested provider with given file and config
-				return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageProviderConfig.class).newInstance(file, config);
-			} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+		return getDefaultStorageProvider(file);
+	}
 
-				logger.error("Could not instantiate storage provider.", ex);
+	public static StorageProvider getSpecificStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+
+		if (config != null) {
+
+			// Get config by name and get provider class to instantiate via reflection
+			final Class<? extends StorageProvider> storageProviderClass = config.getStorageProviderImplementation();
+			if (storageProviderClass != null) {
+
+				try {
+
+					// Try to instantiate requested provider with given file and config
+					return storageProviderClass.getDeclaredConstructor(AbstractFile.class, StorageConfiguration.class).newInstance(file, config);
+
+				} catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException ex) {
+
+					logger.error("Could not instantiate storage provider.", ex);
+				}
 			}
 		}
 
-		return null;
+		return getDefaultStorageProvider(file);
 	}
 
-	public static String getProviderConfigName(final AbstractFile abstractFile) {
-
-		final AbstractFile supplier = getProviderConfigSupplier(abstractFile);
-		return supplier != null ? supplier.getStorageProvider() : null;
+	public static StorageProvider getDefaultStorageProvider(final AbstractFile file) {
+		return new LocalFSStorageProvider(file);
 	}
 
-	public static AbstractFile getProviderConfigSupplier(final AbstractFile abstractFile) {
+	public static AbstractFile getStorageConfigurationSupplier(final AbstractFile abstractFile) {
 
 		// Check if abstract file itself offers a provider
-		if (abstractFile.getStorageProvider() != null) {
+		if (abstractFile.getStorageConfiguration() != null) {
 
 			return abstractFile;
 		}
@@ -73,14 +119,27 @@ public abstract class StorageProviderFactory {
 
 		if (parentFolder != null) {
 
-			if (parentFolder.getStorageProvider() != null) {
+			if (parentFolder.getStorageConfiguration() != null) {
 
 				return parentFolder;
+
 			} else {
 
 				// Parent did not have info, so recursively go up the hierarchy
-				return getProviderConfigSupplier(parentFolder);
+				return getStorageConfigurationSupplier(parentFolder);
 			}
+		}
+
+		return null;
+	}
+
+	// ----- private methods -----
+	private static StorageConfiguration getStorageConfiguration(final AbstractFile abstractFile) {
+
+		final AbstractFile supplier = getStorageConfigurationSupplier(abstractFile);
+		if (supplier != null) {
+
+			return supplier.getStorageConfiguration();
 		}
 
 		return null;

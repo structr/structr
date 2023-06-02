@@ -92,6 +92,9 @@ public abstract class StructrUiTest {
 
 		Settings.Servlets.setValue("JsonRestServlet WebSocketServlet HtmlServlet GraphQLServlet UploadServlet OpenAPIServlet");
 
+		// allow use of EncryptedStringProperty
+		Settings.GlobalSecret.setValue("test_secret");
+
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized

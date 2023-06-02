@@ -147,9 +147,9 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount      = 2542;
-		final int relCount       = 2955;
-		final int typedNodeCount = 594;
+		final int nodeCount      = 2583;
+		final int relCount       = 2987;
+		final int typedNodeCount = 612;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +

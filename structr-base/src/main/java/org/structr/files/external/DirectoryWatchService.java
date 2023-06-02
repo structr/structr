@@ -31,8 +31,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
-import org.structr.storage.config.StorageProviderConfig;
-import org.structr.storage.config.StorageProviderConfigFactory;
 import org.structr.web.entity.Folder;
 
 import java.io.File;
@@ -43,6 +41,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 
 /**
  */
@@ -75,7 +75,8 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		final boolean watchContents = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
 		final Integer scanInterval  = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
-		final String mountTarget    = StorageProviderConfigFactory.getEffectiveConfig(folder) != null && StorageProviderConfigFactory.getEffectiveConfig(folder).SpecificConfigParameters().containsKey("mountTarget") ? StorageProviderConfigFactory.getEffectiveConfig(folder).SpecificConfigParameters().get("mountTarget").toString() : null;
+		final StorageProvider prov  = StorageProviderFactory.getStorageProvider(folder);
+		final String mountTarget    = prov.getMountTarget();
 		final String folderPath     = folder.getProperty(StructrApp.key(Folder.class, "path"));
 		final String uuid           = folder.getUuid();
 
@@ -116,7 +117,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		logger.info("Mounting {} to {}..", mountTarget, folderPath);
 
-		watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval, StorageProviderConfigFactory.getEffectiveConfig(folder)));
+		watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval, StorageProviderFactory.getStorageProvider(folder)));
 
 		final FolderInfo info = watchedRoots.get(uuid);
 
@@ -634,18 +635,18 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	// ----- nested classes -----
 	private static final class FolderInfo {
 
-		private long lastScanned                      = 0L;
-		private long scanInterval                     = 0L;
-		private String root                           = null;
-		private String uuid                           = null;
-		private StorageProviderConfig effectiveConfig = null;
+		private long lastScanned                = 0L;
+		private long scanInterval               = 0L;
+		private String root                     = null;
+		private String uuid                     = null;
+		private StorageProvider effectiveConfig = null;
 
-		public FolderInfo(final String uuid, final String root, final Integer scanInterval, final StorageProviderConfig storageProviderConfig) {
+		public FolderInfo(final String uuid, final String root, final Integer scanInterval, final StorageProvider storageProvider) {
 
 			this.lastScanned  = System.currentTimeMillis();
 			this.root         = root;
 			this.uuid         = uuid;
-			this.effectiveConfig = storageProviderConfig;
+			this.effectiveConfig = storageProvider;
 
 			setScanInterval(scanInterval);
 		}

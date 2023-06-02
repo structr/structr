@@ -21,20 +21,37 @@ package org.structr.storage;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.LoggerFactory;
-import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import org.structr.web.entity.StorageConfiguration;
 
+/**
+ * Abstract base class for all storage providers.
+ */
 public abstract class AbstractStorageProvider implements StorageProvider {
-	private final AbstractFile file;
-	private final StorageProviderConfig config;
 
-	public AbstractStorageProvider(final AbstractFile file, final StorageProviderConfig config) {
-		this.file = file;
+	private final StorageConfiguration config;
+	private final AbstractFile file;
+	private final String name;
+
+	protected AbstractStorageProvider(final AbstractFile file, final StorageConfiguration config) {
+
+		this.file   = file;
 		this.config = config;
+		this.name   = config != null ? config.getName() : "default";
+	}
+
+	@Override
+	public String getMountTarget() {
+		return config != null ? config.getConfiguration().get("mountTarget") : null;
+	}
+
+	@Override
+	public String getProviderName() {
+		return name;
 	}
 
 	@Override
@@ -43,7 +60,7 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	}
 
 	@Override
-	public StorageProviderConfig getConfig() {
+	public StorageConfiguration getConfig() {
 		return this.config;
 	}
 
@@ -58,11 +75,13 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public void moveTo(final StorageProvider newFileStorageProvider) {
+
 		// Either use provided destination provider or instantiate new one with a blank config
-		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getSpecificStorageProvider(getAbstractFile(), null);
+		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getDefaultStorageProvider(getAbstractFile());
 
 		// Only try to move binary content, if destinationProvider exists and it's unique key does not equal the curernt provider
-		if (destinationStorageProvider != null && !this.config.Name().equals(destinationStorageProvider.getConfig().Name())) {
+		if (destinationStorageProvider != null && !this.getProviderName().equals(destinationStorageProvider.getProviderName())) {
+
 			try {
 
 				// Move binary content from old sp to new sp

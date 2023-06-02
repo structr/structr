@@ -262,16 +262,18 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		OnSetProperty(thisFile, key, value, false);
 	}
 	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
+
 		if (value == null || isCreation) {
 			return;
 		}
 
-		PropertyKey<String> storageProviderKey = StructrApp.key(File.class, "storageProvider");
-		PropertyKey<Folder> parentKey          = StructrApp.key(File.class, "parent");
+		PropertyKey<StorageConfiguration> storageProviderKey = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                        = StructrApp.key(File.class, "parent");
 
-		if (key.equals(storageProviderKey) && value instanceof String) {
+		if (key.equals(storageProviderKey) && value instanceof StorageConfiguration) {
 
-			checkMoveBinaryContents(thisFile, (String)value);
+			checkMoveBinaryContents(thisFile, (StorageConfiguration)value);
+
 		} else if (key.equals(parentKey) && value instanceof Folder) {
 
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), (Folder)value);
@@ -283,12 +285,13 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return;
 		}
 
-		PropertyKey<String> storageProviderKey = StructrApp.key(File.class, "storageProvider");
-		PropertyKey<Folder> parentKey          = StructrApp.key(File.class, "parent");
+		PropertyKey<StorageConfiguration> storageConfigurationKey = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                             = StructrApp.key(File.class, "parent");
 
-		if (properties.containsKey(storageProviderKey)) {
+		if (properties.containsKey(storageConfigurationKey)) {
 
-			checkMoveBinaryContents(thisFile, properties.get(storageProviderKey));
+			checkMoveBinaryContents(thisFile, properties.get(storageConfigurationKey));
+
 		} else if (properties.containsKey(parentKey)) {
 
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), properties.get(parentKey));
@@ -827,20 +830,21 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
 	}
 
-	static void checkMoveBinaryContents(final File thisFile, final String newProvider) {
+	static void checkMoveBinaryContents(final File thisFile, final StorageConfiguration newProvider) {
 
 		if (!StorageProviderFactory.getStorageProvider(thisFile).equals(StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider))) {
 
 			final StorageProvider previousSP = StorageProviderFactory.getStorageProvider(thisFile);
 			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider);
+
 			previousSP.moveTo(newSP);
 		}
 	}
 
 	static void checkMoveBinaryContents(final File thisFile, final Folder previousParent, final Folder newParent) {
 
-		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent != null ? previousParent.getStorageProvider() : null);
-		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent != null ? newParent.getStorageProvider() : null);
+		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent != null ? previousParent.getStorageConfiguration(): null);
+		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent != null ? newParent.getStorageConfiguration(): null);
 		previousSP.moveTo(newSP);
 	}
 

@@ -21,18 +21,19 @@ package org.structr.storage.providers.local;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.storage.StorageProviderFactory;
-import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSHelper {
-	private final StorageProviderConfig config;
 
-	public LocalFSHelper(final StorageProviderConfig config) {
+	private final StorageConfiguration config;
+
+	public LocalFSHelper(final StorageConfiguration config) {
 		this.config = config;
 	}
 
@@ -49,12 +50,10 @@ public class LocalFSHelper {
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
 
 		// Check if configuration contains a mountTarget, indicating a mounted/mapped folder
-		final String _mountTarget = config.SpecificConfigParameters().containsKey("mountTarget") ? config.SpecificConfigParameters().get("mountTarget").toString() : null;
-
-		// Handle mounted folders
+		final String _mountTarget = config != null ? config.getMountTarget() : null;
 		if (_mountTarget != null) {
 
-			final AbstractFile configSupplier = StorageProviderFactory.getProviderConfigSupplier(file);
+			final AbstractFile configSupplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
 			final Path relativeParentPath     = parentFolder != null ? Path.of(configSupplier.getPath()).relativize(Path.of(parentFolder.getPath())) : Path.of("/");
 
 			final String fullPath             = Folder.removeDuplicateSlashes(_mountTarget + "/" + relativeParentPath + "/" + file.getProperty(File.name));

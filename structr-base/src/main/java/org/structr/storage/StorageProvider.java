@@ -18,25 +18,42 @@
  */
 package org.structr.storage;
 
-import org.structr.storage.config.StorageProviderConfig;
 import org.structr.web.entity.AbstractFile;
 
 import javax.activation.DataSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.SeekableByteChannel;
+import org.structr.web.entity.StorageConfiguration;
 
 public interface StorageProvider extends DataSource {
+
 	AbstractFile getAbstractFile();
-	StorageProviderConfig getConfig();
+
+	StorageConfiguration getConfig();
+	String getMountTarget();
+
+	String getProviderName();
+
+	// overridden method removes exception
+	@Override
 	InputStream getInputStream();
+
+	// overridden method removes exception
+	@Override
 	OutputStream getOutputStream();
+
 	OutputStream getOutputStream(final boolean append);
+
 	default SeekableByteChannel getSeekableByteChannel() {
 		return getSeekableByteChannel(false, false);
 	}
+
 	SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate);
+
 	void moveTo(final StorageProvider newFileStorageProvider);
+
 	void delete();
+
 	long size();
 }
