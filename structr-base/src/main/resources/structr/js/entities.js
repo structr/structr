@@ -263,12 +263,28 @@ let _Entities = {
 
 			datakeyInput.value = entity.dataKey;
 
-			saveDatakeyButton.addEventListener('click', () => {
-
+			let saveFn = () => {
 				Command.setProperty(entity.id, 'dataKey', datakeyInput.value, false, () => {
 					_Helpers.blinkGreen(datakeyInput);
 					entity.dataKey = datakeyInput.value;
 				});
+			};
+
+			datakeyInput.addEventListener('keydown', (e) => {
+
+				let keyCode = e.keyCode;
+				let code    = e.code;
+
+				// ctrl-s / cmd-s
+				if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
+					e.preventDefault();
+					e.stopPropagation();
+					saveFn();
+				}
+			});
+
+			saveDatakeyButton.addEventListener('click', () => {
+				saveFn();
 			});
 		};
 
