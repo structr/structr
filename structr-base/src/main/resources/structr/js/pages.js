@@ -2720,7 +2720,7 @@ let _Pages = {
 
 			let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
 
-			if (!elementId) {
+			if (elementId) {
 				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
 					_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
 					_Pages.previews.showPreviewInIframe(entity.isPage ? entity.id : entity.pageId, elementId, _Pages.previewSlideout);
