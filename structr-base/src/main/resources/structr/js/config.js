@@ -49,7 +49,7 @@ let _Config = {
 
 		} else {
 
-			document.querySelector('#new-entry-button').addEventListener('click', _Config.createNewEntry);
+			document.querySelector('#new-entry-button')?.addEventListener('click', _Config.createNewEntry);
 
 			_Config.databaseConnections.init();
 
@@ -64,7 +64,7 @@ let _Config = {
 				});
 			}
 
-			document.querySelector('#reload-config-button').addEventListener('click', () => {
+			document.querySelector('#reload-config-button')?.addEventListener('click', () => {
 				window.location.href = `${_Helpers.getPrefixedRootUrl('/structr/config')}?reload${$('#active_section').val()}`;
 			});
 
@@ -80,7 +80,7 @@ let _Config = {
 			_Helpers.activateCommentsInElement(document);
 
 			let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
-			document.querySelector(`a[href$=${anchor}]`).click();
+			document.querySelector(`a[href$=${anchor}]`)?.click();
 
 			let toggleButtonClicked = (button) => {
 
