@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.config.Setting;
+import org.structr.api.config.SettingChangeHandler;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.api.util.CountResult;
@@ -321,6 +322,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 			nodeService.createAdminUser();
 		}
 
+		// register change handlers for various Settings
+		registerSettingsChangeHandlers();
+
 		logger.info("Started Structr {}", VersionHelper.getFullVersionInfo());
 		logger.info("---------------- Initialization complete ----------------");
 
@@ -337,6 +341,12 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		// if we are cluster coordinator, signal completion
 		this.broadcastStartupComplete();
+	}
+
+	private void registerSettingsChangeHandlers() {
+
+		Settings.useFallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
+		Settings.fallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
 	}
 
 	private void startServices() {

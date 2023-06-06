@@ -234,13 +234,15 @@ public class Settings {
 
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false,  "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
+
 	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false,  "Turns on logging for requested but non-existing localizations.");
 	public static final Setting<Boolean> useFallbackLocale        = new BooleanSetting(applicationGroup, "Localization", "application.localization.usefallbacklocale",  false,  "Turns on usage of fallback locale if for the current locale no localization is found");
-
 	public static final Setting<String> fallbackLocale            = new StringSetting(applicationGroup,  "Localization", "application.localization.fallbacklocale",     "en_US","The default locale used, if no localization is found and using a fallback is active.");
+
 	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
 	public static final Setting<Integer> DeploymentNodeBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.nodes.batchsize",             1000,   "Sets the batch size for data deployment when importing nodes.");
 	public static final Setting<Integer> DeploymentRelBatchSize   = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.relationships.batchsize",     1000,   "Sets the batch size for data deployment when importing relationships.");
+
 	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret",               null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret, and it is not recommended for production environments because the key can easily be read by an attacker with scripting access.");
 
 	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
