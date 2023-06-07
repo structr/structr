@@ -47,7 +47,8 @@ jobs:
         with:
           version: '22.3.2'
           java-version: '17'
-          components: 'js,python'
+          #components: 'js,python'
+          components: 'js'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Compile and run Tests
@@ -80,7 +81,8 @@ jobs:
         with:
           version: '22.3.2'
           java-version: '17'
-          components: 'js,python'
+          #components: 'js,python'
+          components: 'js'
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - run: mvn -U clean install -Pwith-sources -DskipTests -DskipDockerTestDB
