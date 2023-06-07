@@ -18,6 +18,8 @@
  */
 package org.structr.web.entity;
 
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
@@ -56,7 +58,7 @@ public interface StorageConfiguration extends NodeInterface {
 		// fully-qualified class name of the storage provider to use
 		type.addStringProperty("provider", PropertyView.Ui).setIndexed(true).setRequired(true);
 
-		type.relate(entry, "CONFIG_ENTRY", Cardinality.OneToMany, "configuration", "entries");
+		type.relate(entry, "CONFIG_ENTRY", Cardinality.OneToMany, "configuration", "entries").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add);
 
 		type.addPropertyGetter("entries", Iterable.class);
 

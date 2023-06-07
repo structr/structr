@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
@@ -110,7 +112,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
 		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration");
+		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add);
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
