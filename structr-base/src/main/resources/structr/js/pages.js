@@ -217,19 +217,27 @@ let _Pages = {
 	},
 	getContextMenuElements: (div, entity) => {
 
-		const isPage             = (entity.type === 'Page');
-		const isContent          = (entity.type === 'Content');
-		const hasChildren        = (entity.children && entity.children.length > 0);
+		let elements      = [];
+		const isPage      = (entity.type === 'Page');
+		const isContent   = (entity.type === 'Content');
+		const hasChildren = (entity.children && entity.children.length > 0);
 
 		let handleInsertHTMLAction = (itemText) => {
-			let pageId = isPage ? entity.id : entity.pageId;
+			let pageId  = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
 
-		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
-		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
+		let handleInsertBeforeAction = (itemText) => {
+			let tagName = (itemText === 'comment') ? '#comment' : itemText;
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
+		};
+		let handleInsertAfterAction  = (itemText) => {
+			let tagName = (itemText === 'comment') ? '#comment' : itemText;
+			console.log(tagName);
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
+		};
 		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
 		let handleWrapInHTMLAction   = (itemText) => {
 
@@ -239,8 +247,6 @@ let _Pages = {
 
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
-
-		let elements = [];
 
 		if (!isContent) {
 
