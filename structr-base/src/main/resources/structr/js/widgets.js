@@ -61,14 +61,16 @@ let _Widgets = {
 
 		_Elements.appendContextMenuSeparator(elements);
 
-		elements.push({
-			name: 'Properties',
-			clickHandler: () => {
-				_Entities.showProperties(entity, 'ui');
-			}
-		});
+		if (entity.isLocalWidget === true) {
+			elements.push({
+				name: 'Properties',
+				clickHandler: () => {
+					_Entities.showProperties(entity, 'ui');
+				}
+			});
 
-		_Elements.appendContextMenuSeparator(elements);
+			_Elements.appendContextMenuSeparator(elements);
+		}
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
