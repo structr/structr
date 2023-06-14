@@ -3963,6 +3963,9 @@ ul.combined-input-select-field li:hover {
 .grid {
 	display: grid;
 }
+.empty\:hidden:empty {
+	display: none;
+}
 .relative {
 	position: relative;
 }

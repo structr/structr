@@ -2455,7 +2455,7 @@ class MessageBuilder {
 	};
 
 	getUniqueCountElement() {
-		return `<span class="uniqueCount ml-1">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
+		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 };
 
