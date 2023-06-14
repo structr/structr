@@ -894,6 +894,8 @@ let Structr = {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
 
+			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
+
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 

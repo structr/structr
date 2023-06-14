@@ -210,7 +210,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, Settings.UuidPattern.getValue(), value));
+		errorBuffer.add(new MatchToken(node.getType(), key, Settings.getValidUUIDRegexString(), value));
 		return false;
 	}
 

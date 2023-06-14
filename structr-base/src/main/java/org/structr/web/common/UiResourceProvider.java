@@ -38,7 +38,7 @@ public class UiResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile(Settings.UuidPattern.getValue()), UuidResource.class);// matches any UUID configured in settings
+		resourceMap.put(Pattern.compile(Settings.getValidUUIDRegexString()), UuidResource.class);// matches any UUID configured in settings
 		resourceMap.put(Pattern.compile("cypher"), CypherQueryResource.class);          // cypher query
 		resourceMap.put(Pattern.compile("graphQL"), GraphQLResource.class);             // graphQL query
 		resourceMap.put(Pattern.compile("login"), LoginResource.class);                 // login

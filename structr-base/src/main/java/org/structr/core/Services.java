@@ -26,8 +26,8 @@ import org.graalvm.home.Version;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.config.RestartRequiredChangeHandler;
 import org.structr.api.config.Setting;
-import org.structr.api.config.SettingChangeHandler;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.api.util.CountResult;
@@ -296,6 +296,9 @@ public class Services implements StructrServices, BroadcastReceiver {
 			licenseManager = new StructrLicenseManager();
 		}
 
+		// check settings for incompatibilities which would prevent proper function
+		checkForSettingsConflicts();
+
 		// if configuration is not yet established, instantiate it
 		// this is the place where the service classes get the
 		// opportunity to modify the default configuration
@@ -343,10 +346,26 @@ public class Services implements StructrServices, BroadcastReceiver {
 		this.broadcastStartupComplete();
 	}
 
+	private void checkForSettingsConflicts() {
+
+		if (Settings.UUIDv4AllowedFormats.getValue().equals("with_dashes") && true == Settings.UUIDv4CreateCompact.getValue()) {
+			logger.error("Unable to start because created UUIDs would contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
+			System.exit(1);
+		}
+
+		if (Settings.UUIDv4AllowedFormats.getValue().equals("without_dashes") && false == Settings.UUIDv4CreateCompact.getValue()) {
+			logger.error("Unable to start because created UUIDs would not contain dashes but this would not be accepted. Please fix the following settings: {} and/or {}", Settings.UUIDv4AllowedFormats.getKey(), Settings.UUIDv4CreateCompact.getKey());
+			System.exit(1);
+		}
+	}
+
 	private void registerSettingsChangeHandlers() {
 
 		Settings.useFallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
 		Settings.fallbackLocale.setChangeHandler((setting, oldValue, newValue) -> FlushCachesCommand.flushLocalizationCache());
+
+		Settings.UUIDv4AllowedFormats.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting, with existing data, could lead to data being inaccessible or being unable to start. This setting should only be changed with an empty database or in development."));
+		Settings.UUIDv4CreateCompact.setChangeHandler((setting, oldValue, newValue) -> RestartRequiredChangeHandler.logRestartRequiredMessage(setting, "Be aware that changing this setting could lead to not being able to start. This setting should only be changed with an empty database or in development."));
 	}
 
 	private void startServices() {

@@ -66,7 +66,7 @@ public class MetricsFilter implements jakarta.servlet.Filter {
 			if (path != null) {
 
 				// replace UUIDs with placeholder string to avoid polluting the stats
-				path = path.replaceAll(Settings.UuidPattern.getValue(), "<uuid>");
+				path = path.replaceAll(Settings.getValidUUIDRegexString(), "<uuid>");
 
 				buf.append(path);
 			}
