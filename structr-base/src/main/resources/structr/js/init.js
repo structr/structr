@@ -116,7 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Entities.showProperties(obj);
 				});
@@ -129,7 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Elements.openEditContentDialog(obj);
 				});
@@ -142,7 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Entities.showAccessControlDialog(obj);
 				});
