@@ -3203,7 +3203,7 @@ let _Pages = {
 					if (confirm === true) {
 						Command.deleteUnattachedNodes();
 
-						Structr.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 					}
 				});
 
