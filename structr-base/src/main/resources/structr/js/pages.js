@@ -1897,6 +1897,9 @@ let _Pages = {
 
 				actionMappingObject.triggerElements = [ entity.id ];
 
+				// update entity with newly created action mapping object to prevent duplicate creation of elements
+				entity.triggeredActions = [ actionMappingObject ];
+
 				//console.log('No ActionMapping object exists, create one and update data...');
 				Command.create(actionMappingObject, (actionMapping) => {
 					//console.log('Successfully created new ActionMapping object:', actionMapping);
