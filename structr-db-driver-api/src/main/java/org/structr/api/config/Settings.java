@@ -957,6 +957,11 @@ public class Settings {
 
 	public static boolean isValidUuid(final String id) {
 
+		// make sure the UUID pattern is always initialized
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
 		if (id != null) {
 
 			if (Settings.uuidPattern.matcher(id).matches()) {
