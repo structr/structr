@@ -370,6 +370,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	/**
 	 * Returns the property set for the given view as an Iterable.
 	 *
+	 * If a custom view is set via header, this can only include properties that are also included in the current view!
+	 *
 	 * @param propertyView
 	 * @return the property set for the given view
 	 */
@@ -379,7 +381,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
 
-			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All));
+			final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, view));
 			final Set<String> customView = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {

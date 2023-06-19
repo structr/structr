@@ -37,7 +37,7 @@ public class DefaultResourceProvider implements ResourceProvider {
 
 		Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 
-		resourceMap.put(Pattern.compile(Settings.UuidPattern.getValue()), UuidResource.class); // matches any UUID configured in settings
+		resourceMap.put(Pattern.compile(Settings.getValidUUIDRegexString()), UuidResource.class); // matches any UUID configured in settings
 		resourceMap.put(Pattern.compile("cypher"),        CypherQueryResource.class);          // include experimental cypher support
 
 		resourceMap.put(Pattern.compile("maintenance"),   MaintenanceResource.class);          // maintenance

@@ -634,6 +634,9 @@ img.disabled {
 #elementsTab {
 	top: 22rem;
 }
+#previewTab {
+	top: 28rem;
+}
 
 
 /*
@@ -642,7 +645,8 @@ img.disabled {
 #widgetsTab,
 #paletteTab,
 #componentsTab,
-#elementsTab {
+#elementsTab,
+#previewTab {
 	right: 0;
 }
 
@@ -1956,8 +1960,17 @@ button.add_property {
 	display: none;
 }
 
-.select2-container--default .select2-sortable.select2-selection--multiple .select2-selection__rendered li {
+.select2-container--default:not(.select2-container--disabled) .select2-sortable.select2-selection--multiple .select2-selection__rendered li {
 	cursor: move;
+}
+
+.select2-container--default.select2-container--disabled .select2-sortable.select2-selection--multiple,
+.select2-container--default.select2-container--disabled .select2-sortable.select2-selection--multiple .select2-selection__rendered li {
+	cursor: not-allowed;
+}
+
+.select2-container--default.select2-container--disabled .select2-sortable.select2-selection--multiple .select2-search {
+	display: none;
 }
 
 .select2-sortable .ui-state-highlight {
@@ -3112,7 +3125,7 @@ i.fa-sitemap {
 
 .column-resizer-blocker {
 	display: none;
-	z-index: 2;
+	z-index: 4;
 	position: absolute;
 	top: 0;
 	left: 0;
@@ -3950,6 +3963,9 @@ ul.combined-input-select-field li:hover {
 .grid {
 	display: grid;
 }
+.empty\:hidden:empty {
+	display: none;
+}
 .relative {
 	position: relative;
 }
@@ -4391,6 +4407,9 @@ ul.combined-input-select-field li:hover {
 }
 .cursor-pointer {
 	cursor: pointer;
+}
+.cursor-not-allowed {
+	cursor: not-allowed;
 }
 .gap-y-2 {
 	row-gap: .5rem;

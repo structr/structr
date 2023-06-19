@@ -1,5 +1,5 @@
 [![Structr CI Pipeline](https://github.com/structr/structr/actions/workflows/main.yaml/badge.svg)](https://github.com/structr/structr/actions/workflows/main.yaml)
-[![Hits-of-Code](https://hitsofcode.com/github/structr/structr)](https://hitsofcode.com/view/github/structr/structr)
+[![Hits-of-Code](https://hitsofcode.com/github/structr/structr?branch=main)](https://hitsofcode.com/github/structr/structr/view?branch=main)
 ![Docker Pulls](https://img.shields.io/docker/pulls/structr/structr)
 
 # What is Structr?

@@ -263,12 +263,28 @@ let _Entities = {
 
 			datakeyInput.value = entity.dataKey;
 
-			saveDatakeyButton.addEventListener('click', () => {
-
+			let saveFn = () => {
 				Command.setProperty(entity.id, 'dataKey', datakeyInput.value, false, () => {
 					_Helpers.blinkGreen(datakeyInput);
 					entity.dataKey = datakeyInput.value;
 				});
+			};
+
+			datakeyInput.addEventListener('keydown', (e) => {
+
+				let keyCode = e.keyCode;
+				let code    = e.code;
+
+				// ctrl-s / cmd-s
+				if ((code === 'KeyS' || keyCode === 83) && ((navigator.platform !== 'MacIntel' && e.ctrlKey) || (navigator.platform === 'MacIntel' && e.metaKey))) {
+					e.preventDefault();
+					e.stopPropagation();
+					saveFn();
+				}
+			});
+
+			saveDatakeyButton.addEventListener('click', () => {
+				saveFn();
 			});
 		};
 
@@ -2206,23 +2222,230 @@ let _Entities = {
 	},
 
 	basicTab: {
+		dialogs: {
+			defaultDom: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			},
+			a: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			},
+			button: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			},
+			content: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.contentOptions({ entity: entity }));
+
+				_Entities.basicTab.populateInputFields(el, entity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+			},
+			div: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+			},
+			file: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.fileOptions({ file: entity }));
+
+				if (Structr.isModulePresent('text-search')) {
+
+					$('#content-extraction').removeClass('hidden');
+
+					$('button#extract-structure-button').on('click', async () => {
+
+						_Dialogs.custom.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
+
+						let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/extractStructure`, {
+							method: 'POST'
+						});
+
+						if (response.ok) {
+							_Dialogs.custom.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
+						}
+					});
+				}
+
+				_Entities.basicTab.populateInputFields(el, entity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+				_Entities.basicTab.focusInput(el);
+			},
+			folder: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.folderOptions({ file: entity }));
+
+				_Entities.basicTab.populateInputFields(el, entity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+			},
+			input: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.inputOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+			},
+			ldapGroup: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.ldapGroup({ group: entity }));
+
+				let dnInput     = $('input#ldap-group-dn');
+				let pathInput   = $('input#ldap-group-path');
+				let filterInput = $('input#ldap-group-filter');
+				let scopeInput  = $('input#ldap-group-scope');
+
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+				// dialog logic here..
+				$('.clear-ldap-group-dn', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'distinguishedName', dnInput); });
+				$('.clear-ldap-group-path', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'path', pathInput); });
+				$('.clear-ldap-group-filter', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'filter', filterInput); });
+				$('.clear-ldap-group-scope', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'scope', scopeInput); });
+
+				$('button#ldap-sync-button').on('click', async () => {
+
+					let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/update`, {
+						method: 'POST'
+					});
+
+					if (response.ok) {
+						_Dialogs.custom.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
+					} else {
+						_Dialogs.custom.showAndHideInfoBoxMessage('LDAP group could not be updated', 'warning', 5000, 200);
+					}
+				});
+
+				_Entities.basicTab.focusInput(el);
+			},
+			user: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.userOptions({ entity: entity, user: entity }));
+
+				_Entities.basicTab.populateInputFields(el, entity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+				$('button#set-password-button').on('click', (e) => {
+					let input = $('input#password-input');
+					_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
+				});
+
+				_Entities.basicTab.focusInput(el);
+
+				_Entities.basicTab.showCustomProperties(el, entity);
+			},
+			option: async (el, entity) => {
+
+				let enrichedEntity = await _Entities.basicTab.addHtmlPropertiesToEntity(entity);
+
+				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity }));
+
+				_Entities.basicTab.populateInputFields(el, enrichedEntity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+				_Entities.basicTab.showShowHideConditionOptions(el, entity);
+				_Entities.basicTab.showRenderingOptions(el, entity);
+
+				_Entities.basicTab.showChildContentEditor(el, entity);
+			},
+			page: async (el, entity) => {
+
+				el.html(_Entities.basicTab.templates.pageOptions({ entity: entity, page: entity }));
+
+				_Entities.basicTab.populateInputFields(el, entity);
+				_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
+
+				_Pages.previews.configurePreview(entity, el[0]);
+
+				_Entities.basicTab.focusInput(el);
+
+				await _Entities.basicTab.showCustomProperties(el, entity);
+			},
+		},
 		getBasicTabConfig: (entity) => {
 
 			let registeredDialogs = {
-				'DEFAULT_DOM_NODE': { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.defaultDomDialog },
-				'A':                { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.aDialog },
-				'Button':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.buttonDialog },
-				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.contentDialog },
-				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.divDialog },
-				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.fileDialog },
-				'Image':            { id: 'general', title: 'Advanced',    appendDialogForEntityToContainer: _Entities.basicTab.fileDialog },
-				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.folderDialog },
-				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.inputDialog },
-				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.ldapGroupDialog, condition: () => { return Structr.isModulePresent('ldap-client'); } },
-				'Option':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.optionDialog },
-				'Page':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.pageDialog },
-				'Template':         { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.contentDialog },
-				'User':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.userDialog }
+				'DEFAULT_DOM_NODE': { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.defaultDom },
+				'A':                { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.a },
+				'Button':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.button },
+				'Content':          { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
+				'Div':              { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.div },
+				'File':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
+				'Image':            { id: 'general', title: 'Advanced',    appendDialogForEntityToContainer: _Entities.basicTab.dialogs.file },
+				'Folder':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.folder },
+				'Input':            { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.input },
+				'LDAPGroup':        { id: 'general', title: 'LDAP Config', appendDialogForEntityToContainer: _Entities.basicTab.dialogs.ldapGroup, condition: () => { return Structr.isModulePresent('ldap-client'); } },
+				'Option':           { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.option },
+				'Page':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.page },
+				'Template':         { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.content },
+				'User':             { id: 'general', title: 'Basic',       appendDialogForEntityToContainer: _Entities.basicTab.dialogs.user }
 			};
 
 			let dialogConfig = registeredDialogs[entity.type];
@@ -2246,7 +2469,10 @@ let _Entities = {
 				if (dialogConfig.condition === undefined || (typeof dialogConfig.condition === 'function' && dialogConfig.condition())) {
 
 					let wrapperFn = (contentElement) => {
-						dialogConfig.appendDialogForEntityToContainer($(contentElement), entity);
+
+						dialogConfig.appendDialogForEntityToContainer($(contentElement), entity).then(() => {
+							_Helpers.activateCommentsInElement(contentElement);
+						});
 					}
 
 					// call method with the same callback object for initial callback and show callback
@@ -2291,6 +2517,7 @@ let _Entities = {
 				showConditionsInput.val(showConditionsSelect.val());
 				showConditionsInput[0].dispatchEvent(new Event('change'));
 			});
+
 			hideConditionsSelect.on('change', () => {
 				hideConditionsInput.val(hideConditionsSelect.val());
 				hideConditionsInput[0].dispatchEvent(new Event('change'));
@@ -2336,7 +2563,9 @@ let _Entities = {
 				renderingOptionsContainer.removeClass('hidden');
 
 				let renderingModeSelect = $('select#rendering-mode-select', renderingOptionsContainer);
-				renderingModeSelect.select2();
+				renderingModeSelect.select2({
+					width: '100%'
+				});
 
 				Command.getProperty(entity.id, 'data-structr-rendering-mode', (result) => {
 					renderingModeSelect.val(result);
@@ -2426,232 +2655,13 @@ let _Entities = {
 				_Dialogs.custom.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
 			});
 		},
-		addHtmlPropertiesToEntity: (entity, callback) => {
+		addHtmlPropertiesToEntity: async (entity, callback) => {
 
-			Command.get(entity.id, null, (htmlProperties) => {
+			let htmlProperties = await Command.getPromise(entity.id, null, '_html_');
 
-				StructrModel.update(Object.assign(htmlProperties, entity));
+			StructrModel.update(Object.assign(htmlProperties, entity));
 
-				callback(entity);
-			}, '_html_');
-		},
-
-		// ----- custom dialogs -----
-		ldapGroupDialog: (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.ldapGroup({ group: entity }));
-
-			let dnInput     = $('input#ldap-group-dn');
-			let pathInput   = $('input#ldap-group-path');
-			let filterInput = $('input#ldap-group-filter');
-			let scopeInput  = $('input#ldap-group-scope');
-
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-
-			// dialog logic here..
-			$('.clear-ldap-group-dn', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'distinguishedName', dnInput); });
-			$('.clear-ldap-group-path', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'path', pathInput); });
-			$('.clear-ldap-group-filter', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'filter', filterInput); });
-			$('.clear-ldap-group-scope', el).on('click', () => { _Entities.basicTab.setNull(entity.id, 'scope', scopeInput); });
-
-			$('button#ldap-sync-button').on('click', async () => {
-
-				let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/update`, {
-					method: 'POST'
-				});
-
-				if (response.ok) {
-					_Dialogs.custom.showAndHideInfoBoxMessage('Updated LDAP group successfully', 'success', 2000, 200);
-				} else {
-					_Dialogs.custom.showAndHideInfoBoxMessage('LDAP group could not be updated', 'warning', 5000, 200);
-				}
-			});
-
-			_Entities.basicTab.focusInput(el);
-		},
-		fileDialog: (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.fileOptions({ file: entity }));
-
-			if (Structr.isModulePresent('text-search')) {
-
-				$('#content-extraction').removeClass('hidden');
-
-				$('button#extract-structure-button').on('click', async () => {
-
-					_Dialogs.custom.showAndHideInfoBoxMessage('Extracting structure..', 'info', 2000, 200);
-
-					let response = await fetch(`${Structr.rootUrl}${entity.type}/${entity.id}/extractStructure`, {
-						method: 'POST'
-					});
-
-					if (response.ok) {
-						_Dialogs.custom.showAndHideInfoBoxMessage('Structure extracted, see Contents area.', 'success', 2000, 200);
-					}
-				});
-			}
-
-			_Entities.basicTab.populateInputFields(el, entity);
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-			_Helpers.activateCommentsInElement(el[0]);
-
-			_Entities.basicTab.focusInput(el);
-		},
-		folderDialog: (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.folderOptions({ file: entity }));
-
-			_Entities.basicTab.populateInputFields(el, entity);
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-			_Helpers.activateCommentsInElement(el[0]);
-		},
-		aDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.aOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-
-				_Entities.basicTab.showChildContentEditor(el, entity);
-			});
-		},
-		buttonDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.buttonOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-
-				_Entities.basicTab.showChildContentEditor(el, entity);
-			});
-		},
-		inputDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.inputOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-			});
-		},
-		divDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.divOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-			});
-		},
-		userDialog: (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.userOptions({ entity: entity, user: entity }));
-
-			_Entities.basicTab.populateInputFields(el, entity);
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-			_Helpers.activateCommentsInElement(el[0]);
-
-			$('button#set-password-button').on('click', (e) => {
-				let input = $('input#password-input');
-				_Entities.setPropertyWithFeedback(entity, 'password', input.val(), input);
-			});
-
-			_Entities.basicTab.focusInput(el);
-
-			_Entities.basicTab.showCustomProperties(el, entity);
-		},
-		pageDialog: async (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.pageOptions({ entity: entity, page: entity }));
-
-			_Entities.basicTab.populateInputFields(el, entity);
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-
-			_Pages.previews.configurePreview(entity, el[0]);
-
-			_Entities.basicTab.focusInput(el);
-
-			await _Entities.basicTab.showCustomProperties(el, entity);
-
-			_Helpers.activateCommentsInElement(el[0]);
-		},
-		defaultDomDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.defaultDOMOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-
-				_Entities.basicTab.showChildContentEditor(el, entity);
-			});
-		},
-		contentDialog: (el, entity) => {
-
-			el.html(_Entities.basicTab.templates.contentOptions({ entity: entity }));
-
-			_Entities.basicTab.populateInputFields(el, entity);
-			_Entities.basicTab.registerSimpleInputChangeHandlers(el, entity);
-
-			_Entities.basicTab.focusInput(el);
-
-			_Entities.basicTab.showCustomProperties(el, entity);
-			_Entities.basicTab.showShowHideConditionOptions(el, entity);
-		},
-		optionDialog: (el, entity) => {
-
-			_Entities.basicTab.addHtmlPropertiesToEntity(entity,(enrichedEntity) => {
-
-				el.html(_Entities.basicTab.templates.optionOptions({ entity: enrichedEntity }));
-
-				_Entities.basicTab.populateInputFields(el, enrichedEntity);
-				_Entities.basicTab.registerSimpleInputChangeHandlers(el, enrichedEntity);
-
-				_Entities.basicTab.focusInput(el);
-
-				_Entities.basicTab.showCustomProperties(el, entity);
-				_Entities.basicTab.showShowHideConditionOptions(el, entity);
-				_Entities.basicTab.showRenderingOptions(el, entity);
-
-				_Entities.basicTab.showChildContentEditor(el, entity);
-			});
+			return entity;
 		},
 
 		templates: {
@@ -3083,7 +3093,7 @@ let _Entities = {
 					<div class="grid grid-cols-2 gap-8">
 
 						<div>
-							<label class="block mb-3" for="rendering-mode-select" data-comment="Select rendering mode for this element to activate lazy loading.">Select rendering mode for this element to activate lazy loading.</label>
+							<label class="block mb-2" for="rendering-mode-select" data-comment="Select update mode for this element to activate lazy or periodic loading.">Load/Update Mode</label>
 							<select class="select2" id="rendering-mode-select" name="data-structr-rendering-mode">
 								<option value="">Eager (default)</option>
 								<option value="load">When page has finished loading</option>

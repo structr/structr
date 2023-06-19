@@ -99,6 +99,10 @@
 	-webkit-transform-origin: 0 0;
 }
 
+#previewSlideout .content-container {
+	margin-top: 0;
+}
+
 #add_page {
 	right: 1rem;
 }

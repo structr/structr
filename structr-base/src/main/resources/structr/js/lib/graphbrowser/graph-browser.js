@@ -17,8 +17,13 @@
 * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-var Graphbrowser = Graphbrowser || {};
+var Graphbrowser = Graphbrowser || {
+	rootUrl: '/structr/rest/'	// default can be overridden
+};
 Graphbrowser.Control = Graphbrowser.Control || {};
+Graphbrowser.Modules = Graphbrowser.Modules || {};
+const deprecatedGraphView = '_graph';
+var animating = undefined;
 
 (function() {
 	'use strict';
@@ -47,9 +52,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 			_callbacks = callbacks;
 
 		// check if there are settings for sigma in the browsers settings. Else use the default values
-		conf.sigmaSettings !== undefined ?
-			_sigmaSettings = conf.sigmaSettings :
-			_sigmaSettings = {
+		_sigmaSettings = conf.sigmaSettings !== undefined ? conf.sigmaSettings : {
 				immutable: false,
 				minNodeSize: 1,
 				maxNodeSize: 10,
@@ -73,17 +76,16 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 				nodeHaloColor: 'rgba(236, 81, 72, 0.2)',
 				nodeHaloSize: 20
 			};
-		(conf.graphContainer !== undefined && typeof conf.graphContainer === 'string') ?
-			_sigmaContainer = conf.graphContainer : _sigmaContainer = "graph-container";
 
-		conf.lassoSettings !== undefined ? _lassoSettings = conf.lassoSettings :
-			_lassoSettings = {
+		_sigmaContainer = (conf.graphContainer !== undefined && typeof conf.graphContainer === 'string') ? conf.graphContainer :"graph-container";
+
+		_lassoSettings = conf.lassoSettings !== undefined ? conf.lassoSettings : {
 				'strokeStyle': 'rgb(236, 81, 72)',
 				'lineWidth': 2,
 				'fillWhileDrawing': true,
 				'fillStyle': 'rgba(236, 81, 72, 0.2)',
 				'cursor': 'crosshair'
-			}
+			};
 
 		function init(){
 			sigma.renderers.def = sigma.renderers.canvas;
@@ -749,8 +751,6 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 	};
 })();
 
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Control = Graphbrowser.Control || {};
 
 (function() {
 	'use strict';
@@ -808,77 +808,123 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		};
 
 		addMethod('getNodes', function(node, inOrOut, onResult, view){
-			if(!view) view = "_graph"
-			var url = "/structr/rest/" + (node.nodeType ? node.nodeType + "/" : "") + node.id + "/" + inOrOut + "/" + view;
-			var ajax = sendRequest(url, "GET");
-			restRequest(ajax, onResult, node);
+
+			let url = Graphbrowser.rootUrl + (node.nodeType ? node.nodeType + "/" : "") + node.id + "/" + inOrOut;
+			let fetchConfig = {
+				method: "GET",
+				headers: {
+					Accept: "application/json; charset=utf-8;properties=id,type,name,relType,sourceNode,targetNode",
+				}
+			};
+
+			if (view && view != deprecatedGraphView) {
+				url += "/" + view;
+				delete fetchConfig.headers;
+			}
+
+			fetch(url, fetchConfig).then(response => {
+
+				let success = response.ok;
+
+				response.json().then(data => {
+
+					if (success) {
+						onResult(data.result, node);
+					} else {
+						console.log("Graph-Browser-Rest: Status " + response.status + " - ERROR: " + data.message);
+					}
+				});
+			});
+
 		});
 
 		addMethod('getData', function(data, nodeOrEdge, onResult, view){
-			var url = "/structr/rest/";
-			var method;
-			if(view === undefined) view = "_graph";
 
-			if($.isArray(data)){
+			console.log('getData', data, nodeOrEdge, onResult, view);
+			if ($.isArray(data)) {
+
 				//resolver cannot handle array of relationships
-				url += "resolver";
-				method = "POST";
-			}
-			else{
-				url += data.id + "/" + view;
-				method = "GET";
-			}
+				var ajax = sendRequest(Graphbrowser.rootUrl + 'resolver', 'POST', data);
+				restRequest(ajax, onResult, nodeOrEdge);
 
-			var ajax = sendRequest(url, method, method === "POST" ? data : undefined);
-			restRequest(ajax, onResult, nodeOrEdge);
+			} else {
+
+				let url = Graphbrowser.rootUrl + data.id + "/" + view;
+				let fetchConfig = {
+					method: "GET",
+					headers: {
+						Accept: "application/json; charset=utf-8;properties=id,type,name,relType,sourceNode,targetNode",
+					}
+				};
+
+				if (view && view != deprecatedGraphView) {
+					url += "/" + view;
+					delete fetchConfig.headers;
+				}
+
+				fetch(url, fetchConfig).then(response => {
+
+					let success = response.ok;
+
+					response.json().then(data => {
+
+						if (success) {
+							onResult(data.result, node);
+						} else {
+							console.log("Graph-Browser-Rest: Status " + response.status + " - ERROR: " + data.message);
+						}
+					});
+				});
+
+			}
 		});
 
 		addMethod('getGraphViews', function(currentId, view, onResult){
-			var url = '/structr/rest/GraphView/' + view + '/?viewSource=' + currentId;
+			var url = Graphbrowser.rootUrl + 'GraphView/' + view + '/?viewSource=' + currentId;
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult);
 		});
 
 		addMethod('getGraphViewData', function(id, view, onResult){
-			var url = '/structr/rest/GraphView/' + view + '/' + id;
+			var url = Graphbrowser.rootUrl + 'GraphView/' + view + '/' + id;
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult);
 		});
 
 		addMethod('saveGraphView', function(name, graph, data, viewSource, onFinished){
 			var newGraphview = {name: name, graph: graph, data: data, viewSource: viewSource};
-			var url = '/structr/rest/GraphView'
+			var url = Graphbrowser.rootUrl + 'GraphView'
 			var ajax = sendRequest(url, "POST", newGraphview, 'application/json; charset=utf-8');
 			restRequest(ajax, onFinished);
 		});
 
 		addMethod('getSchemaInformation', function(onResult){
-			var url = '/structr/rest/_schema/';
+			var url = Graphbrowser.rootUrl + '_schema/';
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult);
 		});
 
 		addMethod('getRelationshipsOfType', function(relType, onResult, onError){
-			var url = '/structr/rest/' + relType;
+			var url = Graphbrowser.rootUrl + relType;
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult, undefined, onError);
 		});
 
 		addMethod('init', function(relType, onResult, onError){
-			var url = '/structr/rest/' + relType;
+			var url = Graphbrowser.rootUrl + relType;
 			var ajax = sendRequest(url, "GET");
 			restRequest(ajax, onResult, undefined, onError);
 		});
 
 		addMethod('deleteRelationship', function(rel, onResult){
-			var url = '/structr/rest/' + rel.type + '/ ' + rel.id;
+			var url = Graphbrowser.rootUrl + rel.type + '/ ' + rel.id;
 			var ajax = sendRequest(url, "DELETE");
 			restRequest(ajax, onResult);
 		});
 
 		addMethod('createRelationship', function(source, target, relType, onResult, attr, onError){
 			var newRel = {sourceId: source, targetId: target};
-			var url = '/structr/rest/' + relType;
+			var url = Graphbrowser.rootUrl + relType;
 			var ajax = sendRequest(url, "POST", newRel);
 			restRequest(ajax, onResult, attr, onError);
 		});
@@ -892,8 +938,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		this.init = init;
 	};
 }).call(window);
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Control = Graphbrowser.Control || {};
+
 
 (function() {
 	'use strict';
@@ -934,6 +979,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		_callbacks.api.reset 			= reset;
 
 		function init(){
+			console.log('init');
 			if(Graphbrowser.Modules){
 				$.each(Graphbrowser.Modules, function(i, module){
 					var newModule = new module(_s, _callbacks);
@@ -966,6 +1012,7 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		};
 
 		function start(settings){
+			console.log(settings);
 			$.each(_browserEventHandlers['start'], function(i, func){
 				func(settings);
 			});
@@ -1089,12 +1136,11 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 	};
 
 })();
+
 ;(function(undefined) {
 	'use strict';
 
-	Graphbrowser = Graphbrowser || {};
-
-	var GraphBrowser = function(conf){
+	var GraphBrowser = function(conf) {
 		var _s,
 			_controller = {},
 			_callbackMethods = {};
@@ -1110,6 +1156,10 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 
 		_callbackMethods.api = _callbackMethods.api || {};
 
+		if (conf.rootUrl) {
+			Graphbrowser.rootUrl = conf.rootUrl;
+		}
+
 		// create and initialize the sigma controller.
 		_controller.sigmaControl = new Graphbrowser.Control.SigmaControl(_callbackMethods, conf);
 		_s = _controller.sigmaControl.init();
@@ -1121,7 +1171,6 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 		// create and initialize the module controller
 		_controller.ModuleControl = new Graphbrowser.Control.ModuleControl(_callbackMethods, conf.moduleSettings, _s);
 		_controller.ModuleControl.init();
-
 
 		// append the api functions of eacht module to the graph browser object.
 		for(var o in _callbackMethods.api){
@@ -1139,9 +1188,9 @@ Graphbrowser.Control = Graphbrowser.Control || {};
 	};
 
 	this.GraphBrowser = GraphBrowser;
+
 }).call(this);
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
+
 
 (function() {
 	'use strict';
@@ -1374,8 +1423,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.start = start;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -1452,10 +1499,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.onSave = onSave;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
-var animating = undefined;
 
 (function() {
 	'use strict';
@@ -1596,8 +1640,6 @@ var animating = undefined;
 		this.init = init;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -1673,8 +1715,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	};
 
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -1815,8 +1855,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.init = init;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -1864,23 +1902,23 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 				settings.container !== undefined ? _infoContainer = settings.container : _infoContainer = '';
 
 				settings.margins = settings.margins || {};
-				settings.margins.left !== undefined ? _marginX = settings.margins.left : _marginX = 0;
-				settings.margins.top !== undefined ? _marginY = settings.margins.top : _marginY = 0;
+				_marginX         = (settings.margins.left !== undefined ? settings.margins.left : 0);
+				_marginY         = (settings.margins.top !== undefined ? settings.margins.top : 0);
 
-				settings.infoButtons = settings.infoButtons || {};
-				settings.infoButtonRenderer !== undefined ? _infoButtonRenderer = settings.infoButtonRenderer : _infoButtonRenderer = defaultInfoButtonRenderer;
-				settings.defaultInfoButtonColor !== undefined ? _defaultInfoButtonColor = settings.defaultInfoButtonColor : _defaultInfoButtonColor = '#fff';
+				settings.infoButtons    = settings.infoButtons || {};
+				_infoButtonRenderer     = settings.infoButtonRenderer !== undefined ? settings.infoButtonRenderer : defaultInfoButtonRenderer;
+				_defaultInfoButtonColor = settings.defaultInfoButtonColor !== undefined ? settings.defaultInfoButtonColor : '#fff';
 
-				settings.onAddNodes !== undefined ? _onAddNodes = settings.onAddNodes : _onAddNodes = undefined;
-				settings.onNodesAdded !== undefined ? _onNodesAdded = settings.onNodesAdded : _onNodesAdded = undefined;
-				settings.onNodesRemoved !== undefined ? _onNodesRemoved = settings.onNodesRemoved : _onNodesRemoved = undefined;
-				settings.newNodeSize !== undefined ? _newNodeSize = settings.newNodeSize : _newNodeSize = 10;
-				settings.newNodeLabelProperty !== undefined ? _newNodeLabelProperty = settings.newNodeLabelProperty : _newNodeLabelProperty = "name";
-				settings.newEdgeSize !== undefined ? _newEdgeSize = settings.newEdgeSize : _newEdgeSize = 10;
-				settings.newEdgeLabelProperty !== undefined ? _newEdgeLabelProperty = settings.newEdgeLabelProperty : _newEdgeLabelProperty = "relType";
-				settings.edgeType !== undefined ? _edgeType = settings.edgeType : _edgeType = "arrow";
-				settings.expandButtonsTimeout !== undefined ? _expandButtonsTimeout = settings.expandButtonsTimeout : _expandButtonsTimeout = 1000;
-				settings.restView !== undefined ? _view = settings.restView : _view = "_graph";
+				_onAddNodes           = (settings.onAddNodes !== undefined ? settings.onAddNodes : undefined);
+				_onNodesAdded         = (settings.onNodesAdded !== undefined ? settings.onNodesAdded : undefined);
+				_onNodesRemoved       = (settings.onNodesRemoved !== undefined ? settings.onNodesRemoved : undefined);
+				_newNodeSize          = (settings.newNodeSize !== undefined ? settings.newNodeSize : 10);
+				_newNodeLabelProperty = (settings.newNodeLabelProperty !== undefined ? settings.newNodeLabelProperty : "name");
+				_newEdgeSize          = (settings.newEdgeSize !== undefined ? settings.newEdgeSize : 10);
+				_newEdgeLabelProperty = (settings.newEdgeLabelProperty !== undefined ? settings.newEdgeLabelProperty : "relType");
+				_edgeType             = (settings.edgeType !== undefined ? settings.edgeType : "arrow");
+				_expandButtonsTimeout = (settings.expandButtonsTimeout !== undefined ? settings.expandButtonsTimeout : 1000);
+				_view                 = (settings.restView !== undefined ? settings.restView : deprecatedGraphView);
 
 				bindEvents();
 
@@ -1904,7 +1942,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_callbacks.bindBrowserEvent('undo', onUndo);
 
 			_callbacks.eventEmitter[_s.id].bind('dataChanged', onDataChanged);
-
 		};
 
 		function unbindEvents(){
@@ -2381,8 +2418,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.init = init;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -2688,8 +2723,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 	};
 
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -3333,8 +3366,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
     Graphbrowser.Modules.RelationshipEditor.prototype.getRelationshipEditorWorker = getRelationshipEditorWorker;
 
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -3539,8 +3570,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.init = init;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -3699,8 +3728,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.status = status;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -3717,7 +3744,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			_options,
 			_timeout,
 			_nodesShape,
-			_standartNodeShape,
+			_standardNodeShape,
 			_newNodeShape,
 			_critXDbName,
 			_critYDbName,
@@ -3743,9 +3770,9 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					_critYDbName = tmp[2];
 				}
 
-				settings.view !== undefined ? _view = settings.view : _view = '_graph';
-				settings.nodesShape !== undefined ? _nodesShape = settings.nodesShape : _nodesShape = "";
-				settings.standartNodeShape !== undefined ? _standartNodeShape = settings.standardNodeShape : _standartNodeShape = "";
+				_view              = settings.view !== undefined ? settings.view : deprecatedGraphView;
+				_nodesShape        = settings.nodesShape !== undefined ? settings.nodesShape : "";
+				_standardNodeShape = settings.standardNodeShape !== undefined ? settings.standardNodeShape : "";
 
 				_callbacks.sigmaCtrl.bindSigmaEvent('startdrag', handleSigmaEvent);
 			}
@@ -3873,12 +3900,12 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		};
 
 		function reset(){
-			_newNodeShape =  _standartNodeShape || "";
+			_newNodeShape =  _standardNodeShape || "";
 			kill(true);
 		};
 
 		function handleSigmaEvent(event){
-			_newNodeShape =  _standartNodeShape || "";
+			_newNodeShape =  _standardNodeShape || "";
 			kill(false);
 		};
 
@@ -3901,7 +3928,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 		function undo(){
 			if(_undoStack.length <= 1){
-				_newNodeShape = _standartNodeShape;
+				_newNodeShape = _standardNodeShape;
 				kill(true);
 			}
 
@@ -3919,7 +3946,7 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 					});
 				}
 				else{
-					_newNodeShape = _standartNodeShape;
+					_newNodeShape = _standardNodeShape;
 					kill(false);
 				}
 			}
@@ -3950,8 +3977,6 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 		this.init = init;
 	};
 })();
-var Graphbrowser = Graphbrowser || {};
-Graphbrowser.Modules = Graphbrowser.Modules || {};
 
 (function() {
 	'use strict';
@@ -3983,19 +4008,19 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 			if(settings !== undefined){
 				if(settings.node){
 					_nodesEnabled = true;
-					settings.node.showOn !== undefined ? _nodeShowOn = settings.node.showOn : _nodeShowOn = 'rightClickNode';
-					settings.node.hideOn !== undefined ? _nodeHideOn = settings.node.hideOn : _nodeHideOn = 'clickStage';
-					settings.node.position !== undefined ? _nodePosition = settings.node.position : _nodePosition = 'bottom';
-					settings.node.cssClass !== undefined ? _nodeCssClass = settings.node.cssClass : _nodeCssClass = 'node-tooltip-container';
+					_nodeShowOn   = (settings.node.showOn !== undefined ? settings.node.showOn : 'rightClickNode');
+					_nodeHideOn   = (settings.node.hideOn !== undefined ? settings.node.hideOn : 'clickStage');
+					_nodePosition = (settings.node.position !== undefined ? settings.node.position : 'bottom');
+					_nodeCssClass = (settings.node.cssClass !== undefined ? settings.node.cssClass : 'node-tooltip-container');
 					(settings.node.renderer !== undefined && typeof settings.node.renderer === 'function') ? _nodeRenderer = settings.node.renderer : _nodeRenderer = undefined;
 				}
 
 				if(settings.edge){
 					_edgesEnabled = true;
-					settings.edge.showOn !== undefined ? _edgeShowOn = settings.edge.showOn : _edgeShowOn = 'rightClickEdge';
-					settings.edge.hideOn !== undefined ? _edgeHideOn = settings.edge.hideOn : _edgeHideOn = 'clickStage';
-					settings.edge.position !== undefined ? _edgePosition = settings.edge.position : _edgePosition = 'bottom';
-					settings.edge.cssClass !== undefined ? _edgeCssClass = settings.edge.cssClass : _edgeCssClass = 'edge-tooltip-container';
+					_edgeShowOn   = (settings.edge.showOn !== undefined ? settings.edge.showOn : 'rightClickEdge');
+					_edgeHideOn   = (settings.edge.hideOn !== undefined ? settings.edge.hideOn : 'clickStage');
+					_edgePosition = (settings.edge.position !== undefined ? settings.edge.position : 'bottom');
+					_edgeCssClass = (settings.edge.cssClass !== undefined ? settings.edge.cssClass : 'edge-tooltip-container');
 					(settings.edge.renderer !== undefined && typeof settings.edge.renderer === 'function') ? _edgeRenderer = settings.edge.renderer : _edgeRenderer = undefined;
 				}
 
@@ -4010,9 +4035,9 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 						position: _nodePosition,
 						template: '<div id="node-tooltip-container" class="' + _nodeCssClass + '"></div>',
 						renderer: function(node, template) {
-							if(_nodeRenderer)
+							if (_nodeRenderer) {
 								return _nodeRenderer(node);
-							else{
+							} else {
 								self.loadStructrPageContent(node);
 								return "";
 							}
@@ -4027,9 +4052,9 @@ Graphbrowser.Modules = Graphbrowser.Modules || {};
 						position: _edgePosition,
 						template: '<div id="edge-tooltip-container" class="' + _edgeCssClass + '"></div>',
 						renderer: function(edge, template) {
-							if(_edgeRenderer)
+							if (_edgeRenderer) {
 								return _edgeRenderer(edge);
-							else{
+							} else {
 								self.loadStructrPageContent(edge);
 								return "";
 							}

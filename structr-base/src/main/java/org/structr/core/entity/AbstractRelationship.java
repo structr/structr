@@ -70,10 +70,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		id, type, relType, sourceId, targetId
 	);
 
-	public static final View graphView = new View(AbstractRelationship.class, View.INTERNAL_GRAPH_VIEW,
-		id, type, relType, sourceNode, targetNode
-	);
-
 	public boolean internalSystemPropertiesUnlocked = false;
 
 	private long transactionId                 = -1;
@@ -364,6 +360,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	/**
 	 * Return all property keys.
 	 *
+	 * If a custom view is set via header, this can only include properties that are also included in the current view!
+	 *
 	 * @return property keys
 	 */
 	public final Set<PropertyKey> getPropertyKeys() {
@@ -377,7 +375,8 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 		// check for custom view in content-type field
 		if (securityContext != null && securityContext.hasCustomView()) {
 
-			final Set<PropertyKey> keys = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, PropertyView.All));
+			final String view            = securityContext.isSuperUser() ? PropertyView.All : propertyView;
+			final Set<PropertyKey> keys  = new LinkedHashSet<>(StructrApp.getConfiguration().getPropertySet(entityType, view));
 			final Set<String> customView = securityContext.getCustomView();
 
 			for (Iterator<PropertyKey> it = keys.iterator(); it.hasNext();) {

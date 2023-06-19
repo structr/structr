@@ -18,6 +18,10 @@
  */
 package org.structr.api.config;
 
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.structr.api.util.html.Attr;
 import org.structr.api.util.html.Tag;
 
@@ -29,7 +33,7 @@ import java.util.Set;
  */
 public class ChoiceSetting extends StringSetting {
 
-	private final Set<String> choices = new LinkedHashSet<>();
+	private final Map<String, String> choices = new LinkedHashMap<>();
 
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices) {
 		this(group, categoryName, key, value, choices, null);
@@ -38,7 +42,13 @@ public class ChoiceSetting extends StringSetting {
 	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Set<String> choices, final String comment) {
 		super(group, categoryName, key, value, comment);
 
-		this.choices.addAll(choices);
+		this.choices.putAll(choices.stream().collect(Collectors.toMap(Function.identity(), Function.identity())));
+	}
+
+	public ChoiceSetting(final SettingsGroup group, final String categoryName, final String key, final String value, final Map<String, String> choicesMap, final String comment) {
+		super(group, categoryName, key, value, comment);
+
+		this.choices.putAll(choicesMap);
 	}
 
 	@Override
@@ -50,12 +60,12 @@ public class ChoiceSetting extends StringSetting {
 
 		final Tag select = group.block("select").attr(new Attr("name", getKey()));
 
-		for (final String choice : choices) {
+		for (final Map.Entry<String, String> entry : choices.entrySet()) {
 
-			final Tag option = select.block("option").text(choice);
+			final Tag option = select.block("option").text(entry.getValue()).attr(new Attr("value", entry.getKey()));
 
 			// selected?
-			if (choice.equals(getValue())) {
+			if (entry.getKey().equals(getValue())) {
 				option.attr(new Attr("selected", "selected"));
 			}
 		}

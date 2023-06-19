@@ -67,6 +67,15 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 		StructrApp.getInstance().invalidateCache();
 	}
 
+	public static void flushLocalizationCache() {
+
+		logger.info("Clearing localization cache.");
+
+		LocalizeFunction.invalidateCache();
+
+		logger.info("Done");
+	}
+
 	@Override
 	public boolean requiresEnclosingTransaction() {
 		return true;

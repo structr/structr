@@ -138,7 +138,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 	public static String getLocalization (final Locale locale, final String requestedKey, final String requestedDomain, final boolean isFallbackLookup) throws FrameworkException {
 
 		/*
-		OLD VERSION - stays like this
+			OLD VERSION - make sure to keep functionality compatible when making changes!
 		*/
 
 		final String fullLocale  = locale.toString();
@@ -160,7 +160,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 		if (value == null && !finalDomain.equals("")) { value = getLocalizedNameFromDatabase(requestedKey, "", lang); }
 
 		// prevent further fallback lookups and also caching in fallback mode
-		if (!isFallbackLookup) {
+		if (isFallbackLookup == false) {
 
 			// only cache if resolution was successful
 			if (value != null) {
@@ -195,7 +195,11 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 					}
 				}
 
-				if (value == null) {
+				if (value != null) {
+
+					cacheValue(cacheKey, value);
+
+				} else {
 
 					value = requestedKey;
 				}
@@ -209,7 +213,7 @@ public class LocalizeFunction extends AdvancedScriptingFunction {
 
 		final Locale locale      = ctx.getLocale();
 
-		// If we are accessing the function via the frontend accessmode, we use the "regular" function
+		// If we are accessing the function via the frontend access mode, we use the "regular" function
 		if (AccessMode.Frontend.equals(ctx.getSecurityContext().getAccessMode())) {
 
 			return getLocalization(locale, requestedKey, requestedDomain);

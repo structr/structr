@@ -59,6 +59,8 @@ public class StructrJsonHtmlWriter implements RestWriter {
 	protected int pageSize                    = -1;
 	protected int page                        = 1;
 
+	private String pagingParameterString      = "";
+
 	static {
 
 		hiddenViews.add(PropertyView.All);
@@ -87,8 +89,7 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 		final String applicationRootPath = Settings.ApplicationRootPath.getValue();
 
-		String currentType = baseUrl.replace(restPath + "/", "").replace("/" + propertyView, "");
-		currentType = applicationRootPath + currentType;
+		pagingParameterString = getPagingParameters();
 
 		if (!propertyView.equals("public")) {
 			this.propertyView = "/" + propertyView;
@@ -101,20 +102,23 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		head.inline("title").text(applicationRootPath + baseUrl);
 
 		final Tag body = doc.block("body");
-
 		final Tag left = body.block("div").id("left");
 
-		left.inline("button").attr(new Css("collapse right")).text(" - ");
-		left.inline("button").attr(new Css("expand right")).text(" + ");
+		left.inline("button").attr(new Css("collapse right")).text("-");
+		left.inline("button").attr(new Css("expand right")).text("+");
+
+		// baseUrl ist not really a baseUrl, it is the full path. it also does not (necessarily) contain the ApplicationRootPath
+		// to be safe, try to remove both (restPath already contains ApplicationRootPath)
+		// currentType is also a misnomer - it can also be "<type>/<uuid>"
+		String currentType = baseUrl.replace(restPath + "/", "")												// remove longest REST path (including applicationRootPah)
+				.replace(StringUtils.removeEnd(Settings.RestServletPath.getValue(), "/*") + "/", "")	// remove REST path (without applicationRootPah)
+				.replace("/" + propertyView, "");																// remove current view
 
 		for (String view : StructrApp.getConfiguration().getPropertyViews()) {
 
 			if (!hiddenViews.contains(view)) {
-				final String href = applicationRootPath + restPath + "/" + currentType + "/" + view
-						+ "?" + RequestKeywords.PageSize.keyword()   + "=" + getPageSize()
-						+ "&" + RequestKeywords.PageNumber.keyword() + "=" + getPage();
 
-				left.inline("a").attr(new Href(href), new If(view.equals(propertyView), new Css("active"))).text(view);
+				left.inline("a").attr(new Href(restPath + "/" + currentType + "/" + view + pagingParameterString), new If(view.equals(propertyView), new Css("active"))).text(view);
 			}
 		}
 
@@ -237,27 +241,19 @@ public class StructrJsonHtmlWriter implements RestWriter {
 			currentElement = currentElement.block("li");
 		}
 
-		final String applicationRootPath = Settings.ApplicationRootPath.getValue();
-
 		if ("id".equals(lastName)) {
-
-			final String rootPath = applicationRootPath + restPath + "/";
-			final String pagingParams =
-					  "?" + RequestKeywords.PageSize.keyword()   + "=" + getPageSize()
-					+ "&" + RequestKeywords.PageNumber.keyword() + "=" + getPage();
 
 			if (currentObject == null) {
 
-				currentElement.inline("a").css("id").attr(new Href(rootPath + value + propertyView + pagingParams)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else if (currentObject instanceof AbstractRelationship) {
 
-				currentElement.inline("a").css("id").attr(new Href(rootPath + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView + pagingParams)).text("\"", value, "\"");
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getProperty(AbstractRelationship.type) + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 
 			} else {
 
-				currentElement.inline("a").css("id").attr(new Href(rootPath + currentObject.getType() + "/" + value + propertyView + pagingParams)).text("\"", value, "\"");
-
+				currentElement.inline("a").css("id").attr(new Href(restPath + "/" + currentObject.getType() + "/" + value + propertyView + pagingParameterString)).text("\"", value, "\"");
 			}
 
 		} else {
@@ -403,4 +399,10 @@ public class StructrJsonHtmlWriter implements RestWriter {
 		return page;
 	}
 
+	private String getPagingParameters() {
+
+		return "?"
+				+ RequestKeywords.PageSize.keyword()   + "=" + getPageSize() + "&"
+				+ RequestKeywords.PageNumber.keyword() + "=" + getPage();
+	}
 }

@@ -147,8 +147,8 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
-		final int nodeCount      = 2583;
-		final int relCount       = 2987;
+		final int nodeCount      = 2432;
+		final int relCount       = 2831;
 		final int typedNodeCount = 612;
 
 		final String fullIndexRebuildOutput =

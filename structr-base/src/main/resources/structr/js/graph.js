@@ -87,6 +87,7 @@ let _Graph = {
 
 		let editDistance = Math.sqrt(Math.pow(canvasWidth, 2) + Math.pow(canvasHeight, 2)) * 0.2;
 		let graphBrowserSettings = {
+			rootUrl: Structr.rootUrl,
 			graphContainer: 'graph-canvas',
 			moduleSettings: {
 				tooltips : {
@@ -177,7 +178,7 @@ let _Graph = {
 
 	onload: () => {
 
-		_Graph.registerEventHandlers();
+		_Graph.eventHandlers.register();
 
 		live('#toggleNodeLabels', 'change', (e) => {
 			_Graph.nodeLabelsHidden = !_Graph.nodeLabelsHidden;
@@ -210,9 +211,7 @@ let _Graph = {
 
 		UISettings.showSettingsForCurrentModule();
 
-		$('#clear-graph').on('click', function() {
-			_Graph.clearGraph();
-		});
+		document.querySelector('#clear-graph')?.addEventListener('click', _Graph.clearGraph);
 
 		let savedTypeVisibility = LSWrapper.getItem(_Graph.displayTypeConfigKey) || {};
 		$('#graphTypeToggleRels').prop('checked', (savedTypeVisibility.rels === undefined ? true : savedTypeVisibility.rels));
@@ -434,27 +433,32 @@ let _Graph = {
 	},
 	unload: () => {
 
-		_Graph.unregisterEventHandlers();
+		_Graph.eventHandlers.unregister();
 
-		_Graph.colors = [];
-		_Graph.nodeIds = [];
-		_Graph.relIds = [];
+		_Graph.colors          = [];
+		_Graph.nodeIds         = [];
+		_Graph.relIds          = [];
 		_Graph.hiddenNodeTypes = [];
-		_Graph.hiddenRelTypes = [];
+		_Graph.hiddenRelTypes  = [];
+
 		if (_Graph.graphBrowser) {
-			_Graph.graphBrowser.kill();
-			_Graph.graphBrowser = undefined;
+			try {
+				_Graph.graphBrowser.kill();
+				_Graph.graphBrowser = undefined;
+			} catch (e) {
+				_Graph.graphBrowser = undefined;
+			}
 		}
 	},
-	registerEventHandlers: () => {
-		document.body.addEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
-		document.body.addEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
-	},
-	unregisterEventHandlers: () => {
-		document.body.removeEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
-		document.body.removeEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
-	},
 	eventHandlers: {
+		register: () => {
+			document.body.addEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
+			document.body.addEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
+		},
+		unregister: () => {
+			document.body.removeEventListener('mousedown', _Graph.eventHandlers.mouseDownHandler);
+			document.body.removeEventListener('mouseup', _Graph.eventHandlers.mouseUpHandler);
+		},
 		mouseDownHandler: (e) => {
 			_Graph.tmpX = e.clientX;
 			_Graph.tmpY = e.clientY;
@@ -555,19 +559,23 @@ let _Graph = {
 	// },
 
 	clearSearch: (element) => {
+
 		element.parentNode.querySelector('.clearSearchIcon').style.display = null;
 		element.value = '';
 		element.focus();
 	},
 
 	clearGraph: () => {
-		_Graph.colors = [];
-		_Graph.nodeIds = [];
-		_Graph.relIds = [];
+
+		_Graph.colors          = [];
+		_Graph.nodeIds         = [];
+		_Graph.relIds          = [];
 		_Graph.hiddenNodeTypes = [];
-		_Graph.hiddenRelTypes = [];
+		_Graph.hiddenRelTypes  = [];
+
 		_Graph.graphBrowser.hideExpandButtons();
 		_Graph.graphBrowser.reset();
+
 		_Graph.updateRelationshipTypes();
 	},
 
@@ -997,23 +1005,23 @@ let _Graph = {
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/graph_editor.css">
-			
+
 			<div id="graph-box" class="graphNoSelect">
-			
+
 				<div id="graph-info"></div>
-			
+
 			<!--	<div id="cypher-params">-->
 			<!--		<h3>Cypher Parameters</h3>-->
 			<!--		${_Icons.getSvgIcon(_Icons.iconAdd, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['icon-green']))} -->
 			<!--	</div>-->
-			
+
 			<!--	<div><h3>Saved Queries</h3></div>-->
 			<!--	<div id="saved-queries"></div>-->
-			
+
 				<div class="canvas" id="graph-canvas"></div>
 			<!--	<div id="node-types" class="graph-object-types"></div>-->
 			<!--	<div id="relationship-types" class="graph-object-types"></div>-->
-			
+
 			</div>
 		`,
 		functions: config => `

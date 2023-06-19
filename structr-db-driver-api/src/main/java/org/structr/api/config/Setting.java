@@ -27,13 +27,14 @@ import org.structr.api.util.html.Tag;
  */
 public abstract class Setting<T> {
 
-	protected SettingsGroup group = null;
-	protected boolean isDynamic   = false;
-	protected T defaultValue      = null;
-	protected String category     = null;
-	protected String key          = null;
-	protected T value             = null;
-	protected String comment      = null;
+	protected SettingsGroup group                = null;
+	protected boolean isDynamic                  = false;
+	protected T defaultValue                     = null;
+	protected String category                    = null;
+	protected String key                         = null;
+	protected T value                            = null;
+	protected String comment                     = null;
+	protected SettingChangeHandler changeHandler = null;
 
 	public abstract void render(final Tag parent);
 	public abstract void fromString(final String source);
@@ -134,7 +135,15 @@ public abstract class Setting<T> {
 	}
 
 	public void setValue(final T value) {
-		this.value = value;
+
+		final T oldValue      = this.value;
+		this.value            = value;
+		final boolean changed = ((oldValue == null && value != null) || (oldValue != null && !oldValue.equals(value)));
+
+		if (changed == true && changeHandler != null) {
+
+			changeHandler.execute(this, oldValue, value);
+		}
 	}
 
 	public void setDefaultValue(final T value) {
@@ -151,6 +160,10 @@ public abstract class Setting<T> {
 
 	public void setIsDynamic(boolean isDynamic) {
 		this.isDynamic = isDynamic;
+	}
+
+	public void setChangeHandler(final SettingChangeHandler changeHandler) {
+		this.changeHandler = changeHandler;
 	}
 
 	public void unregister() {

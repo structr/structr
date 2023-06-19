@@ -889,6 +889,7 @@ let _Schema = {
 				// only show the following tabs in the Code area where it is not opened in a popup
 
 				let workingSetsTabContent = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'working-sets', 'Working Sets', targetView === 'working-sets');
+				workingSetsTabContent.classList.add('relative');
 				_Schema.nodes.appendWorkingSets(workingSetsTabContent, entity);
 
 				_Schema.nodes.appendGeneratedSourceCodeTab(entity, mainTabs, contentDiv, targetView);
@@ -1004,9 +1005,12 @@ let _Schema = {
 		},
 		activateTagsSelect: (container, changeFn) => {
 
+			let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+
 			$('#tags-select', $(container)).select2({
 				tags: true,
-				width: '100%'
+				width: '100%',
+				dropdownParent: dropdownParent
 			}).on('change', () => {
 				changeFn?.();
 			});
@@ -1978,7 +1982,7 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -2846,6 +2850,19 @@ let _Schema = {
 			],
 			addButtonText: 'Add view'
 		},
+		protectedViewsList: ['all', 'ui', 'custom'],
+		isViewEditable: (view) => {
+			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
+		},
+		isDeleteViewAllowed: (view) => {
+			return (view.isBuiltinView === false && _Schema.views.protectedViewsList.includes(view.name) === false);
+		},
+		isViewNameChangeForbidden: (view) => {
+			return (view.isBuiltinView === true || _Schema.views.protectedViewsList.includes(view.name) === true);
+		},
+		isViewPropertiesChangeForbidden: (view) => {
+			return _Schema.views.protectedViewsList.includes(view.name);
+		},
 		appendViews: (container, entity, optionalAfterSaveCallback) => {
 
 			let viewsTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(_Schema.views.viewsTableConfig));
@@ -2999,9 +3016,12 @@ let _Schema = {
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				selectElement.select2Sortable(() => {
-					_Schema.views.rowChanged(tr, entity, initialViewConfig);
-				});
+				if (_Schema.views.isViewPropertiesChangeForbidden(view) !== true) {
+
+					selectElement.select2Sortable(() => {
+						_Schema.views.rowChanged(tr, entity, initialViewConfig);
+					});
+				}
 
 				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
 			});
@@ -3010,12 +3030,20 @@ let _Schema = {
 
 			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(tr, entity, initialViewConfig); };
 
-			tr.querySelector('.view.property-name').addEventListener('change', viewInfoChangeHandler);
+			let nameInput    = tr.querySelector('.view.property-name');
+			let nameDisabled = _Schema.views.isViewNameChangeForbidden(view);
+
+			if (nameDisabled) {
+				nameInput.disabled = true;
+				nameInput.classList.add('cursor-not-allowed');
+			} else {
+				nameInput.addEventListener('input', viewInfoChangeHandler);
+			}
 
 			// jquery is required for change handler of select2 plugin
 			$(tr.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
 
-			tr.querySelector('.discard-changes').addEventListener('click', () => {
+			tr.querySelector('.discard-changes')?.addEventListener('click', () => {
 
 				tr.querySelector('.view.property-name').value = view.name;
 
@@ -3039,28 +3067,32 @@ let _Schema = {
 			});
 
 			let removeAction = tr.querySelector('.remove-action');
-			removeAction.addEventListener('click', () => {
+			if (removeAction) {
+				removeAction.addEventListener('click', () => {
 
-				tr.classList.add('to-delete');
-				viewInfoChangeHandler();
+					tr.classList.add('to-delete');
+					viewInfoChangeHandler();
 
-			})
-			removeAction.disabled = false;
+				})
+				removeAction.disabled = false;
+			}
 		},
 		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
 
-			let name = prop.name;
-			if (name !== 'internalEntityContextPath') {
+			// never show internalEntityContextPath
+			if (prop.name !== 'internalEntityContextPath') {
 
 				let isSelected = prop.isSelected ? ' selected="selected"' : '';
-				let isDisabled = (view.name === 'ui' || view.name === 'custom' || prop.isDisabled) ? ' disabled="disabled"' : '';
+				let isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
 
-				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${name}"${isSelected}${isDisabled}>${name}</option>`);
+				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
 			}
 		},
 		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = row.querySelector('.property-attrs');
+			viewSelectElem.disabled = !viewIsEditable;
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
@@ -3083,13 +3115,16 @@ let _Schema = {
 					_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 				}
 
+				let dropdownParent = _Dialogs.custom.isDialogOpen() ? $(_Dialogs.custom.getDialogBoxElement()) : $('body');
+
 				let selectElement = $(viewSelectElem).select2({
 					search_contains: true,
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					closeOnSelect: false,
-					scrollAfterSelect: false
+					scrollAfterSelect: false,
+					dropdownParent: dropdownParent
 				});
 
 				callback(selectElement);
@@ -4478,7 +4513,6 @@ let _Schema = {
 			`).join('');
 			contentEl.insertAdjacentHTML('beforeend', tabContentsHtml);
 
-
 			for (let toggleAllCb of contentEl.querySelectorAll('input.toggle-all-types')) {
 
 				toggleAllCb.addEventListener('change', () => {
@@ -5112,7 +5146,6 @@ let _Schema = {
 			return methods.filter(m => m.codeType === 'java');
 		}
 	},
-
 	markElementAsChanged: (element, hasClass) => {
 		if (hasClass === true) {
 			element.classList.add('has-changes');
@@ -5728,16 +5761,16 @@ let _Schema = {
 		view: config => `
 			<tr data-view-id="${config.view.id}" >
 				<td style="width:20%;">
-					<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}" ${(config.view && config.view.isBuiltinView ? 'disabled' : '')}>
+					<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}">
 				</td>
 				<td class="view-properties-select">
-					${_Schema.templates.viewPropertiesSelect(config)}
+					<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 				</td>
 				<td class="centered actions-col">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					${(_Schema.views.isViewEditable(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes'])) : ''}
+					${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
 
-					<a href="/structr/rest/${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
+					<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
 						${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview in new tab (with pageSize=1)')}
 					</a>
 				</td>
@@ -5749,14 +5782,13 @@ let _Schema = {
 					<input size="15" type="text" class="view property-name" placeholder="Enter view name">
 				</td>
 				<td class="view-properties-select">
-					${_Schema.templates.viewPropertiesSelect(config)}
+					<select class="property-attrs view" multiple="multiple"></select>
 				</td>
 				<td class="centered actions">
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
 				</td>
 			</tr>
 		`,
-		viewPropertiesSelect: config => '<select class="property-attrs view chosen-sortable" multiple="multiple"></select>',
 		schemaGrantsTabContent: config => `
 			<div>
 				<div class="inline-info">

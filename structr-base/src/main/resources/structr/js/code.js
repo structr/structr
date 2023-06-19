@@ -25,17 +25,11 @@ let _Code = {
 	codeMain: undefined,
 	codeTree: undefined,
 	codeContents: undefined,
-	codeContext: undefined,
-	pathLocationStack: [],
-	pathLocationIndex: 0,
-	searchThreshold: 3,
-	searchTextLength: 0,
 	lastClickedPath: '',
 	layouter: null,
 	seed: 42,
 	availableTags: [],
 	tagBlacklist: ['core', 'ui', 'html'],       // don't show internal tags (core, ui, html)
-	codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
 	codeLastOpenMethodKey: 'structrCodeLastOpenMethod_' + location.port,
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
@@ -43,14 +37,11 @@ let _Code = {
 	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
-	inSearchBox: false,
 
 	init: () => {
 
 		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
-
-		$(window).off('keydown', _Code.handleKeyDownEvent).on('keydown', _Code.handleKeyDownEvent);
 	},
 	beforeunloadHandler: () => {
 		if (_Code.isDirty()) {
@@ -60,33 +51,39 @@ let _Code = {
 	resize: () => {
 		_Code.updatedResizers();
 	},
+	leftTabMinWidth: 360,
+	rightTabMinWidth: 300,
 	prevAnimFrameReqId_moveLeftResizer: undefined,
 	moveLeftResizer: (left) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveLeftResizer, () => {
-			left = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
 			_Code.updatedResizers(left, null);
 		});
 	},
 	prevAnimFrameReqId_moveRightResizer: undefined,
-	moveRightResizer: (left) => {
+	moveRightResizer: (right) => {
 
 		_Helpers.requestAnimationFrameWrapper(_Code.prevAnimFrameReqId_moveRightResizer, () => {
-			left = left || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
-			_Code.updatedResizers(null, left);
+			_Code.updatedResizers(null, right);
 		});
 	},
 	updatedResizers: (left, right) => {
 
-		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || 300;
-		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || 240;
+		left  = left || LSWrapper.getItem(_Code.codeResizerLeftKey) || _Code.leftTabMinWidth;
+		right = right || LSWrapper.getItem(_Code.codeResizerRightKey) || _Code.rightTabMinWidth;
+
+		if (_Code.recentElements.isVisible() === false) {
+			right = '3rem';
+		} else {
+			right = right + 'px';
+		}
 
 		_Code.codeMain[0].querySelector('.column-resizer-left').style.left     = `${left}px`;
-		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `${window.innerWidth - right}px`;
+		_Code.codeMain[0].querySelector('.column-resizer-right').style.left    = `calc(${window.innerWidth}px - ${right})`;
 
 		document.getElementById('code-tree').style.width              = `calc(${left}px - 1rem)`;
-		document.getElementById('code-context-container').style.width = `calc(${right}px - 3rem)`;
-		document.getElementById('code-contents').style.width          = `calc(${Math.floor(window.innerWidth - left - right)}px - 4rem)`;
+		document.getElementById('code-context-container').style.width = `calc(${right} - 3rem)`;
+		document.getElementById('code-contents').style.width          = `calc(${window.innerWidth}px - ${left}px - ${right} - 4rem)`;
 
 		_Editors.resizeVisibleEditors();
 	},
@@ -95,10 +92,11 @@ let _Code = {
 		let allow = _Code.testAllowNavigation();
 		if (allow) {
 
+			document.removeEventListener('keydown', _Code.handleKeyDownEvent);
+
 			_Code.runCurrentEntitySaveAction = null;
 			_Editors.disposeAllEditors();
 
-			_Helpers.fastRemoveAllChildren(document.querySelector('.searchBox'));
 			_Helpers.fastRemoveAllChildren(document.querySelector('#code-main'));
 		}
 
@@ -113,33 +111,19 @@ let _Code = {
 
 			UISettings.showSettingsForCurrentModule();
 
-			let codeSearchInput = document.querySelector('#tree-search-input');
-			_Code.inSearchBox = false;
-			codeSearchInput.addEventListener('focus', () => { _Code.inSearchBox = true; });
-			codeSearchInput.addEventListener('blur',  () => { _Code.inSearchBox = false; });
-			codeSearchInput.addEventListener('input', _Helpers.debounce(_Code.doSearch, 300));
+			document.addEventListener('keydown', _Code.handleKeyDownEvent);
 
-			$('#tree-forward-button').on('click', _Code.pathLocationForward);
-			$('#tree-back-button').on('click', _Code.pathLocationBackward);
-			$('.clearSearchIcon').on('click', _Code.cancelSearch);
-
-			$(window).on('keydown.search', function(e) {
-				if (_Code.searchIsActive()) {
-					if (e.key === 'Escape') {
-						_Code.cancelSearch();
-					}
-				};
-			});
-
+			_Code.recentElements.init();
+			_Code.pathLocations.init();
+			_Code.search.init();
 			_Code.init();
 
 			_Code.codeMain     = $('#code-main');
 			_Code.codeTree     = $('#code-tree');
 			_Code.codeContents = $('#code-contents');
-			_Code.codeContext  = $('#code-context');
 
-			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, 204, _Code.moveLeftResizer);
-			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, 204, _Code.moveRightResizer, true);
+			Structr.initVerticalSlider($('.column-resizer-left', _Code.codeMain), _Code.codeResizerLeftKey, _Code.leftTabMinWidth, _Code.moveLeftResizer);
+			Structr.initVerticalSlider($('.column-resizer-right', _Code.codeMain), _Code.codeResizerRightKey, _Code.rightTabMinWidth, _Code.moveRightResizer, true);
 
 			$.jstree.defaults.core.themes.dots      = false;
 			$.jstree.defaults.dnd.inside_pos        = 'last';
@@ -148,7 +132,7 @@ let _Code = {
 			_Code.codeTree.on('select_node.jstree', _Code.handleTreeClick);
 			_Code.codeTree.on('refresh.jstree', _Code.activateLastClicked);
 
-			_Code.loadRecentlyUsedElements(() => {
+			_Code.recentElements.loadRecentlyUsedElements(() => {
 				_TreeHelper.initTree(_Code.codeTree, _Code.treeInitFunction, 'structr-ui-code');
 			});
 
@@ -217,6 +201,12 @@ let _Code = {
 					if (!_Dialogs.custom.isDialogOpen()) {
 						runButton.click();
 					}
+				}
+			}
+
+			if (_Code.search.searchIsActive()) {
+				if (e.key === 'Escape') {
+					_Code.search.cancelSearch();
 				}
 			}
 		}
@@ -527,80 +517,6 @@ let _Code = {
 			});
 		}
 	},
-	loadRecentlyUsedElements: (doneCallback) => {
-
-		let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-
-		for (let element of recentElements) {
-
-			let nameIsUndefined = !element.name;
-			let notSvgIcon      = !element.iconSvg;
-
-			if (!nameIsUndefined && !notSvgIcon) {
-				_Code.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
-			}
-		}
-
-		doneCallback();
-	},
-	addRecentlyUsedEntity: (entity, path, fromStorage) => {
-
-		let name      = _Code.getDisplayNameInRecentsForType(entity);
-		let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
-		let localPath = path;
-
-		// don't add search results to recently used elements (we cannot construct the path)
-		if (localPath.indexOf('root/searchresults/') !== 0) {
-			_Code.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
-		}
-	},
-	addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
-
-		if (!fromStorage) {
-
-			let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-			let updatedList    = recentElements.filter((recentElement) => { return (recentElement.id !== id); });
-			updatedList.unshift({ id: id, name: name, iconSvg: iconSvg, path: path });
-
-			// keep list at length 10
-			while (updatedList.length > 10) {
-
-				let toRemove = updatedList.pop();
-				$('#recently-used-' + toRemove.id).remove();
-			}
-
-			$('#recently-used-' + id).remove();
-
-			LSWrapper.setItem(_Code.codeRecentElementsKey, updatedList);
-		}
-
-		let recentlyUsedButton = $(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
-
-		if (fromStorage) {
-			_Code.codeContext.append(recentlyUsedButton);
-		} else {
-			_Code.codeContext.prepend(recentlyUsedButton);
-		}
-
-		recentlyUsedButton.on('click.recently-used', () => {
-			_Code.findAndOpenNode(path, true);
-		});
-		$('.remove-recently-used', recentlyUsedButton).on('click.recently-used', (e) => {
-			e.stopPropagation();
-			_Code.deleteRecentlyUsedElement(id);
-		});
-	},
-	deleteRecentlyUsedElement: (recentlyUsedElementId) => {
-
-		let recentElements = LSWrapper.getItem(_Code.codeRecentElementsKey) || [];
-
-		let filteredRecentElements = recentElements.filter((recentElement) => {
-			return (recentElement.id !== recentlyUsedElementId);
-		});
-		$('#recently-used-' + recentlyUsedElementId).remove();
-
-		LSWrapper.setItem(_Code.codeRecentElementsKey, filteredRecentElements);
-	},
 	refreshTree: () => {
 		_TreeHelper.refreshTree(_Code.codeTree);
 	},
@@ -701,7 +617,7 @@ let _Code = {
 				}
 			];
 
-			if (_Code.searchIsActive()) {
+			if (_Code.search.searchIsActive()) {
 
 				defaultEntries.unshift({
 					id:       path + '/searchresults',
@@ -1109,7 +1025,7 @@ let _Code = {
 	},
 	showSwaggerUI: (data) => {
 
-		_Code.updatePathLocationStack(data.path);
+		_Code.pathLocations.updatePathLocationStack(data.path);
 		_Code.lastClickedPath = data.path;
 
 		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
@@ -1143,6 +1059,7 @@ let _Code = {
 		Command.get(data.id, null, entity => {
 
 			let mapFn = (rel, out) => {
+
 				let attrName = (out ? (rel.targetJsonName || rel.oldTargetJsonName) : (rel.sourceJsonName || rel.oldSourceJsonName));
 
 				return {
@@ -1180,32 +1097,6 @@ let _Code = {
 		_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 
 		_Code.runCurrentEntitySaveAction = null;
-	},
-	getDisplayNameInRecentsForType: (entity) => {
-
-		let displayName = entity.name;
-
-		switch (entity.type) {
-			case 'SchemaNode':
-				displayName = 'Type ' + entity.name;
-				break;
-
-			case 'SchemaMethod':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					displayName = entity.schemaNode.name + '.' + entity.name + '()';
-				} else {
-					displayName = entity.name + '()';
-				}
-				break;
-
-			case 'SchemaProperty':
-				if (entity.schemaNode && entity.schemaNode.name) {
-					displayName = entity.schemaNode.name + '.' + entity.name;
-				}
-				break;
-		}
-
-		return displayName;
 	},
 	hasVisibleChildren: (id, entity) => {
 
@@ -1362,7 +1253,7 @@ let _Code = {
 
 			let entity = json.result;
 
-			_Code.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(entity, data.path, data.updateLocationStack);
 
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.type({ data, type: entity }));
@@ -1372,7 +1263,7 @@ let _Code = {
 
 			// remove bulk edit save/discard buttons
 			for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-				button.remove();
+				_Helpers.fastRemoveElement(button);
 			}
 
 			_Code.runCurrentEntitySaveAction = () => {
@@ -1433,7 +1324,7 @@ let _Code = {
 
 					// remove bulk edit save/discard buttons
 					for (let button of _Code.codeContents[0].querySelectorAll('.discard-all, .save-all')) {
-						button.remove();
+						_Helpers.fastRemoveElement(button);
 					}
 
 					_Code.runCurrentEntitySaveAction = () => {
@@ -1485,7 +1376,7 @@ let _Code = {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.method({ method: result }));
@@ -1566,7 +1457,7 @@ let _Code = {
 
 				let parameterTplRow = $('.template', apiTab);
 				let parameterContainer = parameterTplRow.parent();
-				parameterTplRow.remove();
+				_Helpers.fastRemoveElement(parameterTplRow[0]);
 
 				let addParameterRow = (parameter) => {
 
@@ -1597,7 +1488,7 @@ let _Code = {
 					parameterContainer.append(clone);
 
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						clone.remove();
+						_Helpers.fastRemoveElement(clone);
 
 						_Code.updateDirtyFlag(result);
 					});
@@ -1822,7 +1713,7 @@ let _Code = {
 
 		_WorkingSets.getWorkingSet(data.id, function(workingSet) {
 
-			_Code.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(workingSet, data.path, data.updateLocationStack);
 			_Helpers.fastRemoveAllChildren(_Code.codeContents[0]);
 			_Code.codeContents.append(_Code.templates.workingSet({ type: workingSet }));
 
@@ -1995,7 +1886,7 @@ let _Code = {
 	displayPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2023,7 +1914,7 @@ let _Code = {
 	displayRemotePropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2045,7 +1936,7 @@ let _Code = {
 	displayViewsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2064,11 +1955,11 @@ let _Code = {
 	displayGlobalMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
+		_Code.recentElements.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
@@ -2086,7 +1977,7 @@ let _Code = {
 	displayMethodsContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2106,7 +1997,7 @@ let _Code = {
 	displayInheritedPropertiesContent: (data, updateLocationStack) => {
 
 		if (updateLocationStack === true) {
-			_Code.updatePathLocationStack(data.path);
+			_Code.pathLocations.updatePathLocationStack(data.path);
 			_Code.lastClickedPath = data.path;
 		}
 
@@ -2120,7 +2011,7 @@ let _Code = {
 
 		Command.get(data.id, null, (result) => {
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			if (result.propertyType) {
 
@@ -2159,7 +2050,7 @@ let _Code = {
 
 		Command.get(data.id, null, (result) => {
 
-			_Code.updateRecentlyUsed(result, data.path, data.updateLocationStack);
+			_Code.recentElements.updateRecentlyUsed(result, data.path, data.updateLocationStack);
 
 			_Code.codeContents.append(_Code.templates.defaultView({ view: result }));
 			_Code.displayDefaultViewOptions(result, undefined, data);
@@ -2259,7 +2150,7 @@ let _Code = {
 		};
 
 		let buttons     = $('#property-buttons');
-		let dbNameClass = (UISettings.getValueForSetting(UISettings.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+		let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
@@ -2290,13 +2181,13 @@ let _Code = {
 		};
 
 		if (property.propertyType !== 'Function') {
-			$('#property-type-hint-input').parent().remove();
+			_Helpers.fastRemoveElement($('#property-type-hint-input').parent()[0]);
 		} else {
 			$('#property-type-hint-input').val(property.typeHint || 'null');
 		}
 
 		if (property.propertyType === 'Cypher') {
-			$('#property-format-input').parent().remove();
+			_Helpers.fastRemoveElement($('#property-format-input').parent()[0]);
 		}
 
 		$('select', buttons).on('change', changeHandler);
@@ -2304,7 +2195,7 @@ let _Code = {
 		$('input[type=text]', buttons).on('keyup', changeHandler);
 
 		if (property.schemaNode.isBuiltinType) {
-			$('button#delete-property-button').parent().remove();
+			_Helpers.fastRemoveElement($('button#delete-property-button').parent()[0]);
 		} else {
 			$('button#delete-property-button').on('click', function() {
 				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
@@ -2352,28 +2243,33 @@ let _Code = {
 		let buttons = $('#view-buttons');
 		buttons.prepend(_Code.templates.viewOptions({ view: view }));
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
+		if (_Schema.views.isViewEditable(view)) {
 
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
-			_Code.revertFormData(view);
-			Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, 'icon-green'), 'save', 'Save view', _Code.runCurrentEntitySaveAction);
 
-				let select = document.querySelector('#view-properties .property-attrs');
-				for (let prop of data) {
-					let option = select.querySelector(`option[value="${prop.name}"]`);
-					if (option) {
-						option.selected = prop.isSelected;
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, 'icon-red'), 'cancel', 'Revert changes', () => {
+				_Code.revertFormData(view);
+				Command.listSchemaProperties(view.schemaNode.id, view.name, (data) => {
+
+					let select = document.querySelector('#view-properties .property-attrs');
+					for (let prop of data) {
+						let option = select.querySelector(`option[value="${prop.name}"]`);
+						if (option) {
+							option.selected = prop.isSelected;
+						}
 					}
-				}
 
-				select.dispatchEvent(new CustomEvent('change'));
+					select.dispatchEvent(new CustomEvent('change'));
+				});
 			});
-		});
+		}
 
-		// delete button
-		_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
-			_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
-		});
+		if (_Schema.views.isDeleteViewAllowed(view)) {
+
+			_Code.displaySvgActionButton('#view-actions', _Icons.getSvgIcon(_Icons.iconTrashcan, 14, 14, 'icon-red'), 'delete', 'Delete view', () => {
+				_Code.deleteSchemaEntity(view, `Delete view ${view.name}?`, 'Note: Builtin views will be restored in their initial configuration', data);
+			});
+		}
 
 		_Code.updateDirtyFlag(view);
 
@@ -2391,7 +2287,9 @@ let _Code = {
 
 		Command.listSchemaProperties(view.schemaNode.id, view.name, (properties) => {
 
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = document.querySelector('#view-properties .property-attrs');
+			viewSelectElem.disabled = !viewIsEditable;
 
 			if (view.sortOrder) {
 
@@ -2412,25 +2310,26 @@ let _Code = {
 				_Schema.views.appendPropertyForViewSelect(viewSelectElem, view, prop);
 			}
 
-			let changeFn = () => {
-				let sortedAttrs = $(viewSelectElem).sortedValues();
-				$('input#view-sort-order').val(sortedAttrs.join(','));
-				_Code.updateDirtyFlag(view);
-			};
-
-			$(viewSelectElem).select2({
+			let viewSelect2 = $(viewSelectElem).select2({
 				search_contains: true,
 				width: '100%',
 				dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			}).on('change', changeFn).select2Sortable(changeFn);
+			})
+
+			if (viewIsEditable) {
+
+				let changeFn = () => {
+					let sortedAttrs = $(viewSelectElem).sortedValues();
+					$('input#view-sort-order').val(sortedAttrs.join(','));
+					_Code.updateDirtyFlag(view);
+				};
+
+				viewSelect2.on('change', changeFn).select2Sortable(changeFn);
+			}
 		});
-	},
-	activateCreateTypeOrPackageButton: (buttonSelector, inputSelector, data) => {
-
-
 	},
 	displaySvgActionButton: (targetId, iconSvg, suffix, name, callback) => {
 
@@ -2444,20 +2343,6 @@ let _Code = {
 	},
 	getEditorModeForContent: (content) => {
 		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
-	},
-	updateRecentlyUsed: (entity, path, updateLocationStack) => {
-
-		_Code.addRecentlyUsedEntity(entity, path);
-
-		// add recently used types to corresponding working set
-		if (entity.type === 'SchemaNode') {
-			_WorkingSets.addRecentlyUsed(entity.name);
-		}
-
-		if (updateLocationStack) {
-			_Code.updatePathLocationStack(path);
-			_Code.lastClickedPath = path;
-		}
 	},
 	findAndOpenNode: (path, updateLocationStack) => {
 		let tree = $('#code-tree').jstree(true);
@@ -2504,7 +2389,7 @@ let _Code = {
 					}
 				}
 
-				if (_Code.searchIsActive()) {
+				if (_Code.search.searchIsActive()) {
 					tree.element[0].scrollTo(0,0);
 				}
 			}
@@ -2522,120 +2407,6 @@ let _Code = {
 	},
 	hideSchemaRecompileMessage:  () => {
 		_Dialogs.loadingMessage.hide('code-compilation-message');
-	},
-	updatePathLocationStack: (path) => {
-
-		let pos = _Code.pathLocationStack.indexOf(path);
-		if (pos >= 0) {
-
-			_Code.pathLocationStack.splice(pos, 1);
-		}
-
-		// remove tail of stack when click history branches
-		if (_Code.pathLocationIndex !== _Code.pathLocationStack.length - 1) {
-
-			_Code.pathLocationStack.splice(_Code.pathLocationIndex + 1, _Code.pathLocationStack.length - _Code.pathLocationIndex);
-		}
-
-		// add element to the end of the stack
-		_Code.pathLocationStack.push(path);
-		_Code.pathLocationIndex = _Code.pathLocationStack.length - 1;
-
-		_Code.updatePathLocationButtons();
-	},
-	pathLocationForward: () => {
-
-		_Code.pathLocationIndex += 1;
-		let pos = _Code.pathLocationIndex;
-
-		_Code.updatePathLocationButtons();
-
-		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
-
-			let path = _Code.pathLocationStack[pos];
-			_Code.findAndOpenNode(path, false);
-
-		} else {
-			_Code.pathLocationIndex -= 1;
-		}
-
-		_Code.updatePathLocationButtons();
-	},
-	pathLocationBackward: () => {
-
-		_Code.pathLocationIndex -= 1;
-		let pos = _Code.pathLocationIndex;
-
-		if (pos >= 0 && pos < _Code.pathLocationStack.length) {
-
-			let path = _Code.pathLocationStack[pos];
-			_Code.findAndOpenNode(path, false);
-
-		} else {
-
-			_Code.pathLocationIndex += 1;
-		}
-
-		_Code.updatePathLocationButtons();
-	},
-	updatePathLocationButtons: () => {
-
-		let stackSize       = _Code.pathLocationStack.length;
-		let forwardDisabled = stackSize <= 1 || _Code.pathLocationIndex >= stackSize - 1;
-		let backDisabled    = stackSize <= 1 || _Code.pathLocationIndex <= 0;
-
-		let forwardButton = document.querySelector('#tree-forward-button');
-		if (forwardButton) {
-			forwardButton.disabled = forwardDisabled;
-
-			if (forwardDisabled) {
-				forwardButton.classList.add('icon-lightgrey');
-			} else {
-				forwardButton.classList.remove('icon-lightgrey');
-			}
-		}
-
-		let backButton = document.querySelector('#tree-back-button');
-		if (backButton) {
-			backButton.disabled = backDisabled;
-
-			if (backDisabled) {
-				backButton.classList.add('icon-lightgrey');
-			} else {
-				backButton.classList.remove('icon-lightgrey');
-			}
-		}
-	},
-	doSearch: () => {
-
-		let tree      = $('#code-tree').jstree(true);
-		let input     = $('#tree-search-input');
-		let text      = input.val();
-		let threshold = _Code.searchThreshold;
-
-		let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
-
-		if (text.length >= threshold) {
-			clearSearchIcon.classList.add('block');
-		} else {
-			clearSearchIcon.classList.remove('block');
-		}
-
-		if (text.length >= threshold || (_Code.searchTextLength >= threshold && text.length <= _Code.searchTextLength)) {
-			tree.refresh();
-		}
-
-		_Code.searchTextLength = text.length;
-	},
-	searchIsActive: () => {
-
-		let text = $('#tree-search-input').val();
-		return (text && text.length >= _Code.searchThreshold);
-	},
-	cancelSearch: () => {
-
-		$('#tree-search-input').val('');
-		_Code.doSearch();
 	},
 	activateLastClicked: () => {
 
@@ -2803,6 +2574,275 @@ let _Code = {
 			_Code.codeTree.jstree().refresh_node(document.querySelector(`li#${escapedId}`));
 		}
 	},
+	search: {
+		searchThreshold: 3,
+		searchTextLength: 0,
+		getSearchInputElement: () => {
+			return document.querySelector('#tree-search-input');
+		},
+		init: () => {
+
+			let codeSearchInput = _Code.search.getSearchInputElement();
+
+			codeSearchInput.addEventListener('input', _Helpers.debounce(_Code.search.doSearch, 300));
+			$('.clearSearchIcon').on('click', _Code.search.cancelSearch);
+		},
+		doSearch: () => {
+
+			let tree = $('#code-tree').jstree(true);
+			let text = _Code.search.getSearchInputElement().value;
+
+			let clearSearchIcon = Structr.functionBar.querySelector('.clearSearchIcon');
+
+			if (text.length >= _Code.search.searchThreshold) {
+				clearSearchIcon.classList.add('block');
+			} else {
+				clearSearchIcon.classList.remove('block');
+			}
+
+			if (text.length >= _Code.search.searchThreshold || (_Code.search.searchTextLength >= _Code.search.searchThreshold && text.length <= _Code.search.searchTextLength)) {
+				tree.refresh();
+			}
+
+			_Code.search.searchTextLength = text.length;
+		},
+		inSearchBox: () => {
+			return document.activeElement === _Code.search.getSearchInputElement();
+		},
+		searchIsActive: () => {
+
+			let text = _Code.search.getSearchInputElement()?.value;
+			return (text && text.length >= _Code.search.searchThreshold);
+		},
+		cancelSearch: () => {
+
+			_Code.search.getSearchInputElement().value = '';
+			_Code.search.doSearch();
+		},
+	},
+	recentElements: {
+		codeRecentElementsKey: 'structrCodeRecentElements_' + location.port,
+		init: () => {
+			_Code.recentElements.updateVisibility();
+		},
+		isVisible: () => UISettings.getValueForSetting(UISettings.settingGroups.code.settings.showRecentsInCodeArea),
+		loadRecentlyUsedElements: (doneCallback) => {
+
+			let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+
+			for (let element of recentElements) {
+
+				let nameIsUndefined = !element.name;
+				let notSvgIcon      = !element.iconSvg;
+
+				if (!nameIsUndefined && !notSvgIcon) {
+					_Code.recentElements.addRecentlyUsedElement(element.id, element.name, element.iconSvg, element.path, true);
+				}
+			}
+
+			doneCallback();
+		},
+		addRecentlyUsedEntity: (entity, path, fromStorage) => {
+
+			let name      = _Code.recentElements.getDisplayNameInRecentsForType(entity);
+			let iconSvg   = _Icons.getIconForSchemaNodeType(entity);
+			let localPath = path;
+
+			// don't add search results to recently used elements (we cannot construct the path)
+			if (localPath.indexOf('root/searchresults/') !== 0) {
+				_Code.recentElements.addRecentlyUsedElement(entity.id, name, iconSvg, localPath, fromStorage);
+			}
+		},
+		addRecentlyUsedElement: (id, name, iconSvg, path, fromStorage) => {
+
+			if (!fromStorage) {
+
+				let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+				let updatedList    = recentElements.filter((recentElement) => (recentElement.id !== id));
+				updatedList.unshift({ id: id, name: name, iconSvg: iconSvg, path: path });
+
+				// keep list at length 10
+				while (updatedList.length > 10) {
+
+					let toRemove = updatedList.pop();
+					_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + toRemove.id));
+				}
+
+				_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + id));
+
+				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
+			}
+
+			let recentlyUsedButton = _Helpers.createSingleDOMElementFromHTML(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
+
+			let codeContext  = document.querySelector('#code-context');
+			if (fromStorage) {
+				codeContext.append(recentlyUsedButton)
+			} else {
+				codeContext.prepend(recentlyUsedButton);
+			}
+
+			recentlyUsedButton.addEventListener('click', () => {
+				_Code.findAndOpenNode(path, true);
+			});
+
+			recentlyUsedButton.querySelector('.remove-recently-used').addEventListener('click', (e) => {
+				e.stopPropagation();
+				_Code.recentElements.deleteRecentlyUsedElement(id);
+			});
+		},
+		deleteRecentlyUsedElement: (recentlyUsedElementId) => {
+
+			let recentElements         = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
+			let filteredRecentElements = recentElements.filter((recentElement) => (recentElement.id !== recentlyUsedElementId));
+
+			_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + recentlyUsedElementId));
+
+			LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, filteredRecentElements);
+		},
+		updateRecentlyUsed: (entity, path, updateLocationStack) => {
+
+			_Code.recentElements.addRecentlyUsedEntity(entity, path);
+
+			// add recently used types to corresponding working set
+			if (entity.type === 'SchemaNode') {
+				_WorkingSets.addRecentlyUsed(entity.name);
+			}
+
+			if (updateLocationStack) {
+				_Code.pathLocations.updatePathLocationStack(path);
+				_Code.lastClickedPath = path;
+			}
+		},
+		getDisplayNameInRecentsForType: (entity) => {
+
+			let displayName = entity.name;
+
+			switch (entity.type) {
+				case 'SchemaNode':
+					displayName = `Type ${entity.name}`;
+					break;
+
+				case 'SchemaMethod':
+					if (entity.schemaNode && entity.schemaNode.name) {
+						displayName = `${entity.schemaNode.name}.${entity.name}()`;
+					} else {
+						displayName = `${entity.name}()`;
+					}
+					break;
+
+				case 'SchemaProperty':
+					if (entity.schemaNode && entity.schemaNode.name) {
+						displayName = `${entity.schemaNode.name}.${entity.name}`;
+					}
+					break;
+			}
+
+			return displayName;
+		},
+		updateVisibility: () => {
+
+			let codeContext  = document.querySelector('#code-context');
+			if (_Code.recentElements.isVisible()) {
+				codeContext.classList.remove('hidden');
+				document.querySelector('.column-resizer-right')?.classList.remove('hidden');
+			} else {
+				codeContext.classList.add('hidden');
+				document.querySelector('.column-resizer-right')?.classList.add('hidden');
+			}
+
+			Structr.resize();
+		}
+	},
+	pathLocations: {
+		stack: [],
+		currentIndex: 0,
+		init: () => {
+			_Code.pathLocations.getForwardButton().addEventListener('click', _Code.pathLocations.goForward);
+			_Code.pathLocations.getBackwardButton().addEventListener('click', _Code.pathLocations.goBackward);
+		},
+		getForwardButton: () => document.querySelector('#tree-forward-button'),
+		getBackwardButton: () => document.querySelector('#tree-back-button'),
+		updatePathLocationStack: (path) => {
+
+			let pos = _Code.pathLocations.stack.indexOf(path);
+			if (pos >= 0) {
+
+				_Code.pathLocations.stack.splice(pos, 1);
+			}
+
+			// remove tail of stack when click history branches
+			if (_Code.pathLocations.currentIndex !== _Code.pathLocations.stack.length - 1) {
+
+				_Code.pathLocations.stack.splice(_Code.pathLocations.currentIndex + 1, _Code.pathLocations.stack.length - _Code.pathLocations.currentIndex);
+			}
+
+			// add element to the end of the stack
+			_Code.pathLocations.stack.push(path);
+			_Code.pathLocations.currentIndex = _Code.pathLocations.stack.length - 1;
+
+			_Code.pathLocations.updateButtons();
+		},
+		goForward: () => {
+
+			_Code.pathLocations.currentIndex += 1;
+			let pos = _Code.pathLocations.currentIndex;
+
+			_Code.pathLocations.updateButtons();
+
+			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
+
+				let path = _Code.pathLocations.stack[pos];
+				_Code.findAndOpenNode(path, false);
+
+			} else {
+				_Code.pathLocations.currentIndex -= 1;
+			}
+
+			_Code.pathLocations.updateButtons();
+		},
+		goBackward: () => {
+
+			_Code.pathLocations.currentIndex -= 1;
+			let pos = _Code.pathLocations.currentIndex;
+
+			if (pos >= 0 && pos < _Code.pathLocations.stack.length) {
+
+				let path = _Code.pathLocations.stack[pos];
+				_Code.findAndOpenNode(path, false);
+
+			} else {
+
+				_Code.pathLocations.currentIndex += 1;
+			}
+
+			_Code.pathLocations.updateButtons();
+		},
+		updateButtons: () => {
+
+			let stackSize       = _Code.pathLocations.stack.length;
+			let forwardDisabled = stackSize <= 1 || _Code.pathLocations.currentIndex >= stackSize - 1;
+			let backDisabled    = stackSize <= 1 || _Code.pathLocations.currentIndex <= 0;
+
+			let forwardButton = _Code.pathLocations.getForwardButton();
+			forwardButton.disabled = forwardDisabled;
+
+			if (forwardDisabled) {
+				forwardButton.classList.add('icon-lightgrey');
+			} else {
+				forwardButton.classList.remove('icon-lightgrey');
+			}
+
+			let backButton = _Code.pathLocations.getBackwardButton();
+			backButton.disabled = backDisabled;
+
+			if (backDisabled) {
+				backButton.classList.add('icon-lightgrey');
+			} else {
+				backButton.classList.remove('icon-lightgrey');
+			}
+		},
+	},
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/schema.css">
@@ -2830,23 +2870,31 @@ let _Code = {
 			</div>
 		`,
 		functions: config => `
-			<div class="tree-search-container flex" id="tree-search-container">
-				<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
-					${_Icons.getSvgIcon(_Icons.iconChevronLeftFilled, 12, 12)}
-				</button>
-				<div class="relative">
-					<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+			<div class="flex-grow">
+
+				<div class="tree-search-container flex" id="tree-search-container">
+
+					<button type="button" class="tree-back-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-back-button" title="Back" disabled>
+						${_Icons.getSvgIcon(_Icons.iconChevronLeftFilled, 12, 12)}
+					</button>
+
+					<div class="relative">
+						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
+					</div>
+
+					<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
+						${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 12, 12)}
+					</button>
+
 				</div>
-				<button type="button" class="tree-forward-button hover:bg-gray-100 focus:border-gray-666 active:border-green flex items-center" id="tree-forward-button" title="Forward" disabled>
-					${_Icons.getSvgIcon(_Icons.iconChevronRightFilled, 12, 12)}
-				</button>
+
 			</div>
 		`,
 		actionButton: config => `
 			<button id="action-button-${config.suffix}" class="action-button hover:bg-gray-100 focus:border-gray-666 active:border-green">
 				<div class="action-button-icon">
-					${config.iconSvg ? config.iconSvg : ''}
+					${config.iconSvg ?? ''}
 				</div>
 
 				<div>${config.name}</div>
@@ -3203,7 +3251,7 @@ let _Code = {
 				<div class="mb-4">
 					<div>
 						<label class="font-semibold">Name</label>
-						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" />
+						<input type="text" id="view-name-input" data-property="name" value="${config.view.name}" ${_Schema.views.isViewNameChangeForbidden(config.view) === true ? 'disabled' : ''}>
 					</div>
 				</div>
 
@@ -3214,7 +3262,7 @@ let _Code = {
 					<input type="text" id="view-sort-order" class="hidden" data-property="sortOrder" value="${config.view.sortOrder || ''}">
 					<div id="view-properties">
 						<div class="view-properties-select">
-							${_Schema.templates.viewPropertiesSelect(config)}
+							<select class="property-attrs view" multiple="multiple"></select>
 						</div>
 					</div>
 				</div>

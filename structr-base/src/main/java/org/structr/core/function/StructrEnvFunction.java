@@ -92,6 +92,7 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
 
 		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
+		info.setProperty(new StringProperty("validUUIDv4Regex"), Settings.getValidUUIDRegexString());
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
 
 		return info;

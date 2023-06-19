@@ -79,6 +79,11 @@ let Command = {
 		}
 		return StructrWS.sendObj(obj, callback);
 	},
+	getPromise: (id, properties, view) => {
+		return new Promise((resolve, reject) => {
+			Command.get(id, properties, resolve, view);
+		});
+	},
 	/**
 	 * Send a CONSOLE command with a single line as payload to the server.
 	 *

@@ -45,10 +45,6 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 	public static final Property<Iterable<Principal>> grantees     = new StartNodes<>("grantees", Security.class).partOfBuiltInSchema();
 	public static final Property<String>              internalPath = new InternalPathProperty("internalEntityContextPath").partOfBuiltInSchema();
 
-	public static final View graphView = new View(NodeInterface.class, View.INTERNAL_GRAPH_VIEW,
-		id, name, type
-	);
-
 	void init(final SecurityContext securityContext, final Node dbNode, final Class type, final long sourceTransactionId);
 
 	void onNodeCreation();

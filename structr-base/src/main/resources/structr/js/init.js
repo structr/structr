@@ -116,7 +116,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyP' || keyCode === 80) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the properties dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Entities.showProperties(obj);
 				});
@@ -129,7 +131,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyM' || keyCode === 77) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the content/template edit dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Elements.openEditContentDialog(obj);
 				});
@@ -142,7 +146,9 @@ document.addEventListener("DOMContentLoaded", () => {
 		if ((code === 'KeyG' || keyCode === 71) && event.altKey && event.ctrlKey) {
 			event.preventDefault();
 			let uuid = prompt('Enter the UUID for which you want to open the access control dialog');
-			if (uuid && _Helpers.isUUID(uuid)) {
+			if (!uuid) {
+				// ESC or Cancel
+			} else if (_Helpers.isUUID(uuid)) {
 				Command.get(uuid, null, (obj) => {
 					_Entities.showAccessControlDialog(obj);
 				});
@@ -888,6 +894,8 @@ let Structr = {
 				$('#header .structr-instance-maintenance').text("MAINTENANCE");
 			}
 
+			_Helpers.uuidRegexp = new RegExp(envInfo.validUUIDv4Regex);
+
 			let ui = envInfo.components['structr-ui'];
 			if (ui) {
 
@@ -1263,9 +1271,9 @@ let Structr = {
 	handleGenericMessage: (data) => {
 
 		let showScheduledJobsNotifications = Importer.isShowNotifications();
-		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.global.settings.showScriptingErrorPopupsKey);
-		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.global.settings.showResourceAccessGrantWarningPopupsKey);
-		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.global.settings.showDeprecationWarningPopupsKey);
+		let showScriptingErrorPopups       = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showScriptingErrorPopupsKey);
+		let showResourceAccessGrantPopups  = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showResourceAccessGrantWarningPopupsKey);
+		let showDeprecationWarningPopups   = UISettings.getValueForSetting(UISettings.settingGroups.global.settings.showDeprecationWarningPopupsKey);
 
 		switch (data.type) {
 
@@ -1996,7 +2004,7 @@ let Structr = {
 
 						<div class="self-center">
 							<input id="twoFactorTokenField" type="hidden" name="twoFactorToken">
-							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full p-1 box-border">
+							<input id="twoFactorCodeField" type="text" name="twoFactorCode" required class="w-full box-border">
 						</div>
 
 						<div id="self-center" class="col-span-2 mt-2 text-right">
@@ -2342,7 +2350,7 @@ class MessageBuilder {
 					this.params.uniqueCount++;
 
 					existingMessage.dataset['uniqueCount'] = this.params.uniqueCount;
-					existingMessage.querySelector('b.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
+					existingMessage.querySelector('span.uniqueCount')?.replaceWith(_Helpers.createSingleDOMElementFromHTML(this.getUniqueCountElement()));
 				}
 
 				existingMessage.setAttribute('class', allClasses.join(' '));
@@ -2455,7 +2463,7 @@ class MessageBuilder {
 	};
 
 	getUniqueCountElement() {
-		return `<b class="uniqueCount m-0">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</b>`;
+		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
 };
 
@@ -2499,11 +2507,11 @@ let UISettings = {
 
 		if (!section) {
 			// no section given - return all
-			return [UISettings.global, UISettings.pages, UISettings.security, UISettings.importer, UISettings.schema];
+			return Object.values(UISettings.settingGroups);
 
 		} else {
 
-			let settings = UISettings[section];
+			let settings = UISettings.settingGroups[section];
 			if (settings) {
 				return settings;
 			}
@@ -2568,98 +2576,116 @@ let UISettings = {
 			}
 		}
 	},
-	global: {
-		title: 'Global',
-		settings: {
-			showScriptingErrorPopupsKey: {
-				text: 'Show popups for scripting errors',
-				storageKey: 'showScriptinErrorPopups' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-			showResourceAccessGrantWarningPopupsKey: {
-				text: 'Show popups for resource access grant warnings',
-				storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-			showDeprecationWarningPopupsKey: {
-				text: 'Show popups for deprecation warnings',
-				storageKey: 'showDeprecationWarningPopups' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-		}
-	},
-	pages: {
-		title: 'Pages',
-		settings: {
-			inheritVisibilityFlagsKey: {
-				text: 'Inherit Visibility Flags from parent node (when creating new elements from the context menu)',
-				storageKey: 'inheritVisibilityFlags_' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-			inheritGranteesKey: {
-				text: 'Inherit permissions from parent node (when creating new elements from the context menu)',
-				storageKey: 'inheritGrantees_' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-			favorEditorForContentElementsKey: {
-				text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
-				storageKey: 'favorEditorForContentElements' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			},
-			favorHTMLForDOMNodesKey: {
-				text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
-				storageKey: 'favorHTMLForDOMNodes' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
+	settingGroups: {
+		global: {
+			title: 'Global',
+			settings: {
+				showScriptingErrorPopupsKey: {
+					text: 'Show popups for scripting errors',
+					storageKey: 'showScriptinErrorPopups' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				showResourceAccessGrantWarningPopupsKey: {
+					text: 'Show popups for resource access grant warnings',
+					storageKey: 'showResourceAccessGrantWarningPopups' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				showDeprecationWarningPopupsKey: {
+					text: 'Show popups for deprecation warnings',
+					storageKey: 'showDeprecationWarningPopups' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
 			}
-		}
-	},
-	security: {
-		title: 'Security',
-		settings: {
-			showVisibilityFlagsInGrantsTableKey: {
-				text: 'Show visibility flags in Resource Access Grants table',
-				storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
-				defaultValue: false,
-				type: 'checkbox',
-				onUpdate: () => {
-					if (Structr.isModuleActive(_Security)) {
-						_ResourceAccessGrants.refreshResourceAccesses();
+		},
+		pages: {
+			title: 'Pages',
+			settings: {
+				inheritVisibilityFlagsKey: {
+					text: 'Inherit Visibility Flags from parent node (when creating new elements from the context menu)',
+					storageKey: 'inheritVisibilityFlags_' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				inheritGranteesKey: {
+					text: 'Inherit permissions from parent node (when creating new elements from the context menu)',
+					storageKey: 'inheritGrantees_' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				favorEditorForContentElementsKey: {
+					text: 'Always favor editor for content elements in Pages area (otherwise last used is picked)',
+					storageKey: 'favorEditorForContentElements' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				},
+				favorHTMLForDOMNodesKey: {
+					text: 'Always favor HTML tab for DOM nodes in Pages area (otherwise last used is picked)',
+					storageKey: 'favorHTMLForDOMNodes' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				}
+			}
+		},
+		security: {
+			title: 'Security',
+			settings: {
+				showVisibilityFlagsInGrantsTableKey: {
+					text: 'Show visibility flags in Resource Access Grants table',
+					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Security)) {
+							_ResourceAccessGrants.refreshResourceAccesses();
+						}
+					}
+				}
+			}
+		},
+		importer: {
+			title: 'Importer',
+			settings: {
+				showNotificationsKey: {
+					text: 'Show notifications for scheduled jobs',
+					storageKey: 'structrImporterShowNotifications_' + location.port,
+					defaultValue: true,
+					type: 'checkbox'
+				}
+			}
+		},
+		schema: {
+			title: 'Schema/Code',
+			settings: {
+				showDatabaseNameForDirectProperties: {
+					text: 'Show database name for direct properties',
+					storageKey: 'showDatabaseNameForDirectProperties' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					onUpdate: () => {
+					}
+				}
+			}
+		},
+		code: {
+			title: 'Code',
+			settings: {
+				showRecentsInCodeArea: {
+					text: 'Show recently visited elements',
+					storageKey: 'showRecentElementsInCode' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Code)) {
+							_Code.recentElements.updateVisibility();
+						}
 					}
 				}
 			}
 		}
-	},
-	importer: {
-		title: 'Importer',
-		settings: {
-			showNotificationsKey: {
-				text: 'Show notifications for scheduled jobs',
-				storageKey: 'structrImporterShowNotifications_' + location.port,
-				defaultValue: true,
-				type: 'checkbox'
-			}
-		}
-	},
-	schema: {
-		title: 'Schema/Code',
-		settings: {
-			showDatabaseNameForDirectProperties: {
-				text: 'Show database name for direct properties',
-				storageKey: 'showDatabaseNameForDirectProperties' + location.port,
-				defaultValue: false,
-				type: 'checkbox',
-				onUpdate: () => {
-				}
-			}
-		}
-	},
+	}
 };
 
 window.addEventListener('beforeunload', (event) => {

@@ -118,33 +118,9 @@ public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMN
 
 		try {
 
-			DOMNode newNode;
-
-			if ("comment".equals(tagName)) {
-
-				newNode = (DOMNode) document.createComment("#comment");
-
-			} else if ("template".equals(tagName)) {
-
-				newNode = (DOMNode) document.createTextNode("#template");
-
-				try {
-
-					newNode.unlockSystemPropertiesOnce();
-					newNode.setProperties(newNode.getSecurityContext(), new PropertyMap(NodeInterface.type, Template.class.getSimpleName()));
-
-				} catch (FrameworkException fex) {
-
-					logger.warn("Unable to set type of node {} to Template: {}", new Object[] { newNode.getUuid(), fex.getMessage() } );
-				}
-
-			} else if ("content".equals(tagName)) {
-
-				newNode = (DOMNode) document.createTextNode("#text");
-
-			} else {
-
-				newNode = (DOMNode) document.createElement(tagName);
+			DOMNode newNode = CreateAndAppendDOMNodeCommand.createNewNode(getWebSocket(), tagName, document);
+			if (newNode == null) {
+				return;
 			}
 
 			newNode = getDOMNode(newNode.getUuid());

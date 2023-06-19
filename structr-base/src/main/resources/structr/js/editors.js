@@ -509,8 +509,7 @@ let _Editors = {
 	isAutoFocusAllowed: () => {
 
 		// Only limitation currently: If we are in the code area and currently searching for something
-		return !(Structr.isModuleActive(_Code) && _Code.inSearchBox === true);
-
+		return !(Structr.isModuleActive(_Code) && _Code.search.inSearchBox());
 	},
 	focusEditor: (editor) => {
 

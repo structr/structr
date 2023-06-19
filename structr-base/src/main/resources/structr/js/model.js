@@ -384,7 +384,7 @@ let StructrModel = {
 				StructrModel.refreshKey(id, key);
 			}
 
-			if (Structr.isModuleActive(_Pages) && _Pages.previews.isPreviewForActiveForPage(obj.pageId)) {
+			if (Structr.isModuleActive(_Pages) && obj.isPage) {
 				_Pages.previews.modelForPageUpdated(obj.pageId);
 			}
 
@@ -393,7 +393,7 @@ let StructrModel = {
 
 				let classIdAttrsEl = element.children('.node-container').find('.class-id-attrs');
 				if (classIdAttrsEl.length) {
-					classIdAttrsEl.replaceWith(_Elements.classIdString(obj._html_id, obj._html_class));
+					classIdAttrsEl.replaceWith(_Elements.classIdString(obj));
 				}
 			}
 

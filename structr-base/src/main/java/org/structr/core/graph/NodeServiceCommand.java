@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.config.Settings;
 import org.structr.api.service.Command;
 import org.structr.common.Filter;
 import org.structr.common.SecurityContext;
@@ -320,6 +321,8 @@ public abstract class NodeServiceCommand extends Command {
 	// create uuid producer that fills the queue
 	static {
 
+		boolean replaceDashes = Settings.UUIDv4CreateCompact.getValue();
+
 		Thread uuidProducer = new Thread(new Runnable() {
 
 			@Override
@@ -329,9 +332,17 @@ public abstract class NodeServiceCommand extends Command {
 				while (true) {
 
 					try {
+
 						while (true) {
 
-							uuidQueue.put(StringUtils.replace(UUID.randomUUID().toString(), "-", ""));
+							if (replaceDashes) {
+
+								uuidQueue.put(StringUtils.replace(UUID.randomUUID().toString(), "-", ""));
+
+							} else {
+
+								uuidQueue.put(UUID.randomUUID().toString());
+							}
 						}
 
 					} catch (Throwable t) {	}

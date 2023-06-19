@@ -27,7 +27,7 @@ let _Pages = {
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
-	leftTabMinWidth: 400,
+	leftTabMinWidth: 410,
 	rightTabMinWidth: 400,
 	selectedTypeKey: 'structrSelectedType_' + location.port,
 	autoRefreshDisabledKey: 'structrAutoRefreshDisabled_' + location.port,
@@ -46,6 +46,7 @@ let _Pages = {
 	paletteSlideout: undefined,
 	componentsSlideout: undefined,
 	unusedElementsSlideout: undefined,
+	previewSlideout: undefined,
 
 	components: undefined,
 	unusedElementsTree: undefined,
@@ -102,6 +103,7 @@ let _Pages = {
 		_Pages.componentsSlideout      = $('#components');
 		_Pages.unusedElementsSlideout  = $('#elements');
 		_Pages.unusedElementsTree      = $('#elementsArea', _Pages.unusedElementsSlideout);
+		_Pages.previewSlideout         = $('#previewSlideout');
 
 		let pagesTab = document.getElementById('pagesTab');
 		let pagesTabSlideoutAction = (e) => {
@@ -149,7 +151,7 @@ let _Pages = {
 
 		let widgetsTab = document.getElementById('widgetsTab');
 		widgetsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(widgetsTab, _Pages.widgetsSlideout, [_Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, widgetsTab.id);
 				_Widgets.reloadWidgets();
 				Structr.resize();
@@ -158,7 +160,7 @@ let _Pages = {
 
 		let paletteTab = document.getElementById('paletteTab');
 		paletteTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(paletteTab, _Pages.paletteSlideout, [_Pages.widgetsSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, paletteTab.id);
 				_Pages.designTools.reload();
 				Structr.resize();
@@ -167,7 +169,7 @@ let _Pages = {
 
 		let componentsTab = document.getElementById('componentsTab');
 		let componentsTabSlideoutAction = (isDragOpen = false) => {
-			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(componentsTab, _Pages.componentsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.unusedElementsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				_Pages.sharedComponents.reload(isDragOpen);
 				Structr.resize();
@@ -190,7 +192,7 @@ let _Pages = {
 
 		let elementsTab = document.getElementById('elementsTab');
 		elementsTab.addEventListener('click', () => {
-			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout], (params) => {
+			Structr.slideouts.rightSlideoutClickTrigger(elementsTab, _Pages.unusedElementsSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.previewSlideout], (params) => {
 				LSWrapper.setItem(_Pages.activeTabRightKey, elementsTab.id);
 				_Pages.unattachedNodes.reload();
 				Structr.resize();
@@ -200,23 +202,42 @@ let _Pages = {
 			});
 		});
 
+		let previewTab = document.getElementById('previewTab');
+		previewTab.addEventListener('click', () => {
+			Structr.slideouts.rightSlideoutClickTrigger(previewTab, _Pages.previewSlideout, [_Pages.widgetsSlideout, _Pages.paletteSlideout, _Pages.componentsSlideout, _Pages.unusedElementsSlideout], (params) => {
+				LSWrapper.setItem(_Pages.activeTabRightKey, previewTab.id);
+				_Pages.previews.updatePreviewSlideout();
+				Structr.resize();
+			}, () => {
+				_Pages.rightSlideoutClosedCallback();
+			});
+		});
+
 		_Pages.refresh();
 	},
 	getContextMenuElements: (div, entity) => {
 
-		const isPage             = (entity.type === 'Page');
-		const isContent          = (entity.type === 'Content');
-		const hasChildren        = (entity.children && entity.children.length > 0);
+		let elements      = [];
+		const isPage      = (entity.type === 'Page');
+		const isContent   = (entity.type === 'Content');
+		const hasChildren = (entity.children && entity.children.length > 0);
 
 		let handleInsertHTMLAction = (itemText) => {
-			let pageId = isPage ? entity.id : entity.pageId;
+			let pageId  = isPage ? entity.id : entity.pageId;
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
 
 			Command.createAndAppendDOMNode(pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
 
-		let handleInsertBeforeAction = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
-		let handleInsertAfterAction  = (itemText) => { Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, itemText, _Dragndrop.getAdditionalDataForElementCreation(itemText, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked()); };
+		let handleInsertBeforeAction = (itemText) => {
+			let tagName = (itemText === 'comment') ? '#comment' : itemText;
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'Before', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
+		};
+		let handleInsertAfterAction  = (itemText) => {
+			let tagName = (itemText === 'comment') ? '#comment' : itemText;
+			console.log(tagName);
+			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
+		};
 		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
 		let handleWrapInHTMLAction   = (itemText) => {
 
@@ -226,8 +247,6 @@ let _Pages = {
 
 			_Dragndrop.clearTemporarilyRemovedElementUUID();
 		};
-
-		let elements = [];
 
 		if (!isContent) {
 
@@ -952,14 +971,18 @@ let _Pages = {
 
 		_Pages.centerPane.dataset['elementId'] = obj.id;
 
-		if (UISettings.getValueForSetting(UISettings.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
+		if (_Pages.previewSlideout.hasClass('open')) {
+			_Pages.previews.updatePreviewSlideout();
+		}
+
+		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorEditorForContentElementsKey) && (!urlHash && obj.isContent)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
 			urlHash = '#pages:editor';
 		}
 
-		if (UISettings.getValueForSetting(UISettings.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
+		if (UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.favorHTMLForDOMNodesKey) && (!urlHash && obj.isDOMNode)) {
 			/*
 				if urlHash is given, user has manually selected a tab. if it is not given, user has selected a node
 			*/
@@ -1036,7 +1059,9 @@ let _Pages = {
 				let basicContainer = document.querySelector('#center-pane .basic-container');
 
 				if (dialogConfig) {
-					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj);
+					dialogConfig.appendDialogForEntityToContainer($(basicContainer), obj).then(() => {
+						_Helpers.activateCommentsInElement(basicContainer);
+					});
 				}
 
 				break;
@@ -1853,7 +1878,7 @@ let _Pages = {
 
 				if (actionMappingObject.event === 'none') {
 
-					console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
+					//console.log('ActionMapping event === "none"... deleting...', actionMappingObject);
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
 						updateEventMappingInterface(entity, actionMappingObject);
@@ -1861,7 +1886,7 @@ let _Pages = {
 
 				} else {
 
-					console.log('ActionMapping object already exists, updating...', actionMappingObject);
+					//console.log('ActionMapping object already exists, updating...', actionMappingObject);
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
 						updateEventMappingInterface(entity, actionMappingObject);
@@ -1872,7 +1897,10 @@ let _Pages = {
 
 				actionMappingObject.triggerElements = [ entity.id ];
 
-				console.log('No ActionMapping object exists, create one and update data...');
+				// update entity with newly created action mapping object to prevent duplicate creation of elements
+				entity.triggeredActions = [ actionMappingObject ];
+
+				//console.log('No ActionMapping object exists, create one and update data...');
 				Command.create(actionMappingObject, (actionMapping) => {
 					//console.log('Successfully created new ActionMapping object:', actionMapping);
 					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
@@ -2115,7 +2143,7 @@ let _Pages = {
 
 			if (entity.type === 'Content') {
 
-				detailHtml = escapeTags(entity.content);
+				detailHtml = _Helpers.escapeTags(entity.content);
 
 			} else if (entity.type === 'Template') {
 
@@ -2135,7 +2163,7 @@ let _Pages = {
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
 						<div class="node-selector"></div>
-						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity)}</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
 					<table>
@@ -2475,11 +2503,10 @@ let _Pages = {
 
 				if (child.nodeType === 8) {
 					let id = _Helpers.extractVal(child.nodeValue, 'data-structr-id');
-					console.log(id);
 
 					if (id) {
 						let raw = _Helpers.extractVal(child.nodeValue, 'data-structr-raw-value');
-console.log(raw)
+
 						if (raw !== undefined) {
 							comments.push({
 								id: id,
@@ -2615,7 +2642,9 @@ console.log(raw)
 			let requestParameters = (LSWrapper.getItem(_Pages.requestParametersKey + entity.id) ? '&' + LSWrapper.getItem(_Pages.requestParametersKey + entity.id) : '');
 			return _Pages.previews.getBaseUrlForPage(entity) + '?' + Structr.getRequestParameterName('edit') + '=2' + requestParameters;
 		},
-		showPreviewInIframe: (pageId, highlightElementId) => {
+		showPreviewInIframe: (pageId, highlightElementId, parentElement) => {
+
+			parentElement = (parentElement && parentElement.length) ? parentElement[0] : _Pages.centerPane;
 
 			if (pageId) {
 
@@ -2628,9 +2657,9 @@ console.log(raw)
 
 					Command.get(pageId, 'id,name,path,site', (pageObj) => {
 
-						_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
+						parentElement.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: pageObj.id }));
 
-						let iframe = _Pages.centerPane.querySelector('iframe');
+						let iframe = parentElement.querySelector('iframe');
 
 						if (highlightElementId) {
 							_Entities.highlightElement(Structr.node(highlightElementId));
@@ -2662,7 +2691,11 @@ console.log(raw)
 					window.clearTimeout(_Pages.previews.loadPreviewTimer);
 				}
 
-				_Pages.previews.loadPreviewTimer = window.setTimeout(innerFn, 100);
+				if (parentElement) {
+					innerFn();
+				} else {
+					_Pages.previews.loadPreviewTimer = window.setTimeout(innerFn, 100);
+				}
 			}
 		},
 		showPreviewInIframeIfVisible: (pageId, highlightElementId) => {
@@ -2685,6 +2718,22 @@ console.log(raw)
 
 			if (_Pages.previews.isPreviewForActiveForPage(pageId)) {
 				_Pages.previews.reloadPreviewInIframe();
+			}
+
+			if (_Pages.previewSlideout.hasClass('open')) {
+				_Pages.previews.updatePreviewSlideout();
+			}
+
+		},
+		updatePreviewSlideout: () => {
+
+			let elementId = _Pages.centerPane.dataset['elementId'] ?? LSWrapper.getItem(_Entities.selectedObjectIdKey);
+
+			if (elementId) {
+				Command.get(elementId, 'id,type,name,isPage,pageId', (entity) => {
+					_Helpers.fastRemoveAllChildren(_Pages.previewSlideout[0]);
+					_Pages.previews.showPreviewInIframe(entity.isPage ? entity.id : entity.pageId, elementId, _Pages.previewSlideout);
+				});
 			}
 		},
 		configurePreview: (entity, container) => {
@@ -2834,7 +2883,7 @@ console.log(raw)
 			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
 
 				Command.importPageAsTemplate(urlInput.value, pageNameInput.value, pageTemplateNameInput.value, (newPage) => {
-					console.log('Page imported as template', newPage);
+					//console.log('Page imported as template', newPage);
 
 					//Command.setProperty(newPage.children[0].id)
 
@@ -2902,8 +2951,8 @@ console.log(raw)
 							let templateTmpEl       = templateTmpDoc.createElement('html');
 							templateTmpEl.innerHTML = templateContent;
 
-							console.log(parentTemplateContent);
-							console.log(templateContent);
+							//console.log(parentTemplateContent);
+							//console.log(templateContent);
 
 							// TODO: Bei der Suche in Child-Elementen muss der relative Pfad berücksichtigt werden.
 							// Das Matching muss von der Stelle aus gemacht werden, wo das ${include_child()} im Parent-Template steht.
@@ -2923,7 +2972,7 @@ console.log(raw)
 
 								selectedEl.outerHTML = '${include_child(\'' + newChildTemplateName + '\')}';
 
-								console.log('Match!');
+								//console.log('Match!');
 
 								// If it matches, replace by ${include_child(...)} expression
 
@@ -2946,7 +2995,7 @@ console.log(raw)
 								});
 
 							} else {
-								console.log('No match, step down to', template);
+								//console.log('No match, step down to', template);
 								createChildTemplates(template, templateContent);
 							}
 						});
@@ -3157,7 +3206,7 @@ console.log(raw)
 					if (confirm === true) {
 						Command.deleteUnattachedNodes();
 
-						Structr.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
+						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 					}
 				});
 
@@ -3549,6 +3598,33 @@ console.log(raw)
 
 			<div id="elements" class="slideOut slideOutRight">
 				<div id="elementsArea"></div>
+			</div>
+
+			<div class="slideout-activator right" id="previewTab">
+				<svg viewBox="0 0 28 28" height="24" width="24" xmlns="http://www.w3.org/2000/svg" stroke-width="1.5px">
+					<g transform="matrix(1.1666666666666667,0,0,1.1666666666666667,0,0)">
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M21.25 1.0061H2.75C1.64543 1.0061 0.75 1.90153 0.75 3.0061V16.9041C0.75 18.0087 1.64543 18.9041 2.75 18.9041H21.25C22.3546 18.9041 23.25 18.0087 23.25 16.9041V3.0061C23.25 1.90153 22.3546 1.0061 21.25 1.0061Z"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M9.95501 18.9031L8.93201 22.9941"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.93201 22.9939H14.557"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M14.046 18.9031L15.068 22.9941"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M16.602 22.9939H7.39801"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M0.75 15.312H23.25"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 5.15308H6.201"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M8.46701 5.15308H9.82701"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 8.20996H5.294"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M7.561 8.20996H9.827"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M3.935 11.2671H9.827"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 1.0061V15.3121"></path>
+						<path stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round" d="M13.023 12.0169L16.075 9.04089C16.5729 8.64889 17.1845 8.42882 17.818 8.41368C18.4516 8.39854 19.0729 8.58913 19.589 8.95689L23.25 12.0169"></path>
+						<path stroke="currentColor" d="M16.597 5.65308C16.3208 5.65308 16.097 5.42922 16.097 5.15308C16.097 4.87693 16.3208 4.65308 16.597 4.65308"></path>
+						<path stroke="currentColor" d="M16.597 5.65308C16.8731 5.65308 17.097 5.42922 17.097 5.15308C17.097 4.87693 16.8731 4.65308 16.597 4.65308"></path>
+					</g>
+				</svg>
+				<br>
+				Preview
+			</div>
+
+			<div id="previewSlideout" class="slideOut slideOutRight">
 			</div>
 		`,
 		functions: config => `

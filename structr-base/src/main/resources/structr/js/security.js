@@ -725,7 +725,7 @@ let _ResourceAccessGrants = {
 
 		let pagerTransportFunction = false && Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
 
-		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey) });
+		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey) });
 		_Security.resourceAccesses.html(resourceAccessHtml);
 
 		_Helpers.activateCommentsInElement(_Security.resourceAccesses[0]);
@@ -820,7 +820,10 @@ let _ResourceAccessGrants = {
 			grantData = Object.assign(grantData, additionalData);
 		}
 
-		Command.create(grantData, callback);
+		Command.create(grantData, (node) => {
+			// delete grantees because otherwise admin is a grantee and this messes with the error messages
+			Command.setProperty(node.id, 'grantees', null, false, callback);
+		});
 	},
 	getVerbFromKey: (key = '') => {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
@@ -902,7 +905,7 @@ let _ResourceAccessGrants = {
 
 		trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
 
-		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.security.settings.showVisibilityFlagsInGrantsTableKey);
+		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey);
 
 		if (showVisibilityFlagsInGrantsTable) {
 			trHtml += `

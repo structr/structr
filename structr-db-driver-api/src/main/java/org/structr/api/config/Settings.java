@@ -32,6 +32,9 @@ import java.util.regex.Pattern;
  */
 public class Settings {
 
+	private static String uuidRegex;
+	private static Pattern uuidPattern;
+
 	public static final String ConfigFileName                 = "structr.conf";
 
 	public static final String DEFAULT_DATABASE_DRIVER        = "org.structr.memory.MemoryDatabaseService";
@@ -63,12 +66,14 @@ public class Settings {
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> MenuEntries                 = new StringSetting(generalGroup,          "Application", "application.menu.main",                        "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
-	public static final Setting<String> AvailableMenuItems          = new StringSetting(generalGroup,          "hidden",      "application.menu.items",                       "Dashboard,Graph,Contents,Pages,Files,Security,Schema,Code,Flows,Data,Importer,Localization,Virtual Types,Mail Templates,Login", "Comma-separated list of availabe menu items in structr-ui. Only items from this list will be available in the menu.");
+	public static final Setting<String> AvailableMenuItems          = new StringSetting(generalGroup,          "hidden",      "application.menu.items",                       "Dashboard,Graph,Contents,Pages,Files,Security,Schema,Code,Flows,Data,Importer,Localization,Virtual Types,Mail Templates,Login", "Comma-separated list of available menu items in structr-ui. Only items from this list will be available in the menu.");
 	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
-	public static final Setting<String> UuidPattern                 = new StringSetting(generalGroup,          "Application", "application.uuid.pattern",                    "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$", "Regex patterns used to validate UUIDs.");
+
+	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Map.of("without_dashes", "Without Dashes", "with_dashes", "With Dashes", "both", "Both"), "Which UUIDv4 types are allowed: With or without dashes, or both. <br><br><strong>WARNING</strong>: This could prevent access to data objects. Only change this setting with an empty database.<br><br><strong>WARNING</strong>: Requires a restart.");
+	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines how UUIDs are created, either with or without dashes.<br><br><strong>WARNING</strong>: If configured so that the created UUIDs do not comply with an allowed format, then structr will not start.<br><strong>WARNING</strong>: Requires a restart.");
 
 	// scripting related settings
 	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables chrome debugger initialization in scripting engine.");
@@ -234,13 +239,15 @@ public class Settings {
 
 	public static final Setting<Boolean> SchemaAutoMigration      = new BooleanSetting(applicationGroup, "Schema",       "application.schema.automigration",            false,  "Enable automatic migration of schema information between versions (if possible -- may delete schema nodes)");
 	public static final Setting<Boolean> AllowUnknownPropertyKeys = new BooleanSetting(applicationGroup, "Schema",       "application.schema.allowunknownkeys",         false,  "Enables get() and set() built-in functions to use property keys that are not defined in the schema.");
+
 	public static final Setting<Boolean> logMissingLocalizations  = new BooleanSetting(applicationGroup, "Localization", "application.localization.logmissing",         false,  "Turns on logging for requested but non-existing localizations.");
 	public static final Setting<Boolean> useFallbackLocale        = new BooleanSetting(applicationGroup, "Localization", "application.localization.usefallbacklocale",  false,  "Turns on usage of fallback locale if for the current locale no localization is found");
-
 	public static final Setting<String> fallbackLocale            = new StringSetting(applicationGroup,  "Localization", "application.localization.fallbacklocale",     "en_US","The default locale used, if no localization is found and using a fallback is active.");
+
 	public static final Setting<String> SchemaDeploymentFormat    = new ChoiceSetting(applicationGroup,  "Deployment",   "deployment.schema.format",                    "tree", Settings.getStringsAsSet("file", "tree"), "Configures how the schema is exported in a deployment export. <code>file</code> exports the schema as a single file. <code>tree</code> exports the schema as a tree where methods/function properties are written to single files in a tree structure.");
 	public static final Setting<Integer> DeploymentNodeBatchSize  = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.nodes.batchsize",             1000,   "Sets the batch size for data deployment when importing nodes.");
 	public static final Setting<Integer> DeploymentRelBatchSize   = new IntegerSetting(applicationGroup, "Deployment",   "deployment.data.relationships.batchsize",     1000,   "Sets the batch size for data deployment when importing relationships.");
+
 	public static final Setting<String> GlobalSecret              = new StringSetting(applicationGroup,  "Encryption",   "application.encryption.secret",               null,   "Sets the global secret for encrypted string properties. Using this configuration setting is one of several possible ways to set the secret, and it is not recommended for production environments because the key can easily be read by an attacker with scripting access.");
 
 	public static final Setting<Boolean> CallbacksOnLogout      = new BooleanSetting(applicationGroup, "Login/Logout behavior",   "callbacks.logout.onsave",       false, "Setting this to true enables the execution of the User.onSave method when a user logs out. Disabled by default because the global login handler onStructrLogout would be the right place for such functionality.");
@@ -807,6 +814,8 @@ public class Settings {
 				}
 			}
 
+			Settings.initializeValidUUIDPatternOnce();
+
 		} catch (ConfigurationException ex) {
 			System.err.println("Unable to load configuration: " + ex.getMessage());
 		}
@@ -916,12 +925,46 @@ public class Settings {
 		return false;
 	}
 
+	public static String getValidUUIDRegexString() {
+
+		return Settings.uuidRegex;
+	}
+
+	private static void initializeValidUUIDPatternOnce() {
+
+		if (Settings.uuidPattern != null && Settings.uuidRegex != null) {
+			// prevent update
+			return;
+		}
+
+		switch (Settings.UUIDv4AllowedFormats.getValue()) {
+			case "with_dashes":
+				Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				break;
+
+			case "both":
+				Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				break;
+
+			default:
+			case "without_dashes":
+				Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
+				break;
+		}
+
+		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());
+	}
+
 	public static boolean isValidUuid(final String id) {
+
+		// make sure the UUID pattern is always initialized
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
 
 		if (id != null) {
 
-			final Pattern pattern = Pattern.compile(Settings.UuidPattern.getValue());
-			if (pattern.matcher(id).matches()) {
+			if (Settings.uuidPattern.matcher(id).matches()) {
 				return true;
 			}
 		}

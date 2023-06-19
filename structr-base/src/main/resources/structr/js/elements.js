@@ -281,7 +281,7 @@ let _Elements = {
 				<div class="node-container flex items-center">
 					<div class="node-selector"></div>
 					${_Icons.getSvgIconForElementNode(entity)}
-					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${displayName !== entity.type.toLowerCase() ? '<span class="class-id-attrs">&nbsp;&nbsp;' + entity.type.toLowerCase() + '</span>': ''}${_Elements.classIdString(entity._html_id, entity._html_class)}</span>
+					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
@@ -356,11 +356,18 @@ let _Elements = {
 			}
 		}
 	},
-	classIdString: (idString, classString) => {
+	classIdString: (entity) => {
+		let idString    = entity._html_id;
+		let classString = entity._html_class;
+
 		let htmlIdString    = (idString    ? '#' + idString.replace(/\${.*}/g, '${…}') : '');
 		let htmlClassString = (classString ? '.' + classString.replace(/\${.*}/g, '${…}').replace(/ /g, '.') : '');
 
-		return `<span class="class-id-attrs">${htmlIdString}${htmlClassString}</span>`;
+		// only display tagname if node has a displayname other than its tagname (otherwise the tagname itself is already displayed in the name field)
+		let displayName = _Helpers.getElementDisplayName(entity);
+		let tagName     = displayName !== entity.type.toLowerCase() ? '&nbsp;&nbsp;' + entity.type.toLowerCase() : '';
+
+		return `<span class="class-id-attrs">${tagName}${htmlIdString}${htmlClassString}</span>`;
 	},
 	enableContextMenuOnElement: (div, entity) => {
 
@@ -593,10 +600,10 @@ let _Elements = {
 		repositionMenu();
 	},
 	isInheritVisibilityFlagsChecked: () => {
-		return UISettings.getValueForSetting(UISettings.pages.settings.inheritVisibilityFlagsKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.inheritVisibilityFlagsKey);
 	},
 	isInheritGranteesChecked: () => {
-		return UISettings.getValueForSetting(UISettings.pages.settings.inheritGranteesKey);
+		return UISettings.getValueForSetting(UISettings.settingGroups.pages.settings.inheritGranteesKey);
 	},
 	removeContextMenu: () => {
 		$('#add-child-dialog').remove();
