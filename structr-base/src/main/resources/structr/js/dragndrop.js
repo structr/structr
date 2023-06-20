@@ -33,6 +33,7 @@ let _Dragndrop = {
 			accept: '.node, .element, .content, .image, .file, .widget, .data-binding-attribute, .data-binding-type',
 			greedy: true,
 			hoverClass: 'nodeHover',
+			tolerance: 'pointer',
 			drop: function(e, ui) {
 
 				if (_Elements.dropBlocked === true) {
@@ -46,7 +47,7 @@ let _Dragndrop = {
 				let self = $(this), related;
 
 				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
-				let targetId = Structr.getId(self);
+				let targetId = Structr.getId(self.hasClass('node-container') ? self.parent() : self);
 
 				if (self.hasClass('jstree-wholerow')) {
 					targetId = self.parent().prop('id');

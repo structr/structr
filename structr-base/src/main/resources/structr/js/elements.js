@@ -799,7 +799,7 @@ let _Elements = {
 		let iconsContainer = $('.icons-container', div);
 
 		_Dragndrop.makeSortable(div);
-		_Dragndrop.makeDroppable(div);
+		_Dragndrop.makeDroppable(nodeContainer);
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;
