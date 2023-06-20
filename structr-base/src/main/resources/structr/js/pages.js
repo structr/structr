@@ -1219,7 +1219,7 @@ let _Pages = {
 		_Elements.enableContextMenuOnElement(div, entity);
 		_Entities.setMouseOver(div);
 
-		_Dragndrop.makeDroppable(nodeContainer);
+		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
@@ -1278,9 +1278,7 @@ let _Pages = {
 			return false;
 		}
 
-		let nodeContainer  = $('.node-container', div);
-
-		_Dragndrop.makeDroppable(nodeContainer);
+		_Dragndrop.makeDroppable(div);
 		_Dragndrop.makeSortable(div);
 
 		return div;
