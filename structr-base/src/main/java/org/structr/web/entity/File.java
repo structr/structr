@@ -267,16 +267,29 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return;
 		}
 
-		PropertyKey<StorageConfiguration> storageProviderKey = StructrApp.key(File.class, "storageConfiguration");
-		PropertyKey<Folder> parentKey                        = StructrApp.key(File.class, "parent");
+		PropertyKey<StorageConfiguration> storageConfigurationKey   = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                               = StructrApp.key(File.class, "parent");
+		PropertyKey<String> parentIdKey                             = StructrApp.key(File.class, "parentId");
 
-		if (key.equals(storageProviderKey) && value instanceof StorageConfiguration) {
+		if (key.equals(storageConfigurationKey)) {
 
 			checkMoveBinaryContents(thisFile, (StorageConfiguration)value);
 
-		} else if (key.equals(parentKey) && value instanceof Folder) {
+		} else if (key.equals(parentKey)) {
 
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), (Folder)value);
+		} else if (key.equals(parentIdKey)) {
+
+			Folder parentFolder = null;
+			try {
+
+				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid((String) value).getFirst();
+			} catch (FrameworkException ex) {
+
+				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);
+			}
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), parentFolder);
 		}
 	}
 
@@ -285,8 +298,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			return;
 		}
 
-		PropertyKey<StorageConfiguration> storageConfigurationKey = StructrApp.key(File.class, "storageConfiguration");
-		PropertyKey<Folder> parentKey                             = StructrApp.key(File.class, "parent");
+		PropertyKey<StorageConfiguration> storageConfigurationKey   = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                               = StructrApp.key(File.class, "parent");
+		PropertyKey<String> parentIdKey                             = StructrApp.key(File.class, "parentId");
 
 		if (properties.containsKey(storageConfigurationKey)) {
 
@@ -295,6 +309,18 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		} else if (properties.containsKey(parentKey)) {
 
 			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), properties.get(parentKey));
+		} else if (properties.containsKey(parentIdKey)) {
+
+			Folder parentFolder = null;
+			try {
+
+				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(properties.get(parentIdKey)).getFirst();
+			} catch (FrameworkException ex) {
+
+				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);
+			}
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), parentFolder);
 		}
 	}
 
