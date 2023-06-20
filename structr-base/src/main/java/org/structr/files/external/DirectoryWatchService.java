@@ -76,7 +76,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		final boolean watchContents = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
 		final Integer scanInterval  = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
 		final StorageProvider prov  = StorageProviderFactory.getStorageProvider(folder);
-		final String mountTarget    = prov.getMountTarget();
+		final String mountTarget    = prov.getConfig() != null ? prov.getConfig().getConfiguration().get("mountTarget") : null;
 		final String folderPath     = folder.getProperty(StructrApp.key(Folder.class, "path"));
 		final String uuid           = folder.getUuid();
 

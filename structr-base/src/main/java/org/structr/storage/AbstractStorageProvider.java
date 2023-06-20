@@ -45,11 +45,6 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 	}
 
 	@Override
-	public String getMountTarget() {
-		return config != null ? config.getConfiguration().get("mountTarget") : null;
-	}
-
-	@Override
 	public String getProviderName() {
 		return name;
 	}
@@ -80,16 +75,19 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getDefaultStorageProvider(getAbstractFile());
 
 		// Only try to move binary content, if destinationProvider exists and it's unique key does not equal the curernt provider
-		if (destinationStorageProvider != null && !this.getProviderName().equals(destinationStorageProvider.getProviderName())) {
+		if (destinationStorageProvider != null && !this.getConfig().getUuid().equals(destinationStorageProvider.getConfig().getUuid())) {
 
 			try {
 
 				// Move binary content from old sp to new sp
 				try (final InputStream is = this.getInputStream(); final OutputStream os = destinationStorageProvider.getOutputStream()) {
 					IOUtils.copy(is, os);
+
+					// Clean up old binary data on previous sp
+					this.delete();
+
+					os.flush();
 				}
-				// Clean up old binary data on previous sp
-				//previousSP.delete();
 			} catch (IOException ex) {
 
 				LoggerFactory.getLogger(AbstractStorageProvider.class).error(ExceptionUtils.getStackTrace(ex));

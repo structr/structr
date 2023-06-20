@@ -31,7 +31,6 @@ public interface StorageProvider extends DataSource {
 	AbstractFile getAbstractFile();
 
 	StorageConfiguration getConfig();
-	String getMountTarget();
 
 	String getProviderName();
 

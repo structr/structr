@@ -105,7 +105,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 			if (append) {
 				options.add(APPEND);
 			}
-			if (truncate) {
+			if (truncate || !append) {
 				options.add(TRUNCATE_EXISTING);
 			}
 
@@ -122,7 +122,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 
 		// Check if new provider is different from current one, if so use default implementation
-		if (newFileStorageProvider != null && !this.getProviderName().equals(newFileStorageProvider.getProviderName())) {
+		if (newFileStorageProvider != null && !this.getConfig().getUuid().equals(newFileStorageProvider.getConfig().getUuid())) {
 
 			super.moveTo(newFileStorageProvider);
 		}

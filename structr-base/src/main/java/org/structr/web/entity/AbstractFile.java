@@ -355,7 +355,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 	static boolean isMounted(final AbstractFile thisFile) {
 
 		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(thisFile);
-		final boolean hasMountTarget               = provider.getMountTarget() != null;
+		final boolean hasMountTarget               = provider.getConfig() != null && provider.getConfig().getConfiguration().get("mountTarget") != null;
 		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
 
 		if (hasMountTarget && watchServiceHasMountedFolder) {
