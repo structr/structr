@@ -61,10 +61,17 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public boolean equals(Object obj) {
-		if (obj instanceof StorageProvider) {
-			StorageProvider otherProvider = (StorageProvider)obj;
-			return otherProvider.getClass().equals(this.getClass());
+		if (obj instanceof StorageProvider otherProvider) {
+
+			final boolean sameClass = otherProvider.getClass().equals(this.getClass());
+			final boolean bothHaveNoConfigs = (this.getConfig() == null && otherProvider.getConfig() == null);
+			final boolean configsExist = this.getConfig() != null && otherProvider.getConfig() != null;
+			final boolean configsHaveMatchingUUIDs = configsExist && (this.getConfig().getUuid().equals(otherProvider.getConfig() != null ? otherProvider.getConfig().getUuid() : null));
+			final boolean sameConfigs = bothHaveNoConfigs || configsHaveMatchingUUIDs;
+
+			return sameClass && sameConfigs;
 		}
+
 		return false;
 	}
 
@@ -74,8 +81,8 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 		// Either use provided destination provider or instantiate new one with a blank config
 		final StorageProvider destinationStorageProvider = newFileStorageProvider != null ? newFileStorageProvider :  StorageProviderFactory.getDefaultStorageProvider(getAbstractFile());
 
-		// Only try to move binary content, if destinationProvider exists and it's unique key does not equal the curernt provider
-		if (destinationStorageProvider != null && !this.getConfig().getUuid().equals(destinationStorageProvider.getConfig().getUuid())) {
+		// Only try to move binary content, if destinationProvider exists and is different from this provider
+		if (destinationStorageProvider != null && !this.equals(destinationStorageProvider)) {
 
 			try {
 

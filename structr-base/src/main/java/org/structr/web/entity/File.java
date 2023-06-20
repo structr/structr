@@ -884,9 +884,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 				return Boolean.TRUE.equals(container.getProperty("indexed"));
 
-			} else {
-
-
 			}
 		}
 

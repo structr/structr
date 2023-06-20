@@ -122,7 +122,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	public void moveTo(final StorageProvider newFileStorageProvider) {
 
 		// Check if new provider is different from current one, if so use default implementation
-		if (newFileStorageProvider != null && !this.getConfig().getUuid().equals(newFileStorageProvider.getConfig().getUuid())) {
+		if (newFileStorageProvider != null && !this.equals(newFileStorageProvider)) {
 
 			super.moveTo(newFileStorageProvider);
 		}
