@@ -540,6 +540,12 @@ let _Schema = {
 						body: JSON.stringify(data)
 					});
 
+					if (Structr.isModuleActive(_Schema)) {
+						if (bulkInfo?.basic?.data?.name || bulkInfo?.basic?.data?.extendsClass) {
+							_Schema.reload();
+						}
+					}
+
 					_Schema.hideSchemaRecompileMessage();
 
 					if (response.ok) {
