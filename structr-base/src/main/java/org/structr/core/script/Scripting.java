@@ -56,6 +56,7 @@ import java.util.stream.Collectors;
 
 public class Scripting {
 
+	private static final Pattern importPattern                      = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 	private static final FixedSizeCache<String, Source> sourceCache = new FixedSizeCache<>("Source Cache", 10000);
 	private static final Pattern ScriptEngineExpression             = Pattern.compile("^\\$\\{(\\w+)\\{(.*)\\}\\}$", Pattern.DOTALL);
 	private static final Logger logger                              = LoggerFactory.getLogger(Scripting.class.getName());
@@ -449,7 +450,6 @@ public class Scripting {
 
 			final String transpiledSource;
 			// Regex that matches import statements
-			final Pattern importPattern = Pattern.compile("import([ \\n\\t]*(?:[^ \\n\\t\\{\\}]+[ \\n\\t]*,?)?(?:[ \\n\\t]*\\{(?:[ \\n\\t]*[^ \\n\\t\"'\\{\\}]+[ \\n\\t]*,?)+\\})?[ \\n\\t]*)from[ \\n\\t]*(['\"])([^'\"\\n]+)(?:['\"])");
 
 			if (importPattern.matcher(snippet.getSource()).find()) {
 
