@@ -19,6 +19,22 @@
 require.config({ paths: { 'vs': 'js/lib/monaco-editor/min/vs' }});
 require(['vs/editor/editor.main'], () => {
 	_Editors.setupMonacoAutoCompleteOnce();
+
+	// adjust the HTML parser to support our ${{ .. }} syntax for JavaScript
+	// This uses private monaco API ".loader()", which might break in future versions!
+	monaco.languages.getLanguages().filter(langModule => langModule.id === 'html')[0]?.loader().then(htmlModule => {
+
+		// we need to insert our two rules anywhere before the last element
+		let lastRootRule = htmlModule.language.tokenizer.root.pop();
+		htmlModule.language.tokenizer.root.push([/.*\${{/, { token: 'keyword', bracket: '@open', next: '@structr', nextEmbedded: 'text/javascript' }]);
+		htmlModule.language.tokenizer.root.push([/}}/,   { token: 'keyword', bracket: '@close' }]);
+		htmlModule.language.tokenizer.root.push(lastRootRule);
+
+		htmlModule.language.tokenizer.structr = [
+			[/}}/, { token: "@rematch", next: "@pop", nextEmbedded: "@pop" }],
+			[/[^}]+/, ""]
+		]
+	});
 });
 
 let _Editors = {
