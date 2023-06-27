@@ -148,11 +148,11 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
 
 		final App app                          = StructrApp.getInstance(securityContext);
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
-		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray);
+		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 
 		// isolate write output
 		try (final Tx tx = app.tx()) {

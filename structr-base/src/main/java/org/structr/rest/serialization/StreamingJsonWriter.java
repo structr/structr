@@ -29,8 +29,8 @@ import java.io.Writer;
  */
 public class StreamingJsonWriter extends StreamingWriter {
 
-	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
-		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray);
+	public StreamingJsonWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 
 	@Override
