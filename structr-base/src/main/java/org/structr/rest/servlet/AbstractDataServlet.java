@@ -97,20 +97,26 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final boolean wrapSingleResultInArray) {
 
+		final String serializeNullsSrc    = request.getParameter(RequestKeywords.SerializeNulls.keyword());
 		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
 		final int outputDepth             = Services.parseInt(outputDepthSrc, config.getOutputNestingDepth());
+		final boolean serializeNulls      = Services.parseBoolean(serializeNullsSrc, true);
 		final String baseUrl              = request.getRequestURI();
 		final Map<String, String> headers = result.getHeaders();
 
 		// set headers
 		for (final Entry<String, String> header : headers.entrySet()) {
+
 			response.setHeader(header.getKey(), header.getValue());
 		}
 
 		// set response code
 		if (response.getStatus() != 200) {
+
 			response.setStatus(response.getStatus());
+
 		} else {
+
 			response.setStatus(result.getResponseCode());
 		}
 
@@ -121,9 +127,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 				final PagingIterable resultIterable = new PagingIterable(request.toString(), content);
 				if (result.getOverridenResultCount() != null) {
+
 					resultIterable.setOverriddenResultCount(result.getOverridenResultCount());
 				}
-				writeJson(securityContext, response, resultIterable, baseUrl, outputDepth, wrapSingleResultInArray);
+
+				writeJson(securityContext, response, resultIterable, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
 
 			} else {
 
@@ -135,10 +143,14 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 				} else {
 
 					final Object nonGraphObjectResult = result.getNonGraphObjectResult();
+
 					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
-						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+
+						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+
 					} else {
-						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray);
+
+						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
 					}
 				}
 
@@ -152,7 +164,9 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
 
-		final String baseUrl = request.getRequestURI();
+		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.keyword());
+		final boolean serializeNulls   = Services.parseBoolean(serializeNullsSrc, true);
+		final String baseUrl           = request.getRequestURI();
 
 		try {
 
@@ -160,11 +174,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			if (accept != null && accept.contains("text/html")) {
 
-				writeHtml(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray);
+				writeHtml(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
 
 			} else {
 
-				writeJson(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray);
+				writeJson(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -213,11 +227,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
 
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
 		final App app                          = StructrApp.getInstance(securityContext);
-		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray);
+		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
@@ -233,10 +247,10 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void writeJson(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray) throws IOException {
+	protected void writeJson(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws IOException {
 
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
-		final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray);
+		final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 
 		// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 		response.setContentType("application/json; charset=utf-8");

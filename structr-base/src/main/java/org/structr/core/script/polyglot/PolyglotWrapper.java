@@ -330,7 +330,7 @@ public abstract class PolyglotWrapper {
 							.collect(Collectors.toList());
 
 
-					Object result = func.execute(processedArgs.toArray(new Value[processedArgs.size()]));
+					Object result = func.execute(processedArgs.toArray());
 					lock.unlock();
 
 					return wrap(actionContext, unwrap(actionContext, result));

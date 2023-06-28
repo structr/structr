@@ -32,8 +32,11 @@ let _Dragndrop = {
 			iframe: iframe,
 			accept: '.node, .element, .content, .image, .file, .widget, .data-binding-attribute, .data-binding-type',
 			greedy: true,
-			hoverClass: 'nodeHover',
+			// hoverClass: 'nodeHover',
+			tolerance: 'pointer',
 			drop: function(e, ui) {
+
+				$('.node-container').removeClass('nodeHover');
 
 				if (_Elements.dropBlocked === true) {
 					_Elements.dropBlocked = false;
@@ -46,7 +49,9 @@ let _Dragndrop = {
 				let self = $(this), related;
 
 				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
-				let targetId = Structr.getId(self);
+				let targetId = Structr.getId(self.hasClass('node-container') ? self.parent() : self);
+
+				console.log(self, self.closest('.nodeHover'));
 
 				if (self.hasClass('jstree-wholerow')) {
 					targetId = self.parent().prop('id');
@@ -131,6 +136,14 @@ let _Dragndrop = {
 					$(ui.draggable).remove();
 					_Dragndrop.sortParent = undefined;
 				}
+			},
+			over: function (e, ui) {
+
+				$('.node-container').removeClass('nodeHover');
+				$(this).children('.node-container').addClass('nodeHover');
+			},
+			out: function (e, ui) {
+				$('.node-container').removeClass('nodeHover');
 			}
 		});
 	},

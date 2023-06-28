@@ -54,6 +54,7 @@ public enum RequestKeywords {
 	ForceResultCount("forceResultCount"),
 	DisableSoftLimit("disableSoftLimit"),
 	ParallelizeJsonOutput("parallelizeJsonOutput"),
+	SerializeNulls("serializeNulls"),
 	BatchSize("batchSize"),
 
 	// edit mode

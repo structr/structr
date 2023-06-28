@@ -31,8 +31,8 @@ import java.io.Writer;
  */
 public class StreamingHtmlWriter extends StreamingWriter {
 
-	public StreamingHtmlWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
-		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray);
+	public StreamingHtmlWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 
 	@Override

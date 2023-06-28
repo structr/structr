@@ -41,6 +41,11 @@ import java.lang.Object;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.function.Function;
+import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
+import org.structr.schema.export.StructrSchema;
+import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertNotNull;
 
 import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
@@ -421,6 +426,52 @@ public class Deployment5Test extends DeploymentTestBase {
 			final Div div121      = createElement(page, div11, "div", "content 2");
 
 			testDiv.setProperty(StructrApp.key(DOMElement.class, "data-structr-rendering-mode"), "visible");
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test
+		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test55JavaSchemaMethods() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema sourceSchema = StructrSchema.createFromDatabase(app);
+
+			// a customer
+			final JsonType customer = sourceSchema.addType("Customer");
+
+			customer.addMethod("test", "System.out.println(parameters); return null;").setCodeType("java");
+
+			StructrSchema.replaceDatabaseSchema(app, sourceSchema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// test
+		doImportExportRoundtrip(true);
+
+		// check
+		try (final Tx tx = app.tx()) {
+
+			final SchemaMethod method1 = app.nodeQuery(SchemaMethod.class).and(SchemaMethod.name, "test").getFirst();
+
+			assertNotNull("Invalid deployment result", method1);
+
+			assertEquals("Invalid SchemaMethod deployment result", "test",                                         method1.getProperty(SchemaMethod.name));
+			assertEquals("Invalid SchemaMethod deployment result", "System.out.println(parameters); return null;", method1.getProperty(SchemaMethod.source));
+			assertEquals("Invalid SchemaMethod deployment result", "java",                                         method1.getProperty(SchemaMethod.codeType));
 
 			tx.success();
 
