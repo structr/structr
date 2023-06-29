@@ -182,6 +182,7 @@ export class Frontend {
 
 			case 200:
 				this.fireEvent('success', { target: element, data: json, status: status });
+				this.handleNotifications(element, json, status, options);
 				this.processReloadTargets(element, json.result, status, options);
 				break;
 
@@ -194,6 +195,7 @@ export class Frontend {
 			case 500:
 			case 503:
 				this.fireEvent('error', { target: element, data: json, status: status });
+				this.handleNotifications(element, json, status, options);
 				this.processReloadTargets(element, json, status, options);
 				break;
 		}
@@ -203,9 +205,140 @@ export class Frontend {
 		}
 	}
 
+	async handleNotifications(element, parameter, status, options) {
+		let mode, statusText, statusHTML, inputElementBorderColor;
+		let id = element.dataset.structrId;
+		const success = this.isSuccess(status);
+
+		if (success) {
+			mode = element.dataset.structrSuccessNotifications;
+			statusText = '✅ Operation successful with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:green">' + statusText + '</div>';
+			for (let elementWithError of document.querySelectorAll('[data-error]')) {
+				elementWithError.style.borderColor = inputElementBorderColor || '';
+			}
+		} else {
+			mode = element.dataset.structrFailureNotifications;
+			statusText = '❌ Operation failed with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:red">' + statusText + '<br>';
+			if (parameter?.errors?.length) {
+				for (const error of parameter.errors) {
+					statusHTML += error.property + ' ' + error.token.replaceAll('_', ' ') + '<br>';
+					let propertyKey = error.property;
+					let propertyInputElement = document.querySelector('[name="' + propertyKey + '"]');
+					if (propertyInputElement) {
+						inputElementBorderColor = propertyInputElement.style.borderColor;
+						propertyInputElement.style.borderColor = 'red';
+						propertyInputElement.dataset.error = error.token;
+					}
+				}
+			}
+			statusHTML += '</div>';
+		}
+
+		// none, system-alert, inline-text-message, custom-dialog, custom-dialog-linked
+		switch (mode) {
+
+			case 'system-alert':
+				window.alert(statusText);
+				break;
+
+			case 'inline-text-message':
+				// Clear all notification messages
+				document.querySelectorAll('.structr-event-action-notification').forEach(el => el.remove());
+				element.insertAdjacentHTML('afterend', statusHTML);
+				window.setTimeout(() => {
+					let notificationElement = document.getElementById('notification-for-' + id);
+					if (notificationElement) { notificationElement.remove(); }
+				}, 5000);
+				break;
+
+			case 'custom-dialog':
+				let notificationElementIds = success ? element.dataset.structrSuccessNotificationsPartial : element.dataset.structrFailureNotificationsPartial;
+				let partialIds = notificationElementIds.split(',');
+				for (let partialId of partialIds) {
+					let partialElement = document.querySelector(partialId);
+					if (partialElement) {
+						partialElement.classList.remove('hidden');
+						window.setTimeout(() => {
+							partialElement.classList.add('hidden');
+						}, 5000);
+					}
+				}
+				break;
+
+			case 'custom-dialog-linked':
+				let notificationElementSelectors = success ? element.dataset.structrSuccessNotificationsCustomDialogElement : element.dataset.structrFailureNotificationsCustomDialogElement;
+				let partialSelectors = notificationElementSelectors.split(',');
+				for (let partialSelector of partialSelectors) {
+					let partialElement = document.querySelector(partialSelector);
+					if (partialElement) {
+						partialElement.classList.remove('hidden');
+						window.setTimeout(() => {
+							partialElement.classList.add('hidden');
+						}, 5000);
+					}
+				}
+				break;
+
+			case 'none':
+			default:
+				// Default is do nothing
+		}
+
+	}
+
 	async processReloadTargets(element, parameters, status, options) {
 
-		if (element.dataset.structrReloadTarget) {
+		const success = this.isSuccess(status);
+
+		if (success && element.dataset.structrSuccessTarget) {
+
+			let successTargets = element.dataset.structrReloadTarget;
+
+			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+
+				if (successTarget.indexOf(':') !== -1) {
+
+					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
+					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
+					if (module) {
+
+						if (module.Handler) {
+
+							let handler = new module.Handler(this);
+
+							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
+
+								handler.handleReloadTarget(successTarget, element, parameters, status, options);
+
+							} else {
+
+								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
+							}
+
+						} else {
+
+							throw `Module for behaviour ${moduleName} has no class "Handler".`;
+						}
+
+					} else {
+
+						throw `No module found for behaviour ${moduleName}.`;
+					}
+
+				} else if (successTarget === 'none') {
+
+					// do nothing
+					return;
+
+				} else {
+
+					this.reloadPartial(successTarget, parameters, element);
+				}
+			}
+
+		} else if (!success && element.dataset.structrFailureTarget) {
 
 			let reloadTargets = element.dataset.structrReloadTarget;
 
@@ -253,10 +386,18 @@ export class Frontend {
 
 		} else {
 
-			// what should be the default?
-			// Reload, or nothing?
-			window.location.reload();
+			// Default is do nothing
+			//window.location.reload();
 		}
+
+	}
+
+	isSuccess = status => status === 200;
+
+	displayPartial(selector, parameters, element, dontRebind) {
+		let container = document.querySelector(selector);
+		container.classList.remove('hidden');
+		//this.replacePartial(container, id, element, data, parameters, dontRebind);
 	}
 
 	handleNetworkError(element, error, status) {
