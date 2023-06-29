@@ -34,8 +34,8 @@ import java.util.Map;
 
 public class ToJsonFunction extends UiCommunityFunction {
 
-	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view[, depth = 3]])}. Example: ${to_json(this, 'public', 4)}";
-	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view[, depth = 3]])}}. Example: ${{Structr.to_json(Structr.get('this'), 'public', 4)}}";
+	public static final String ERROR_MESSAGE_TO_JSON    = "Usage: ${to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}. Example: ${to_json(this, 'public', 4)}";
+	public static final String ERROR_MESSAGE_TO_JSON_JS = "Usage: ${{Structr.to_json(obj [, view[, depth = 3[, serializeNulls = true ]]])}}. Example: ${{Structr.to_json(Structr.get('this'), 'public', 4)}}";
 
 	@Override
 	public String getName() {
@@ -44,13 +44,13 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 	@Override
 	public String getSignature() {
-		return "obj [, view, depth = 3 ]";
+		return "obj [, view, depth = 3, serializeNulls = true ]";
 	}
 
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) {
 
-		if (sources != null && sources.length >= 1 && sources.length <= 3) {
+		if (sources != null && sources.length >= 1 && sources.length <= 4) {
 
 			try {
 
@@ -68,24 +68,29 @@ public class ToJsonFunction extends UiCommunityFunction {
 					outputDepth = ((Number)sources[2]).intValue();
 				}
 
+				boolean serializeNulls = true;
+				if (sources.length > 3 && sources[3] instanceof Boolean) {
+					serializeNulls = ((Boolean)sources[3]);
+				}
+
 				final Object obj = sources[0];
 
 				if (obj instanceof GraphObject) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
 
 					jsonStreamer.streamSingle(securityContext, writer, (GraphObject)obj);
 
 				} else if (obj instanceof Iterable) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, true, serializeNulls);
 					final Iterable list                    = (Iterable)obj;
 
 					jsonStreamer.stream(securityContext, writer, new PagingIterable<>("toJson()", list), null, false);
 
 				} else if (obj instanceof Map) {
 
-					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false);
+					final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, true, outputDepth, false, serializeNulls);
 					final GraphObjectMap map               = new GraphObjectMap();
 
 					UiFunction.recursivelyConvertMapToGraphObjectMap(map, (Map)obj, outputDepth);
