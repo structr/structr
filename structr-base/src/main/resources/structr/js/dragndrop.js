@@ -23,7 +23,7 @@ let _Dragndrop = {
 	sorting: false,
 	sortParent: undefined,
 
-	makeDroppable: function(element, previewId) {
+	makeDroppable: (element, previewId) => {
 		let el = $(element);
 		let tag, iframe = previewId ? $('#preview_' + previewId) : undefined;
 
@@ -147,7 +147,12 @@ let _Dragndrop = {
 			}
 		});
 	},
-	makeSortable: function(element) {
+	cleanupDroppable: (element) => {
+		try {
+			$(element).droppable("destroy");
+		} catch (e) {};
+	},
+	makeSortable: (element) => {
 		let el = $(element);
 
 		let sortableOptions = {
@@ -159,6 +164,7 @@ let _Dragndrop = {
 			distance: 5,
 			items: '> .node',
 			helper: function (event, helperEl) {
+
 				_Pages.pagesTree.append('<div id="collapse-offset"></div>');
 
 				$('#collapse-offset', _Pages.pagesTree).css('height', helperEl.height() - 17);
@@ -174,6 +180,7 @@ let _Dragndrop = {
 			zIndex: 99,
 			containment: 'body',
 			start: function(event, ui) {
+
 				_Dragndrop.sorting    = true;
 				_Dragndrop.sortParent = $(ui.item).parent();
 
@@ -182,6 +189,7 @@ let _Dragndrop = {
 				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
 			},
 			update: function(event, ui) {
+
 				let el = $(ui.item);
 				if (!_Dragndrop.sorting) {
 					return false;
