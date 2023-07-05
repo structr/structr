@@ -1542,7 +1542,7 @@ let _Files = {
 				showPreviewCheckbox.disabled = !active;
 
 				let language = _Files.getLanguageForFile(file);
-				_Editors.updateMonacoEditorLanguage(editor, language);
+				_Editors.updateMonacoEditorLanguage(editor, language, file);
 			});
 		});
 

@@ -348,7 +348,7 @@ let _MailTemplates = {
 			lint: true,
 			autocomplete: true,
 			changeFn: (editor, entity) => {
-				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()));
+				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()), mt);
 			},
 			saveFn: (editor, entity) => {
 				_MailTemplates.saveMailTemplate();

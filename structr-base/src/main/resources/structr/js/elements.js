@@ -993,7 +993,7 @@ let _Elements = {
 
 				entity.setProperty('contentType', contentType, false, () => {
 
-					_Editors.updateMonacoEditorLanguage(editor, contentType);
+					_Editors.updateMonacoEditorLanguage(editor, contentType, entity);
 
 					_Helpers.blinkGreen(e.target);
 				});

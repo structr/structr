@@ -197,7 +197,7 @@ let _Entities = {
 				model.uri.isAutoscriptEnv = false;
 			}
 
-			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language);
+			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language, entity);
 		};
 
 		let initRepeaterInputs = () => {
