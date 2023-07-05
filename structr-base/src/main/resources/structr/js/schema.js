@@ -4218,12 +4218,12 @@ let _Schema = {
 					let username    = optGroup.prop('label');
 					let isOwnerless = optGroup.data('ownerless') === true;
 
-					_Helpers.disableElements((isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
 				}
 			};
 			layoutSelectorChangeHandler();
 
-			layoutSelector.on('change', layoutSelectorChangeHandler);
+			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
 
 			updateLayoutButton.click(() => {
 
