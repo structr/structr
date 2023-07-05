@@ -144,7 +144,7 @@ let _Contents = {
 
 		Structr.resize();
 	},
-	getContextMenuElements: function (div, entity) {
+	getContextMenuElements: (div, entity) => {
 
 		const isContentContainer = entity.isContentContainer;
 		const isContentItem      = entity.isContentItem;
@@ -155,24 +155,23 @@ let _Contents = {
 
 		// there is a difference when right-clicking versus clicking the kebab icon
 		let contentNode = div;
-		if (contentNode.hasClass('icons-container')) {
+		if (contentNode.classList.contains('icons-container')) {
 			contentNode = div.closest('.node');
-		} else if (!contentNode.hasClass('node')) {
-			contentNode = div.find('.node');
+		} else if (!contentNode.classList.contains('node')) {
+			contentNode = div.querySelector('.node');
 		}
 
-		if (!contentNode.hasClass('selected')) {
+		if (!contentNode.classList.contains('selected')) {
 
 			for (let selNode of document.querySelectorAll('.node.selected')) {
 				selNode.classList.remove('selected');
 			}
-			contentNode.addClass('selected');
+			contentNode.classList.add('selected');
 
 			selectedElements = document.querySelectorAll('.node.selected');
 		}
 
 		let isMultiSelect = selectedElements.length > 1;
-
 
 		if (isContentItem && isMultiSelect === false) {
 
@@ -221,12 +220,12 @@ let _Contents = {
 
 		if (!isMultiSelect) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			_Elements.appendSecurityContextMenuItems(elements, entity);
+			_Elements.contextMenu.appendSecurityContextMenuItems(elements, entity);
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -243,7 +242,7 @@ let _Contents = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -588,7 +587,7 @@ let _Contents = {
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
-		_Elements.enableContextMenuOnElement(div, d);
+		_Elements.contextMenu.enableContextMenuOnElement(div[0], d);
 	},
 	handleMoveObjectsAction: (targetContainerId, actualDraggedObjectId) => {
 

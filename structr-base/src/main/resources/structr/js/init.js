@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.innerHTML = Structr.templates.mainBody();
 	_Icons.preloadSVGIcons();
+	_Elements.contextMenu.init();
 
 	Structr.header                   = document.getElementById('header');
 	Structr.mainContainer            = document.getElementById('main');
@@ -341,7 +342,7 @@ let Structr = {
 		_Helpers.fastRemoveAllChildren(Structr.functionBarOffscreen);
 		_Helpers.fastRemoveAllChildren(Structr.dialogContainerOffscreen);
 		_Dialogs.custom.clearDialogElements();
-		_Elements.removeContextMenu();
+		_Elements.contextMenu.remove();
 	},
 	refreshUi: (isLogin = false) => {
 
@@ -1951,7 +1952,7 @@ let Structr = {
 			<div id="function-bar"></div>
 			<div id="main"></div>
 
-			<div id="menu-area"></div>
+			<div id="custom-context-menu-container"></div>
 		`,
 		defaultDialogMarkup: config => ``,
 		loginDialogMarkup: `

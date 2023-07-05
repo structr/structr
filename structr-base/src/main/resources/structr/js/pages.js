@@ -173,7 +173,10 @@ let _Pages = {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				_Pages.sharedComponents.reload(isDragOpen);
 				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
+			}, () => {
+				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+				_Pages.rightSlideoutClosedCallback();
+			});
 		};
 		componentsTab.addEventListener('click', componentsTabSlideoutAction);
 
@@ -279,7 +282,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
 
@@ -327,7 +330,7 @@ let _Pages = {
 				]
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		if (entity.type === 'Div' && !hasChildren) {
@@ -354,12 +357,12 @@ let _Pages = {
 				}
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		if (!isPage && hasParentAndParentIsNotPage) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			elements.push({
 				name: 'Wrap element in...',
@@ -420,7 +423,7 @@ let _Pages = {
 
 		if (!isPage) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
@@ -440,7 +443,7 @@ let _Pages = {
 
 			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
 			if (canConvertToSharedComponent) {
-				_Elements.appendContextMenuSeparator(elements);
+				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
 					name: 'Convert to Shared Component',
@@ -500,7 +503,7 @@ let _Pages = {
 			}
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (!isContent && hasChildren) {
 
@@ -547,7 +550,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
@@ -579,7 +582,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -1183,7 +1186,7 @@ let _Pages = {
 		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
-		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
+		let pageName = (entity.name ? entity.name : `[${entity.type}]`);
 
 		_Pages.pagesTree.append(`
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
@@ -1205,17 +1208,13 @@ let _Pages = {
 
 		_Dragndrop.makeSortable(div);
 
-		$('.button', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
-		_Elements.enableContextMenuOnElement(div, entity);
+		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.setMouseOver(div);
 
 		_Dragndrop.makeDroppable(div);
@@ -1904,7 +1903,7 @@ let _Pages = {
 			let removeIcon = parameterMappingElement.querySelector('.em-parameter-mapping-remove-button');
 			removeIcon?.addEventListener('click', e => {
 				Command.deleteNode(parameterMapping.id, false, () => {
-					parameterMappingElement.remove();
+					_Helpers.fastRemoveElement(parameterMappingElement);
 				});
 			});
 		};
@@ -2341,7 +2340,7 @@ let _Pages = {
 				html: entity.tag + (entity._html_id ? ' <span class="class-id-attrs _html_id">#' + entity._html_id + '</span>' : '') + (entity._html_class ? '<span class="class-id-attrs _html_class">.' + entity._html_class.split(' ').join('.') + '</span>' : '')
 					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
 					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
-				clickHandler: (el, item, e) => {
+				clickHandler: (e) => {
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
@@ -2399,7 +2398,7 @@ let _Pages = {
 
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			return elements;
 		},
@@ -2528,7 +2527,7 @@ let _Pages = {
 
 					var el = $(element);
 
-					//element.addEventListener('click', () => { _Elements.removeContextMenu(); });
+					//element.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 
 //					_Dragndrop.makeDroppable(el, highlightElementId);
 
@@ -2545,7 +2544,7 @@ let _Pages = {
 
 								Command.get(structrId, null, (data) => {
 									const entity = StructrModel.createFromData(data);
-									_Elements.activateContextMenu(e, el,
+									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
 											type: 'PreviewElement',
 											entity: entity,
@@ -2786,7 +2785,7 @@ let _Pages = {
 
 							previewEl?.classList.add('structr-element-container-selected');
 
-							doc.addEventListener('click', () => { _Elements.removeContextMenu(); });
+							doc.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 						}
 
 						iframe.src = _Pages.previews.getUrlForPreview(pageObj);

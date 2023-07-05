@@ -145,7 +145,7 @@ let _MailTemplates = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -172,7 +172,7 @@ let _MailTemplates = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -261,7 +261,7 @@ let _MailTemplates = {
 			_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 		});
 
-		_Elements.enableContextMenuOnElement($(row), mailTemplate);
+		_Elements.contextMenu.enableContextMenuOnElement(row, mailTemplate);
 		_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
 
 		let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);

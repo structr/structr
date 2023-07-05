@@ -207,7 +207,7 @@ let _VirtualTypes = {
 			_VirtualTypes.showVirtualTypeDetails(virtualType.id);
 		});
 
-		_Elements.enableContextMenuOnElement(row, virtualType);
+		_Elements.contextMenu.enableContextMenuOnElement(row[0], virtualType);
 		_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
 
 		let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
@@ -231,7 +231,7 @@ let _VirtualTypes = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -256,14 +256,14 @@ let _VirtualTypes = {
 							_VirtualTypes.virtualTypesPager.refresh();
 							window.setTimeout(_VirtualTypes.checkMainVisibility, 200);
 
-							div.remove();
+							_Helpers.fastRemoveElement(div);
 						});
 					});
 				}
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},

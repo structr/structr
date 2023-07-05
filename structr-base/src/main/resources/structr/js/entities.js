@@ -1765,7 +1765,7 @@ let _Entities = {
 
 		icon.on('click', function(e) {
 			e.stopPropagation();
-			_Elements.activateContextMenu(e, parent, entity);
+			_Elements.contextMenu.activateContextMenu(e, parent[0], entity);
 		});
 
 		if (visible) {
@@ -1922,7 +1922,7 @@ let _Entities = {
 		}
 	},
 	isExpanded: (el) => {
-		let icon = _Entities.getIconFromElement(el);
+		let icon = _Entities.getIconFromElement($(el));
 		return icon.hasClass(_Icons.expandedClass);
 	},
 	getIconFromElement: (el) => {
@@ -2058,14 +2058,21 @@ let _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	toggleElement: (id, nodeContainer, isExpanded, callback) => {
+	toggleElement: (id, el, isExpanded, callback) => {
 
-		let el         = $(nodeContainer);
-		let toggleIcon = el.children('.expand_icon_svg').first();
+		let nodeContainer = $(el);
 
-		if (_Entities.isExpanded(el)) {
+		if (!nodeContainer.hasClass('node-container')) {
+			nodeContainer = nodeContainer.children('.node-container').first();
+		}
 
-			$(el.closest('.node')).children('.node').remove();
+		let toggleIcon = nodeContainer.children('.expand_icon_svg').first();
+
+		if (_Entities.isExpanded(nodeContainer)) {
+
+			$(nodeContainer.closest('.node')).children('.node').each((i, el) => {
+				_Helpers.fastRemoveElement(el);
+			});
 
 			toggleIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 

@@ -590,6 +590,13 @@ let _Helpers = {
 			if (callNow) func.apply(context, args);
 		};
 	},
+	disableNormalContextMenuOnElement: (element) => {
+
+		element.addEventListener('contextmenu', (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+	}
 };
 
 /**
