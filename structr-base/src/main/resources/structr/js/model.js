@@ -192,9 +192,9 @@ let StructrModel = {
 
 			if (parent && parent.hasClass('node') && parent.children('.node') && parent.children('.node').length) {
 
-				let ent = Structr.entityFromElement(parent);
+				let entity = Structr.entityFromElement(parent);
 
-				_Entities.appendExpandIcon($(parent.children('.node-container')), ent, true, true);
+				_Entities.appendExpandIcon($(parent.children('.node-container')), entity, true, true);
 			}
 		}
 	},
@@ -210,15 +210,15 @@ let StructrModel = {
 			return;
 		}
 
-		var node = Structr.node(id);
+		let node = Structr.node(id);
 		if (node && node.remove && !node.hasClass("schema")) {
-			node.remove();
+			_Helpers.fastRemoveElement(node[0]);
 		}
 
 		// Let element handle its own removal from the UI
 		// Especially (but not only) important for users/groups. Those are not displayed as '#id_'-elements anymore, Structr.node() does not find (all of) them.
 		// therefore we let the object itself handle its removal in this case.
-		var obj = StructrModel.obj(id);
+		let obj = StructrModel.obj(id);
 		if (obj && obj.remove) {
 			obj.remove();
 		}
@@ -241,7 +241,7 @@ let StructrModel = {
 			return;
 		}
 
-		var obj = StructrModel.obj(data.id);
+		let obj = StructrModel.obj(data.id);
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
@@ -853,6 +853,7 @@ StructrElement.prototype.save = function() {
 StructrElement.prototype.remove = function() {
 
 	if (this.parent) {
+
 		// remove this element from its parent object in the model
 		let modelEntity = StructrModel.obj(this.parent.id);
 		if (modelEntity) {
@@ -872,6 +873,7 @@ StructrElement.prototype.remove = function() {
 	}
 
 	if (Structr.isModuleActive(_Pages)) {
+
 		let element = Structr.node(this.id);
 		if (this.parent) {
 			var parent = Structr.node(this.parent.id);
@@ -885,7 +887,8 @@ StructrElement.prototype.remove = function() {
 				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
-			element.remove();
+			_Dragndrop.cleanupDroppable(element);
+			_Helpers.fastRemoveElement(element[0]);
 		}
 
 		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
@@ -899,9 +902,16 @@ StructrElement.prototype.remove = function() {
 };
 
 StructrElement.prototype.append = function(refId) {
+
 	if (Structr.isModuleActive(_Pages)) {
+
 		let refNode = refId ? Structr.node(refId) : undefined;
-		StructrModel.expand(_Pages.appendElementElement(this, refNode), this);
+		let div     = _Pages.appendElementElement(this, refNode);
+		if (!div) {
+			return;
+		}
+
+		StructrModel.expand(div, this);
 	}
 };
 
@@ -972,7 +982,7 @@ StructrContent.prototype.remove = function() {
 
 	if (Structr.isModuleActive(_Pages)) {
 
-		var element = Structr.node(this.id);
+		let element = Structr.node(this.id);
 		if (this.parent) {
 			var parent = Structr.node(this.parent.id);
 		}
@@ -985,7 +995,7 @@ StructrContent.prototype.remove = function() {
 				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
-			element.remove();
+			_Helpers.fastRemoveElement(element[0]);
 		}
 
 		if (_Entities?.selectedObject?.id === this.id && !(_Dragndrop.temporarilyRemovedElementUUID === this.id)) {
