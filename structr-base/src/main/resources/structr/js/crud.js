@@ -225,7 +225,7 @@ let _Crud = {
 		Structr.setMainContainerHTML(_Crud.templates.main());
 		Structr.setFunctionBarHTML(_Crud.templates.functions());
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		_Crud.moveResizer();
 
@@ -3028,7 +3028,7 @@ type: ${node.type}`;
 			<div id="crud-buttons" class="flex-grow"></div>
 
 			<div class="searchBox">
-				<input id="crud-search-box" class="search mr-8" name="crud-search" placeholder="Search">
+				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,

@@ -55,7 +55,7 @@ let _Localization = {
 			_Localization.createNewLocalizationEntry();
 		});
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		let keyPreselect    = document.getElementById('localization-key-preselect');
 		let domainPreselect = document.getElementById('localization-domain-preselect');

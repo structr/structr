@@ -46,7 +46,7 @@ let _MailTemplates = {
 		Structr.setMainContainerHTML(_MailTemplates.templates.main());
 		Structr.setFunctionBarHTML(_MailTemplates.templates.functions());
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
 		let namePreselect       = document.getElementById('mail-template-name-preselect');

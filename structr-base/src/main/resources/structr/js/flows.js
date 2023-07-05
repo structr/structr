@@ -144,7 +144,7 @@ let _Flows = {
 		Structr.setMainContainerHTML(_Flows.templates.main());
 		Structr.setFunctionBarHTML(_Flows.templates.functions());
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		document.querySelector('#name-input').onkeydown = ((event) => {
 			if (event.key === "Enter") {

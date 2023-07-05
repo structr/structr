@@ -41,7 +41,7 @@ let _VirtualTypes = {
 		Structr.setMainContainerHTML(_VirtualTypes.templates.main());
 		Structr.setFunctionBarHTML(_VirtualTypes.templates.functions());
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		document.querySelector('form#create-virtual-type-form').addEventListener('submit', async (e) => {
 

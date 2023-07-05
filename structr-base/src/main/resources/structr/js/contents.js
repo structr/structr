@@ -73,7 +73,7 @@ let _Contents = {
 
 			Structr.setFunctionBarHTML(_Contents.templates.functions({ containerTypes: contentContainerTypes, itemTypes: contentItemTypes }));
 
-			UISettings.showSettingsForCurrentModule();
+			// UISettings.showSettingsForCurrentModule();
 
 			let itemTypeSelect      = document.querySelector('select#content-item-type');
 			let addItemButton       = document.getElementById('add-item-button');

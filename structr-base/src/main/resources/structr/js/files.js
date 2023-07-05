@@ -97,7 +97,7 @@ let _Files = {
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 
-			UISettings.showSettingsForCurrentModule();
+			// UISettings.showSettingsForCurrentModule();
 			_Files.updateFunctionBarStatus();
 
 			let fileTypeSelect   = Structr.functionBar.querySelector('select#file-type');
