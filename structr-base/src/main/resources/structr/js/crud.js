@@ -17,22 +17,7 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 document.addEventListener("DOMContentLoaded", () => {
-
 	Structr.registerModule(_Crud);
-
-	$(document).on('click', '#crud-left .crud-type', function() {
-		_Crud.typeSelected($(this).data('type'));
-	});
-
-	$(document).on('click', '#crud-recent-types .remove-recent-type', function (e) {
-		e.stopPropagation();
-		_Crud.removeRecentType($(this).closest('div[data-type]'));
-	});
-
-	$(document).on('change', '#crudTypeFilterSettings input', function(e) {
-		LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
-		_Crud.updateTypeList();
-	});
 });
 
 let _Crud = {
@@ -246,23 +231,46 @@ let _Crud = {
 
 		Structr.initVerticalSlider(Structr.mainContainer.querySelector('.column-resizer'), _Crud.crudResizerLeftKey, 204, _Crud.moveResizer);
 
-		$('#crudTypesSearch').keyup(function (e) {
+		document.querySelector('#crud-left').addEventListener('click', (e) => {
+			let type = e.target.closest('.crud-type');
+			if (type) {
+				_Crud.typeSelected(type.dataset['type']);
+			}
+		});
+
+		document.querySelector('#crud-recent-types').addEventListener('click', (e) => {
+			let removeRecentType = e.target.closest('.remove-recent-type');
+			if (removeRecentType) {
+				e.stopPropagation();
+				let type = removeRecentType.closest('div[data-type]');
+				_Crud.removeRecentType(type);
+			}
+		});
+
+		for (let typeFilterCheckbox of document.querySelectorAll('#crudTypeFilterSettings input')) {
+			typeFilterCheckbox.addEventListener('change', () => {
+				LSWrapper.setItem(_Crud.displayTypeConfigKey, _Crud.getTypeVisibilityConfig());
+				_Crud.updateTypeList();
+			})
+		}
+
+		document.querySelector('#crudTypesSearch').addEventListener('keyup', (e) => {
 
 			if (e.keyCode === 27) {
 
-				$(this).val('');
+				e.target.value = '';
 
 			} else if (e.keyCode === 13) {
 
-				let visibleTypes = $('#crud-types-list .crud-type:not(.hidden)');
+				let visibleTypes = document.querySelectorAll('#crud-types-list .crud-type:not(.hidden)');
 
 				if (visibleTypes.length === 1) {
 
-					_Crud.typeSelected(visibleTypes.data('type'));
+					_Crud.typeSelected(visibleTypes[0].dataset['type']);
 
 				} else {
 
-					let filterVal     = $(this).val().toLowerCase();
+					let filterVal     = e.target.value.toLowerCase();
 					let matchingTypes = Object.keys(_Crud.types).filter(type => type.toLowerCase() === filterVal);
 
 					if (matchingTypes.length === 1) {
@@ -271,14 +279,13 @@ let _Crud = {
 				}
 			}
 
-			_Crud.filterTypes($(this).val().toLowerCase());
+			_Crud.filterTypes(e.target.value.toLowerCase());
 		});
 
-		_Crud.exact = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
-
+		_Crud.exact         = LSWrapper.getItem(_Crud.crudExactTypeKey) || {};
 		_Crud.schemaLoading = false;
 		_Crud.schemaLoaded  = false;
-		_Crud.keys = {};
+		_Crud.keys          = {};
 
 		_Crud.loadSchema().then(() => {
 
@@ -297,13 +304,12 @@ let _Crud = {
 			});
 		});
 
-		let crudMain = $('#crud-main');
 		_Crud.searchField          = document.getElementById('crud-search-box');
 		_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
 		_Crud.searchField.focus();
 
 		_Helpers.appendInfoTextToElement({
-			element: $(_Crud.searchField),
+			element: _Crud.searchField,
 			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
 			insertAfter: true,
 			css: {
@@ -315,6 +321,8 @@ let _Crud = {
 				lineHeight: '1.1em'
 			}
 		});
+
+		let crudMain = $('#crud-main');
 
 		_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
 			_Crud.clearMainSearch(crudMain);
@@ -471,15 +479,16 @@ let _Crud = {
 	updateCrudTableHeader: (type) => {
 
 		let properties     = _Crud.getCurrentProperties(type);
-		let tableHeaderRow = $('#crud-type-detail table thead tr');
+		let tableHeaderRow = document.querySelector('#crud-type-detail table thead tr');
 
-		_Helpers.fastRemoveAllChildren(tableHeaderRow[0]);
+		_Helpers.fastRemoveAllChildren(tableHeaderRow);
 
-		tableHeaderRow.append('<th class="___action_header" data-key="action_header">Actions</th>');
+		let newHeaderHTML = `
+			<th class="___action_header" data-key="action_header">Actions</th>
+			${_Crud.filterKeys(type, Object.keys(properties)).map(key => `<th class="${_Crud.cssClassForKey(key)}" data-key="${key}">${key}</th>`).join('')}
+		`;
 
-		for (let key of _Crud.filterKeys(type, Object.keys(properties))) {
-			tableHeaderRow.append(`<th class="${_Crud.cssClassForKey(key)}" data-key="${key}">${key}</th>`);
-		}
+		tableHeaderRow.insertAdjacentHTML('beforeend', newHeaderHTML);
 	},
 	updateTypeList: () => {
 
@@ -607,8 +616,8 @@ let _Crud = {
 	},
 	removeRecentType: (recentTypeElement) => {
 
-		let typeToRemove = recentTypeElement.data('type');
-		let recentTypes = LSWrapper.getItem(_Crud.crudRecentTypesKey);
+		let typeToRemove = recentTypeElement.dataset['type'];
+		let recentTypes  = LSWrapper.getItem(_Crud.crudRecentTypesKey);
 
 		if (recentTypes) {
 			recentTypes = recentTypes.filter((type) => (type !== typeToRemove));
@@ -616,7 +625,7 @@ let _Crud = {
 
 		LSWrapper.setItem(_Crud.crudRecentTypesKey, recentTypes);
 
-		_Helpers.fastRemoveElement(recentTypeElement[0]);
+		_Helpers.fastRemoveElement(recentTypeElement);
 	},
 	updateUrl: (type) => {
 
@@ -3019,7 +3028,7 @@ type: ${node.type}`;
 			<div id="crud-buttons" class="flex-grow"></div>
 
 			<div class="searchBox">
-				<input id="crud-search-box" class="search" name="crud-search" placeholder="Search">
+				<input id="crud-search-box" class="search mr-8" name="crud-search" placeholder="Search">
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 			</div>
 		`,
