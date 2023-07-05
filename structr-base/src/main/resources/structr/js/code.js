@@ -2879,7 +2879,7 @@ let _Code = {
 					</button>
 
 					<div class="relative">
-						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
+						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search..." autocomplete="off">
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 					</div>
 
