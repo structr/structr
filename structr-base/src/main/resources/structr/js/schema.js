@@ -42,7 +42,6 @@ let _Schema = {
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
 	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
 	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
-	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
@@ -51,7 +50,6 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	showJavaMethods: false,
 	inheritanceTree: undefined,
 	inheritanceSlideout: undefined,
 	onload: () => {
@@ -143,11 +141,10 @@ let _Schema = {
 		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
 		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
-		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
 		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
-		//UISettings.showSettingsForCurrentModule();
+		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 		_Schema.activateDisplayDropdownTools();
 		_Schema.activateSnapshotsDialog();
@@ -1988,7 +1985,7 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -3292,7 +3289,7 @@ let _Schema = {
 
 			_Schema.methods.methodsData = {};
 
-			methods = _Schema.filterJavaMethods(methods);
+			methods = _Schema.filterJavaMethods(methods, entity);
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
 
@@ -3333,6 +3330,7 @@ let _Schema = {
 					initialName:     method.name,
 					initialisStatic: method.isStatic,
 					initialSource:   method.source || '',
+					codeType:        method.codeType || ''
 				};
 
 				_Schema.methods.bindRowEvents(fakeRow, entity);
@@ -4150,16 +4148,6 @@ let _Schema = {
 		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, (type) => {
 			return (type === 'allRels') ? { allRels: true } : { relType: type };
 		});
-
-		let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
-		if (showJavaMethodsCheckbox) {
-			showJavaMethodsCheckbox.prop("checked", _Schema.showJavaMethods);
-			showJavaMethodsCheckbox.on('click', () => {
-				_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
-				LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
-				_Helpers.blinkGreen(showJavaMethodsCheckbox.parent());
-			});
-		}
 	},
 	activateDisplayDropdownTools: () => {
 
@@ -5139,23 +5127,37 @@ let _Schema = {
 			};
 		}
 	},
-	filterJavaMethods: (methods) => {
-		if (!_Schema.showJavaMethods) {
+	shouldShowJavaMethods: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethods),
+	filterJavaMethods: (methods, entity) => {
+
+		if (_Schema.shouldShowJavaMethods() === false && entity.isBuiltinType === true) {
+
 			return methods.filter(m => m.codeType !== 'java');
 		}
+
 		return methods;
 	},
 	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
-		if (_Schema.showJavaMethods) {
+
+		// only relevant when bulk saving methods to not lose java methods (if they are not shown)
+
+		if (_Schema.shouldShowJavaMethods() === true) {
+
 			return [];
+
 		} else {
+
 			return methods.filter(m => m.codeType === 'java');
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {
+
 		if (hasClass === true) {
+
 			element.classList.add('has-changes');
+
 		} else {
+
 			element.classList.remove('has-changes');
 		}
 	},
@@ -5352,18 +5354,12 @@ let _Schema = {
 								</button>
 								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
 							</div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<label class="block"><input type="checkbox" id="show-java-methods-in-schema-checkbox"> Show Java methods in SchemaNode</label>
-							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div id="zoom-slider"></div>
+			<div id="zoom-slider" class="mr-8"></div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details pl-2">
