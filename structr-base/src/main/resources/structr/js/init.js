@@ -2535,7 +2535,7 @@ let UISettings = {
 			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
 				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
 			</button>
-			<div class="dropdown-menu-container" style=display: none;"></div>
+			<div class="dropdown-menu-container" style="display: none;"></div>
 		</div>`);
 
 		let container = dropdown.querySelector('.dropdown-menu-container');
