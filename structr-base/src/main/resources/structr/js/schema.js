@@ -5151,7 +5151,7 @@ let _Schema = {
 	shouldShowJavaMethods: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethods),
 	filterJavaMethods: (methods, entity) => {
 
-		if (_Schema.shouldShowJavaMethods() === false && entity.isBuiltinType === true) {
+		if (_Schema.shouldShowJavaMethods() === false && (entity?.isBuiltinType ?? false) === true) {
 
 			return methods.filter(m => m.codeType !== 'java');
 		}
