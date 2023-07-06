@@ -1283,7 +1283,7 @@ let _Code = {
 
 			_Code.runCurrentEntitySaveAction = () => {
 
-				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
+				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
 
 					if (success) {
 
@@ -1344,7 +1344,7 @@ let _Code = {
 
 					_Code.runCurrentEntitySaveAction = () => {
 
-						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
+						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
 
 							if (success) {
 

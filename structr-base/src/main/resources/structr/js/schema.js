@@ -362,7 +362,7 @@ let _Schema = {
 
 			saveButton.addEventListener('click', async (e) => {
 
-				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(id, tabControls);
+				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls);
 
 				if (ok) {
 					_Schema.openEditDialog(id);
@@ -514,7 +514,7 @@ let _Schema = {
 		resetInputsViaTabControls: (tabControls) => {
 			Object.entries(tabControls).map(e => e[1].reset());
 		},
-		saveEntityFromTabControls: async (id, tabControls) => {
+		saveEntityFromTabControls: async (schemaNode, tabControls) => {
 
 			let bulkInfo           = _Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, true);
 			let counts             = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(bulkInfo);
@@ -532,7 +532,7 @@ let _Schema = {
 					_Schema.showSchemaRecompileMessage();
 					let data = _Schema.bulkDialogsGeneral.getPayloadFromBulkInfo(bulkInfo);
 
-					let response = await fetch(Structr.rootUrl + id, {
+					let response = await fetch(Structr.rootUrl + schemaNode.id, {
 						method: 'PATCH',
 						body: JSON.stringify(data)
 					});
@@ -550,6 +550,8 @@ let _Schema = {
 						_Code.addAvailableTagsForEntities([data]);
 
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+
+						_Schema.invalidateTypeInfoCache(schemaNode.name);
 
 					} else {
 
@@ -2147,6 +2149,8 @@ let _Schema = {
 
 							_Schema.properties.appendLocalProperties(container, reloadedEntity, overrides, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
+
+							_Schema.invalidateTypeInfoCache(entity.name);
 
 							if (optionalAfterSaveCallback) {
 								optionalAfterSaveCallback();
@@ -4858,6 +4862,18 @@ let _Schema = {
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
 	},
+	invalidateTypeInfoCache: (type) => {
+
+		delete _Schema.typeInfoCache[type];
+
+		// clear type cache for this type and derived types
+		_Schema.getDerivedTypes(type, [], false).then(derivedTypes => {
+
+			for (let derivedType of derivedTypes) {
+				delete _Schema.typeInfoCache[derivedType];
+			}
+		});
+	},
 	getTypeInfo: (type, callback) => {
 
 		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === 'object') {
@@ -4879,19 +4895,24 @@ let _Schema = {
 			});
 		}
 	},
-	getDerivedTypes: async (baseType, blacklist) => {
+	getDerivedTypes: async (baseType, blacklist = [], baseTypeIsFQCN = true) => {
 
-		// baseType is FQCN
 		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
-			let data = await response.json();
-
+			let data      = await response.json();
 			let result    = data.result;
 			let fileTypes = [];
 			let maxDepth  = 5;
 			let types     = {};
+
+			if (baseTypeIsFQCN === false) {
+
+				// first get FQCN for type name (if exists)
+				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
+				baseType = exactTypeNameMatches?.[0].className ?? baseType;
+			}
 
 			let collect = (list, type) => {
 
