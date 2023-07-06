@@ -2678,7 +2678,7 @@ let UISettings = {
 					onUpdate: () => {
 					}
 				},
-				showJavaMethods: {
+				showJavaMethodsForBuiltInTypes: {
 					text: 'Show Java methods for built-in types',
 					storageKey: 'structrShowJavaMethods_' + location.port,
 					defaultValue: false,
@@ -2686,7 +2686,7 @@ let UISettings = {
 					infoText: 'Advanced Feature: Shows built-in Java methods but changes are not possible',
 					onUpdate: () => {
 						if (Structr.isModuleActive(_Code)) {
-							_Code.codeTree.jstree().refresh()
+							_Code.codeTree.jstree().refresh();
 						}
 					}
 				}

@@ -5148,21 +5148,26 @@ let _Schema = {
 			};
 		}
 	},
-	shouldShowJavaMethods: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethods),
+	shouldShowJavaMethodsForBuiltInTypes: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethodsForBuiltInTypes),
 	filterJavaMethods: (methods, entity) => {
 
-		if (_Schema.shouldShowJavaMethods() === false && (entity?.isBuiltinType ?? false) === true) {
+		// java methods should always be shown for custom types and for global schema methods
+		// otherwise (for built-in types) they should only be shown if the setting is active
 
-			return methods.filter(m => m.codeType !== 'java');
+		let isGlobalSchemaMethods = !entity;
+		let isCustomType          = !(entity?.isBuiltinType ?? true);
+
+		if (isGlobalSchemaMethods || isCustomType || _Schema.shouldShowJavaMethodsForBuiltInTypes()) {
+			return methods;
 		}
 
-		return methods;
+		return methods.filter(m => m.codeType !== 'java');
 	},
 	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
 
 		// only relevant when bulk saving methods to not lose java methods (if they are not shown)
 
-		if (_Schema.shouldShowJavaMethods() === true) {
+		if (_Schema.shouldShowJavaMethodsForBuiltInTypes() === true) {
 
 			return [];
 
