@@ -147,11 +147,6 @@ let _Dragndrop = {
 			}
 		});
 	},
-	cleanupDroppable: (element) => {
-		try {
-			$(element).droppable("destroy");
-		} catch (e) {};
-	},
 	makeSortable: (element) => {
 		let el = $(element);
 

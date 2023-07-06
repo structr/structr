@@ -887,7 +887,6 @@ StructrElement.prototype.remove = function() {
 				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
 				_Pages.previews.modelForPageUpdated(pageId);
 			}
-			_Dragndrop.cleanupDroppable(element);
 			_Helpers.fastRemoveElement(element[0]);
 		}
 

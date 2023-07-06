@@ -2071,7 +2071,6 @@ let _Entities = {
 		if (_Entities.isExpanded(nodeContainer)) {
 
 			$(nodeContainer.closest('.node')).children('.node').each((i, el) => {
-				_Dragndrop.cleanupDroppable(el)
 				_Helpers.fastRemoveElement(el);
 			});
 
