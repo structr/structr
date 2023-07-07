@@ -410,7 +410,6 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 					_Pager.pagerFilters[this.id][filterAttribute] = filterVal;
 				}
 
-				console.log(filterAttribute && filterAttribute.length);
 				if (filterAttribute && filterAttribute.length) {
 
 					if (lastFilterValue !== filterVal && !(filterVal === '' && lastFilterValue === null)) {
