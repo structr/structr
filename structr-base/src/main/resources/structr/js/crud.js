@@ -732,10 +732,25 @@ let _Crud = {
 				let declaringClass = _Crud.keys[type][key].declaringClass;
 				if (declaringClass && _Crud.relInfo[declaringClass]) {
 					if (key === 'sourceId') {
+
 						storedInfo = _Crud.relInfo[declaringClass].source;
+
 					} else if (key === 'targetId') {
+
 						storedInfo = _Crud.relInfo[declaringClass].target;
 					}
+				}
+
+				// sourceNode and targetNode are defined on type AbstractRelationship, thus we use the info from sourceId and targetId
+				if (key === 'sourceNode') {
+
+					declaringClass     = _Crud.keys[type]?.sourceId?.declaringClass;
+					storedInfo         = _Crud.relInfo[declaringClass]?.source;
+
+				} else if (key === 'targetNode' && _Crud.keys[type].targetId) {
+
+					declaringClass     = _Crud.keys[type]?.targetId?.declaringClass;
+					storedInfo         = _Crud.relInfo[declaringClass]?.target;
 				}
 			}
 
@@ -1925,7 +1940,7 @@ let _Crud = {
 		let isCypher         = _Crud.isCypherProperty(key, type);
 		let relatedType      = _Crud.relatedType(key, type);
 		let readOnly         = _Crud.readOnly(key, type);
-		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId');
+		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
 		let propertyType     = _Crud.keys[type][key].type;
 		let simpleType;
 
