@@ -698,10 +698,6 @@ let _Schema = {
 
 							if (!entity.isBuiltinType) {
 
-								node[0].querySelector('b').addEventListener('click', () => {
-									_Schema.makeAttrEditable(node, 'name');
-								});
-
 								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
 									let confirm = await _Dialogs.confirmation.showPromise(`
 										<h3>Delete schema node '${entity.name}'?</h3>
@@ -3829,50 +3825,6 @@ let _Schema = {
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
 	},
-	storeSchemaEntity: async (entity, data, onSuccess, onError, onNoop) => {
-
-		let obj = JSON.parse(data);
-
-		if (entity && entity.id) {
-
-			let getResponse  = await fetch(Structr.rootUrl + entity.id);
-			let existingData = await getResponse.json();
-
-			let changed = false;
-			for (let key in obj) {
-				if (existingData.result[key] !== obj[key]) {
-					changed |= true;
-				}
-			}
-
-			if (changed) {
-
-				_Schema.showSchemaRecompileMessage();
-
-				let response = await fetch(Structr.rootUrl + entity.id, {
-					method: 'PUT',
-					body: JSON.stringify(obj)
-				});
-				let data = await response.json();
-
-				_Schema.hideSchemaRecompileMessage();
-
-				if (response.ok) {
-
-					_Schema.reload();
-					onSuccess?.();
-
-				} else {
-
-					onError?.(data);
-				}
-
-			} else {
-
-				onNoop?.();
-			}
-		}
-	},
 	deleteNode: async (id) => {
 
 		_Schema.showSchemaRecompileMessage();
@@ -3891,69 +3843,6 @@ let _Schema = {
 		} else {
 
 			Structr.errorFromResponse(data);
-		}
-	},
-	makeAttrEditable: (element, key) => {
-
-		// cut off three leading underscores and only use 32 characters (the UUID)
-		let id = element.prop('id').substring(3, 35);
-		if (!id) {
-			return false;
-		}
-
-		element.children('b').hide();
-		let oldVal = $.trim(element.children('b').text());
-		let input = $(`input.new-${key}`, element);
-
-		if (!input.length) {
-			element.prepend(`<input type="text" size="${oldVal.length + 8}" class="new-${key}" value="${oldVal}">`);
-			input = $(`input.new-${key}`, element);
-		}
-
-		input.show().focus().select();
-		let saving = false;
-		input.off('blur').on('blur', () => {
-
-			if (!saving) {
-				saving = true;
-				Command.get(id, 'id', (entity) => {
-					_Schema.changeAttr(entity, element, input, key, oldVal);
-				});
-			}
-
-			return false;
-		});
-
-		input.keypress((e) => {
-			if (e.keyCode === 13 || e.code === 'Enter' || e.keyCode === 9 || e.code === 'Tab') {
-				e.preventDefault();
-
-				if (!saving) {
-					saving = true;
-					Command.get(id, 'id', (entity) => {
-						_Schema.changeAttr(entity, element, input, key, oldVal);
-					});
-				}
-				return false;
-			}
-		});
-		element.off('click');
-	},
-	changeAttr: (entity, element, input, key, oldVal) => {
-
-		let newVal = input.val();
-		input.hide();
-		element.children('b').text(newVal).show();
-
-		if (oldVal !== newVal) {
-			let obj = {};
-			obj[key] = newVal;
-
-			_Schema.storeSchemaEntity(entity, JSON.stringify(obj), null, (data) => {
-				Structr.errorFromResponse(data);
-				element.children('b').text(oldVal).show();
-				element.children('input').val(oldVal);
-			});
 		}
 	},
 	activateSnapshotsDialog: () => {

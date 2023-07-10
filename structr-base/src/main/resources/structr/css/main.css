@@ -1048,14 +1048,6 @@ img.disabled {
 	max-width: 240px;
 }
 
-
-.new-name, .new-relationshipType {
-	border: 1px solid var(--link-color-active);
-	margin: -1px 0;
-	/*font-size: 0.95em;*/
-	display: inline;
-}
-
 .node .id,
 .group .id,
 .user .id,
