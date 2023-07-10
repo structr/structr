@@ -62,7 +62,7 @@ import java.util.*;
 
 /**
  * Maintenance command to get or renew TLS certificates via ACME protocol (i.e. Let's Encrypt).
- *
+ *#
  * There are three different modes:
  * wait (default): Creates an order with http or dns challenges, waits for the specified amount of seconds
  *                 and automatically tries to verify the challenges after that.
@@ -73,7 +73,8 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	private static final Logger logger = LoggerFactory.getLogger(RetrieveCertificateCommand.class.getName());
 	private final static String CERTIFICATE_RETRIEVAL_STATUS = "CERTIFICATE_RETRIEVAL_STATUS";
-
+	private final static String ACME_DNS_CHALLENGE_PREFIX    = "_acme-challenge.";
+	private final static String ACME_DNS_CHALLENGE_SUFFIX    = ".";
 	private final static String MODE_PARAM_KEY                 = "mode";
 	private final static String CHALLENGE_PARAM_KEY            = "challenge";
 	private final static String SERVER_PARAM_KEY               = "server";
@@ -747,25 +748,25 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			error("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		final String domain   = auth.getIdentifier().getDomain();
-		final String hostname = "_acme-challenge." + domain + ".";
-		final String digest   = challenge.getDigest();
+		final String domain = auth.getIdentifier().getDomain();
+		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
+		final String digest = challenge.getDigest();
 
-		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "hostname", hostname, "digest", digest));
+		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
 		if (result == null) {
 
-			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data: Hostname = '" + hostname + "', Target = '" + digest + "'");
+			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Lifecycle method 'onAcmeChallenge' not found! Within the next " + waitForSeconds + " seconds, create a DNS record for " + domain + " with the following data: Name: '" + record + "', Type: 'TXT', Value: '" + digest + "'");
 
-			logger.info("Within the next " + waitForSeconds + " seconds, create a TXT record in your DNS for " + domain + " with the following data:");
-			logger.info("{} IN TXT {}", hostname, digest);
+			logger.info("Within the next " + waitForSeconds + " seconds, create a DNS TXT record for " + domain + " with the following data:");
+			logger.info("{} IN TXT {}", record, digest);
 			logger.info("After " + waitForSeconds + " seconds, the certificate authority will probe the DNS record to authorize the challenge. If the record is not available, the authorization will fail.");
 
 		} else {
 
 			publishProgressMessage(CERTIFICATE_RETRIEVAL_STATUS, "Called lifecycle method onAcmeChallenge");
 
-			logger.info("DNS record (TXT) for domain " + domain + " has to be created with the following data:");
-			logger.info("{} IN TXT {}", hostname, digest);
+			logger.info("DNS TXT record for domain " + domain + " has to be created with the following data:");
+			logger.info("{} IN TXT {}", record, digest);
 		}
 
 		return challenge;
