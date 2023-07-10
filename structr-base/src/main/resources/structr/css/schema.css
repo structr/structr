@@ -243,8 +243,6 @@
 	display: inline-block;
 }
 
-.schema b:hover,
-.schema-details b:hover,
 .schema-props .property-name:hover:not(:disabled),
 .schema-props .property-dbname:hover,
 .schema-props .property-format:hover,
@@ -267,10 +265,6 @@
 
 .schema-edit-dialog .edit-schema-object, #code-main .edit-schema-object {
 	border-bottom: .1rem dashed var(--gray-999);
-}
-
-.schema.compact .new-name {
-	margin: -3px 0 -3px 0;
 }
 
 .schema.light b {
