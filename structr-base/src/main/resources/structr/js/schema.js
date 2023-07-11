@@ -3791,35 +3791,38 @@ let _Schema = {
 			let zoom           = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
 			let canvasPosition = _Schema.ui.canvas.offset();
 			let padding        = 100;
+			let windowHeight   = window.innerHeight;
+			let windowWidth    = window.innerWidth;
 
-			let canvasSize = {
-				w: ($(window).width() - canvasPosition.left) / zoom,
-				h: ($(window).height() - canvasPosition.top) / zoom
+			let maxElementPosition = {
+				right:  0,
+				bottom: 0
 			};
 
-			for (let elem of document.querySelectorAll('.node')) {
-				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
+			// do not include ._jsPlumb_connector because that has huge containers for bezier
+			for (let elem of _Schema.ui.canvas[0].querySelectorAll('.node, .label, ._jsPlumb_endpoint_anchor')) {
+				let rect = elem.getBoundingClientRect();
+				maxElementPosition.right  = Math.max(maxElementPosition.right,  Math.ceil((rect.right  + window.scrollX - canvasPosition.left) / zoom));
+				maxElementPosition.bottom = Math.max(maxElementPosition.bottom, Math.ceil((rect.bottom + window.scrollY - canvasPosition.top)  / zoom));
 			}
 
-			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
-				canvasSize.w = ($(window).width()) / zoom - canvasPosition.left + padding;
+			let canvasSize = {
+				width:  (windowWidth  - canvasPosition.left) / zoom,
+				height: (windowHeight - canvasPosition.top)  / zoom
+			};
+
+			if (maxElementPosition.right >= canvasSize.width) {
+				canvasSize.width = maxElementPosition.right + padding;
 			}
 
-			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
-				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
+			if (maxElementPosition.bottom >= canvasSize.height) {
+				canvasSize.height = maxElementPosition.bottom + padding;
 			}
 
 			_Schema.ui.canvas.css({
-				width: canvasSize.w + 'px',
-				height: (canvasSize.h - 1) + 'px'
+				width:  canvasSize.w + 'px',
+				height: canvasSize.h + 'px'
 			});
-
-			// probably not necessary anymore with new UI
-			// $('body').css({
-			// 	position: 'relative'
-			// });
 		}
 	},
 	dialogSizeChanged: () => {
@@ -4985,7 +4988,6 @@ let _Schema = {
 				el.style[vendorPrefix + "Transform"] = s;
 				el.style[vendorPrefix + "TransformOrigin"] = oString;
 			}
-
 			el.style["transform"] = s;
 			el.style["transformOrigin"] = oString;
 
