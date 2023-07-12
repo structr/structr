@@ -419,7 +419,7 @@ let _Editors = {
 
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
 		let editorText       = customConfig.value || entity[propertyName] || '';
-		let language         = (customConfig.language === 'auto') ? _Editors.getMonacoEditorModeForContent(editorText) : customConfig.language;
+		let language         = (customConfig.language === 'auto') ? _Editors.getMonacoEditorModeForContent(editorText, entity) : customConfig.language;
 		let viewState        = _Editors.restoreViewState(entity.id, propertyName);
 
 		let restoreModelConfig = _Editors.getSavedEditorOptions()?.restoreModels ?? false;
@@ -542,7 +542,7 @@ let _Editors = {
 		let storageContainer = _Editors.getContainerForIdAndProperty(entity.id, propertyName);
 
 		if (storageContainer.instance.customConfig.language === 'auto') {
-			let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue());
+			let newLang = _Editors.getMonacoEditorModeForContent(storageContainer.instance.getValue(), entity);
 			monaco.editor.setModelLanguage(storageContainer.model, newLang);
 		}
 
@@ -554,7 +554,11 @@ let _Editors = {
 			storageContainer.instance.customConfig.changeFn(storageContainer.instance, entity, propertyName);
 		}
 	},
-	getMonacoEditorModeForContent: (content) => {
+	getMonacoEditorModeForContent: (content, entity) => {
+
+		if (entity && entity.codeType === 'java') {
+			return 'java';
+		}
 
 		let mode = 'text';
 
@@ -573,10 +577,10 @@ let _Editors = {
 
 		return mode;
 	},
-	updateMonacoEditorLanguage: (editor, newLanguage) => {
+	updateMonacoEditorLanguage: (editor, newLanguage, entity) => {
 
 		if (newLanguage === 'auto') {
-			newLanguage = _Editors.getMonacoEditorModeForContent(editor.getValue());
+			newLanguage = _Editors.getMonacoEditorModeForContent(editor.getValue(), entity);
 		}
 		monaco.editor.setModelLanguage(editor.getModel(), newLanguage);
 	},

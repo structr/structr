@@ -59,7 +59,7 @@ let _Widgets = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (entity.isLocalWidget === true) {
 			elements.push({
@@ -69,7 +69,7 @@ let _Widgets = {
 				}
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		elements.push({
@@ -81,7 +81,7 @@ let _Widgets = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -440,7 +440,7 @@ let _Widgets = {
 
 		widget.isLocalWidget = (remote === false);
 
-		_Elements.enableContextMenuOnElement(div, widget);
+		_Elements.contextMenu.enableContextMenuOnElement(div[0], widget);
 
 		return div;
 	},

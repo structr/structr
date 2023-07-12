@@ -25,6 +25,7 @@ let _Helpers = {
 		element.remove();
 	},
 	fastRemoveAllChildren: (el) => {
+
 		if (!el) return;
 
 		// prevent fastRemove from producing errors in other libraries
@@ -40,6 +41,13 @@ let _Helpers = {
 			// destroy select2 and remove event listeners
 			if ($().select2) {
 				$('select.select2-hidden-accessible', $(el)).select2('destroy').off();
+			}
+
+			// clean up droppables
+			if ($().droppable) {
+				try {
+					$('.ui-droppable', $(el)).droppable("destroy");
+				} catch (e) {};
 			}
 		}
 
@@ -590,6 +598,13 @@ let _Helpers = {
 			if (callNow) func.apply(context, args);
 		};
 	},
+	disableNormalContextMenuOnElement: (element) => {
+
+		element.addEventListener('contextmenu', (e) => {
+			e.stopPropagation();
+			e.preventDefault();
+		});
+	}
 };
 
 /**

@@ -87,7 +87,7 @@ let _Dashboard = {
 
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
-			UISettings.showSettingsForCurrentModule();
+			// UISettings.showSettingsForCurrentModule();
 
 			if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));

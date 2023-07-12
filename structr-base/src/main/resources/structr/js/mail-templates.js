@@ -46,7 +46,7 @@ let _MailTemplates = {
 		Structr.setMainContainerHTML(_MailTemplates.templates.main());
 		Structr.setFunctionBarHTML(_MailTemplates.templates.functions());
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		let newMailTemplateForm = Structr.functionBar.querySelector('#create-mail-template-form');
 		let namePreselect       = document.getElementById('mail-template-name-preselect');
@@ -145,7 +145,7 @@ let _MailTemplates = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -172,7 +172,7 @@ let _MailTemplates = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -261,7 +261,7 @@ let _MailTemplates = {
 			_MailTemplates.showMailTemplateDetails(mailTemplate.id);
 		});
 
-		_Elements.enableContextMenuOnElement($(row), mailTemplate);
+		_Elements.contextMenu.enableContextMenuOnElement(row, mailTemplate);
 		_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
 
 		let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
@@ -348,7 +348,7 @@ let _MailTemplates = {
 			lint: true,
 			autocomplete: true,
 			changeFn: (editor, entity) => {
-				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()));
+				_Editors.updateMonacoEditorLanguage(editor, getLanguageForMailTemplateText(editor.getValue()), mt);
 			},
 			saveFn: (editor, entity) => {
 				_MailTemplates.saveMailTemplate();

@@ -1048,14 +1048,6 @@ img.disabled {
 	max-width: 240px;
 }
 
-
-.new-name, .new-relationshipType {
-	border: 1px solid var(--link-color-active);
-	margin: -1px 0;
-	/*font-size: 0.95em;*/
-	display: inline;
-}
-
 .node .id,
 .group .id,
 .user .id,
@@ -2929,7 +2921,7 @@ i.fa-sitemap {
 /**
  * Settings for insert shortcut menu
  */
-#add-child-dialog {
+#context-menu-dialog {
 	padding: 0;
 	top: 1px;
 	left: 0;
@@ -2942,7 +2934,7 @@ i.fa-sitemap {
 	position: absolute;
 }
 
-#add-child-dialog ul {
+#context-menu-dialog ul {
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
@@ -2951,7 +2943,7 @@ i.fa-sitemap {
 	position: relative;
 }
 
-#add-child-dialog li {
+#context-menu-dialog li {
 	cursor: pointer;
 	margin: 0;
 	padding: .5rem 1rem;
@@ -2961,14 +2953,14 @@ i.fa-sitemap {
 	position: relative;
 }
 
-#add-child-dialog li i {
+#context-menu-dialog li i {
 	/*font-size: 8pt;*/
 	line-height: 18px;
 	color: var(--gray-999);
 	z-index: 99999;
 }
 
-#add-child-dialog li:hover:not(.preview-context-menu) {
+#context-menu-dialog li:hover:not(.preview-context-menu) {
 	background-color: var(--structr-green);
 	color: var(--solid-black);
 	z-index: 99999;
@@ -2986,15 +2978,15 @@ i.fa-sitemap {
 	flex-grow: 1;
 }
 
-#add-child-dialog .menu-bolder {
+#context-menu-dialog .menu-bolder {
 	font-weight: 500;
 }
 
-#add-child-dialog .danger:hover {
+#context-menu-dialog .danger:hover {
 	background: var(--medium-red);
 }
 
-#add-child-dialog ul ul {
+#context-menu-dialog ul ul {
 	position: absolute;
 	list-style-type: none;
 	padding: 0;
@@ -3003,7 +2995,7 @@ i.fa-sitemap {
 	border: 1px solid var(--gray-ccc);
 }
 
-#add-child-dialog hr {
+#context-menu-dialog hr {
 	width: 100%;
 	margin: 0;
 	padding: 0;
@@ -3013,19 +3005,19 @@ i.fa-sitemap {
 	background-color: var(--gray-ccc);
 }
 
-#add-child-dialog ul.right ul.right {
+#context-menu-dialog ul.right ul.right {
 	right: 16rem;
 }
 
-#add-child-dialog ul.left ul.left {
+#context-menu-dialog ul.left ul.left {
 	left: 16.5rem;
 }
 
-#add-child-dialog ul.top ul.top {
+#context-menu-dialog ul.top ul.top {
 	top: -1px;
 }
 
-#add-child-dialog ul.bottom ul.bottom {
+#context-menu-dialog ul.bottom ul.bottom {
 	bottom: -1px;
 }
 
@@ -3609,10 +3601,6 @@ table#principals .typeIcon {
 	position: absolute;
 	top: .75rem;
 	right: .6rem;
-}
-
-.link-reload-element-dropzone .node {
-	margin: 0 0 .5rem .5rem;
 }
 
 .add-property-input-button {

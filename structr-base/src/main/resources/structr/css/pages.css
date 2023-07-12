@@ -264,6 +264,10 @@
 	margin-bottom: 1rem;
 }
 
+.element-dropzone .node {
+	margin: 0 0 .5rem .5rem;
+}
+
 .element-dropzone.allow-drop {
 	color: black;
 }

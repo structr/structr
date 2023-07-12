@@ -83,7 +83,7 @@ let _Security = {
 
 		if (isUser || isGroup) {
 
-			let userOrGroupEl = div.closest('.node');
+			let userOrGroupEl = $(div).closest('.node');
 			let parentGroupEl = userOrGroupEl.parent().closest('.group');
 			if (parentGroupEl.length) {
 				let parentGroupId = _UsersAndGroups.getGroupId(parentGroupEl);
@@ -98,7 +98,7 @@ let _Security = {
 				});
 			}
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		if (isUser) {
@@ -117,22 +117,22 @@ let _Security = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		_Elements.appendSecurityContextMenuItems(elements, entity);
+		_Elements.contextMenu.appendSecurityContextMenuItems(elements, entity);
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
 			classes: ['menu-bolder', 'danger'],
-			name: 'Delete ' + entity.type,
+			name: `Delete ${entity.type}`,
 			clickHandler: () => {
 				_Entities.deleteNode(entity);
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -425,7 +425,7 @@ let _UsersAndGroups = {
 		targetElement.appendChild(userDiv[0]);
 
 		_Entities.appendContextMenuIcon($('.icons-container', userDiv), user);
-		_Elements.enableContextMenuOnElement(userDiv, user);
+		_Elements.contextMenu.enableContextMenuOnElement(userDiv[0], user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
 		let dblclickHandler = (e) => {
@@ -649,7 +649,7 @@ let _UsersAndGroups = {
 		_Entities.appendExpandIcon(groupDiv.children('.node-container'), group, hasChildren, Structr.isExpanded(group.id), appendMembersFn);
 
 		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container'), group);
-		_Elements.enableContextMenuOnElement(groupDiv, group);
+		_Elements.contextMenu.enableContextMenuOnElement(groupDiv[0], group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
 		if (hasChildren && Structr.isExpanded(group.id)) {

@@ -75,7 +75,6 @@ import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.stream.Collectors;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 
@@ -1258,49 +1257,80 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							out.append(" data-structr-events=\"").append(eventsString).append("\"");
 						}
 
+						// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element
+						final String successNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotifications"));
+						if (StringUtils.isNotBlank(successNotifications)) {
+							out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
+						}
+
+						if (StringUtils.isNotBlank(successNotifications)) {
+
+							switch (successNotifications) {
+
+								case ("custom-dialog-linked"):
+									out.append(" data-structr-success-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "successNotificationElements")).append("\"");
+									break;
+								default:
+
+							}
+						}
+
+						final String successNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotificationsPartial"));
+						if (StringUtils.isNotBlank(successNotificationsPartial)) {
+							out.append(" data-structr-success-notifications-partial=\"").append(successNotificationsPartial).append("\"");
+						}
+
+						// Possible values for failure notifications are none, system-alert, inline-text-message, custom-dialog-element
+						final String failureNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotifications"));
+						if (StringUtils.isNotBlank(failureNotifications)) {
+							out.append(" data-structr-failure-notifications=\"").append(failureNotifications).append("\"");
+						}
+
+						if (StringUtils.isNotBlank(failureNotifications)) {
+
+							switch (failureNotifications) {
+
+								case ("custom-dialog-linked"):
+									out.append(" data-structr-failure-notifications-custom-dialog-element=\"").append(generateDataAttributesForIdList(renderContext, triggeredAction, "failureNotificationElements")).append("\"");
+									break;
+								default:
+
+							}
+						}
+						final String failureNotificationsPartial = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureNotificationsPartial"));
+						if (StringUtils.isNotBlank(failureNotificationsPartial)) {
+							out.append(" data-structr-failure-notifications-partial=\"").append(failureNotificationsPartial).append("\"");
+						}
+
 						// Possible values for the success behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
 						final String successBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successBehaviour"));
 						final String successPartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successPartial"));
 						final String successURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successURL"));
 						final String successEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "successEvent"));
 
-						String reloadTargetString = null;
+						String successTargetString = null;
 
 						if (StringUtils.isNotBlank(successBehaviour)) {
 
 							switch (successBehaviour) {
 								case ("partial-refresh"):
-									reloadTargetString = successPartial;
+									successTargetString = successPartial;
 									break;
 								case ("partial-refresh-linked"):
-									final List<DOMNode> successTargets = (List<DOMNode>) Iterables.toList((Iterable<? extends DOMNode >) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successTargets")));
-									if (!successTargets.isEmpty()) {
-										int i=1;
-										reloadTargetString = "";
-										for (final DOMNode successTarget : successTargets) {
-
-											// Create CSS selector for data-structr-id
-											String successTargetSelector = "[data-structr-id='" + successTarget.getUuid() + "']";
-											final String key = successTarget.getDataKey();
-											if (key != null) {
-												successTargetSelector += "[data-repeater-data-object-id='" + renderContext.getDataNode(key).getUuid() + "']";
-											}
-											reloadTargetString += successTargetSelector + (i < successTargets.size() ? "," : "");
-											i++;
-										}
-
-										//reloadTargetString = successTargets.stream().map(successTarget -> successTargetElementIdAttr).collect(Collectors.joining(","));
-									}
+									successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "successTargets");
 									break;
 								case ("navigate-to-url"):
-									reloadTargetString = "url:" + successURL;
+									successTargetString = "url:" + successURL;
 									break;
 								case ("fire-event"):
-									reloadTargetString = "event:" + successEvent;
+									successTargetString = "event:" + successEvent;
 									break;
 								case ("full-page-reload"):
+									successTargetString = "url:";
+									break;
+								case ("none"):
 								default:
-									reloadTargetString = null;
+									successTargetString = null;
 							}
 						}
 
@@ -1317,17 +1347,49 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 						}
 
-						if (StringUtils.isNotBlank(reloadTargetString)) {
-							out.append(" data-structr-reload-target=\"").append(reloadTargetString).append("\"");
+						if (StringUtils.isNotBlank(successTargetString)) {
+							out.append(" data-structr-reload-target=\"").append(successTargetString).append("\""); // Legacy, deprecated
+							out.append(" data-structr-success-target=\"").append(successTargetString).append("\"");
 						}
 
-						// TODO: Implement failure handling
-						// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
-//						final String failureBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"));
-//						final String failurePartial   = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failurePartial"));
-//						final String failureURL       = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureURL"));
-//						final String failureEvent     = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureEvent"));
 
+						// Possible values for the failure behaviour are nothing, full-page-reload, partial-refresh, navigate-to-url, fire-event
+						final String failureBehaviour = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "failureBehaviour"));
+						final String failurePartial   = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failurePartial"));
+						final String failureURL       = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failureURL"));
+						final String failureEvent     = triggeredAction.getPropertyWithVariableReplacement(renderContext, StructrApp.key(ActionMapping.class, "failureEvent"));
+
+						String failureTargetString = null;
+
+						if (StringUtils.isNotBlank(failureBehaviour)) {
+
+							switch (failureBehaviour) {
+								case ("partial-refresh"):
+									failureTargetString = failurePartial;
+									break;
+								case ("partial-refresh-linked"):
+									failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "failureTargets");
+									break;
+								case ("navigate-to-url"):
+									failureTargetString = "url:" + failureURL;
+									break;
+								case ("fire-event"):
+									failureTargetString = "event:" + failureEvent;
+									break;
+								case ("full-page-reload"):
+									failureTargetString = "url:";
+									break;
+								case ("none"):
+								default:
+									failureTargetString = null;
+							}
+						}
+
+						if (StringUtils.isNotBlank(failureTargetString)) {
+							out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
+						}
+						
+						
 //						{ // TODO: Migrate tree handling to new action mapping
 //							// toggle-tree-item
 //							if (mapping.containsValue("toggle-tree-item")) {
@@ -1424,7 +1486,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					if (isReloadTarget(thisElement)) {
+					if (isTargetElement(thisElement)) {
 
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 
@@ -1850,7 +1912,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		return null;
 	}
 
-	public static boolean isReloadTarget(final DOMElement thisElement) {
+	public static boolean isTargetElement(final DOMElement thisElement) {
 
 		final PropertyKey<Boolean> isManualReloadTargetKey          = StructrApp.key(DOMElement.class, "data-structr-manual-reload-target");
 		final boolean isManualReloadTarget                          = thisElement.getProperty(isManualReloadTargetKey);
@@ -1861,7 +1923,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final PropertyKey<Iterable<DOMNode>> reloadingActionsKey = StructrApp.key(DOMNode.class, "reloadingActions");
 		final List<DOMNode> reloadingActions                     = Iterables.toList(thisElement.getProperty(reloadingActionsKey));
 
-		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty();
+		final PropertyKey<Iterable<DOMNode>> failureActionsKey = StructrApp.key(DOMNode.class, "failureActions");
+		final List<DOMNode> failureActions                     = Iterables.toList(thisElement.getProperty(failureActionsKey));
+
+		final PropertyKey<Iterable<DOMNode>> successNotificationActionsKey = StructrApp.key(DOMNode.class, "successNotificationActions");
+		final List<DOMNode> successNotificationActions                     = Iterables.toList(thisElement.getProperty(successNotificationActionsKey));
+
+		final PropertyKey<Iterable<DOMNode>> failureNotificationActionsKey = StructrApp.key(DOMNode.class, "failureNotificationActions");
+		final List<DOMNode> failureNotificationActions                     = Iterables.toList(thisElement.getProperty(failureNotificationActionsKey));
+
+		return isManualReloadTarget || !reloadSources.isEmpty() || !reloadingActions.isEmpty() || !failureActions.isEmpty() || !successNotificationActions.isEmpty() || !failureNotificationActions.isEmpty();
 	}
 
 	private static int intOrOne(final String source) {
@@ -1920,5 +1991,29 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			return false;
 		}
+	}
+
+	private static String generateDataAttributesForIdList(final RenderContext renderContext, final ActionMapping triggeredAction, final String propertyKey) {
+
+		String resultString = "";
+
+		final List<DOMNode> nodeList = (List<DOMNode>) Iterables.toList((Iterable<? extends DOMNode >) triggeredAction.getProperty(StructrApp.key(ActionMapping.class, propertyKey)));
+		if (!nodeList.isEmpty()) {
+			int i=1;
+			for (final DOMNode node : nodeList) {
+
+				// Create CSS selector for data-structr-id
+				String selector = "[data-structr-id='" + node.getUuid() + "']";
+				final String key = node.getDataKey();
+				if (key != null) {
+					selector += "[data-repeater-data-object-id='" + renderContext.getDataNode(key).getUuid() + "']";
+				}
+				resultString += selector + (i < nodeList.size() ? "," : "");
+				i++;
+			}
+
+		}
+
+		return resultString;
 	}
 }

@@ -209,7 +209,7 @@ let _Graph = {
 
 		Structr.updateMainHelpLink(_Helpers.getDocumentationURLForTopic('graph'));
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		document.querySelector('#clear-graph')?.addEventListener('click', _Graph.clearGraph);
 
