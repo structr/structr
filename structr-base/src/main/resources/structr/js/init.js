@@ -2643,6 +2643,18 @@ let UISettings = {
 		security: {
 			title: 'Security',
 			settings: {
+				showGroupsHierarchicallyKey: {
+					text: 'List groups hierarchically',
+					infoText: 'If active, groups that are contained in other groups are not shown at top level.<br><br>This impacts filtering on name - only top level elements are filtered',
+					storageKey: 'showGroupsHierarchicallyKey' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Security)) {
+							_UsersAndGroups.refreshGroups();
+						}
+					}
+				},
 				showVisibilityFlagsInGrantsTableKey: {
 					text: 'Show visibility flags in Resource Access Grants table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
