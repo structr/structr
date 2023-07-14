@@ -671,22 +671,21 @@ let _UsersAndGroups = {
 	},
 	setMouseOver: (node, id, prefix) => {
 
-		node.children('.node-container').children('b.name_').off('click').on('click', function(e) {
+		node[0].querySelector(':scope .node-container b.name_')?.addEventListener('click', (e) => {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
 				_Helpers.blinkGreen(el);
 			});
 		});
 
-		node.on({
-			mouseover: function(e) {
-				e.stopPropagation();
-				_UsersAndGroups.activateNodeHover(id, prefix);
-			},
-			mouseout: function(e) {
-				e.stopPropagation();
-				_UsersAndGroups.deactivateNodeHover(id, prefix);
-			}
+		node[0].addEventListener('mouseover', (e) => {
+			e.stopPropagation();
+			_UsersAndGroups.activateNodeHover(id, prefix);
+		});
+
+		node[0].addEventListener('mouseout', (e) => {
+			e.stopPropagation();
+			_UsersAndGroups.deactivateNodeHover(id, prefix);
 		});
 	},
 	activateNodeHover: (id, prefix) => {
