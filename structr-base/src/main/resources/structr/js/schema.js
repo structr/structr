@@ -3820,8 +3820,8 @@ let _Schema = {
 			}
 
 			_Schema.ui.canvas.css({
-				width:  canvasSize.w + 'px',
-				height: canvasSize.h + 'px'
+				width:  canvasSize.width + 'px',
+				height: canvasSize.height + 'px'
 			});
 		}
 	},
