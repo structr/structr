@@ -1762,11 +1762,9 @@ let _Schema = {
 					relData.sourceId = sourceId;
 					relData.targetId = targetId;
 
-					if (relData.relationshipType.trim() === '') {
+					let allow = _Schema.relationships.validateBasicRelInfo(dialogText, relData);
 
-						_Helpers.blinkRed(dialogText.querySelector('#relationship-type-name'));
-
-					} else {
+					if (allow) {
 
 						await _Schema.relationships.createRelationshipDefinition(relData);
 					}
