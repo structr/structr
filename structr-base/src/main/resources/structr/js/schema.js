@@ -5289,7 +5289,7 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					<input data-property="name" class="flex-grow">
+					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
 					<div class="extends-type flex items-center gap-2">
 						extends
@@ -5342,7 +5342,7 @@ let _Schema = {
 							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 						</div>
 
-						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
 
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
