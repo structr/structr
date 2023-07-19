@@ -66,8 +66,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
 	private JsonType parent                                   = null;
-	private String returnType                                 = "void";
-	private String openAPIReturnType                          = "void";
+	private String returnType                                 = null;
+	private String openAPIReturnType                          = null;
 	private String codeType                                   = null;
 	private String name                                       = null;
 	private String description                                = null;

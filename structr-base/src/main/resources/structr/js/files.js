@@ -97,7 +97,7 @@ let _Files = {
 
 			Structr.setFunctionBarHTML(_Files.templates.functions({ fileTypes: fileTypes, folderTypes: folderTypes }));
 
-			UISettings.showSettingsForCurrentModule();
+			// UISettings.showSettingsForCurrentModule();
 			_Files.updateFunctionBarStatus();
 
 			let fileTypeSelect   = Structr.functionBar.querySelector('select#file-type');
@@ -210,18 +210,18 @@ let _Files = {
 
 		// there is a difference when right-clicking versus clicking the kebab icon
 		let fileNode = div;
-		if (fileNode.hasClass('icons-container')) {
+		if (fileNode.classList.contains('icons-container')) {
 			fileNode = div.closest('.node');
-		} else if (!fileNode.hasClass('node')) {
-			fileNode = div.find('.node');
+		} else if (!fileNode.classList.contains('node')) {
+			fileNode = div.querySelector('.node');
 		}
 
-		if (!fileNode.hasClass('selected')) {
+		if (!fileNode.classList.contains('selected')) {
 
 			for (let selNode of selectedElements) {
 				selNode.classList.remove('selected');
 			}
-			fileNode.addClass('selected');
+			fileNode.classList.add('selected');
 
 			selectedElements = document.querySelectorAll('.node.selected');
 		}
@@ -267,7 +267,7 @@ let _Files = {
 				});
 			}
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		elements.push({
@@ -284,7 +284,7 @@ let _Files = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (isFile) {
 
@@ -387,12 +387,12 @@ let _Files = {
 
 		if (!isMultiSelect) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-			_Elements.appendSecurityContextMenuItems(elements, entity, entity.isFolder);
+			_Elements.contextMenu.appendSecurityContextMenuItems(elements, entity, entity.isFolder);
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -417,7 +417,7 @@ let _Files = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -951,7 +951,7 @@ let _Files = {
 				<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
 			`);
 
-			_Elements.enableContextMenuOnElement(row, d);
+			_Elements.contextMenu.enableContextMenuOnElement(row[0], d);
 
 		} else if (tilesModeActive || imageModeActive) {
 
@@ -988,7 +988,7 @@ let _Files = {
 				`);
 			}
 
-			_Elements.enableContextMenuOnElement(tile, d);
+			_Elements.contextMenu.enableContextMenuOnElement(tile[0], d);
 		}
 
 		let div = Structr.node(d.id);
@@ -1542,7 +1542,7 @@ let _Files = {
 				showPreviewCheckbox.disabled = !active;
 
 				let language = _Files.getLanguageForFile(file);
-				_Editors.updateMonacoEditorLanguage(editor, language);
+				_Editors.updateMonacoEditorLanguage(editor, language, file);
 			});
 		});
 

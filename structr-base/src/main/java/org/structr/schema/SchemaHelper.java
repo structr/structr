@@ -344,6 +344,8 @@ public class SchemaHelper {
 			final Map<String, Set<String>> existingTypeSchemaMethodNames = new HashMap<>();
 
 			final ConfigurationProvider config = StructrApp.getConfiguration();
+
+			// get a list of all schema node types and relationship types
 			existingSchemaNodeNames.addAll(config.getNodeEntities().keySet());
 			existingSchemaRelationshipNodeNames.addAll(config.getRelationshipEntities().keySet());
 
@@ -358,17 +360,17 @@ public class SchemaHelper {
 				existingSchemaRelationshipNodeNames.add(relType.getName());
 			}
 
+			// get a list of all entity methods and global schema methods
 			final List<SchemaMethod> existingSchemaMethods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).getAsList();
 
 			for (final SchemaMethod schemaMethod : existingSchemaMethods) {
 
-				final String capitalizedSchemaMethodName = PlingStemmer.stem(StringUtils.capitalize(schemaMethod.getName()));
-
-				final AbstractSchemaNode schemaNode = schemaMethod.getProperty(SchemaMethod.schemaNode);
+				final String normalizedSchemaMethodName = SchemaHelper.normalizeEntityName(schemaMethod.getName());
+				final AbstractSchemaNode schemaNode     = schemaMethod.getProperty(SchemaMethod.schemaNode);
 
 				if (schemaNode == null) {
 
-					existingGlobalSchemaMethodNames.add(capitalizedSchemaMethodName);
+					existingGlobalSchemaMethodNames.add(normalizedSchemaMethodName);
 
 				} else {
 
@@ -378,7 +380,7 @@ public class SchemaHelper {
 						existingTypeSchemaMethodNames.put(schemaNodeName, new HashSet());
 					}
 
-					existingTypeSchemaMethodNames.get(schemaNodeName).add(capitalizedSchemaMethodName);
+					existingTypeSchemaMethodNames.get(schemaNodeName).add(normalizedSchemaMethodName);
 				}
 			}
 
@@ -404,7 +406,6 @@ public class SchemaHelper {
 							final String onlyPart = parts.get(0);
 
 							foundAllParts = onlyPart.startsWith("_") || existingSchemaNodeNames.contains(onlyPart) || existingSchemaRelationshipNodeNames.contains(onlyPart) || existingGlobalSchemaMethodNames.contains(onlyPart);
-
 
 						} else if (parts.size() > 1) {
 

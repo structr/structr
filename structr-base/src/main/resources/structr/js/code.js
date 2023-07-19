@@ -109,7 +109,7 @@ let _Code = {
 
 		_Code.preloadAvailableTagsForEntities().then(() => {
 
-			UISettings.showSettingsForCurrentModule();
+			UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 			document.addEventListener('keydown', _Code.handleKeyDownEvent);
 
@@ -691,7 +691,14 @@ let _Code = {
 
 						// generic query function, controlled by data object
 						Command.query(data.key, _Code.defaultPageSize, _Code.defaultPage, 'name', 'asc', data.query, result => {
+
+							if (data.key === 'SchemaMethod' && result.length > 0) {
+
+								result = _Schema.filterJavaMethods(result, result[0].schemaNode);
+							}
+
 							_Code.displayFunction(result, data);
+
 						}, true, 'ui');
 					}
 				}
@@ -908,7 +915,7 @@ let _Code = {
 			{
 				id:       path + '/methods',
 				text:     'Methods',
-				children: _Schema.filterJavaMethods(entity.schemaMethods).length > 0,
+				children: _Schema.filterJavaMethods(entity.schemaMethods, entity).length > 0,
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'methods' },
 				data:     {
@@ -945,6 +952,8 @@ let _Code = {
 		let searchResults = {};
 		let count         = 0;
 		let collectFunction = (result) => {
+
+			// remove duplicates
 			for (let r of result) {
 				searchResults[r.id] = r;
 			}
@@ -952,12 +961,18 @@ let _Code = {
 			// only show results after all 6 searches are finished (to prevent duplicates)
 			if (++count === 6) {
 
-				let results = Object.values(searchResults);
+				let results = Object.values(searchResults).filter(result => {
 
-				if (!_Schema.showJavaMethods) {
-					// filter out schema methods of code type java
-					results = results.filter(sr => sr.type !== 'SchemaMethod' || sr.codeType != 'java');
-				}
+					if (result.type === 'SchemaMethod') {
+
+						// let our only filter method filter schema methods
+						let filtered = _Schema.filterJavaMethods([result], result.schemaNode);
+
+						return filtered.length > 0;
+					}
+
+					return true;
+				});
 
 				_Code.displayFunction(results, data, false, true);
 			}
@@ -981,7 +996,7 @@ let _Code = {
 
 					let matchingMethods = [];
 
-					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods)) {
+					for (let method of _Schema.filterJavaMethods(schemaNode.schemaMethods, schemaNode)) {
 
 						if (method.name.indexOf(parts[1]) === 0) {
 
@@ -1104,7 +1119,7 @@ let _Code = {
 
 		if (entity.schemaMethods) {
 
-			let methods = _Schema.filterJavaMethods(entity.schemaMethods);
+			let methods = _Schema.filterJavaMethods(entity.schemaMethods, entity);
 			for (let m of methods) {
 
 				if (id === 'custom' || !m.isPartOfBuiltInSchema) {
@@ -1268,7 +1283,7 @@ let _Code = {
 
 			_Code.runCurrentEntitySaveAction = () => {
 
-				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
+				_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
 
 					if (success) {
 
@@ -1329,7 +1344,7 @@ let _Code = {
 
 					_Code.runCurrentEntitySaveAction = () => {
 
-						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(data.id, tabControls).then((success) => {
+						_Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls).then((success) => {
 
 							if (success) {
 
@@ -1447,6 +1462,8 @@ let _Code = {
 			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
 
 				$('li[data-name=api]').hide();
+
+				lastOpenTab = 'source';
 
 			} else {
 
@@ -2150,7 +2167,7 @@ let _Code = {
 		};
 
 		let buttons     = $('#property-buttons');
-		let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+		let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 		buttons.prepend(_Code.templates.propertyOptions({ property: property, dbNameClass: dbNameClass }));
 
@@ -2195,8 +2212,11 @@ let _Code = {
 		$('input[type=text]', buttons).on('keyup', changeHandler);
 
 		if (property.schemaNode.isBuiltinType) {
+
 			_Helpers.fastRemoveElement($('button#delete-property-button').parent()[0]);
+
 		} else {
+
 			$('button#delete-property-button').on('click', function() {
 				_Code.deleteSchemaEntity(property, `Delete property ${property.name}?`, 'Property values will not be removed from data nodes.', data);
 			});
@@ -2340,9 +2360,6 @@ let _Code = {
 		targetNode.appendChild(button);
 
 		return button;
-	},
-	getEditorModeForContent: (content) => {
-		return (content && content.indexOf('{') === 0) ? 'text/javascript' : 'text';
 	},
 	findAndOpenNode: (path, updateLocationStack) => {
 		let tree = $('#code-tree').jstree(true);
@@ -2879,7 +2896,7 @@ let _Code = {
 					</button>
 
 					<div class="relative">
-						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search...">
+						<input type="text" class="tree-search-input" id="tree-search-input" placeholder="Search..." autocomplete="off">
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['clearSearchIcon', 'icon-lightgrey', 'cursor-pointer']), 'Clear Search')}
 					</div>
 
