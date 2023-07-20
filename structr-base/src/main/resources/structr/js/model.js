@@ -1018,8 +1018,6 @@ StructrContent.prototype.append = function(refId) {
 		}
 
 		StructrModel.expand(div, this);
-
-		_Entities.setMouseOver(div);
 	}
 };
 
