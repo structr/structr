@@ -68,6 +68,10 @@
 	background-color: var(--main-background);
 }
 
+#code-context .code-favorite.active {
+	background-color: var(--gray-eee);
+}
+
 #code-contents .schema-props {
 	table-layout: auto;
 	border: none;

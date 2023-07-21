@@ -2676,27 +2676,41 @@ let _Code = {
 
 				let recentElements = LSWrapper.getItem(_Code.recentElements.codeRecentElementsKey) || [];
 				let updatedList    = recentElements.filter((recentElement) => (recentElement.id !== id));
-				updatedList.unshift({ id: id, name: name, iconSvg: iconSvg, path: path });
+				updatedList.push({ id: id, name: name, iconSvg: iconSvg, path: path });
 
-				// keep list at length 10
-				while (updatedList.length > 10) {
+				// keep list at length 20
+				while (updatedList.length > 20) {
 
 					let toRemove = updatedList.pop();
 					_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + toRemove.id));
 				}
 
-				_Helpers.fastRemoveElement(document.querySelector('#recently-used-' + id));
+				// sort by name (keep order!)
+				updatedList.sort((a, b) => a.name > b.name ? 1 : a.name < b.name ? -1 : 0);
 
 				LSWrapper.setItem(_Code.recentElements.codeRecentElementsKey, updatedList);
+
+				// element with id from parameter was clicked => highlight
+				for (let e of document.querySelectorAll('.code-favorite')) {
+					e.classList.remove('active');
+				}
+				document.querySelector('#recently-used-' + id)?.classList.add('active');
 			}
 
 			let recentlyUsedButton = _Helpers.createSingleDOMElementFromHTML(_Code.templates.recentlyUsedButton({ id: id, name: name, iconSvg: iconSvg }));
 
 			let codeContext  = document.querySelector('#code-context');
 			if (fromStorage) {
-				codeContext.append(recentlyUsedButton)
-			} else {
-				codeContext.prepend(recentlyUsedButton);
+
+				codeContext.append(recentlyUsedButton);
+
+			} else if (!document.querySelector('#recently-used-' + id)) {
+
+				// new element => reload all so we have a sorted list
+				for (let e of document.querySelectorAll('.code-favorite')) {
+					_Helpers.fastRemoveElement(e);
+				}
+				_Code.recentElements.loadRecentlyUsedElements(()=>{});
 			}
 
 			recentlyUsedButton.addEventListener('click', () => {
