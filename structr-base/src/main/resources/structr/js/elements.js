@@ -235,6 +235,13 @@ let _Elements = {
 			parent = refNode;
 		} else {
 			parent = (entity.parent && entity.parent.id) ? Structr.node(entity.parent.id) : null;
+
+			if (parent && parent.length > 0 && !Structr.isExpanded(entity.parent.id)) {
+				// if the parent element is not expanded, then we don't need to add the element we want to add,
+				// we simply need to expand the parent
+				_Entities.ensureExpanded(parent);
+				return;
+			}
 		}
 
 		if (!parent) {
@@ -777,7 +784,14 @@ let _Elements = {
 
 		if (entity.parent && entity.parent.id) {
 			parent = Structr.node(entity.parent.id);
-			_Entities.ensureExpanded(parent);
+
+			if (parent && parent.length > 0 && !Structr.isExpanded(entity.parent.id)) {
+				// if the parent element is not expanded, then we don't need to add the element we want to add,
+				// we simply need to expand the parent
+				_Entities.ensureExpanded(parent);
+				return;
+			}
+
 		} else {
 			parent = refNode;
 		}

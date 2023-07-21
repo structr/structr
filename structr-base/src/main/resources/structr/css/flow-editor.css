@@ -573,6 +573,7 @@
 	overflow: auto;
 	background-color: black;
 	background-color: var(--black-opacity-40);
+	z-index: 5;
 }
 .modal#editorModal .modal-content {
 	position: absolute;

@@ -538,7 +538,12 @@ let _Schema = {
 					});
 
 					if (Structr.isModuleActive(_Schema)) {
-						if (bulkInfo?.basic?.data?.name || bulkInfo?.basic?.data?.extendsClass) {
+
+						// Reload is only necessary for changes in the "basic" tab for types (name and extendsClass) and relationships (relType and cardinality)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.extendsClass)
+						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
+
+						if (typeChangeRequiresReload || relChangeRequiresReload) {
 							_Schema.reload();
 						}
 					}
@@ -1068,7 +1073,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
 					}
-					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
+					let changes     = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic type attributes',
@@ -1076,6 +1082,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1591,7 +1598,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.relationships.validateBasicRelInfo(container, relInfo);
 					}
-					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(container, entity)).length;
+					let changes     = _Schema.relationships.getRelationshipDefinitionChanges(container, entity);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic relationship attributes',
@@ -1599,6 +1607,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1762,11 +1771,9 @@ let _Schema = {
 					relData.sourceId = sourceId;
 					relData.targetId = targetId;
 
-					if (relData.relationshipType.trim() === '') {
+					let allow = _Schema.relationships.validateBasicRelInfo(dialogText, relData);
 
-						_Helpers.blinkRed(dialogText.querySelector('#relationship-type-name'));
-
-					} else {
+					if (allow) {
 
 						await _Schema.relationships.createRelationshipDefinition(relData);
 					}
@@ -4803,7 +4810,7 @@ let _Schema = {
 
 				// first get FQCN for type name (if exists)
 				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
-				baseType = exactTypeNameMatches?.[0].className ?? baseType;
+				baseType = exactTypeNameMatches[0]?.className ?? baseType;
 			}
 
 			let collect = (list, type) => {
@@ -5282,7 +5289,7 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					<input data-property="name" class="flex-grow">
+					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
 					<div class="extends-type flex items-center gap-2">
 						extends
@@ -5335,7 +5342,7 @@ let _Schema = {
 							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 						</div>
 
-						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
 
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
