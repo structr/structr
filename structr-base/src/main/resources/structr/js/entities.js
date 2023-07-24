@@ -2058,6 +2058,12 @@ let _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
+	removeActiveNodeClassFromAllNodes: () => {
+
+		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
+			activeSelector.classList.remove('active');
+		}
+	},
 	toggleElement: (id, el, isExpanded, callback) => {
 
 		let nodeContainer = $(el);
