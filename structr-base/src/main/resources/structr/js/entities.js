@@ -3053,9 +3053,16 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="position-input">Position</label>
+							<label class="block mb-2" for="position-input" data-comment="The position is important to identify the page, the client will get served for the '/' path. The page with the lowest position (which is visible for the requesting client) will be shown.">Position</label>
 							<input type="text" id="position-input" name="position">
 						</div>
+
+						<div>
+							<label class="block mb-2" for="path-input" data-comment="If set, the page will be available under this path and not under its name.">Custom Path</label>
+							<input type="text" id="path-input" name="path">
+						</div>
+
+						<div><!-- occupy space in grid UI --></div>
 
 						<div>
 
