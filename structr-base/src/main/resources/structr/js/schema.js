@@ -5580,7 +5580,8 @@ let _Schema = {
 				<div class="fake-tbody"></div>
 				<div class="fake-tfoot">
 					<div class="fake-tr">
-						<div class="fake-td actions-col flex justify-end">
+						<div class="fake-td actions-col flex">
+							<div class="flex-grow"></div>
 							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
 								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
 							</button>
