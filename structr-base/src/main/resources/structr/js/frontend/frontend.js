@@ -77,29 +77,35 @@ export class Frontend {
 
 			 } else if (value.indexOf('name(') === 0 && value[lastIndex] === ')') {
 
-				// resolve input name in current page, support multiple elements with the same name
+				// resolve input name in current page
 				let name     = value.substring(5, lastIndex);
 				let elements = document.querySelectorAll(`input[name="${name}"]`);
-				let values   = [];
 
-				elements.forEach(element => {
-
-					// special treatment for checkboxes / radio buttons
-					let value = this.resolveValue(element);
-					if (value === true) {
-
-						if (element.value) {
-							values.push(element.value);
-						} else {
-							values.push(true);
+				if (elements.length > 1) {
+					// check if we are in repeater loop
+					let repeaterElement = target.closest('[data-repeater-data-object-id]');
+					if (repeaterElement) {
+						console.log('we are in a repeater loop: ', repeaterElement.dataset.repeaterDataObjectId);
+						let element = document.querySelector(`[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`);
+						if (element) {
+							resolved[key] = this.resolveValue(element);
 						}
 					}
-				});
 
-				switch (values.length) {
-					case 0: break;
-					case 1: resolved[key] = values[0]; break;
-					default: resolved[key] = values; break;
+				} else {
+
+					// support multiple elements with the same name
+					let values   = [];
+
+					elements.forEach(element => {
+						values.push(this.resolveValue(element));
+					});
+
+					switch (values.length) {
+						case 0: break;
+						case 1: resolved[key] = values[0]; break;
+						default: resolved[key] = values; break;
+					}
 				}
 
 			} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {

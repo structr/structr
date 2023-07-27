@@ -1422,9 +1422,20 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 								case "user-input":
 									final DOMElement element   = parameterMapping.getProperty(StructrApp.key(ParameterMapping.class, "inputElement"));
+
 									if (element != null) {
+
 										final String elementCssId = element.getPropertyWithVariableReplacement(renderContext, StructrApp.key(DOMElement.class, "_html_id"));
-										out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(elementCssId != null ? elementCssId : parameterName).append(")\"");
+
+										if (elementCssId != null) {
+
+											out.append(" data-").append(nameAttributeHyphenated).append("=\"css(#").append(elementCssId).append(")\"");
+
+										} else {
+
+											out.append(" data-").append(nameAttributeHyphenated).append("=\"name(").append(parameterName).append(")\"");
+										}
+
 									}
 									break;
 
@@ -1486,6 +1497,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
+					// make repeater data object ID available
+					final GraphObject repeaterDataObject = renderContext.getDataObject();
+					if (repeaterDataObject != null) {
+
+						out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
+					}
+
 					if (isTargetElement(thisElement)) {
 
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
@@ -1495,13 +1513,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (current != null) {
 
 							out.append(" data-current-object-id=\"").append(current.getUuid()).append("\"");
-						}
-
-						// make repeater data object ID available in reload targets
-						final GraphObject repeaterDataObject = renderContext.getDataObject();
-						if (repeaterDataObject != null) {
-
-							out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 						}
 
 						// realization: all dynamic parameters must be stored on the reload target!
