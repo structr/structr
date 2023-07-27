@@ -2215,7 +2215,7 @@ th.center {
 }
 
 #info-area {
-	z-index: 9999;
+	z-index: 10000;
 	position: absolute;
 	left: 60%;
 	right: 4px;
