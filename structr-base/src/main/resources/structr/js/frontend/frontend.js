@@ -64,49 +64,24 @@ export class Frontend {
 
 			let lastIndex = value.length - 1;
 
-			if (value.indexOf('css(') === 0 && value[lastIndex] === ')') {
+			let elements, name, id;
+			if (value.startsWith('css(') && value.endsWith(')')) {
 
 				// resolve CSS selector
 				let selector = value.substring(4, lastIndex);
-				let element  = document.querySelector(selector);
+				elements = document.querySelectorAll(selector);
 
-				if (element) {
+			 } else if (value.startsWith('name(') && value.endsWith(')')) {
 
-					resolved[key] = this.resolveValue(element);
-				}
+				// resolve only input elements by name in current page
+				name = value.substring(5, lastIndex);
+				elements = document.querySelectorAll(`input[name="${name}"]`);
 
-			 } else if (value.indexOf('name(') === 0 && value[lastIndex] === ')') {
+			} else if (value.startsWith('id(') && value.endsWith(')')) {
 
-				// resolve input name in current page
-				let name     = value.substring(5, lastIndex);
-				let elements = document.querySelectorAll(`input[name="${name}"]`);
-
-				if (elements.length > 1) {
-					// check if we are in repeater loop
-					let repeaterElement = target.closest('[data-repeater-data-object-id]');
-					if (repeaterElement) {
-						console.log('we are in a repeater loop: ', repeaterElement.dataset.repeaterDataObjectId);
-						let element = document.querySelector(`[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`);
-						if (element) {
-							resolved[key] = this.resolveValue(element);
-						}
-					}
-
-				} else {
-
-					// support multiple elements with the same name
-					let values   = [];
-
-					elements.forEach(element => {
-						values.push(this.resolveValue(element));
-					});
-
-					switch (values.length) {
-						case 0: break;
-						case 1: resolved[key] = values[0]; break;
-						default: resolved[key] = values; break;
-					}
-				}
+				// resolve element by data-structr-id in current page
+				id = value.substring(3, lastIndex);
+				elements = document.querySelectorAll(`[data-structr-id="${id}"]`);
 
 			} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
 
@@ -137,6 +112,48 @@ export class Frontend {
 						// just copy the value
 						resolved[key] = data[key];
 						break;
+				}
+			}
+
+			if (elements && elements.length > 1) {
+
+				// if we are in repeater loop, find single element
+				let repeaterElement = target.closest('[data-repeater-data-object-id]');
+				if (repeaterElement) {
+					//console.log('we are in a repeater loop: ', repeaterElement.dataset.repeaterDataObjectId);
+
+					let selector;
+					if (id) {
+						selector = selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
+					} else if (name) {
+						selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
+					}
+
+					let element = document.querySelector(selector);
+					if (element) {
+						resolved[key] = this.resolveValue(element);
+					}
+
+				} else {
+
+					// support multiple elements
+					let values = [];
+
+					elements.forEach(element => {
+						values.push(this.resolveValue(element));
+					});
+
+					// reduce array of length 1 to single value
+					switch (values.length) {
+						case 0:
+							break;
+						case 1:
+							resolved[key] = values[0];
+							break;
+						default:
+							resolved[key] = values;
+							break;
+					}
 				}
 			}
 		}

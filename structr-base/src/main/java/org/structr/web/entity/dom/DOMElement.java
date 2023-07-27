@@ -1433,7 +1433,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 										} else {
 
-											out.append(" data-").append(nameAttributeHyphenated).append("=\"name(").append(parameterName).append(")\"");
+											out.append(" data-").append(nameAttributeHyphenated).append("=\"id(").append(element.getUuid()).append(")\"");
 										}
 
 									}
@@ -1555,9 +1555,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					if (thisElement instanceof TemplateElement) {
+					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey     = StructrApp.key(DOMElement.class, "parameterMappings");
+					final Iterable<? extends ParameterMapping> parameterMappings = thisElement.getProperty(parameterMappingsKey);
 
-						// render template ID into output so it can be re-used
+					if (thisElement instanceof TemplateElement || parameterMappings.iterator().hasNext()) {
+
+						// render ID into output so it can be re-used
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 					}
 
