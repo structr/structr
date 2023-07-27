@@ -309,7 +309,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								}
 							}
 
-						} else if (uriParts.length ==  2) {
+						} else if (uriParts.length >= 2) {
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
 
