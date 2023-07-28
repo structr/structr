@@ -252,6 +252,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						rootElement = findPage(securityContext, path, edit);
 
+						// special case where path is defined as "/custom/path" and request URI is "/custom/path/"
+						if (rootElement == null && path.endsWith("/")) {
+							rootElement = findPage(securityContext, path.substring(0, path.length() - 1), edit);
+						}
+
 					} else {
 
 						dontCache = true;
