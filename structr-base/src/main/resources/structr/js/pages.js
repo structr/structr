@@ -2902,6 +2902,7 @@ let _Pages = {
 	designTools: {
 		sourceEditor: null,
 		selectedElement: null,
+		urlHistoryKey: 'design-tools-url-history',
 		reload: () => {
 			//console.log('Design tools opened');
 
@@ -2911,7 +2912,7 @@ let _Pages = {
 
 						<h3>Import from page</h3>
 						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-url-input">Enter URL of example page to preview</label>
+							<label class="block mb-2" for="design-tools-url-input" data-comment="Must be full URL including scheme">Enter URL of example page to preview</label>
 							<input class="w-full rounded-r" style="margin-left: -1px" type="text" id="design-tools-url-input">
 						</div>
 						<div class="w-full mb-4">
@@ -2970,10 +2971,7 @@ let _Pages = {
 							<div class="cols-span-6">
 								<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-child-template">Create sub node</button>
 							</div>
-
 						</div>
-
-
 					</div>
 				</div>
 			`;
@@ -2982,10 +2980,11 @@ let _Pages = {
 			_Helpers.fastRemoveAllChildren(designTools);
 			designTools.insertAdjacentHTML('afterbegin', html);
 
+			_Helpers.activateCommentsInElement(designTools);
+
 			let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
 			let pageNameInput         = document.getElementById('design-tools-page-name-input');
 			let urlInput              = document.getElementById('design-tools-url-input');
-
 
 			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
 
@@ -3109,8 +3108,6 @@ let _Pages = {
 
 					}
 				}
-
-
 			};
 
 			document.getElementById('design-tools-create-child-template').addEventListener('click', (e) => {
@@ -3123,73 +3120,119 @@ let _Pages = {
 			});
 
 			const updateUrlHistorySelect = () => {
+
 				let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
 				_Helpers.fastRemoveAllChildren(urlHistorySelectEl);
-				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option></option>');
-				for (let urlHistoryEntry of (LSWrapper.getItem('design-tools-url-history') || []).reverse()) {
+
+				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option disabled selected></option>');
+
+				for (let urlHistoryEntry of (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).reverse()) {
 					urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option>' + urlHistoryEntry + '</option>');
 				}
 			}
 
-			const loadPreviewPage = (url) => {
-				let previewIframe;
-				if (!_Pages.previews.isPreviewActive()) {
-					_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
-					previewIframe = document.querySelector('.previewBox iframe');
-					_Pages.showTabsMenu();
-					previewIframe.onload = () => {
-						_Pages.previews.previewIframeLoaded(previewIframe);
-					};
+			const validateUrl = (element, url) => {
+
+				try {
+					new URL(url);
+				} catch(e) {
+					_Helpers.blinkRed(element);
+
+					return false;
 				}
+
+				return true;
+			};
+
+			const loadPreviewPage = async (url) => {
+
+				let response = await fetch('/structr/proxy?url=' + url);
+
+				if (response.ok === false) {
+
+					if (response.status === 503) {
+
+						new WarningMessage().title(response.statusText).text('ProxyServlet not available - this can be configured via the <b><code>application.proxy.mode</code></b> setting in structr.conf').requiresConfirmation().show();
+
+					} else {
+
+						new WarningMessage().title(response.statusText).text('Unknown error in ProxyServlet. Please check the server log and act accordingly.').requiresConfirmation().show();
+					}
+
+					return;
+				}
+
+				let html = await response.text();
+
 				_Pages.hideAllFunctionBarTabs();
+
+				// clear UI in Pages tree
+				_Entities.selectedObject = null;
+				_Entities.deselectAllElements();
+				_Entities.removeActiveNodeClassFromAllNodes();
+
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
 				document.querySelector('a[href="#pages:preview"]').click();
 
-				fetch('/structr/proxy?url=' + url)
-					.then(response => response.text())
-					.then(html => {
-						let previewIframe = document.querySelector('.previewBox iframe');
-						previewIframe.addEventListener('load', (e) => {
+				// make sure center pane + iframe are created to prevent duplicate handlers
+				_Pages.emptyCenterPane();
 
-							let pageName;
-							let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
-							if (pageHref) {
-								let hrefParts = pageHref.split('/');
-								pageName = hrefParts[hrefParts.length-2];
-							}
-							pageNameInput.value = pageName;
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
+				let previewIframe = document.querySelector('.previewBox iframe');
+				_Pages.showTabsMenu();
+				previewIframe.onload = () => {
+					_Pages.previews.previewIframeLoaded(previewIframe);
+				};
 
-							let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
-							pageTemplateNameInput.value = pageTitle;
-						});
+				previewIframe.addEventListener('load', (e) => {
 
-						previewIframe.srcdoc = html;
-					});
+					let pageName;
+					let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
+					if (pageHref) {
+						let hrefParts = pageHref.split('/');
+						pageName = hrefParts[hrefParts.length-2];
+					}
+					pageNameInput.value = pageName;
+
+					let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
+					pageTemplateNameInput.value = pageTitle;
+				});
+
+				previewIframe = document.querySelector('.previewBox iframe');
+				previewIframe.srcdoc = html;
 			}
 
 			let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
-			urlHistorySelectEl.addEventListener('change', (e) => {
+			urlHistorySelectEl.addEventListener('change', async (e) => {
 				let url = e.target.value;
-				urlInput.value = url;
-				loadPreviewPage(url);
+
+				if (validateUrl(e.target, url)) {
+					urlInput.value = url;
+					await loadPreviewPage(url);
+				}
 			});
 
 			updateUrlHistorySelect();
 
-			urlInput.addEventListener('keyup', (e) => {
+			urlInput.addEventListener('keyup', async (e) => {
 				let inputElement = e.target;
 				switch (e.key) {
 					case 'Enter':
 
-						let history = LSWrapper.getItem('design-tools-url-history');
-						if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
-							LSWrapper.setItem('design-tools-url-history', (LSWrapper.getItem('design-tools-url-history') || []).concat(inputElement.value));
-						}
-						updateUrlHistorySelect();
+						if (validateUrl(inputElement, inputElement.value)) {
 
-						loadPreviewPage(inputElement.value);
+							let history = LSWrapper.getItem(_Pages.designTools.urlHistoryKey);
+							if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
+								LSWrapper.setItem(_Pages.designTools.urlHistoryKey, (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).concat(inputElement.value));
+							}
+
+							updateUrlHistorySelect();
+
+							await loadPreviewPage(inputElement.value);
+						}
 
 						break;
+
 					default:
 						return;
 				}

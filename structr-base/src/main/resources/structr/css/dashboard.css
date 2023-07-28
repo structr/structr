@@ -132,14 +132,27 @@
 }
 
 #dashboard-server-log textarea {
-	height: calc(100% - 5rem);
-	width: 100%;
-	resize: vertical;
+	resize: none;
 	font-family: var(--font-monospace) ! important;
 	font-size: .9rem;
 	line-height: 1rem;
 	border: none;
 	padding: 0;
+}
+
+.textarea-is-scrolled {
+	padding-bottom: .25rem;
+	border-bottom: 2px dashed var(--black-opacity-25);
+	border-radius: 1rem;
+	text-align: center;
+}
+
+.flex-grow.textarea-is-scrolled::after {
+	content: "//";
+	position: relative;
+	top: -5px;
+	background: white;
+	padding: 0px 20px;
 }
 
 #dashboard-server-log .dashboard-spacer {

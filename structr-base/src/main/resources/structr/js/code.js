@@ -191,15 +191,19 @@ let _Code = {
 			// ctrl-r / cmd-r
 			if ((code === 'KeyR' || keyCode === 82) && ((navigator.platform !== 'MacIntel' && event.ctrlKey) || (navigator.platform === 'MacIntel' && event.metaKey))) {
 
-				let runButton = document.getElementById('action-button-run');
+				// allow browser hard-reload with CMD/CTRL+SHIFT+R
+				if (!event.shiftKey) {
 
-				if (runButton) {
+					let runButton = document.getElementById('action-button-run');
 
-					event.preventDefault();
-					event.stopPropagation();
+					if (runButton) {
 
-					if (!_Dialogs.custom.isDialogOpen()) {
-						runButton.click();
+						event.preventDefault();
+						event.stopPropagation();
+
+						if (!_Dialogs.custom.isDialogOpen()) {
+							runButton.click();
+						}
 					}
 				}
 			}

@@ -252,6 +252,11 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 						rootElement = findPage(securityContext, path, edit);
 
+						// special case where path is defined as "/custom/path" and request URI is "/custom/path/"
+						if (rootElement == null && path.endsWith("/")) {
+							rootElement = findPage(securityContext, path.substring(0, path.length() - 1), edit);
+						}
+
 					} else {
 
 						dontCache = true;
@@ -309,7 +314,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 								}
 							}
 
-						} else if (uriParts.length ==  2) {
+						} else if (uriParts.length >= 2) {
 
 							final String pagePart = StringUtils.substringBeforeLast(path, PathHelper.PATH_SEP);
 
