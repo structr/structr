@@ -379,6 +379,8 @@ let Structr = {
 	},
 	doLogout: () => {
 
+		Structr.getActiveModule().unload?.();
+
 		_Favorites.logoutAction();
 		_Console.logoutAction();
 		LSWrapper.save();
