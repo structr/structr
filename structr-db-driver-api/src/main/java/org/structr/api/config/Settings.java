@@ -144,7 +144,27 @@ public class Settings {
 	public static final Setting<Integer> MaxSessionsPerUser      = new IntegerSetting(serverGroup, "HTTP Settings", "application.session.max.number",       -1,    "The maximum number of active sessions per user. Default is -1 (unlimited).");
 	public static final Setting<Boolean> ClearSessionsOnStartup  = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onstartup",  false, "Clear all sessions on startup if set to true.");
 	public static final Setting<Boolean> ClearSessionsOnShutdown = new BooleanSetting(serverGroup, "HTTP Settings", "application.session.clear.onshutdown", false, "Clear all sessions on shutdown if set to true.");
+	public static final Setting<String> UriCompliance            = new ChoiceSetting(serverGroup, "HTTP Settings",  "httpservice.uricompliance",            "RFC3986", Settings.getStringsAsSet("RFC3986", "JETTY_DEFAULT", "LEGACY", "RFC3986_UNAMBIGUOUS", "UNSAFE"), """
+		Configures the URI compliance for the Jetty server. This is simply passed down and is Jetty's own specification.
+		<dl>
+			<dt>RFC3986</dt>
+			<dd>Compliance mode that exactly follows <a href='https://tools.ietf.org/html/rfc3986'>RFC3986</a>, including allowing all additional ambiguous URI Violations.</dd>
 
+			<dt>JETTY_DEFAULT</dt>
+			<dd>Compliance mode that extends <a href='https://tools.ietf.org/html/rfc3986'>RFC3986</a> compliance with additional violations to avoid most ambiguous URIs. This mode does allow ambiguous path separator within a URI segment e.g. <code>/foo/b%2fr</code>, but disallows all out violations.</dd>
+
+			<dt>LEGACY</dt>
+			<dd>LEGACY compliance mode that models Jetty-9.4 behavior by allowing ambiguous path segments e.g. <code>/foo/%2e%2e/bar</code>, ambiguous empty segments e.g. <code>//</code>, ambiguous path separator within a URI segment e.g. <code>/foo/b%2fr</code>, ambiguous path encoding within a URI segment e.g. <code>/%2557EB-INF</code> and UTF-16 encoding e.g. <code>/foo%u2192bar</code>.</dd>
+
+			<dt>RFC3986_UNAMBIGUOUS</dt>
+			<dd>Compliance mode that follows <a href='https://tools.ietf.org/html/rfc3986'>RFC3986</a> plus it does not allow any ambiguous URI violations.</dd>
+
+			<dt>UNSAFE</dt>
+			<dd>Compliance mode that allows all URI Violations, including allowing ambiguous paths in non canonicalized form.</dd>
+		</dl>
+
+		<br><strong>WARNING</strong>: Requires a restart (of at least the HttpService).
+	""");
 
 	public static final Setting<Boolean> ForceHttps             = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.force.https",             false, "Enables redirecting HTTP requests from the configured HTTP port to the configured HTTPS port (only works if HTTPS is active).");
 	public static final Setting<Boolean> HttpOnly               = new BooleanSetting(serverGroup, "HTTPS Settings", "httpservice.cookies.httponly",        false, "Set HttpOnly to true for cookies. Please note that this will disable backend access!");
