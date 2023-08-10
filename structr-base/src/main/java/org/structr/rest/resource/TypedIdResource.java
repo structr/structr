@@ -51,8 +51,9 @@ import java.util.Map;
  */
 public class TypedIdResource extends FilterableResource {
 
+	private GraphObject entity          = null;
 	protected TypeResource typeResource = null;
-	protected UuidResource idResource = null;
+	protected UuidResource idResource   = null;
 
 	protected TypedIdResource(SecurityContext securityContext) {
 		this.securityContext = securityContext;
@@ -136,37 +137,45 @@ public class TypedIdResource extends FilterableResource {
 	// ----- public methods -----
 	public GraphObject getEntity() throws FrameworkException {
 
-		final App app    = StructrApp.getInstance(securityContext);
+		if (entity == null) {
 
-		final Class type  = typeResource.entityClass;
-		final String uuid = idResource.getUuid();
+			final App app    = StructrApp.getInstance(securityContext);
 
-		if (type == null) {
-			if (uuid != null) {
-				throw new NotFoundException("Type " + typeResource.getRawType() + " does not exist for request with entity ID " + uuid);
-			} else {
-				throw new NotFoundException("Request specifies no value for type and entity ID");
+			final Class type  = typeResource.entityClass;
+			final String uuid = idResource.getUuid();
+
+			if (type == null) {
+				if (uuid != null) {
+					throw new NotFoundException("Type " + typeResource.getRawType() + " does not exist for request with entity ID " + uuid);
+				} else {
+					throw new NotFoundException("Request specifies no value for type and entity ID");
+				}
 			}
-		}
 
-		GraphObject entity = app.nodeQuery(type).uuid(uuid).getFirst();
-		if (entity == null) {
+			entity = app.nodeQuery(type).uuid(uuid).getFirst();
+			if (entity == null) {
 
-			entity = app.relationshipQuery(type).uuid(uuid).getFirst();
-		}
+				entity = app.relationshipQuery(type).uuid(uuid).getFirst();
+			}
 
-		if (entity == null) {
-			throw new NotFoundException("Entity with ID " + uuid + " not found");
-		}
+			if (entity == null) {
+				throw new NotFoundException("Entity with ID " + uuid + " not found");
+			}
 
-		final String rawType    = SchemaHelper.normalizeEntityName(typeResource.getRawType());
-		final String entityType = entity.getClass().getSimpleName();
+			final String rawType    = SchemaHelper.normalizeEntityName(typeResource.getRawType());
+			final String entityType = entity.getClass().getSimpleName();
 
-		if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(rawType).contains(entityType)) {
-			return entity;
-		}
+			if (GenericNode.class.equals(entity.getClass()) || SearchCommand.getAllSubtypesAsStringSet(rawType).contains(entityType)) {
+				return entity;
+			}
 
-		throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " does not exist");
+			// reset cached value
+			entity = null;
+
+			throw new NotFoundException("Entity with ID " + idResource.getUuid() + " of type " +  typeResource.getRawType() +  " does not exist");
+}
+
+		return entity;
 	}
 
 	@Override

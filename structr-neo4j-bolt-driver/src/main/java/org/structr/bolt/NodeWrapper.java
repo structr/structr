@@ -95,7 +95,6 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		dontUseCache = true;
 
-
 		assertNotStale();
 
 		final SessionTransaction tx   = db.getCurrentTransaction();
@@ -237,7 +236,7 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		final RelationshipResult cache = getRelationshipCache(null, null, null);
 		final String tenantIdentifier  = getTenantIdentifer(db);
 
-		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-()"), "RETURN r ORDER BY r.internalTimestamp");
+		return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp");
 	}
 
 	@Override
@@ -254,10 +253,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				return getRelationships();
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-()"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp");
 		}
 
 		return null;
@@ -281,13 +280,13 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 		switch (direction) {
 
 			case BOTH:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]-(o", typeLabel, ")"), "RETURN r, o ORDER BY r.internalTimestamp");
 
 			case OUTGOING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", typeLabel, ")"), "RETURN r, t ORDER BY r.internalTimestamp");
 
 			case INCOMING:
-				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(", typeLabel, ")"), "RETURN r ORDER BY r.internalTimestamp");
+				return cache.getResult(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", typeLabel, ")"), "RETURN r, s ORDER BY r.internalTimestamp");
 		}
 
 		return null;
