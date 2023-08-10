@@ -259,25 +259,27 @@ public abstract class AbstractHintProvider {
 		// sort hints
 		Collections.sort(hints, comparator);
 
-        // add keywords
-		hints.add(0, createHint("response", "The current response",       "response"));
-		hints.add(0, createHint("page",     "The current page",           "page"));
-		hints.add(0, createHint("locale",   "The current locale",         "locale"));
-		hints.add(0, createHint("current",  "The current details object", "current"));
+		// Important: Order is reverse alphanumeric, so add(0, ...) means insert at the beginning.
+		// If you change something here, make sure to change AutocompleteTest.java accordingly.
 
-		// add more keywords, keep in sync with StructrBinding.getMemberKeys()
+		// add keywords, keep in sync and include everything from StructrBinding.getMemberKeys()
 		hints.add(0, createHint("this",                "The current object", "this"));
-		hints.add(0, createHint("me",                  "The current user", "me"));
+		hints.add(0, createHint("session",             "The current session", "session"));
+		hints.add(0, createHint("response",            "The current response",       "response"));
+		hints.add(0, createHint("request",             "The current request", "request"));
 		hints.add(0, createHint("predicate",           "Search predicate", "predicate"));
-		hints.add(0, createHint("batch",               "Open a batch transaction context", "batch"));
-		hints.add(0, createHint("doInNewTransaction",  "Open a new transaction context", "doInNewTransaction"));
+		hints.add(0, createHint("page",                "The current page",           "page"));
+		hints.add(0, createHint("methodParameters",    "Access method parameters", "methodParameters"));
+		hints.add(0, createHint("me",                  "The current user", "me"));
+		hints.add(0, createHint("locale",              "The current locale",         "locale"));
 		hints.add(0, createHint("includeJs",           "Include JavaScript files", "includeJs"));
 		hints.add(0, createHint("doPrivileged",        "Open a privileged context", "doPrivileged"));
-		hints.add(0, createHint("request",             "The current request", "request"));
-		hints.add(0, createHint("session",             "The current session", "session"));
+		hints.add(0, createHint("doInNewTransaction",  "Open a new transaction context", "doInNewTransaction"));
+		hints.add(0, createHint("current",             "The current details object", "current"));
 		hints.add(0, createHint("cache",               "Time-based cache object", "cache"));
+		hints.add(0, createHint("batch",               "Open a batch transaction context", "batch"));
 		hints.add(0, createHint("applicationStore",    "The application store", "applicationStore"));
-		hints.add(0, createHint("methodParameters",    "Access method parameters", "methodParameters"));
+
 	}
 
 	protected void addNonempty(final List<String> list, final String string) {
