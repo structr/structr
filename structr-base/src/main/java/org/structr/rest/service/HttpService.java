@@ -31,6 +31,7 @@ import org.eclipse.jetty.alpn.server.ALPNServerConnectionFactory;
 import org.eclipse.jetty.http.HttpCookie;
 import org.eclipse.jetty.http.HttpMethod;
 import org.eclipse.jetty.http.MimeTypes;
+import org.eclipse.jetty.http.UriCompliance;
 import org.eclipse.jetty.http2.parser.WindowRateControl;
 import org.eclipse.jetty.http2.server.HTTP2CServerConnectionFactory;
 import org.eclipse.jetty.http2.server.HTTP2ServerConnectionFactory;
@@ -414,6 +415,30 @@ public class HttpService implements RunnableService, StatsCallback {
 		httpConfig.setSecurePort(httpsPort);
 		httpConfig.setOutputBufferSize(1024); // intentionally low buffer size to allow even small bits of content to be sent to the client in case of slow rendering
 		httpConfig.setRequestHeaderSize(requestHeaderSize);
+
+		switch(Settings.UriCompliance.getValue()) {
+
+			default:
+			case "RFC3986":
+				httpConfig.setUriCompliance(UriCompliance.RFC3986);
+				break;
+
+			case "JETTY_DEFAULT":
+				httpConfig.setUriCompliance(UriCompliance.DEFAULT);
+				break;
+
+			case "LEGACY":
+				httpConfig.setUriCompliance(UriCompliance.LEGACY);
+				break;
+
+			case "RFC3986_UNAMBIGUOUS":
+				httpConfig.setUriCompliance(UriCompliance.RFC3986_UNAMBIGUOUS);
+				break;
+
+			case "UNSAFE":
+				httpConfig.setUriCompliance(UriCompliance.UNSAFE);
+				break;
+		}
 
 		if (StringUtils.isNotBlank(host) && httpPort > -1) {
 

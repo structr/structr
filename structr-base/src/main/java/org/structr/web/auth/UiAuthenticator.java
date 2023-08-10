@@ -249,15 +249,17 @@ public class UiAuthenticator implements Authenticator {
 	@Override
 	public void checkResourceAccess(final SecurityContext securityContext, final HttpServletRequest request, final String rawResourceSignature, final String propertyView) throws FrameworkException {
 
-		final List<ResourceAccess> grants   = ResourceAccess.findGrants(securityContext, rawResourceSignature);
-		final Method method                 = methods.get(request.getMethod());
-		final Principal user                = securityContext.getUser(false);
-		final boolean validUser             = (user != null);
+		final Principal user    = securityContext.getUser(false);
+		final boolean validUser = (user != null);
 
 		// super user is always authenticated
 		if (validUser && (user instanceof SuperUser || user.isAdmin())) {
 			return;
 		}
+
+		// only necessary for non-admin users!
+		final List<ResourceAccess> grants = ResourceAccess.findGrants(securityContext, rawResourceSignature);
+		final Method method               = methods.get(request.getMethod());
 
 		// flatten grants
 		long combinedFlags = 0;
