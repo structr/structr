@@ -1177,6 +1177,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	 * confirmation, usually triggered by a user clicking on a confirmation
 	 * link in an e-mail.
 	 *
+	 * @param auth
 	 * @param request
 	 * @param response
 	 * @param path
@@ -1264,6 +1265,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 	/**
 	 * This method checks if the current request to reset a user password
 	 *
+	 * @param auth
 	 * @param request
 	 * @param response
 	 * @param path
