@@ -317,10 +317,9 @@ public class UiScriptingTest extends StructrUiTest {
 			ctx.setDetailsDataObject(detailsDataObject);
 			ctx.setPage(page);
 
-			test(p, text, "${{ return Structr.get('div').id}}", "<p>" + div.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('page').id}}", "<p>" + page.getUuid() + "</p>", ctx);
-			test(p, text, "${{ return Structr.get('parent').id}}", "<p>" + p.getUuid() + "</p>", ctx);
-
+			test(p, text, "${{ return Structr.get('div').id; }}",    "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + div.getUuid() + "</p>", ctx);
+			test(p, text, "${{ return Structr.get('page').id; }}",   "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + page.getUuid() + "</p>", ctx);
+			test(p, text, "${{ return Structr.get('parent').id; }}", "<p data-repeater-data-object-id=\"" + div.getUuid() + "\">" + p.getUuid() + "</p>", ctx);
 
 			tx.success();
 
@@ -1939,23 +1938,7 @@ public class UiScriptingTest extends StructrUiTest {
 		context.getBuffer().getQueue().clear();
 		p.render(context, 0);
 
-		assertEquals("Invalid JavaScript evaluation result", expected, concat(context.getBuffer().getQueue()));
-	}
-
-	private String concat(final Queue<String> queue) {
-
-		StringBuilder buf = new StringBuilder();
-
-		for (final String str : queue) {
-
-			final String trimmed = str.trim();
-			if (StringUtils.isNotBlank(trimmed)) {
-
-				buf.append(trimmed);
-			}
-		}
-
-		return buf.toString();
+		assertEquals("Invalid JavaScript evaluation result", expected, String.join("", context.getBuffer().getQueue()).trim());
 	}
 
 	public class RequestMockUp implements HttpServletRequest {
