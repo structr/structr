@@ -1251,6 +1251,33 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
+	insertRelatedNode: (cell, node, onDelete, position) => {
+		/** Alternative function to appendRelatedNode
+		    - no jQuery
+		    - uses insertAdjacentHTML
+		    - default position: beforeend
+		*/
+		let displayName = _Crud.displayName(node);
+		cell = (cell instanceof jQuery ? cell[0] : cell);
+		cell.insertAdjacentHTML(position || 'beforeend', `
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
+			</div>
+		`);
+
+		let nodeEl = cell.querySelector('._' + node.id);
+
+		nodeEl.addEventListener('click', (e) => {
+			e.preventDefault();
+			_Entities.showProperties(node);
+			return false;
+		});
+
+		if (onDelete) {
+			return onDelete(nodeEl);
+		}
+	},
 	appendRelatedNode: (cell, node, onDelete) => {
 		let displayName = _Crud.displayName(node);
 		cell.append(`
