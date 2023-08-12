@@ -1365,7 +1365,6 @@ let _Pages = {
 		let actionSelectElement              = container.querySelector('#action-select');
 
 		let customEventInput                 = container.querySelector('#custom-event-input');
-		let customActionInput                = container.querySelector('#custom-action-input');
 
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
@@ -1419,6 +1418,8 @@ let _Pages = {
 			});
 		}
 
+		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
+
 		eventSelectElement.addEventListener('change', e => saveEventMappingData(entity));
 		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
 
@@ -1445,7 +1446,7 @@ let _Pages = {
 					dataTypeInput.value  = e.target.dataset.value;
 					dataTypeSelect.value = dataTypeInput.value;
 
-					saveEventMappingData(entity);
+					saveEventMappingData(entity, dataTypeSelectUl);
 
 					hideDataTypeList();
 				}
@@ -1468,7 +1469,7 @@ let _Pages = {
 
 				} else if (key === 'Enter') {
 
-					saveEventMappingData(entity);
+					saveEventMappingData(entity, dataTypeInput);
 					dataTypeSelectUl.classList.add('hidden');
 					return;
 				}
@@ -1525,25 +1526,25 @@ let _Pages = {
 		successNotificationsSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		failureNotificationsSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		successBehaviourSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		failureBehaviourSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		const updateEventMappingInterface = (entity, actionMapping) => {
@@ -1560,10 +1561,9 @@ let _Pages = {
 				actionMapping.action = 'prev-page';
 			}
 
-			if (actionMapping.event === 'custom') {
-				customEventInput.value  = actionMapping.event;
-				customActionInput.value = actionMapping.action;
-			}
+			// if (actionMapping.event === 'custom') {
+			// 	customEventInput.value  = actionMapping.event;
+			// }
 
 			eventSelectElement.value               = actionMapping.event;
 			actionSelectElement.value              = actionMapping.action;
@@ -1623,12 +1623,12 @@ let _Pages = {
 						actionSelectElement.classList.add('required');
 					}
 
-					// show all relevant for event
+					// show all relevant elements for event
 					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
 						eventRelevant.classList.remove('hidden');
 					}
 
-					// show all relevant for action
+					// show all relevant elements for action
 					for (let actionRelevant of document.querySelectorAll(`.em-action-${actionSelectElement.value}`)) {
 						actionRelevant.classList.remove('hidden');
 					}
@@ -1716,6 +1716,7 @@ let _Pages = {
 				const dropzoneElement = parentElement.querySelector('.success-partial-refresh-linked-dropzone');
 				const inputElement    = parentElement.querySelector('#success-partial-refresh-linked-input');
 
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
 				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions');
 
 				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
@@ -1734,6 +1735,7 @@ let _Pages = {
 				const dropzoneElement = parentElement.querySelector('.failure-partial-refresh-linked-dropzone');
 				const inputElement    = parentElement.querySelector('#failure-partial-refresh-linked-input');
 
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
 				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions');
 
 				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
@@ -1752,6 +1754,7 @@ let _Pages = {
 				const dropzoneElement = parentElement.querySelector('.success-notifications-custom-dialog-linked-dropzone');
 				const inputElement    = parentElement.querySelector('#success-notifications-custom-dialog-linked-input');
 
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
 				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions');
 
 				Command.get(actionMapping.id, 'id,successNotificationElements', actionMapping => {
@@ -1770,6 +1773,7 @@ let _Pages = {
 				const dropzoneElement = parentElement.querySelector('.failure-notifications-custom-dialog-linked-dropzone');
 				const inputElement    = parentElement.querySelector('#failure-notifications-custom-dialog-linked-input');
 
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
 				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions');
 
 				Command.get(actionMapping.id, 'id,failureNotificationElements', actionMapping => {
@@ -1807,6 +1811,11 @@ let _Pages = {
 							return false;
 						}
 
+						// Ignore already linked elements
+						if (dropzoneElement.querySelector('.node._' + obj.id)) {
+							return false;
+						}
+
 						inputElement.value = sourceId;
 						_Elements.dropBlocked = false;
 
@@ -1816,13 +1825,14 @@ let _Pages = {
 						Command.setProperty(obj.id, propertyKey, newCollection);
 
 						addLinkedElementToDropzone(parentElement, dropzoneElement, obj, propertyKey);
+
 					}
 				});
 			}
 		};
 
 		const addLinkedElementToDropzone = (parentElement, dropzoneElement, obj, propertyKey) => {
-			_Entities.appendRelatedNode($(dropzoneElement), obj, (nodeEl) => {
+			_Entities.insertRelatedNode(dropzoneElement, obj, (nodeEl) => {
 				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
@@ -1833,9 +1843,7 @@ let _Pages = {
 					});
 
 				});
-			});
-			//const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
-			//dropzoneElement.classList.add('hidden');
+			}, 'afterbegin');
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -1861,6 +1869,8 @@ let _Pages = {
 					}
 					row.querySelector(`.parameter-${value}`)?.classList.remove('hidden');
 					activateUserInputDropzone(row);
+					saveEventMappingData(entity);
+					saveParameterMappings(parameterTypeSelector);
 				});
 
 				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
@@ -1878,6 +1888,8 @@ let _Pages = {
 					scriptExpressionInputElement.value = parameterMapping.scriptExpression;
 				}
 
+				container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveParameterMappings(el)));
+
 				activateRemoveIcon(parameterMapping);
 				_Helpers.activateCommentsInElement(container);
 
@@ -1892,10 +1904,12 @@ let _Pages = {
 					e.stopPropagation();
 					userInputArea.querySelector('.node').remove();
 					dropzoneElement.classList.remove('hidden');
+					saveParameterMappings(dropzoneElement);
 				});
 			});
 			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
 			dropzoneElement.classList.add('hidden');
+			saveParameterMappings(dropzoneElement);
 		};
 
 		const activateRemoveIcon = (parameterMapping) => {
@@ -1953,7 +1967,7 @@ let _Pages = {
 			}
 		};
 
-		const saveEventMappingData = (entity) => {
+		const saveEventMappingData = (entity, el) => {
 
 			let actionMappingObject = {
 				type:                        'ActionMapping',
@@ -1988,6 +2002,7 @@ let _Pages = {
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
 						updateEventMappingInterface(entity, actionMappingObject);
+						_Helpers.blinkGreen(el);
 					});
 
 				} else {
@@ -1995,6 +2010,7 @@ let _Pages = {
 					//console.log('ActionMapping object already exists, updating...', actionMappingObject);
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
+						_Helpers.blinkGreen(el);
 						updateEventMappingInterface(entity, actionMappingObject);
 					});
 				}
@@ -2007,16 +2023,19 @@ let _Pages = {
 				entity.triggeredActions = [ actionMappingObject ];
 
 				//console.log('No ActionMapping object exists, create one and update data...');
-				Command.create(actionMappingObject, (actionMapping) => {
+				Command.create(actionMappingObject, (newActionMapping) => {
 					//console.log('Successfully created new ActionMapping object:', actionMapping);
 					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
-					actionMappingObject.id = actionMapping.id;
-					updateEventMappingInterface(entity, actionMapping);
+					_Helpers.blinkGreen(el);
+					actionMappingObject.id = newActionMapping.id;
+					updateEventMappingInterface(entity, newActionMapping);
+					actionMapping = newActionMapping;
 				});
 			}
+
 		};
 
-		const saveParameterMappings = () => {
+		const saveParameterMappings = (el) => {
 
 			const inputDefinitions = [
 				{ key: 'parameterName',    selector: '.em-parameter-mapping .parameter-name-input' },
@@ -2048,7 +2067,9 @@ let _Pages = {
 				}
 
 				//console.log(parameterMappingData);
-				Command.setProperties(parameterMappingId, parameterMappingData);
+				Command.setProperties(parameterMappingId, parameterMappingData, () => {
+					_Helpers.blinkGreen(el);
+				});
 			}
 		};
 
@@ -3848,6 +3869,7 @@ let _Pages = {
 								<option value="change">Change</option>
 								<option value="focusout">Focus out</option>
 								<option value="drop">Drop</option>
+								<option value="load">Load</option>
 								<option value="custom">Custom frontend event</option>
 							</select>
 						</div>
@@ -3857,14 +3879,25 @@ let _Pages = {
 
 							<select class="select2" id="action-select">
 								<option value="none">No action</option>
-								<option value="create">Create new object</option>
-								<option value="update">Update object</option>
-								<option value="delete">Delete object</option>
-								<option value="method">Execute method</option>
-								<option value="flow">Execute flow</option>
-								<option value="custom">Custom action</option>
-								<option value="next-page">Next page</option>
-								<option value="prev-page">Previous page</option>
+								<optgroup label="Data">
+									<option value="create">Create new object</option>
+									<option value="update">Update object</option>
+									<option value="delete">Delete object</option>
+								</optgroup>
+								<optgroup label="Behaviour/Logic">
+									<option value="method">Execute method</option>
+									<option value="flow">Execute flow</option>
+								</optgroup>
+								<optgroup label="Pager">
+									<option value="next-page">Next page</option>
+									<option value="prev-page">Previous page</option>
+								</optgroup>
+								<optgroup label="Authentication">
+									<option value="sign-in">Sign in</option>
+									<option value="sign-out">Sign out</option>
+									<option value="sign-up">Sign up</option>
+									<option value="reset-password">Reset password</option>
+								</optgroup>
 							</select>
 						</div>
 
@@ -3891,7 +3924,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for global methods.">UUID or type of data object to call method on</label>
 								</div>
 
 								<div class="hidden em-action-element em-action-custom">
@@ -4038,6 +4071,7 @@ let _Pages = {
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
+										<option value="sign-out">Sign out</option>
 									</select>
 								</div>
 
@@ -4078,6 +4112,7 @@ let _Pages = {
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
+										<option value="sign-out">Sign out</option>
 									</select>
 								</div>
 
@@ -4109,9 +4144,9 @@ let _Pages = {
 							</div>
 						</div>
 
-						<div class="col-span-2">
+						<!--div class="col-span-2">
 							<button type="button" class="action" id="save-event-mapping-button">Save</button>
-						</div>
+						</div-->
 
 					</div>
 

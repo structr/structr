@@ -52,7 +52,7 @@ export class Frontend {
 		// active input fields with a name
 		if (target.name && target.name.length > 0) {
 
-			resolved[target.name] = this.resolveValue(target);
+			resolved[target.name] = this.resolveElementValue(target);
 		}
 
 		for (const key in data) {
@@ -62,106 +62,114 @@ export class Frontend {
 				continue;
 			}
 
-			let lastIndex = value.length - 1;
+			resolved[key] = this.resolveValue(key, value, data, event, target);
 
-			let elements, name, id;
-			if (value.startsWith('css(') && value.endsWith(')')) {
-
-				// resolve CSS selector
-				let selector = value.substring(4, lastIndex);
-				elements = document.querySelectorAll(selector);
-
-			 } else if (value.startsWith('name(') && value.endsWith(')')) {
-
-				// resolve only input elements by name in current page
-				name = value.substring(5, lastIndex);
-				elements = document.querySelectorAll(`input[name="${name}"]`);
-
-			} else if (value.startsWith('id(') && value.endsWith(')')) {
-
-				// resolve element by data-structr-id in current page
-				id = value.substring(3, lastIndex);
-				elements = document.querySelectorAll(`[data-structr-id="${id}"]`);
-
-			} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
-
-				let json = value.substring(5, lastIndex);
-				resolved[key] = JSON.parse(json);
-
-			} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
-
-				// data() refers to the dataset of the datatransfer object in a drag and drop
-				// event, maybe the name of the key needs some more thought..
-				let data = event.dataTransfer.getData('application/json');
-				if (data && data.length) {
-
-					resolved[key] = JSON.parse(data);
-				}
-
-			} else {
-
-				switch (key) {
-
-					// do not resolve internal keys
-					case 'structrId':
-					case 'structrEvents':
-					case 'structrReloadTarget':
-						break;
-
-					default:
-						// just copy the value
-						resolved[key] = data[key];
-						break;
-				}
-			}
-
-			if (elements && elements.length > 1) {
-
-				// if we are in repeater loop, find single element
-				let repeaterElement = target.closest('[data-repeater-data-object-id]');
-				if (repeaterElement) {
-					//console.log('we are in a repeater loop: ', repeaterElement.dataset.repeaterDataObjectId);
-
-					let selector;
-					if (id) {
-						selector = selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
-					} else if (name) {
-						selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
-					}
-
-					let element = document.querySelector(selector);
-					if (element) {
-						resolved[key] = this.resolveValue(element);
-					}
-
-				} else {
-
-					// support multiple elements
-					let values = [];
-
-					elements.forEach(element => {
-						values.push(this.resolveValue(element));
-					});
-
-					// reduce array of length 1 to single value
-					switch (values.length) {
-						case 0:
-							break;
-						case 1:
-							resolved[key] = values[0];
-							break;
-						default:
-							resolved[key] = values;
-							break;
-					}
-				}
-			}
 		}
 
 		return resolved;
 	}
 
-	resolveValue(element) {
+	resolveValue(key, value, data, event, target) {
+
+		// switch (key) {
+		//
+		// 	// do not resolve internal keys
+		// 	case 'structrId':
+		// 	case 'structrEvents':
+		// 	case 'structrReloadTarget':
+		// 		return;
+		// }
+
+		let lastIndex = value.length - 1;
+
+		if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
+
+			let json = value.substring(5, lastIndex);
+			return JSON.parse(json);
+
+		} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+
+			// data() refers to the dataset of the datatransfer object in a drag and drop
+			// event, maybe the name of the key needs some more thought..
+			let data = event.dataTransfer.getData('application/json');
+			if (data && data.length) {
+
+				return JSON.parse(data);
+			}
+		}
+
+		const elements = this.resolveElements(target, value);
+
+		// support multiple elements
+		let values = [];
+
+		elements.forEach(element => {
+			values.push(this.resolveElementValue(element));
+		});
+
+		// reduce array of length 1 to single value
+		switch (values.length) {
+			case 0:
+				// just copy the value
+				return data[key];
+			case 1:
+				return values[0];
+			default:
+				return values;
+		}
+
+	}
+
+	resolveElements(target, value) {
+
+		let elements, name, id;
+		let lastIndex = value.length - 1;
+
+		if (value.startsWith('css(') && value.endsWith(')')) {
+
+			// resolve CSS selector
+			let selector = value.substring(4, lastIndex);
+			elements = document.querySelectorAll(selector);
+
+		} else if (value.startsWith('name(') && value.endsWith(')')) {
+
+			// resolve only input elements by name in current page
+			name = value.substring(5, lastIndex);
+			elements = document.querySelectorAll(`input[name="${name}"]`);
+
+		} else if (value.startsWith('id(') && value.endsWith(')')) {
+
+			// resolve element by data-structr-id in current page
+			id = value.substring(3, lastIndex);
+			elements = document.querySelectorAll(`[data-structr-id="${id}"]`);
+
+		}
+
+		if (elements && elements.length > 1) {
+
+			// if we are in repeater loop, find single element
+			let repeaterElement = target.closest('[data-repeater-data-object-id]');
+			if (repeaterElement) {
+
+				let selector;
+				if (id) {
+					selector = selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
+				} else if (name) {
+					selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
+				}
+
+				let element = document.querySelector(selector);
+				if (element) {
+					return [element];
+				}
+
+			}
+		}
+
+		return elements || [];
+	}
+
+	resolveElementValue(element) {
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
@@ -204,9 +212,10 @@ export class Frontend {
 		switch (status) {
 
 			case 200:
+			case 201:
 				this.fireEvent('success', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.processReloadTargets(element, json.result, status, options);
+				this.processFollowUpActions(element, json.result, status, options);
 				break;
 
 			case 400:
@@ -219,7 +228,7 @@ export class Frontend {
 			case 503:
 				this.fireEvent('error', { target: element, data: json, status: status });
 				this.handleNotifications(element, json, status, options);
-				this.processReloadTargets(element, json, status, options);
+				this.processFollowUpActions(element, json, status, options);
 				break;
 		}
 
@@ -229,7 +238,8 @@ export class Frontend {
 	}
 
 	async handleNotifications(element, parameter, status, options) {
-		let mode, statusText, statusHTML, inputElementBorderColor;
+
+		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth;
 		let id = element.dataset.structrId;
 		const success = this.isSuccess(status);
 
@@ -239,19 +249,24 @@ export class Frontend {
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:green">' + statusText + '</div>';
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
+				elementWithError.style.borderWidth = inputElementBorderWidth || '';
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
 			statusText = '❌ Operation failed with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
 			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:red">' + statusText + '<br>';
+
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
 					statusHTML += error.property + ' ' + error.token.replaceAll('_', ' ') + '<br>';
 					let propertyKey = error.property;
-					let propertyInputElement = document.querySelector('[name="' + propertyKey + '"]');
+
+					let propertyInputElement = element.dataset[propertyKey] ? this.resolveElements(element, element.dataset[propertyKey])[0] : element;
 					if (propertyInputElement) {
 						inputElementBorderColor = propertyInputElement.style.borderColor;
+						inputElementBorderWidth = propertyInputElement.style.borderWidth;
 						propertyInputElement.style.borderColor = 'red';
+						propertyInputElement.style.borderWidth = '1px';
 						propertyInputElement.dataset.error = error.token;
 					}
 				}
@@ -311,7 +326,7 @@ export class Frontend {
 
 	}
 
-	async processReloadTargets(element, parameters, status, options) {
+	async processFollowUpActions(element, parameters, status, options) {
 
 		const success = this.isSuccess(status);
 
@@ -355,6 +370,13 @@ export class Frontend {
 					// do nothing
 					return;
 
+				} else if (successTarget === 'sign-out') {
+
+					// sign-out and reload
+					fetch('/structr/logout', { method: 'POST' }).then((response) => {
+						location.reload();
+					});
+
 				} else {
 
 					this.reloadPartial(successTarget, parameters, element);
@@ -363,13 +385,13 @@ export class Frontend {
 
 		} else if (!success && element.dataset.structrFailureTarget) {
 
-			let reloadTargets = element.dataset.structrReloadTarget;
+			let failureTargets = element.dataset.structrFailureTarget;
 
-			for (let reloadTarget of reloadTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			for (let failureTarget of failureTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
 
-				if (reloadTarget.indexOf(':') !== -1) {
+				if (failureTarget.indexOf(':') !== -1) {
 
-					let moduleName = reloadTarget.substring(0, reloadTarget.indexOf(':'));
+					let moduleName = failureTarget.substring(0, failureTarget.indexOf(':'));
 					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
 					if (module) {
 
@@ -379,7 +401,7 @@ export class Frontend {
 
 							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
 
-								handler.handleReloadTarget(reloadTarget, element, parameters, status, options);
+								handler.handleReloadTarget(failureTarget, element, parameters, status, options);
 
 							} else {
 
@@ -396,14 +418,21 @@ export class Frontend {
 						throw `No module found for behaviour ${moduleName}.`;
 					}
 
-				} else if (reloadTarget === 'none') {
+				} else if (failureTarget === 'sign-out') {
+
+					// sign-out and reload
+					fetch('/structr/logout', { method: 'POST' }).then((response) => {
+						location.reload();
+					});
+
+				} else if (failureTarget === 'none') {
 
 					// do nothing
 					return;
 
 				} else {
 
-					this.reloadPartial(reloadTarget, parameters, element);
+					this.reloadPartial(failureTarget, parameters, element);
 				}
 			}
 
@@ -415,7 +444,7 @@ export class Frontend {
 
 	}
 
-	isSuccess = status => status === 200;
+	isSuccess = status => status < 300;
 
 	displayPartial(selector, parameters, element, dontRebind) {
 		let container = document.querySelector(selector);
@@ -730,7 +759,7 @@ export class Frontend {
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),
-				method: 'post',
+				method: 'POST',
 				credentials: 'same-origin'
 			})
 			.then(response => {
@@ -909,6 +938,14 @@ export class Frontend {
 				let mapping = source.split(",");
 				for (let event of mapping) {
 
+					if (event === 'load') {
+
+						// the 'load' event has to be fired right now because we're in it
+						const event = new Event('load');
+						elem.addEventListener('load',this.boundHandleGenericEvent);
+						elem.dispatchEvent(event);
+					}
+
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
 					elem.addEventListener(event, this.boundHandleGenericEvent);
 
@@ -918,6 +955,7 @@ export class Frontend {
 						elem.removeEventListener('dragover',  this.boundHandleDragOver);
 						elem.addEventListener('dragover',  this.boundHandleDragOver);
 					}
+
 				}
 			}
 

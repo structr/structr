@@ -50,6 +50,7 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
+import org.structr.rest.RestMethodResult;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
@@ -66,6 +67,10 @@ import org.structr.web.entity.event.ParameterMapping;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
+import org.structr.web.resource.LoginResource;
+import org.structr.web.resource.LogoutResource;
+import org.structr.web.resource.RegistrationResource;
+import org.structr.web.resource.ResetPasswordResource;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
@@ -86,15 +91,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
 	static final String lowercaseBodyName        = "body";
 
-	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION = "structrIdExpression";
-	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET       = "structrTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD       = "structrMethod";
-	static final String DATA_BINDING_PARAMETER_STRUCTRACTION       = "structrAction";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENT        = "structrEvent";
-	static final String DATA_BINDING_PARAMETER_HTMLEVENT           = "htmlEvent";
-	static final String DATA_BINDING_PARAMETER_CHILDID             = "childId";
-	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT        = "sourceObject";
-	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY      = "sourceProperty";
+	static final String DATA_BINDING_PARAMETER_STRUCTRID             = "structrId";
+	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION   = "structrIdExpression";
+	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET         = "structrTarget";
+	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD         = "structrMethod";
+	static final String DATA_BINDING_PARAMETER_STRUCTRACTION         = "structrAction";
+	static final String DATA_BINDING_PARAMETER_STRUCTREVENT          = "structrEvent";
+	static final String DATA_BINDING_PARAMETER_STRUCTREVENTS         = "structrEvents";
+	static final String DATA_BINDING_PARAMETER_HTMLEVENT             = "htmlEvent";
+	static final String DATA_BINDING_PARAMETER_CHILDID               = "childId";
+	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT          = "sourceObject";
+	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY        = "sourceProperty";
+	static final String DATA_BINDING_PARAMETER_DATA_TYPE             = "structrDataType";
+	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS = "structrSuccessNotifications";
+	static final String DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS = "structrFailureNotifications";
+	static final String DATA_BINDING_PARAMETER_SUCCESS_TARGET        = "structrSuccessTarget";
+	static final String DATA_BINDING_PARAMETER_FAILURE_TARGET        = "structrFailureTarget";
+	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
 
 
 	static final int HtmlPrefixLength            = PropertyView.Html.length();
@@ -433,14 +446,112 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				handleTreeAction(actionContext, parameters, eventContext, event);
 				break;
 
+			case "sign-in":
+				return handleSignInAction(actionContext, parameters, eventContext);
+
+			case "sign-out":
+				return handleSignOutAction(actionContext, parameters, eventContext);
+
+			case "sign-up":
+				return handleSignUpAction(actionContext, parameters, eventContext);
+
+			case "reset-password":
+				return handleResetPasswordAction(actionContext, parameters, eventContext);
+
 			case "method":
 			default:
 				// execute custom method (and return the result directly)
 				final String method = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
-				return handleCustomAction(actionContext, parameters, eventContext, method != null ? method : action);
+				return handleCustomAction(actionContext, parameters, eventContext, method);
 		}
 
 		return eventContext;
+	}
+
+	private Object handleSignInAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final LoginResource loginResource = new LoginResource();
+		loginResource.setSecurityContext(actionContext.getSecurityContext());
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		final RestMethodResult result = loginResource.doPost(properties);
+
+		return result;
+	}
+
+	private Object handleSignOutAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		removeInternalDataBindingKeys(parameters);
+
+		final LogoutResource logoutResource = new LogoutResource();
+		logoutResource.setSecurityContext(actionContext.getSecurityContext());
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			properties.put(key, value);
+		}
+
+		final RestMethodResult result = logoutResource.doPost(properties);
+
+		return result;
+	}
+
+	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final RegistrationResource registrationResource = new RegistrationResource();
+		registrationResource.setSecurityContext(actionContext.getSecurityContext());
+		final RestMethodResult result = registrationResource.doPost(properties);
+
+		return result;
+	}
+
+	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
+
+		final Map<String, Object> properties = new LinkedHashMap<>();
+
+		removeInternalDataBindingKeys(parameters);
+
+		for (final Entry<String, Object> entry : parameters.entrySet()) {
+
+			final String key   = entry.getKey();
+			final String value = (String) entry.getValue();
+
+			if (value != null) properties.put(key, value);
+		}
+
+		final ResetPasswordResource resetPasswordResource = new ResetPasswordResource();
+		resetPasswordResource.setSecurityContext(actionContext.getSecurityContext());
+		final RestMethodResult result = resetPasswordResource.doPost(properties);
+
+		return result;
 	}
 
 	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
@@ -486,7 +597,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 
 		// create new object of type?
-		final String targetType = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String targetType = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		if (targetType == null) {
 
 			throw new FrameworkException(422, "Cannot execute create action without target type (data-structr-target attribute).");
@@ -516,8 +627,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private void handleUpdateAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
-
+		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -541,7 +651,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
 		final App app                         = StructrApp.getInstance(securityContext);
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 
 		if (dataTarget == null) {
 
@@ -561,23 +671,19 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		}
 	}
 
-	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
+	private Object handleCustomAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String methodName) throws FrameworkException {
 
 		// Support old and new parameters
 		final String idExpression  = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
 		final String structrTarget = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
-		final String dataTarget = structrTarget != null ? structrTarget : idExpression;
+		final String dataTarget    = structrTarget != null ? structrTarget : idExpression;
 
-		if (dataTarget == null) {
+		// Empty dataTarget means no database object and no type, so it can only be a global (schema) method
+		if (StringUtils.isNotBlank(methodName) && dataTarget == null) {
 
-			if ("method".equals(action)) {
+			removeInternalDataBindingKeys(parameters);
 
-				final String methodName = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
-
-				removeInternalDataBindingKeys(parameters);
-
-				return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
-			}
+			return Actions.callWithSecurityContext(methodName, actionContext.getSecurityContext(), parameters);
 
 			// call global schema method
 			//return invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
@@ -599,7 +705,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			for (final GraphObject target : targets) {
 
 				// try to execute event method
-				return target.invokeMethod(actionContext.getSecurityContext(), action, parameters, false, new EvaluationHints());
+				return target.invokeMethod(actionContext.getSecurityContext(), methodName, parameters, false, new EvaluationHints());
 			}
 
 		} else {
@@ -609,27 +715,27 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (staticClass != null) {
 
 				final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(staticClass);
-				final Method method               = methods.get(action);
+				final Method method               = methods.get(methodName);
 
 				if (method != null) {
 
-					if (Modifier.isStatic(methods.get(action).getModifiers())) {
+					if (Modifier.isStatic(methods.get(methodName).getModifiers())) {
 
 						return AbstractNode.invokeMethod(actionContext.getSecurityContext(), method, null, parameters, new EvaluationHints());
 
 					} else {
 
-						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": method is not static.");
+						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method is not static.");
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": method not found.");
+					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method not found.");
 				}
 
 			} else {
 
-				throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + action + ": type not found.");
+				throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": type not found.");
 			}
 		}
 
@@ -777,14 +883,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	private Object handleReplaceHtmlAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		final SecurityContext securityContext = actionContext.getSecurityContext();
-		final String dataTarget               = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		final String dataTarget               = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		if (dataTarget == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without target UUID (data-structr-target attribute).");
 		}
 
 		// fetch child ID
-		final String childId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
+		final String childId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		if (childId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without child UUID (data-child-id attribute).");
@@ -797,7 +903,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			throw new FrameworkException(422, "Cannot execute replace-html action without child (object with ID not found or not a DOMNode).");
 		}
 
-		final String sourceObjectId = (String)parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
+		final String sourceObjectId = (String) parameters.get(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
 		if (sourceObjectId == null) {
 
 			throw new FrameworkException(422, "Cannot execute replace-html action without html source object UUID (data-source-object).");
@@ -827,7 +933,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			if (target instanceof DOMElement) {
 
-				final DOMElement parent = (DOMElement)target;
+				final DOMElement parent = (DOMElement) target;
 
 				return ReplaceDOMChildFunction.apply(securityContext, parent, child, htmlSource);
 
@@ -853,15 +959,23 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	private void removeInternalDataBindingKeys(final java.util.Map<String, java.lang.Object> parameters) {
 
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRID);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRACTION);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENT);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENTS);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_HTMLEVENT);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
 
 	}
 
@@ -1225,6 +1339,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 				case NONE:
 
+					// Get actions in superuser context
 					final List<ActionMapping> triggeredActions = (List<ActionMapping>) Iterables.toList((Iterable<? extends ActionMapping>)	StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid()).getProperty(StructrApp.key(DOMElement.class, "triggeredActions")));
 					if (triggeredActions != null && !triggeredActions.isEmpty()) {
 
@@ -1260,10 +1375,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						// Possible values for success notifications are none, system-alert, inline-text-message, custom-dialog-element
 						final String successNotifications = triggeredAction.getProperty(StructrApp.key(ActionMapping.class, "successNotifications"));
 						if (StringUtils.isNotBlank(successNotifications)) {
-							out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
-						}
 
-						if (StringUtils.isNotBlank(successNotifications)) {
+							out.append(" data-structr-success-notifications=\"").append(successNotifications).append("\"");
 
 							switch (successNotifications) {
 
@@ -1313,22 +1426,25 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (StringUtils.isNotBlank(successBehaviour)) {
 
 							switch (successBehaviour) {
-								case ("partial-refresh"):
+								case "partial-refresh":
 									successTargetString = successPartial;
 									break;
-								case ("partial-refresh-linked"):
+								case "partial-refresh-linked":
 									successTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "successTargets");
 									break;
-								case ("navigate-to-url"):
+								case "navigate-to-url":
 									successTargetString = "url:" + successURL;
 									break;
-								case ("fire-event"):
+								case "fire-event":
 									successTargetString = "event:" + successEvent;
 									break;
-								case ("full-page-reload"):
+								case "full-page-reload":
 									successTargetString = "url:";
 									break;
-								case ("none"):
+								case "sign-out":
+									successTargetString = "sign-out";
+									break;
+								case "none":
 								default:
 									successTargetString = null;
 							}
@@ -1364,22 +1480,25 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (StringUtils.isNotBlank(failureBehaviour)) {
 
 							switch (failureBehaviour) {
-								case ("partial-refresh"):
+								case "partial-refresh":
 									failureTargetString = failurePartial;
 									break;
-								case ("partial-refresh-linked"):
+								case "partial-refresh-linked":
 									failureTargetString = generateDataAttributesForIdList(renderContext, triggeredAction, "failureTargets");
 									break;
-								case ("navigate-to-url"):
+								case "navigate-to-url":
 									failureTargetString = "url:" + failureURL;
 									break;
-								case ("fire-event"):
+								case "fire-event":
 									failureTargetString = "event:" + failureEvent;
 									break;
-								case ("full-page-reload"):
+								case "full-page-reload":
 									failureTargetString = "url:";
 									break;
-								case ("none"):
+								case "sign-out":
+									failureTargetString = "sign-out";
+									break;
+								case "none":
 								default:
 									failureTargetString = null;
 							}
@@ -1504,7 +1623,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 					}
 
-					if (isTargetElement(thisElement)) {
+					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid());
+
+					if (isTargetElement(thisElementWithSuperuserContext)) {
 
 						out.append(" data-structr-id=\"").append(uuid).append("\"");
 
@@ -1556,9 +1677,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					}
 
 					final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey     = StructrApp.key(DOMElement.class, "parameterMappings");
-					final Iterable<? extends ParameterMapping> parameterMappings = thisElement.getProperty(parameterMappingsKey);
+					final Iterable<? extends ParameterMapping>	parameterMappings = thisElementWithSuperuserContext.getProperty(parameterMappingsKey);
 
-					if (thisElement instanceof TemplateElement || parameterMappings.iterator().hasNext()) {
+					final boolean isParameterElement = parameterMappings.iterator().hasNext();
+
+					if (thisElementWithSuperuserContext instanceof TemplateElement || isParameterElement) {
 
 						// render ID into output so it can be re-used
 						out.append(" data-structr-id=\"").append(uuid).append("\"");

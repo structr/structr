@@ -265,7 +265,7 @@
 }
 
 .element-dropzone .node {
-	margin: 0 0 .5rem .5rem;
+	margin: .5rem;
 }
 
 .element-dropzone.allow-drop {
