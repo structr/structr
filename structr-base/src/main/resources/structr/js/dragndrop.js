@@ -51,7 +51,7 @@ let _Dragndrop = {
 				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
 				let targetId = Structr.getId(self.hasClass('node-container') ? self.parent() : self);
 
-				console.log(self, self.closest('.nodeHover'));
+				//console.log(self, self.closest('.nodeHover'));
 
 				if (self.hasClass('jstree-wholerow')) {
 					targetId = self.parent().prop('id');
