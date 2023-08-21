@@ -55,7 +55,7 @@ let _Localization = {
 			_Localization.createNewLocalizationEntry();
 		});
 
-		UISettings.showSettingsForCurrentModule();
+		// UISettings.showSettingsForCurrentModule();
 
 		let keyPreselect    = document.getElementById('localization-key-preselect');
 		let domainPreselect = document.getElementById('localization-domain-preselect');
@@ -135,7 +135,7 @@ let _Localization = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		elements.push({
 			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
@@ -152,7 +152,7 @@ let _Localization = {
 			}
 		});
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -263,7 +263,7 @@ let _Localization = {
 			_Localization.showLocalizationsForKeyAndDomainObject(keyAndDomainObject);
 		});
 
-		_Elements.enableContextMenuOnElement(row, keyAndDomainObject);
+		_Elements.contextMenu.enableContextMenuOnElement(row[0], keyAndDomainObject);
 		_Entities.appendContextMenuIcon($('.icons-container', row), keyAndDomainObject, true);
 
 		let previouslySelectedElement = LSWrapper.getItem(_Localization.localizationSelectedElementKey);

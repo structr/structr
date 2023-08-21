@@ -173,7 +173,10 @@ let _Pages = {
 				LSWrapper.setItem(_Pages.activeTabRightKey, componentsTab.id);
 				_Pages.sharedComponents.reload(isDragOpen);
 				Structr.resize();
-			}, _Pages.rightSlideoutClosedCallback);
+			}, () => {
+				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
+				_Pages.rightSlideoutClosedCallback();
+			});
 		};
 		componentsTab.addEventListener('click', componentsTabSlideoutAction);
 
@@ -235,7 +238,6 @@ let _Pages = {
 		};
 		let handleInsertAfterAction  = (itemText) => {
 			let tagName = (itemText === 'comment') ? '#comment' : itemText;
-			console.log(tagName);
 			Command.createAndInsertRelativeToDOMNode(entity.pageId, entity.id, tagName, _Dragndrop.getAdditionalDataForElementCreation(tagName, entity.tag), 'After', _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked());
 		};
 		let handleReplaceWithAction  = (itemText) => { Command.replaceWith(entity.pageId, entity.id, itemText, {}, _Elements.isInheritVisibilityFlagsChecked(), _Elements.isInheritGranteesChecked(), c => _Entities.toggleElement(c.id)); };
@@ -280,7 +282,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (!isPage && entity.parent !== null && (entity.parent && entity.parent.type !== 'Page')) {
 
@@ -328,7 +330,7 @@ let _Pages = {
 				]
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		if (entity.type === 'Div' && !hasChildren) {
@@ -355,12 +357,12 @@ let _Pages = {
 				}
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 		}
 
 		if (!isPage && hasParentAndParentIsNotPage) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			elements.push({
 				name: 'Wrap element in...',
@@ -421,7 +423,7 @@ let _Pages = {
 
 		if (!isPage) {
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			if (_Elements.selectedEntity && _Elements.selectedEntity.id === entity.id) {
 				elements.push({
@@ -441,7 +443,7 @@ let _Pages = {
 
 			let canConvertToSharedComponent = !entity.sharedComponentId && !entity.isPage && (entity.pageId !== _Pages.shadowPage.id || entity.parent !== null );
 			if (canConvertToSharedComponent) {
-				_Elements.appendContextMenuSeparator(elements);
+				_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 				elements.push({
 					name: 'Convert to Shared Component',
@@ -501,7 +503,7 @@ let _Pages = {
 			}
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		if (!isContent && hasChildren) {
 
@@ -548,7 +550,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		// DELETE AREA - ALWAYS AT THE BOTTOM
 		// allow "Remove Node" on first level children of page
@@ -580,7 +582,7 @@ let _Pages = {
 			});
 		}
 
-		_Elements.appendContextMenuSeparator(elements);
+		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 		return elements;
 	},
@@ -1184,7 +1186,7 @@ let _Pages = {
 		if ($('#id_' + entity.id, _Pages.pagesTree).length > 0) {
 			return;
 		}
-		let pageName = (entity.name ? entity.name : '[' + entity.type + ']');
+		let pageName = (entity.name ? entity.name : `[${entity.type}]`);
 
 		_Pages.pagesTree.append(`
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
@@ -1206,17 +1208,13 @@ let _Pages = {
 
 		_Dragndrop.makeSortable(div);
 
-		$('.button', div).on('mousedown', function(e) {
-			e.stopPropagation();
-		});
-
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
 		_Entities.appendContextMenuIcon(iconsContainer, entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
-		_Elements.enableContextMenuOnElement(div, entity);
+		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.setMouseOver(div);
 
 		_Dragndrop.makeDroppable(div);
@@ -1367,7 +1365,6 @@ let _Pages = {
 		let actionSelectElement              = container.querySelector('#action-select');
 
 		let customEventInput                 = container.querySelector('#custom-event-input');
-		let customActionInput                = container.querySelector('#custom-action-input');
 
 		let dataTypeSelect                   = container.querySelector('#data-type-select');
 		let dataTypeSelectUl                 = dataTypeSelect.parentNode.querySelector('ul');
@@ -1378,6 +1375,12 @@ let _Pages = {
 
 		let addParameterMappingButton        = container.querySelector('.em-add-parameter-mapping-button');
 		let addParameterMappingForTypeButton = container.querySelector('.em-add-parameter-mapping-for-type-button');
+
+		let successNotificationsSelect       = container.querySelector('#success-notifications-select');
+		let successNotificationsPartialInput = container.querySelector('#success-notifications-custom-dialog-input');
+
+		let failureNotificationsSelect       = container.querySelector('#failure-notifications-select');
+		let failureNotificationsPartialInput = container.querySelector('#failure-notifications-custom-dialog-input');
 
 		let successBehaviourSelect           = container.querySelector('#success-behaviour-select');
 		let successPartialRefreshInput       = container.querySelector('#success-partial-refresh-input');
@@ -1402,7 +1405,7 @@ let _Pages = {
 
 			actionMapping = entity.triggeredActions[0];
 
-			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
+			Command.get(actionMapping.id, 'event,action,method,idExpression,dataType,parameterMappings,successNotifications,successNotificationsPartial,successNotificationsEvent,failureNotifications,failureNotificationsPartial,failureNotificationsEvent,successBehaviour,successPartial,successURL,successEvent,failureBehaviour,failurePartial,failureURL,failureEvent', (result) => {
 				//console.log('Using first object for event action mapping:', result);
 				updateEventMappingInterface(entity, result);
 			});
@@ -1414,6 +1417,8 @@ let _Pages = {
 				saveParameterMappings();
 			});
 		}
+
+		container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveEventMappingData(entity, el)));
 
 		eventSelectElement.addEventListener('change', e => saveEventMappingData(entity));
 		actionSelectElement.addEventListener('change', e => saveEventMappingData(entity));
@@ -1441,7 +1446,7 @@ let _Pages = {
 					dataTypeInput.value  = e.target.dataset.value;
 					dataTypeSelect.value = dataTypeInput.value;
 
-					saveEventMappingData(entity);
+					saveEventMappingData(entity, dataTypeSelectUl);
 
 					hideDataTypeList();
 				}
@@ -1464,7 +1469,7 @@ let _Pages = {
 
 				} else if (key === 'Enter') {
 
-					saveEventMappingData(entity);
+					saveEventMappingData(entity, dataTypeInput);
 					dataTypeSelectUl.classList.add('hidden');
 					return;
 				}
@@ -1518,18 +1523,28 @@ let _Pages = {
 			});
 		});
 
+		successNotificationsSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			saveEventMappingData(entity, el);
+		});
+
+		failureNotificationsSelect.addEventListener('change', e => {
+			let el = e.target;
+			el.classList.remove('required');
+			saveEventMappingData(entity, el);
+		});
+
 		successBehaviourSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		failureBehaviourSelect.addEventListener('change', e => {
 			let el = e.target;
 			el.classList.remove('required');
-
-			saveEventMappingData(entity);
+			saveEventMappingData(entity, el);
 		});
 
 		const updateEventMappingInterface = (entity, actionMapping) => {
@@ -1546,29 +1561,34 @@ let _Pages = {
 				actionMapping.action = 'prev-page';
 			}
 
-			if (actionMapping.event === 'custom') {
-				customEventInput.value  = actionMapping.event;
-				customActionInput.value = actionMapping.action;
-			}
+			// if (actionMapping.event === 'custom') {
+			// 	customEventInput.value  = actionMapping.event;
+			// }
 
-			eventSelectElement.value         = actionMapping.event;
-			actionSelectElement.value        = actionMapping.action;
+			eventSelectElement.value               = actionMapping.event;
+			actionSelectElement.value              = actionMapping.action;
 
-			methodNameInput.value            = actionMapping.method;
-			dataTypeSelect.value             = actionMapping.dataType;
-			dataTypeInput.value              = actionMapping.dataType;
+			methodNameInput.value                  = actionMapping.method;
+			dataTypeSelect.value                   = actionMapping.dataType;
+			dataTypeInput.value                    = actionMapping.dataType;
 
-			idExpressionInput.value          = actionMapping.idExpression;
+			idExpressionInput.value                = actionMapping.idExpression;
 
-			successBehaviourSelect.value     = actionMapping.successBehaviour;
-			successPartialRefreshInput.value = actionMapping.successPartial;
-			successNavigateToURLInput.value  = actionMapping.successURL;
-			successFireEventInput.value      = actionMapping.successEvent;
+			successNotificationsSelect.value       = actionMapping.successNotifications;
+			successNotificationsPartialInput.value = actionMapping.successNotificationsPartial;
 
-			failureBehaviourSelect.value     = actionMapping.failureBehaviour;
-			failurePartialRefreshInput.value = actionMapping.failurePartial;
-			failureNavigateToURLInput.value  = actionMapping.failureURL;
-			failureFireEventInput.value      = actionMapping.failureEvent;
+			failureNotificationsSelect.value       = actionMapping.failureNotifications;
+			failureNotificationsPartialInput.value = actionMapping.failureNotificationsPartial;
+
+			successBehaviourSelect.value           = actionMapping.successBehaviour;
+			successPartialRefreshInput.value       = actionMapping.successPartial;
+			successNavigateToURLInput.value        = actionMapping.successURL;
+			successFireEventInput.value            = actionMapping.successEvent;
+
+			failureBehaviourSelect.value           = actionMapping.failureBehaviour;
+			failurePartialRefreshInput.value       = actionMapping.failurePartial;
+			failureNavigateToURLInput.value        = actionMapping.failureURL;
+			failureFireEventInput.value            = actionMapping.failureEvent;
 
 			// UI-only block
 			{
@@ -1603,18 +1623,45 @@ let _Pages = {
 						actionSelectElement.classList.add('required');
 					}
 
-					// show all relevant for event
+					// show all relevant elements for event
 					for (let eventRelevant of document.querySelectorAll(`.em-event-${eventSelectElement.value}`)) {
 						eventRelevant.classList.remove('hidden');
 					}
 
-					// show all relevant for action
+					// show all relevant elements for action
 					for (let actionRelevant of document.querySelectorAll(`.em-action-${actionSelectElement.value}`)) {
 						actionRelevant.classList.remove('hidden');
 					}
 
 
-					// success-behaviour
+					// success notifications
+					{
+						// hide all
+						for (let successOption of document.querySelectorAll('.option-success-notifications')){
+							successOption.classList.add('hidden');
+						}
+
+						// show selected
+						for (let successOption of document.querySelectorAll(`.option-success-notifications-${successNotificationsSelect.value}`)) {
+							successOption.classList.remove('hidden');
+						}
+					}
+
+
+					// failure notifications
+					{
+						// hide all
+						for (let failOption of document.querySelectorAll('.option-failure-notifications')) {
+							failOption.classList.add('hidden');
+						}
+
+						// show selected
+						for (let failOption of document.querySelectorAll(`.option-failure-notifications-${failureNotificationsSelect.value}`)) {
+							failOption.classList.remove('hidden');
+						}
+					}
+
+					// success behaviour
 					{
 						// hide all
 						for (let successOption of document.querySelectorAll('.option-success')){
@@ -1640,6 +1687,7 @@ let _Pages = {
 							failOption.classList.remove('hidden');
 						}
 					}
+
 				}
 			}
 
@@ -1664,22 +1712,81 @@ let _Pages = {
 			// Activate dropzone if success behaviour is partial-refresh-linked
 			if (actionMapping.successBehaviour === 'partial-refresh-linked') {
 
-				const parentElement = document.querySelector('.option-success-partial-refresh-linked');
-				activateReloadTargetsElementDropzone(parentElement);
+				const parentElement   = document.querySelector('.option-success-partial-refresh-linked');
+				const dropzoneElement = parentElement.querySelector('.success-partial-refresh-linked-dropzone');
+				const inputElement    = parentElement.querySelector('#success-partial-refresh-linked-input');
+
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions');
 
 				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
 					for (const successTarget of actionMapping.successTargets) {
 						Command.get(successTarget.id, 'id,name', obj => {
-							addLinkedElementToDropzone(parentElement, obj);
+							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'successTargets');
+						});
+					}
+				});
+			}
+
+			// Activate dropzone if failure behaviour is partial-refresh-linked
+			if (actionMapping.failureBehaviour === 'partial-refresh-linked') {
+
+				const parentElement   = document.querySelector('.option-failure-partial-refresh-linked');
+				const dropzoneElement = parentElement.querySelector('.failure-partial-refresh-linked-dropzone');
+				const inputElement    = parentElement.querySelector('#failure-partial-refresh-linked-input');
+
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions');
+
+				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
+					for (const failureTarget of actionMapping.failureTargets) {
+						Command.get(failureTarget.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'failureTargets');
+						});
+					}
+				});
+			}
+
+			// Activate dropzone if success notification is custom-dialog-linked
+			if (actionMapping.successNotifications === 'custom-dialog-linked') {
+
+				const parentElement   = document.querySelector('.option-success-notifications-custom-dialog-linked');
+				const dropzoneElement = parentElement.querySelector('.success-notifications-custom-dialog-linked-dropzone');
+				const inputElement    = parentElement.querySelector('#success-notifications-custom-dialog-linked-input');
+
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions');
+
+				Command.get(actionMapping.id, 'id,successNotificationElements', actionMapping => {
+					for (const successNotificationElement of actionMapping.successNotificationElements) {
+						Command.get(successNotificationElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'successNotificationElements');
+						});
+					}
+				});
+			}
+
+			// Activate dropzone if failure notification is custom-dialog-linked
+			if (actionMapping.failureNotifications === 'custom-dialog-linked') {
+
+				const parentElement   = document.querySelector('.option-failure-notifications-custom-dialog-linked');
+				const dropzoneElement = parentElement.querySelector('.failure-notifications-custom-dialog-linked-dropzone');
+				const inputElement    = parentElement.querySelector('#failure-notifications-custom-dialog-linked-input');
+
+				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions');
+
+				Command.get(actionMapping.id, 'id,failureNotificationElements', actionMapping => {
+					for (const failureNotificationElement of actionMapping.failureNotificationElements) {
+						Command.get(failureNotificationElement.id, 'id,name', obj => {
+							addLinkedElementToDropzone(parentElement, dropzoneElement, obj, 'failureNotificationElements');
 						});
 					}
 				});
 			}
 		};
 
-		const activateReloadTargetsElementDropzone = (parentElement) => {
-
-			const dropzoneElement = parentElement.querySelector('.link-reload-element-dropzone');
+		const activateElementDropzone = (parentElement, dropzoneElement, inputElement, propertyKey) => {
 
 			if (dropzoneElement) {
 
@@ -1704,36 +1811,39 @@ let _Pages = {
 							return false;
 						}
 
-						parentElement.querySelector('#success-partial-refresh-linked-input').value = sourceId;
+						// Ignore already linked elements
+						if (dropzoneElement.querySelector('.node._' + obj.id)) {
+							return false;
+						}
+
+						inputElement.value = sourceId;
 						_Elements.dropBlocked = false;
 
-						const newReloadingActions = [...obj.reloadingActions];
-						newReloadingActions.push({ id: actionMapping.id });
-						//console.log('drop successTargets', obj, newReloadingActions);
-						Command.setProperty(obj.id, 'reloadingActions', newReloadingActions);
+						const newCollection = [...obj[propertyKey]];
+						newCollection.push({ id: actionMapping.id });
 
-						addLinkedElementToDropzone(parentElement, obj);
+						Command.setProperty(obj.id, propertyKey, newCollection);
+
+						addLinkedElementToDropzone(parentElement, dropzoneElement, obj, propertyKey);
+
 					}
 				});
 			}
 		};
 
-		const addLinkedElementToDropzone = (parentElement, obj) => {
-			const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
-			_Entities.appendRelatedNode($(dropzoneElement), obj, (nodeEl) => {
+		const addLinkedElementToDropzone = (parentElement, dropzoneElement, obj, propertyKey) => {
+			_Entities.insertRelatedNode(dropzoneElement, obj, (nodeEl) => {
 				$('.remove', nodeEl).on('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
 					parentElement.querySelector('._' + obj.id).remove();
 					dropzoneElement.classList.remove('hidden');
-					Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
-						Command.setProperty(actionMapping.id, 'successTargets', actionMapping.successTargets = actionMapping.successTargets.filter(t => t.id !== obj.id));
+					Command.get(actionMapping.id, 'id,' + propertyKey, actionMapping => {
+						Command.setProperty(actionMapping.id, propertyKey, actionMapping[propertyKey] = actionMapping[propertyKey].filter(t => t.id !== obj.id));
 					});
 
 				});
-			});
-			//const dropzoneElement = (parentElement).querySelector('.link-reload-element-dropzone');
-			//dropzoneElement.classList.add('hidden');
+			}, 'afterbegin');
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -1759,6 +1869,8 @@ let _Pages = {
 					}
 					row.querySelector(`.parameter-${value}`)?.classList.remove('hidden');
 					activateUserInputDropzone(row);
+					saveEventMappingData(entity);
+					saveParameterMappings(parameterTypeSelector);
 				});
 
 				//console.log(parameterMapping.parameterType, parameterMapping.inputElement);
@@ -1776,6 +1888,8 @@ let _Pages = {
 					scriptExpressionInputElement.value = parameterMapping.scriptExpression;
 				}
 
+				container.querySelectorAll('input').forEach(el => el.addEventListener('focusout', e => saveParameterMappings(el)));
+
 				activateRemoveIcon(parameterMapping);
 				_Helpers.activateCommentsInElement(container);
 
@@ -1790,10 +1904,12 @@ let _Pages = {
 					e.stopPropagation();
 					userInputArea.querySelector('.node').remove();
 					dropzoneElement.classList.remove('hidden');
+					saveParameterMappings(dropzoneElement);
 				});
 			});
 			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
 			dropzoneElement.classList.add('hidden');
+			saveParameterMappings(dropzoneElement);
 		};
 
 		const activateRemoveIcon = (parameterMapping) => {
@@ -1801,7 +1917,7 @@ let _Pages = {
 			let removeIcon = parameterMappingElement.querySelector('.em-parameter-mapping-remove-button');
 			removeIcon?.addEventListener('click', e => {
 				Command.deleteNode(parameterMapping.id, false, () => {
-					parameterMappingElement.remove();
+					_Helpers.fastRemoveElement(parameterMappingElement);
 				});
 			});
 		};
@@ -1851,23 +1967,27 @@ let _Pages = {
 			}
 		};
 
-		const saveEventMappingData = (entity) => {
+		const saveEventMappingData = (entity, el) => {
 
 			let actionMappingObject = {
-				type:             'ActionMapping',
-				event:            eventSelectElement?.value,
-				action:           actionSelectElement?.value,
-				method:           methodNameInput?.value,
-				dataType:         dataTypeInput?.value ?? dataTypeSelect?.value,
-				idExpression:     idExpressionInput.value,
-				successBehaviour: successBehaviourSelect?.value,
-				successPartial:   successPartialRefreshInput?.value,
-				successURL:       successNavigateToURLInput?.value,
-				successEvent:     successFireEventInput?.value,
-				failureBehaviour: failureBehaviourSelect?.value,
-				failurePartial:   failurePartialRefreshInput?.value,
-				failureURL:       failureNavigateToURLInput?.value,
-				failureEvent:     failureFireEventInput?.value
+				type:                        'ActionMapping',
+				event:                       eventSelectElement?.value,
+				action:                      actionSelectElement?.value,
+				method:                      methodNameInput?.value,
+				dataType:                    dataTypeInput?.value ?? dataTypeSelect?.value,
+				idExpression:                idExpressionInput.value,
+				successNotifications:        successNotificationsSelect.value,
+				successNotificationsPartial: successNotificationsPartialInput.value,
+				failureNotifications:        failureNotificationsSelect.value,
+				failureNotificationsPartial: failureNotificationsPartialInput.value,
+				successBehaviour:            successBehaviourSelect?.value,
+				successPartial:              successPartialRefreshInput?.value,
+				successURL:                  successNavigateToURLInput?.value,
+				successEvent:                successFireEventInput?.value,
+				failureBehaviour:            failureBehaviourSelect?.value,
+				failurePartial:              failurePartialRefreshInput?.value,
+				failureURL:                  failureNavigateToURLInput?.value,
+				failureEvent:                failureFireEventInput?.value
 			};
 
 			//console.log(actionMappingObject);
@@ -1882,6 +2002,7 @@ let _Pages = {
 					// the UI will keep the contents until it is reloaded, a chance to undo until we select another node or tab
 					Command.deleteNode(actionMappingObject.id, undefined, () => {
 						updateEventMappingInterface(entity, actionMappingObject);
+						_Helpers.blinkGreen(el);
 					});
 
 				} else {
@@ -1889,6 +2010,7 @@ let _Pages = {
 					//console.log('ActionMapping object already exists, updating...', actionMappingObject);
 					Command.setProperties(actionMappingObject.id, actionMappingObject, () => {
 						_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
+						_Helpers.blinkGreen(el);
 						updateEventMappingInterface(entity, actionMappingObject);
 					});
 				}
@@ -1901,15 +2023,19 @@ let _Pages = {
 				entity.triggeredActions = [ actionMappingObject ];
 
 				//console.log('No ActionMapping object exists, create one and update data...');
-				Command.create(actionMappingObject, (actionMapping) => {
+				Command.create(actionMappingObject, (newActionMapping) => {
 					//console.log('Successfully created new ActionMapping object:', actionMapping);
 					_Helpers.blinkGreen(Structr.nodeContainer(entity.id));
-					updateEventMappingInterface(entity, actionMapping);
+					_Helpers.blinkGreen(el);
+					actionMappingObject.id = newActionMapping.id;
+					updateEventMappingInterface(entity, newActionMapping);
+					actionMapping = newActionMapping;
 				});
 			}
+
 		};
 
-		const saveParameterMappings = () => {
+		const saveParameterMappings = (el) => {
 
 			const inputDefinitions = [
 				{ key: 'parameterName',    selector: '.em-parameter-mapping .parameter-name-input' },
@@ -1941,7 +2067,9 @@ let _Pages = {
 				}
 
 				//console.log(parameterMappingData);
-				Command.setProperties(parameterMappingId, parameterMappingData);
+				Command.setProperties(parameterMappingId, parameterMappingData, () => {
+					_Helpers.blinkGreen(el);
+				});
 			}
 		};
 
@@ -2233,7 +2361,7 @@ let _Pages = {
 				html: entity.tag + (entity._html_id ? ' <span class="class-id-attrs _html_id">#' + entity._html_id + '</span>' : '') + (entity._html_class ? '<span class="class-id-attrs _html_class">.' + entity._html_class.split(' ').join('.') + '</span>' : '')
 					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
 					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
-				clickHandler: (el, item, e) => {
+				clickHandler: (e) => {
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
@@ -2291,7 +2419,7 @@ let _Pages = {
 
 			});
 
-			_Elements.appendContextMenuSeparator(elements);
+			_Elements.contextMenu.appendContextMenuSeparator(elements);
 
 			return elements;
 		},
@@ -2420,7 +2548,7 @@ let _Pages = {
 
 					var el = $(element);
 
-					//element.addEventListener('click', () => { _Elements.removeContextMenu(); });
+					//element.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 
 //					_Dragndrop.makeDroppable(el, highlightElementId);
 
@@ -2437,7 +2565,7 @@ let _Pages = {
 
 								Command.get(structrId, null, (data) => {
 									const entity = StructrModel.createFromData(data);
-									_Elements.activateContextMenu(e, el,
+									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
 											type: 'PreviewElement',
 											entity: entity,
@@ -2678,7 +2806,7 @@ let _Pages = {
 
 							previewEl?.classList.add('structr-element-container-selected');
 
-							doc.addEventListener('click', () => { _Elements.removeContextMenu(); });
+							doc.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 						}
 
 						iframe.src = _Pages.previews.getUrlForPreview(pageObj);
@@ -2795,6 +2923,7 @@ let _Pages = {
 	designTools: {
 		sourceEditor: null,
 		selectedElement: null,
+		urlHistoryKey: 'design-tools-url-history',
 		reload: () => {
 			//console.log('Design tools opened');
 
@@ -2804,7 +2933,7 @@ let _Pages = {
 
 						<h3>Import from page</h3>
 						<div class="w-full mb-4">
-							<label class="block mb-2" for="design-tools-url-input">Enter URL of example page to preview</label>
+							<label class="block mb-2" for="design-tools-url-input" data-comment="Must be full URL including scheme">Enter URL of example page to preview</label>
 							<input class="w-full rounded-r" style="margin-left: -1px" type="text" id="design-tools-url-input">
 						</div>
 						<div class="w-full mb-4">
@@ -2863,10 +2992,7 @@ let _Pages = {
 							<div class="cols-span-6">
 								<button class="hover:bg-gray-100 focus:border-gray-666 active:border-green" id="design-tools-create-child-template">Create sub node</button>
 							</div>
-
 						</div>
-
-
 					</div>
 				</div>
 			`;
@@ -2875,10 +3001,11 @@ let _Pages = {
 			_Helpers.fastRemoveAllChildren(designTools);
 			designTools.insertAdjacentHTML('afterbegin', html);
 
+			_Helpers.activateCommentsInElement(designTools);
+
 			let pageTemplateNameInput = document.getElementById('design-tools-page-template-name-input');
 			let pageNameInput         = document.getElementById('design-tools-page-name-input');
 			let urlInput              = document.getElementById('design-tools-url-input');
-
 
 			document.getElementById('design-tools-create-page-button').addEventListener('click', (e) => {
 
@@ -3002,8 +3129,6 @@ let _Pages = {
 
 					}
 				}
-
-
 			};
 
 			document.getElementById('design-tools-create-child-template').addEventListener('click', (e) => {
@@ -3016,73 +3141,119 @@ let _Pages = {
 			});
 
 			const updateUrlHistorySelect = () => {
+
 				let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
 				_Helpers.fastRemoveAllChildren(urlHistorySelectEl);
-				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option></option>');
-				for (let urlHistoryEntry of (LSWrapper.getItem('design-tools-url-history') || []).reverse()) {
+
+				urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option disabled selected></option>');
+
+				for (let urlHistoryEntry of (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).reverse()) {
 					urlHistorySelectEl.insertAdjacentHTML('beforeend', '<option>' + urlHistoryEntry + '</option>');
 				}
 			}
 
-			const loadPreviewPage = (url) => {
-				let previewIframe;
-				if (!_Pages.previews.isPreviewActive()) {
-					_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
-					previewIframe = document.querySelector('.previewBox iframe');
-					_Pages.showTabsMenu();
-					previewIframe.onload = () => {
-						_Pages.previews.previewIframeLoaded(previewIframe);
-					};
+			const validateUrl = (element, url) => {
+
+				try {
+					new URL(url);
+				} catch(e) {
+					_Helpers.blinkRed(element);
+
+					return false;
 				}
+
+				return true;
+			};
+
+			const loadPreviewPage = async (url) => {
+
+				let response = await fetch('/structr/proxy?url=' + url);
+
+				if (response.ok === false) {
+
+					if (response.status === 503) {
+
+						new WarningMessage().title(response.statusText).text('ProxyServlet not available - this can be configured via the <b><code>application.proxy.mode</code></b> setting in structr.conf').requiresConfirmation().show();
+
+					} else {
+
+						new WarningMessage().title(response.statusText).text('Unknown error in ProxyServlet. Please check the server log and act accordingly.').requiresConfirmation().show();
+					}
+
+					return;
+				}
+
+				let html = await response.text();
+
 				_Pages.hideAllFunctionBarTabs();
+
+				// clear UI in Pages tree
+				_Entities.selectedObject = null;
+				_Entities.deselectAllElements();
+				_Entities.removeActiveNodeClassFromAllNodes();
+
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
 				document.querySelector('a[href="#pages:preview"]').click();
 
-				fetch('/structr/proxy?url=' + url)
-					.then(response => response.text())
-					.then(html => {
-						let previewIframe = document.querySelector('.previewBox iframe');
-						previewIframe.addEventListener('load', (e) => {
+				// make sure center pane + iframe are created to prevent duplicate handlers
+				_Pages.emptyCenterPane();
 
-							let pageName;
-							let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
-							if (pageHref) {
-								let hrefParts = pageHref.split('/');
-								pageName = hrefParts[hrefParts.length-2];
-							}
-							pageNameInput.value = pageName;
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.preview({ pageId: null }));
+				let previewIframe = document.querySelector('.previewBox iframe');
+				_Pages.showTabsMenu();
+				previewIframe.onload = () => {
+					_Pages.previews.previewIframeLoaded(previewIframe);
+				};
 
-							let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
-							pageTemplateNameInput.value = pageTitle;
-						});
+				previewIframe.addEventListener('load', (e) => {
 
-						previewIframe.srcdoc = html;
-					});
+					let pageName;
+					let pageHref = previewIframe.contentDocument.documentElement.querySelector('base').href;
+					if (pageHref) {
+						let hrefParts = pageHref.split('/');
+						pageName = hrefParts[hrefParts.length-2];
+					}
+					pageNameInput.value = pageName;
+
+					let pageTitle = previewIframe.contentDocument.documentElement.querySelector('title').innerText;
+					pageTemplateNameInput.value = pageTitle;
+				});
+
+				previewIframe = document.querySelector('.previewBox iframe');
+				previewIframe.srcdoc = html;
 			}
 
 			let urlHistorySelectEl = document.getElementById('design-tools-url-history-select');
-			urlHistorySelectEl.addEventListener('change', (e) => {
+			urlHistorySelectEl.addEventListener('change', async (e) => {
 				let url = e.target.value;
-				urlInput.value = url;
-				loadPreviewPage(url);
+
+				if (validateUrl(e.target, url)) {
+					urlInput.value = url;
+					await loadPreviewPage(url);
+				}
 			});
 
 			updateUrlHistorySelect();
 
-			urlInput.addEventListener('keyup', (e) => {
+			urlInput.addEventListener('keyup', async (e) => {
 				let inputElement = e.target;
 				switch (e.key) {
 					case 'Enter':
 
-						let history = LSWrapper.getItem('design-tools-url-history');
-						if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
-							LSWrapper.setItem('design-tools-url-history', (LSWrapper.getItem('design-tools-url-history') || []).concat(inputElement.value));
-						}
-						updateUrlHistorySelect();
+						if (validateUrl(inputElement, inputElement.value)) {
 
-						loadPreviewPage(inputElement.value);
+							let history = LSWrapper.getItem(_Pages.designTools.urlHistoryKey);
+							if (!history || (history.length && history.indexOf(inputElement.value) === -1)) {
+								LSWrapper.setItem(_Pages.designTools.urlHistoryKey, (LSWrapper.getItem(_Pages.designTools.urlHistoryKey) || []).concat(inputElement.value));
+							}
+
+							updateUrlHistorySelect();
+
+							await loadPreviewPage(inputElement.value);
+						}
 
 						break;
+
 					default:
 						return;
 				}
@@ -3698,6 +3869,7 @@ let _Pages = {
 								<option value="change">Change</option>
 								<option value="focusout">Focus out</option>
 								<option value="drop">Drop</option>
+								<option value="load">Load</option>
 								<option value="custom">Custom frontend event</option>
 							</select>
 						</div>
@@ -3707,14 +3879,25 @@ let _Pages = {
 
 							<select class="select2" id="action-select">
 								<option value="none">No action</option>
-								<option value="create">Create new object</option>
-								<option value="update">Update object</option>
-								<option value="delete">Delete object</option>
-								<option value="method">Execute method</option>
-								<option value="flow">Execute flow</option>
-								<option value="custom">Custom action</option>
-								<option value="next-page">Next page</option>
-								<option value="prev-page">Previous page</option>
+								<optgroup label="Data">
+									<option value="create">Create new object</option>
+									<option value="update">Update object</option>
+									<option value="delete">Delete object</option>
+								</optgroup>
+								<optgroup label="Behaviour/Logic">
+									<option value="method">Execute method</option>
+									<option value="flow">Execute flow</option>
+								</optgroup>
+								<optgroup label="Pager">
+									<option value="next-page">Next page</option>
+									<option value="prev-page">Previous page</option>
+								</optgroup>
+								<optgroup label="Authentication">
+									<option value="sign-in">Sign in</option>
+									<option value="sign-out">Sign out</option>
+									<option value="sign-up">Sign up</option>
+									<option value="reset-password">Reset password</option>
+								</optgroup>
 							</select>
 						</div>
 
@@ -3741,7 +3924,7 @@ let _Pages = {
 								</div>
 
 								<div class="hidden em-action-element em-action-method">
-									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods.">UUID or type of data object to call method on</label>
+									<label class="block mb-2" for="id-expression-input" data-comment="Enter a script expression like &quot;&#36;{obj.id}&quot; that evaluates to the UUID of the data object the method shall be called on, or a type name for static methods, or leave empty for global methods.">UUID or type of data object to call method on</label>
 								</div>
 
 								<div class="hidden em-action-element em-action-custom">
@@ -3801,18 +3984,94 @@ let _Pages = {
 						</div>
 
 						<div class="col-span-2 hidden em-action-element em-action-any">
+							<h3>Notifications</h3>
+							<div class="grid grid-cols-2 gap-8">
+
+								<div>
+									<label class="block mb-2" for="success-notifications-select" data-comment="Define what kind of notifications should be displayed on success">Success notifications</label>
+									<select class="select2" id="success-notifications-select">
+										<option value="none">None</option>
+										<option value="system-alert">System alert</option>
+										<option value="inline-text-message">Inline text message</option>
+										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+										<option value="fire-event">Raise a custom event</option>
+									</select>
+								</div>
+
+								<div class="hidden option-success-notifications option-success-notifications-custom-dialog">
+									<label class="block mb-2" for="success-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on success</label>
+									<input type="text" id="success-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+								</div>
+
+								<div class="hidden option-success-notifications option-success-notifications-custom-dialog-linked">
+									<label class="block mb-2" for="success-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as success notification dialogs</label>
+									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
+									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+										</div>
+									</div>
+								</div>
+
+								<div class="hidden option-success-notifications option-success-notifications-fire-event">
+									<label class="block mb-2" for="success-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display success notifications</label>
+									<input type="text" id="success-notifications-fire-event-input" placeholder="Enter an event name">
+								</div>
+							</div>
+
+							<div class="grid grid-cols-2 gap-8 mt-4">
+							
+								<div>
+									<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
+									<select class="select2" id="failure-notifications-select">
+										<option value="none">None</option>
+										<option value="system-alert">System alert</option>
+										<option value="inline-text-message">Inline text message</option>
+										<option value="custom-dialog">Custom dialog element(s) defined by CSS ID(s)</option>
+										<option value="custom-dialog-linked">Custom dialog element(s) defined by linked element(s)</option>
+										<option value="fire-event">Raise a custom event</option>
+									</select>
+								</div>
+
+								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog">
+									<label class="block mb-2" for="failure-notifications-custom-dialog-input" data-comment="Define the area(s) of the current page that should be displayed as notification dialog(s) with their CSS ID selector (comma-separated list of CSS IDs with leading #).">Partial(s) to refresh on failure</label>
+									<input type="text" id="failure-notifications-custom-dialog-input" placeholder="Enter CSS ID(s)">
+								</div>
+
+								<div class="hidden option-failure-notifications option-failure-notifications-custom-dialog-linked">
+									<label class="block mb-2" for="failure-notifications-custom-dialog-linked-input" data-comment="Drag an element and drop it here">Element(s) to be displayed as failure notification dialogs</label>
+									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
+									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+										</div>
+									</div>
+								</div>
+
+								<div class="hidden option-failure-notifications option-failure-notifications-fire-event">
+									<label class="block mb-2" for="failure-notifications-fire-event-input" data-comment="Define event that should be raised.">Event to raise to display failure notifications</label>
+									<input type="text" id="failure-notifications-fire-event-input" placeholder="Enter an event name">
+								</div>
+							</div>
+						</div>
+						
+						<div class="col-span-2 hidden em-action-element em-action-any">
 							<h3>Follow-up Actions</h3>
 							<div class="grid grid-cols-2 gap-8">
 
 								<div>
 									<label class="block mb-2" for="success-behaviour-select" data-comment="Define what should happen after the triggered action succeeded.">Behaviour on success</label>
 									<select class="select2" id="success-behaviour-select">
-										<option value="nothing">Nothing</option>
+										<option value="none">None</option>
 										<option value="full-page-reload">Reload the current page</option>
 										<option value="partial-refresh">Refresh page section(s) defined by CSS ID(s)</option>
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
+										<option value="sign-out">Sign out</option>
 									</select>
 								</div>
 
@@ -3824,7 +4083,7 @@ let _Pages = {
 								<div class="hidden option-success option-success-partial-refresh-linked">
 									<label class="block mb-2" for="success-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on success</label>
 									<input type="hidden" id="success-partial-refresh-linked-input" value="">
-									<div class="element-dropzone link-reload-element-dropzone">
+									<div class="element-dropzone success-partial-refresh-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
 											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
 											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
@@ -3847,18 +4106,30 @@ let _Pages = {
 								<div>
 									<label class="block mb-2" for="failure-behaviour-select" data-comment="Define what should happen after the triggered action failed.">Behaviour on failure</label>
 									<select class="select2" id="failure-behaviour-select">
-										<option value="nothing">Nothing</option>
+										<option value="none">None</option>
 										<option value="full-page-reload">Reload the current page</option>
 										<option value="partial-refresh">Refresh section(s) by ID</option>
 										<option value="partial-refresh-linked">Refresh page section defined by linked element(s)</option>
 										<option value="navigate-to-url">Navigate to a new page</option>
 										<option value="fire-event">Raise a custom event</option>
+										<option value="sign-out">Sign out</option>
 									</select>
 								</div>
 
 								<div class="hidden option-failure option-failure-partial-refresh">
 									<label class="block mb-2" for="failure-partial-refresh-input" data-comment="Define the area of the current page that should be refreshed by its CSS ID.">Partial to refresh on failure</label>
 									<input type="text" id="failure-partial-refresh-input" placeholder="Enter CSS ID(s)">
+								</div>
+
+								<div class="hidden option-failure option-failure-partial-refresh-linked">
+									<label class="block mb-2" for="failure-partial-refresh-linked-input" data-comment="Drag an element and drop it here">Element(s) to be refreshed on failure</label>
+									<input type="hidden" id="failure-partial-refresh-linked-input" value="">
+									<div class="element-dropzone failure-partial-refresh-linked-dropzone">
+										<div class="info-icon h-16 flex items-center justify-center">
+											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
+											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+										</div>
+									</div>
 								</div>
 
 								<div class="hidden option-failure option-failure-navigate-to-url">
@@ -3873,9 +4144,9 @@ let _Pages = {
 							</div>
 						</div>
 
-						<div class="col-span-2">
+						<!--div class="col-span-2">
 							<button type="button" class="action" id="save-event-mapping-button">Save</button>
-						</div>
+						</div-->
 
 					</div>
 
@@ -3885,7 +4156,7 @@ let _Pages = {
 		parameterMappingRow: config => `
 			<div class="em-parameter-mapping" data-structr-id="${config.id}">
 
-				<div class="grid grid-cols-5 gap-8 hidden options-reload-target mb-4">
+				<div class="grid grid-cols-4 gap-8 hidden options-reload-target mb-4">
 
 					<div>
 						<label class="block mb-2" data-comment="Choose a name/key for this parameter to define how the value is sent to the backend">Parameter name</label>
@@ -3906,17 +4177,17 @@ let _Pages = {
 						</select>
 					</div>
 
-					<div class="hidden col-span-2 em-parameter-value parameter-constant-value">
+					<div class="hidden em-parameter-value parameter-constant-value">
 						<label class="block mb-2" data-comment="Enter a constant value">Value (constant)</label>
 						<input type="text" class="parameter-constant-value-input" placeholder="Constant value" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 em-parameter-value parameter-script-expression">
+					<div class="hidden em-parameter-value parameter-script-expression">
 						<label class="block mb-2" data-comment="The script expression will be evaluated and the result passed as parameter value">Value expression</label>
 						<input type="text" class="parameter-script-expression-input" placeholder="Script expression" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 em-parameter-value parameter-user-input">
+					<div class="hidden em-parameter-value parameter-user-input">
 						<label class="block mb-2" data-comment="Drag a form input element (&amp;lt;input&amp;gt;, &amp;lt;textarea&amp;gt; or &amp;lt;select&amp;gt;) and drop it here">Form input element</label>
 						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
 						<div class="element-dropzone link-existing-element-dropzone">
@@ -3927,12 +4198,12 @@ let _Pages = {
 						</div>
 					</div>
 
-					<div class="hidden col-span-2 em-parameter-value parameter-method-result">
+					<div class="hidden em-parameter-value parameter-method-result">
 						<label class="block mb-2" data-comment="The method will be evaluated and the result passed as parameter value">Method</label>
 						<input type="text" class="parameter-method-result-input" placeholder="Method name" value="${config.value || ''}">
 					</div>
 
-					<div class="hidden col-span-2 em-parameter-value parameter-flow-result">
+					<div class="hidden em-parameter-value parameter-flow-result">
 						<label class="block mb-2" data-comment="The selected Flow will be evaluated and the result passed as parameter value">Flow result</label>
 						<select class="parameter-flow-result-input">
 							<option value="">-- Select flow --</option>

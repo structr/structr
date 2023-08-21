@@ -266,7 +266,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		boolean valid = super.isValid(errorBuffer);
 
-		// do not take into account for property validity - this might only be enforced in future versions
+		// do not take into account for property validity - this will only be enforced in future versions
 		final String futureSchemaPropertyNamePattern = "[_A-Za-z][\\-_0-9A-Za-z]*";
 		final boolean futurePropertyNameValidity     = ValidationHelper.isValidStringMatchingRegex(getProperty(name), futureSchemaPropertyNamePattern);
 
@@ -274,7 +274,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 			final AbstractSchemaNode parent = getProperty(SchemaProperty.schemaNode);
 			final String typeName           = (parent != null) ? parent.getName() : "[Unknown type]";
-			final String warningMessage     = "Property name " + typeName + "." + getProperty(name) + " doesn't match strict pattern " + futureSchemaPropertyNamePattern.toString() + " that will be enforced in future versions.";
+			final String warningMessage     = "Property name \"" + typeName + "." + getProperty(name) + "\" doesn't match strict pattern " + futureSchemaPropertyNamePattern + " that will be enforced in future versions.";
 
 			logger.warn(warningMessage);
 

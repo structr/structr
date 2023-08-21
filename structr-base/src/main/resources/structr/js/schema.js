@@ -42,7 +42,6 @@ let _Schema = {
 	showSchemaOverlaysKey: 'structrShowSchemaOverlays_' + location.port,
 	showSchemaInheritanceKey: 'structrShowSchemaInheritance_' + location.port,
 	showBuiltinTypesInInheritanceTreeKey: 'showBuiltinTypesInInheritanceTreeKey_' + location.port,
-	showJavaMethodsKey: 'structrShowJavaMethods_' + location.port,
 	schemaMethodsHeightsKey: 'structrSchemaMethodsHeights_' + location.port,
 	schemaActiveTabLeftKey: 'structrSchemaActiveTabLeft_' + location.port,
 	activeSchemaToolsSelectedTabLevel1Key: 'structrSchemaToolsSelectedTabLevel1_' + location.port,
@@ -51,7 +50,6 @@ let _Schema = {
 	schemaConnectorStyleKey: '_schema_' + location.port + 'connectorStyle',
 	schemaNodePositionKeySuffix: '_schema_' + location.port + 'node-position',
 	currentNodeDialogId: null,
-	showJavaMethods: false,
 	inheritanceTree: undefined,
 	inheritanceSlideout: undefined,
 	onload: () => {
@@ -143,11 +141,10 @@ let _Schema = {
 		_Schema.ui.connectorStyle  = LSWrapper.getItem(_Schema.schemaConnectorStyleKey) || 'Flowchart';
 		_Schema.ui.zoomLevel       = parseFloat(LSWrapper.getItem(_Schema.schemaZoomLevelKey)) || 1.0;
 		_Schema.ui.showInheritance = LSWrapper.getItem(_Schema.showSchemaInheritanceKey, true) || true;
-		_Schema.showJavaMethods    = LSWrapper.getItem(_Schema.showJavaMethodsKey, false) || false;
 
 		Structr.setFunctionBarHTML(_Schema.templates.functions());
 
-		//UISettings.showSettingsForCurrentModule();
+		UISettings.showSettingsForCurrentModule(UISettings.settingGroups.schema_code);
 
 		_Schema.activateDisplayDropdownTools();
 		_Schema.activateSnapshotsDialog();
@@ -365,7 +362,7 @@ let _Schema = {
 
 			saveButton.addEventListener('click', async (e) => {
 
-				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(id, tabControls);
+				let ok = await _Schema.bulkDialogsGeneral.saveEntityFromTabControls(entity, tabControls);
 
 				if (ok) {
 					_Schema.openEditDialog(id);
@@ -517,7 +514,7 @@ let _Schema = {
 		resetInputsViaTabControls: (tabControls) => {
 			Object.entries(tabControls).map(e => e[1].reset());
 		},
-		saveEntityFromTabControls: async (id, tabControls) => {
+		saveEntityFromTabControls: async (schemaNode, tabControls) => {
 
 			let bulkInfo           = _Schema.bulkDialogsGeneral.getBulkInfoFromTabControls(tabControls, true);
 			let counts             = _Schema.bulkDialogsGeneral.getChangeCountFromBulkInfo(bulkInfo);
@@ -535,10 +532,21 @@ let _Schema = {
 					_Schema.showSchemaRecompileMessage();
 					let data = _Schema.bulkDialogsGeneral.getPayloadFromBulkInfo(bulkInfo);
 
-					let response = await fetch(Structr.rootUrl + id, {
+					let response = await fetch(Structr.rootUrl + schemaNode.id, {
 						method: 'PATCH',
 						body: JSON.stringify(data)
 					});
+
+					if (Structr.isModuleActive(_Schema)) {
+
+						// Reload is only necessary for changes in the "basic" tab for types (name and extendsClass) and relationships (relType and cardinality)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.extendsClass)
+						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
+
+						if (typeChangeRequiresReload || relChangeRequiresReload) {
+							_Schema.reload();
+						}
+					}
 
 					_Schema.hideSchemaRecompileMessage();
 
@@ -547,6 +555,8 @@ let _Schema = {
 						_Code.addAvailableTagsForEntities([data]);
 
 						_Schema.bulkDialogsGeneral.resetInputsViaTabControls(tabControls);
+
+						_Schema.invalidateTypeInfoCache(schemaNode.name);
 
 					} else {
 
@@ -692,10 +702,6 @@ let _Schema = {
 							});
 
 							if (!entity.isBuiltinType) {
-
-								node[0].querySelector('b').addEventListener('click', () => {
-									_Schema.makeAttrEditable(node, 'name');
-								});
 
 								node[0].querySelector('.delete-type-icon').addEventListener('click', async () => {
 									let confirm = await _Dialogs.confirmation.showPromise(`
@@ -1067,7 +1073,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
 					}
-					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
+					let changes     = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic type attributes',
@@ -1075,6 +1082,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1590,7 +1598,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.relationships.validateBasicRelInfo(container, relInfo);
 					}
-					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(container, entity)).length;
+					let changes     = _Schema.relationships.getRelationshipDefinitionChanges(container, entity);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic relationship attributes',
@@ -1598,6 +1607,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1761,11 +1771,9 @@ let _Schema = {
 					relData.sourceId = sourceId;
 					relData.targetId = targetId;
 
-					if (relData.relationshipType.trim() === '') {
+					let allow = _Schema.relationships.validateBasicRelInfo(dialogText, relData);
 
-						_Helpers.blinkRed(dialogText.querySelector('#relationship-type-name'));
-
-					} else {
+					if (allow) {
 
 						await _Schema.relationships.createRelationshipDefinition(relData);
 					}
@@ -1982,7 +1990,7 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
 
 			let tableConfig = {
 				class: 'local schema-props',
@@ -2144,6 +2152,8 @@ let _Schema = {
 
 							_Schema.properties.appendLocalProperties(container, reloadedEntity, overrides, optionalAfterSaveCallback);
 							_Schema.hideSchemaRecompileMessage();
+
+							_Schema.invalidateTypeInfoCache(entity.name);
 
 							if (optionalAfterSaveCallback) {
 								optionalAfterSaveCallback();
@@ -3286,7 +3296,7 @@ let _Schema = {
 
 			_Schema.methods.methodsData = {};
 
-			methods = _Schema.filterJavaMethods(methods);
+			methods = _Schema.filterJavaMethods(methods, entity);
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
 
@@ -3327,6 +3337,7 @@ let _Schema = {
 					initialName:     method.name,
 					initialisStatic: method.isStatic,
 					initialSource:   method.source || '',
+					codeType:        method.codeType || ''
 				};
 
 				_Schema.methods.bindRowEvents(fakeRow, entity);
@@ -3787,83 +3798,42 @@ let _Schema = {
 			let zoom           = (_Schema.ui.jsPlumbInstance ? _Schema.ui.jsPlumbInstance.getZoom() : 1);
 			let canvasPosition = _Schema.ui.canvas.offset();
 			let padding        = 100;
+			let windowHeight   = window.innerHeight;
+			let windowWidth    = window.innerWidth;
 
-			let canvasSize = {
-				w: ($(window).width() - canvasPosition.left) / zoom,
-				h: ($(window).height() - canvasPosition.top) / zoom
+			let maxElementPosition = {
+				right:  0,
+				bottom: 0
 			};
 
-			for (let elem of document.querySelectorAll('.node')) {
-				let $elem = $(elem);
-				canvasSize.w = Math.max(canvasSize.w, (($elem.position().left + $elem.outerWidth() - canvasPosition.left) / zoom));
-				canvasSize.h = Math.max(canvasSize.h, (($elem.position().top + $elem.outerHeight() - canvasPosition.top)  / zoom + $elem.outerHeight()));
+			// do not include ._jsPlumb_connector because that has huge containers for bezier
+			for (let elem of _Schema.ui.canvas[0].querySelectorAll('.node, .label, ._jsPlumb_endpoint_anchor')) {
+				let rect = elem.getBoundingClientRect();
+				maxElementPosition.right  = Math.max(maxElementPosition.right,  Math.ceil((rect.right  + window.scrollX - canvasPosition.left) / zoom));
+				maxElementPosition.bottom = Math.max(maxElementPosition.bottom, Math.ceil((rect.bottom + window.scrollY - canvasPosition.top)  / zoom));
 			}
 
-			if (canvasSize.w * zoom < $(window).width() - canvasPosition.left) {
-				canvasSize.w = ($(window).width()) / zoom - canvasPosition.left + padding;
+			let canvasSize = {
+				width:  (windowWidth  - canvasPosition.left) / zoom,
+				height: (windowHeight - canvasPosition.top)  / zoom
+			};
+
+			if (maxElementPosition.right >= canvasSize.width) {
+				canvasSize.width = maxElementPosition.right + padding;
 			}
 
-			if (canvasSize.h * zoom < $(window).height() - canvasPosition.top) {
-				canvasSize.h = ($(window).height()) / zoom  - canvasPosition.top + padding;
+			if (maxElementPosition.bottom >= canvasSize.height) {
+				canvasSize.height = maxElementPosition.bottom + padding;
 			}
 
 			_Schema.ui.canvas.css({
-				width: canvasSize.w + 'px',
-				height: (canvasSize.h - 1) + 'px'
+				width:  canvasSize.width + 'px',
+				height: canvasSize.height + 'px'
 			});
-
-			// probably not necessary anymore with new UI
-			// $('body').css({
-			// 	position: 'relative'
-			// });
 		}
 	},
 	dialogSizeChanged: () => {
 		_Editors.resizeVisibleEditors();
-	},
-	storeSchemaEntity: async (entity, data, onSuccess, onError, onNoop) => {
-
-		let obj = JSON.parse(data);
-
-		if (entity && entity.id) {
-
-			let getResponse  = await fetch(Structr.rootUrl + entity.id);
-			let existingData = await getResponse.json();
-
-			let changed = false;
-			for (let key in obj) {
-				if (existingData.result[key] !== obj[key]) {
-					changed |= true;
-				}
-			}
-
-			if (changed) {
-
-				_Schema.showSchemaRecompileMessage();
-
-				let response = await fetch(Structr.rootUrl + entity.id, {
-					method: 'PUT',
-					body: JSON.stringify(obj)
-				});
-				let data = await response.json();
-
-				_Schema.hideSchemaRecompileMessage();
-
-				if (response.ok) {
-
-					_Schema.reload();
-					onSuccess?.();
-
-				} else {
-
-					onError?.(data);
-				}
-
-			} else {
-
-				onNoop?.();
-			}
-		}
 	},
 	deleteNode: async (id) => {
 
@@ -3883,69 +3853,6 @@ let _Schema = {
 		} else {
 
 			Structr.errorFromResponse(data);
-		}
-	},
-	makeAttrEditable: (element, key) => {
-
-		// cut off three leading underscores and only use 32 characters (the UUID)
-		let id = element.prop('id').substring(3, 35);
-		if (!id) {
-			return false;
-		}
-
-		element.children('b').hide();
-		let oldVal = $.trim(element.children('b').text());
-		let input = $(`input.new-${key}`, element);
-
-		if (!input.length) {
-			element.prepend(`<input type="text" size="${oldVal.length + 8}" class="new-${key}" value="${oldVal}">`);
-			input = $(`input.new-${key}`, element);
-		}
-
-		input.show().focus().select();
-		let saving = false;
-		input.off('blur').on('blur', () => {
-
-			if (!saving) {
-				saving = true;
-				Command.get(id, 'id', (entity) => {
-					_Schema.changeAttr(entity, element, input, key, oldVal);
-				});
-			}
-
-			return false;
-		});
-
-		input.keypress((e) => {
-			if (e.keyCode === 13 || e.code === 'Enter' || e.keyCode === 9 || e.code === 'Tab') {
-				e.preventDefault();
-
-				if (!saving) {
-					saving = true;
-					Command.get(id, 'id', (entity) => {
-						_Schema.changeAttr(entity, element, input, key, oldVal);
-					});
-				}
-				return false;
-			}
-		});
-		element.off('click');
-	},
-	changeAttr: (entity, element, input, key, oldVal) => {
-
-		let newVal = input.val();
-		input.hide();
-		element.children('b').text(newVal).show();
-
-		if (oldVal !== newVal) {
-			let obj = {};
-			obj[key] = newVal;
-
-			_Schema.storeSchemaEntity(entity, JSON.stringify(obj), null, (data) => {
-				Structr.errorFromResponse(data);
-				element.children('b').text(oldVal).show();
-				element.children('input').val(oldVal);
-			});
 		}
 	},
 	activateSnapshotsDialog: () => {
@@ -4144,16 +4051,6 @@ let _Schema = {
 		registerSchemaToolButtonAction($('#add-rel-uuids'), 'setUuid', relTypeSelector, (type) => {
 			return (type === 'allRels') ? { allRels: true } : { relType: type };
 		});
-
-		let showJavaMethodsCheckbox = $('#show-java-methods-in-schema-checkbox');
-		if (showJavaMethodsCheckbox) {
-			showJavaMethodsCheckbox.prop("checked", _Schema.showJavaMethods);
-			showJavaMethodsCheckbox.on('click', () => {
-				_Schema.showJavaMethods = showJavaMethodsCheckbox.prop('checked');
-				LSWrapper.setItem(_Schema.showJavaMethodsKey, _Schema.showJavaMethods);
-				_Helpers.blinkGreen(showJavaMethodsCheckbox.parent());
-			});
-		}
 	},
 	activateDisplayDropdownTools: () => {
 
@@ -4212,12 +4109,12 @@ let _Schema = {
 					let username    = optGroup.prop('label');
 					let isOwnerless = optGroup.data('ownerless') === true;
 
-					_Helpers.disableElements((isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
 				}
 			};
 			layoutSelectorChangeHandler();
 
-			layoutSelector.on('change', layoutSelectorChangeHandler);
+			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
 
 			updateLayoutButton.click(() => {
 
@@ -4864,6 +4761,18 @@ let _Schema = {
 	clearTypeInfoCache: () => {
 		_Schema.typeInfoCache = {};
 	},
+	invalidateTypeInfoCache: (type) => {
+
+		delete _Schema.typeInfoCache[type];
+
+		// clear type cache for this type and derived types
+		_Schema.getDerivedTypes(type, [], false).then(derivedTypes => {
+
+			for (let derivedType of derivedTypes) {
+				delete _Schema.typeInfoCache[derivedType];
+			}
+		});
+	},
 	getTypeInfo: (type, callback) => {
 
 		if (_Schema.typeInfoCache[type] && typeof _Schema.typeInfoCache[type] === 'object') {
@@ -4885,19 +4794,24 @@ let _Schema = {
 			});
 		}
 	},
-	getDerivedTypes: async (baseType, blacklist) => {
+	getDerivedTypes: async (baseType, blacklist = [], baseTypeIsFQCN = true) => {
 
-		// baseType is FQCN
 		let response = await fetch(`${Structr.rootUrl}_schema`);
 
 		if (response.ok) {
 
-			let data = await response.json();
-
+			let data      = await response.json();
 			let result    = data.result;
 			let fileTypes = [];
 			let maxDepth  = 5;
 			let types     = {};
+
+			if (baseTypeIsFQCN === false) {
+
+				// first get FQCN for type name (if exists)
+				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
+				baseType = exactTypeNameMatches[0]?.className ?? baseType;
+			}
 
 			let collect = (list, type) => {
 
@@ -5081,7 +4995,6 @@ let _Schema = {
 				el.style[vendorPrefix + "Transform"] = s;
 				el.style[vendorPrefix + "TransformOrigin"] = oString;
 			}
-
 			el.style["transform"] = s;
 			el.style["transformOrigin"] = oString;
 
@@ -5133,23 +5046,42 @@ let _Schema = {
 			};
 		}
 	},
-	filterJavaMethods: (methods) => {
-		if (!_Schema.showJavaMethods) {
-			return methods.filter(m => m.codeType !== 'java');
+	shouldShowJavaMethodsForBuiltInTypes: () => UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showJavaMethodsForBuiltInTypes),
+	filterJavaMethods: (methods, entity) => {
+
+		// java methods should always be shown for custom types and for global schema methods
+		// otherwise (for built-in types) they should only be shown if the setting is active
+
+		let isGlobalSchemaMethods = !entity;
+		let isCustomType          = !(entity?.isBuiltinType ?? true);
+
+		if (isGlobalSchemaMethods || isCustomType || _Schema.shouldShowJavaMethodsForBuiltInTypes()) {
+			return methods;
 		}
-		return methods;
+
+		return methods.filter(m => m.codeType !== 'java');
 	},
 	getOnlyJavaMethodsIfFilteringIsActive: (methods) => {
-		if (_Schema.showJavaMethods) {
+
+		// only relevant when bulk saving methods to not lose java methods (if they are not shown)
+
+		if (_Schema.shouldShowJavaMethodsForBuiltInTypes() === true) {
+
 			return [];
+
 		} else {
+
 			return methods.filter(m => m.codeType === 'java');
 		}
 	},
 	markElementAsChanged: (element, hasClass) => {
+
 		if (hasClass === true) {
+
 			element.classList.add('has-changes');
+
 		} else {
+
 			element.classList.remove('has-changes');
 		}
 	},
@@ -5346,24 +5278,18 @@ let _Schema = {
 								</button>
 								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
 							</div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<label class="block"><input type="checkbox" id="show-java-methods-in-schema-checkbox"> Show Java methods in SchemaNode</label>
-							</div>
 						</div>
 					</div>
 				</div>
 			</div>
 
-			<div id="zoom-slider"></div>
+			<div id="zoom-slider" class="mr-8"></div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					<input data-property="name" class="flex-grow">
+					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
 					<div class="extends-type flex items-center gap-2">
 						extends
@@ -5416,7 +5342,7 @@ let _Schema = {
 							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 						</div>
 
-						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
 
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
@@ -5654,7 +5580,8 @@ let _Schema = {
 				<div class="fake-tbody"></div>
 				<div class="fake-tfoot">
 					<div class="fake-tr">
-						<div class="fake-td actions-col flex justify-end">
+						<div class="fake-td actions-col flex">
+							<div class="flex-grow"></div>
 							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
 								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
 							</button>

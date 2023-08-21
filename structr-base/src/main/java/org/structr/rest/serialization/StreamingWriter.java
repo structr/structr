@@ -28,7 +28,6 @@ import org.structr.api.util.ProgressWatcher;
 import org.structr.api.util.ResultStream;
 import org.structr.common.QueryRange;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
@@ -66,6 +65,7 @@ public abstract class StreamingWriter {
 	private final Set<String> nonSerializerClasses        = new LinkedHashSet<>();
 	private final DecimalFormat decimalFormat             = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 	private String resultKeyName                          = "result";
+	private boolean serializeNulls                        = true;
 	private boolean renderSerializationTime               = true;
 	private boolean reduceRedundancy                      = false;
 	private int outputNestingDepth                        = 3;
@@ -78,9 +78,10 @@ public abstract class StreamingWriter {
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
-	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
+	public StreamingWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
 
 		this.wrapSingleResultInArray   = wrapSingleResultInArray;
+		this.serializeNulls            = serializeNulls;
 		this.reduceRedundancy          = Settings.JsonRedundancyReduction.getValue(true);
 		this.outputNestingDepth        = outputNestingDepth;
 		this.propertyView              = propertyView;
@@ -459,7 +460,7 @@ public abstract class StreamingWriter {
 								if (localKey.isCollection()) {
 
 									writer.name(localKey.jsonName()).beginArray().endArray();
-								} else {
+								} else if (serializeNulls) {
 									writer.name(localKey.jsonName()).nullValue();
 								}
 							}
@@ -585,8 +586,11 @@ public abstract class StreamingWriter {
 					final PropertyKey key   = entry.getKey();
 					final Object value      = entry.getValue();
 
-					writer.name(key.jsonName());
-					count = serializeProperty(writer, key, value, localPropertyView, depth+1, visitedObjects);
+					if (serializeNulls || value != null) {
+
+						writer.name(key.jsonName());
+						count = serializeProperty(writer, key, value, localPropertyView, depth+1, visitedObjects);
+					}
 				}
 			}
 

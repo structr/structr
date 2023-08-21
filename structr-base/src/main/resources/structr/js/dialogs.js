@@ -100,6 +100,10 @@ let _Dialogs = {
 
 			if (_Dialogs.loginDialog.isOpen() === false) {
 
+				StructrWS.reconnect();
+
+                Structr.getActiveModule()?.unload?.();
+
 				_Favorites.logoutAction();
 				_Console.logoutAction();
 

@@ -22,10 +22,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.*;
-import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.View;
 import org.structr.common.Visitor;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -228,6 +226,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		final StructrMethodDefinition newMethod = new StructrMethodDefinition(this, name);
 
 		newMethod.setCodeType("java");
+		newMethod.setReturnType("void");
 
 		methods.add(newMethod);
 
@@ -246,6 +245,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newMethod.setOverridesExisting(true);
 		newMethod.setCallSuper(callSuper);
 		newMethod.setCodeType("java");
+		newMethod.setReturnType("void");
 
 		methods.add(newMethod);
 
@@ -289,6 +289,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		newMethod.addParameter("value", type.getName());
 		newMethod.setCodeType("java");
 		newMethod.addException("FrameworkException");
+		newMethod.setReturnType("void");
 
 		methods.add(newMethod);
 

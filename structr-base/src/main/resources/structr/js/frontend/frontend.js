@@ -52,7 +52,7 @@ export class Frontend {
 		// active input fields with a name
 		if (target.name && target.name.length > 0) {
 
-			resolved[target.name] = this.resolveValue(target);
+			resolved[target.name] = this.resolveElementValue(target);
 		}
 
 		for (const key in data) {
@@ -62,83 +62,114 @@ export class Frontend {
 				continue;
 			}
 
-			let lastIndex = value.length - 1;
+			resolved[key] = this.resolveValue(key, value, data, event, target);
 
-			if (value.indexOf('css(') === 0 && value[lastIndex] === ')') {
-
-				// resolve CSS selector
-				let selector = value.substring(4, lastIndex);
-				let element  = document.querySelector(selector);
-
-				if (element) {
-
-					resolved[key] = this.resolveValue(element);
-				}
-
-			 } else if (value.indexOf('name(') === 0 && value[lastIndex] === ')') {
-
-				// resolve input name in current page, support multiple elements with the same name
-				let name     = value.substring(5, lastIndex);
-				let elements = document.querySelectorAll(`input[name="${name}"]`);
-				let values   = [];
-
-				elements.forEach(element => {
-
-					// special treatment for checkboxes / radio buttons
-					let value = this.resolveValue(element);
-					if (value === true) {
-
-						if (element.value) {
-							values.push(element.value);
-						} else {
-							values.push(true);
-						}
-					}
-				});
-
-				switch (values.length) {
-					case 0: break;
-					case 1: resolved[key] = values[0]; break;
-					default: resolved[key] = values; break;
-				}
-
-			} else if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
-
-				let json = value.substring(5, lastIndex);
-				resolved[key] = JSON.parse(json);
-
-			} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
-
-				// data() refers to the dataset of the datatransfer object in a drag and drop
-				// event, maybe the name of the key needs some more thought..
-				let data = event.dataTransfer.getData('application/json');
-				if (data && data.length) {
-
-					resolved[key] = JSON.parse(data);
-				}
-
-			} else {
-
-				switch (key) {
-
-					// do not resolve internal keys
-					case 'structrId':
-					case 'structrEvents':
-					case 'structrReloadTarget':
-						break;
-
-					default:
-						// just copy the value
-						resolved[key] = data[key];
-						break;
-				}
-			}
 		}
 
 		return resolved;
 	}
 
-	resolveValue(element) {
+	resolveValue(key, value, data, event, target) {
+
+		// switch (key) {
+		//
+		// 	// do not resolve internal keys
+		// 	case 'structrId':
+		// 	case 'structrEvents':
+		// 	case 'structrReloadTarget':
+		// 		return;
+		// }
+
+		let lastIndex = value.length - 1;
+
+		if (value.indexOf('json(') === 0 && value[lastIndex] === ')') {
+
+			let json = value.substring(5, lastIndex);
+			return JSON.parse(json);
+
+		} else if (value.indexOf('data(') === 0 && value[lastIndex] === ')') {
+
+			// data() refers to the dataset of the datatransfer object in a drag and drop
+			// event, maybe the name of the key needs some more thought..
+			let data = event.dataTransfer.getData('application/json');
+			if (data && data.length) {
+
+				return JSON.parse(data);
+			}
+		}
+
+		const elements = this.resolveElements(target, value);
+
+		// support multiple elements
+		let values = [];
+
+		elements.forEach(element => {
+			values.push(this.resolveElementValue(element));
+		});
+
+		// reduce array of length 1 to single value
+		switch (values.length) {
+			case 0:
+				// just copy the value
+				return data[key];
+			case 1:
+				return values[0];
+			default:
+				return values;
+		}
+
+	}
+
+	resolveElements(target, value) {
+
+		let elements, name, id;
+		let lastIndex = value.length - 1;
+
+		if (value.startsWith('css(') && value.endsWith(')')) {
+
+			// resolve CSS selector
+			let selector = value.substring(4, lastIndex);
+			elements = document.querySelectorAll(selector);
+
+		} else if (value.startsWith('name(') && value.endsWith(')')) {
+
+			// resolve only input elements by name in current page
+			name = value.substring(5, lastIndex);
+			elements = document.querySelectorAll(`input[name="${name}"]`);
+
+		} else if (value.startsWith('id(') && value.endsWith(')')) {
+
+			// resolve element by data-structr-id in current page
+			id = value.substring(3, lastIndex);
+			elements = document.querySelectorAll(`[data-structr-id="${id}"]`);
+
+		}
+
+		if (elements && elements.length > 1) {
+
+			// if we are in repeater loop, find single element
+			let repeaterElement = target.closest('[data-repeater-data-object-id]');
+			if (repeaterElement) {
+
+				let selector;
+				if (id) {
+					selector = selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] [data-structr-id="${id}"]`;
+				} else if (name) {
+					selector = `[data-repeater-data-object-id="${repeaterElement.dataset.repeaterDataObjectId}"] input[name="${name}"]`;
+				}
+
+				let element = document.querySelector(selector);
+				if (element) {
+					return [element];
+				}
+
+			}
+		}
+
+		return elements || [];
+	}
+
+	resolveElementValue(element) {
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
@@ -181,8 +212,10 @@ export class Frontend {
 		switch (status) {
 
 			case 200:
+			case 201:
 				this.fireEvent('success', { target: element, data: json, status: status });
-				this.processReloadTargets(element, json.result, status, options);
+				this.handleNotifications(element, json, status, options);
+				this.processFollowUpActions(element, json.result, status, options);
 				break;
 
 			case 400:
@@ -194,7 +227,8 @@ export class Frontend {
 			case 500:
 			case 503:
 				this.fireEvent('error', { target: element, data: json, status: status });
-				this.processReloadTargets(element, json, status, options);
+				this.handleNotifications(element, json, status, options);
+				this.processFollowUpActions(element, json, status, options);
 				break;
 		}
 
@@ -203,17 +237,108 @@ export class Frontend {
 		}
 	}
 
-	async processReloadTargets(element, parameters, status, options) {
+	async handleNotifications(element, parameter, status, options) {
 
-		if (element.dataset.structrReloadTarget) {
+		let mode, statusText, statusHTML, inputElementBorderColor, inputElementBorderWidth;
+		let id = element.dataset.structrId;
+		const success = this.isSuccess(status);
 
-			let reloadTargets = element.dataset.structrReloadTarget;
+		if (success) {
+			mode = element.dataset.structrSuccessNotifications;
+			statusText = '✅ Operation successful with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:green">' + statusText + '</div>';
+			for (let elementWithError of document.querySelectorAll('[data-error]')) {
+				elementWithError.style.borderColor = inputElementBorderColor || '';
+				elementWithError.style.borderWidth = inputElementBorderWidth || '';
+			}
+		} else {
+			mode = element.dataset.structrFailureNotifications;
+			statusText = '❌ Operation failed with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:red">' + statusText + '<br>';
 
-			for (let reloadTarget of reloadTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+			if (parameter?.errors?.length) {
+				for (const error of parameter.errors) {
+					statusHTML += error.property + ' ' + error.token.replaceAll('_', ' ') + '<br>';
+					let propertyKey = error.property;
 
-				if (reloadTarget.indexOf(':') !== -1) {
+					let propertyInputElement = element.dataset[propertyKey] ? this.resolveElements(element, element.dataset[propertyKey])[0] : element;
+					if (propertyInputElement) {
+						inputElementBorderColor = propertyInputElement.style.borderColor;
+						inputElementBorderWidth = propertyInputElement.style.borderWidth;
+						propertyInputElement.style.borderColor = 'red';
+						propertyInputElement.style.borderWidth = '1px';
+						propertyInputElement.dataset.error = error.token;
+					}
+				}
+			}
+			statusHTML += '</div>';
+		}
 
-					let moduleName = reloadTarget.substring(0, reloadTarget.indexOf(':'));
+		// none, system-alert, inline-text-message, custom-dialog, custom-dialog-linked
+		switch (mode) {
+
+			case 'system-alert':
+				window.alert(statusText);
+				break;
+
+			case 'inline-text-message':
+				// Clear all notification messages
+				document.querySelectorAll('.structr-event-action-notification').forEach(el => el.remove());
+				element.insertAdjacentHTML('afterend', statusHTML);
+				window.setTimeout(() => {
+					let notificationElement = document.getElementById('notification-for-' + id);
+					if (notificationElement) { notificationElement.remove(); }
+				}, 5000);
+				break;
+
+			case 'custom-dialog':
+				let notificationElementIds = success ? element.dataset.structrSuccessNotificationsPartial : element.dataset.structrFailureNotificationsPartial;
+				let partialIds = notificationElementIds.split(',');
+				for (let partialId of partialIds) {
+					let partialElement = document.querySelector(partialId);
+					if (partialElement) {
+						partialElement.classList.remove('hidden');
+						window.setTimeout(() => {
+							partialElement.classList.add('hidden');
+						}, 5000);
+					}
+				}
+				break;
+
+			case 'custom-dialog-linked':
+				let notificationElementSelectors = success ? element.dataset.structrSuccessNotificationsCustomDialogElement : element.dataset.structrFailureNotificationsCustomDialogElement;
+				let partialSelectors = notificationElementSelectors.split(',');
+				for (let partialSelector of partialSelectors) {
+					let partialElement = document.querySelector(partialSelector);
+					if (partialElement) {
+						partialElement.classList.remove('hidden');
+						window.setTimeout(() => {
+							partialElement.classList.add('hidden');
+						}, 5000);
+					}
+				}
+				break;
+
+			case 'none':
+			default:
+				// Default is do nothing
+		}
+
+	}
+
+	async processFollowUpActions(element, parameters, status, options) {
+
+		const success = this.isSuccess(status);
+
+		if (success && element.dataset.structrSuccessTarget) {
+
+			let successTargets = element.dataset.structrReloadTarget;
+
+			for (let successTarget of successTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+
+				if (successTarget.indexOf(':') !== -1) {
+
+					let moduleName = successTarget.substring(0, successTarget.indexOf(':'));
 					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
 					if (module) {
 
@@ -223,7 +348,7 @@ export class Frontend {
 
 							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
 
-								handler.handleReloadTarget(reloadTarget, element, parameters, status, options);
+								handler.handleReloadTarget(successTarget, element, parameters, status, options);
 
 							} else {
 
@@ -240,23 +365,91 @@ export class Frontend {
 						throw `No module found for behaviour ${moduleName}.`;
 					}
 
-				} else if (reloadTarget === 'none') {
+				} else if (successTarget === 'none') {
+
+					// do nothing
+					return;
+
+				} else if (successTarget === 'sign-out') {
+
+					// sign-out and reload
+					fetch('/structr/logout', { method: 'POST' }).then((response) => {
+						location.reload();
+					});
+
+				} else {
+
+					this.reloadPartial(successTarget, parameters, element);
+				}
+			}
+
+		} else if (!success && element.dataset.structrFailureTarget) {
+
+			let failureTargets = element.dataset.structrFailureTarget;
+
+			for (let failureTarget of failureTargets.split(',').map( t => t.trim() ).filter( t => t.length > 0 )) {
+
+				if (failureTarget.indexOf(':') !== -1) {
+
+					let moduleName = failureTarget.substring(0, failureTarget.indexOf(':'));
+					let module     = await import('/structr/js/frontend/modules/' + moduleName + '.js');
+					if (module) {
+
+						if (module.Handler) {
+
+							let handler = new module.Handler(this);
+
+							if (handler && handler.handleReloadTarget && typeof handler.handleReloadTarget === 'function') {
+
+								handler.handleReloadTarget(failureTarget, element, parameters, status, options);
+
+							} else {
+
+								throw `Handler class for behaviour ${moduleName} has no method "handleReloadTarget".`;
+							}
+
+						} else {
+
+							throw `Module for behaviour ${moduleName} has no class "Handler".`;
+						}
+
+					} else {
+
+						throw `No module found for behaviour ${moduleName}.`;
+					}
+
+				} else if (failureTarget === 'sign-out') {
+
+					// sign-out and reload
+					fetch('/structr/logout', { method: 'POST' }).then((response) => {
+						location.reload();
+					});
+
+				} else if (failureTarget === 'none') {
 
 					// do nothing
 					return;
 
 				} else {
 
-					this.reloadPartial(reloadTarget, parameters, element);
+					this.reloadPartial(failureTarget, parameters, element);
 				}
 			}
 
 		} else {
 
-			// what should be the default?
-			// Reload, or nothing?
-			window.location.reload();
+			// Default is do nothing
+			//window.location.reload();
 		}
+
+	}
+
+	isSuccess = status => status < 300;
+
+	displayPartial(selector, parameters, element, dontRebind) {
+		let container = document.querySelector(selector);
+		container.classList.remove('hidden');
+		//this.replacePartial(container, id, element, data, parameters, dontRebind);
 	}
 
 	handleNetworkError(element, error, status) {
@@ -566,7 +759,7 @@ export class Frontend {
 
 			fetch('/structr/rest/DOMElement/' + id + '/event', {
 				body: JSON.stringify(this.resolveData(event, target)),
-				method: 'post',
+				method: 'POST',
 				credentials: 'same-origin'
 			})
 			.then(response => {
@@ -745,6 +938,14 @@ export class Frontend {
 				let mapping = source.split(",");
 				for (let event of mapping) {
 
+					if (event === 'load') {
+
+						// the 'load' event has to be fired right now because we're in it
+						const event = new Event('load');
+						elem.addEventListener('load',this.boundHandleGenericEvent);
+						elem.dispatchEvent(event);
+					}
+
 					elem.removeEventListener(event, this.boundHandleGenericEvent);
 					elem.addEventListener(event, this.boundHandleGenericEvent);
 
@@ -754,6 +955,7 @@ export class Frontend {
 						elem.removeEventListener('dragover',  this.boundHandleDragOver);
 						elem.addEventListener('dragover',  this.boundHandleDragOver);
 					}
+
 				}
 			}
 

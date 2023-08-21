@@ -21,6 +21,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.innerHTML = Structr.templates.mainBody();
 	_Icons.preloadSVGIcons();
+	_Elements.contextMenu.init();
 
 	Structr.header                   = document.getElementById('header');
 	Structr.mainContainer            = document.getElementById('main');
@@ -341,7 +342,7 @@ let Structr = {
 		_Helpers.fastRemoveAllChildren(Structr.functionBarOffscreen);
 		_Helpers.fastRemoveAllChildren(Structr.dialogContainerOffscreen);
 		_Dialogs.custom.clearDialogElements();
-		_Elements.removeContextMenu();
+		_Elements.contextMenu.remove();
 	},
 	refreshUi: (isLogin = false) => {
 
@@ -1951,7 +1952,7 @@ let Structr = {
 			<div id="function-bar"></div>
 			<div id="main"></div>
 
-			<div id="menu-area"></div>
+			<div id="custom-context-menu-container"></div>
 		`,
 		defaultDialogMarkup: config => ``,
 		loginDialogMarkup: `
@@ -2519,27 +2520,33 @@ let UISettings = {
 
 		return null;
 	},
-	showSettingsForCurrentModule: () => {
+	showSettingsForCurrentModule: (...additionalSettingsGroups) => {
+
+		let settingsGroupsToShow = [UISettings.settingGroups.global];
 
 		let moduleSettings = UISettings.getSettings(Structr.getActiveModuleName());
 		if (moduleSettings) {
-
-			let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-					${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
-				</button>
-				<div class="dropdown-menu-container" style=display: none;"></div>
-			</div>`);
-
-			let container = dropdown.querySelector('.dropdown-menu-container');
-
-			let globalSettings = UISettings.getSettings('global');
-
-			UISettings.appendSettingsSectionToContainer(globalSettings, container);
-			UISettings.appendSettingsSectionToContainer(moduleSettings, container);
-
-			Structr.functionBar.appendChild(dropdown);
+			settingsGroupsToShow.push(moduleSettings);
 		}
+
+		settingsGroupsToShow.push(...additionalSettingsGroups);
+
+		let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
+				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
+			</button>
+			<div class="dropdown-menu-container" style="display: none;"></div>
+		</div>`);
+
+		let container = dropdown.querySelector('.dropdown-menu-container');
+
+		for (let settingsGroup of settingsGroupsToShow) {
+			UISettings.appendSettingsSectionToContainer(settingsGroup, container);
+		}
+
+		_Helpers.activateCommentsInElement(container);
+
+		Structr.functionBar.appendChild(dropdown);
 	},
 	appendSettingsSectionToContainer: (section, container) => {
 
@@ -2565,6 +2572,10 @@ let UISettings = {
 				input.addEventListener('change', () => {
 					UISettings.setValueForSetting(setting, input.checked, input.parentElement);
 				});
+
+				if (setting.infoText) {
+					settingDOM.dataset['comment'] = setting.infoText;
+				}
 
 				container.appendChild(settingDOM);
 
@@ -2632,6 +2643,18 @@ let UISettings = {
 		security: {
 			title: 'Security',
 			settings: {
+				showGroupsHierarchicallyKey: {
+					text: 'List groups hierarchically',
+					infoText: 'If active, groups that are contained in other groups are not shown at top level.<br><br>This impacts filtering on name - only top level elements are filtered',
+					storageKey: 'showGroupsHierarchicallyKey' + location.port,
+					defaultValue: true,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Security)) {
+							_UsersAndGroups.refreshGroups();
+						}
+					}
+				},
 				showVisibilityFlagsInGrantsTableKey: {
 					text: 'Show visibility flags in Resource Access Grants table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
@@ -2656,7 +2679,7 @@ let UISettings = {
 				}
 			}
 		},
-		schema: {
+		schema_code: {
 			title: 'Schema/Code',
 			settings: {
 				showDatabaseNameForDirectProperties: {
@@ -2665,6 +2688,18 @@ let UISettings = {
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {
+					}
+				},
+				showJavaMethodsForBuiltInTypes: {
+					text: 'Show Java methods for built-in types',
+					storageKey: 'structrShowJavaMethods_' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					infoText: 'Advanced Feature: Shows built-in Java methods but changes are not possible',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Code)) {
+							_Code.codeTree.jstree().refresh();
+						}
 					}
 				}
 			}

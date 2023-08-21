@@ -1915,7 +1915,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			if (cause instanceof FrameworkException) {
 
-				throw (FrameworkException)cause;
+				throw (FrameworkException) cause;
 			}
 
 		} catch (IllegalAccessException | IllegalArgumentException  t) {

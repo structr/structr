@@ -204,7 +204,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public StreamingJsonWriter getJsonWriter() {
-		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false);
+		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false, true);
 	}
 
 	public Gson getGson() {

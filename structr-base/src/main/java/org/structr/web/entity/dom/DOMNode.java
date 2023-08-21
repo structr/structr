@@ -89,9 +89,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		type.setExtends(URI.create("https://structr.org/v1.1/definitions/LinkedTreeNodeImpl?typeParameters=org.structr.web.entity.dom.DOMNode"));
 		type.setCategory("html");
 
-		// DOMNodes can be targets of a reload or redirect after asuccess or failure of actions defined by ActionMapping nodes
+		// DOMNodes can be targets of a reload or redirect after a success or failure of actions defined by ActionMapping nodes
 		type.addViewProperty(PropertyView.Ui, "reloadingActions");
-		type.addViewProperty(PropertyView.Ui, "redirectingActions");
+		type.addViewProperty(PropertyView.Ui, "failureActions");
+		type.addViewProperty(PropertyView.Ui, "successNotificationActions");
+		type.addViewProperty(PropertyView.Ui, "failureNotificationActions");
 
 		type.addStringProperty("dataKey").setIndexed(true).setCategory(QUERY_CATEGORY);
 		type.addStringProperty("cypherQuery").setCategory(QUERY_CATEGORY);
@@ -304,7 +306,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static final String NOT_SUPPORTED_ERR_MESSAGE_RENAME        = "Renaming of nodes is not supported by this implementation.";
 
 	public static final Set<String> cloneBlacklist = new LinkedHashSet<>(Arrays.asList(new String[] {
-		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId"
+		"id", "type", "ownerDocument", "pageId", "parent", "parentId", "syncedNodes", "syncedNodesIds", "children", "childrenIds", "linkable", "linkableId", "path", "relationshipId", "triggeredActions", "reloadingActions", "failureActions", "successNotificationActions", "failureNotificationActions"
 	}));
 
 	public static final String[] rawProps = new String[] {

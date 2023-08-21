@@ -28,9 +28,9 @@ import java.util.Iterator;
  */
 public class PagingIterable<T> implements ResultStream<T> {
 
-	private static final Logger logger       = LoggerFactory.getLogger(PagingIterable.class);
-	private PagingIterator<T> source         = null;
-	private String queryTimeFormatted        = null;
+	private static final Logger logger    = LoggerFactory.getLogger(PagingIterable.class);
+	private PagingIterator<T> source      = null;
+	private String queryTimeFormatted     = null;
 	private Integer overriddenResultCount = null;
 
 	public PagingIterable(final String description, final Iterable<T> source) {

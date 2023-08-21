@@ -35,7 +35,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.Actions;
 
 import java.util.List;
 import java.util.Map;

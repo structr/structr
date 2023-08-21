@@ -72,6 +72,7 @@ public class SecurityContext {
 	private boolean doCascadingDelete                     = true;
 	private boolean modifyAccessTime                      = true;
 	private boolean disableSoftLimit                      = false;
+	private boolean disableUuidValidation                 = false;
 	private boolean forceResultCount                      = false;
 	private boolean preventDuplicateRelationships         = true;
 	private boolean doInnerCallbacks                      = true;
@@ -809,6 +810,10 @@ public class SecurityContext {
 		return forceResultCount;
 	}
 
+	public void disableUuidValidation(final boolean disable) {
+		this.disableUuidValidation = disable;
+	}
+
 	public boolean disableSoftLimit() {
 		return disableSoftLimit;
 	}
@@ -842,7 +847,7 @@ public class SecurityContext {
 	}
 
 	public boolean uuidWasSetManually() {
-		return uuidWasSetManually;
+		return uuidWasSetManually && !disableUuidValidation;
 	}
 
 	public void uuidWasSetManually(final boolean wasSet) {

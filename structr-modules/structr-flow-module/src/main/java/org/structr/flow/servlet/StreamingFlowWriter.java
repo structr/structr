@@ -33,8 +33,8 @@ import java.io.Writer;
  */
 public class StreamingFlowWriter extends StreamingWriter {
 
-	public StreamingFlowWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray) {
-		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray);
+	public StreamingFlowWriter(final Value<String> propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
+		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
 	}
 
 	@Override

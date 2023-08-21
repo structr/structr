@@ -87,7 +87,7 @@ let _Dashboard = {
 
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
 
-			UISettings.showSettingsForCurrentModule();
+			// UISettings.showSettingsForCurrentModule();
 
 			if (dashboardUiConfig.envInfo.databaseService === 'MemoryDatabaseService') {
 				Structr.appendInMemoryInfoToElement($('#dashboard-about-structr .db-driver'));
@@ -727,6 +727,11 @@ let _Dashboard = {
 					let currentScroll = (event.target.scrollTop + event.target.offsetHeight);
 
 					_Dashboard.tabs['server-log'].scrollEnabled = (currentScroll >= maxScroll);
+					if (true === _Dashboard.tabs['server-log'].scrollEnabled) {
+						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.remove('textarea-is-scrolled');
+					} else {
+						_Dashboard.tabs['server-log'].getServerLogTextarea()?.parentNode?.classList.add('textarea-is-scrolled');
+					}
 				});
 			},
 			updateLog: () => {
@@ -1192,47 +1197,52 @@ let _Dashboard = {
 
 					<div class="tab-content" id="dashboard-server-log">
 
-						<div id="dashboard-server-log-controls" class="pb-4">
+						<div class="flex flex-col h-full">
 
-							<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
-									${_Icons.getSvgIcon(_Icons.iconSettingsCog)}
-								</button>
+							<div id="dashboard-server-log-controls" class="pb-4">
 
-								<div class="dropdown-menu-container" style="display: none;">
-									<div class="font-bold pt-4 pb-2">Server Log Settings</div>
-									<div class="editor-setting flex items-center p-1">
+								<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+									<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="bottom" data-wants-fixed="true">
+										${_Icons.getSvgIcon(_Icons.iconSettingsCog)}
+									</button>
 
-										<label class="flex-grow">Refresh Interval</label>
+									<div class="dropdown-menu-container" style="display: none;">
+										<div class="font-bold pt-4 pb-2">Server Log Settings</div>
+										<div class="editor-setting flex items-center p-1">
 
-										<select id="dashboard-server-log-refresh-interval" class="w-28">
-											<option value="10000">10s</option>
-											<option value="5000">5s</option>
-											<option value="2000">2s</option>
-											<option value="1000">1s</option>
-											<option value="-1">manual</option>
-										</select>
-									</div>
+											<label class="flex-grow">Refresh Interval</label>
 
-									<div class="editor-setting flex items-center p-1">
-										<label class="flex-grow">Number of lines</label>
-										<input id="dashboard-server-log-lines" type="number" class="w-16">
-									</div>
+											<select id="dashboard-server-log-refresh-interval" class="w-28">
+												<option value="10000">10s</option>
+												<option value="5000">5s</option>
+												<option value="2000">2s</option>
+												<option value="1000">1s</option>
+												<option value="-1">manual</option>
+											</select>
+										</div>
 
-									<div class="editor-setting flex items-center p-1">
-										<label class="flex-grow">Truncate lines at</label>
-										<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+										<div class="editor-setting flex items-center p-1">
+											<label class="flex-grow">Number of lines</label>
+											<input id="dashboard-server-log-lines" type="number" class="w-16">
+										</div>
+
+										<div class="editor-setting flex items-center p-1">
+											<label class="flex-grow">Truncate lines at</label>
+											<input id="dashboard-server-truncate-lines" type="number" class="w-16">
+										</div>
 									</div>
 								</div>
+
+								<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
+								<button id="dashboard-server-log-copy" class="action">Copy</button>
+
+								<span id="dashboard-server-log-feedback"></span>
 							</div>
 
-							<button id="dashboard-server-log-manual-refresh" class="action">Refresh</button>
-							<button id="dashboard-server-log-copy" class="action">Copy</button>
-
-							<span id="dashboard-server-log-feedback"></span>
+							<div class="flex-grow">
+								<textarea readonly="readonly" class="h-full w-full"></textarea>
+							</div>
 						</div>
-
-						<textarea readonly="readonly"></textarea>
 					</div>
 
 					<div class="tab-content" id="dashboard-sysinfo">

@@ -197,7 +197,7 @@ let _Entities = {
 				model.uri.isAutoscriptEnv = false;
 			}
 
-			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language);
+			_Editors.updateMonacoEditorLanguage(repeaterConfigEditor, repeaterConfigEditor.customConfig.language, entity);
 		};
 
 		let initRepeaterInputs = () => {
@@ -1251,6 +1251,33 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
+	insertRelatedNode: (cell, node, onDelete, position) => {
+		/** Alternative function to appendRelatedNode
+		    - no jQuery
+		    - uses insertAdjacentHTML
+		    - default position: beforeend
+		*/
+		let displayName = _Crud.displayName(node);
+		cell = (cell instanceof jQuery ? cell[0] : cell);
+		cell.insertAdjacentHTML(position || 'beforeend', `
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
+			</div>
+		`);
+
+		let nodeEl = cell.querySelector('._' + node.id);
+
+		nodeEl.addEventListener('click', (e) => {
+			e.preventDefault();
+			_Entities.showProperties(node);
+			return false;
+		});
+
+		if (onDelete) {
+			return onDelete(nodeEl);
+		}
+	},
 	appendRelatedNode: (cell, node, onDelete) => {
 		let displayName = _Crud.displayName(node);
 		cell.append(`
@@ -1765,7 +1792,7 @@ let _Entities = {
 
 		icon.on('click', function(e) {
 			e.stopPropagation();
-			_Elements.activateContextMenu(e, parent, entity);
+			_Elements.contextMenu.activateContextMenu(e, parent[0], entity);
 		});
 
 		if (visible) {
@@ -1922,7 +1949,7 @@ let _Entities = {
 		}
 	},
 	isExpanded: (el) => {
-		let icon = _Entities.getIconFromElement(el);
+		let icon = _Entities.getIconFromElement($(el));
 		return icon.hasClass(_Icons.expandedClass);
 	},
 	getIconFromElement: (el) => {
@@ -2058,14 +2085,27 @@ let _Entities = {
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	toggleElement: (id, nodeContainer, isExpanded, callback) => {
+	removeActiveNodeClassFromAllNodes: () => {
 
-		let el         = $(nodeContainer);
-		let toggleIcon = el.children('.expand_icon_svg').first();
+		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
+			activeSelector.classList.remove('active');
+		}
+	},
+	toggleElement: (id, el, isExpanded, callback) => {
 
-		if (_Entities.isExpanded(el)) {
+		let nodeContainer = $(el);
 
-			$(el.closest('.node')).children('.node').remove();
+		if (!nodeContainer.hasClass('node-container')) {
+			nodeContainer = nodeContainer.children('.node-container').first();
+		}
+
+		let toggleIcon = nodeContainer.children('.expand_icon_svg').first();
+
+		if (_Entities.isExpanded(nodeContainer)) {
+
+			$(nodeContainer.closest('.node')).children('.node').each((i, el) => {
+				_Helpers.fastRemoveElement(el);
+			});
 
 			toggleIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 
@@ -3040,9 +3080,16 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="position-input">Position</label>
+							<label class="block mb-2" for="position-input" data-comment="The position is important to identify the page, the client will get served for the '/' path. The page with the lowest position (which is visible for the requesting client) will be shown.">Position</label>
 							<input type="text" id="position-input" name="position">
 						</div>
+
+						<div>
+							<label class="block mb-2" for="path-input" data-comment="If set, the page will be available under this path and not under its name.">Custom Path</label>
+							<input type="text" id="path-input" name="path">
+						</div>
+
+						<div><!-- occupy space in grid UI --></div>
 
 						<div>
 

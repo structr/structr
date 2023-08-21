@@ -305,16 +305,16 @@ public class AutocompleteTest extends StructrUiTest {
 	// ----- private methods -----
 	void assertFullResult(final List<GraphObject> result) {
 
-		final Map<String, Object> current  = ((GraphObjectMap)result.get(0)).toMap();
-		final Map<String, Object> locale   = ((GraphObjectMap)result.get(1)).toMap();
-		final Map<String, Object> me       = ((GraphObjectMap)result.get(2)).toMap();
-		final Map<String, Object> page     = ((GraphObjectMap)result.get(3)).toMap();
-		final Map<String, Object> request  = ((GraphObjectMap)result.get(4)).toMap();
-		final Map<String, Object> response = ((GraphObjectMap)result.get(5)).toMap();
-		final Map<String, Object> thisObj  = ((GraphObjectMap)result.get(6)).toMap();
-		final Map<String, Object> delete   = ((GraphObjectMap)result.get(7)).toMap();
-		final Map<String, Object> get      = ((GraphObjectMap)result.get(8)).toMap();
-		final Map<String, Object> head     = ((GraphObjectMap)result.get(9)).toMap();
+		final Map<String, Object> current  = ((GraphObjectMap)result.get(3)).toMap();
+		final Map<String, Object> locale   = ((GraphObjectMap)result.get(7)).toMap();
+		final Map<String, Object> me       = ((GraphObjectMap)result.get(8)).toMap();
+		final Map<String, Object> page     = ((GraphObjectMap)result.get(10)).toMap();
+		final Map<String, Object> request  = ((GraphObjectMap)result.get(12)).toMap();
+		final Map<String, Object> response = ((GraphObjectMap)result.get(13)).toMap();
+		final Map<String, Object> thisObj  = ((GraphObjectMap)result.get(15)).toMap();
+		final Map<String, Object> delete   = ((GraphObjectMap)result.get(16)).toMap();
+		final Map<String, Object> get      = ((GraphObjectMap)result.get(17)).toMap();
+		final Map<String, Object> head     = ((GraphObjectMap)result.get(18)).toMap();
 
 		assertEquals("Invalid autocomplete result", "current",                                          current.get("text"));
 		assertEquals("Invalid autocomplete result", "locale",                                           locale.get("text"));
