@@ -7,13 +7,13 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>5.0-rc1</version>
+		<version>5.0.0</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<groupId>org.structr</groupId>
 	<artifactId>structr-ui</artifactId>
-	<version>5.0-rc1</version>
+	<version>5.0.0</version>
 
 	<dependencies>
 		<dependency>
