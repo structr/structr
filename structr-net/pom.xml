@@ -4,12 +4,12 @@
 	<name>Structr Net</name>
 	<groupId>org.structr</groupId>
 	<artifactId>structr-net</artifactId>
-	<version>5.0-SNAPSHOT</version>
+	<version>5.1-SNAPSHOT</version>
 
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>5.0-SNAPSHOT</version>
+		<version>5.1-SNAPSHOT</version>
 	</parent>
 
 	<packaging>jar</packaging>
