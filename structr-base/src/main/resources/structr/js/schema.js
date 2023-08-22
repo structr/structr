@@ -2860,7 +2860,7 @@ let _Schema = {
 			],
 			addButtonText: 'Add view'
 		},
-		protectedViewsList: ['all', 'ui', 'custom'],
+		protectedViewsList: ['all', 'ui', 'custom'],	// not allowed to add/remove properties, but allowed to sort
 		isViewEditable: (view) => {
 			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
 		},
@@ -3026,12 +3026,9 @@ let _Schema = {
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				if (_Schema.views.isViewPropertiesChangeForbidden(view) !== true) {
-
-					selectElement.select2Sortable(() => {
-						_Schema.views.rowChanged(tr, entity, initialViewConfig);
-					});
-				}
+				selectElement.select2Sortable(() => {
+					_Schema.views.rowChanged(tr, entity, initialViewConfig);
+				});
 
 				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
 			});
@@ -3087,7 +3084,9 @@ let _Schema = {
 				removeAction.disabled = false;
 			}
 		},
-		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
+		appendPropertyForViewSelect: (viewSelectElem, view, prop) => {
+
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 
 			// never show internalEntityContextPath
 			if (prop.name !== 'internalEntityContextPath') {
@@ -3095,14 +3094,15 @@ let _Schema = {
 				let isSelected = prop.isSelected ? ' selected="selected"' : '';
 				let isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
 
-				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				if (viewIsEditable || prop.isSelected) {
+					viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				}
 			}
 		},
 		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
 			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = row.querySelector('.property-attrs');
-			viewSelectElem.disabled = !viewIsEditable;
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
@@ -3131,11 +3131,18 @@ let _Schema = {
 					search_contains: true,
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
 					closeOnSelect: false,
 					scrollAfterSelect: false,
 					dropdownParent: dropdownParent
 				});
+
+				if (!viewIsEditable) {
+					// prevent removal of elements for views that we consider "not editable"...
+					selectElement.on("select2:unselecting", function (e) {
+						e.preventDefault();
+					});
+				}
 
 				callback(selectElement);
 			});
@@ -5694,7 +5701,7 @@ let _Schema = {
 					<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 				</td>
 				<td class="centered actions-col">
-					${(_Schema.views.isViewEditable(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes'])) : ''}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
 
 					<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
