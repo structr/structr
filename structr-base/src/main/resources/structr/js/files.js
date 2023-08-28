@@ -1461,7 +1461,6 @@ let _Files = {
 			let saveFileAction = (callback) => {
 				_Files.updateTextFile(file, newText, callback);
 				initialText = newText;
-				toggleSaveButtons(true);
 			};
 
 			if (isTemplateCheckbox.checked) {
