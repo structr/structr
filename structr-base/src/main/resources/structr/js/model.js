@@ -19,9 +19,7 @@
 let StructrModel = {
 	objects: {},
 	callbacks: {},
-	obj: function(id) {
-		return StructrModel.objects[id];
-	},
+	obj: (id) => StructrModel.objects[id],
 
 	ensureObject: function(entity) {
 		if (!entity || entity.id === undefined) {
@@ -245,15 +243,11 @@ let StructrModel = {
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-			let refreshObj = function(obj, newProperties) {
-				Object.keys(newProperties).forEach(k => {
-					obj[k] = newProperties[k];
-				});
-				StructrModel.refresh(obj.id);
-			};
+			let callback = (newProperties) => {
 
-			let callback = function(newProperties) {
-				refreshObj(obj, newProperties);
+				Object.assign(obj, newProperties);
+				StructrModel.refresh(obj.id);
+
 				StructrModel.callCallback(data.callback, obj);
 			};
 
@@ -368,6 +362,9 @@ let StructrModel = {
 		let obj = StructrModel.obj(id);
 
 		if (obj) {
+
+			// let current module handle update (if it wants to)
+			Structr.getActiveModule().handleNodeRefresh?.(obj);
 
 			let element = Structr.node(id);
 
@@ -880,13 +877,10 @@ StructrElement.prototype.remove = function() {
 		}
 
 		if (element) {
-			// If element is removed from page tree, reload elements area
-			if (element.closest('#pages').length) {
-				_Pages.unattachedNodes.reload();
-			} else {
-				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
-				_Pages.previews.modelForPageUpdated(pageId);
-			}
+
+			// reload the unused elements (if open)
+			_Pages.unattachedNodes.reload();
+
 			_Helpers.fastRemoveElement(element[0]);
 		}
 
@@ -916,12 +910,10 @@ StructrElement.prototype.append = function(refId) {
 
 StructrElement.prototype.exists = function() {
 
-	var obj = this;
-
-	var hasChildren = obj.childrenIds && obj.childrenIds.length;
-	var isComponent = obj.syncedNodesIds && obj.syncedNodesIds.length;
-
-	var isMasterComponent = (isComponent && hasChildren);
+	let obj               = this;
+	let hasChildren       = obj.childrenIds && obj.childrenIds.length;
+	let isComponent       = obj.syncedNodesIds && obj.syncedNodesIds.length;
+	let isMasterComponent = (isComponent && hasChildren);
 
 	return !isMasterComponent && Structr.node(obj.id);
 };
@@ -987,13 +979,10 @@ StructrContent.prototype.remove = function() {
 		}
 
 		if (element) {
-			// If element is removed from page tree, reload elements area
-			if (element.closest('#pages').length) {
-				_Pages.unattachedNodes.reload();
-			} else {
-				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
-				_Pages.previews.modelForPageUpdated(pageId);
-			}
+
+			// reload the unused elements (if open)
+			_Pages.unattachedNodes.reload();
+
 			_Helpers.fastRemoveElement(element[0]);
 		}
 

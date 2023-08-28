@@ -35,7 +35,6 @@ let _Flows = {
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
 	init: () => {
 
-		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: () => {

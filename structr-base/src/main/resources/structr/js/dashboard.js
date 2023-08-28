@@ -22,7 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Dashboard = {
 	_moduleName: 'dashboard',
-	dashboard: undefined,
 	activeTabPrefixKey: 'activeDashboardTabPrefix' + location.port,
 
 	init: () => {},

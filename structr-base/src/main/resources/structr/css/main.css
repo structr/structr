@@ -123,6 +123,12 @@
 	--gray-opacity-80:   rgba(244,244,244, .8);
 	--cropper-outline:   rgba(129,206,37, .75);
 	--light-blue-20:     rgba(15, 80, 255, 0.2);
+
+	--hover-highlight-color-inactive:        rgba(153, 153, 153, .66);
+	--hover-highlight-color-active:          lawngreen;
+	--hover-node-background-highlight-color: lightyellow;
+
+	--striped-background: linear-gradient(135deg, var(--solid-white) 25%, var(--light-gray-delete-b3) 25%, var(--light-gray-delete-b3) 50%, var(--solid-white) 50%, var(--solid-white) 75%, var(--light-gray-delete-b3) 75%, var(--light-gray-delete-b3) 100%);
 }
 
 * {
@@ -1078,17 +1084,7 @@ img.disabled {
 }
 
 .content .content_ {
-	/*margin: 4px 0 -2px 0;*/
-	/*display: inline-block;
-	/*max-width: 75%;*/
 	font-weight: normal;
-	/*text-overflow: ellipsis;*/
-	/*overflow: hidden;*/
-	/*white-space: nowrap;*/
-}
-
-.content .content_:hover {
-	cursor: pointer;
 }
 
 span.id {
@@ -1096,13 +1092,11 @@ span.id {
 }
 
 .node {
-	/*color: var(--gray-333);*/
-	/*line-height: 1.25em;*/
-	/*border: 1px solid transparent;*/
-	/*padding: 2px 2px 2px 4px;*/
-	/*margin: 0 0 0 1rem;*/
-	position: relative;
 	white-space: nowrap;
+}
+
+.node-container {
+	position: relative;
 }
 
 .active-element b:hover,
@@ -1227,7 +1221,7 @@ span.id {
 .tile .icons-container {
 	position: absolute;
 	right: 0;
-	bottom: 1rem;
+	bottom: .375rem;
 	top: initial;
 }
 
@@ -1254,18 +1248,22 @@ span.id {
 	display: inline-block;
 }
 
-.node-selector:hover, .node-selector.active {
-	pointer-events: none;
+.node .node-container.node-selected {
 	background-color: var(--structr-light-green-transparent);
-	position: absolute;
-	/*padding: .1rem 0 .1rem .1rem;*/
-	height: 2rem;
-	width: 100%;
-	z-index: 0;
-	top: 0;
-	left: 0;
-	border: none;
 }
+
+/*.node-selector:hover, .node-selector.active {*/
+/*	pointer-events: none;*/
+/*	background-color: var(--structr-light-green-transparent);*/
+/*	position: absolute;*/
+/*	!*padding: .1rem 0 .1rem .1rem;*!*/
+/*	height: 2rem;*/
+/*	width: 100%;*/
+/*	z-index: 0;*/
+/*	top: 0;*/
+/*	left: 0;*/
+/*	border: none;*/
+/*}*/
 
 #add_type {
 	position: absolute;
@@ -1278,7 +1276,9 @@ i.button {
 	cursor: pointer;
 }
 
-.nodeHover, .nodeActive, #graph-canvas .node {
+.nodeHover,
+.nodeActive,
+#graph-canvas .node {
 	color: var(--gray-333) ! important;
 	background-color: var(--light-gray-bg-f3);
 }
@@ -1428,10 +1428,11 @@ button.action.disabled:hover {
 }
 
 .schema-props .to-delete {
-	background-image: linear-gradient(135deg, var(--solid-white) 25%, var(--light-gray-delete-b3) 25%, var(--light-gray-delete-b3) 50%, var(--solid-white) 50%, var(--solid-white) 75%, var(--light-gray-delete-b3) 75%, var(--light-gray-delete-b3) 100%);
+	background-image: var(--striped-background);
 	background-size: 20px 20px;
 }
 
+/* attribute with changes and to-delete flag */
 .actions.schema-props .fake-tr.editing.to-delete {
 	background-image: linear-gradient(135deg, var(--very-light-structr-green) 25%, var(--light-gray-delete-b3) 25%, var(--light-gray-delete-b3) 50%, var(--very-light-structr-green) 50%, var(--very-light-structr-green) 75%, var(--light-gray-delete-b3) 75%, var(--light-gray-delete-b3) 100%);
 	background-size: 20px 20px;
@@ -2125,13 +2126,13 @@ th.center {
 	min-height: 17rem;
 	display: inline-block;
 	vertical-align: text-top;
-    	border-radius: .5rem;
+	border-radius: .5rem;
 }
 
 .app-tile:hover {
-    background-color: var(--light-gray-bg-f3);
-    box-shadow: 0 0 1rem var(--black-opacity-125);
-    cursor: pointer;
+	background-color: var(--light-gray-bg-f3);
+	box-shadow: 0 0 1rem var(--black-opacity-125);
+	cursor: pointer;
 }
 
 .app-tile img {
@@ -3319,7 +3320,7 @@ span.context-help-text {
 	display: none;
 	background: var(--light-gray-bg-f3);
 	border: 1px solid var(--gray-777);
-	padding: 4px 10px;
+	padding: .25rem .75rem;
 	max-width: 250px;
 	white-space: normal;
 	font-weight: normal;
@@ -4156,6 +4157,18 @@ ul.combined-input-select-field li:hover {
 }
 .mb-8 {
 	margin-bottom: 2rem;
+}
+.mx-2 {
+	margin-left: .5rem;
+	margin-right: .5rem;
+}
+.mx-4 {
+	margin-left: 1rem;
+	margin-right: 1rem;
+}
+.mx-8 {
+	margin-left: 2rem;
+	margin-right: 2rem;
 }
 .my-2 {
 	margin-top: .5rem;

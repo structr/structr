@@ -65,15 +65,50 @@
 }
 
 #pages .node.page {
-	/*width: calc(100% - 2rem);*/
 	margin-left: 1rem;
 }
 
-#pages .node.page:hover,
+/* start dragndrop classes in pages */
+#pages .node:hover,
 #componentsArea .node:hover,
 #localizations .node:not(.schema):hover {
 	cursor: pointer;
 }
+
+.node > div.before-node,
+.node > div.after-node {
+	display: none;
+	height: .5rem;
+}
+
+.node.drag-over > .node-container:not(.page):not(.drop-not-possible) {
+	border-left: .5rem solid var(--hover-highlight-color-inactive);
+}
+
+.node.drag-over > .node-container:not(.page):not(.drop-not-possible).drag-hover {
+	border-left: .5rem solid var(--hover-highlight-color-active);
+}
+
+.node.show-drop-target-before > div.before-node,
+.node.show-drop-target-after > div.after-node {
+	display: block;
+	background: var(--hover-highlight-color-inactive);
+}
+
+.node.show-drop-target-before > div.before-node.drag-over,
+.node.show-drop-target-after > div.after-node.drag-over {
+	background: var(--hover-highlight-color-active);
+}
+
+.node-container.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+
+.node.drag-background-node-highlight {
+	background: var(--hover-node-background-highlight-color);
+}
+/* end dragndrop classes in pages */
 
 .previewBox {
 	background: var(--solid-white);
@@ -120,12 +155,7 @@
 }
 
 #pagesTree .node.nodeSelected {
-	/*background-color: var(--structr-green);*/
 	background-color: var(--structr-light-green);
-}
-
-#pagesTree .node.nodeHover {
-	/*background-color: var(--structr-light-green-3);*/
 }
 
 /**

@@ -147,7 +147,7 @@
 	text-align: center;
 }
 
-.flex-grow.textarea-is-scrolled::after {
+.textarea-is-scrolled::after {
 	content: "//";
 	position: relative;
 	top: -5px;

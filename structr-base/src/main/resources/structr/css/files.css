@@ -30,12 +30,6 @@
 	min-width: 100px;
 }
 
-#folder-contents .tile {
-	display: inline-block;
-	text-align: center;
-	position: relative;
-}
-
 #folder-contents .tile .node {
 	width: 100px;
 	height: 100px;
@@ -47,9 +41,8 @@
 }
 
 #folder-contents .tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
 	height: 48px;
+	margin-top: .25rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -57,8 +50,6 @@
 }
 
 #folder-contents .img-tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
 	height: 296px;
 	display: flex;
 	align-items: center;
@@ -87,8 +78,8 @@
 }
 
 #folder-contents .img-tile img.tn {
-	max-width: 296px;
-	max-height: 296px;
+	max-width: 220px;
+	max-height: 220px;
 }
 
 #folder-contents table th, #contents-contents table th {
@@ -108,8 +99,14 @@
 	display: none;
 }
 
-#folder-contents tr[id]:hover {
+#folder-contents tr[id]:hover,
+#folder-contents .tile:hover {
 	background-color: var(--light-gray-bg-f3) ! important;
+}
+
+#folder-contents tr[id]:hover .node-action-icon,
+#folder-contents .tile:hover .node-action-icon {
+	display: inline-block;
 }
 
 #folder-contents .nodeActive {
@@ -196,10 +193,6 @@
 	text-align: left;
 	padding-left: 1rem;
 	height: 2rem;
-}
-
-#files-table tr#parent-file-link {
-	cursor: pointer;
 }
 
 #files-table td a {
@@ -375,3 +368,30 @@ div#xml-configurations button {
 	padding-left: 8px;
 	margin: 0 0 0 12px;
 }
+
+
+/* start dragndrop classes in files */
+.node:hover {
+	cursor: pointer;
+}
+
+.node.drag-over:not(.drop-not-possible) {
+}
+.node.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active);
+}
+
+.node.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+
+.jstree-default .jstree-wholerow.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active) ! important;
+}
+
+.jstree-default .jstree-wholerow.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+/* end dragndrop classes in files */

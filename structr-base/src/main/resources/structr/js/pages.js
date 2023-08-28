@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Pages = {
 	_moduleName: 'pages',
-	autoRefresh: [],
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
@@ -479,7 +478,6 @@ let _Pages = {
 						_Elements.unselectEntity();
 					}
 				});
-
 			}
 
 			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
@@ -1191,7 +1189,6 @@ let _Pages = {
 		_Pages.pagesTree.append(`
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-container flex items-center">
-					<div class="node-selector"></div>
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
@@ -1206,7 +1203,7 @@ let _Pages = {
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.makeSortable(div);
+		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
@@ -1216,8 +1213,6 @@ let _Pages = {
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.setMouseOver(div);
-
-		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
@@ -1275,9 +1270,6 @@ let _Pages = {
 		if (!div) {
 			return false;
 		}
-
-		_Dragndrop.makeDroppable(div);
-		_Dragndrop.makeSortable(div);
 
 		return div;
 	},
@@ -2290,7 +2282,6 @@ let _Pages = {
 			let div = _Helpers.createSingleDOMElementFromHTML(`
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
-						<div class="node-selector"></div>
 						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity)}</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -2549,8 +2540,6 @@ let _Pages = {
 					var el = $(element);
 
 					//element.addEventListener('click', () => { _Elements.contextMenu.remove(); });
-
-//					_Dragndrop.makeDroppable(el, highlightElementId);
 
 					var structrId = el.attr('data-structr-id');
 					if (structrId) {
@@ -3190,7 +3179,7 @@ let _Pages = {
 				// clear UI in Pages tree
 				_Entities.selectedObject = null;
 				_Entities.deselectAllElements();
-				_Entities.removeActiveNodeClassFromAllNodes();
+				_Entities.removeSelectedNodeClassFromAllNodes();
 
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
 				document.querySelector('a[href="#pages:preview"]').click();
@@ -3281,7 +3270,8 @@ let _Pages = {
 	},
 
 	sharedComponents: {
-		reload: (isDragOpen = false) => {
+		allowDropClass: 'allow-drop',
+		reload: (isReloadFromDragEvent = false) => {
 
 			if (!_Pages.componentsSlideout) return;
 
@@ -3289,7 +3279,7 @@ let _Pages = {
 
 				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
 
-				_Pages.componentsSlideout.append(`
+				_Pages.componentsSlideout[0].insertAdjacentHTML('beforeend', `
 					<div id="newComponentDropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
@@ -3297,54 +3287,25 @@ let _Pages = {
 							Drop element here to create a new shared component
 						</div>
 					</div>
+					<div id="componentsArea"></div>
 				`);
-				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
-				if (isDragOpen === true) {
+				if (isReloadFromDragEvent === true) {
 					_Pages.sharedComponents.highlightNewSharedComponentDropZone();
 				}
 
-				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
-				_Pages.components = $('#componentsArea', _Pages.componentsSlideout);
+				_Dragndrop.pages.enableNewSharedComponentDropzone();
 
-				newComponentDropzone.droppable({
-					drop: function(e, ui) {
-						e.preventDefault();
-						e.stopPropagation();
-
-						if (ui.draggable.hasClass('widget')) {
-							// special treatment for widgets dragged to the shared components area
-
-						} else {
-							// Create shadow page if not existing
-							Structr.ensureShadowPageExists().then(() => {
-								_Pages.sharedComponents.createNew(ui);
-							});
-						}
-					}
-				});
-
-				_Dragndrop.makeSortable(_Pages.components);
-
-				_Elements.appendEntitiesToDOMElement(result, _Pages.components);
+				_Elements.appendEntitiesToDOMElement(result, $('#componentsArea', _Pages.componentsSlideout));
 
 				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
-		createNew: (el) => {
+		createNew: (sourceId) => {
 
 			_Elements.dropBlocked = true;
 
-			let sourceEl = $(el.draggable);
-			let sourceId = Structr.getId(sourceEl);
-
 			if (!sourceId) {
-				return false;
-			}
-
-			let obj = StructrModel.obj(sourceId);
-
-			if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
 				return false;
 			}
 
@@ -3352,8 +3313,20 @@ let _Pages = {
 
 			_Elements.dropBlocked = false;
 		},
+		getNewSharedComponentDropzone: () => {
+			return document.querySelector('#newComponentDropzone');
+		},
+		isNodeInSharedComponents: (node) => {
+			return (node.closest('#componentsArea') !== null);
+		},
 		highlightNewSharedComponentDropZone: () => {
-			$('.element-dropzone').addClass("allow-drop");
+			_Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.add(_Pages.sharedComponents.allowDropClass);
+		},
+		unhighlightNewSharedComponentDropZone: () => {
+			_Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.remove(_Pages.sharedComponents.allowDropClass);
+		},
+		isDropAllowed: () => {
+			return _Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.contains(_Pages.sharedComponents.allowDropClass) ?? false;
 		}
 	},
 
@@ -3373,25 +3346,28 @@ let _Pages = {
 				let deleteUnattachedNodesButton = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
+
 					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
 					if (confirm === true) {
+
 						Command.deleteUnattachedNodes();
 
 						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 					}
 				});
 
-				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
-
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
 					let count = result.length;
 					if (count > 0) {
+
 						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
 						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
+
 					} else {
+
 						deleteUnattachedNodesButton.textContent = 'No unused elements';
 						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}

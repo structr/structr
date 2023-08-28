@@ -85,6 +85,12 @@ let _Widgets = {
 
 		return elements;
 	},
+	toggleWidgetGroupVisibility: (e) => {
+
+		let tabGroup = e.target.closest('.tab-group');
+		tabGroup.classList.toggle('collapsed');
+		LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
+	},
 	reloadWidgets: () => {
 
 		_Helpers.fastRemoveAllChildren(_Pages.widgetsSlideout[0]);
@@ -97,17 +103,12 @@ let _Widgets = {
 		_Pages.widgetsSlideout.append(_Widgets.templates.slideout(templateConfig));
 
 		for (let toggleLink of _Pages.widgetsSlideout[0].querySelectorAll('a.tab-group-toggle')) {
-
-			toggleLink.addEventListener('click', function(event) {
-				let tabGroup = event.target.closest('.tab-group');
-				tabGroup.classList.toggle('collapsed');
-				LSWrapper.setItem(tabGroup.dataset.key, tabGroup.classList.contains('collapsed'));
-			});
+			toggleLink.onclick = _Widgets.toggleWidgetGroupVisibility;
 		}
 
 		_Widgets.localWidgetsEl = $('#widgets', _Pages.widgetsSlideout);
 
-		$('.add_widgets_icon', _Pages.widgetsSlideout).on('click', function(e) {
+		_Pages.widgetsSlideout[0].querySelector('.add_widgets_icon').addEventListener('click', (e) => {
 			e.preventDefault();
 			Command.create({ type: 'Widget' });
 		});
@@ -122,13 +123,27 @@ let _Widgets = {
 
 				if (sourceWidget && sourceWidget.isWidget) {
 
+					// drop widget from remote widgets
+
 					if (sourceWidget.treePath) {
-						Command.create({ type: 'Widget', name: sourceWidget.name + ' (copied)', source: sourceWidget.source, description: sourceWidget.description, configuration: sourceWidget.configuration }, (entity) => {
+						let copiedRemoteWidget = {
+							type: 'Widget',
+							name: `${sourceWidget.name} (copied)`,
+							source: sourceWidget.source,
+							description: sourceWidget.description,
+							configuration: sourceWidget.configuration,
+							svgIconPath: sourceWidget.svgIconPath,
+							// treePath: sourceWidget.treePath
+						};
+
+						Command.create(copiedRemoteWidget, (entity) => {
 							_Elements.dropBlocked = false;
 						});
 					}
 
 				} else if (sourceId) {
+
+					// Drop widget from local DOM element
 
 					fetch(`${Structr.viewRootUrl}${sourceId}?${Structr.getRequestParameterName('edit')}=1`).then(async response => {
 
@@ -136,7 +151,7 @@ let _Widgets = {
 
 							let text = await response.text();
 
-							Command.createLocalWidget(sourceId, 'New Widget (' + sourceId + ')', text, (entity) => {
+							Command.createLocalWidget(sourceId, `New Widget (${sourceId})`, text, (entity) => {
 								_Elements.dropBlocked = false;
 							});
 						}
@@ -408,23 +423,15 @@ let _Widgets = {
 		if (!div) {
 
 			parent.append(`
-				<div id="id_${widget.id}" class="widget p-2 hover:icon-active">
-					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}">
+				<div id="id_${widget.id}" class="widget p-2 hover:icon-active" draggable="true">
+					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}" draggable="false">
 					<span title="${_Helpers.escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow mt-4">${widget.name}</span>
 				</div>
 			`);
 			div = Structr.node(widget.id);
 		}
 
-		div.draggable({
-			iframeFix: true,
-			revert: 'invalid',
-			containment: 'body',
-			helper: 'clone',
-			appendTo: '#main',
-			stack: '.node',
-			zIndex: 99
-		});
+		_Dragndrop.enableDraggable(widget, div[0], _Dragndrop.dropActions.widget, false);
 
 		_Entities.setMouseOver(div, false);
 
@@ -755,6 +762,7 @@ let _Widgets = {
 			}
 
 		} else {
+
 			new WarningMessage().text("Ignoring empty Widget").show();
 		}
 	},

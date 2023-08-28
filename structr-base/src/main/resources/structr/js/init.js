@@ -17,6 +17,8 @@
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+const globalFinalizationRegistry = new FinalizationRegistry(message => console.log('finalized: ' + message));
+
 document.addEventListener("DOMContentLoaded", () => {
 
 	document.body.innerHTML = Structr.templates.mainBody();
@@ -703,41 +705,6 @@ let Structr = {
 		}
 
 		return entity;
-	},
-	makePagesMenuDroppable: () => {
-
-		try {
-			$('#pages_').droppable('destroy');
-		} catch (err) {
-			// console.log(err);
-		}
-
-		$('#pages_').droppable({
-			accept: '.element, .content, .component, .file, .image, .widget',
-			greedy: true,
-			hoverClass: 'nodeHover',
-			tolerance: 'pointer',
-			over: function(e, ui) {
-
-				e.stopPropagation();
-				$('a#pages_').droppable('disable');
-
-				Structr.mainMenu.activateEntry('pages');
-				window.location.href = '/structr/#pages';
-
-				if (_Files.filesMain && _Files.filesMain.length) {
-					_Files.filesMain.hide();
-				}
-				if (_Widgets.widgets && _Widgets.widgets.length) {
-					_Widgets.widgets.hide();
-				}
-
-				Structr.modules['pages'].onload();
-				Structr.adaptUiToAvailableFeatures();
-				Structr.resize();
-				$('a#pages_').removeClass('nodeHover').droppable('enable');
-			}
-		});
 	},
 	slideouts: {
 		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
@@ -2024,7 +1991,7 @@ let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {
 
 		let initializedTree = $(tree).jstree({
-			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			plugins: ["themes", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
 				async: true,
@@ -2201,20 +2168,23 @@ let _TreeHelper = {
 
 		return n?.state.opened;
 	},
-	makeDroppable: function(tree, list) {
-		window.setTimeout(() => {
-			list.forEach((obj) => {
-				// only load data necessary for dnd. prevent from loading the complete folder (with its files)
-				Command.get(obj.id, 'id,type,isFolder', (data) => {
-					StructrModel.createOrUpdateFromData(data, null, false);
-					_TreeHelper.makeTreeElementDroppable(tree, obj.id);
-				});
-			});
-		}, 500);
-	},
-	makeTreeElementDroppable: function(tree, id) {
-		let el = $('#' + id + ' > .jstree-wholerow', tree);
-		_Dragndrop.makeDroppable(el);
+	makeAllTreeElementsDroppable: (tree, dragndropFunction) => {
+
+		for (let node of tree[0].querySelectorAll('.jstree-node:not(.has-drop-behavior)')) {
+
+			// TODO: ids starting with digits are not allowed, rewriting this to vanilla will hurt (for every tree)
+			let el = $('#' + node.id, tree);
+
+			let modelObj = StructrModel.obj(node.id);
+
+			if (modelObj) {
+				dragndropFunction?.(modelObj, el[0]);
+			} else {
+				dragndropFunction?.({ id: node.id, type: 'fake' }, el[0]);
+			}
+
+			el[0].classList.add('has-drop-behavior');
+		}
 	}
 };
 
@@ -2466,31 +2436,31 @@ class MessageBuilder {
 	getUniqueCountElement() {
 		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
-};
+}
 
 class SuccessMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.success);
 	}
-};
+}
 
 class WarningMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.warning);
 	}
-};
+}
 
 class InfoMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.info);
 	}
-};
+}
 
 class ErrorMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.error);
 	}
-};
+}
 
 let UISettings = {
 	getValueForSetting: (setting) => {

@@ -541,16 +541,20 @@ let Command = {
 	 * to the new one.
 	 *
 	 */
-	appendChild: function(id, parentId, key, callback) {
-		let obj = {
-			command: 'APPEND_CHILD',
-			id: id,
-			data: {
-				parentId: parentId,
-				key: key
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
+	appendChild: async (id, parentId, key, callback) => {
+
+		return new Promise((resolve => {
+			let obj = {
+				command: 'APPEND_CHILD',
+				id: id,
+				data: {
+					parentId: parentId,
+					key: key
+				}
+			};
+
+			return StructrWS.sendObj(obj, resolve);
+		}));
 	},
 	/**
 	 * Send an APPEND_WIDGET command to the server.
@@ -621,27 +625,53 @@ let Command = {
 		};
 		return StructrWS.sendObj(obj, callback);
 	},
+	// /**
+	//  * Send an INSERT_BEFORE command to the server.
+	//  *
+	//  * The server will insert the DOM node with the given id
+	//  * after the node with the given refId as child of the node
+	//  * with the given parentId.
+	//  *
+	//  * If the node was in the tree before, it will be
+	//  * removed from the former parent before being inserted.
+	//  *
+	//  */
+	// insertBefore: function(parentId, id, refId) {
+	// 	let obj = {
+	// 		command: 'INSERT_BEFORE',
+	// 		id: id,
+	// 		data: {
+	// 			refId: refId,
+	// 			parentId: parentId
+	// 		}
+	// 	};
+	// 	return StructrWS.sendObj(obj);
+	// },
 	/**
-	 * Send an INSERT_BEFORE command to the server.
+	 * Send an INSERT_RELATIVE_TO_DOM_NODE command to the server.
 	 *
 	 * The server will insert the DOM node with the given id
-	 * after the node with the given refId as child of the node
-	 * with the given parentId.
+	 * relative to the node with the given refId.
 	 *
 	 * If the node was in the tree before, it will be
 	 * removed from the former parent before being inserted.
-	 *
 	 */
-	insertBefore: function(parentId, id, refId) {
-		let obj = {
-			command: 'INSERT_BEFORE',
-			id: id,
-			data: {
-				refId: refId,
-				parentId: parentId
-			}
-		};
-		return StructrWS.sendObj(obj);
+	insertRelative: async (id, parentId, refId, relativePosition) => {
+
+		return new Promise(((resolve, reject) => {
+
+			let obj = {
+				command: 'INSERT_RELATIVE_TO_DOM_NODE',
+				id: id,
+				data: {
+					refId: refId,
+					parentId: parentId,
+					relativePosition: relativePosition
+				}
+			};
+
+			StructrWS.sendObj(obj, resolve);
+		}));
 	},
 	/**
 	 * Send a CREATE_AND_ADD_DOM_ELEMENT command to the server.
@@ -765,15 +795,22 @@ let Command = {
 	 * and append it to a the parent with given parentId.
 	 *
 	 */
-	cloneComponent: function(id, parentId, callback) {
-		let obj = {
-			command: 'CLONE_COMPONENT',
-			id: id,
-			data: {
-				parentId: parentId
-			}
-		};
-		return StructrWS.sendObj(obj, callback);
+	cloneComponent: async (id, parentId, refId, relativePosition) => {
+
+		return new Promise(((resolve) => {
+
+			let obj = {
+				command: 'CLONE_COMPONENT',
+				id: id,
+				data: {
+					parentId: parentId,
+					refId: refId,
+					relativePosition: relativePosition
+				}
+			};
+
+			return StructrWS.sendObj(obj, resolve);
+		}));
 	},
 	/**
 	 * Send a REPLACE_TEMPLATE command to the server.
@@ -815,17 +852,27 @@ let Command = {
 	 * The server will clone the DOM node with the given id
 	 * and append it to a the parent with given parentId.
 	 *
+	 * NEW: The server will clone the DOM node with the given id
+	 * after the node with the given refId as child of the node
+	 * with the given parentId.
 	 */
-	cloneNode: function(id, parentId, deep) {
-		let obj = {
-			command: 'CLONE_NODE',
-			id: id,
-			data: {
-				parentId: parentId,
-				deep: deep
-			}
-		};
-		return StructrWS.sendObj(obj);
+	cloneNode: async (id, parentId, deep, refId, relativePosition) => {
+
+		return new Promise((resolve => {
+
+			let obj = {
+				command: 'CLONE_NODE',
+				id: id,
+				data: {
+					parentId: parentId,
+					deep: deep,
+					refId: refId,
+					relativePosition: relativePosition
+				}
+			};
+
+			return StructrWS.sendObj(obj, resolve);
+		}));
 	},
 	/**
 	 * Send a SYNC_MODE command to the server.

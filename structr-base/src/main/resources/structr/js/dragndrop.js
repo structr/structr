@@ -51,9 +51,8 @@ let _Dragndrop = {
 				let sourceId = Structr.getId(ui.draggable) || Structr.getComponentId(ui.draggable);
 				let targetId = Structr.getId(self.hasClass('node-container') ? self.parent() : self);
 
-				//console.log(self, self.closest('.nodeHover'));
-
 				if (self.hasClass('jstree-wholerow')) {
+
 					targetId = self.parent().prop('id');
 
 					if (targetId === 'root') {
@@ -131,14 +130,8 @@ let _Dragndrop = {
 				if (target.isContent && target.type !== 'Template' && _Helpers.isIn(tag, _Elements.voidAttrs)) {
 					return false;
 				}
-
-				if (_Dragndrop.dropAction(source, target, pageId, tag, related)) {
-					$(ui.draggable).remove();
-					_Dragndrop.sortParent = undefined;
-				}
 			},
 			over: function (e, ui) {
-
 				$('.node-container').removeClass('nodeHover');
 				$(this).children('.node-container').addClass('nodeHover');
 			},
@@ -146,192 +139,6 @@ let _Dragndrop = {
 				$('.node-container').removeClass('nodeHover');
 			}
 		});
-	},
-	makeSortable: (element) => {
-		let el = $(element);
-
-		let sortableOptions = {
-			iframeFix: true,
-			appendTo: '#main',
-			forceHelperSize: true,
-			forcePlaceholderSize: true,
-			placeholder: 'pages-sortable-placeholder',
-			distance: 5,
-			items: '> .node',
-			helper: function (event, helperEl) {
-
-				_Pages.pagesTree.append('<div id="collapse-offset"></div>');
-
-				$('#collapse-offset', _Pages.pagesTree).css('height', helperEl.height() - 17);
-				helperEl.css({height: '2rem'});
-
-				let hlp = helperEl.clone();
-				hlp.find('.node').remove();
-
-				// toggle expand icon in helper (only from expanded to collapsed)
-				hlp.find('.expand_icon_svg').removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
-				return hlp;
-			},
-			zIndex: 99,
-			containment: 'body',
-			start: function(event, ui) {
-
-				_Dragndrop.sorting    = true;
-				_Dragndrop.sortParent = $(ui.item).parent();
-
-				Structr.currentlyActiveSortable = el;
-
-				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
-			},
-			update: function(event, ui) {
-
-				let el = $(ui.item);
-				if (!_Dragndrop.sorting) {
-					return false;
-				}
-
-				let id = Structr.getId(el);
-				if (!id) {
-					id = Structr.getComponentId(el);
-				}
-
-				let nextNode = el.next('.node');
-				let refId = Structr.getId(nextNode);
-				if (!refId) {
-					refId = Structr.getComponentId(nextNode);
-				}
-
-				let parentId = Structr.getId(_Dragndrop.sortParent);
-				el.remove();
-
-				_Dragndrop.storeTemporarilyRemovedElementUUID(id);
-
-				Command.insertBefore(parentId, id, refId);
-
-				_Dragndrop.clearTemporarilyRemovedElementUUID();
-
-				_Dragndrop.sorting    = false;
-				_Dragndrop.sortParent = undefined;
-				$('#collapse-offset', _Pages.pagesTree).remove();
-
-				Structr.currentlyActiveSortable = undefined;
-			},
-			stop: function(event, ui) {
-				$('.element-dropzone').removeClass("allow-drop");
-				_Dragndrop.sorting = false;
-				_Entities.resetMouseOverState(ui.item);
-				$(event.toElement).one('click', function(e) {
-					e.stopImmediatePropagation();
-				});
-				$(ui.item).css({height: ''});
-				$('#collapse-offset', _Pages.pagesTree).remove();
-
-				Structr.currentlyActiveSortable = undefined;
-			}
-		};
-
-		el.sortable(sortableOptions).disableSelection();
-	},
-	/**
-	 * Define what happens when a source object is dropped onto
-	 * a target object in the given page.
-	 *
-	 * The optional tag is used to create new elements if the source object
-	 * is undefined. This is the case if an element was dragged from the
-	 * HTML elements palette.
-	 */
-	dropAction: (source, target, pageId, tag, related) => {
-
-		if (source && pageId && source.pageId && pageId !== source.pageId) {
-
-			if (_Pages.shadowPage && source.pageId === _Pages.shadowPage.id) {
-
-				Command.cloneComponent(source.id, target.id);
-
-			} else if (source.pageId !== target.pageId) {
-
-				Command.cloneNode(source.id, target.id, true);
-
-			} else {
-
-				Command.appendChild(source.id, target.id, pageId);
-			}
-
-			return false;
-		}
-
-		// element dropped on itself?
-		if (source && target && (source.id === target.id)) {
-			return false;
-		}
-
-		if (source && source.isWidget) {
-			return _Dragndrop.widgetDropped(source, target, pageId);
-		}
-
-		if (Structr.isModuleActive(_Pages) && source && source.isImage) {
-			return _Dragndrop.imageDropped(source, target, pageId);
-		}
-
-		if (source && (source.isFile || source.isFolder)) {
-			return _Dragndrop.fileDropped(source, target, pageId);
-		}
-
-		if (source && (source.isContentItem || source.isContentContainer)) {
-			return _Dragndrop.contentItemDropped(source, target);
-		}
-
-		if (!source && tag) {
-
-			if (tag.indexOf('.') !== -1) {
-
-				Command.get(target.id, 'id,children', function(target) {
-					let firstContentId = target.children[0].id;
-					if (related) {
-						let key = tag.substring(tag.indexOf('.') + 1);
-
-						if (related.isCollection) {
-							Command.setProperty(firstContentId, 'content', '${' + key + '.' + related.subKey + '}');
-							Command.setProperty(firstContentId, 'dataKey', key);
-							$('#dataKey_').val(key);
-						} else {
-							Command.setProperty(firstContentId, 'content', '${' + tag + '.' + related.subKey + '}');
-							Command.setProperty(firstContentId, 'dataKey', null);
-							$('#dataKey_').val('');
-						}
-					} else {
-						Command.setProperty(firstContentId, 'content', '${' + tag + '}');
-						Command.setProperty(firstContentId, 'dataKey', null);
-						$('#dataKey_').val('');
-					}
-				});
-
-			} else if (tag.indexOf(':') !== -1) {
-				let type = tag.substring(1);
-				Command.setProperty(target.id, 'restQuery', type);
-				Command.setProperty(target.id, 'dataKey', type.toLowerCase(), false, function() {
-//					_Pages.reloadPreviews();
-// 					console.log('reload preview?');
-				});
-			}
-
-		} else {
-
-			tag = target.tag;
-
-			if (source && target && source.id && target.id) {
-
-				_Dragndrop.sorting = false;
-
-				_Dragndrop.storeTemporarilyRemovedElementUUID(source.id);
-
-				Command.appendChild(source.id, target.id, undefined, () => {
-					_Dragndrop.temporarilyRemovedElementUUID = undefined;
-				});
-
-				return true;
-			}
-		}
 	},
 	getAdditionalDataForElementCreation: (tag, parentTag) => {
 		let nodeData = {};
@@ -373,77 +180,6 @@ let _Dragndrop = {
 		}
 		return nodeData;
 	},
-	widgetDropped: function(source, target, pageId) {
-
-		Structr.makePagesMenuDroppable();
-
-		_Widgets.insertWidgetIntoPage(source, target, pageId);
-	},
-	fileDropped: (source, target, pageId) => {
-
-		if (!pageId) {
-
-			_Files.handleMoveObjectsAction(target.id, source.id);
-
-			return true;
-
-		} else {
-
-			let nodeData  = {}, tag;
-			let name      = source.name;
-			let parentTag = target.tag;
-
-			nodeData.linkableId = source.id;
-
-			if (parentTag === 'head') {
-
-				if (name.endsWith('.css')) {
-
-					tag = 'link';
-					nodeData._html_href = '${link.path}?${link.version}';
-					nodeData._html_type = 'text/css';
-					nodeData._html_rel = 'stylesheet';
-					nodeData._html_media = 'screen';
-
-				} else if (name.endsWith('.js')) {
-
-					tag = 'script';
-					nodeData._html_src = '${link.path}?${link.version}';
-				}
-
-			} else {
-
-				nodeData._html_href = '${link.path}';
-				nodeData._html_title = '${link.name}';
-				nodeData.childContent = '${parent.link.name}';
-				tag = 'a';
-			}
-			source.id = undefined;
-
-			Structr.modules['files'].unload();
-			Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
-
-			return true;
-		}
-	},
-	imageDropped: function(source, target, pageId) {
-
-		let nodeData = {}, tag;
-		nodeData._html_src = '${link.path}?${link.version}';
-		nodeData.linkableId = source.id;
-		tag = 'img';
-
-		Structr.modules['files'].unload();
-		Command.createAndAppendDOMNode(pageId, target.id, tag, nodeData);
-
-		return true;
-	},
-	contentItemDropped: (source, target) => {
-
-		_Contents.handleMoveObjectsAction(target.id, source.id);
-
-		return true;
-	},
 
 
 	/**
@@ -461,5 +197,836 @@ let _Dragndrop = {
 		window.setTimeout(() => {
 			_Dragndrop.temporarilyRemovedElementUUID = undefined;
 		}, 1000);
+	},
+
+
+
+	// drag temp data
+	dragActive: false,
+	dragEntity: undefined,
+	dragElementDropCallback: undefined,
+	showRelativeDropTargets: true,
+
+	cssClasses: {
+		// functionaliy classes
+		dragOverClass:                 'drag-over',
+		dragNodeHoverClass:            'drag-hover',
+		dragNodeDropNotPossibleClass:  'drop-not-possible',
+		dragShowDropTargetBeforeClass: 'show-drop-target-before',
+		dragShowDropTargetAfterClass:  'show-drop-target-after',
+
+		// node background classes
+		backgroundNodeHighlight: 'drag-background-node-highlight',
+		backgroundDropForbidden: 'drag-background-drop-forbidden'
+	},
+	dragNDropEnded: () => {
+
+		_Dragndrop.clearDragNDropClasses();
+
+		_Dragndrop.dragActive              = false;
+		_Dragndrop.dragEntity              = undefined;
+		_Dragndrop.dragElementDropCallback = undefined;
+		_Dragndrop.showRelativeDropTargets = true;
+	},
+	clearDragNDropClasses: () => {
+
+		for (let overNode of document.querySelectorAll(`.${_Dragndrop.cssClasses.dragOverClass}`)) {
+			overNode.classList.remove(_Dragndrop.cssClasses.dragOverClass);
+		}
+
+		for (let showRelativeDropTargetNode of document.querySelectorAll(`.${_Dragndrop.cssClasses.dragShowDropTargetBeforeClass}`)) {
+			showRelativeDropTargetNode.classList.remove(_Dragndrop.cssClasses.dragShowDropTargetBeforeClass);
+		}
+
+		for (let showRelativeDropTargetNode of document.querySelectorAll(`.${_Dragndrop.cssClasses.dragShowDropTargetAfterClass}`)) {
+			showRelativeDropTargetNode.classList.remove(_Dragndrop.cssClasses.dragShowDropTargetAfterClass);
+		}
+
+		for (let dropNotPossibleNode of document.querySelectorAll(`.${_Dragndrop.cssClasses.dragNodeDropNotPossibleClass}`)) {
+			dropNotPossibleNode.classList.remove(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+		}
+
+		_Dragndrop.clearDragHover();
+
+		_Dragndrop.removeBackgroundClasses();
+	},
+	removeBackgroundClasses: () => {
+
+		for (let element of document.querySelectorAll(`.${_Dragndrop.cssClasses.backgroundNodeHighlight}, .${_Dragndrop.cssClasses.backgroundDropForbidden}`)) {
+			_Dragndrop.removeBackgroundFromNode(element);
+		}
+	},
+	removeBackgroundFromNode: (node) => {
+
+		node.classList.remove(_Dragndrop.cssClasses.backgroundNodeHighlight);
+		node.classList.remove(_Dragndrop.cssClasses.backgroundDropForbidden);
+	},
+	clearDragHover: () => {
+
+		for (let hoverNode of document.querySelectorAll(`.${_Dragndrop.cssClasses.dragNodeHoverClass}`)) {
+			hoverNode.classList.remove(_Dragndrop.cssClasses.dragNodeHoverClass);
+		}
+	},
+	setDragHover: (element) => {
+
+		_Dragndrop.clearDragHover();
+
+		element.classList.add(_Dragndrop.cssClasses.dragNodeHoverClass);
+	},
+
+	enableDraggable: (entity, node, dropHandler, showRelativeDropTargets = true, dragStartHandler, dragEndHandler) => {
+
+		node.addEventListener('dragstart', (e) => {
+			// only run for innermost element
+			e.stopPropagation();
+
+			e.dataTransfer.effectAllowed = "all";
+
+			// TODO: necessary?
+			node.classList.remove('nodeHover');
+
+			_Dragndrop.dragActive              = true;
+			_Dragndrop.dragEntity              = entity;
+			_Dragndrop.dragElementDropCallback = dropHandler;
+			_Dragndrop.showRelativeDropTargets = showRelativeDropTargets;
+
+			dragStartHandler?.(e, entity, node);
+		});
+
+		node.addEventListener('dragend', (e) => {
+			// only run for innermost element
+			e.stopPropagation();
+
+			_Dragndrop.dragNDropEnded();
+
+			dragEndHandler?.(e, entity, node);
+		});
+	},
+	pages: {
+		isDraggedNodeParentOfTargetNode: (targetId) => {
+
+			let node          = Structr.node(targetId)[0];
+			let draggedNode   = Structr.node(_Dragndrop.dragEntity.id)[0];
+
+			return draggedNode.contains(node);
+		},
+		draggedNodeStillInSamePage: (targetId) => {
+
+			let draggedNodePageId = StructrModel.obj(_Dragndrop.dragEntity.id).pageId;
+			let targetModelObject = StructrModel.obj(targetId);
+
+			let targetPageId = (targetModelObject.type === 'Page') ? targetId : targetModelObject.pageId;
+
+			return (draggedNodePageId === targetPageId);
+		},
+		getDropEffect: (overNode, nodeId, isOverNode) => {
+
+			if (_Dragndrop.pages.isDraggedNodeParentOfTargetNode(nodeId) || (isOverNode === true && StructrModel.obj(nodeId).type === 'Content')) {
+
+				return 'none';
+
+			} else {
+
+				let inSamePage = _Dragndrop.pages.draggedNodeStillInSamePage(nodeId);
+				if (inSamePage === true) {
+
+					return 'move';
+
+				} else {
+
+					return 'copy';
+				}
+			}
+		},
+		dragStart: (e, entity, node) => {
+
+			let isInSharedComponents             = _Pages.sharedComponents.isNodeInSharedComponents(node);
+			let isAlreadySyncedToSharedComponent = entity.sharedComponentId !== null;
+
+			if (isInSharedComponents === false && isAlreadySyncedToSharedComponent === false) {
+
+				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
+			}
+		},
+		dragEnd: (e, entity, node) => {
+			_Pages.sharedComponents.unhighlightNewSharedComponentDropZone();
+		},
+		enableDroppable: (entity, node, nodeContainer) => {
+
+			let entityIsContentNode = (entity.type === 'Content');
+			let beforeNodeElement   = node.querySelector(':scope > .before-node');
+			let afterNodeElement    = node.querySelector(':scope > .after-node');
+
+			nodeContainer.addEventListener('dragenter', (e) => {
+
+				if (!_Dragndrop.dragEntity) {
+					return;
+				}
+
+				e.stopPropagation();
+
+				let draggedNode = Structr.node(_Dragndrop.dragEntity.id)[0];
+
+				_Dragndrop.clearDragNDropClasses();
+
+				let nodeHasVisibleChildren = node.querySelectorAll(':scope > .node').length > 0;
+				let nodeHasDirectSibling   = node.nextElementSibling?.classList.contains('node') ?? false;
+
+				// show parent elements 'after' (if this node has no visible child elements)
+				// walk up parents until we see a node where nextSibling is also a node
+				// TODO: if dragged node is PARENT of target node, do not show the 'after' elements that are children of the dragged node
+				if (_Dragndrop.showRelativeDropTargets) {
+
+					let canStop = nodeHasVisibleChildren || nodeHasDirectSibling;
+					let curNode = node;
+					while (canStop === false) {
+
+						curNode = curNode.parentNode.closest('.node');
+
+						if (!curNode) {
+							canStop = true;
+						} else {
+
+							if (false === draggedNode.contains(curNode)) {
+								curNode.classList.add(_Dragndrop.cssClasses.dragShowDropTargetAfterClass);
+							}
+							canStop = curNode.nextElementSibling?.classList.contains('node') ?? false;
+						}
+					}
+				}
+
+				e.dataTransfer.dropEffect = _Dragndrop.pages.getDropEffect(nodeContainer, entity.id, true);
+
+				if (e.dataTransfer.dropEffect === 'none') {
+					nodeContainer.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
+				} else {
+					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+				}
+
+				if (_Dragndrop.pages.isDraggedNodeParentOfTargetNode(entity.id)) {
+					return false;
+				}
+
+				// If the target node has children (and is expanded), find the first child of the target node and highlight only the "before" element!
+				// UNLESS that child is the currently dragged node
+				if (_Dragndrop.showRelativeDropTargets) {
+
+					let firstChild = node.querySelector(':scope .node');
+					if (firstChild && (_Dragndrop.dragEntity.id !== Structr.getId(firstChild))) {
+						firstChild.classList.add(_Dragndrop.cssClasses.dragShowDropTargetBeforeClass);
+					}
+				}
+
+				// preventDefault indicates that this is a valid drop target
+				e.preventDefault();
+
+				node.classList.add(_Dragndrop.cssClasses.dragOverClass);
+				if (_Dragndrop.showRelativeDropTargets) {
+
+					node.classList.add(_Dragndrop.cssClasses.dragShowDropTargetBeforeClass);
+
+					if (nodeHasVisibleChildren === false) {
+						node.classList.add(_Dragndrop.cssClasses.dragShowDropTargetAfterClass);
+					}
+				}
+
+				if (entityIsContentNode) {
+					nodeContainer.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+				} else {
+					_Dragndrop.setDragHover(nodeContainer);
+				}
+			});
+
+			nodeContainer.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.dragEntity) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+			});
+
+			if (!entityIsContentNode) {
+
+				nodeContainer.addEventListener('drop', async (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					if (_Dragndrop.pages.isDraggedNodeParentOfTargetNode(entity.id)) {
+						return false;
+					}
+
+					let newParentNodeId = entity.id;
+					let inSamePage      = _Dragndrop.pages.draggedNodeStillInSamePage(newParentNodeId);
+
+					await _Dragndrop.dropActions.baseDropAction({ newParentNodeId, inSamePage });
+
+					return false;
+				});
+			}
+
+			if (beforeNodeElement) {
+
+				beforeNodeElement.addEventListener('dragenter', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					_Dragndrop.removeBackgroundClasses();
+
+					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+
+					e.dataTransfer.dropEffect = _Dragndrop.pages.getDropEffect(nodeContainer, entity.id, false);
+
+					beforeNodeElement.classList.add(_Dragndrop.cssClasses.dragOverClass);
+					_Dragndrop.clearDragHover();
+				});
+
+				beforeNodeElement.addEventListener('dragover', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					e.dataTransfer.dropEffect = _Dragndrop.pages.getDropEffect(nodeContainer, entity.id, false);
+				});
+
+				beforeNodeElement.addEventListener('dragleave', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					beforeNodeElement.classList.remove(_Dragndrop.cssClasses.dragOverClass);
+				});
+
+				beforeNodeElement.addEventListener('drop', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					let newParentNodeId = Structr.getId(node.parentNode);
+					let inSamePage      = _Dragndrop.pages.draggedNodeStillInSamePage(entity.id);
+
+					_Dragndrop.dropActions.baseDropAction({ newParentNodeId, inSamePage, relativePosition: 'Before', refId: entity.id });
+
+					return false;
+				});
+			}
+
+			if (afterNodeElement) {
+
+				afterNodeElement.addEventListener('dragenter', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					_Dragndrop.removeBackgroundClasses();
+
+					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+
+					e.dataTransfer.dropEffect = _Dragndrop.pages.getDropEffect(nodeContainer, entity.id, false);
+
+					afterNodeElement.classList.add(_Dragndrop.cssClasses.dragOverClass);
+					_Dragndrop.clearDragHover();
+				});
+
+				afterNodeElement.addEventListener('dragover', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					e.dataTransfer.dropEffect = _Dragndrop.pages.getDropEffect(nodeContainer, entity.id, false);
+				});
+
+				afterNodeElement.addEventListener('dragleave', (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					afterNodeElement.classList.remove(_Dragndrop.cssClasses.dragOverClass);
+				});
+
+				afterNodeElement.addEventListener('drop', async (e) => {
+					e.preventDefault();
+					e.stopPropagation();
+
+					let newParentNodeId = Structr.getId(node.parentNode);
+					let inSamePage      = _Dragndrop.pages.draggedNodeStillInSamePage(entity.id);
+
+					await _Dragndrop.dropActions.baseDropAction({ newParentNodeId, inSamePage, relativePosition: 'After', refId: entity.id });
+
+					return false;
+				});
+			}
+		},
+		enableNewSharedComponentDropzone: () => {
+
+			let newComponentDropzone = _Pages.sharedComponents.getNewSharedComponentDropzone();
+
+			newComponentDropzone?.addEventListener('dragenter', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				_Dragndrop.clearDragNDropClasses();
+
+				newComponentDropzone.classList.add('over');
+			});
+
+			newComponentDropzone?.addEventListener('dragover', (e) => {
+				e.stopPropagation();
+
+				if (_Pages.sharedComponents.isDropAllowed()) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				return true;
+			});
+
+			newComponentDropzone?.addEventListener('drop', (e) => {
+				e.stopPropagation();
+
+				// Create shadow page if not existing
+				Structr.ensureShadowPageExists().then(() => {
+					_Pages.sharedComponents.createNew(_Dragndrop.dragEntity.id);
+				});
+
+				return false;
+			});
+		}
+	},
+	files: {
+		draggedEntityIds: [],
+		enableDroppable: (entity, node) => {
+
+			let entityIsFileNode = (entity.isFile === true);
+			let cnt = 0;
+
+			node.addEventListener('dragenter', (e) => {
+				cnt++;
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.stopPropagation();
+
+				_Dragndrop.clearDragNDropClasses();
+
+				e.dataTransfer.dropEffect = (entityIsFileNode ? 'none' : 'copy');
+
+				if (e.dataTransfer.dropEffect === 'none') {
+					node.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
+				} else {
+					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+				}
+
+				if (!entityIsFileNode) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				node.classList.add(_Dragndrop.cssClasses.dragOverClass);
+
+				if (entityIsFileNode) {
+					node.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+				} else {
+					_Dragndrop.setDragHover(node);
+				}
+			});
+
+			node.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+			});
+
+			node.addEventListener('dragleave', (e) => {
+				cnt--;
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+
+				if (cnt === 0) {
+					_Dragndrop.removeBackgroundFromNode(node);
+				}
+			});
+
+			if (!entityIsFileNode) {
+
+				node.addEventListener('drop', async (e) => {
+
+					e.preventDefault();
+					e.stopPropagation();
+
+					await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
+
+					return false;
+				});
+			}
+		},
+		isAnyDraggedEntityAParentOfTarget: (target) => {
+
+			let anyDraggedElementInTargetHierarchy = false;
+			let draggedFolderIds                  = _Dragndrop.files.draggedEntityIds.filter(id => StructrModel.obj(id).isFolder);
+
+			// can only happen for folders
+			if (draggedFolderIds.length > 0) {
+
+				let curTargetEntity = target;
+				while (curTargetEntity && anyDraggedElementInTargetHierarchy === false) {
+
+					anyDraggedElementInTargetHierarchy = draggedFolderIds.includes(curTargetEntity.id);
+
+					// walk up hierarchy
+					curTargetEntity = StructrModel.obj(curTargetEntity.parentId);
+				}
+			}
+
+			return anyDraggedElementInTargetHierarchy;
+		},
+		enableTreeElementDroppable: (entity, element) => {
+
+			let highlightElement = element.querySelector('.jstree-wholerow');
+
+			element.addEventListener('dragenter', (e) => {
+
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.stopPropagation();
+				e.preventDefault();
+
+				// Determine if the target entity is a child of any of the dragged elements ==> do not allow
+				let anyDraggedElementInTargetHierarchy = _Dragndrop.files.isAnyDraggedEntityAParentOfTarget(entity);
+
+				_Dragndrop.clearDragNDropClasses();
+
+				if (anyDraggedElementInTargetHierarchy) {
+
+					e.dataTransfer.dropEffect = 'none';
+					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
+
+				} else {
+
+					e.dataTransfer.dropEffect = 'move';
+					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+				}
+
+				element.classList.add(_Dragndrop.cssClasses.dragOverClass);
+
+				if (anyDraggedElementInTargetHierarchy) {
+					element.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+				} else {
+					_Dragndrop.setDragHover(element);
+				}
+			});
+
+			element.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				// Determine if the target entity is a child of any of the dragged elements ==> do not allow
+				let anyDraggedElementInTargetHierarchy = _Dragndrop.files.isAnyDraggedEntityAParentOfTarget(entity);
+
+				if (!anyDraggedElementInTargetHierarchy) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				e.stopPropagation();
+			});
+
+			element.addEventListener('dragleave', (e) => {
+
+				if (!_Dragndrop.files.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+
+				// cannot use simple method because this runs after dragenter for next node
+				_Dragndrop.removeBackgroundFromNode(element);
+			});
+
+			element.addEventListener('drop', async (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
+
+				return false;
+			});
+		},
+	},
+	contents: {
+		enableDroppable: (entity, node) => {
+
+			let entityIsContentContainer = (entity.isContentContainer === true || entity.id === 'root');
+			let cnt = 0;
+
+			node.addEventListener('dragenter', (e) => {
+
+				cnt++;
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.stopPropagation();
+				e.preventDefault();
+
+				_Dragndrop.clearDragNDropClasses();
+
+				node.classList.add(_Dragndrop.cssClasses.dragOverClass);
+
+				if (entityIsContentContainer) {
+
+					e.dataTransfer.dropEffect = 'copy';
+					node.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+					_Dragndrop.setDragHover(node);
+
+				} else {
+
+					e.dataTransfer.dropEffect = 'none';
+					node.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
+					node.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+				}
+			});
+
+			node.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				if (entityIsContentContainer) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				e.stopPropagation();
+			});
+
+			node.addEventListener('dragleave', (e) => {
+				cnt--;
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+
+				if (cnt === 0) {
+					_Dragndrop.removeBackgroundFromNode(node);
+				}
+			});
+
+			if (entityIsContentContainer) {
+
+				node.addEventListener('drop', async (e) => {
+
+					e.preventDefault();
+					e.stopPropagation();
+
+					await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
+
+					return false;
+				});
+			}
+		},
+		isAnyDraggedEntityAParentOfTarget: (targetEntity) => {
+
+			let anyDraggedElementInTargetHierarchy = false;
+			let draggedContainerIds                = _Dragndrop.contents.draggedEntityIds.filter(id => StructrModel.obj(id).isContentContainer);
+
+			// can only happen for containers
+			if (draggedContainerIds.length > 0) {
+
+				let curTargetEntity = targetEntity;
+				while (curTargetEntity && anyDraggedElementInTargetHierarchy === false) {
+
+					anyDraggedElementInTargetHierarchy = draggedContainerIds.includes(curTargetEntity.id);
+
+					// walk up hierarchy
+					curTargetEntity = StructrModel.obj(curTargetEntity.parent?.id);
+				}
+			}
+
+			return anyDraggedElementInTargetHierarchy;
+		},
+		enableTreeElementDroppable: (entity, element) => {
+
+			let highlightElement = element.querySelector('.jstree-wholerow');
+
+			element.addEventListener('dragenter', (e) => {
+
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.stopPropagation();
+				e.preventDefault();
+
+				_Dragndrop.clearDragNDropClasses();
+
+				element.classList.add(_Dragndrop.cssClasses.dragOverClass);
+
+				let isDraggedElementInTargetHierarchy = _Dragndrop.contents.isAnyDraggedEntityAParentOfTarget(entity);
+
+				if (isDraggedElementInTargetHierarchy) {
+
+					e.dataTransfer.dropEffect = 'none';
+					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundDropForbidden);
+					element.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+
+				} else {
+
+					e.dataTransfer.dropEffect = 'move';
+					highlightElement.classList.add(_Dragndrop.cssClasses.backgroundNodeHighlight);
+					_Dragndrop.setDragHover(element);
+				}
+			});
+
+			element.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				let isDraggedElementInTargetHierarchy = _Dragndrop.contents.isAnyDraggedEntityAParentOfTarget(entity);
+
+				if (!isDraggedElementInTargetHierarchy) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				e.stopPropagation();
+			});
+
+			element.addEventListener('dragleave', (e) => {
+
+				if (!_Dragndrop.contents.draggedEntityIds || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+
+				// cannot use simple method because this runs after dragenter for next node
+				_Dragndrop.removeBackgroundFromNode(element);
+			});
+
+			element.addEventListener('drop', async (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				await _Dragndrop.dropActions.baseDropAction({ targetEntity: entity });
+
+				return false;
+			});
+		},
+	},
+	dropActions: {
+		baseDropAction: async (data) => {
+
+			if (_Dragndrop.dragElementDropCallback) {
+
+				await _Dragndrop.dragElementDropCallback(data);
+
+			} else {
+
+				console.log('No drop handler set for data: ', data);
+			}
+		},
+		domElement: async ({ newParentNodeId, inSamePage, relativePosition, refId }) => {
+
+			let isInTrash         = (_Dragndrop.dragEntity.pageId === null);
+			let isSharedComponent = (_Pages.shadowPage && _Dragndrop.dragEntity.pageId === _Pages.shadowPage.id);
+
+			if (relativePosition) {
+
+				if (inSamePage === true || isInTrash === true) {
+
+					await Command.insertRelative(_Dragndrop.dragEntity.id, newParentNodeId, refId, relativePosition);
+
+				} else if (isSharedComponent) {
+
+					await Command.cloneComponent(_Dragndrop.dragEntity.id, newParentNodeId, refId, relativePosition);
+
+				} else {
+
+					await Command.cloneNode(_Dragndrop.dragEntity.id, newParentNodeId, true, refId, relativePosition);
+				}
+
+			} else {
+
+				if (inSamePage === true || isInTrash === true) {
+
+					await Command.appendChild(_Dragndrop.dragEntity.id, newParentNodeId, undefined);
+
+				} else if (isSharedComponent) {
+
+					await Command.cloneComponent(_Dragndrop.dragEntity.id, newParentNodeId);
+
+				} else {
+
+					await Command.cloneNode(_Dragndrop.dragEntity.id, newParentNodeId, true);
+				}
+			}
+
+			if (isInTrash) {
+
+				_Pages.unattachedNodes.reload();
+			}
+		},
+		widget: ({ newParentNodeId, relativePosition }) => {
+
+			if (relativePosition) {
+
+				console.log('not yet implemented');
+
+			} else {
+
+				let targetObj = StructrModel.obj(newParentNodeId);
+				let pageId    = targetObj.isPage ? targetObj.id : targetObj.pageId;
+
+				_Widgets.insertWidgetIntoPage(_Dragndrop.dragEntity, targetObj, pageId);
+			}
+		},
+		file: ({ targetEntity }) => {
+
+			if (targetEntity.type === 'fake' && targetEntity.id === 'favorites') {
+
+				for (let dragId of _Dragndrop.files.draggedEntityIds) {
+
+					let obj = StructrModel.obj(dragId);
+					if (obj.isFile) {
+
+						Command.favorites('add', obj.id, () => {
+							_Helpers.blinkGreen(Structr.node(obj.id));
+						});
+
+					} else {
+
+						_Helpers.blinkRed(Structr.node(obj.id));
+					}
+				}
+
+			} else {
+
+				let targetId = (targetEntity.type === 'fake' && targetEntity.id === 'root') ? null : targetEntity.id;
+
+				_Files.handleMoveObjectsAction(targetId, _Dragndrop.files.draggedEntityIds);
+			}
+		},
+		contents: ({ targetEntity }) => {
+
+			let targetId = (targetEntity.type === 'fake' && targetEntity.id === 'root') ? null : targetEntity.id;
+
+			_Contents.handleMoveObjectsAction(targetId, _Dragndrop.contents.draggedEntityIds);
+		}
 	}
 };

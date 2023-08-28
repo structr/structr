@@ -124,10 +124,6 @@
 	height: 2rem;
 }
 
-#files-table tr#parent-file-link {
-	cursor: pointer;
-}
-
 #files-table td a {
 	text-decoration: none;
 }
@@ -139,3 +135,29 @@
 #files-table .file, #files-table .folder {
 	margin: 0;
 }
+
+/* start dragndrop classes in contents */
+.node:hover {
+	cursor: pointer;
+}
+
+.node.drag-over:not(.drop-not-possible) {
+}
+.node.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active);
+}
+
+.node.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+
+.jstree-default .jstree-wholerow.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active) ! important;
+}
+
+.jstree-default .jstree-wholerow.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+/* end dragndrop classes in contents */

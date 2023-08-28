@@ -19,13 +19,7 @@
 package org.structr.websocket.command.dom;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.error.FrameworkException;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.property.PropertyMap;
 import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Template;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
@@ -36,12 +30,7 @@ import java.util.Map;
 
 public class CreateAndInsertRelativeToDOMNodeCommand extends CreateAndAppendDOMNodeCommand {
 
-	private static final Logger logger = LoggerFactory.getLogger(CreateAndInsertRelativeToDOMNodeCommand.class.getName());
-
-	enum RelativePosition { Before, After }
-
 	static {
-
 		StructrWebSocket.addCommand(CreateAndInsertRelativeToDOMNodeCommand.class);
 	}
 

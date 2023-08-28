@@ -516,7 +516,8 @@ let StructrWS = {
 					if (!entity.parent && _Pages.shadowPage && entity.pageId === _Pages.shadowPage.id) {
 
 						entity = StructrModel.create(entity, null, false);
-						let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, _Pages.components, true) : _Pages.appendElementElement(entity, _Pages.components, true);
+						let sharedComponentsArea = $('#componentsArea');
+						let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, sharedComponentsArea, true) : _Pages.appendElementElement(entity, sharedComponentsArea, true);
 
 						if (Structr.isExpanded(entity.id)) {
 							_Entities.ensureExpanded(el);

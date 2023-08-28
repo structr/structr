@@ -40,7 +40,6 @@ let _Code = {
 
 	init: () => {
 
-		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
 	beforeunloadHandler: () => {

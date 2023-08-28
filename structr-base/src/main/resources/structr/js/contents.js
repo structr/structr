@@ -33,8 +33,7 @@ let _Contents = {
 	contentsResizerLeftKey: 'structrContentsResizerLeftKey_' + location.port,
 	selectedElements: [],
 
-	init: function() {
-		Structr.makePagesMenuDroppable();
+	init: () => {
 		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: () => {
@@ -84,7 +83,6 @@ let _Contents = {
 				let containers = (_Contents.currentContentContainer ? [ { id : _Contents.currentContentContainer.id } ] : null);
 				Command.create({ type: itemTypeSelect.value, containers: containers }, (f) => {
 					_Contents.appendItemOrContainerRow(f);
-					_Contents.refreshTree();
 				});
 			});
 
@@ -123,7 +121,8 @@ let _Contents = {
 		$.jstree.defaults.dnd.large_drop_target = true;
 
 		_Contents.contentTree.on('ready.jstree', function() {
-			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+
+			_TreeHelper.makeAllTreeElementsDroppable(_Contents.contentTree, _Dragndrop.contents.enableTreeElementDroppable);
 
 			_Contents.loadAndSetWorkingDir(function() {
 				if (_Contents.currentContentContainer) {
@@ -138,20 +137,47 @@ let _Contents = {
 			_Contents.displayContainerContents(data.node.id, data.node.parent, data.node.original.path, data.node.parents);
 		});
 
+		_Contents.contentTree.on('after_open.jstree', (evt, data) => {
+			_TreeHelper.makeAllTreeElementsDroppable(_Contents.contentTree, _Dragndrop.contents.enableTreeElementDroppable);
+		});
+
+		_Contents.contentTree.on('refresh_node.jstree', (evt, data) => {
+			_TreeHelper.makeAllTreeElementsDroppable(_Contents.contentTree, _Dragndrop.contents.enableTreeElementDroppable);
+		});
+
 		_TreeHelper.initTree(_Contents.contentTree, _Contents.treeInitFunction, 'structr-ui-contents');
 
 		Structr.mainMenu.unblock(100);
 
 		Structr.resize();
 	},
+	handleNodeRefresh: (node) => {
+
+
+		if (node.isContentContainer && node.name) {
+
+			let folderContents = _Contents.contentsContents[0];
+
+			// update breadcrumb
+			if (folderContents.dataset['currentContainer'] === node.id) {
+				folderContents.querySelector('#current-container-name')?.replaceChildren(node.name);
+			}
+
+			// update tree element
+			let treeNode = _Contents.contentTree.jstree().get_node(node.id);
+
+			if (treeNode) {
+				_Contents.contentTree.jstree().get_node(node.id).text = _Contents.getContainerDisplayName(node);
+				_Contents.contentTree.jstree().refresh_node(node.id);
+			}
+		}
+	},
 	getContextMenuElements: (div, entity) => {
 
+		let elements             = [];
 		const isContentContainer = entity.isContentContainer;
 		const isContentItem      = entity.isContentItem;
-
-		let elements = [];
-
-		let selectedElements = document.querySelectorAll('.node.selected');
+		let selectedElements     = document.querySelectorAll('.node.selected');
 
 		// there is a difference when right-clicking versus clicking the kebab icon
 		let contentNode = div;
@@ -161,7 +187,7 @@ let _Contents = {
 			contentNode = div.querySelector('.node');
 		}
 
-		if (!contentNode.classList.contains('selected')) {
+		if (contentNode && !contentNode.classList.contains('selected')) {
 
 			for (let selNode of document.querySelectorAll('.node.selected')) {
 				selNode.classList.remove('selected');
@@ -185,30 +211,32 @@ let _Contents = {
 		}
 
 		// TODO: Inheriting types do not have containers as UI-view attribute
-		let containers = entity?.containers ?? [entity.parent];
-		if (_Contents.currentContentContainer?.id && containers.length > 0) {
+		if (contentNode) {
+			let containers = entity?.containers ?? [entity.parent];
+			if (_Contents.currentContentContainer?.id && containers.length > 0) {
 
-			elements.push({
-				icon: _Icons.getMenuSvgIcon(_Icons.iconFolderRemove),
-				name: 'Remove from container',
-				clickHandler: () => {
+				elements.push({
+					icon: _Icons.getMenuSvgIcon(_Icons.iconFolderRemove),
+					name: 'Remove from container',
+					clickHandler: () => {
 
-					let removePromises = [...selectedElements].map(el => new Promise((resolve, reject) => {
+						let removePromises = [...selectedElements].map(el => new Promise((resolve, reject) => {
 
-						let node = StructrModel.obj(Structr.getId(el));
+							let node = StructrModel.obj(Structr.getId(el));
 
-						if (node.isContentContainer) {
-							_Entities.setProperty(node.id, 'parent', null, false, resolve);
-						} else {
-							_Entities.setProperty(node.id, 'containers', containers.filter(c => c.id !== _Contents.currentContentContainer.id), false, resolve);
-						}
-					}));
+							if (node.isContentContainer) {
+								_Entities.setProperty(node.id, 'parent', null, false, resolve);
+							} else {
+								_Entities.setProperty(node.id, 'containers', containers.filter(c => c.id !== _Contents.currentContentContainer.id), false, resolve);
+							}
+						}));
 
-					Promise.all(removePromises).then(values => {
-						_Contents.refreshTree();
-					});
-				}
-			});
+						Promise.all(removePromises).then(values => {
+							_Contents.refreshTree();
+						});
+					}
+				});
+			}
 		}
 
 		elements.push({
@@ -227,20 +255,23 @@ let _Contents = {
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
-		elements.push({
-			icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
-			classes: ['menu-bolder', 'danger'],
-			name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
-			clickHandler: () => {
+		if (contentNode) {
 
-				let nodesToDelete = [...selectedElements].map(el => Structr.entityFromElement(el));
+			elements.push({
+				icon: _Icons.getMenuSvgIcon(_Icons.iconTrashcan),
+				classes: ['menu-bolder', 'danger'],
+				name: 'Delete ' + (isMultiSelect ? 'selected' : entity.type),
+				clickHandler: () => {
 
-				// deleting recursively does not make sense and can not work because it is a n:m relationship
-				_Entities.deleteNodes(nodesToDelete, false, () => {
-					_Contents.refreshTree();
-				});
-			}
-		});
+					let nodesToDelete = [...selectedElements].map(el => Structr.entityFromElement(el));
+
+					// [recursive=false] because deleting recursively does not make sense and can not work because it is a n:m relationship
+					_Entities.deleteNodes(nodesToDelete, false, () => {
+						_Contents.refreshTree();
+					});
+				}
+			});
+		}
 
 		_Elements.contextMenu.appendContextMenuSeparator(elements);
 
@@ -252,8 +283,7 @@ let _Contents = {
 	},
 	refreshTree: () => {
 
-		_TreeHelper.refreshTree(_Contents.contentTree, () => {
-			_TreeHelper.makeTreeElementDroppable(_Contents.contentTree, 'root');
+		_TreeHelper.refreshTree(_Contents.contentTree, () =>{
 		});
 	},
 	treeInitFunction: (obj, callback) => {
@@ -314,26 +344,31 @@ let _Contents = {
 			parent: (id ? id : null)
 		};
 
-		Command.query('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, (folders) => {
+		let customView = 'id,name,items,isContentContainer,childContainers,path,parent';
+		Command.queryPromise('ContentContainer', _Contents.containerPageSize, _Contents.containerPage, 'position', 'asc', filter, true, null, customView).then(containers => {
 
-			let list = folders.map(d => {
+			return containers.map(d => {
+
+				StructrModel.createOrUpdateFromData(d, null, false);
+
 				return {
-					id: d.id,
-					text: (d?.name ?? '[unnamed]') + ((d.items && d.items.length > 0) ? ` (${d.items.length})` : ''),
+					id:       d.id,
+					text:     _Contents.getContainerDisplayName(d),
 					children: d.isContentContainer && d.childContainers.length > 0,
-					icon: _Icons.nonExistentEmptyIcon,
-					data: {
-						svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24)
-					},
-					path: d.path
+					icon:     _Icons.nonExistentEmptyIcon,
+					data:     { svgIcon: _Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 24) },
+					path:     d.path
 				};
 			});
 
-			callback(list);
+			return list;
 
-			_TreeHelper.makeDroppable(_Contents.contentTree, list);
-
-		}, true, null, 'id,name,items,isContentContainer,childContainers,path');
+		}).then(callback).catch(e => {
+			// silently ignore - this is usually because the tree is being refreshed as a whole while we want to refresh the node
+		});
+	},
+	getContainerDisplayName: (d) => {
+		return (d?.name ?? '[unnamed]') + ((d.items && d.items.length > 0) ? ` (${d.items.length})` : '');
 	},
 	setCurrentContentContainer: (id) => {
 
@@ -349,16 +384,32 @@ let _Contents = {
 
 		_Helpers.fastRemoveAllChildren(_Contents.contentsContents[0]);
 
-		let isRootFolder    = (id === 'root');
-		let parentIsRoot    = (parentId === '#');
+		let isRootFolder = (id === 'root');
+		let parentIsRoot = (parentId === '#');
+
+		// store current folder id so we can filter slow requests
+		_Contents.contentsContents[0].dataset['currentContainer'] = id;
 
 		let handleChildren = (children) => {
-			if (children && children.length) {
-				children.forEach(_Contents.appendItemOrContainerRow);
+
+			let currentFolder = _Contents.contentsContents[0].dataset['currentContainer'];
+
+			if (currentFolder === id) {
+
+				children.map(_Contents.appendItemOrContainerRow);
+
+				Structr.resize();
 			}
 		};
 
-		Command.query('ContentContainer', 1000, 1, 'position', 'asc', { parent: (isRootFolder ? null : id ) }, handleChildren, true, 'ui');
+		let handleContainerChildren = (containers) => {
+
+			handleChildren(containers);
+
+			_Contents.registerFolderLinks();
+		};
+
+		Command.query('ContentContainer', 1000, 1, 'position', 'asc', { parent: (isRootFolder ? null : id ) }, handleContainerChildren, true, 'ui');
 
 		_Pager.initPager('contents-items', 'ContentItem', 1, 25, 'position', 'asc');
 		_Pager.page['ContentItem'] = 1;
@@ -394,18 +445,56 @@ let _Contents = {
 			<table id="files-table" class="stripe">
 				<thead><tr><th class="icon">&nbsp;</th><th>Name</th><th>Size</th><th>Type</th><th>Owner</th><th>Modified</th></tr></thead>
 				<tbody id="files-table-body">
-					${(!isRootFolder ? `<tr id="parent-file-link"><td class="file-icon">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td><td><b>..</b></td><td></td><td></td><td></td><td></td></tr>` : '')}
+					${(isRootFolder ? '' : `
+						<tr id="parent-container-link">
+							<td class="is-folder file-icon" data-target-id="${parentId}">${_Icons.getSvgIcon(_Icons.iconFolderClosed, 16, 16)}</td>
+							<td>
+								<div class="node folder flex items-center justify-between">
+									<b class="name_ leading-8 truncate">..</b>
+								</div>
+							</td>
+							<td></td>
+							<td></td>
+							<td></td>
+							<td></td>
+						</tr>`
+					)}
 				</tbody>
 			</table>
 		`);
 
-		$('#parent-file-link').on('click', function(e) {
+		if (!isRootFolder) {
 
-			if (parentId !== '#') {
-				$('#' + parentId + '_anchor').click();
-			}
-		});
+			// allow drop on ".." element
+			let parentObj = (parentId === 'root') ? { id: parentId, type: 'fake' } : StructrModel.obj(parentId);
 
+			_Dragndrop.contents.enableDroppable(parentObj, _Contents.contentsContents[0].querySelector('#parent-container-link .node'));
+		}
+	},
+	registerFolderLinks: () => {
+
+		let openTargetNode = (targetId) => {
+			_Contents.contentTree.jstree('open_node', targetId, () => {
+				_Contents.contentTree.jstree('activate_node', targetId);
+			});
+		};
+
+		for (let folderLink of _Contents.contentsContents[0].querySelectorAll('.is-folder.file-icon')) {
+
+			folderLink.addEventListener('click', (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				let targetId = folderLink.dataset['targetId'];
+				let parentId = folderLink.dataset['parentId'];
+
+				if (!parentId || _Contents.contentTree.jstree('is_open', parentId)) {
+					openTargetNode(targetId);
+				} else {
+					_Contents.contentTree.jstree('open_node', parentId, openTargetNode);
+				}
+			});
+		}
 	},
 	insertBreadCrumbNavigation: (parents, nodePath, id) => {
 
@@ -424,10 +513,19 @@ let _Contents = {
 			let pathNames = (nodePath === '/') ? ['/'] : [''].concat(nodePath.slice(1).split('/'));
 
 			_Contents.contentsContents.append(`
-				<div class="folder-path truncate">
-					${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}${pathNames.pop()}
+				<div class="folder-path">
+					${parents.map((parent, idx) => `<a class="breadcrumb-entry" data-folder-id="${parent}">${pathNames[idx]}/</a>`).join('')}<span id="current-container-name">${pathNames.pop()}</span>
+					<span class="context-menu-container"></span>
 				</div>
 			`);
+
+			if (id != 'root') {
+
+				Command.getPromise(id, null).then(obj => {
+					let ctxMenuContainer = _Contents.contentsContents[0].querySelector('.context-menu-container');
+					_Entities.appendContextMenuIcon($(ctxMenuContainer), obj, true);
+				});
+			}
 
 			$('.breadcrumb-entry').click(function (e) {
 				e.preventDefault();
@@ -454,11 +552,12 @@ let _Contents = {
 
 		let row   = $(`#${rowId}`);
 		let title = (d?.name ?? '[unnamed]');
+		let icon  = (d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty);
 
 		row.append(`
-			<td class="file-icon">${_Icons.getSvgIcon((d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty), 16, 16)}</td>
+			<td class="${d.isContentContainer ? 'is-folder' : ''} file-icon" data-target-id="${d.id}">${_Icons.getSvgIcon(icon, 16, 16)}</td>
 			<td>
-				<div id="id_${d.id}" data-structr_type="${(d.isContentContainer ? 'folder' : 'item')}" class="node ${(d.isContentContainer ? 'container' : 'item')} flex items-center justify-between">
+				<div id="id_${d.id}" data-structr_type="${(d.isContentContainer ? 'folder' : 'item')}" class="node ${(d.isContentContainer ? 'container' : 'item')} flex items-center justify-between" draggable="true">
 					<b title="${_Helpers.escapeForHtmlAttributes(title)}" class="name_ leading-8 truncate">${title}</b>
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -505,30 +604,45 @@ let _Contents = {
 			_Entities.makeNameEditable(div);
 		});
 
-		if (d.isContentContainer) {
+		// even though it can be a file, enable droppable so we can react
+		_Dragndrop.contents.enableDroppable(d, div[0]);
 
-			div.droppable({
-				accept: '.container, .item',
-				greedy: true,
-				hoverClass: 'nodeHover',
-				tolerance: 'pointer',
-				drop: function(e, ui) {
+		_Dragndrop.enableDraggable(d, div[0], _Dragndrop.dropActions.contents, false, (e) => {
 
-					e.preventDefault();
-					e.stopPropagation();
+			let draggedElementIsSelected = div.hasClass('selected');
 
-					let elementId         = Structr.getId(ui.draggable);
-					let targetContainerId = d.id;
+			if (!draggedElementIsSelected) {
+				$('.node.selected').removeClass('selected');
+			}
 
-					_Contents.handleMoveObjectsAction(targetContainerId, elementId);
+			_Contents.selectedElements = draggedElementIsSelected ? $('.node.selected') : [];
 
-					return false;
-				}
+			_Dragndrop.contents.draggedEntityIds = draggedElementIsSelected ? [...document.querySelectorAll('.node.selected')].map(x => Structr.getId(x)) : [d.id];
+
+			let dragIcon       = (draggedElementIsSelected && _Dragndrop.contents.draggedEntityIds.length > 1) ? _Icons.iconFilesStack : icon;
+			let dragCnt        = (draggedElementIsSelected && _Dragndrop.contents.draggedEntityIds.length > 1) ? _Dragndrop.contents.draggedEntityIds.length : _Dragndrop.dragEntity.name;
+			let dragIconHTML   = _Icons.getSvgIcon(dragIcon, 20, 20, 'mr-1');
+			let dragImgElement = _Helpers.createSingleDOMElementFromHTML(`<span class="bg-white inline-flex items-center p-1">${dragIconHTML}<div>${dragCnt}</div></span>`);
+
+			// element must be in document to be displayed...
+			Structr.mainContainer.appendChild(dragImgElement);
+
+			let rect = dragImgElement.getBoundingClientRect();
+
+			e.dataTransfer.setDragImage(dragImgElement, rect.width, rect.height);
+
+			// ...remove it in the next animation frame
+			requestAnimationFrame(() => {
+				dragImgElement.remove();
 			});
+		}, () => {
 
-		} else {
+			delete _Dragndrop.contents.draggedEntityIds;
+		});
 
-			// ********** Items **********
+		if (!d.isContentContainer) {
+
+			_Contents.appendEditContentItemIcon(iconsContainer, d);
 
 			let dblclickHandler = (e) => {
 				_Contents.editItem(d);
@@ -541,55 +655,12 @@ let _Contents = {
 			}
 		}
 
-		div.draggable({
-			revert: 'invalid',
-			//helper: 'clone',
-			containment: 'body',
-			stack: '.jstree-node',
-			appendTo: '#main',
-			forceHelperSize: true,
-			forcePlaceholderSize: true,
-			distance: 5,
-			cursorAt: { top: 8, left: 25 },
-			zIndex: 99,
-			stop: function(e, ui) {
-
-				$(this).show();
-				$(e.toElement).one('click', function(e) {
-					e.stopImmediatePropagation();
-				});
-			},
-			helper: function(event) {
-
-				let draggedElement           = $(this);
-				let draggedElementIsSelected = draggedElement.hasClass('selected')
-
-				_Contents.selectedElements = draggedElementIsSelected ? $('.node.selected') : [];
-
-				$('.node.selected').removeClass('selected');
-
-				if (_Contents.selectedElements.length > 1) {
-					return $(`<span class="flex items-center gap-2 pl-2">${_Icons.getSvgIcon(_Icons.iconFilesStack, 16, 16, 'node-helper')} ${_Contents.selectedElements.length} elements</span>`);
-				}
-
-				let helperEl = draggedElement.clone();
-				helperEl.find('.button').remove();
-				helperEl.addClass('pl-2');
-				return helperEl;
-			}
-		});
-
-		if (!d.isContentContainer) {
-			_Contents.appendEditContentItemIcon(iconsContainer, d);
-		}
-
 		_Entities.appendContextMenuIcon(iconsContainer, d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
-		_Entities.setMouseOver(div);
 		_Entities.makeSelectable(div);
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], d);
 	},
-	handleMoveObjectsAction: (targetContainerId, actualDraggedObjectId) => {
+	handleMoveObjectsAction: (targetContainerId, draggedObjectIds) => {
 
 		/**
 		 * handles a drop action to a ContentContainer located in the contents area...
@@ -597,21 +668,19 @@ let _Contents = {
 		 *
 		 * must take into account the selected elements in the contents area
 		 */
-		let promiseCallback = (info) => {
+		_Contents.moveObjectsToTargetContainer(targetContainerId, draggedObjectIds).then((info) => {
 
 			if (info.skipped.length > 0) {
 				let text = `The following containers were not moved to prevent inconsistencies:<br><br>${info.skipped.map(id => StructrModel.obj(id)?.name ?? 'unknown').join('<br>')}`;
 				new InfoMessage().title('Skipped some objects').text(text).show();
 			}
 
-			// unconditionally reload whole tree (because the count also changes)
-			_Contents.refreshTree();
+			// only reload whole tree if we moved a container (the name and count is changed via the model)
+			if (info.movedContentContainer) {
 
-			_Contents.selectedElements = [];
-		};
-
-		let selectedElementIds = (_Contents.selectedElements.length > 0) ? [..._Contents.selectedElements].map(el => Structr.getId(el)) : [actualDraggedObjectId];
-		_Contents.moveObjectsToTargetContainer(targetContainerId, selectedElementIds).then(promiseCallback);
+				_Contents.refreshTree();
+			}
+		});
 	},
 	moveObjectsToTargetContainer: async (targetContainerId, objectIds) => {
 
