@@ -808,8 +808,6 @@ let Structr = {
 			}
 
 			document.querySelector('.slideout-activator.right.active')?.classList.remove('active');
-
-			LSWrapper.removeItem(_Pages.activeTabRightKey);
 		},
 	},
 	updateVersionInfo: (retryCount = 0, isLogin = false) => {
