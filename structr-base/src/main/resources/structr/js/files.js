@@ -206,7 +206,7 @@ let _Files = {
 
 			// update breadcrumb
 			if (folderContents.dataset['currentFolder'] === node.id) {
-				//folderContents.querySelector('#current-folder-name')?.replaceChildren(node.name);
+				folderContents.querySelector('#current-folder-name')?.replaceChildren(node.name);
 			}
 
 			// update tree element

@@ -1325,7 +1325,7 @@ let _Pages = {
 	},
 	leftSlideoutClosedCallback: () => {
 
-		LSWrapper.removeItem(_Pages.activeTabLeftKey);
+		LSWrapper.setItem(_Pages.activeTabLeftKey, 'NONE');
 		Structr.resize();
 	},
 	rightSlideoutClosedCallback: () => {

@@ -808,8 +808,6 @@ let Structr = {
 			}
 
 			document.querySelector('.slideout-activator.right.active')?.classList.remove('active');
-
-			LSWrapper.removeItem(_Pages.activeTabRightKey);
 		},
 	},
 	updateVersionInfo: (retryCount = 0, isLogin = false) => {
@@ -2365,10 +2363,10 @@ class MessageBuilder {
 					</div>
 					<div class="flex-grow">
 						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
-						<div class="message-text">
+						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mb-1">
+						<div class="message-buttons text-right mt-2 mb-1">
 							${this.getButtonHtml()}
 						</div>
 					</div>
