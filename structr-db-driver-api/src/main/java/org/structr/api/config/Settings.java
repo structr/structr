@@ -247,6 +247,7 @@ public class Settings {
 	public static final Setting<Integer> RemoteDocumentIndexingMaxLength    = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.maxlength",    30,    "Maximum length of words to be indexed for RemoteDocument");
 
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
+	public static final Setting<Integer> HttpProxyPort            = new IntegerSetting(applicationGroup,  "Proxy",        "application.proxy.http.port", null);
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
 	public static final ChoiceSetting   ProxyServletMode          = new ChoiceSetting(applicationGroup,  "Proxy",        "application.proxy.mode",                      "disabled", Set.of("disabled", "protected", "public"), "Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.");
