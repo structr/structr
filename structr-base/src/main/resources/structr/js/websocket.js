@@ -19,7 +19,7 @@
 let StructrWS = {
 
 	ws: undefined,
-	wsWorker: new Worker('js/websocket-worker.js'),
+	wsWorker: new Worker('js/websocket-worker.js?wurst=tst'),
 	isAdmin: false,
 	skipNext100Code: false,
 	user: undefined,
@@ -59,16 +59,14 @@ let StructrWS = {
 	},
 	getWSConnectionInfo: () => {
 
-		let isEnc   = (window.location.protocol === 'https:');
-		let host    = document.location.host;
 		let message = {
-			wsUrl: `ws${isEnc ? 's' : ''}://${host}${Structr.wsRoot}`,
+			wsPath:  Structr.wsRoot,
 			wsClass: (('WebSocket' in window) === true) ? 'WebSocket' : (('MozWebSocket' in window) ? 'MozWebSocket' : false)
 		};
 
 		if (message.wsClass === false) {
 
-			alert('Your browser doesn\'t support WebSocket.');
+			alert('Your browser does not support WebSocket.');
 			return false;
 		}
 
