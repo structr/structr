@@ -36,6 +36,8 @@ let _Pages = {
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
 
+	dropzoneDropAllowedClass: 'allow-drop',
+
 	shadowPage: undefined,
 
 	pagesSlideout: undefined,
@@ -1348,6 +1350,15 @@ let _Pages = {
 		}
 
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
+	},
+	highlightDropZone: (dropzone) => {
+		dropzone?.classList.add(_Pages.dropzoneDropAllowedClass);
+	},
+	unhighlightDropZone: (dropzone) => {
+		dropzone?.classList.remove(_Pages.dropzoneDropAllowedClass);
+	},
+	isDropAllowed: (dropzone) => {
+		return (dropzone?.classList.contains(_Pages.dropzoneDropAllowedClass) ?? false);
 	},
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
@@ -3235,7 +3246,6 @@ let _Pages = {
 	},
 
 	sharedComponents: {
-		allowDropClass: 'allow-drop',
 		reload: (isReloadFromDragEvent = false) => {
 
 			if (!_Pages.componentsSlideout) return;
@@ -3285,13 +3295,13 @@ let _Pages = {
 			return (node.closest('#componentsArea') !== null);
 		},
 		highlightNewSharedComponentDropZone: () => {
-			_Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.add(_Pages.sharedComponents.allowDropClass);
+			_Pages.highlightDropZone(_Pages.sharedComponents.getNewSharedComponentDropzone())
 		},
 		unhighlightNewSharedComponentDropZone: () => {
-			_Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.remove(_Pages.sharedComponents.allowDropClass);
+			_Pages.unhighlightDropZone(_Pages.sharedComponents.getNewSharedComponentDropzone())
 		},
 		isDropAllowed: () => {
-			return _Pages.sharedComponents.getNewSharedComponentDropzone()?.classList.contains(_Pages.sharedComponents.allowDropClass) ?? false;
+			return _Pages.isDropAllowed(_Pages.sharedComponents.getNewSharedComponentDropzone());
 		}
 	},
 
@@ -3950,8 +3960,8 @@ let _Pages = {
 									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
 									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
 										</div>
 									</div>
@@ -3987,8 +3997,8 @@ let _Pages = {
 									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
 									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
 										</div>
 									</div>
@@ -4028,8 +4038,8 @@ let _Pages = {
 									<input type="hidden" id="success-partial-refresh-linked-input" value="">
 									<div class="element-dropzone success-partial-refresh-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
 										</div>
 									</div>
@@ -4070,8 +4080,8 @@ let _Pages = {
 									<input type="hidden" id="failure-partial-refresh-linked-input" value="">
 									<div class="element-dropzone failure-partial-refresh-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 											Drag and drop existing element here
 										</div>
 									</div>
@@ -4137,8 +4147,8 @@ let _Pages = {
 						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
 						<div class="element-dropzone link-existing-element-dropzone">
 							<div class="info-icon h-16 flex items-center justify-center">
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive'])}
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 								Drag and drop existing form input element here
 							</div>
 						</div>
@@ -4166,8 +4176,8 @@ let _Pages = {
 				<!--div class="hidden em-action-element em-action-create em-action-update">
 					<div id="link-existing-element-dropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
 							Drop existing input or select elements here
 						</div>
 					</div>

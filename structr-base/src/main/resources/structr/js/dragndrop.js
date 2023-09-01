@@ -345,11 +345,23 @@ let _Dragndrop = {
 
 			if (isInSharedComponents === false && isAlreadySyncedToSharedComponent === false) {
 
+				// highlight dropzone to create new shared components
 				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
+
+				// highlight dropzones related to event mapping
+				for (let eventMappingDropzone of _Pages.centerPane?.querySelectorAll('.element-dropzone') ?? []) {
+					_Pages.highlightDropZone(eventMappingDropzone);
+				}
 			}
 		},
 		dragEnd: (e, entity, node) => {
+console.log('a')
 			_Pages.sharedComponents.unhighlightNewSharedComponentDropZone();
+
+			// highlight dropzones related to event mapping
+			for (let eventMappingDropzone of _Pages.centerPane?.querySelectorAll('.element-dropzone') ?? []) {
+				_Pages.unhighlightDropZone(eventMappingDropzone);
+			}
 		},
 		enableDroppable: (entity, node, nodeContainer) => {
 
