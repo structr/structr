@@ -19,7 +19,7 @@
 let StructrWS = {
 
 	ws: undefined,
-	wsWorker: new Worker('js/websocket-worker.js?wurst=tst'),
+	wsWorker: new Worker('js/websocket-worker.js'),
 	isAdmin: false,
 	skipNext100Code: false,
 	user: undefined,
