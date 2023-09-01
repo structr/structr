@@ -1720,7 +1720,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#success-partial-refresh-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions', 'successTargets');
 
 				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
 					for (const successTarget of actionMapping.successTargets) {
@@ -1739,7 +1739,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#failure-partial-refresh-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions', 'failureTargets');
 
 				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
 					for (const failureTarget of actionMapping.failureTargets) {
@@ -1758,7 +1758,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#success-notifications-custom-dialog-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions', 'successNotificationElements');
 
 				Command.get(actionMapping.id, 'id,successNotificationElements', actionMapping => {
 					for (const successNotificationElement of actionMapping.successNotificationElements) {
@@ -1777,7 +1777,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#failure-notifications-custom-dialog-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions', 'failureNotificationElements');
 
 				Command.get(actionMapping.id, 'id,failureNotificationElements', actionMapping => {
 					for (const failureNotificationElement of actionMapping.failureNotificationElements) {
@@ -1789,7 +1789,7 @@ let _Pages = {
 			}
 		};
 
-		const activateElementDropzone = (parentElement, dropzoneElement, inputElement, propertyKey) => {
+		const activateElementDropzone = (parentElement, dropzoneElement, inputElement, actionsPropertyKey, elementsPropertyKey) => {
 
 			if (dropzoneElement) {
 
@@ -1804,12 +1804,12 @@ let _Pages = {
 
 					inputElement.value = draggedEntity.id;
 
-					const newCollection = [...obj[propertyKey]];
+					const newCollection = [...obj[actionsPropertyKey]];
 					newCollection.push({ id: actionMapping.id });
 
-					Command.setProperty(obj.id, propertyKey, newCollection);
+					Command.setProperty(obj.id, actionsPropertyKey, newCollection);
 
-					addLinkedElementToDropzone(parentElement, dropzoneElement, obj, propertyKey);
+					addLinkedElementToDropzone(parentElement, dropzoneElement, obj, elementsPropertyKey);
 				});
 			}
 		};
@@ -1820,10 +1820,11 @@ let _Pages = {
 				nodeEl.querySelector('.remove')?.addEventListener('click' , (e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					parentElement.querySelector('._' + obj.id).remove();
-					dropzoneElement.classList.remove('hidden');
-					Command.get(actionMapping.id, 'id,' + propertyKey, actionMapping => {
-						Command.setProperty(actionMapping.id, propertyKey, actionMapping[propertyKey] = actionMapping[propertyKey].filter(t => t.id !== obj.id));
+					Command.get(actionMapping.id, 'id,' + propertyKey, data => {
+						Command.setProperty(actionMapping.id, propertyKey, data[propertyKey] = data[propertyKey].filter(t => t.id !== obj.id), null, () => {
+							parentElement.querySelector('._' + obj.id).remove();
+							dropzoneElement.classList.remove('hidden');
+						});
 					});
 				});
 
@@ -1881,16 +1882,19 @@ let _Pages = {
 		};
 
 		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
-			const userInputArea   = rowElement.querySelector('.parameter-user-input');
+
+			const userInputArea = rowElement.querySelector('.parameter-user-input');
+			const hiddenUserInputInput = rowElement.querySelector('.parameter-user-input-input');
+			hiddenUserInputInput.value = obj.id;
+
 			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
-
 			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
-
 				nodeEl[0].querySelector('.remove')?.addEventListener('click', (e) => {
 					e.preventDefault();
 					e.stopPropagation();
 					_Helpers.fastRemoveElement(userInputArea.querySelector('.node'));
 					dropzoneElement.classList.remove('hidden');
+					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
 				})
 			});
@@ -2027,10 +2031,10 @@ let _Pages = {
 					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
 
 						const value = inp.value;
-						if (value) {
+						//if (value) {
 							//console.log(inputDefinition.key, value);
 							parameterMappingData[inputDefinition.key] = value;
-						}
+						//}
 					}
 				}
 
