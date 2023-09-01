@@ -552,7 +552,7 @@ let _Dragndrop = {
 				});
 			}
 		},
-		enableEventMappingInputDroppable: (entity, domElement, customDropAction) => {
+		enableEventMappingDroppable: (entity, domElement, customDropAction) => {
 
 			domElement.addEventListener('dragenter', (e) => {
 
