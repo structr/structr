@@ -552,6 +552,72 @@ let _Dragndrop = {
 				});
 			}
 		},
+		enableEventMappingInputDroppable: (entity, domElement, customDropAction) => {
+
+			domElement.addEventListener('dragenter', (e) => {
+
+				if (!_Dragndrop.dragEntity || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.stopPropagation();
+				e.preventDefault();
+
+				_Dragndrop.clearDragNDropClasses();
+
+				let dropNotAllowed = _Pages.sharedComponents.isNodeInSharedComponents(Structr.node(_Dragndrop.dragEntity.id)[0]);
+				if (dropNotAllowed) {
+
+					e.dataTransfer.dropEffect = 'none';
+
+				} else {
+
+					e.dataTransfer.dropEffect = 'move';
+				}
+
+				domElement.classList.add(_Dragndrop.cssClasses.dragOverClass);
+
+				if (dropNotAllowed) {
+					domElement.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
+				} else {
+					_Dragndrop.setDragHover(domElement);
+				}
+			});
+
+			domElement.addEventListener('dragover', (e) => {
+
+				if (!_Dragndrop.dragEntity || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				let dropNotAllowed = _Pages.sharedComponents.isNodeInSharedComponents(Structr.node(_Dragndrop.dragEntity.id)[0]);
+				if (!dropNotAllowed) {
+					// preventDefault indicates that this is a valid drop target
+					e.preventDefault();
+				}
+
+				e.stopPropagation();
+			});
+
+			domElement.addEventListener('dragleave', (e) => {
+
+				if (!_Dragndrop.dragEntity || !_Dragndrop.dragActive) {
+					return;
+				}
+
+				e.preventDefault();
+				e.stopPropagation();
+			});
+
+			domElement.addEventListener('drop', async (e) => {
+				e.preventDefault();
+				e.stopPropagation();
+
+				await customDropAction({ draggedEntity: _Dragndrop.dragEntity, targetEntity: entity });
+
+				return false;
+			});
+		},
 		enableNewSharedComponentDropzone: () => {
 
 			let newComponentDropzone = _Pages.sharedComponents.getNewSharedComponentDropzone();

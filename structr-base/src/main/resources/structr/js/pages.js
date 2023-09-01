@@ -1889,17 +1889,20 @@ let _Pages = {
 		};
 
 		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
-			const userInputArea = rowElement.querySelector('.parameter-user-input');
+			const userInputArea   = rowElement.querySelector('.parameter-user-input');
+			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
+
 			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
-				$('.remove', nodeEl).on('click', function(e) {
+
+				nodeEl[0].querySelector('.remove')?.addEventListener('click', (e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					userInputArea.querySelector('.node').remove();
+					_Helpers.fastRemoveElement(userInputArea.querySelector('.node'));
 					dropzoneElement.classList.remove('hidden');
 					saveParameterMappings(dropzoneElement);
-				});
+				})
 			});
-			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
+
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);
 		};
@@ -1920,41 +1923,22 @@ let _Pages = {
 
 			if (dropzoneElement) {
 
-				$(dropzoneElement).droppable({
+				_Dragndrop.pages.enableEventMappingInputDroppable(entity, dropzoneElement, ({ draggedEntity, targetEntity }) => {
 
-					drop: (e, el) => {
+					let obj = StructrModel.obj(draggedEntity.id);
 
-						e.preventDefault();
-						e.stopPropagation();
+					parentElement.querySelector('.parameter-user-input-input').value = draggedEntity.id;
 
-						let sourceEl = $(el.draggable);
-						let sourceId = Structr.getId(sourceEl);
+					let userInputName = obj['_html_name'];
+					if (userInputName) {
 
-						if (!sourceId) {
-							return false;
+						let parameterNameInput = parentElement.querySelector('.parameter-name-input');
+						if (parameterNameInput.value === '') {
+							parameterNameInput.value = userInputName;
 						}
-
-						let obj = StructrModel.obj(sourceId);
-
-						// Ignore shared components
-						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-							return false;
-						}
-
-						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
-						_Elements.dropBlocked = false;
-
-						let userInputName = obj['_html_name'];
-						if (userInputName) {
-
-							let parameterNameInput = parentElement.querySelector('.parameter-name-input');
-							if (parameterNameInput.value === '') {
-								parameterNameInput.value = userInputName;
-							}
-						}
-
-						replaceDropzoneByUserInputElement(parentElement, obj);
 					}
+
+					replaceDropzoneByUserInputElement(parentElement, obj);
 				});
 			}
 		};
