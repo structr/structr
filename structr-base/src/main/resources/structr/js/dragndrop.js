@@ -355,7 +355,7 @@ let _Dragndrop = {
 			}
 		},
 		dragEnd: (e, entity, node) => {
-console.log('a')
+
 			_Pages.sharedComponents.unhighlightNewSharedComponentDropZone();
 
 			// highlight dropzones related to event mapping
