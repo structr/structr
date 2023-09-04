@@ -1917,7 +1917,9 @@ let _Pages = {
 
 			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
 
-			if (dropzoneElement) {
+			if (dropzoneElement && dropzoneElement.dataset['hasDropHandler'] !== 'true') {
+
+				dropzoneElement.dataset['hasDropHandler'] = true;
 
 				_Dragndrop.pages.enableEventMappingDroppable(entity, dropzoneElement, ({ draggedEntity }) => {
 
