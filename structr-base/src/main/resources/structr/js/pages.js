@@ -3342,7 +3342,7 @@ let _Pages = {
 					let count = result.length;
 					if (count > 0) {
 
-						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${count})`;
 						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
@@ -4174,7 +4174,7 @@ let _Pages = {
 
 					<div>
 						<label class="hidden block mb-2">Actions</label>
-						<i class="block mt-4 cursor-pointer em-parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
+						<i class="block mt-4 em-parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
 					</div>
 
 				</div>
