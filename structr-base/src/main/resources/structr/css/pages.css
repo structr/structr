@@ -96,7 +96,8 @@
 }
 
 .node.show-drop-target-before > div.before-node.drag-over,
-.node.show-drop-target-after > div.after-node.drag-over {
+.node.show-drop-target-after > div.after-node.drag-over,
+.element-dropzone.allow-drop.drag-over.drag-hover {
 	background: var(--hover-highlight-color-active);
 }
 
