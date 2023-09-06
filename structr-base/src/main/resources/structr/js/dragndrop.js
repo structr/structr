@@ -566,8 +566,10 @@ let _Dragndrop = {
 		},
 		enableEventMappingDroppable: (entity, domElement, customDropAction) => {
 
-			domElement.addEventListener('dragenter', (e) => {
+			let cnt = 0;
 
+			domElement.addEventListener('dragenter', (e) => {
+				cnt++;
 				if (!_Dragndrop.dragEntity || !_Dragndrop.dragActive) {
 					return;
 				}
@@ -612,9 +614,14 @@ let _Dragndrop = {
 			});
 
 			domElement.addEventListener('dragleave', (e) => {
-
+				cnt--;
 				if (!_Dragndrop.dragEntity || !_Dragndrop.dragActive) {
 					return;
+				}
+
+				if (cnt === 0) {
+					domElement.classList.remove(_Dragndrop.cssClasses.dragOverClass);
+					_Dragndrop.clearDragHover();
 				}
 
 				e.preventDefault();
@@ -633,14 +640,17 @@ let _Dragndrop = {
 		enableNewSharedComponentDropzone: () => {
 
 			let newComponentDropzone = _Pages.sharedComponents.getNewSharedComponentDropzone();
+			let cnt = 0;
 
 			newComponentDropzone?.addEventListener('dragenter', (e) => {
+				cnt++;
 				e.preventDefault();
 				e.stopPropagation();
 
 				_Dragndrop.clearDragNDropClasses();
 
-				newComponentDropzone.classList.add('over');
+				newComponentDropzone.classList.add(_Dragndrop.cssClasses.dragOverClass);
+				_Dragndrop.setDragHover(newComponentDropzone);
 			});
 
 			newComponentDropzone?.addEventListener('dragover', (e) => {
@@ -649,6 +659,19 @@ let _Dragndrop = {
 				if (_Pages.sharedComponents.isDropAllowed()) {
 					// preventDefault indicates that this is a valid drop target
 					e.preventDefault();
+				}
+
+				return true;
+			});
+
+			newComponentDropzone?.addEventListener('dragleave', (e) => {
+				cnt--;
+				e.stopPropagation();
+				e.preventDefault();
+
+				if (cnt === 0) {
+					newComponentDropzone.classList.remove(_Dragndrop.cssClasses.dragOverClass);
+					_Dragndrop.clearDragHover();
 				}
 
 				return true;
