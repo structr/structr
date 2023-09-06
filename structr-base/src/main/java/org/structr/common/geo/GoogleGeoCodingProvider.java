@@ -98,6 +98,10 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			connection.connect();
 
 			SAXReader reader  = new SAXReader();
+
+			// Protect against external entity expansion
+			reader.setIncludeExternalDTDDeclarations(false);
+
 			BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
 			xmlDoc = reader.read(rd);

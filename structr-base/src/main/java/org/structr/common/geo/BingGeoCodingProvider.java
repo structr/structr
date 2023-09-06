@@ -112,6 +112,9 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 					reader.reset();
 				}
 
+				// Protect against external entity expansion
+				saxReader.setIncludeExternalDTDDeclarations(false);
+
 				Document xmlDoc = saxReader.read(reader);
 
 				connection.disconnect();

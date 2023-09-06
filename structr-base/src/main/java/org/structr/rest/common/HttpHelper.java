@@ -53,7 +53,10 @@ import javax.net.ssl.SSLContext;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -225,8 +228,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI     url = URI.create(address);
-			final HttpGet req = new HttpGet(url);
+			final URI     uri = new URL(address).toURI();
+			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
@@ -250,8 +253,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI     url = URI.create(address);
-			final HttpGet req = new HttpGet(url);
+			final URI     uri = new URL(address).toURI();
+			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
@@ -279,8 +282,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI      url = URI.create(address);
-			final HttpHead req = new HttpHead(url);
+			final URI      uri = new URL(address).toURI();
+			final HttpHead req = new HttpHead(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, false, validateCertificates);
 
@@ -377,8 +380,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI url = URI.create(address);
-			final HttpPost req = new HttpPost(url);
+			final URI      uri = new URL(address).toURI();
+			final HttpPost req = new HttpPost(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
@@ -434,8 +437,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI      url = URI.create(address);
-			final HttpPut req = new HttpPut(url);
+			final URI     uri = new URL(address).toURI();
+			final HttpPut req = new HttpPut(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
@@ -486,8 +489,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI     url = URI.create(address);
-			final HttpDelete req = new HttpDelete(url);
+			final URI        uri = new URL(address).toURI();
+			final HttpDelete req = new HttpDelete(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, validateCertificates);
 
@@ -529,8 +532,8 @@ public class HttpHelper {
 
 		try {
 
-			final URI     url = URI.create(address);
-			final HttpGet req = new HttpGet(url);
+			final URI     uri = new URL(address).toURI();
+			final HttpGet req = new HttpGet(uri);
 
 			configure(req, charset, username, password, proxyUrl, proxyUsername, proxyPassword, cookie, headers, true, true);
 
@@ -636,8 +639,8 @@ public class HttpHelper {
 			super();
 		}
 
-		public HttpPatch(final URI uri) {
-			super(uri);
+		public HttpPatch(final URI uri) throws MalformedURLException, URISyntaxException {
+			super(uri.toURL().toURI());
 		}
 
 		@Override

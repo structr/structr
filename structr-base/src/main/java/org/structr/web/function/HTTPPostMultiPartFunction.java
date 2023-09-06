@@ -40,6 +40,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -168,8 +170,8 @@ public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
         final Map<String, String> responseData = new HashMap<>();
 
         try {
-
-            HttpPost httppost = new HttpPost(address);
+            final URL url = new URL(address);
+            HttpPost httppost = new HttpPost(url.toURI());
             MultipartEntityBuilder builder = MultipartEntityBuilder.create();
 
             CloseableHttpClient client = HttpHelper.getClient(httppost, "UTF-8", null, null, null, null, null, null, ctx.getHeaders(), false, validateCertificates);
