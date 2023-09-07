@@ -1815,20 +1815,28 @@ let _Pages = {
 		};
 
 		const addLinkedElementToDropzone = (parentElement, dropzoneElement, obj, propertyKey) => {
+
 			_Entities.insertRelatedNode(dropzoneElement, obj, (nodeEl) => {
+
+				_Entities.setMouseOverHandlers(obj.id, $(nodeEl), $(nodeEl), false, [obj.id]);
 
 				nodeEl.querySelector('.remove')?.addEventListener('click' , (e) => {
 					e.preventDefault();
 					e.stopPropagation();
+
 					Command.get(actionMapping.id, 'id,' + propertyKey, data => {
 						Command.setProperty(actionMapping.id, propertyKey, data[propertyKey] = data[propertyKey].filter(t => t.id !== obj.id), null, () => {
-							parentElement.querySelector('._' + obj.id).remove();
+
+							// trigger mouseout event so the node highlighted in tree is unhighlighted
+							nodeEl.dispatchEvent(new Event('mouseout'));
+
+							_Helpers.fastRemoveElement(parentElement.querySelector('._' + obj.id));
 							dropzoneElement.classList.remove('hidden');
 						});
 					});
 				});
 
-			}, 'afterbegin');
+			}, 'afterbegin', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -1883,21 +1891,28 @@ let _Pages = {
 
 		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
 
-			const userInputArea = rowElement.querySelector('.parameter-user-input');
+			const userInputArea        = rowElement.querySelector('.parameter-user-input');
 			const hiddenUserInputInput = rowElement.querySelector('.parameter-user-input-input');
 			hiddenUserInputInput.value = obj.id;
+			const dropzoneElement      = userInputArea.querySelector('.link-existing-element-dropzone');
 
-			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
-			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
-				nodeEl[0].querySelector('.remove')?.addEventListener('click', (e) => {
+			_Entities.insertRelatedNode(userInputArea, obj, (nodeEl) => {
+
+				_Entities.setMouseOverHandlers(obj.id, $(nodeEl), $(nodeEl), false, [obj.id]);
+
+				nodeEl.querySelector('.remove')?.addEventListener('click', (e) => {
 					e.preventDefault();
 					e.stopPropagation();
+
+					// trigger mouseout event so the node highlighted in tree is unhighlighted
+					nodeEl.dispatchEvent(new Event('mouseout'));
+
 					_Helpers.fastRemoveElement(userInputArea.querySelector('.node'));
 					dropzoneElement.classList.remove('hidden');
 					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
 				})
-			});
+			}, 'beforeend', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
 
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);

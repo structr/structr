@@ -1251,13 +1251,15 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	insertRelatedNode: (cell, node, onDelete, position) => {
+	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
 		/** Alternative function to appendRelatedNode
 		    - no jQuery
 		    - uses insertAdjacentHTML
 		    - default position: beforeend
 		*/
-		let displayName = _Crud.displayName(node);
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
 		cell = (cell instanceof jQuery ? cell[0] : cell);
 		cell.insertAdjacentHTML(position || 'beforeend', `
 			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
@@ -1278,8 +1280,10 @@ let _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	appendRelatedNode: (cell, node, onDelete) => {
-		let displayName = _Crud.displayName(node);
+	appendRelatedNode: (cell, node, onDelete, displayName) => {
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
 		cell.append(`
 			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
 				<span class="abbr-ellipsis abbr-80">${displayName}</span>
@@ -1888,6 +1892,10 @@ let _Entities = {
 			}
 		}
 
+		_Entities.setMouseOverHandlers(nodeId, el, node, isComponent, syncedNodesIds);
+	},
+	setMouseOverHandlers: (nodeId, el, node, isComponent = false, syncedNodesIds = []) => {
+
 		node.on({
 			mouseover: function(e) {
 
@@ -1902,12 +1910,10 @@ let _Entities = {
 					$('#id_' + nodeId).addClass('nodeHover');
 				}
 
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).addClass('nodeHover');
-						$('#componentId_' + s).addClass('nodeHover');
-					});
-				}
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).addClass('nodeHover');
+					$('#componentId_' + s).addClass('nodeHover');
+				});
 
 				let page = $(el).closest('.page');
 				if (page.length) {
@@ -1929,18 +1935,18 @@ let _Entities = {
 				if (isComponent) {
 					$('#id_' + nodeId).removeClass('nodeHover');
 				}
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).removeClass('nodeHover');
-						$('#componentId_' + s).removeClass('nodeHover');
-					});
-				}
+
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).removeClass('nodeHover');
+					$('#componentId_' + s).removeClass('nodeHover');
+				});
+
 				_Entities.resetMouseOverState(this);
 			}
 		});
 	},
 	resetMouseOverState: (element) => {
-		let el = $(element);
+		let el   = $(element);
 		let node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
