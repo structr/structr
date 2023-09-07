@@ -433,8 +433,6 @@ let _Widgets = {
 
 		_Dragndrop.enableDraggable(widget, div[0], _Dragndrop.dropActions.widget, false);
 
-		_Entities.setMouseOver(div, false);
-
 		if (!remote) {
 
 			div.children('.name_').off('click').on('click', (e) => {
