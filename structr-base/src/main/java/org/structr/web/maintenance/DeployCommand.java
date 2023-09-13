@@ -1583,7 +1583,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
 				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
 
-				if (!failureTargets.isEmpty()) {
+				if (!parameterMappings.isEmpty()) {
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
 
