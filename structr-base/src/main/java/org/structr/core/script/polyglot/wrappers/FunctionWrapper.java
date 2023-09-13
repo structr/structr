@@ -28,13 +28,13 @@ import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
-public class FunctionWrapper implements ProxyExecutable {
+public class FunctionWrapper<T,R> implements ProxyExecutable {
 
 	private final ActionContext actionContext;
 	private final GraphObject entity;
-	private final Function<Object, Object> func;
+	private final Function<T,R> func;
 
-	public FunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<Object, Object> func) {
+	public FunctionWrapper(final ActionContext actionContext, final GraphObject entity, final Function<T, R> func) {
 
 		this.actionContext = actionContext;
 		this.entity        = entity;
@@ -42,12 +42,13 @@ public class FunctionWrapper implements ProxyExecutable {
 	}
 
 	@Override
-	public Object execute(Value... arguments) {
+	@SuppressWarnings("unchecked")
+	public R execute(Value... arguments) {
 
 		try {
-			Object[] args = Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
+			T[] args = (T[]) Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray();
 
-			return PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
+			return (R) PolyglotWrapper.wrap(actionContext, func.apply(actionContext, entity, args));
 
 		} catch (FrameworkException ex) {
 
