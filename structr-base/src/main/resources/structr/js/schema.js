@@ -5623,6 +5623,12 @@ let _Schema = {
 						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
+						<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>As with all the <strong>on****</strong> methods, the state of the graph is as if the transaction was successful. This is why the <code>$.this</code> object is not available.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
+						</a>
+						<!--a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onDelete</strong> and <strong>afterDelete</strong> is that <strong>afterDelete</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a notNull constraint and you want to send an email when an object is deleted successfully.<br>Calling 'send_html_mail()' in onDelete would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterDelete.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
+						</a-->
 					</div>
 				</div>
 			</div>
