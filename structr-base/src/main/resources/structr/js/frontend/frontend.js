@@ -105,7 +105,7 @@ export class Frontend {
 
 		elements.forEach(element => {
 			let value = this.resolveElementValue(element);
-			if (value) {
+			if (value !== undefined) {
 				values.push(value);
 			}
 		});
