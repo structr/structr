@@ -104,7 +104,10 @@ export class Frontend {
 		let values = [];
 
 		elements.forEach(element => {
-			values.push(this.resolveElementValue(element));
+			let value = this.resolveElementValue(element);
+			if (value) {
+				values.push(value);
+			}
 		});
 
 		// reduce array of length 1 to single value
@@ -173,7 +176,18 @@ export class Frontend {
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
-			// input[type="checkbox"]
+			// use value if present
+			if (element.value) {
+
+				if (element.checked) {
+					return element.value;
+				}
+
+				// no value please
+				return undefined;
+			}
+
+			// return boolean if no value is present
 			return element.checked;
 
 		} else if (element.nodeName === 'SELECT' && element.multiple) {
