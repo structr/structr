@@ -153,7 +153,7 @@ public class GlobalSchemaMethodWrapper implements ProxyObject {
 			try {
 
 				final String source = method.getProperty(SchemaMethod.source);
-				return Actions.execute(actionContext.getSecurityContext(), null, "${" + source.trim() + "}", paramMap, method.getName(), source);
+				return PolyglotWrapper.wrap(actionContext, Actions.execute(actionContext.getSecurityContext(), null, "${" + source.trim() + "}", paramMap, method.getName(), source));
 			} catch (FrameworkException e) {
 
 				throw new RuntimeException(e);
