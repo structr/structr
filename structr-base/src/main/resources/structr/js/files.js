@@ -941,7 +941,7 @@ let _Files = {
 				<tr id="${rowId}" class="row${(d.isThumbnail ? ' thumbnail' : '')}">
 					${getIconColumnHTML()}
 					<td>
-						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between" draggable="true">
+						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
 							<b class="name_ leading-8 truncate">${name}</b>
 							<div class="icons-container flex items-center"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
