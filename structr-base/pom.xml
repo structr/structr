@@ -21,6 +21,7 @@
 		<imageio.version>3.8.0</imageio.version>
 		<batik.version>[1.17,)</batik.version>
 		<graal.version>22.3.2</graal.version>
+		<apache.sshd.version>2.7.0</apache.sshd.version>
 	</properties>
 
 	<dependencies>
@@ -458,7 +459,7 @@
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
-			<version>1.2.0</version>
+			<version>2.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.openhft</groupId>

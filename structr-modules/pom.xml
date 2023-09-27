@@ -15,6 +15,14 @@
 
 	<packaging>pom</packaging>
 
+	<dependencies>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-base</artifactId>
+			<version>5.1-SNAPSHOT</version>
+		</dependency>
+	</dependencies>
+
 	<modules>
 		<module>structr-xmpp-module</module>
 		<module>structr-media-module</module>
