@@ -780,7 +780,7 @@ public class Importer {
 					// create comment or content node
 					if (!StringUtils.isBlank(comment)) {
 
-						newNode = (DOMNode) page.createComment(comment);
+						newNode = (DOMNode) page.createComment(DOMNode.unescapeForHtml(comment));
 						newNode.setProperty(contentTypeKey, "text/html");
 
 					} else {

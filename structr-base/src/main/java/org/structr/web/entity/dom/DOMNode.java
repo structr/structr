@@ -444,6 +444,10 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">"}, new String[]{"&amp;", "&lt;", "&gt;"});
 	}
 
+	public static String unescapeForHtml(final String raw) {
+		return StringUtils.replaceEach(raw, new String[]{"&amp;", "&lt;", "&gt;"}, new String[]{"&", "<", ">"});
+	}
+
 	public static String escapeForHtmlAttributes(final String raw) {
 		return StringUtils.replaceEach(raw, new String[]{"&", "<", ">", "\""}, new String[]{"&amp;", "&lt;", "&gt;", "&quot;"});
 	}
