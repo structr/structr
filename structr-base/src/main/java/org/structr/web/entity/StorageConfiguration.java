@@ -97,14 +97,6 @@ public interface StorageConfiguration extends NodeInterface {
 			return null;
 		}
 	}
-
-	default String getMountTarget() {
-
-		final Map<String, String> conf = getConfiguration();
-
-		return conf.get("mountTarget");
-	}
-
 	default StorageConfigurationEntry addEntry(final String key, final String value) throws FrameworkException {
 
 		return StructrApp.getInstance().create(StorageConfigurationEntry.class,

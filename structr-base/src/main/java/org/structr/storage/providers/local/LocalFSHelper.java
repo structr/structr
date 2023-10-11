@@ -31,6 +31,7 @@ import org.structr.web.entity.StorageConfiguration;
 
 public class LocalFSHelper {
 
+	private static final String MOUNT_TARGET_KEY = "mountTarget";
 	private final StorageConfiguration config;
 
 	public LocalFSHelper(final StorageConfiguration config) {
@@ -50,7 +51,7 @@ public class LocalFSHelper {
 	public java.io.File getFileOnDisk(final Folder parentFolder, final File file, final boolean create) {
 
 		// Check if configuration contains a mountTarget, indicating a mounted/mapped folder
-		final String _mountTarget = config != null ? config.getMountTarget() : null;
+		final String _mountTarget = config != null ? config.getConfiguration().get(MOUNT_TARGET_KEY) : null;
 		if (_mountTarget != null) {
 
 			final AbstractFile configSupplier = StorageProviderFactory.getStorageConfigurationSupplier(file);
