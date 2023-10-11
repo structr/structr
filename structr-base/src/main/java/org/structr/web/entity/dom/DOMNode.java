@@ -1439,27 +1439,24 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			instructions.add("@structr:owner(" + _owner.getProperty(AbstractNode.name) + ")");
 		}
 
-		for (final Security security : thisNode.getSecurityRelationships()) {
+		thisNode.getSecurityRelationships().stream().filter(Objects::nonNull).sorted(Comparator.comparing(security -> security.getSourceNode().getProperty(AbstractNode.name))).forEach(security -> {
 
-			if (security != null) {
+			final Principal grantee = security.getSourceNode();
+			final Set<String> perms = security.getPermissions();
+			final StringBuilder shortPerms = new StringBuilder();
 
-				final Principal grantee = security.getSourceNode();
-				final Set<String> perms = security.getPermissions();
-				final StringBuilder shortPerms = new StringBuilder();
-
-				// first character only
-				for (final String perm : perms) {
-					if (perm.length() > 0) {
-						shortPerms.append(perm.substring(0, 1));
-					}
-				}
-
-				if (shortPerms.length() > 0) {
-					// ignore SECURITY-relationships without permissions
-					instructions.add("@structr:grant(" + grantee.getProperty(AbstractNode.name) + "," + shortPerms.toString() + ")");
+			// first character only
+			for (final String perm : perms) {
+				if (perm.length() > 0) {
+					shortPerms.append(perm.substring(0, 1));
 				}
 			}
-		}
+
+			if (shortPerms.length() > 0) {
+				// ignore SECURITY-relationships without permissions
+				instructions.add("@structr:grant(" + grantee.getProperty(AbstractNode.name) + "," + shortPerms.toString() + ")");
+			}
+		});
 	}
 
 	static void renderCustomAttributes(final DOMNode thisNode, final AsyncBuffer out, final SecurityContext securityContext, final RenderContext renderContext) throws FrameworkException {
