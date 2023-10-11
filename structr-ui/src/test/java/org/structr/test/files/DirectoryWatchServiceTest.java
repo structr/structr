@@ -33,6 +33,9 @@ import org.structr.core.entity.ResourceAccess;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.schema.export.StructrSchema;
+import org.structr.storage.config.StorageProviderConfig;
+import org.structr.storage.config.StorageProviderConfigFactory;
+import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.common.FileHelper;
 import org.structr.web.entity.File;
@@ -44,10 +47,14 @@ import org.testng.annotations.Optional;
 import org.testng.annotations.Parameters;
 import org.testng.annotations.Test;
 
-import java.io.*;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
+import java.util.Map;
 
 import static org.testng.AssertJUnit.*;
 
@@ -90,10 +97,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		// mount directory
 		try (final Tx tx = app.tx()) {
 
+			// create folder to mount
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted1"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -160,11 +170,14 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent1)
 			);
 
+			// create folder to mount
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted2"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "parent"), parent2),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			tx.success();
@@ -236,10 +249,13 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
+				// create folder to mount
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), true),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString()),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountScanInterval"), 2)
 				);
 
@@ -286,7 +302,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
 				assertEquals("Invalid checksum of externally modified file", FileHelper.getChecksum(file2), check2.getChecksum());
-				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
+				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
 
 				tx.success();
 
@@ -392,9 +408,11 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 
 				logger.info("Mounting directory..");
 
+				StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", root.toString())));
+
 				app.create(Folder.class,
 					new NodeAttribute<>(Folder.name, "mounted3"),
-					new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), root.toString()),
+					new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount"),
 					new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false)
 				);
 
@@ -441,7 +459,7 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 				final File check2 = app.nodeQuery(File.class).andName("test2.txt").getFirst();
 
 				assertFalse("Invalid checksum of externally modified file", FileHelper.getMD5Checksum(file2).equals(check2.getMd5()));
-				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2.getFileOnDisk(false)));
+				assertEquals("Invalid content of externally modified file", "test2 - AFTER change", readFile(check2));
 
 				tx.success();
 
@@ -538,10 +556,12 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 			);
 
 			// create folder to mount
+			StorageProviderConfigFactory.registerConfig(new StorageProviderConfig("testMount", LocalFSStorageProvider.class, Map.of("mountTarget", testDir.toString())));
+
 			final Folder folder = app.create(Folder.class,
 				new NodeAttribute<>(Folder.name, "mounted"),
 				new NodeAttribute<>(StructrApp.key(Folder.class, "mountWatchContents"), false),
-				new NodeAttribute<>(StructrApp.key(Folder.class, "mountTarget"), testDir.toString())
+				new NodeAttribute<>(StructrApp.key(Folder.class, "storageProvider"), "testMount")
 			);
 
 			// make folder writable for user
@@ -661,11 +681,12 @@ public class DirectoryWatchServiceTest extends StructrUiTest {
 		}
 	}
 
-	private String readFile(final java.io.File file) throws IOException {
+	private String readFile(final File file) throws IOException {
 
-		try (final FileInputStream fis = new FileInputStream(file)) {
+		try (final InputStream is = file.getInputStream()) {
 
-			return IOUtils.toString(fis, "utf-8");
+			final String content = IOUtils.toString(is, "utf-8");
+			return content;
 		}
 	}
 }

@@ -58,7 +58,8 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 		StringBuilder commandLine = new StringBuilder("avconv -y -loglevel quiet -i ");
 
 		// build command line from builder options
-		commandLine.append(inputVideo.getDiskFilePath(securityContext));
+		// Todo: Fix for fs abstraction
+		//commandLine.append(inputVideo.getDiskFilePath(securityContext));
 		commandLine.append(" -f ffmetadata -");
 
 		return commandLine;

@@ -19,8 +19,12 @@
 package org.structr.schema.export;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonEnumProperty;
+import org.structr.api.schema.JsonProperty;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -29,16 +33,12 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaHelper.Type;
+import org.structr.schema.SchemaService;
 
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.schema.JsonProperty;
-import org.structr.api.schema.JsonType;
-import org.structr.schema.SchemaService;
 
 /**
  *

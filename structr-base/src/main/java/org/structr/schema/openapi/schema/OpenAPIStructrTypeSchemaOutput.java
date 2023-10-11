@@ -26,7 +26,6 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.openapi.common.OpenAPISchemaReference;
 
-import java.sql.Array;
 import java.util.*;
 
 public class OpenAPIStructrTypeSchemaOutput extends TreeMap<String, Object> {

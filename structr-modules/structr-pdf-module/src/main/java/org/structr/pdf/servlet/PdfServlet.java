@@ -19,6 +19,11 @@
 package org.structr.pdf.servlet;
 
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.Pdf;
+import jakarta.servlet.AsyncContext;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.WriteListener;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.EofException;
@@ -37,11 +42,6 @@ import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.servlet.HtmlServlet;
 import org.structr.websocket.command.AbstractCommand;
 
-import jakarta.servlet.AsyncContext;
-import jakarta.servlet.ServletOutputStream;
-import jakarta.servlet.WriteListener;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.LinkedHashSet;
 import java.util.Queue;

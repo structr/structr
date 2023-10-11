@@ -22,12 +22,12 @@ import org.apache.commons.mail.EmailAttachment;
 import org.structr.common.AdvancedMailContainer;
 import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.mail.AdvancedMailModule;
 import org.structr.mail.DynamicFileDataSource;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
-import javax.activation.FileDataSource;
 import java.net.MalformedURLException;
 
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
@@ -108,7 +108,7 @@ public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
 		} else {
 
-			attachment.setDataSource(new FileDataSource(fileNode.getFileOnDisk()));
+			attachment.setDataSource(StorageProviderFactory.getStorageProvider(fileNode));
 
 		}
 

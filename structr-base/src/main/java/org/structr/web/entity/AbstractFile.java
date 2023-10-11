@@ -39,7 +39,9 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
+import org.structr.storage.config.StorageProviderConfigFactory;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
 import org.structr.web.property.PathProperty;
@@ -72,6 +74,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addBooleanProperty("includeInFrontendExport",                  PropertyView.Ui).setIndexed(true);
 		type.addBooleanProperty("isExternal",                               PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addLongProperty("lastSeenMounted",                             PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("storageProvider",                           PropertyView.Public, PropertyView.Ui);
 
 		type.addBooleanProperty("hasParent").setIndexed(true);
 
@@ -80,6 +83,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
+		type.addPropertyGetter("storageProvider", String.class);
 
 		type.addPropertySetter("hasParent", Boolean.TYPE);
 
@@ -124,6 +128,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	String getPath();
 	String getFolderPath();
+
+	String getStorageProvider();
 
 	boolean isMounted();
 	boolean isExternal();
@@ -250,6 +256,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
 
+		// ToDo: Implement renameMountedAbstractFile for new fs layer
+		throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+		/*
 		final String _mountTarget = thisFolder.getMountTarget();
 		final Folder parentFolder = thisFolder.getParent();
 
@@ -298,6 +307,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		}
 
 		return false;
+
+		 */
 	}
 
 	static String getFolderPath(final AbstractFile thisFile) {
@@ -337,14 +348,17 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean isMounted(final AbstractFile thisFile) {
 
-		if (thisFile.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null) {
+		final boolean hasMountTarget = StorageProviderConfigFactory.getEffectiveConfig(thisFile) != null && StorageProviderConfigFactory.getEffectiveConfig(thisFile).SpecificConfigParameters().containsKey("mountTarget");
+		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
+
+		if (hasMountTarget && watchServiceHasMountedFolder) {
 			return true;
 		}
 
 		final Folder parent = thisFile.getParent();
 		if (parent != null) {
 
-			return parent.isMounted();
+			return AbstractFile.isMounted(parent);
 		}
 
 		return false;

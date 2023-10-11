@@ -64,6 +64,7 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
+import org.structr.web.entity.html.TemplateElement;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
@@ -81,7 +82,6 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
-import org.structr.web.entity.html.TemplateElement;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 

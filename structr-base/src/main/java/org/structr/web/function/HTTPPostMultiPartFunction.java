@@ -25,7 +25,7 @@ import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.structr.common.error.FrameworkException;
@@ -33,6 +33,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.AbstractFile;
@@ -126,19 +127,19 @@ public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
         return "Sends an HTTP POST request to the given URL and returns the response body";
     }
 
-    private MultipartEntityBuilder addFileToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
+    private MultipartEntityBuilder addInputStreamToMultiPartBuilder(MultipartEntityBuilder builder, AbstractFile abstractFile, final String partKey) {
 
         if (abstractFile instanceof File) {
 
             final File file = (File) abstractFile;
-            FileBody fileBody = new FileBody(file.getFileOnDisk(), ContentType.create(file.getContentType()), file.getName());
-            builder.addPart(partKey, fileBody);
+            InputStreamBody inputStreamBody = new InputStreamBody(StorageProviderFactory.getStorageProvider(file).getInputStream(), ContentType.create(file.getContentType()), file.getName());
+            builder.addPart(partKey, inputStreamBody);
 
         } else if (abstractFile instanceof Folder) {
 
             final Folder folder = (Folder) abstractFile;
             for (File folderFile : folder.getFiles()) {
-               builder = addFileToMultiPartBuilder(builder, folder, partKey);
+               builder = addInputStreamToMultiPartBuilder(builder, folder, partKey);
             }
         }
 
@@ -155,7 +156,7 @@ public class HTTPPostMultiPartFunction extends UiAdvancedFunction {
 
         } else if (partValue instanceof AbstractFile) {
 
-            builder = this.addFileToMultiPartBuilder(builder, (AbstractFile) partValue, partKey);
+            builder = this.addInputStreamToMultiPartBuilder(builder, (AbstractFile) partValue, partKey);
 
         } else {
 

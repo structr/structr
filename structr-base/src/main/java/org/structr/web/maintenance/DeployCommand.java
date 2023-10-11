@@ -21,6 +21,7 @@ package org.structr.web.maintenance;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -752,7 +753,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
-		final Path src                       = file.getFileOnDisk().toPath();
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
 
@@ -768,8 +768,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (doExport) {
 
 			try {
-				Files.copy(src, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
+				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
 			} catch (IOException ioex) {
 				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
 			}

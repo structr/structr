@@ -32,6 +32,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.entity.File;
@@ -85,7 +86,7 @@ public interface ODTExporter extends ODFExporter {
 				p -> nodeProperties.put(p.dbName(), node.getProperty(p))
 			);
 
-			TextDocument text = TextDocument.loadDocument(output.getFileOnDisk().getAbsolutePath());
+			TextDocument text = TextDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = text.getContentRoot().getElementsByTagName(ODT_FIELD_TAG_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {
@@ -128,7 +129,7 @@ public interface ODTExporter extends ODFExporter {
 
 			}
 
-			text.save(output.getFileOnDisk().getAbsolutePath());
+			text.save(StorageProviderFactory.getStorageProvider(output).getOutputStream());
 			text.close();
 
 		} catch (Exception e) {

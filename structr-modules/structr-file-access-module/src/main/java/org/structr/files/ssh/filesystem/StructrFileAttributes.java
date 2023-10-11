@@ -28,7 +28,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -40,7 +40,7 @@ import java.util.*;
 /**
  *
  */
-public class StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
+public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttributes, PosixFileAttributeView {
 
 	private static final Logger logger              = LoggerFactory.getLogger(StructrFileAttributes.class.getName());
 	public static final Set<String> SUPPORTED_VIEWS = new LinkedHashSet<>(Arrays.asList(new String[] { "owner", "dos", "basic", "posix", "permissions" } ));
@@ -224,7 +224,7 @@ public class StructrFileAttributes implements PosixFileAttributes, DosFileAttrib
 
 			if (file instanceof File) {
 
-				final Number s = FileUtils.getSize(((File)file).getFileOnDisk());
+				final Number s = StorageProviderFactory.getStorageProvider(file).size();
 				if (s != null) {
 
 					size = s.longValue();

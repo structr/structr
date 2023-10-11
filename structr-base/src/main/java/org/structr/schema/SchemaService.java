@@ -30,6 +30,7 @@ import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.service.*;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.*;
@@ -57,7 +58,6 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.api.schema.JsonType;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.

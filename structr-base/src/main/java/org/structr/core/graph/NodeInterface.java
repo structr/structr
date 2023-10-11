@@ -18,24 +18,20 @@
  */
 package org.structr.core.graph;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.RelationshipType;
-import org.structr.common.AccessControllable;
-import org.structr.common.Permission;
-import org.structr.common.Permissions;
-import org.structr.common.SecurityContext;
-import org.structr.common.View;
+import org.structr.common.*;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.*;
 import org.structr.core.entity.relationship.PrincipalOwnsNode;
 import org.structr.core.property.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public interface NodeInterface extends GraphObject, Comparable, AccessControllable {
 
