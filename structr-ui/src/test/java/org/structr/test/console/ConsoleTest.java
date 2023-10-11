@@ -147,6 +147,7 @@ public class ConsoleTest extends StructrUiTest {
 	public void testRebuildCommand() {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
+
 		final int nodeCount      = 2438;
 		final int relCount       = 2846;
 		final int typedNodeCount = 612;
