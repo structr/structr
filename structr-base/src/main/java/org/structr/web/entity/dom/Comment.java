@@ -70,12 +70,14 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 					DOMNode.renderDeploymentExportComments(comment, buf, true);
 
+					buf.append("<!--").append(DOMNode.escapeForHtml(_content)).append("-->");
+
 				} else {
 
 					_content = comment.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Content.class, "content"));
-				}
 
-				buf.append("<!--").append(DOMNode.escapeForHtml(_content)).append("-->");
+					buf.append("<!--").append(_content).append("-->");
+				}
 
 			} catch (Throwable t) {
 
