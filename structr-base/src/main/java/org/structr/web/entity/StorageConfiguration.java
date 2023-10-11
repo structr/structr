@@ -35,6 +35,7 @@ import org.structr.api.graph.Cardinality;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
+import org.structr.storage.StorageProvider;
 
 /**
  * Storage container for mount configuration entries.
@@ -83,13 +84,20 @@ public interface StorageConfiguration extends NodeInterface {
 	}
 
 	// ----- default methods -----
-	default Class getStorageProviderImplementation() {
+	default Class<? extends StorageProvider> getStorageProviderImplementation() {
 
 		final Logger logger = LoggerFactory.getLogger(StorageConfiguration.class);
 
 		try {
 
-			return Class.forName(this.getProperty("provider"));
+			Class<?> foundClass = Class.forName(this.getProperty("provider"));
+			if (StorageProvider.class.isAssignableFrom(foundClass)) {
+
+				return foundClass.asSubclass(StorageProvider.class);
+			}
+
+			logger.error("Found class for given provider fully qualified class name, but found class does not extend the StorageProvider interface. Found Class: {}", foundClass.getName());
+			return null;
 
 		} catch (ClassNotFoundException ex) {
 

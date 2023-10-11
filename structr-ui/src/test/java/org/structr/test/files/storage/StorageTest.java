@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
 import org.structr.storage.providers.local.LocalFSStorageProvider;
 import org.structr.storage.providers.memory.InMemoryStorageProvider;
@@ -99,8 +100,8 @@ public class StorageTest extends StructrUiTest {
 
 		try (Tx tx = app.tx()) {
 
-			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, Map.of());
-			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, Map.of());
+			final StorageConfiguration local  = StorageProviderFactory.createConfig("local",  LocalFSStorageProvider.class, null);
+			final StorageConfiguration memory = StorageProviderFactory.createConfig("memory", InMemoryStorageProvider.class, null);
 
 			final PropertyKey<StorageConfiguration> storageConfigurationKey = StructrApp.key(File.class, "storageConfiguration");
 
@@ -113,10 +114,12 @@ public class StorageTest extends StructrUiTest {
 			OutputStream os = file.getOutputStream();
 			os.write(payload.getBytes());
 			os.flush();
+			os.close();
 
 			// Check if data was successfully written
 			InputStream is = file.getInputStream();
 			String result = new Scanner(is).useDelimiter("\\A").next();
+			is.close();
 			assertEquals(payload, result);
 
 			// Move from default (local) to local storage provider
@@ -126,6 +129,7 @@ public class StorageTest extends StructrUiTest {
 			// Check if data is still equal after migration
 			is = file.getInputStream();
 			result = new Scanner(is).useDelimiter("\\A").next();
+			is.close();
 			assertEquals(payload, result);
 
 			// Move from local to memory storage provider
@@ -139,14 +143,17 @@ public class StorageTest extends StructrUiTest {
 			// Check if data is still equal after migration
 			is = file.getInputStream();
 			result = new Scanner(is).useDelimiter("\\A").next();
+			is.close();
 			assertEquals(payload, result);
 
 			// Move from memory to default storage provider
 			file.setProperty(storageConfigurationKey, null);
+			assertEquals("default", StorageProviderFactory.getStorageProvider(file).getProviderName());
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
 			result = new Scanner(is).useDelimiter("\\A").next();
+			is.close();
 			assertEquals(payload, result);
 
 			tx.success();

@@ -47,7 +47,7 @@ public abstract class StorageProviderFactory {
 	 * @param configuration optional configuration options
 	 * @return a new storage provider config with the given configuration, or null
 	 */
-	public static StorageConfiguration createConfig(final String name, final Class impl, final Map<String, String> configuration) throws FrameworkException {
+	public static StorageConfiguration createConfig(final String name, final Class<? extends StorageProvider> impl, final Map<String, String> configuration) throws FrameworkException {
 
 		final App app = StructrApp.getInstance();
 
@@ -58,8 +58,11 @@ public abstract class StorageProviderFactory {
 				new NodeAttribute<>(StructrApp.key(StorageConfiguration.class, "provider"), impl.getName())
 			);
 
-			for (final Entry<String, String> c : configuration.entrySet()) {
-				sc.addEntry(c.getKey(), c.getValue());
+			if (configuration != null) {
+
+				for (final Entry<String, String> c : configuration.entrySet()) {
+					sc.addEntry(c.getKey(), c.getValue());
+				}
 			}
 
 			tx.success();

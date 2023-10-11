@@ -64,10 +64,9 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 		if (obj instanceof StorageProvider otherProvider) {
 
 			final boolean sameClass = otherProvider.getClass().equals(this.getClass());
-			final boolean bothHaveNoConfigs = (this.getConfig() == null && otherProvider.getConfig() == null);
-			final boolean configsExist = this.getConfig() != null && otherProvider.getConfig() != null;
-			final boolean configsHaveMatchingUUIDs = configsExist && (this.getConfig().getUuid().equals(otherProvider.getConfig() != null ? otherProvider.getConfig().getUuid() : null));
-			final boolean sameConfigs = bothHaveNoConfigs || configsHaveMatchingUUIDs;
+			final boolean bothHaveNoOrEmptyConfigs = ((this.getConfig() == null || this.getConfig().getConfiguration().size() == 0) && (otherProvider.getConfig() == null || otherProvider.getConfig().getConfiguration().size() == 0));
+			final boolean configsHaveMatchingUUIDs = !bothHaveNoOrEmptyConfigs && (this.getConfig() != null && otherProvider.getConfig() != null && this.getConfig().getUuid().equals(otherProvider.getConfig().getUuid()));
+			final boolean sameConfigs = bothHaveNoOrEmptyConfigs || configsHaveMatchingUUIDs;
 
 			return sameClass && sameConfigs;
 		}
