@@ -1251,10 +1251,41 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	appendRelatedNode: (cell, node, onDelete) => {
-		let displayName = _Crud.displayName(node);
-		cell.append(`
+	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
+		/** Alternative function to appendRelatedNode
+		    - no jQuery
+		    - uses insertAdjacentHTML
+		    - default position: beforeend
+		*/
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
+		cell = (cell instanceof jQuery ? cell[0] : cell);
+		cell.insertAdjacentHTML(position || 'beforeend', `
 			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
+				<span class="abbr-ellipsis abbr-80">${displayName}</span>
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
+			</div>
+		`);
+
+		let nodeEl = cell.querySelector('._' + node.id);
+
+		nodeEl.addEventListener('click', (e) => {
+			e.preventDefault();
+			_Entities.showProperties(node);
+			return false;
+		});
+
+		if (onDelete) {
+			return onDelete(nodeEl);
+		}
+	},
+	appendRelatedNode: (cell, node, onDelete, displayName) => {
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
+		cell.append(`
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
 				<span class="abbr-ellipsis abbr-80">${displayName}</span>
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
 			</div>
@@ -1789,20 +1820,15 @@ let _Entities = {
 			let typeIcon    = $(nodeContainer.children('.typeIcon').first());
 			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 
-			typeIcon.removeClass(_Icons.typeIconClassNoChildren).before(`<i class="expand_icon_svg ${icon}"></i>`);
+			typeIcon.removeClass(_Icons.typeIconClassNoChildren).before(`<i class="expand_icon_svg ${icon}" draggable="false"></i>`);
 
 			button = $(nodeContainer.children('.expand_icon_svg').first());
 
 			if (button) {
 
-				button.on('click', (e) => {
+				button[0].addEventListener('click', (e) => {
 					e.stopPropagation();
 					_Entities.toggleElement(entity.id, nodeContainer, undefined, callback);
-				});
-
-				// Prevent expand icon from being draggable
-				button.on('mousedown', (e) => {
-					e.stopPropagation();
 				});
 
 				if (expanded) {
@@ -1866,8 +1892,17 @@ let _Entities = {
 			}
 		}
 
+		_Entities.setMouseOverHandlers(nodeId, el, node, isComponent, syncedNodesIds);
+	},
+	setMouseOverHandlers: (nodeId, el, node, isComponent = false, syncedNodesIds = []) => {
+
 		node.on({
 			mouseover: function(e) {
+
+				if (_Dragndrop.dragActive === true) {
+					return;
+				}
+
 				e.stopPropagation();
 				var self = $(this);
 				$('#componentId_' + nodeId).addClass('nodeHover');
@@ -1875,12 +1910,10 @@ let _Entities = {
 					$('#id_' + nodeId).addClass('nodeHover');
 				}
 
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).addClass('nodeHover');
-						$('#componentId_' + s).addClass('nodeHover');
-					});
-				}
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).addClass('nodeHover');
+					$('#componentId_' + s).addClass('nodeHover');
+				});
 
 				let page = $(el).closest('.page');
 				if (page.length) {
@@ -1892,23 +1925,28 @@ let _Entities = {
 				self.children('i.button').css('display', 'inline-block');
 			},
 			mouseout: function(e) {
+
+				if (_Dragndrop.dragActive === true) {
+					return;
+				}
+
 				e.stopPropagation();
 				$('#componentId_' + nodeId).removeClass('nodeHover');
 				if (isComponent) {
 					$('#id_' + nodeId).removeClass('nodeHover');
 				}
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).removeClass('nodeHover');
-						$('#componentId_' + s).removeClass('nodeHover');
-					});
-				}
+
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).removeClass('nodeHover');
+					$('#componentId_' + s).removeClass('nodeHover');
+				});
+
 				_Entities.resetMouseOverState(this);
 			}
 		});
 	},
 	resetMouseOverState: (element) => {
-		let el = $(element);
+		let el   = $(element);
 		let node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
@@ -1947,8 +1985,11 @@ let _Entities = {
 		Structr.addExpandedNode(id);
 
 		if (force === false && _Entities.isExpanded(element)) {
+
 			return;
+
 		} else {
+
 			Command.children(id, callback);
 
 			let icon = _Entities.getIconFromElement(el);
@@ -2044,19 +2085,24 @@ let _Entities = {
 
 		// on slideout open the elements are not (always) refreshed --> highlight the currently active element (if there is one)
 		let selectedElementId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
-		let element = document.querySelector('#id_' + selectedElementId);
+		let node = document.querySelector('#id_' + selectedElementId);
 
-		element?.querySelector('.node-selector')?.classList.add('active');
+		node?.querySelector('.node-container')?.classList.add('node-selected');
 	},
 	selectElement: (element, entity) => {
 
-		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
-			activeSelector.classList.remove('active');
-		}
-		element.querySelector('.node-selector').classList.add('active');
+		_Entities.removeSelectedNodeClassFromAllNodes();
+
+		element.querySelector('.node-container').classList.add('node-selected');
 
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
+	},
+	removeSelectedNodeClassFromAllNodes: () => {
+
+		for (let activeSelector of document.querySelectorAll('.node-selected')) {
+			activeSelector.classList.remove('node-selected');
+		}
 	},
 	toggleElement: (id, el, isExpanded, callback) => {
 
@@ -2070,9 +2116,7 @@ let _Entities = {
 
 		if (_Entities.isExpanded(nodeContainer)) {
 
-			$(nodeContainer.closest('.node')).children('.node').each((i, el) => {
-				_Helpers.fastRemoveElement(el);
-			});
+			_Entities.removeChildNodesFromUI(nodeContainer.closest('.node'));
 
 			toggleIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 
@@ -2087,6 +2131,12 @@ let _Entities = {
 			toggleIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 
 			Structr.addExpandedNode(id);
+		}
+	},
+	removeChildNodesFromUI: (node) => {
+
+		for (let childNode of node[0].querySelectorAll(':scope > .node')) {
+			_Helpers.fastRemoveElement(childNode);
 		}
 	},
 	makeAttributeEditable: (parentElement, id, attributeSelector, attributeName, callback) => {
@@ -3037,7 +3087,7 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label  class="mb-2"for="category-input">Category</label>
+							<label class="block mb-2" for="category-input">Category</label>
 							<input type="text" id="category-input" name="category">
 						</div>
 
@@ -3047,9 +3097,16 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label class="block mb-2" for="position-input">Position</label>
+							<label class="block mb-2" for="position-input" data-comment="The position is important to identify the page, the client will get served for the '/' path. The page with the lowest position (which is visible for the requesting client) will be shown.">Position</label>
 							<input type="text" id="position-input" name="position">
 						</div>
+
+						<div>
+							<label class="block mb-2" for="path-input" data-comment="If set, the page will be available under this path and not under its name.">Custom Path</label>
+							<input type="text" id="path-input" name="path">
+						</div>
+
+						<div><!-- occupy space in grid UI --></div>
 
 						<div>
 

@@ -55,7 +55,6 @@ public class AppendWidgetCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
 
 			return;
-
 		}
 
 		// check if parent node with given ID exists
@@ -66,7 +65,6 @@ public class AppendWidgetCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 
 			return;
-
 		}
 
 		if (parentNode instanceof DOMNode) {
@@ -77,7 +75,6 @@ public class AppendWidgetCommand extends AbstractCommand {
 				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
 
 				return;
-
 			}
 
 			Page page = getPage(pageId);
@@ -103,14 +100,10 @@ public class AppendWidgetCommand extends AbstractCommand {
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot use given node, not instance of DOMNode").build(), true);
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
-
 		return "APPEND_WIDGET";
-
 	}
-
 }

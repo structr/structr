@@ -19,7 +19,10 @@
 package org.structr.files.ssh;
 
 import org.apache.commons.lang3.StringUtils;
+import org.apache.sshd.common.channel.Channel;
 import org.apache.sshd.server.*;
+import org.apache.sshd.server.channel.ChannelSession;
+import org.apache.sshd.server.command.Command;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -93,7 +96,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 	}
 
 	@Override
-	public void start(final Environment env) throws IOException {
+	public void start(final ChannelSession session, final Environment env) throws IOException {
 
 		env.addSignalListener(this);
 
@@ -182,7 +185,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 	}
 
 	@Override
-	public void destroy() {
+	public void destroy(final ChannelSession session) {
 
 		if (term != null) {
 			term.stopEmulator();
@@ -190,7 +193,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 	}
 
 	@Override
-	public void signal(final Signal signal) {
+	public void signal(final Channel channel, final Signal signal) {
 		logger.info("Received signal {}", signal.name());
 	}
 

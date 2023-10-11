@@ -102,6 +102,8 @@ let _Dialogs = {
 
 				StructrWS.reconnect();
 
+				Structr.getActiveModule()?.unload?.();
+
 				_Favorites.logoutAction();
 				_Console.logoutAction();
 

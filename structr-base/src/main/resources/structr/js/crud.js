@@ -2236,7 +2236,7 @@ let _Crud = {
 
 			var displayName = _Crud.displayName(node);
 
-			cell.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${node.id}" class="node ${node.isImage ? 'image ' : ''} ${node.id}_"><span class="name_ abbr-ellipsis abbr-75pc">${displayName}</span></div>`);
+			cell.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${node.id}" class="node ${node.isImage ? 'image ' : ''} ${node.id}_ relative"><span class="name_ abbr-ellipsis abbr-75pc">${displayName}</span></div>`);
 			var nodeEl = $('#_' + node.id, cell);
 
 			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');

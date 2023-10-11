@@ -64,9 +64,12 @@ public class CreateZipFunction extends UiAdvancedFunction {
 		EncryptionMethod encryptionMethod = EncryptionMethod.ZIP_STANDARD;
 
 		if (sources[0] instanceof String) {
+
 			final String nameParam = sources[0].toString().trim();
 			name = nameParam + (nameParam.endsWith(".zip") ? "" : ".zip");
+
 		} else {
+
 			logParameterError(caller, sources, ctx.isJavaScriptContext());
 
 			return usage(ctx.isJavaScriptContext());
@@ -106,7 +109,6 @@ public class CreateZipFunction extends UiAdvancedFunction {
 				File file = (File) sources[1];
 				addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
 
-
 			} else if (sources[1] instanceof Folder) {
 
 				Folder folder = (Folder) sources[1];
@@ -116,23 +118,37 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			} else if (sources[1] instanceof Collection) {
 
-				for (Object fileOrFolder : (Collection) sources[1]) {
+				final Collection filesOrFolders = (Collection) sources[1];
 
-					if (fileOrFolder instanceof File) {
+				if (filesOrFolders.isEmpty()) {
 
-						File file = (File) fileOrFolder;
-						addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
-					} else if (fileOrFolder instanceof Folder) {
+					logParameterError(caller, sources, "Collection in parameter 1 is empty - unable to create empty zip file.", ctx.isJavaScriptContext());
 
-						Folder folder = (Folder) fileOrFolder;
-						addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
-						addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
-					} else {
+					return usage(ctx.isJavaScriptContext());
 
-						logParameterError(caller, sources, ctx.isJavaScriptContext());
-						return usage(ctx.isJavaScriptContext());
+				} else {
+
+					for (Object fileOrFolder : filesOrFolders) {
+
+						if (fileOrFolder instanceof File) {
+
+							File file = (File) fileOrFolder;
+							addFileToZipArchive(file.getProperty(AbstractFile.name), file, zipFile, params);
+
+						} else if (fileOrFolder instanceof Folder) {
+
+							Folder folder = (Folder) fileOrFolder;
+							addFilesToArchive(folder.getProperty(Folder.name) + "/", folder.getFiles(), zipFile, params);
+							addFoldersToArchive(folder.getProperty(Folder.name) + "/", folder.getFolders(), zipFile, params);
+
+						} else {
+
+							logParameterError(caller, sources, ctx.isJavaScriptContext());
+							return usage(ctx.isJavaScriptContext());
+						}
 					}
 				}
+
 			} else {
 
 				logParameterError(caller, sources, ctx.isJavaScriptContext());
@@ -141,11 +157,11 @@ public class CreateZipFunction extends UiAdvancedFunction {
 
 			return FileHelper.createFile(ctx.getSecurityContext(), zipFile.getFile(), "application/zip", name);
 
-
 		} catch (IOException e) {
 
 			logException(caller, e, sources);
 		}
+
 		return null;
 	}
 

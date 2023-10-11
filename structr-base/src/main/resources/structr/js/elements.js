@@ -219,9 +219,6 @@ let _Elements = {
 			}
 		}
 	},
-	componentNode: (id) => {
-		return $($('#componentId_' + id)[0]);
-	},
 	appendElementElement: (entity, refNode, refNodeIsParent) => {
 
 		if (!entity) {
@@ -235,13 +232,22 @@ let _Elements = {
 			parent = refNode;
 		} else {
 			parent = (entity.parent && entity.parent.id) ? Structr.node(entity.parent.id) : null;
+
+			if (parent && parent.length > 0 && !Structr.isExpanded(entity.parent.id)) {
+				// if the parent element is not expanded, then we don't need to add the element we want to add,
+				// we simply need to expand the parent
+				_Entities.ensureExpanded(parent);
+				return;
+			}
 		}
 
 		if (!parent) {
 			return false;
 		}
 
-		let hasChildren = entity.childrenIds && entity.childrenIds.length;
+		let isRootSharedComponent = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
+		let isRootTrashElement    = (entity.parent === null && entity.pageId === null);
+		let hasChildren           = entity.childrenIds && entity.childrenIds.length;
 
 		// store active nodes in special place..
 		let isActiveNode = entity.isActiveNode();
@@ -264,25 +270,37 @@ let _Elements = {
 		let displayName = _Helpers.getElementDisplayName(entity);
 
 		let html = `
-			<div id="id_${id}" class="${elementClasses.join(' ')}">
+			<div id="id_${id}" class="${elementClasses.join(' ')}" draggable="true">
+
+				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="before-node"></div>'}
+
 				<div class="node-container flex items-center">
-					<div class="node-selector"></div>
 					${_Icons.getSvgIconForElementNode(entity)}
 					<span class="abbr-ellipsis abbr-pages-tree"><b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>${_Elements.classIdString(entity)}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
+
+				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="after-node"></div>'}
 			</div>
 		`;
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
 		} else {
-			parent.append(html);
+			let afterNode = parent.children('.after-node');
+			if (afterNode.length) {
+				parent.children('.after-node').before(html);
+			} else {
+				parent.append(html);
+			}
 		}
 
 		let div            = Structr.node(id);
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
+
+		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
+		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
 		if (!div) {
 			return false;
@@ -777,7 +795,14 @@ let _Elements = {
 
 		if (entity.parent && entity.parent.id) {
 			parent = Structr.node(entity.parent.id);
-			_Entities.ensureExpanded(parent);
+
+			if (parent && parent.length > 0 && !Structr.isExpanded(entity.parent.id)) {
+				// if the parent element is not expanded, then we don't need to add the element we want to add,
+				// we simply need to expand the parent
+				_Entities.ensureExpanded(parent);
+				return;
+			}
+
 		} else {
 			parent = refNode;
 		}
@@ -786,36 +811,46 @@ let _Elements = {
 			return false;
 		}
 
-		let isActiveNode = entity.isActiveNode();
-		let isTemplate   = (entity.type === 'Template');
-		let name         = entity.name;
-		let displayName  = _Helpers.getElementDisplayName(entity);
-		let nameText     = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
+		let isActiveNode          = entity.isActiveNode();
+		let isTemplate            = (entity.type === 'Template');
+		let name                  = entity.name;
+		let displayName           = _Helpers.getElementDisplayName(entity);
+		let nameText              = (name ? `<b title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="tag_ name_">${displayName}</b>` : `<span class="content_">${_Helpers.escapeTags(entity.content) || '&nbsp;'}</span>`);
+		let isRootSharedComponent = (entity.parent === null && entity.pageId === _Pages.shadowPage.id);
+		let isRootTrashElement    = (entity.parent === null && entity.pageId === null);
 
 		let html = `
-			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}">
+			<div id="id_${entity.id}" class="node content ${(isActiveNode ? ' activeNode' : 'staticNode') + (_Elements.isEntitySelected(entity) ? ' nodeSelectedFromContextMenu' : '')}" draggable="true">
+
+				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="before-node"></div>'}
+
 				<div class="node-container flex items-center">
-					<div class="node-selector"></div>
 					${_Icons.getSvgIconForContentNode(entity, ['typeIcon', _Icons.typeIconClassNoChildren])}
 					<span class="abbr-ellipsis abbr-pages-tree">${nameText}</span>
 					<div class="icons-container flex items-center"></div>
 				</div>
-			</div>`;
+
+				${isRootSharedComponent || isRootTrashElement ? '' : '<div class="after-node"></div>'}
+			</div>
+		`;
 
 		if (refNode && !refNodeIsParent) {
 			refNode.before(html);
 		} else {
-			parent.append(html);
+			let afterNode = parent.children('.after-node');
+			if (afterNode.length) {
+				parent.children('.after-node').before(html);
+			} else {
+				parent.append(html);
+			}
 		}
 
 		let div            = Structr.node(entity.id);
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.makeSortable(div);
-		if (entity.type !== 'Content') {
-			_Dragndrop.makeDroppable(div);
-		}
+		_Dragndrop.enableDraggable(entity, div[0], _Dragndrop.dropActions.domElement, true, _Dragndrop.pages.dragStart, _Dragndrop.pages.dragEnd);
+		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
 		if (isTemplate) {
 			let hasChildren = entity.childrenIds && entity.childrenIds.length;

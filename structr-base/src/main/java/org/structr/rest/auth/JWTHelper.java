@@ -57,7 +57,7 @@ import java.util.*;
 public class JWTHelper {
 
     public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
-    private static final Logger logger         = LoggerFactory.getLogger(AuthHelper.class.getName());
+    private static final Logger logger         = LoggerFactory.getLogger(JWTHelper.class.getName());
 
     public static Principal getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
 

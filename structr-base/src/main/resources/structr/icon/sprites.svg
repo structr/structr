@@ -483,6 +483,10 @@
 		<path d="M19.902 17.25L17.25 17.25 17.25 14.599" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round"></path>
 	</symbol>
 
+	<symbol id="pin" viewBox="-0.75 -0.75 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+		<path d="M4.64 8.234a1.406 1.406 0 0 0 -0.281 2.209l7.7 7.7a1.406 1.406 0 0 0 2.209 -0.281 7.052 7.052 0 0 0 0.759 -5.194l6.121 -3.895a1.406 1.406 0 0 0 0.24 -2.181L15.909 1.114a1.406 1.406 0 0 0 -2.181 0.239l-3.895 6.122a7.052 7.052 0 0 0 -5.194 0.759Z"></path>
+		<path d="M8.206 14.293 0.703 21.796"></path>
+	</symbol>
 
 	<!-- icons for pages tree -->
 	<symbol id="dom-page" viewBox="0 0 24 24" stroke-width="1.5px" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
@@ -519,6 +523,8 @@
 		<path d="M6.75 6.75L18.75 6.75"></path>
 		<path d="M6.75 11.25L12 11.25"></path>
 	</symbol>
+
+
 	<!-- non-trivial color icon -->
 	<symbol id="dom-active-element" viewBox="0 0 24 24" fill="transparent" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M1.104 5.081L12 9.353L22.896 5.081L12 0.809L1.104 5.081" stroke="none" style="fill: var(--icon-color-dark-green)"></path>

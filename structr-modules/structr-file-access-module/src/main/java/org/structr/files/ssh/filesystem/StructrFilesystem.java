@@ -154,6 +154,11 @@ public class StructrFilesystem extends FileSystem {
 		lastFullPath = fullPath;
 		last = path;
 
+		if (path == null) {
+			
+			path = root;
+		}
+
 		return path;
 	}
 

@@ -58,6 +58,12 @@ public class ScriptJob extends ScheduledJob {
 	}
 
 	@Override
+	public boolean canRunMultiThreaded() {
+		// only those jobs that are actual string-based scripts can be run in parallel
+		return script instanceof String;
+	}
+
+	@Override
 	public Runnable getRunnable() {
 
 		return () -> {

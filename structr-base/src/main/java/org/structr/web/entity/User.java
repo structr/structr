@@ -57,7 +57,6 @@ public interface User extends Principal {
 		user.setCategory("ui");
 
 		user.addStringProperty("confirmationKey", PropertyView.Ui).setIndexed(true);
-		user.addStringProperty("twitterName").setIndexed(true);
 		user.addStringProperty("localStorage");
 
 		user.addBooleanProperty("skipSecurityRelationships", PropertyView.Ui).setDefaultValue("false").setIndexed(true);
@@ -111,8 +110,6 @@ public interface User extends Principal {
 		user.addViewProperty(PropertyView.Ui, "twoFactorToken");
 		user.addViewProperty(PropertyView.Ui, "isTwoFactorUser");
 		user.addViewProperty(PropertyView.Ui, "twoFactorConfirmed");
-
-		user.addViewProperty(PropertyView.Ui, "twitterName");
 
 		user.addViewProperty(PropertyView.Ui, "passwordAttempts");
 		user.addViewProperty(PropertyView.Ui, "passwordChangeDate");

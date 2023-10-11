@@ -22,6 +22,7 @@ package org.structr.web.resource;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.mail.EmailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -69,8 +70,8 @@ public class RegistrationResource extends Resource {
 		CONFIRM_REGISTRATION_TEXT_BODY,
 		CONFIRM_REGISTRATION_HTML_BODY,
 		CONFIRM_REGISTRATION_BASE_URL,
-		CONFIRM_REGISTRATION_TARGET_PATH,
-		CONFIRM_REGISTRATION_ERROR_PAGE,
+		CONFIRM_REGISTRATION_SUCCESS_PATH,
+		CONFIRM_REGISTRATION_FAILURE_PATH,
 		CONFIRM_REGISTRATION_PAGE,
 		CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY,
 		CONFIRM_REGISTRATION_TARGET_PATH_KEY,
@@ -98,13 +99,16 @@ public class RegistrationResource extends Resource {
 	@Override
 	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
 
-		boolean existingUser = false;
+		boolean existingUser                  = false;
+		RestMethodResult returnedMethodResult = null;
 
 		if (propertySet.containsKey("eMail")) {
 
-			final PropertyKey<String> confKeyKey = StructrApp.key(User.class, "confirmationKey");
-			final PropertyKey<String> eMailKey   = StructrApp.key(User.class, "eMail");
-			final String emailString             = (String) propertySet.get("eMail");
+			final PropertyKey<String> confKeyKey  = StructrApp.key(User.class, "confirmationKey");
+			final PropertyKey<String> eMailKey    = StructrApp.key(User.class, "eMail");
+			final PropertyKey<String> passwordKey = StructrApp.key(User.class, "password");
+			final String emailString              = (String) propertySet.get(eMailKey.jsonName());
+			final String passwordString           = (String) propertySet.get(passwordKey.jsonName());
 
 			if (StringUtils.isEmpty(emailString)) {
 				throw new FrameworkException(422, "No e-mail address given.");
@@ -113,13 +117,18 @@ public class RegistrationResource extends Resource {
 			final String localeString = (String) propertySet.get("locale");
 			final String confKey      = AuthHelper.getConfirmationKey();
 
-			final App app = StructrApp.getInstance(securityContext);
+			final SecurityContext ctx = SecurityContext.getSuperUserInstance();
+			final App app             = StructrApp.getInstance(ctx);
+
+			if (Settings.CallbacksOnLogin.getValue() == false) {
+				ctx.disableInnerCallbacks();
+			}
 
 			Principal user = null;
 
 			try (final Tx tx = app.tx(true, true, true)) {
 
-				user = StructrApp.getInstance().nodeQuery(User.class).and(eMailKey, emailString).getFirst();
+				user = app.nodeQuery(User.class).and(eMailKey, emailString).getFirst();
 				if (user != null) {
 
 					// For existing users, update confirmation key
@@ -130,26 +139,35 @@ public class RegistrationResource extends Resource {
 				} else {
 
 					final Authenticator auth = securityContext.getAuthenticator();
-					user = createUser(securityContext, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
+					user = createUser(ctx, eMailKey, emailString, propertySet, Settings.RestUserAutocreate.getValue(), auth.getUserClass(), confKey);
+					if (user != null) user.setPassword(passwordString);
 				}
 
 				tx.success();
+
+			} catch (final FrameworkException ex) {
+
+				logger.info("Unable to create user with e-mail {}: {}", emailString, ex.getMessage());
+				returnedMethodResult = new RestMethodResult(422, ex.getMessage());
+				returnedMethodResult.addHeader("reason", ex.getMessage());
+
+				return returnedMethodResult;
 			}
 
 			if (user != null) {
 
-				boolean mailSuccess = false;
-
 				try (final Tx tx = app.tx(true, true, true)) {
 
-					mailSuccess = sendInvitationLink(user, propertySet, confKey, localeString);
+					sendInvitationLink(user, propertySet, confKey, localeString);
 
 					tx.success();
-				}
 
-				if (!mailSuccess) {
+				} catch (final FrameworkException | EmailException ex) {
 
-					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
+					logger.info("Unable to create user with e-mail {}", emailString, ex);
+					returnedMethodResult = new RestMethodResult(422, ex.getMessage());
+
+					return returnedMethodResult;
 				}
 
 				// If we have just updated the confirmation key for an existing user,
@@ -167,12 +185,18 @@ public class RegistrationResource extends Resource {
 
 			} else {
 
-				throw new FrameworkException(503, "Unable to create new user.");
+				logger.info("Unable to create user with e-mail {}", emailString);
+				returnedMethodResult = new RestMethodResult(422);
+
+				return returnedMethodResult;
 			}
 
 		} else {
 
-			throw new FrameworkException(422, "No e-mail address given.");
+			logger.info("No e-mail address given.");
+			returnedMethodResult = new RestMethodResult(422, "No e-mail address given.");
+
+			return returnedMethodResult;
 		}
 	}
 
@@ -186,7 +210,7 @@ public class RegistrationResource extends Resource {
 		return null;
 	}
 
-	private boolean sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException {
+	private void sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 		final String userEmail             = user.getProperty(eMailKey);
@@ -196,34 +220,38 @@ public class RegistrationResource extends Resource {
 		// WARNING! This is unchecked user input!!
 		propertySetFromUserPOST.entrySet().forEach(entry -> ctx.setConstant(entry.getKey(), entry.getValue().toString()));
 
+		String successPath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUCCESS_PATH, AbstractDataServlet.prefixLocation("register_thanks"), localeString);
+		String failurePath  = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_FAILURE_PATH, AbstractDataServlet.prefixLocation("register_error"), localeString);
+
+//		// Allow overriding success path from frontend action
+//		if (propertySetFromUserPOST.containsKey(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET)) {
+//			successPath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUCCESS_PATH, (String) propertySetFromUserPOST.get(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET), localeString);
+//		}
+//
+//		// Allow overriding failure path from frontend action
+//		if (propertySetFromUserPOST.containsKey(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET)) {
+//			failurePath = getTemplateText(TemplateKey.CONFIRM_REGISTRATION_FAILURE_PATH, (String) propertySetFromUserPOST.get(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET), localeString);
+//		}
+
 		ctx.setConstant("eMail", userEmail);
 		ctx.setConstant("link",
 				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_BASE_URL, ActionContext.getBaseUrl(securityContext.getRequest()), localeString)
 				+ getTemplateText(TemplateKey.CONFIRM_REGISTRATION_PAGE, HtmlServlet.CONFIRM_REGISTRATION_PAGE, localeString)
 				+ "?" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_CONFIRMATION_KEY_KEY, HtmlServlet.CONFIRMATION_KEY_KEY, localeString) + "=" + confKey
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString) + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH, AbstractDataServlet.prefixLocation("register_thanks"), localeString)
-				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)   + "=" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE, AbstractDataServlet.prefixLocation("register_error"), localeString)
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_TARGET_PATH_KEY, HtmlServlet.TARGET_PATH_KEY, localeString)           + "=" + successPath
+				+ "&" + getTemplateText(TemplateKey.CONFIRM_REGISTRATION_ERROR_PAGE_KEY, HtmlServlet.ERROR_PAGE_KEY, localeString)             + "=" + failurePath
 		);
 
 		final String textMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_TEXT_BODY,"Go to ${link} to finalize registration.", localeString, ctx);
 		final String htmlMailContent = replaceVariablesInTemplate(TemplateKey.CONFIRM_REGISTRATION_HTML_BODY,"<div>Click <a href='${link}'>here</a> to finalize registration.</div>", localeString, ctx);
 
-		try {
+		MailHelper.sendHtmlMail(
+			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
+			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, "Structr Mail Daemon", localeString),
+			userEmail, "", null, null, null,
+			getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, "Welcome to Structr, please finalize registration", localeString),
+			htmlMailContent, textMailContent);
 
-			MailHelper.sendHtmlMail(
-				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_ADDRESS, "structr-mail-daemon@localhost", localeString),
-				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SENDER_NAME, "Structr Mail Daemon", localeString),
-				userEmail, "", null, null, null,
-				getTemplateText(TemplateKey.CONFIRM_REGISTRATION_SUBJECT, "Welcome to Structr, please finalize registration", localeString),
-				htmlMailContent, textMailContent);
-
-		} catch (Exception e) {
-
-			logger.error("Unable to send registration e-mail", e);
-			return false;
-		}
-
-		return true;
 	}
 
 	private String getTemplateText(final TemplateKey key, final String defaultValue, final String localeString) {

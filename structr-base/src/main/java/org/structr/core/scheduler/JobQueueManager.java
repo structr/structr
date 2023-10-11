@@ -60,7 +60,7 @@ public class JobQueueManager {
 
 			appendToQueueInternal(job);
 
-			if (!hasRunningJobs()) {
+			if (canRunMoreJobs()) {
 
 				startNextJobInQueue();
 
@@ -153,7 +153,7 @@ public class JobQueueManager {
 
 		activeJobs.remove(job.jobId());
 
-		if (!hasRunningJobs()) {
+		if (canRunMoreJobs()) {
 			startNextJobInQueue();
 		}
 
@@ -163,7 +163,7 @@ public class JobQueueManager {
 
 		activeJobs.remove(job.jobId());
 
-		if (!hasRunningJobs()) {
+		if (canRunMoreJobs()) {
 			startNextJobInQueue();
 		}
 	}
@@ -178,10 +178,24 @@ public class JobQueueManager {
 		return queuedJobs.remove(jobId);
 	}
 
-	private boolean hasRunningJobs() {
+	private boolean canRunMoreJobs() {
 
-		// if any job is RUNNING or PAUSED, dont auto-start new tasks
-		return (!activeJobs.isEmpty());
+		int multiThreadedJobCount = 0;
+
+		// either one non-threaded job can run, or N threaded jobs
+		for (final ScheduledJob job : activeJobs.values()) {
+
+			if (!job.canRunMultiThreaded()) {
+
+				return false;
+
+			} else {
+
+				multiThreadedJobCount++;
+			}
+		}
+
+		return multiThreadedJobCount < 8;
 	}
 
 	private void startNextJobInQueue() {

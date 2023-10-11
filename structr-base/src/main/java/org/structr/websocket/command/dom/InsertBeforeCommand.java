@@ -27,14 +27,9 @@ import org.w3c.dom.DOMException;
 
 import java.util.Map;
 
-/**
- *
- *
- */
 public class InsertBeforeCommand extends AbstractCommand {
 
 	static {
-
 		StructrWebSocket.addCommand(InsertBeforeCommand.class);
 	}
 
@@ -54,7 +49,6 @@ public class InsertBeforeCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(422).message("No node to append").build(), true);
 
 			return;
-
 		}
 
 		// check for parent ID
@@ -63,10 +57,9 @@ public class InsertBeforeCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
 
 			return;
-
 		}
 
-		final DOMNode refNode = getDOMNode(refId );
+		final DOMNode refNode = getDOMNode(refId);
 
 		// check if parent node with given ID exists
 		final DOMNode parentNode = getDOMNode(parentId);
@@ -76,7 +69,6 @@ public class InsertBeforeCommand extends AbstractCommand {
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
 
 			return;
-
 		}
 
 		final DOMNode node = getDOMNode(id);
@@ -87,21 +79,17 @@ public class InsertBeforeCommand extends AbstractCommand {
 			if (node != null) {
 
 				parentNode.insertBefore(node, refNode);
-
 			}
+
 		} catch (DOMException dex) {
 
 			// send DOM exception
 			getWebSocket().send(MessageBuilder.status().code(422).message(dex.getMessage()).build(), true);
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
-
 		return "INSERT_BEFORE";
-
 	}
-
 }

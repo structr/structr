@@ -124,6 +124,12 @@ public class ValueExpression extends Expression {
 					// context can NOT be used
 					extractedValue = ctx.getReferencedProperty(entity, key, extractedValue, 1, hints, row, column);
 
+					// Treat enums as string values in StructrScript contexts
+					if (extractedValue instanceof Enum<?>) {
+
+						extractedValue = extractedValue.toString();
+					}
+
 				} else if (value instanceof Map) {
 
 					extractedValue = ((Map)extractedValue).get(key);

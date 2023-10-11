@@ -940,7 +940,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			try {
 
 				final int value = Integer.valueOf(part.trim());
-				versionNumber += value * Math.pow(10, exponent);
+				versionNumber += (long)(value * Math.pow(10, exponent));
 
 			} catch (Throwable t) {}
 

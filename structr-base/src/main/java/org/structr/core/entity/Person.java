@@ -43,7 +43,6 @@ public interface Person extends NodeInterface {
 		type.addStringProperty("middleNameOrInitial", PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("lastName",            PropertyView.Public, PropertyView.Ui);
 
-		type.addStringProperty("twitterName",         PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("eMail",               PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("eMail2",              PropertyView.Ui);
 

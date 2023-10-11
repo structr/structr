@@ -538,7 +538,12 @@ let _Schema = {
 					});
 
 					if (Structr.isModuleActive(_Schema)) {
-						if (bulkInfo?.basic?.data?.name || bulkInfo?.basic?.data?.extendsClass) {
+
+						// Reload is only necessary for changes in the "basic" tab for types (name and extendsClass) and relationships (relType and cardinality)
+						let typeChangeRequiresReload = (bulkInfo?.basic?.changes?.name || bulkInfo?.basic?.changes?.extendsClass)
+						let relChangeRequiresReload  = (bulkInfo?.basic?.changes?.relationshipType || bulkInfo?.basic?.changes?.sourceMultiplicity || bulkInfo?.basic?.changes?.targetMultiplicity)
+
+						if (typeChangeRequiresReload || relChangeRequiresReload) {
 							_Schema.reload();
 						}
 					}
@@ -1068,7 +1073,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.nodes.validateBasicTypeInfo(typeInfo, tabContent, entity);
 					}
-					let changeCount = Object.keys(_Schema.nodes.getTypeDefinitionChanges(entity, typeInfo)).length;
+					let changes     = _Schema.nodes.getTypeDefinitionChanges(entity, typeInfo);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic type attributes',
@@ -1076,6 +1082,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1591,7 +1598,8 @@ let _Schema = {
 					if (doValidate) {
 						allow = _Schema.relationships.validateBasicRelInfo(container, relInfo);
 					}
-					let changeCount = Object.keys(_Schema.relationships.getRelationshipDefinitionChanges(container, entity)).length;
+					let changes     = _Schema.relationships.getRelationshipDefinitionChanges(container, entity);
+					let changeCount = Object.keys(changes).length;
 
 					return {
 						name: 'Basic relationship attributes',
@@ -1599,6 +1607,7 @@ let _Schema = {
 						counts: {
 							updated: changeCount
 						},
+						changes: changes,
 						allow: allow
 					}
 				},
@@ -1762,11 +1771,9 @@ let _Schema = {
 					relData.sourceId = sourceId;
 					relData.targetId = targetId;
 
-					if (relData.relationshipType.trim() === '') {
+					let allow = _Schema.relationships.validateBasicRelInfo(dialogText, relData);
 
-						_Helpers.blinkRed(dialogText.querySelector('#relationship-type-name'));
-
-					} else {
+					if (allow) {
 
 						await _Schema.relationships.createRelationshipDefinition(relData);
 					}
@@ -2853,7 +2860,7 @@ let _Schema = {
 			],
 			addButtonText: 'Add view'
 		},
-		protectedViewsList: ['all', 'ui', 'custom'],
+		protectedViewsList: ['all', 'ui', 'custom'],	// not allowed to add/remove properties, but allowed to sort
 		isViewEditable: (view) => {
 			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
 		},
@@ -3019,12 +3026,9 @@ let _Schema = {
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				if (_Schema.views.isViewPropertiesChangeForbidden(view) !== true) {
-
-					selectElement.select2Sortable(() => {
-						_Schema.views.rowChanged(tr, entity, initialViewConfig);
-					});
-				}
+				selectElement.select2Sortable(() => {
+					_Schema.views.rowChanged(tr, entity, initialViewConfig);
+				});
 
 				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
 			});
@@ -3080,7 +3084,9 @@ let _Schema = {
 				removeAction.disabled = false;
 			}
 		},
-		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
+		appendPropertyForViewSelect: (viewSelectElem, view, prop) => {
+
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 
 			// never show internalEntityContextPath
 			if (prop.name !== 'internalEntityContextPath') {
@@ -3088,14 +3094,15 @@ let _Schema = {
 				let isSelected = prop.isSelected ? ' selected="selected"' : '';
 				let isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
 
-				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				if (viewIsEditable || prop.isSelected) {
+					viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				}
 			}
 		},
 		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
 			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = row.querySelector('.property-attrs');
-			viewSelectElem.disabled = !viewIsEditable;
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
@@ -3124,11 +3131,18 @@ let _Schema = {
 					search_contains: true,
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
+					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
 					closeOnSelect: false,
 					scrollAfterSelect: false,
 					dropdownParent: dropdownParent
 				});
+
+				if (!viewIsEditable) {
+					// prevent removal of elements for views that we consider "not editable"...
+					selectElement.on("select2:unselecting", function (e) {
+						e.preventDefault();
+					});
+				}
 
 				callback(selectElement);
 			});
@@ -3820,8 +3834,8 @@ let _Schema = {
 			}
 
 			_Schema.ui.canvas.css({
-				width:  canvasSize.w + 'px',
-				height: canvasSize.h + 'px'
+				width:  canvasSize.width + 'px',
+				height: canvasSize.height + 'px'
 			});
 		}
 	},
@@ -4803,7 +4817,7 @@ let _Schema = {
 
 				// first get FQCN for type name (if exists)
 				let exactTypeNameMatches = result.filter(typeInfo => typeInfo.name === baseType);
-				baseType = exactTypeNameMatches?.[0].className ?? baseType;
+				baseType = exactTypeNameMatches[0]?.className ?? baseType;
 			}
 
 			let collect = (list, type) => {
@@ -5282,7 +5296,7 @@ let _Schema = {
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
 
-					<input data-property="name" class="flex-grow">
+					<input data-property="name" class="flex-grow" placeholder="Type Name...">
 
 					<div class="extends-type flex items-center gap-2">
 						extends
@@ -5335,7 +5349,7 @@ let _Schema = {
 							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
 						</div>
 
-						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off">
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
 
 						<div class="flex items-center justify-around">
 							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
@@ -5573,7 +5587,8 @@ let _Schema = {
 				<div class="fake-tbody"></div>
 				<div class="fake-tfoot">
 					<div class="fake-tr">
-						<div class="fake-td actions-col flex justify-end">
+						<div class="fake-td actions-col flex">
+							<div class="flex-grow"></div>
 							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
 								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
 							</button>
@@ -5608,6 +5623,12 @@ let _Schema = {
 						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
+						<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>As with all the <strong>on****</strong> methods, the state of the graph is as if the transaction was successful. This is why the <code>$.this</code> object is not available.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
+						</a>
+						<!--a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onDelete</strong> and <strong>afterDelete</strong> is that <strong>afterDelete</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a notNull constraint and you want to send an email when an object is deleted successfully.<br>Calling 'send_html_mail()' in onDelete would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterDelete.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
+						</a-->
 					</div>
 				</div>
 			</div>
@@ -5686,7 +5707,7 @@ let _Schema = {
 					<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 				</td>
 				<td class="centered actions-col">
-					${(_Schema.views.isViewEditable(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes'])) : ''}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
 
 					<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">

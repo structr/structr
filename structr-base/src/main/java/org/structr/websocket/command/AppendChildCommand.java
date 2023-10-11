@@ -29,14 +29,9 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
-/**
- *
- *
- */
 public class AppendChildCommand extends AbstractCommand {
 
 	static {
-
 		StructrWebSocket.addCommand(AppendChildCommand.class);
 	}
 
@@ -45,51 +40,43 @@ public class AppendChildCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		String id                    = webSocketData.getId();
-		String parentId              = webSocketData.getNodeDataStringValue("parentId");
+		final String id       = webSocketData.getId();
+		final String parentId = webSocketData.getNodeDataStringValue("parentId");
 
 		// check node to append
 		if (id == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot append node, no id is given").build(), true);
-
 			return;
-
 		}
 
 		// check for parent ID
 		if (parentId == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot add node without parentId").build(), true);
-
 			return;
-
 		}
 
 		// check if parent node with given ID exists
-		AbstractNode parentNode = getNode(parentId);
+		final AbstractNode parentNode = getNode(parentId);
 
 		if (parentNode == null) {
 
 			getWebSocket().send(MessageBuilder.status().code(404).message("Parent node not found").build(), true);
-
 			return;
-
 		}
 
 		if (parentNode instanceof DOMNode) {
 
-			DOMNode parentDOMNode = getDOMNode(parentId);
+			final DOMNode parentDOMNode = getDOMNode(parentId);
 
 			if (parentDOMNode == null) {
 
 				getWebSocket().send(MessageBuilder.status().code(422).message("Parent node is no DOM node").build(), true);
-
 				return;
-
 			}
 
-			DOMNode node = (DOMNode) getDOMNode(id);
+			final DOMNode node = getDOMNode(id);
 
 			// append node to parent
 			if (node != null) {
@@ -98,10 +85,11 @@ public class AppendChildCommand extends AbstractCommand {
 
 					if (!(parentDOMNode instanceof Page)) {
 
-						final boolean isShadowPage = parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument());
+						final boolean isShadowPage = (parentDOMNode.getOwnerDocument() != null && parentDOMNode.getOwnerDocument().equals(CreateComponentCommand.getOrCreateHiddenDocument()));
 						final boolean isTemplate   = (parentDOMNode instanceof Template);
 
 						if (isShadowPage && isTemplate && parentDOMNode.getParent() == null) {
+
 							getWebSocket().send(MessageBuilder.status().code(422).message("Appending children to root-level shared component Templates is not allowed").build(), true);
 							return;
 						}
@@ -110,7 +98,6 @@ public class AppendChildCommand extends AbstractCommand {
 				} catch (FrameworkException ex) {
 
 					getWebSocket().send(MessageBuilder.status().code(422).message(ex.getMessage()).build(), true);
-
 				}
 
 				try {
@@ -131,14 +118,10 @@ public class AppendChildCommand extends AbstractCommand {
 			// send exception
 			getWebSocket().send(MessageBuilder.status().code(422).message("Cannot use given node, not instance of DOMNode").build(), true);
 		}
-
 	}
 
 	@Override
 	public String getCommand() {
-
 		return "APPEND_CHILD";
-
 	}
-
 }

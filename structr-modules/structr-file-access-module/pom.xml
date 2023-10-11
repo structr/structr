@@ -5,10 +5,14 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>5.0-SNAPSHOT</version>
+		<version>5.1-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-file-access-module</artifactId>
 	<packaging>jar</packaging>
+
+	<properties>
+		<apache.sshd.version>2.7.0</apache.sshd.version>
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -42,7 +46,17 @@
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
-			<version>1.2.0</version>
+			<version>${apache.sshd.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-sftp</artifactId>
+			<version>${apache.sshd.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.sshd</groupId>
+			<artifactId>sshd-scp</artifactId>
+			<version>${apache.sshd.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.ftpserver</groupId>

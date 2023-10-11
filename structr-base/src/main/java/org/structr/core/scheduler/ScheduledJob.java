@@ -79,6 +79,7 @@ public abstract class ScheduledJob {
 	}
 
 	public abstract boolean runInitialChecks() throws FrameworkException;
+	public abstract boolean canRunMultiThreaded();
 	public abstract Runnable getRunnable();
 	public abstract String getJobType();
 	public abstract String getJobStatusType();

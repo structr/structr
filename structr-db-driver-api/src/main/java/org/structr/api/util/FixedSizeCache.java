@@ -121,7 +121,7 @@ public class FixedSizeCache<K, V> {
 
 			if (percentage > 98.00) {
 
-				int size = cache.maxSize();
+				double size = cache.maxSize();
 
 				size *= 0.5;
 				size /= 10000;
@@ -143,7 +143,7 @@ public class FixedSizeCache<K, V> {
 				cache.clear();
 
 				// replace current cache instance with limited one (should be ok to do since all methods are synchronized)
-				cache = new InvalidatingLRUMap<>(size);
+				cache = new InvalidatingLRUMap<>((int)size);
 			}
 		}
 	}

@@ -25,10 +25,7 @@ import org.structr.schema.action.ActionContext;
 import org.w3c.dom.Document;
 
 import javax.xml.namespace.QName;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathExpressionException;
-import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.*;
 
 public class XPathFunction extends AdvancedScriptingFunction {
 
@@ -63,7 +60,11 @@ public class XPathFunction extends AdvancedScriptingFunction {
 						returnType = new QName("http://www.w3.org/1999/XSL/Transform", (String) sources[2]);
 					}
 
-					return xpath.evaluate(sources[1].toString(), sources[0], returnType);
+					String path = sources[1].toString();
+
+					final XPathExpression expression = xpath.compile(path);
+
+					return expression.evaluate(sources[0], returnType);
 
 				} catch (XPathExpressionException ioex) {
 

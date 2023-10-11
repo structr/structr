@@ -66,11 +66,29 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			switch (key) {
 
+				case "id":
+					return this.node.getUuid();
+
+				case "name":
+					return ((AbstractNode)this.node).getName();
+
 				case "owner":
 					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getOwnerNode());
 
 				case "_path":
 					return PolyglotWrapper.wrap(actionContext, ((AbstractNode) node).getPath(actionContext.getSecurityContext()));
+
+				case "createdDate":
+					return ((AbstractNode)this.node).getCreatedDate();
+
+				case "lastModifiedDate":
+					return ((AbstractNode)this.node).getLastModifiedDate();
+
+				case "visibleToPublicUsers":
+					return ((AbstractNode)this.node).getVisibleToPublicUsers();
+
+				case "visibleToAuthenticatedUsers":
+					return ((AbstractNode)this.node).getVisibleToAuthenticatedUsers();
 			}
 		}
 

@@ -25,15 +25,20 @@ import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
 import org.apache.sshd.common.file.FileSystemFactory;
-import org.apache.sshd.common.session.Session;
-import org.apache.sshd.server.CommandFactory;
+import org.apache.sshd.common.session.SessionContext;
+import org.apache.sshd.scp.server.ScpCommandFactory;
 import org.apache.sshd.server.SshServer;
 import org.apache.sshd.server.auth.password.PasswordAuthenticator;
 import org.apache.sshd.server.auth.pubkey.PublickeyAuthenticator;
+import org.apache.sshd.server.channel.ChannelSession;
+import org.apache.sshd.server.command.CommandFactory;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
-import org.apache.sshd.server.scp.ScpCommandFactory;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.subsystem.sftp.*;
+import org.apache.sshd.server.shell.ShellFactory;
+import org.apache.sshd.server.subsystem.SubsystemFactory;
+import org.apache.sshd.sftp.server.Handle;
+import org.apache.sshd.sftp.server.SftpEventListener;
+import org.apache.sshd.sftp.server.SftpSubsystemFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
@@ -52,15 +57,13 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.PublicKey;
-import java.util.Collection;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  *
@@ -69,7 +72,7 @@ import java.util.Map;
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
 @StartServiceInMaintenanceMode
-public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, Factory<org.apache.sshd.server.Command>, SftpEventListener, CommandFactory {
+public class SSHService implements SingletonService, PasswordAuthenticator, PublickeyAuthenticator, FileSystemFactory, Factory<org.apache.sshd.server.command.Command>, SftpEventListener, CommandFactory, ShellFactory {
 
 	private static final Logger logger = LoggerFactory.getLogger(SSHService.class.getName());
 
@@ -168,10 +171,17 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	// ----- -----
+
+	// ----- interface FileSystemFactory -----
 	@Override
-	public FileSystem createFileSystem(final Session session) throws IOException {
+	public FileSystem createFileSystem(final SessionContext session) throws IOException {
 		return new StructrFilesystem(securityContext);
 	}
+	@Override
+	public Path getUserHomeDir(SessionContext sessionContext) throws IOException {
+		return Path.of("/");
+	}
+	// ------ -----
 
 	@Override
 	public boolean authenticate(final String username, final String password, final ServerSession session) {
@@ -265,7 +275,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 						final String pubKeyData = principal.getProperty(StructrApp.key(Principal.class, "publicKey"));
 						if (pubKeyData != null) {
 
-							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+							final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(pubKeyData).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
 
 							isValid = KeyUtils.compareKeys(pubKey, key);
 						}
@@ -277,7 +287,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 							for (final String k : pubKeysData) {
 
 								if (k != null) {
-									final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(PublicKeyEntryResolver.FAILING);
+									final PublicKey pubKey = PublicKeyEntry.parsePublicKeyEntry(k).resolvePublicKey(session, Collections.emptyMap(), PublicKeyEntryResolver.FAILING);
 									if (KeyUtils.compareKeys(pubKey, key)) {
 
 										isValid = true;
@@ -326,7 +336,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	private Tx currentTransaction = null;
 
 	@Override
-	public org.apache.sshd.server.Command create() {
+	public org.apache.sshd.server.command.Command create() {
 		return new StructrConsoleCommand(securityContext);
 	}
 
@@ -367,57 +377,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	// ----- interface SftpEventListener -----
 	@Override
-	public void initialized(ServerSession session, int version) {
-		// nothing to do
-	}
-
-	@Override
-	public void destroying(ServerSession session) {
-		// nothing to do
-	}
-
-	@Override
-	public void open(ServerSession session, String remoteHandle, Handle localHandle) {
-		beginTransaction();
-	}
-
-	@Override
-	public void read(ServerSession session, String remoteHandle, DirectoryHandle localHandle, Map<String, Path> entries) {
-		// nothing to do
-	}
-
-	@Override
-	public void read(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, byte[] data, int dataOffset, int dataLen, int readLen) {
-		// nothing to do
-	}
-
-	@Override
-	public void write(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, byte[] data, int dataOffset, int dataLen) {
-		// nothing to do
-	}
-
-	@Override
-	public void blocking(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, int mask) {
-		// nothing to do
-	}
-
-	@Override
-	public void blocked(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, int mask, Throwable thrown) {
-		// nothing to do
-	}
-
-	@Override
-	public void unblocking(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length) {
-		// nothing to do
-	}
-
-	@Override
-	public void unblocked(ServerSession session, String remoteHandle, FileHandle localHandle, long offset, long length, Boolean result, Throwable thrown) {
-		// nothing to do
-	}
-
-	@Override
-	public void close(ServerSession session, String remoteHandle, Handle localHandle) {
+	public void closing(ServerSession session, String remoteHandle, Handle localHandle) {
 		endTransaction();
 	}
 
@@ -442,12 +402,12 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public void removing(ServerSession session, Path path) {
+	public void removing(ServerSession session, Path path, boolean isDirectory) {
 		beginTransaction();
 	}
 
 	@Override
-	public void removed(ServerSession session, Path path, Throwable thrown) {
+	public void removed(ServerSession session, Path path, boolean isDirectory, Throwable thrown) {
 		endTransaction();
 	}
 
@@ -473,10 +433,10 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 
 	// ----- interface CommandFactory -----
 	@Override
-	public org.apache.sshd.server.Command createCommand(final String command) {
+	public org.apache.sshd.server.command.Command createCommand(final ChannelSession session, final String command) throws IOException {
 
 		if (command.startsWith("scp ")) {
-			return scp.createCommand(command);
+			return scp.createCommand(session, command);
 		}
 
 		if (command.startsWith("javascript ")) {
@@ -502,10 +462,17 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 		throw new IllegalStateException("Unknown subsystem for command '" + command + "'");
 	}
 
-	// ----- private methods -----
-	private List<NamedFactory<org.apache.sshd.server.Command>> getSubsystems() {
+	// ---- interface ShellFactory -----
+	@Override
+	public org.apache.sshd.server.command.Command createShell(ChannelSession channelSession) throws IOException {
+		return new StructrShellCommand();
+	}
+	// ----- -----
 
-		final List<NamedFactory<org.apache.sshd.server.Command>> list = new LinkedList<>();
+	// ----- private methods -----
+	private List<SubsystemFactory> getSubsystems() {
+
+		final List<SubsystemFactory> list = new LinkedList<>();
 
 		// sftp
 		final SftpSubsystemFactory factory = new SftpSubsystemFactory();

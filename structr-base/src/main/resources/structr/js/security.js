@@ -26,18 +26,18 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Security = {
 	_moduleName: 'security',
-	userList: undefined,
-	groupList: undefined,
-	resourceAccesses: undefined,
-	corsSettingsList: undefined,
+	usersPagerId: 'users',
+	groupsPagerId: 'groups',
+	resourceAccessesPagerId: 'resource-access',
+	corsSettingsPagerId: 'cors-settings',
 	securityTabKey: 'structrSecurityTab_' + location.port,
-	init: function() {
-		_Pager.initPager('users',           'User', 1, 25, 'name', 'asc');
-		_Pager.initPager('groups',          'Group', 1, 25, 'name', 'asc');
-		_Pager.initPager('resource-access', 'ResourceAccess', 1, 25, 'signature', 'asc');
-		_Pager.initPager('cors-settings',   'CorsSetting', 1, 25, 'requestUri', 'asc');
+	init: () => {
+		_Pager.initPager(_Security.usersPagerId,            'User', 1, 25, 'name', 'asc');
+		_Pager.initPager(_Security.groupsPagerId,           'Group', 1, 25, 'name', 'asc');
+		_Pager.initPager(_Security.resourceAccessesPagerId, 'ResourceAccess', 1, 25, 'signature', 'asc');
+		_Pager.initPager(_Security.corsSettingsPagerId,     'CorsSetting', 1, 25, 'requestUri', 'asc');
 	},
-	onload: function() {
+	onload: () => {
 
 		_Security.init();
 
@@ -47,12 +47,6 @@ let _Security = {
 		Structr.setFunctionBarHTML(_Security.templates.functions());
 
 		UISettings.showSettingsForCurrentModule();
-
-		_Security.userList         = document.getElementById('users-list');
-		_Security.groupList        = document.getElementById('groups-list');
-		_Security.corsSettingsList = document.getElementById('cors-settings-list');
-		_Security.resourceAccesses = $('#resourceAccesses');
-		_Security.corsSettings     = $('#corsSettings');
 
 		let subModule = LSWrapper.getItem(_Security.securityTabKey) || 'users-and-groups';
 
@@ -337,15 +331,19 @@ let _UsersAndGroups = {
 		return element.data('groupId');
 	},
 
+	getUsersListElement: () => document.getElementById('users-list'),
+	getGroupsListElement: () => document.getElementById('groups-list'),
+
 	refreshUsers: async () => {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.User', []);
 
-		let newUserHtml = _Security.templates.newUserButton({ types: types });
-		_Security.userList.innerHTML     = '';
+		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
 
 		let userControls = document.getElementById('users-controls');
-		userControls.innerHTML = newUserHtml;
+		let newUserHtml  = _Security.templates.newUserButton({ types: types });
+		_Helpers.fastRemoveAllChildren(userControls);
+		userControls.insertAdjacentHTML('beforeend', newUserHtml);
 
 		let userTypeSelect = document.querySelector('select#user-type');
 		let addUserButton  = document.getElementById('add-user-button');
@@ -353,7 +351,7 @@ let _UsersAndGroups = {
 		addUserButton.addEventListener('click', (e) => {
 			Command.create({ type: userTypeSelect.value }, (user) => {
 				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
+				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 			});
 		});
 
@@ -361,18 +359,21 @@ let _UsersAndGroups = {
 			addUserButton.querySelector('span').textContent = 'Add ' + userTypeSelect.value;
 		});
 
-		let userPager = _Pager.addPager('users', userControls, true, 'User', 'public', (users) => {
+		let userPager = _Pager.addPager(_Security.usersPagerId, userControls, true, 'User', 'public', (users) => {
 			for (let user of users) {
 				let userModelObj = StructrModel.create(user);
-				_UsersAndGroups.appendUserToElement(_Security.userList, userModelObj);
+				_UsersAndGroups.appendUserToElement(_UsersAndGroups.getUsersListElement(), userModelObj);
 			}
 		}, null, 'id,isUser,name,type,isAdmin', true);
 
 		userPager.cleanupFunction = () => {
-			_Helpers.fastRemoveAllChildren(_Security.userList);
+			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getUsersListElement());
 		};
 
-		userPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		userPager.appendFilterElements(`
+			<span class="mr-1">Filter:</span>
+			<input type="text" class="filter" data-attribute="name">
+		`);
 		userPager.activateFilterElements();
 		userPager.setIsPaused(false);
 		userPager.refresh();
@@ -520,10 +521,12 @@ let _UsersAndGroups = {
 
 		let types = await _Schema.getDerivedTypes('org.structr.dynamic.Group', []);
 
-		let newGroupHtml = _Security.templates.newGroupButton({ types: types });
-		_Security.groupList.innerHTML     = '';
-		let groupControls    = document.getElementById('groups-controls');
-		groupControls.innerHTML = newGroupHtml;
+		_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
+
+		let groupControls = document.getElementById('groups-controls');
+		let newGroupHtml  = _Security.templates.newGroupButton({ types: types });
+		_Helpers.fastRemoveAllChildren(groupControls);
+		groupControls.insertAdjacentHTML('beforeend', newGroupHtml);
 
 		let groupTypeSelect = document.querySelector('select#group-type');
 		let addGroupButton  = document.getElementById('add-group-button');
@@ -531,7 +534,7 @@ let _UsersAndGroups = {
 		addGroupButton.addEventListener('click', (e) => {
 			Command.create({ type: groupTypeSelect.value }, (group) => {
 				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
+				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
 			});
 		});
 
@@ -539,17 +542,24 @@ let _UsersAndGroups = {
 			addGroupButton.querySelector('span').textContent = 'Add ' + groupTypeSelect.value;
 		});
 
-		let groupPager = _Pager.addPager('groups', groupControls, true, 'Group', 'public', (groups) => {
+		_Pager.forceAddFilters(_Security.groupsPagerId, 'Group', {
+			groups: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showGroupsHierarchicallyKey) ? [] : ''
+		});
+
+		let groupPager = _Pager.addPager(_Security.groupsPagerId, groupControls, true, 'Group', 'public', (groups) => {
 			for (let group of groups) {
 				let groupModelObj = StructrModel.create(group);
-				_UsersAndGroups.appendGroupToElement($(_Security.groupList), groupModelObj);
+				_UsersAndGroups.appendGroupToElement($(_UsersAndGroups.getGroupsListElement()), groupModelObj);
 			}
 		}, undefined, undefined, true);
 
 		groupPager.cleanupFunction = () => {
-			_Helpers.fastRemoveAllChildren(_Security.groupList);
+			_Helpers.fastRemoveAllChildren(_UsersAndGroups.getGroupsListElement());
 		};
-		groupPager.appendFilterElements('<div>Filter: <input type="text" class="filter" data-attribute="name"></div>');
+		groupPager.appendFilterElements(`
+			<span class="mr-1">Filter:</span>
+			<input type="text" class="filter" data-attribute="name">
+		`);
 		groupPager.activateFilterElements();
 		groupPager.setIsPaused(false);
 		groupPager.refresh();
@@ -671,22 +681,21 @@ let _UsersAndGroups = {
 	},
 	setMouseOver: (node, id, prefix) => {
 
-		node.children('.node-container').children('b.name_').off('click').on('click', function(e) {
+		node[0].querySelector(':scope .node-container b.name_')?.addEventListener('click', (e) => {
 			e.stopPropagation();
 			_Entities.makeAttributeEditable(node, id, 'b.name_', 'name', (el) => {
 				_Helpers.blinkGreen(el);
 			});
 		});
 
-		node.on({
-			mouseover: function(e) {
-				e.stopPropagation();
-				_UsersAndGroups.activateNodeHover(id, prefix);
-			},
-			mouseout: function(e) {
-				e.stopPropagation();
-				_UsersAndGroups.deactivateNodeHover(id, prefix);
-			}
+		node[0].addEventListener('mouseover', (e) => {
+			e.stopPropagation();
+			_UsersAndGroups.activateNodeHover(id, prefix);
+		});
+
+		node[0].addEventListener('mouseout', (e) => {
+			e.stopPropagation();
+			_UsersAndGroups.deactivateNodeHover(id, prefix);
 		});
 	},
 	activateNodeHover: (id, prefix) => {
@@ -712,6 +721,8 @@ let _UsersAndGroups = {
 
 let _ResourceAccessGrants = {
 
+	getResourceAccessesElement: () => document.querySelector('#resourceAccesses'),
+
 	refreshResourceAccesses: () => {
 
 		if (Structr.isInMemoryDatabase === undefined) {
@@ -725,28 +736,27 @@ let _ResourceAccessGrants = {
 
 		let pagerTransportFunction = false && Structr.isInMemoryDatabase ? null : _ResourceAccessGrants.customPagerTransportFunction;
 
+		_Helpers.fastRemoveAllChildren(_ResourceAccessGrants.getResourceAccessesElement());
+
 		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey) });
-		_Security.resourceAccesses.html(resourceAccessHtml);
+		_ResourceAccessGrants.getResourceAccessesElement().insertAdjacentHTML('beforeend', resourceAccessHtml);
 
-		_Helpers.activateCommentsInElement(_Security.resourceAccesses[0]);
+		_Helpers.activateCommentsInElement(_ResourceAccessGrants.getResourceAccessesElement());
 
-		let raPager = _Pager.addPager('resource-access', $('#resourceAccessesPager', _Security.resourceAccesses)[0], true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
+		let raPager = _Pager.addPager(_Security.resourceAccessesPagerId, _ResourceAccessGrants.getResourceAccessesElement().querySelector('#resourceAccessesPager'), true, 'ResourceAccess', undefined, undefined, pagerTransportFunction, 'id,flags,name,type,signature,isResourceAccess,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', true);
 
 		raPager.cleanupFunction = () => {
-			$('#resourceAccessesTable tbody tr').remove();
+			_Helpers.fastRemoveAllChildren(document.querySelector('#resourceAccessesTable tbody'));
 		};
 
-		raPager.activateFilterElements(_Security.resourceAccesses[0]);
+		raPager.activateFilterElements(_ResourceAccessGrants.getResourceAccessesElement());
 		raPager.setIsPaused(false);
 		raPager.refresh();
 
-		$('.add_grant_icon', _Security.resourceAccesses).on('click', function (e) {
-			_ResourceAccessGrants.addResourceGrant(e);
-		});
-
-		$('#resource-signature', _Security.resourceAccesses).on('keyup', function (e) {
+		_ResourceAccessGrants.getResourceAccessesElement().querySelector('.add_grant_icon')?.addEventListener('click', _ResourceAccessGrants.addResourceGrant);
+		_ResourceAccessGrants.getResourceAccessesElement().querySelector('#resource-signature')?.addEventListener('keyup', (e) => {
 			if (e.keyCode === 13) {
-				_ResourceAccessGrants.addResourceGrant(e);
+				_ResourceAccessGrants.addResourceGrant();
 			}
 		});
 	},
@@ -783,17 +793,16 @@ let _ResourceAccessGrants = {
 			});
 		}
 
-		Command.cypher('MATCH (n:ResourceAccess) ' + filterString + ' RETURN DISTINCT n ORDER BY n.' + _Pager.sortKey[type] + ' ' + _Pager.sortOrder[type], undefined, fetchAllGranteesCallback, pageSize, page);
+		Command.cypher(`MATCH (n:ResourceAccess) ${filterString} RETURN DISTINCT n ORDER BY n.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]}`, undefined, fetchAllGranteesCallback, pageSize, page);
 	},
-	addResourceGrant: function(e) {
-		e.stopPropagation();
+	addResourceGrant: () => {
 
 		let inp = $('#resource-signature');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_grant_icon', $(_ResourceAccessGrants.getResourceAccessesElement())).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		let reEnableInput = () => {
-			$('.add_grant_icon', _Security.resourceAccesses).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			$('.add_grant_icon', $(_ResourceAccessGrants.getResourceAccessesElement())).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
@@ -810,6 +819,7 @@ let _ResourceAccessGrants = {
 		window.setTimeout(reEnableInput, 250);
 	},
 	createResourceAccessGrant: (signature, flags, callback, additionalData) => {
+
 		let grantData = {
 			type: 'ResourceAccess',
 			signature: signature,
@@ -847,7 +857,7 @@ let _ResourceAccessGrants = {
 	},
 	appendResourceAccessElement: function(resourceAccess, blinkAfterUpdate = true) {
 
-		if (!_Security.resourceAccesses || !_Security.resourceAccesses.is(':visible')) {
+		if (!_ResourceAccessGrants.getResourceAccessesElement() || !$(_ResourceAccessGrants.getResourceAccessesElement()).is(':visible')) {
 			return;
 		}
 
@@ -1026,35 +1036,35 @@ let _ResourceAccessGrants = {
 
 _CorsSettings = {
 
+	getCorsSettingsElement: () => document.querySelector('#corsSettings'),
+
 	refreshCorsSettings: () => {
 
-		_Security.corsSettings.html(_Security.templates.corsSettings());
+		_Helpers.fastRemoveAllChildren(_CorsSettings.getCorsSettingsElement());
+		_CorsSettings.getCorsSettingsElement().insertAdjacentHTML('beforeend', _Security.templates.corsSettings());
 
-		_Helpers.activateCommentsInElement(_Security.corsSettings[0]);
+		_Helpers.activateCommentsInElement(_CorsSettings.getCorsSettingsElement());
 
-		let csPager = _Pager.addPager('cors-settings', $('#corsSettingsPager', _Security.corsSettings)[0], true, 'CorsSetting', undefined, null, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', true);
+		let csPager = _Pager.addPager(_Security.corsSettingsPagerId, _CorsSettings.getCorsSettingsElement().querySelector('#corsSettingsPager'), true, 'CorsSetting', undefined, null, null, 'id,name,type,requestUri,isCorsSetting,acceptedOrigins,maxAge,allowMethods,allowHeaders,allowCredentials,exposeHeaders', true);
 
 		csPager.cleanupFunction = () => {
-			$('#corsSettingsTable tbody tr').remove();
+			_Helpers.fastRemoveAllChildren(document.querySelector('#corsSettingsTable tbody'));
 		};
 
-		csPager.activateFilterElements(_Security.corsSettings[0]);
+		csPager.activateFilterElements(_CorsSettings.getCorsSettingsElement());
 		csPager.setIsPaused(false);
 		csPager.refresh();
 
-		$('.add_cors_setting_button', _Security.corsSettings).on('click', function (e) {
-			_CorsSettings.addCorsSetting(e);
-		});
-
-		$('#cors-setting', _Security.corsSettings).on('keyup', function (e) {
+		_CorsSettings.getCorsSettingsElement().querySelector('.add_cors_setting_button')?.addEventListener('click', _CorsSettings.addCorsSetting);
+		_CorsSettings.getCorsSettingsElement().querySelector('#cors-setting-request-uri')?.addEventListener('keyup', (e) => {
 			if (e.keyCode === 13) {
-				_CorsSettings.addCorsSetting(e);
+				_CorsSettings.addCorsSetting();
 			}
 		});
 	},
 	appendCorsSettingToElement: (corsSetting) => {
 
-		let trHtml = `
+		let tr = _Helpers.createSingleDOMElementFromHTML(`
 			<tr id="id_${corsSetting.id}" class="cors-setting">
 				<td class="title-cell"><b>${corsSetting.requestUri}</b></td>
 				<td>${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-cors-setting']))}</td>
@@ -1065,33 +1075,32 @@ _CorsSettings = {
 				<td><input type="text" class="cors-allow-credentials" data-attr-key="allowCredentials" size="16" value="${corsSetting.allowCredentials || ''}"></td>
 				<td><input type="text" class="cors-expose-headers" data-attr-key="exposeHeaders" size="16" value="${corsSetting.exposeHeaders || ''}"></td>
 			</tr>
-		`;
+		`);
 
-		$('#corsSettingsTable tbody').append(trHtml);
+		document.querySelector('#corsSettingsTable tbody').appendChild(tr);
 
-		$(`#id_${corsSetting.id} .delete-cors-setting`).on('click', (e) => {
+		tr.querySelector('.delete-cors-setting').addEventListener('click', (e) => {
 			e.stopPropagation();
 			corsSetting.name = corsSetting.requestUri;
 			_Entities.deleteNode(corsSetting);
 		});
 
-		document.querySelectorAll(`#id_${corsSetting.id} input[type="text"]`).forEach(inp => {
+		for (let inp of tr.querySelectorAll('input[type="text"]')) {
 			inp.addEventListener('blur', e => {
 				e.stopPropagation();
 				_Entities.setPropertyWithFeedback(corsSetting, inp.dataset.attrKey, inp.value, $(inp), inp);
 			});
-		});
+		}
 
 	},
-	addCorsSetting: function(e) {
-		e.stopPropagation();
+	addCorsSetting: () => {
 
 		let inp = $('#cors-setting-request-uri');
 		inp.attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
-		$('.add_cors_setting_button', _Security.corsSettings).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
+		$('.add_cors_setting_button', $(_CorsSettings.getCorsSettingsElement())).attr('disabled', 'disabled').addClass('disabled').addClass('read-only');
 
 		let reEnableInput = () => {
-			$('.add_cors_setting_button', _Security.corsSettings).attr('disabled', null).removeClass('disabled').removeClass('read-only');
+			$('.add_cors_setting_button', $(_CorsSettings.getCorsSettingsElement())).attr('disabled', null).removeClass('disabled').removeClass('read-only');
 			inp.attr('disabled', null).removeClass('disabled').removeClass('readonly');
 		};
 
@@ -1109,6 +1118,7 @@ _CorsSettings = {
 		window.setTimeout(reEnableInput, 250);
 	},
 	createCorsSetting: (requestUri, callback, additionalData) => {
+
 		let corsSettingData = {
 			type: 'CorsSetting',
 			requestUri: requestUri
