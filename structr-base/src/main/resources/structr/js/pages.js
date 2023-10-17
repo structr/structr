@@ -1209,7 +1209,7 @@ let _Pages = {
 
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
-		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
@@ -2308,7 +2308,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon(iconsContainer, {
+						_Entities.appendContextMenuIcon(iconsContainer[0], {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);

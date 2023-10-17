@@ -1787,26 +1787,22 @@ let _Entities = {
 	appendContextMenuIcon: (parent, entity, visible) => {
 
 		let contextMenuIconClass = 'context_menu_icon';
-		let icon = $('.' + contextMenuIconClass, parent);
+		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
-		if (!(icon && icon.length)) {
-			icon = $(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
-			parent.append(icon);
+		if (!icon) {
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			parent.appendChild(icon);
 		}
 
-		icon.on('click', function(e) {
+		icon.addEventListener('click', (e) => {
 			e.stopPropagation();
-			_Elements.contextMenu.activateContextMenu(e, parent[0], entity);
+			_Elements.contextMenu.activateContextMenu(e, parent, entity);
 		});
 
 		if (visible) {
-			icon.css({
-				visibility: 'visible',
-				display: 'inline-block'
-			});
+			icon.style.visibility = 'visible';
+			icon.style.display    = 'inline-block';
 		}
-
-		return icon;
 	},
 	appendExpandIcon: (nodeContainer, entity, hasChildren, expanded, callback) => {
 
