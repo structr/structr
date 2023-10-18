@@ -70,20 +70,20 @@ public interface Comment extends Content, org.w3c.dom.Comment, NonIndexed {
 
 					DOMNode.renderDeploymentExportComments(comment, buf, true);
 
+					buf.append("<!--").append(DOMNode.escapeForHtml(_content)).append("-->");
+
 				} else {
 
 					_content = comment.getPropertyWithVariableReplacement(renderContext, StructrApp.key(Content.class, "content"));
 
+					buf.append("<!--").append(_content).append("-->");
 				}
-
-				buf.append("<!--").append(_content).append("-->");
 
 			} catch (Throwable t) {
 
 				// catch exception to prevent ugly status 500 error pages in frontend.
 				final Logger logger = LoggerFactory.getLogger(Content.class);
 				logger.error("", t);
-
 			}
 		}
 	}
