@@ -61,6 +61,11 @@ public abstract class AbstractStorageProvider implements StorageProvider {
 
 	@Override
 	public boolean equals(Object obj) {
+		if (obj == null) {
+
+			return false;
+		}
+
 		if (obj instanceof StorageProvider otherProvider) {
 
 			final boolean sameClass = otherProvider.getClass().equals(this.getClass());

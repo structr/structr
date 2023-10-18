@@ -149,6 +149,7 @@ public class StorageTest extends StructrUiTest {
 			// Move from memory to default storage provider
 			file.setProperty(storageConfigurationKey, null);
 			assertEquals("default", StorageProviderFactory.getStorageProvider(file).getProviderName());
+			assertEquals(LocalFSStorageProvider.class, StorageProviderFactory.getStorageProvider(file).getClass());
 
 			// Check if data is still equal after migration
 			is = file.getInputStream();
