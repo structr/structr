@@ -262,7 +262,7 @@ let _MailTemplates = {
 		});
 
 		_Elements.contextMenu.enableContextMenuOnElement(row, mailTemplate);
-		_Entities.appendContextMenuIcon($(row.querySelector('.icons-container')), mailTemplate, true);
+		_Entities.appendContextMenuIcon(row.querySelector('.icons-container'), mailTemplate, true);
 
 		let lastSelectedMailTemplateId = LSWrapper.getItem(_MailTemplates.mailTemplateSelectedElementKey);
 		if (lastSelectedMailTemplateId === mailTemplate.id) {

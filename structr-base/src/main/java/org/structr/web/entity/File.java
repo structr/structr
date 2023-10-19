@@ -263,7 +263,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
 
-		if (value == null || isCreation) {
+		if (isCreation) {
 			return;
 		}
 

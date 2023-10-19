@@ -114,6 +114,10 @@
 	padding-right: .5rem;
 }
 
+#files-table tr[id]:hover .node-action-icon {
+	display: inline-block;
+}
+
 #files-table td.file-icon {
 	cursor: pointer;
 }

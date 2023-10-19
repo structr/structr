@@ -208,7 +208,7 @@ let _VirtualTypes = {
 		});
 
 		_Elements.contextMenu.enableContextMenuOnElement(row[0], virtualType);
-		_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
+		_Entities.appendContextMenuIcon(row[0].querySelector('.icons-container'), virtualType, true);
 
 		let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
 		if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {

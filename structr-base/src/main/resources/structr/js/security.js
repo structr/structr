@@ -425,7 +425,7 @@ let _UsersAndGroups = {
 
 		targetElement.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon($('.icons-container', userDiv), user);
+		_Entities.appendContextMenuIcon(userDiv[0].querySelector('.icons-container'), user);
 		_Elements.contextMenu.enableContextMenuOnElement(userDiv[0], user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
@@ -658,7 +658,7 @@ let _UsersAndGroups = {
 
 		_Entities.appendExpandIcon(groupDiv.children('.node-container'), group, hasChildren, Structr.isExpanded(group.id), appendMembersFn);
 
-		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container'), group);
+		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container')[0], group);
 		_Elements.contextMenu.enableContextMenuOnElement(groupDiv[0], group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 

@@ -4514,6 +4514,9 @@ ul.combined-input-select-field li:hover {
 .opacity-100 {
 	opacity: 1;
 }
+.pointer-events-none {
+	pointer-events: none;
+}
 .hover\:opacity-60:hover {
 	opacity: .6;
 }

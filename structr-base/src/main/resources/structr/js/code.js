@@ -3242,7 +3242,7 @@ let _Code = {
 			</div>
 		`,
 		recentlyUsedButton: config => `
-			<div class="code-favorite items-center" id="recently-used-${config.id}">
+			<div class="code-favorite items-center px-2 py-1" id="recently-used-${config.id}">
 				${config.iconSvg ? config.iconSvg : ''}
 				${config.iconClass ? `<i class="${config.iconClass} flex-none"></i>` : ''}
 				<div class="truncate flex-grow">${config.name}</div>
