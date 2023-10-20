@@ -68,6 +68,26 @@ let _Pages = {
 
 		Structr.ensureShadowPageExists();
 	},
+	handleNodeRefresh: (node) => {
+
+		if (node.isPage) {
+			console.log(node);
+
+			// find and update node in pages tree
+
+			let pageNode = _Pages.pagesTree[0].querySelector('#id_' + node.id);
+
+			let pathElement = pageNode?.querySelector('.path_');
+			if (pathElement) {
+				pathElement.textContent = node.path;
+			}
+
+			let positionElement = pageNode?.querySelector('.position_');
+			if (positionElement) {
+				positionElement.textContent = node.position;
+			}
+		}
+	},
 	resize: () => {
 		_Pages.resizeColumns();
 	},
@@ -1194,6 +1214,7 @@ let _Pages = {
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
 						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>

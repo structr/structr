@@ -335,21 +335,6 @@ let StructrModel = {
 						attrElement.html('&nbsp;');
 					}
 				}
-
-				if (key === 'position') {
-
-					attrElement.text(newValue);
-				}
-			}
-		}
-
-		if (key === 'name') {
-
-			if (Structr.getClass(element) === 'folder') {
-
-				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshNode(id, newValue);
-				}
 			}
 		}
 	},
@@ -428,12 +413,6 @@ let StructrModel = {
 					if (row.length) {
 						$('td.size', row).text(_Helpers.formatBytes(obj.size, 0));
 					}
-				}
-
-			} else if (element.hasClass('folder')) {
-
-				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshNode(id, obj.name);
 				}
 			}
 

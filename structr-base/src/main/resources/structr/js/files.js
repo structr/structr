@@ -456,18 +456,6 @@ let _Files = {
 			// _Files.getFilesTree().jstree('activate_node', selectedId);
 		});
 	},
-	refreshNode: (nodeId, newName) => {
-
-
-		let node = _Files.getFilesTree().jstree('get_node', nodeId);
-		if (node.text !== newName) {
-			node.text = newName;
-
-			_TreeHelper.refreshNode(_Files.getFilesTree(), node, () => {
-				//
-			});
-		}
-	},
 	treeInitFunction: (obj, callback) => {
 
 		switch (obj.id) {
