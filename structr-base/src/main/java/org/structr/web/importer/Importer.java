@@ -794,6 +794,13 @@ public class Importer {
 						}
 					}
 				}
+			} else if ("svg".equals(tag)) { // don't create elements for SVG
+
+				final String source = node.toString();
+				newNode = (Content) page.createTextNode(source);
+
+				final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+				newNode.setProperty(contentTypeKey, "text/xml");
 
 			} else if ("structr:template".equals(tag)) {
 
