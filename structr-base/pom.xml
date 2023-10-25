@@ -20,11 +20,16 @@
 		<jaxb.version>2.3.3</jaxb.version>
 		<imageio.version>3.8.0</imageio.version>
 		<batik.version>[1.17,)</batik.version>
-		<graal.version>22.3.2</graal.version>
+		<graal.version>23.1.0</graal.version>
 		<apache.sshd.version>2.7.0</apache.sshd.version>
 	</properties>
 
 	<dependencies>
+		<dependency>
+			<groupId>org.structr</groupId>
+			<artifactId>structr-db-driver-api</artifactId>
+			<version>4.3-SNAPSHOT</version>
+		</dependency>
 		<!-- COMMON DEPENDENCIES -->
 		<dependency>
 			<groupId>org.testng</groupId>
@@ -149,16 +154,29 @@
 			<version>1.1</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
+		<!--
 		<dependency>
 			<groupId>org.graalvm.sdk</groupId>
 			<artifactId>graal-sdk</artifactId>
 			<version>${graal.version}</version>
 		</dependency>
+		-->
+		<dependency>
+			<groupId>org.graalvm.polyglot</groupId>
+			<artifactId>polyglot</artifactId>
+			<version>${graal.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.graalvm.polyglot</groupId>
+			<artifactId>js-community</artifactId>
+			<version>${graal.version}</version>
+			<type>pom</type>
+		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.graalvm.tools/chromeinspector -->
 		<dependency>
 			<groupId>org.graalvm.tools</groupId>
 			<artifactId>chromeinspector</artifactId>
-			<version>${graal.version}</version>
+			<version>23.0.2</version>
 			<scope>runtime</scope>
 		</dependency>
 
@@ -584,8 +602,8 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <configuration>
-                    <source>17</source>
-                    <target>17</target>
+                    <source>20</source>
+                    <target>20</target>
                 </configuration>
             </plugin>
         </plugins>

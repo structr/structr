@@ -25,7 +25,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.script.polyglot.AccessProvider;
 import org.structr.core.script.polyglot.StructrBinding;
-import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
@@ -41,8 +40,7 @@ public abstract class ContextFactory {
 				.allowHostAccess(AccessProvider.getHostAccessConfig())
 				// TODO: Add config switch to toggle Host Class Lookup
 				//.allowHostClassLookup(new StructrClassPredicate())
-				.fileSystem(new PolyglotFilesystem())
-				.allowIO(true)
+				.allowIO(AccessProvider.getIOAccessConfig())
 				.allowExperimentalOptions(true)
 				.option("js.foreign-object-prototype", "true")
 				.option("js.ecmascript-version", "latest")
@@ -51,7 +49,9 @@ public abstract class ContextFactory {
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
 				.engine(engine)
-				.allowAllAccess(true)
+				.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+				.allowHostAccess(AccessProvider.getHostAccessConfig())
+				.allowIO(AccessProvider.getIOAccessConfig())
 				.allowHostAccess(AccessProvider.getHostAccessConfig());
 				//.allowHostClassLookup(new StructrClassPredicate());
 

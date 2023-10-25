@@ -20,6 +20,8 @@ package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.HostAccess;
 import org.graalvm.polyglot.PolyglotAccess;
+import org.graalvm.polyglot.io.IOAccess;
+import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 
 public abstract class AccessProvider {
 
@@ -36,5 +38,11 @@ public abstract class AccessProvider {
 	public static PolyglotAccess getPolyglotAccessConfig() {
 
 		return PolyglotAccess.ALL;
+	}
+
+	public static IOAccess getIOAccessConfig() {
+		return IOAccess.newBuilder()
+				.fileSystem(new PolyglotFilesystem())
+				.build();
 	}
 }
