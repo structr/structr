@@ -723,6 +723,9 @@ export class Frontend {
 		let options    = this.parseOptions(target);
 		let delay      = 0;
 
+		// check browser validation
+		if (target.reportValidity && !target.reportValidity()) return;
+
 		// handle options
 		if (options.delay) { delay = options.delay; }
 		if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
