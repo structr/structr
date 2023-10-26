@@ -659,7 +659,7 @@ public abstract class StructrUiTest {
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionPassword.setValue("admin123");
 		if (StringUtils.isBlank(testDatabaseConnection)) {
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		} else {
