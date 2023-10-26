@@ -91,22 +91,26 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	static final String STRUCTR_ACTION_PROPERTY  = "data-structr-action";
 	static final String lowercaseBodyName        = "body";
 
-	static final String DATA_BINDING_PARAMETER_STRUCTRID             = "structrId";
-	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION   = "structrIdExpression";
-	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET         = "structrTarget";
-	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD         = "structrMethod";
-	static final String DATA_BINDING_PARAMETER_STRUCTRACTION         = "structrAction";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENT          = "structrEvent";
-	static final String DATA_BINDING_PARAMETER_STRUCTREVENTS         = "structrEvents";
-	static final String DATA_BINDING_PARAMETER_HTMLEVENT             = "htmlEvent";
-	static final String DATA_BINDING_PARAMETER_CHILDID               = "childId";
-	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT          = "sourceObject";
-	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY        = "sourceProperty";
-	static final String DATA_BINDING_PARAMETER_DATA_TYPE             = "structrDataType";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS = "structrSuccessNotifications";
-	static final String DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS = "structrFailureNotifications";
-	static final String DATA_BINDING_PARAMETER_SUCCESS_TARGET        = "structrSuccessTarget";
-	static final String DATA_BINDING_PARAMETER_FAILURE_TARGET        = "structrFailureTarget";
+	static final String DATA_BINDING_PARAMETER_STRUCTRID                                   = "structrId";
+	static final String DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION                         = "structrIdExpression";
+	static final String DATA_BINDING_PARAMETER_STRUCTRTARGET                               = "structrTarget";
+	static final String DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET                       = "structrReloadTarget";
+	static final String DATA_BINDING_PARAMETER_STRUCTRMETHOD                               = "structrMethod";
+	static final String DATA_BINDING_PARAMETER_STRUCTRACTION                               = "structrAction";
+	static final String DATA_BINDING_PARAMETER_STRUCTREVENT                                = "structrEvent";
+	static final String DATA_BINDING_PARAMETER_STRUCTREVENTS                               = "structrEvents";
+	static final String DATA_BINDING_PARAMETER_HTMLEVENT                                   = "htmlEvent";
+	static final String DATA_BINDING_PARAMETER_CHILDID                                     = "childId";
+	static final String DATA_BINDING_PARAMETER_SOURCEOBJECT                                = "sourceObject";
+	static final String DATA_BINDING_PARAMETER_SOURCEPROPERTY                              = "sourceProperty";
+	static final String DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID                     = "repeaterDataObjectId";
+	static final String DATA_BINDING_PARAMETER_DATA_TYPE                                   = "structrDataType";
+	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS                       = "structrSuccessNotifications";
+	static final String DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS                       = "structrFailureNotifications";
+	static final String DATA_BINDING_PARAMETER_SUCCESS_TARGET                              = "structrSuccessTarget";
+	static final String DATA_BINDING_PARAMETER_FAILURE_TARGET                              = "structrFailureTarget";
+	static final String DATA_BINDING_PARAMETER_FLOW_RESULT                                 = "flowResult";
+	static final String DATA_BINDING_PARAMETER_METHOD_RESULT                               = "methodResult";
 	static final String DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT = "structrSuccessNotificationsCustomDialogElement";
 
 
@@ -962,6 +966,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRID);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRIDEXPRESSION);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRTARGET);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTR_RELOAD_TARGET);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRMETHOD);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTRACTION);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_STRUCTREVENT);
@@ -970,13 +975,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_CHILDID);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEOBJECT);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SOURCEPROPERTY);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_REPEATER_DATA_OBJECT_ID);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_DATA_TYPE);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_NOTIFICATIONS);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_TARGET);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FAILURE_TARGET);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_FLOW_RESULT);
+		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_METHOD_RESULT);
 		parameters.remove(DOMElement.DATA_BINDING_PARAMETER_SUCCESS_NOTIFICATIONS_CUSTOM_DIALOG_ELEMENT);
-
 	}
 
 
@@ -1222,14 +1229,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 	static void openingTag(final DOMElement thisElement, final AsyncBuffer out, final String tag, final EditMode editMode, final RenderContext renderContext, final int depth) throws FrameworkException {
 
-		final DOMElement _syncedNode = (DOMElement) thisElement.getSharedComponent();
+		final DOMElement _sharedComponentElement = (DOMElement) thisElement.getSharedComponent();
 
-		if (_syncedNode != null && EditMode.DEPLOYMENT.equals(editMode)) {
+		if (_sharedComponentElement != null && EditMode.DEPLOYMENT.equals(editMode)) {
 
 			out.append("<structr:component src=\"");
 
-			final String _name = _syncedNode.getProperty(AbstractNode.name);
-			out.append(_name != null ? _name.concat("-").concat(_syncedNode.getUuid()) : _syncedNode.getUuid());
+			final String _name = _sharedComponentElement.getProperty(AbstractNode.name);
+			out.append(_name != null ? _name.concat("-").concat(_sharedComponentElement.getUuid()) : _sharedComponentElement.getUuid());
 
 			out.append("\"");
 
@@ -1284,6 +1291,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 					out.append(" ").append(key).append("=\"").append(value).append("\"");
 
 				}
+			}
+
+			// make repeater data object ID available
+			final GraphObject repeaterDataObject = renderContext.getDataObject();
+			if (repeaterDataObject != null) {
+
+				out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 			}
 
 			// include arbitrary data-* attributes
@@ -1616,14 +1630,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 					}
 
-					// make repeater data object ID available
-					final GraphObject repeaterDataObject = renderContext.getDataObject();
-					if (repeaterDataObject != null) {
-
-						out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
-					}
-
-					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid());
+					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, uuid);
 
 					if (isTargetElement(thisElementWithSuperuserContext)) {
 
