@@ -187,12 +187,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 									tokenizer.write(eMail);
 								}
-
-								final String twitterName = _owner.getProperty(StructrApp.key(Person.class, "twitterName"));
-								if (twitterName != null) {
-
-									tokenizer.write(twitterName);
-								}
 							}
 
 							// index document excluding stop words
