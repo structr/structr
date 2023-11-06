@@ -1445,10 +1445,11 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			final Set<String> perms = security.getPermissions();
 			final StringBuilder shortPerms = new StringBuilder();
 
-			// first character only
-			for (final String perm : perms) {
-				if (perm.length() > 0) {
-					shortPerms.append(perm.substring(0, 1));
+			for (final Permission p : Permission.allPermissions) {
+
+				if (perms.contains(p.name())) {
+					// first character only
+					shortPerms.append(p.name().substring(0, 1));
 				}
 			}
 
