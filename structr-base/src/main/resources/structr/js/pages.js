@@ -71,7 +71,7 @@ let _Pages = {
 	handleNodeRefresh: (node) => {
 
 		if (node.isPage) {
-			console.log(node);
+			//console.log(node);
 
 			// find and update node in pages tree
 
