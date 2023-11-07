@@ -115,7 +115,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		} else {
 
-			final Folder existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
+			// get properties to find UUID
+			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
+
+			final Folder existingFolder = app.get(Folder.class, (String)raw.get("id"));
 			if (existingFolder != null) {
 
 				this.folderCache.put(path, existingFolder);
@@ -188,7 +191,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
+				final PropertyMap fileProperties = new PropertyMap(AbstractNode.name, fileName);
+				fileProperties.putAll(convertRawPropertiesForFileOrFolder(rawProperties));
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 
@@ -201,14 +205,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					parent = getExistingFolder(parentPath);
 				}
 
-
 				if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
 
 					logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
 					skipFile = true;
 				}
 
-				File file = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), parent).and(File.name, fileName).getFirst();
+				File file = app.get(File.class, fileProperties.get(AbstractNode.id));
 
 				if (file != null) {
 
