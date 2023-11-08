@@ -173,7 +173,20 @@ export class Frontend {
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
-			// input[type="checkbox"]
+			const value = element.getAttribute('value');
+
+			// use value if present
+			if (value) {
+
+				if (element.checked) {
+					return value;
+				}
+
+				// no value please
+				return undefined;
+			}
+
+			// return boolean if no value is present
 			return element.checked;
 
 		} else if (element.nodeName === 'SELECT' && element.multiple) {
