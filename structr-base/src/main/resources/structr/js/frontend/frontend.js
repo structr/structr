@@ -176,11 +176,13 @@ export class Frontend {
 
 		if (element.nodeName === 'INPUT' && (element.type === 'checkbox' || element.type === 'radio')) {
 
+			const value = element.getAttribute('value');
+
 			// use value if present
-			if (element.value) {
+			if (value) {
 
 				if (element.checked) {
-					return element.value;
+					return value;
 				}
 
 				// no value please
