@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 public abstract class ContextFactory {
-	private static final Engine engine = buildEngine();
+	private static Engine engine = buildEngine();
 
 	// javascript context builder
 	private static final Context.Builder jsBuilder = Context.newBuilder("js")
@@ -56,6 +56,15 @@ public abstract class ContextFactory {
 				//.allowHostClassLookup(new StructrClassPredicate());
 
 	public static Engine buildEngine() {
+		if (Settings.ScriptingDebugger.getChangeHandler() == null) {
+			Settings.ScriptingDebugger.setChangeHandler((setting, oldValue, newValue) -> {
+				if (oldValue != newValue) {
+
+					engine = buildEngine();
+				}
+			});
+		}
+
 		Engine.Builder engineBuilder = Engine.newBuilder();
 
 		// Generic options

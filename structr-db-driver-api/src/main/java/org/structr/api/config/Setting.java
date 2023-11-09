@@ -162,8 +162,13 @@ public abstract class Setting<T> {
 		this.isDynamic = isDynamic;
 	}
 
-	public void setChangeHandler(final SettingChangeHandler changeHandler) {
+	public Setting<T> setChangeHandler(final SettingChangeHandler changeHandler) {
 		this.changeHandler = changeHandler;
+		return this;
+	}
+
+	public SettingChangeHandler getChangeHandler() {
+		return this.changeHandler;
 	}
 
 	public void unregister() {
