@@ -12,7 +12,7 @@
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>5.0.0</version>
+	<version>5.0.1</version>
 
 	<url>https://structr.com</url>
 
