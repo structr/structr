@@ -41,17 +41,14 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
+import org.testng.annotations.Optional;
 import org.testng.annotations.*;
 
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static org.testng.AssertJUnit.fail;
 
@@ -268,7 +265,7 @@ public abstract class StructrRestTestBase {
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionPassword.setValue("admin123");
 		if (StringUtils.isBlank(testDatabaseConnection)) {
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		} else {

@@ -21,8 +21,8 @@ package org.structr.web.function;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.util.FileUtils;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
@@ -55,7 +55,7 @@ public class GetContentFunction extends UiAdvancedFunction {
 
 				final File file = (File)sources[0];
 
-				if (FileUtils.getSize(file.getFileOnDisk()) == 0) {
+				if (StorageProviderFactory.getStorageProvider(file).size() == 0) {
 					return "";
 				}
 

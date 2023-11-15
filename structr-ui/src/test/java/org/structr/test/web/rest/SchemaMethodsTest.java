@@ -20,24 +20,16 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.structr.api.graph.Cardinality;
-import org.structr.api.schema.JsonObjectType;
-import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
-import org.structr.schema.export.StructrSchema;
 import org.structr.test.web.StructrUiTest;
-import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
 
-import java.net.URI;
-
 import static org.hamcrest.Matchers.equalTo;
-import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.fail;
 
 public class SchemaMethodsTest extends StructrUiTest {

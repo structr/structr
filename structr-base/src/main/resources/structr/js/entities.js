@@ -596,6 +596,30 @@ let _Entities = {
 		}
 	},
 	getNullIconForKey: (key) => _Icons.getSvgIconWithID(`${_Entities.null_prefix}${key}`, _Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['nullIcon', 'icon-grey'])),
+	classNameForEmptyStringWarningContainer: 'warn-empty-string',
+	showOrHideWarningForEmptyStringInHTMLAttribute: (row, value) => {
+
+		let warnContainer = row.querySelector(`.${_Entities.classNameForEmptyStringWarningContainer}`);
+
+		if (value === '') {
+
+			let key        = row.querySelector('input').name;
+			let displayKey = _Entities.getDisplayKeyForHTMLKey(key);
+
+			_Helpers.appendInfoTextToElement({
+				text: `The <b>${displayKey}</b> attribute contains an empty string and will be present in the HTML output. To clear this attribute completely, use the ${_Entities.getNullIconForKey()} icon to the right of the input field.`,
+				element: warnContainer,
+				customToggleIcon: _Icons.iconWarningYellowFilled,
+				width: 16,
+				height: 16,
+				noSpan: true
+			});
+
+		} else {
+
+			_Helpers.fastRemoveAllChildren(warnContainer);
+		}
+	},
 	listProperties: (entity, view, tabView, typeInfo, callback) => {
 
 		_Entities.getSchemaProperties(entity.type, view, (properties) => {
@@ -766,6 +790,17 @@ let _Entities = {
 			}
 		})
 	},
+	getDisplayKeyForHTMLKey: (key) => {
+		let displayKey = key;
+		if (key.indexOf('data-') !== 0) {
+			if (key.indexOf('_html_') === 0) {
+				displayKey = displayKey.substring(6);
+			} else if (key.indexOf('_custom_html_') === 0) {
+				displayKey = displayKey.substring(13);
+			}
+		}
+		return displayKey;
+	},
 	createPropertyTable: (heading, keys, res, entity, view, container, typeInfo, tempNodeCache) => {
 
 		if (heading) {
@@ -776,8 +811,13 @@ let _Entities = {
 		let focusAttr  = 'class';
 		let id         = entity.id;
 
+		let onUpdateCallback = undefined;
 		if (view === '_html_') {
 			keys.sort();
+
+			onUpdateCallback = (input, newVal) => {
+				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(input[0].closest('tr'), newVal);
+			}
 		}
 
 		for (let key of keys) {
@@ -807,21 +847,29 @@ let _Entities = {
 					showKeyInitially = true;
 				}
 
-				let displayKey = key;
-				if (key.indexOf('data-') !== 0) {
-					if (key.indexOf('_html_') === 0) {
-						displayKey = displayKey.substring(6);
-					} else if (key.indexOf('_custom_html_') === 0) {
-						displayKey = displayKey.substring(13);
-					}
+				let displayKey  = _Entities.getDisplayKeyForHTMLKey(key);
+				let willBeShown = (showKeyInitially || key === '_html_class' || key === '_html_id');
+
+				let rowClass = '';
+				if  (willBeShown === false) {
+					rowClass = ' class="hidden"';
 				}
 
-				if (showKeyInitially || key === '_html_class' || key === '_html_id') {
-					propsTable.append(`<tr><td class="key">${displayKey}</td><td class="value ${key}_">${_Helpers.formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
-				} else if (key !== 'id') {
-					propsTable.append(`<tr class="hidden"><td class="key">${displayKey}</td><td class="value ${key}_">${_Helpers.formatValueInputField(key, res[key])}</td><td>${_Entities.getNullIconForKey(key)}</td></tr>`);
-				}
+				let value = res[key];
+				let row   = _Helpers.createSingleDOMElementFromHTML(`<tr${rowClass}>
+					<td class="key">
+						<span class="flex justify-between items-center">
+							<span>${displayKey}</span>
+							<span class="${_Entities.classNameForEmptyStringWarningContainer} flex"></span>
+						</span>
+					</td>
+					<td class="value ${key}_">${_Helpers.formatValueInputField(key, value)}</td>
+					<td>${_Entities.getNullIconForKey(key)}</td>
+				</tr>`);
+				propsTable[0].appendChild(row);
 				valueCell = $(`.value.${key}_`, propsTable);
+
+				_Entities.showOrHideWarningForEmptyStringInHTMLAttribute(row, value);
 
 			} else {
 
@@ -945,6 +993,7 @@ let _Entities = {
 					_Entities.setProperty(id, key, null, false, (newVal) => {
 
 						if (!newVal) {
+
 							if (key.indexOf('_custom_html_') === -1) {
 								_Helpers.blinkGreen(valueCell);
 								_Dialogs.custom.showAndHideInfoBoxMessage(`Property "${key}" has been set to null.`, 'success', 2000, 1000);
@@ -960,9 +1009,12 @@ let _Entities = {
 								}
 								StructrModel.refresh(id);
 							}
+
 							if (isRelated) {
 								valueCell.empty();
 							}
+
+							onUpdateCallback?.(input, newVal);
 
 						} else {
 
@@ -978,7 +1030,7 @@ let _Entities = {
 			}
 		}
 
-		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo); });
+		$('.props tr td.value input',    container).each(function(i, inputEl)    { _Entities.activateInput(inputEl,    id, entity.pageId, typeInfo, onUpdateCallback); });
 		$('.props tr td.value textarea', container).each(function(i, textareaEl) { _Entities.activateInput(textareaEl, id, entity.pageId, typeInfo); });
 
 		if (view === '_html_') {
@@ -1304,11 +1356,11 @@ let _Entities = {
 	},
 	activateInput: function(el, id, pageId, typeInfo, onUpdateCallback) {
 
-		let input = $(el);
+		let input  = $(el);
 		let oldVal = input.val();
-		let relId = input.parent().attr('rel_id');
-		let objId = relId ? relId : id;
-		let key = input.prop('name');
+		let relId  = input.parent().attr('rel_id');
+		let objId  = relId ? relId : id;
+		let key    = input.prop('name');
 
 		if (!input.hasClass('readonly') && !input.hasClass('newKey')) {
 
@@ -1367,25 +1419,23 @@ let _Entities = {
 		var isPassword = input.prop('type') === 'password';
 		if (input.data('changed')) {
 			input.data('changed', false);
-			_Entities.setProperty(objId, key, val, false, function(newVal) {
+			_Entities.setProperty(objId, key, val, false, newVal => {
 				if (isPassword || (newVal !== oldVal)) {
 					_Helpers.blinkGreen(input);
 					let valueMsg;
 					if (newVal.constructor === Array) {
 						cell.html(_Helpers.formatArrayValueField(key, newVal, typeInfo[key].format === 'multi-line', typeInfo[key].readOnly, isPassword));
-						cell.find('[name="' + key + '"]').each(function(i, el) {
-							_Entities.activateInput(el, id, pageId, typeInfo);
-						});
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value [${newVal.join(',\n')}]`: 'empty value';
 					} else {
 						input.val(newVal);
 						valueMsg = (newVal !== undefined || newValue !== null) ? `value "${newVal}"`: 'empty value';
 					}
+					cell.find(`[name="${key}"]`).each(function(i, el) {
+						_Entities.activateInput(el, id, pageId, typeInfo, onUpdateCallback);
+					});
 					_Dialogs.custom.showAndHideInfoBoxMessage(`Updated property "${key}"${!isPassword ? ' with ' + valueMsg : ''}`, 'success', 2000, 200);
 
-					if (onUpdateCallback) {
-						onUpdateCallback();
-					}
+					onUpdateCallback?.(input, newVal);
 
 				} else {
 					input.val(oldVal);
@@ -1787,26 +1837,22 @@ let _Entities = {
 	appendContextMenuIcon: (parent, entity, visible) => {
 
 		let contextMenuIconClass = 'context_menu_icon';
-		let icon = $('.' + contextMenuIconClass, parent);
+		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
-		if (!(icon && icon.length)) {
-			icon = $(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
-			parent.append(icon);
+		if (!icon) {
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			parent.appendChild(icon);
 		}
 
-		icon.on('click', function(e) {
+		icon.addEventListener('click', (e) => {
 			e.stopPropagation();
-			_Elements.contextMenu.activateContextMenu(e, parent[0], entity);
+			_Elements.contextMenu.activateContextMenu(e, parent, entity);
 		});
 
 		if (visible) {
-			icon.css({
-				visibility: 'visible',
-				display: 'inline-block'
-			});
+			icon.style.visibility = 'visible';
+			icon.style.display    = 'inline-block';
 		}
-
-		return icon;
 	},
 	appendExpandIcon: (nodeContainer, entity, hasChildren, expanded, callback) => {
 

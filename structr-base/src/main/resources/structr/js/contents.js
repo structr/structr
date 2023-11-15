@@ -523,7 +523,7 @@ let _Contents = {
 
 				Command.getPromise(id, null).then(obj => {
 					let ctxMenuContainer = _Contents.contentsContents[0].querySelector('.context-menu-container');
-					_Entities.appendContextMenuIcon($(ctxMenuContainer), obj, true);
+					_Entities.appendContextMenuIcon(ctxMenuContainer, obj, true);
 				});
 			}
 
@@ -655,7 +655,7 @@ let _Contents = {
 			}
 		}
 
-		_Entities.appendContextMenuIcon(iconsContainer, d);
+		_Entities.appendContextMenuIcon(iconsContainer[0], d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d);
 		_Entities.makeSelectable(div);
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], d);

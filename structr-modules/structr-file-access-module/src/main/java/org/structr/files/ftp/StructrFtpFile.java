@@ -25,7 +25,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class StructrFtpFile extends AbstractStructrFtpFile {
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			final Long size = FileUtils.getSize(((File) structrFile).getFileOnDisk());
+			final Long size = StorageProviderFactory.getStorageProvider(structrFile).size();
 
 			tx.success();
 

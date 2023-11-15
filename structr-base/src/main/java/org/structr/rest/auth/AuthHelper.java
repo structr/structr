@@ -26,6 +26,7 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
@@ -47,7 +48,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import org.structr.core.Services;
 
 /**
  * Utility class for authentication.

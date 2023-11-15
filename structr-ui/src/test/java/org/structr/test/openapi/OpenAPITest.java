@@ -113,7 +113,7 @@ public class OpenAPITest extends StructrUiTest {
 		assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 		// schemas
-		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  55);
+		HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  58);
 
 		assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 		assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -359,7 +359,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  97);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  100);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -528,7 +528,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  94);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  97);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));
@@ -682,7 +682,7 @@ public class OpenAPITest extends StructrUiTest {
 			assertNotNull("Missing response example for 422 Unprocessable Entity", HttpFunctionsTest.getMapPathValue(response, "components.responses.validationError.content.application/json.example"));
 
 			// schemas
-			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  64);
+			HttpFunctionsTest.assertMapPathValueIs(response, "components.schemas.#",  67);
 
 			assertNotNull("Missing schema for AbstractNode",  HttpFunctionsTest.getMapPathValue(response, "components.schemas.AbstractNode"));
 			assertNotNull("Missing schema for ErrorToken",    HttpFunctionsTest.getMapPathValue(response, "components.schemas.ErrorToken"));

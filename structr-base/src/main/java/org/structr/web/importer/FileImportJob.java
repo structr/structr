@@ -30,7 +30,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.scheduler.ScheduledJob;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.InputStream;
@@ -59,7 +59,7 @@ abstract class FileImportJob extends ScheduledJob {
 		this.fileUuid = file.getUuid();
 		this.filePath = file.getPath();
 		this.fileName = file.getName();
-		this.fileSize = FileUtils.getSize(file.getFileOnDisk());
+		this.fileSize = StorageProviderFactory.getStorageProvider(file).size();
 	}
 
 	public String getFileUuid () {

@@ -23,34 +23,34 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.channels.Channel;
+import java.nio.channels.SeekableByteChannel;
 
 public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
 	private File file                       = null;
-	private FileChannel privateFileChannel  = null;
+	private SeekableByteChannel privateChannel = null;
 	private Long size                       = 0L;
 	private boolean isCreation              = false;
 	private SecurityContext securityContext = null;
 
 	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size            = FileUtils.getSize(file.getFileOnDisk());
+		this.size            = StorageProviderFactory.getStorageProvider(file).size();
 		this.file            = file;
 		this.isCreation      = isCreation;
 		this.securityContext = securityContext;
 
 		if (this.size == null) {
 
-			FileChannel channel;
+			SeekableByteChannel channel;
 			try {
 
 				channel = getChannel(false);
@@ -65,9 +65,9 @@ public class FileUploadHandler {
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
-		FileChannel channel = getChannel(sequenceNumber > 0);
+		SeekableByteChannel channel = getChannel(sequenceNumber > 0);
 
-		if (channel != null) {
+		if (channel != null && channel.isOpen()) {
 
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
@@ -111,14 +111,13 @@ public class FileUploadHandler {
 
 		try {
 
-			FileChannel channel = getChannel(false);
+			Channel channel = getChannel(false);
 
 			if (channel != null && channel.isOpen()) {
 
-				channel.force(true);
 				channel.close();
 
-				this.privateFileChannel = null;
+				this.privateChannel = null;
 
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
@@ -136,17 +135,12 @@ public class FileUploadHandler {
 	}
 
 	// ----- private methods -----
-	private FileChannel getChannel(final boolean append) throws IOException {
+	private SeekableByteChannel getChannel(final boolean append) throws IOException {
 
-		if (this.privateFileChannel == null) {
-
-			java.io.File fileOnDisk = file.getFileOnDisk();
-
-			fileOnDisk.getParentFile().mkdirs();
-
-			this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
+		if (this.privateChannel == null) {
+			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel();
 		}
 
-		return this.privateFileChannel;
+		return this.privateChannel;
 	}
 }

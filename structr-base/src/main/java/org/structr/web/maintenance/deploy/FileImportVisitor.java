@@ -34,7 +34,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
-import org.structr.web.entity.*;
+import org.structr.web.entity.AbstractFile;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
+import org.structr.web.entity.Image;
 import org.structr.web.maintenance.DeployCommand;
 
 import java.io.FileInputStream;
@@ -43,9 +46,7 @@ import java.nio.file.FileVisitResult;
 import java.nio.file.FileVisitor;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import static org.structr.core.graph.NodeInterface.name;
@@ -115,7 +116,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 		} else {
 
-			final Folder existingFolder = app.nodeQuery(Folder.class).and(StructrApp.key(AbstractFile.class, "path"), path).getFirst();
+			// get properties to find UUID
+			final Map<String, Object> raw = getRawPropertiesForFileOrFolder(path);
+
+			final Folder existingFolder = app.get(Folder.class, (String)raw.get("id"));
 			if (existingFolder != null) {
 
 				this.folderCache.put(path, existingFolder);
@@ -188,7 +192,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			} else {
 
-				final PropertyMap fileProperties = convertRawPropertiesForFileOrFolder(rawProperties);
+				final PropertyMap fileProperties = new PropertyMap(AbstractNode.name, fileName);
+				fileProperties.putAll(convertRawPropertiesForFileOrFolder(rawProperties));
 
 				final PropertyKey isThumbnailKey = StructrApp.key(Image.class, "isThumbnail");
 
@@ -201,18 +206,17 @@ public class FileImportVisitor implements FileVisitor<Path> {
 					parent = getExistingFolder(parentPath);
 				}
 
-
 				if (fileProperties.containsKey(isThumbnailKey) && (boolean) fileProperties.get(isThumbnailKey)) {
 
 					logger.info("Thumbnail image found: {}, ignoring. Please delete file in files directory and entry in files.json.", fullPath);
 					skipFile = true;
 				}
 
-				File file = app.nodeQuery(File.class).and(StructrApp.key(File.class, "parent"), parent).and(File.name, fileName).getFirst();
+				File file = app.get(File.class, fileProperties.get(AbstractNode.id));
 
 				if (file != null) {
 
-					final Long checksumOfExistingFile = FileHelper.getChecksum(file.getFileOnDisk());
+					final Long checksumOfExistingFile = FileHelper.getChecksum(file);
 					final Long checksumOfNewFile      = FileHelper.getChecksum(path.toFile());
 
 					if (checksumOfExistingFile != null && checksumOfNewFile != null && checksumOfExistingFile.equals(checksumOfNewFile) && file.getUuid().equals(rawProperties.get("id"))) {

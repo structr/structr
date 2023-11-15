@@ -46,15 +46,18 @@ import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.scheduler.JobQueueManager;
 import org.structr.core.script.Scripting;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.XMLStructureAnalyzer;
 import org.structr.schema.SchemaService;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.web.common.ClosingFileOutputStream;
+import org.structr.web.common.ClosingOutputStream;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.importer.CSVFileImportJob;
@@ -68,8 +71,6 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -125,8 +126,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		type.addCustomProperty("base64Data", FileDataProperty.class.getName()).setTypeHint("String");
 
 		// override setProperty methods, but don't call super first (we need the previous value)
-		type.overrideMethod("setProperty",                 false,  "if (parentProperty.equals(arg0)) { " + File.class.getName() + ".checkMoveBinaryContents(this, arg0, arg1); }\n\t\treturn super.setProperty(arg0, arg1, false);");
-		type.overrideMethod("setProperties",               false,  "if (arg1.containsKey(parentProperty)) { " + File.class.getName() + ".checkMoveBinaryContents(this, parentProperty, arg1.get(parentProperty)); }\n\t\tsuper.setProperties(arg0, arg1, arg2);")
+		type.overrideMethod("setProperty",                 false,  File.class.getName() + ".OnSetProperty(this, arg0,arg1);\n\t\treturn super.setProperty(arg0, arg1, false);");
+		type.overrideMethod("setProperties",               false,  File.class.getName() + ".OnSetProperties(this, arg0, arg1, arg2);\n\t\tsuper.setProperties(arg0, arg1, arg2);")
 				// the following lines make the overridden setProperties method more explicit in regards to its parameters
 				.setReturnType("void")
 				.addParameter("arg0", SecurityContext.class.getName())
@@ -163,67 +164,58 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		getOutputStream1.setSource("return " + File.class.getName() + ".getOutputStream(this, notifyIndexerAfterClosing, append);");
 		getOutputStream1.addParameter("notifyIndexerAfterClosing", "boolean");
 		getOutputStream1.addParameter("append", "boolean");
-		getOutputStream1.setReturnType(FileOutputStream.class.getName());
+		getOutputStream1.setReturnType(OutputStream.class.getName());
 
 		final JsonMethod getOutputStream2 = type.addMethod("getOutputStream");
 		getOutputStream2.setSource("return " + File.class.getName() + ".getOutputStream(this, true, false);");
-		getOutputStream2.setReturnType(FileOutputStream.class.getName());
-
-		type.addMethod("getFileOnDisk")
-			.setReturnType(java.io.File.class.getName())
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this);");
-
-		type.addMethod("getFileOnDisk")
-			.setReturnType(java.io.File.class.getName())
-			.setSource("return " + File.class.getName() + ".getFileOnDisk(this, doCreate);")
-			.addParameter("doCreate", "boolean");
+		getOutputStream2.setReturnType(OutputStream.class.getName());
 
 		type.addMethod("doCSVImport")
-			.setReturnType(java.lang.Long.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.setReturnType(java.lang.Long.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".doCSVImport(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 
 		type.addMethod("doXMLImport")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType(java.lang.Long.class.getName())
-			.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType(java.lang.Long.class.getName())
+				.setSource("return " + File.class.getName() + ".doXMLImport(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("getFirstLines")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters, ctx);")
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".getFirstLines(this, parameters, ctx);")
+				.setDoExport(true);
 
 		type.addMethod("getCSVHeaders")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".getCSVHeaders(this, parameters, ctx);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("getXMLStructure")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.setReturnType("java.lang.String")
-			.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.setReturnType("java.lang.String")
+				.setSource("return " + File.class.getName() + ".getXMLStructure(this);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		type.addMethod("extractStructure")
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
-			.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
-			.setSource("return " + File.class.getName() + ".extractStructure(this);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("parameters", "java.util.Map<java.lang.String, java.lang.Object>")
+				.setReturnType("java.util.Map<java.lang.String, java.lang.Object>")
+				.setSource("return " + File.class.getName() + ".extractStructure(this);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "includeInFrontendExport");
@@ -235,31 +227,102 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}}
 
 	String getXMLStructure(final SecurityContext securityContext) throws FrameworkException;
+
 	Long doCSVImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Long doXMLImport(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Map<String, Object> getCSVHeaders(final SecurityContext securityContext, final Map<String, Object> parameters) throws FrameworkException;
+
 	Map<String, Object> getFirstLines(final SecurityContext securityContext, final Map<String, Object> parameters);
 
-	FileOutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
-
-	java.io.File getFileOnDisk(final boolean doCreate);
-	java.io.File getFileOnDisk();
+	OutputStream getOutputStream(final boolean notifyIndexerAfterClosing, final boolean append);
 
 	boolean isTemplate();
 
 	void notifyUploadCompletion();
+
 	void callOnUploadHandler(final SecurityContext ctx);
+
 	void increaseVersion() throws FrameworkException;
 
 	void setVersion(final int version) throws FrameworkException;
+
 	Integer getVersion();
 
 	Integer getCacheForSeconds();
 
 	Long getChecksum();
+
 	String getMd5();
 
 	Folder getCurrentWorkingDir();
+
+	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value) {
+		OnSetProperty(thisFile, key, value, false);
+	}
+	static <T> void OnSetProperty(final File thisFile, final PropertyKey<T> key, T value, final boolean isCreation) {
+
+		if (isCreation) {
+			return;
+		}
+
+		PropertyKey<StorageConfiguration> storageConfigurationKey   = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                               = StructrApp.key(File.class, "parent");
+		PropertyKey<String> parentIdKey                             = StructrApp.key(File.class, "parentId");
+
+		if (key.equals(storageConfigurationKey)) {
+
+			checkMoveBinaryContents(thisFile, (StorageConfiguration)value);
+
+		} else if (key.equals(parentKey)) {
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), (Folder)value);
+		} else if (key.equals(parentIdKey)) {
+
+			Folder parentFolder = null;
+			try {
+
+				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid((String) value).getFirst();
+			} catch (FrameworkException ex) {
+
+				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);
+			}
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), parentFolder);
+		}
+	}
+
+	static void OnSetProperties(final File thisFile, final SecurityContext securityContext, final PropertyMap properties, final boolean isCreation) throws FrameworkException {
+		if (isCreation) {
+			return;
+		}
+
+		PropertyKey<StorageConfiguration> storageConfigurationKey   = StructrApp.key(File.class, "storageConfiguration");
+		PropertyKey<Folder> parentKey                               = StructrApp.key(File.class, "parent");
+		PropertyKey<String> parentIdKey                             = StructrApp.key(File.class, "parentId");
+
+		if (properties.containsKey(storageConfigurationKey)) {
+
+			checkMoveBinaryContents(thisFile, properties.get(storageConfigurationKey));
+
+		} else if (properties.containsKey(parentKey)) {
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), properties.get(parentKey));
+		} else if (properties.containsKey(parentIdKey)) {
+
+			Folder parentFolder = null;
+			try {
+
+				parentFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(properties.get(parentIdKey)).getFirst();
+			} catch (FrameworkException ex) {
+
+				LoggerFactory.getLogger(File.class).warn("Exception while trying to lookup parent folder.", ex);
+			}
+
+			checkMoveBinaryContents(thisFile, thisFile.getProperty(parentKey), parentFolder);
+		}
+	}
 
 	static void onCreation(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
@@ -302,20 +365,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		// only delete mounted files
 		if (!thisFile.isExternal()) {
 
-			java.io.File toDelete = thisFile.getFileOnDisk(false);
-
-			try {
-
-				if (toDelete.exists() && toDelete.isFile()) {
-
-					toDelete.delete();
-				}
-
-			} catch (Throwable t) {
-
-				final Logger logger = LoggerFactory.getLogger(File.class);
-				logger.debug("Exception while trying to delete file {}: {}", toDelete.getPath(), t.getMessage());
-			}
+			StorageProviderFactory.getStorageProvider(thisFile).delete();
 		}
 	}
 
@@ -392,13 +442,9 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 
 	static String getFormattedSize(final File thisFile) {
-		try {
-
-			return FileUtils.byteCountToDisplaySize(Files.size(thisFile.getFileOnDisk().toPath()));
-		} catch (IOException ex) {
-
-			throw new RuntimeException(ex);
-		}
+		return FileUtils.byteCountToDisplaySize(
+				StorageProviderFactory.getStorageProvider(thisFile).size()
+		);
 	}
 
 	static void increaseVersion(final File thisFile) throws FrameworkException {
@@ -419,11 +465,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	static InputStream getInputStream(final File thisFile) {
 
 		final Logger logger = LoggerFactory.getLogger(File.class);
-		final java.io.File fileOnDisk = thisFile.getFileOnDisk();
 
 		try {
 
-			final FileInputStream fis             = new FileInputStream(fileOnDisk);
+			final InputStream is = StorageProviderFactory.getStorageProvider(thisFile).getInputStream();
 			final SecurityContext securityContext = thisFile.getSecurityContext();
 
 			if (thisFile.isTemplate()) {
@@ -440,10 +485,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 				if (!editModeActive) {
 
-					final String content = IOUtils.toString(fis, "UTF-8");
+					final String content = IOUtils.toString(is, "UTF-8");
 
 					// close input stream here
-					fis.close();
+					is.close();
 
 					try {
 
@@ -473,20 +518,20 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 				}
 			}
 
-			return fis;
+			return is;
 
 		} catch (IOException ex) {
-			logger.warn("Unable to open input stream for {}: {}", fileOnDisk.getPath(), ex.getMessage());
+			logger.warn("Unable to open input stream for {}: {}", thisFile.getPath(), ex.getMessage());
 		}
 
 		return null;
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile) {
+	static OutputStream getOutputStream(final File thisFile) {
 		return thisFile.getOutputStream(true, false);
 	}
 
-	static FileOutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
+	static OutputStream getOutputStream(final File thisFile, final boolean notifyIndexerAfterClosing, final boolean append) {
 
 		if (thisFile.isTemplate()) {
 
@@ -499,7 +544,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		try {
 
 			// Return file output stream and save checksum and size after closing
-			return new ClosingFileOutputStream(thisFile, append, notifyIndexerAfterClosing);
+			return new ClosingOutputStream(thisFile, append, notifyIndexerAfterClosing);
 
 		} catch (IOException e) {
 
@@ -509,23 +554,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 
-	}
-
-	static java.io.File getFileOnDisk(final File thisFile) {
-		return thisFile.getFileOnDisk(true);
-	}
-
-	static java.io.File getFileOnDisk(final File thisFile, final boolean create) {
-
-		final Folder parentFolder = thisFile.getParent();
-		if (parentFolder != null) {
-
-			return parentFolder.getFileOnDisk(thisFile, "", create);
-
-		} else {
-
-			return AbstractFile.defaultGetFileOnDisk(thisFile, create);
-		}
 	}
 
 	static Map<String, Object> getFirstLines(final File thisFile, final Map<String, Object> parameters, final SecurityContext securityContext) {
@@ -828,32 +856,22 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 		return new LineAndSeparator(lines.toString(), new String(separator, 0, separatorLength));
 	}
 
-	static void checkMoveBinaryContents(final File thisFile, final PropertyKey key, final Object value) {
+	static void checkMoveBinaryContents(final File thisFile, final StorageConfiguration newProvider) {
 
-		final Folder previousParent     = (Folder)thisFile.getProperty(key);
-		final Folder newParent          = (Folder)value;
-		final java.io.File previousFile = thisFile.getFileOnDisk(false);
-		java.io.File newFile            = null;
+		if (!StorageProviderFactory.getStorageProvider(thisFile).equals(StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider))) {
 
-		if (newParent != null && !newParent.equals(previousParent)) {
+			final StorageProvider previousSP = StorageProviderFactory.getStorageProvider(thisFile);
+			final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newProvider);
 
-			newFile = newParent.getFileOnDisk(thisFile, "", false);
+			previousSP.moveTo(newSP);
 		}
+	}
 
-		if (previousFile != null && previousFile.exists() && newFile != null && !newFile.exists() && !previousFile.equals(newFile)) {
+	static void checkMoveBinaryContents(final File thisFile, final Folder previousParent, final Folder newParent) {
 
-			final Logger logger = LoggerFactory.getLogger(File.class);
-
-			try {
-
-				logger.info("Moving file {} from {} to {}..", previousFile, previousParent, newFile);
-
-				Files.move(Path.of(previousFile.toURI()), Path.of(newFile.toURI()));
-
-			} catch (IOException ioex) {
-				logger.error(ExceptionUtils.getStackTrace(ioex));
-			}
-		}
+		final StorageProvider previousSP = StorageProviderFactory.getSpecificStorageProvider(thisFile, previousParent != null ? previousParent.getStorageConfiguration(): null);
+		final StorageProvider newSP      = StorageProviderFactory.getSpecificStorageProvider(thisFile, newParent != null ? newParent.getStorageConfiguration(): null);
+		previousSP.moveTo(newSP);
 	}
 
 	static boolean doIndexing(final File thisFile) {
@@ -865,9 +883,6 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			if (container.hasProperty("indexed")) {
 
 				return Boolean.TRUE.equals(container.getProperty("indexed"));
-
-			} else {
-
 
 			}
 		}
@@ -896,6 +911,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		return null;
 	}
+
 	static boolean isImmutable(final File thisFile) {
 
 		final Principal _owner = thisFile.getOwnerNode();

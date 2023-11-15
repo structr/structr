@@ -2136,14 +2136,20 @@ th.center {
 }
 
 .app-tile img {
+	width: 83%;
+	margin: 13.5% 20% 0 8.5%;
+}
+
+.app-tile .app-thumbnail-frame {
 	width: 100%;
-	border-bottom: 1px solid var(--black-opacity-125);
+	background-repeat: no-repeat;
+	background-image: url('https://apps.structr.com/assets/images/frame.svg');
 }
 
 .app-tile h4 {
 	margin: 1rem;
 	/*font-size: 1em;*/
-	font-weight: 500;
+	font-weight: 600;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -2970,6 +2976,23 @@ i.fa-sitemap {
 	background-color: var(--structr-green);
 	color: var(--solid-black);
 	z-index: 99999;
+}
+
+.preview-context-menu .menu-entry-html {
+	margin-left: 1.5rem;
+	margin-right: 1rem;
+}
+
+.preview-context-menu .typeIcon {
+	position: absolute;
+	top: .5rem;
+	left: .5rem;
+}
+
+.preview-context-menu .context_menu_icon {
+	position: absolute;
+	top: .5rem;
+	right: .5rem;
 }
 
 .menu-entry-container {
@@ -4513,6 +4536,9 @@ ul.combined-input-select-field li:hover {
 }
 .opacity-100 {
 	opacity: 1;
+}
+.pointer-events-none {
+	pointer-events: none;
 }
 .hover\:opacity-60:hover {
 	opacity: .6;

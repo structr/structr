@@ -311,7 +311,7 @@ let _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 
 		if (_Entities.isLinkableEntity(entity)) {
 
@@ -708,6 +708,7 @@ let _Elements = {
 				});
 			}
 		},
+		prevAnimFrameReqId_updateMenuGroupVisibility: undefined,
 		updateMenuGroupVisibility: () => {
 
 			let windowHeight = window.innerHeight;
@@ -722,12 +723,16 @@ let _Elements = {
 
 						childrenMenu.classList.remove('hidden');
 
-						let boundingRect = childrenMenu.getBoundingClientRect()
+						_Helpers.requestAnimationFrameWrapper(_Elements.contextMenu.prevAnimFrameReqId_updateMenuGroupVisibility, () => {
 
-						let bottomOfMenu = boundingRect.y + boundingRect.height;
-						if (bottomOfMenu > windowHeight) {
-							childrenMenu.style.top = (-1 - (bottomOfMenu - windowHeight) - 12) + 'px';
-						}
+							let boundingRect = childrenMenu.getBoundingClientRect();
+
+							let bottomOfMenu = boundingRect.y + boundingRect.height;
+							if (bottomOfMenu > windowHeight) {
+								childrenMenu.style.top = (-1 - (bottomOfMenu - windowHeight) - 12) + 'px';
+							}
+						});
+
 					}
 				});
 
@@ -867,7 +872,7 @@ let _Elements = {
 
 		_Entities.setMouseOver(div, undefined, ((entity.syncedNodesIds && entity.syncedNodesIds.length) ? entity.syncedNodesIds : [entity.sharedComponentId]));
 
-		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);

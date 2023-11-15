@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.web.auth.AbstractOAuth2Client;
-import org.structr.web.entity.html.Map;
 
 import java.util.HashMap;
 

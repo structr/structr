@@ -781,7 +781,7 @@ let _Widgets = {
 
 		if (!url.startsWith(document.location.origin)) {
 
-			let widgets = await _Widgets.fetchRemoteWidgets(`${url}?isPageTemplate=true&_sort=name`, url + '?isPageTemplate=true&sort=name');
+			let widgets = await _Widgets.fetchRemoteWidgets(`${url}/pages?isPageTemplate=true&_sort=name`, url + '/pages?isPageTemplate=true&sort=name');
 			return widgets;
 		}
 

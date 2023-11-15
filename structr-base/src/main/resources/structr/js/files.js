@@ -456,18 +456,6 @@ let _Files = {
 			// _Files.getFilesTree().jstree('activate_node', selectedId);
 		});
 	},
-	refreshNode: (nodeId, newName) => {
-
-
-		let node = _Files.getFilesTree().jstree('get_node', nodeId);
-		if (node.text !== newName) {
-			node.text = newName;
-
-			_TreeHelper.refreshNode(_Files.getFilesTree(), node, () => {
-				//
-			});
-		}
-	},
 	treeInitFunction: (obj, callback) => {
 
 		switch (obj.id) {
@@ -852,7 +840,7 @@ let _Files = {
 
 				Command.getPromise(id, null).then(obj => {
 					let ctxMenuContainer = _Files.getFolderContentsElement().querySelector('.context-menu-container');
-					_Entities.appendContextMenuIcon($(ctxMenuContainer), obj, true);
+					_Entities.appendContextMenuIcon(ctxMenuContainer, obj, true);
 				});
 			}
 
@@ -1055,7 +1043,7 @@ let _Files = {
 		_Dragndrop.files.enableDroppable(d, div[0]);
 
 		let iconsContainer = $('.icons-container', div);
-		_Entities.appendContextMenuIcon(iconsContainer, d);
+		_Entities.appendContextMenuIcon(iconsContainer[0], d);
 		_Entities.appendNewAccessControlIcon(iconsContainer, d, false);
 
 		if (d.isFile) {

@@ -41,6 +41,8 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 
 /**
  */
@@ -48,23 +50,33 @@ import static java.nio.file.StandardWatchEventKinds.OVERFLOW;
 @StopServiceForMaintenanceMode
 public class DirectoryWatchService extends Thread implements RunnableService {
 
-	private static final Logger logger                 = LoggerFactory.getLogger(DirectoryWatchService.class);
-	private final Map<String, FolderInfo> watchedRoots = new LinkedHashMap<>();
-	private final Map<WatchKey, Path> watchKeyMap      = new LinkedHashMap<>();
-	private WatchEventListener listener                = null;
-	private WatchService watchService                  = null;
-	private boolean running                            = false;
+	private static final Logger logger                       = LoggerFactory.getLogger(DirectoryWatchService.class);
+	private final Map<String, FolderInfo> watchedRoots       = new LinkedHashMap<>();
+	private final Map<WatchKey, Path> watchKeyMap            = new LinkedHashMap<>();
+	private WatchService watchService                        = null;
+	private boolean running                                  = false;
 
 	public DirectoryWatchService() {
 		super("DirectoryWatchService");
 		setDaemon(true);
 	}
 
+	public boolean isMounted(final String folderUuid) {
+
+		boolean isMounted = false;
+		synchronized (watchedRoots) {
+
+			isMounted = watchedRoots.containsKey(folderUuid);
+		}
+		return isMounted;
+	}
+
 	public void mountFolder(final Folder folder) {
 
 		final boolean watchContents = folder.getProperty(StructrApp.key(Folder.class, "mountWatchContents"));
 		final Integer scanInterval  = folder.getProperty(StructrApp.key(Folder.class, "mountScanInterval"));
-		final String mountTarget    = folder.getProperty(StructrApp.key(Folder.class, "mountTarget"));
+		final StorageProvider prov  = StorageProviderFactory.getStorageProvider(folder);
+		final String mountTarget    = prov.getConfig() != null ? prov.getConfig().getConfiguration().get("mountTarget") : null;
 		final String folderPath     = folder.getProperty(StructrApp.key(Folder.class, "path"));
 		final String uuid           = folder.getUuid();
 
@@ -105,7 +117,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		logger.info("Mounting {} to {}..", mountTarget, folderPath);
 
-		watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval));
+		watchedRoots.put(uuid, new FolderInfo(uuid, mountTarget, scanInterval, StorageProviderFactory.getStorageProvider(folder)));
 
 		final FolderInfo info = watchedRoots.get(uuid);
 
@@ -121,7 +133,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 			info.setLastScanned(System.currentTimeMillis());
 
-			new Thread(new ScanWorker(watchContents, Paths.get(mountTarget), mountTarget, true)).start();
+			new Thread(new ScanWorker(uuid, watchContents, Paths.get(mountTarget), mountTarget, true)).start();
 
 		} else {
 
@@ -169,7 +181,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 						info.setLastScanned(System.currentTimeMillis());
 
 						// start a new scan thread
-						new Thread(new ScanWorker(false, Paths.get(info.getRoot()), info.getRoot(), true)).start();
+						new Thread(new ScanWorker(info.getUuid(), false, Paths.get(info.getRoot()), info.getRoot(), true)).start();
 					}
 				}
 			}
@@ -196,7 +208,14 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 								continue;
 							}
 
-							addToQueue(eventQueue, new WatchEventItem(root, (Path)key.watchable(), event));
+							// Find folder info in watched roots by root path
+							for (FolderInfo curInfo : watchedRoots.values()) {
+
+								if (curInfo.root.equals(root.toString())) {
+									addToQueue(eventQueue, new WatchEventItem(curInfo , root, (Path)key.watchable(), event));
+									break;
+								}
+							}
 						}
 
 						key.reset();
@@ -293,8 +312,6 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		this.listener = new FileSyncWatchEventListener();
-
 		return new ServiceResult(true);
 	}
 
@@ -335,11 +352,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			final Path path = parent.resolve((Path)event.context());
 			final Kind kind = event.kind();
 
+			FileSyncWatchEventListener listener = new FileSyncWatchEventListener(item.folderInfo.uuid);
+
 			if (StandardWatchEventKinds.ENTRY_CREATE.equals(kind)) {
 
 				if (Files.isDirectory(path)) {
 
-					scanDirectoryTree(registerWatchKey, root, path);
+					scanDirectoryTree(listener, registerWatchKey, root, path);
 				}
 
 				result = listener.onCreate(root, parent, path);
@@ -362,7 +381,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		return result;
 	}
 
-	private void scanDirectoryTree(final boolean registerWatchKey, final Path root, final Path path) throws IOException {
+	private void scanDirectoryTree(final FileSyncWatchEventListener listener, final boolean registerWatchKey, final Path root, final Path path) throws IOException {
 
 		final Set<FileVisitOption> options = new LinkedHashSet<>();
 
@@ -430,7 +449,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		for (final File directory : directories) {
 
 			// recurse (but not in a new thread)
-			new ScanWorker(registerWatchKey, root, directory.getAbsolutePath(), false).run();
+			new ScanWorker(listener.getRootFolderUUID(), registerWatchKey, root, directory.getAbsolutePath(), false).run();
 		}
 	}
 
@@ -522,20 +541,21 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		private boolean registerWatchKey = false;
 		private String path              = null;
 		private Path root                = null;
+		private String uuid              = null;
 
-		public ScanWorker(final boolean registerWatchKey, final Path root, final String path, final boolean isRootScanner) {
+		public ScanWorker(final String uuid, final boolean registerWatchKey, final Path root, final String path, final boolean isRootScanner) {
 
 			this.isRootScanner    = isRootScanner;
 			this.registerWatchKey = registerWatchKey;
 			this.root             = root;
 			this.path             = path;
+			this.uuid             = uuid;
 		}
 
 		@Override
 		public void run() {
 
 			final PropertyKey<Long> lastScannedKey   = StructrApp.key(Folder.class, "mountLastScanned");
-			final PropertyKey<String> mountTargetKey = StructrApp.key(Folder.class, "mountTarget");
 			boolean canStart                         = false;
 
 			// wait for transaction to finish so we can be
@@ -544,7 +564,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 				try (final Tx tx = StructrApp.getInstance().tx()) {
 
-					if (StructrApp.getInstance().nodeQuery(Folder.class).and(mountTargetKey, root.toString()).getFirst() != null) {
+					if (uuid == null || StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst() != null) {
 
 						canStart = true;
 						break;
@@ -570,14 +590,15 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 						try {
 
 							// add watch services for each directory recursively
-							scanDirectoryTree(registerWatchKey, root, actualPath);
+
+							scanDirectoryTree(new FileSyncWatchEventListener(uuid), registerWatchKey, root, actualPath);
 
 							// set last scanned timestamp on root folder
 							if (isRootScanner) {
 
 								try (final Tx tx = StructrApp.getInstance().tx()) {
 
-									final Folder rootFolder = StructrApp.getInstance().nodeQuery(Folder.class).and(mountTargetKey, root.toString()).getFirst();
+									final Folder rootFolder = StructrApp.getInstance().nodeQuery(Folder.class).uuid(uuid).getFirst();
 									if (rootFolder != null) {
 
 										rootFolder.setProperty(lastScannedKey, System.currentTimeMillis());
@@ -614,16 +635,18 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 	// ----- nested classes -----
 	private static final class FolderInfo {
 
-		private long lastScanned  = 0L;
-		private long scanInterval = 0L;
-		private String root       = null;
-		private String uuid       = null;
+		private long lastScanned                = 0L;
+		private long scanInterval               = 0L;
+		private String root                     = null;
+		private String uuid                     = null;
+		private StorageProvider effectiveConfig = null;
 
-		public FolderInfo(final String uuid, final String root, final Integer scanInterval) {
+		public FolderInfo(final String uuid, final String root, final Integer scanInterval, final StorageProvider storageProvider) {
 
 			this.lastScanned  = System.currentTimeMillis();
 			this.root         = root;
 			this.uuid         = uuid;
+			this.effectiveConfig = storageProvider;
 
 			setScanInterval(scanInterval);
 		}
@@ -638,6 +661,10 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 
 		public long getScanInterval() {
 			return scanInterval;
+		}
+
+		public String getFolderUUID() {
+			return this.uuid;
 		}
 
 		public void setScanInterval(final Integer scanInterval) {
@@ -665,12 +692,15 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		private Path path        = null;
 		private long time        = 0L;
 
-		public WatchEventItem(final Path root, final Path path, final WatchEvent event) {
+		private FolderInfo folderInfo = null;
+
+		public WatchEventItem(final FolderInfo info, final Path root, final Path path, final WatchEvent event) {
 
 			this.time  = System.nanoTime();
 			this.event = event;
 			this.root  = root;
 			this.path  = path;
+			this.folderInfo = info;
 
 			if (path != null) {
 

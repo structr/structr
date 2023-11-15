@@ -68,6 +68,26 @@ let _Pages = {
 
 		Structr.ensureShadowPageExists();
 	},
+	handleNodeRefresh: (node) => {
+
+		if (node.isPage) {
+			//console.log(node);
+
+			// find and update node in pages tree
+
+			let pageNode = _Pages.pagesTree[0].querySelector('#id_' + node.id);
+
+			let pathElement = pageNode?.querySelector('.path_');
+			if (pathElement) {
+				pathElement.textContent = node.path;
+			}
+
+			let positionElement = pageNode?.querySelector('.position_');
+			if (positionElement) {
+				positionElement.textContent = node.position;
+			}
+		}
+	},
 	resize: () => {
 		_Pages.resizeColumns();
 	},
@@ -825,7 +845,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
@@ -839,7 +859,7 @@ let _Pages = {
 				}
 
 				// default page
-				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div>');
+				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><div class="app-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
 				container.append(defaultTile);
 
 				let createSimplePageButton = container.querySelector('#create-simple-page');
@@ -1194,6 +1214,7 @@ let _Pages = {
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
 						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
@@ -1209,7 +1230,7 @@ let _Pages = {
 
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
-		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
@@ -2308,7 +2329,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon(iconsContainer, {
+						_Entities.appendContextMenuIcon(iconsContainer[0], {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -2346,15 +2367,22 @@ let _Pages = {
 			elements.push({
 				classes: ['preview-context-menu', 'w-96'],
 				icon: entity.isContent ? _Icons.getSvgIconForContentNode(entity) : _Icons.getSvgIconForElementNode(entity),
-				html: entity.tag + (entity._html_id ? ' <span class="class-id-attrs _html_id">#' + entity._html_id + '</span>' : '') + (entity._html_class ? '<span class="class-id-attrs _html_class">.' + entity._html_class.split(' ').join('.') + '</span>' : '')
-					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
-					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
+				html: entity.tag + ' <span class="class-id-attrs _html_id">#' + (entity._html_id || '&lt;id>') + '</span>'
+					+ '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + (entity._html_id ? entity._html_id.length : 10)   + '" value="' + (entity._html_id || '') + '">'
+					+ '<span class="class-id-attrs _html_class">.' + (entity._html_class ? entity._html_class.split(' ').join('.') : '&lt;class>') + '</span>'
+					+ '<textarea style="width:calc(100% + 1.5rem)" rows="' + Math.ceil((entity._html_class ? entity._html_class.length/35 : 1)) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + (entity._html_class || '') + '</textarea>'
+					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon'])),
+
 				clickHandler: (e) => {
+
+					const idDisplayElement    = document.querySelector('.class-id-attrs._html_id')
+					const classDisplayElement = document.querySelector('.class-id-attrs._html_class');
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
 						if (e.key === 'Enter') {
 							e.preventDefault();
+							classDisplayElement.innerText = '.' + (classInputField.value ? classInputField.value.split(' ').join('.') : '<class>')
 							Command.setProperty(entity.id, '_html_class', classInputField.value);
 						} else if (e.key === 'Escape') {
 							restoreDisplay();
@@ -2365,6 +2393,7 @@ let _Pages = {
 					idInputField?.addEventListener('keydown', (e) => {
 						if (e.key === 'Enter') {
 							e.preventDefault();
+							idDisplayElement.innerText = '#' + (idInputField.value || '<id>');
 							Command.setProperty(entity.id, '_html_id', idInputField.value);
 						} else if (e.key === 'Escape') {
 							restoreDisplay();
@@ -2374,10 +2403,15 @@ let _Pages = {
 					const restoreDisplay = () => {
 						classInputField?.classList.add('hidden');
 						idInputField?.classList.add('hidden');
-						document.querySelector('.class-id-attrs._html_class')?.classList.remove('hidden');
-						document.querySelector('.class-id-attrs._html_id')?.classList.remove('hidden');
+						classDisplayElement?.classList.remove('hidden');
+						idDisplayElement?.classList.remove('hidden');
 
 					};
+
+					if (e.target.classList.contains('context_menu_icon')) {
+						_Elements.contextMenu.activateContextMenu(e, e.target, entity);
+						return true;
+					}
 
 					const clickedEl = e.target.closest('.class-id-attrs');
 
@@ -2655,7 +2689,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $(`<div data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></div>`);
+					let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);

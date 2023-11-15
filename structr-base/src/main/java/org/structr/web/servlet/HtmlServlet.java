@@ -54,6 +54,7 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -62,13 +63,13 @@ import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.util.Base64;
-import org.structr.util.FileUtils;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
 import org.structr.web.common.RenderContext.EditMode;
 import org.structr.web.common.StringRenderBuffer;
 import org.structr.web.entity.*;
+import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Page;
 
@@ -85,7 +86,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.web.entity.dom.DOMElement;
 
 /**
  * Main servlet for content rendering.
@@ -1591,7 +1591,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					if (StringUtils.isNotEmpty(range)) {
 
-						final long len = FileUtils.getSize(file.getFileOnDisk());
+						final long len = StorageProviderFactory.getStorageProvider(file).size();
 						long start     = 0;
 						long end       = len - 1;
 
@@ -1624,7 +1624,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					} else {
 
 						if (!file.isTemplate()) {
-							response.addHeader("Content-Length", Long.toString(FileUtils.getSize(file.getFileOnDisk())));
+							response.addHeader("Content-Length", Long.toString(StorageProviderFactory.getStorageProvider(file).size()));
 						}
 
 						if (sendContent) {

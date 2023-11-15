@@ -18,6 +18,7 @@
  */
 package org.structr.rest.resource;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -36,7 +37,6 @@ import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.action.Actions;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collection;
 import java.util.Map;
 
