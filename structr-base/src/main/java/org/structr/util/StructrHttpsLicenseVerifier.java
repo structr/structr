@@ -123,9 +123,21 @@ public class StructrHttpsLicenseVerifier {
 						final String method = exchange.getRequestMethod();
 
 						// support HEAD and GET requests to check health
-						if ("get".equalsIgnoreCase(method) || "head".equalsIgnoreCase(method)) {
+						if ("head".equalsIgnoreCase(method)) {
 
 							exchange.sendResponseHeaders(200, 0);
+
+						} else if ("get".equalsIgnoreCase(method)) {
+
+							String responseString = "Structr license server status ok";
+							byte[] response = responseString.getBytes("utf-8");
+
+							exchange.sendResponseHeaders(200, response.length);
+							try (final OutputStream out = exchange.getResponseBody()) {
+
+								out.write(response);
+								out.flush();
+							}
 
 						} else if ("post".equalsIgnoreCase(method)) {
 
@@ -157,26 +169,35 @@ public class StructrHttpsLicenseVerifier {
 							final List<Pair> pairs        = split(data).stream().map(StructrHttpsLicenseVerifier::keyValue).collect(Collectors.toList());
 							final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-							// validate data against customer database
-							if (isValid(map)) {
+							// send signatur of name field back to client
+							final String name     = (String)map.get(StructrLicenseManager.NameKey);
+							final byte[] response = name.getBytes("utf-8");
 
-								// send signatur of name field back to client
-								final String name     = (String)map.get(StructrLicenseManager.NameKey);
-								final byte[] response = name.getBytes("utf-8");
+							// send response body
+							try (final OutputStream out = exchange.getResponseBody()) {
 
 								exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
 								exchange.sendResponseHeaders(200, 256);
 
-								// send response body
-								try (final OutputStream out = exchange.getResponseBody()) {
+								// validate data against customer database
+								if (isValid(map)) {
 
 									out.write(sign(response));
 									out.flush();
+
+								} else {
+
+									logger.info("License verification failed.");
+
+									// in case license isn't valid, we send a false response
+									out.write(sign("invalid".getBytes("utf-8")));
+									out.flush();
 								}
 
-							} else {
+							} catch (Throwable t) {
 
-								logger.info("License verification failed.");
+								logger.info("License verification failed, can't get response body.");
+								exchange.sendResponseHeaders(500, 0);
 							}
 
 						} else {
@@ -187,6 +208,7 @@ public class StructrHttpsLicenseVerifier {
 
 					} catch (Throwable t) {
 
+						exchange.sendResponseHeaders(500, 0);
 						t.printStackTrace();
 
 					} finally {
