@@ -1,0 +1,48 @@
+
+define username "admin"
+define password "admin"
+
+run "../snippets/init"
+
+click id "schema_"
+
+# create type TestProject
+
+	click id "create-type"
+	pause 100
+	type css "#dialogBox input[data-property='name']" "TestProject"
+	pause 500
+	click id "save-entity-button"
+	pause 30000
+	waitFor xpath "//b[text()='TestProject']"
+	click class "closeButton"
+
+# create type TestMilestone
+
+	click id "create-type"
+	pause 100
+	type css "#dialogBox input[data-property='name']" "TestMilestone"
+	pause 500
+	click id "save-entity-button"
+	pause 30000
+	waitFor xpath "//b[text()='TestMilestone']"
+	click class "closeButton"
+
+# link TestProject and TestMilestone
+
+	mouseDownAt xpath "//b[text()='TestProject']/parent::div/following-sibling::div[2]"
+	mouseUpAt xpath "//b[text()='TestMilestone']/parent::div/following-sibling::div[1]"
+	pause 500
+	select id "source-multiplicity-selector" "index=0"
+	pause 500
+	type id "relationship-type-name" "HAS_MILESTONE"
+	pause 500
+	clear id "source-json-name"
+	type id "source-json-name" "project"
+	pause 500
+	clear id "target-json-name"
+	type id "target-json-name" "milestones"
+	pause 500
+	click id "save-entity-button"
+	pause 30000
+	click class "closeButton"

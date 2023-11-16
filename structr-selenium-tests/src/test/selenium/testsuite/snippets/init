@@ -1,0 +1,26 @@
+# test snippet for initialization and login
+
+define username "admin"
+define password "admin"
+
+open baseUrl "/structr"
+
+	setWindowSize "1900x1080"
+
+	# make blur event work..
+	runScript "window.focus();"
+
+	if exists id "usernameField"
+	{
+
+		# username and password must be defined
+		type id "usernameField" username
+		type id "passwordField" password
+
+		pause 1000
+
+		click id "loginButton"
+	}
+
+	waitFor id "pages_"
+

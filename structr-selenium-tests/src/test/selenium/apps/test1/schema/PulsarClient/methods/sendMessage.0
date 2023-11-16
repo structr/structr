@@ -1,0 +1,1 @@
+return org.structr.messaging.implementation.pulsar.PulsarClient.sendMessage(this,topic,message);

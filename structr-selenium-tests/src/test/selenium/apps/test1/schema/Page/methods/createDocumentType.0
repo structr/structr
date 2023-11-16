@@ -1,0 +1,1 @@
+return org.structr.web.entity.dom.Page.createDocumentType(this, arg0, arg1, arg2);

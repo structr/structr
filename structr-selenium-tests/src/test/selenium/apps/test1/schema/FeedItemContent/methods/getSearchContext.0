@@ -1,0 +1,1 @@
+return org.structr.feed.entity.FeedItemContent.getSearchContext(this, arg0, arg1, arg2);

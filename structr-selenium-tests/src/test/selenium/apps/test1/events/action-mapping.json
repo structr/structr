@@ -1,0 +1,68 @@
+[
+  {
+    "action": "delete",
+    "dataType": "",
+    "event": "click",
+    "failureBehaviour": "none",
+    "failurePartial": "",
+    "failureURL": "",
+    "id": "549a66d828cd4a0fabd340fdf78707c4",
+    "idExpression": "${project.id}",
+    "method": "",
+    "name": "New ActionMapping 350662",
+    "successBehaviour": "full-page-reload",
+    "successEvent": "",
+    "successPartial": "",
+    "successURL": "",
+    "triggerElements": [
+      "d1bc31ead79548e2a97d37fbb5eebd08"
+    ],
+    "visibleToAuthenticatedUsers": false,
+    "visibleToPublicUsers": false
+  },
+  {
+    "action": "create",
+    "dataType": "Project",
+    "event": "click",
+    "failureBehaviour": "none",
+    "failurePartial": "",
+    "failureURL": "",
+    "id": "a03d7916639e4604812b3ab0850e8ef5",
+    "idExpression": "",
+    "method": "",
+    "name": "New ActionMapping 979213",
+    "parameterMappings": [
+      "8d8b80d3f689469687c92ae2c4da1e0d"
+    ],
+    "successBehaviour": "full-page-reload",
+    "successEvent": "",
+    "successPartial": "",
+    "successURL": "",
+    "triggerElements": [
+      "045b4d68882646ebb7fed48897dea363"
+    ],
+    "visibleToAuthenticatedUsers": false,
+    "visibleToPublicUsers": false
+  },
+  {
+    "action": "update",
+    "dataType": "",
+    "event": "change",
+    "failureBehaviour": "none",
+    "failurePartial": "",
+    "failureURL": "",
+    "id": "671b15ccf898409c8eb9bd50b97b6117",
+    "idExpression": "${project.id}",
+    "method": "",
+    "name": "New ActionMapping 607783",
+    "successBehaviour": "full-page-reload",
+    "successEvent": "",
+    "successPartial": "",
+    "successURL": "",
+    "triggerElements": [
+      "5440c9013e5e4b95a99d25c286b5090c"
+    ],
+    "visibleToAuthenticatedUsers": false,
+    "visibleToPublicUsers": false
+  }
+]

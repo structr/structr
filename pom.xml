@@ -71,6 +71,7 @@
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
+		<module>structr-selenium-tests</module>
 	</modules>
 
 	<repositories>
@@ -427,6 +428,8 @@
 						<exclude>src/main/resources/**/*.otf</exclude>
 						<exclude>src/main/resources/**/*.svg</exclude>
 						<exclude>src/main/resources/**/*.properties</exclude>
+						<exclude>src/main/resources/Dockerfile</exclude>
+						<exclude>src/main/resources/structr.conf</exclude>
 						<exclude>src/main/resources/bin/**</exclude>
 						<exclude>src/main/resources/mime.types</exclude>
 						<exclude>src/main/resources/structr/trumbowyg/**</exclude>

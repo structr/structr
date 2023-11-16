@@ -1,0 +1,1 @@
+return org.structr.messaging.implementation.mqtt.entity.MQTTClient.getTopics(this);

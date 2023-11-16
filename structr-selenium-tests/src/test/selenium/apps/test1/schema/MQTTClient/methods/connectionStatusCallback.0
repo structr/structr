@@ -1,0 +1,1 @@
+org.structr.messaging.implementation.mqtt.entity.MQTTClient.connectionStatusCallback(this, arg0);

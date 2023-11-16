@@ -1,0 +1,12 @@
+
+<div>
+${include_child('Mobile Menu')}
+  <!-- Static sidebar for desktop -->
+  <div class="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
+${include_child('Sidebar')}
+  </div>
+  <div class="flex flex-1 flex-col md:pl-64">
+${include_child('Header')}
+${include_child('Main Container')}
+  </div>
+</div>

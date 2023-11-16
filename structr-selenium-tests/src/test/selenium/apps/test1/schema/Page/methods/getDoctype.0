@@ -1,0 +1,1 @@
+return new org.structr.web.entity.dom.Html5DocumentType(this);

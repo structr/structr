@@ -1,0 +1,2 @@
+org.structr.web.entity.File.OnSetProperty(this, arg0,arg1);
+		return super.setProperty(arg0, arg1, false);

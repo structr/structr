@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!-- @structr:owner(admin), @structr:grant(admin,rwda) --><html data-structr-meta-id="6db43c125a4148b8a465b39012f1b3c5">
+	<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+	<head data-structr-meta-id="a408575f46704f98a31c2a8dc5c7974a">
+		<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+		<title data-structr-meta-id="38c27c6229684b6dbca7a10bc1d0a29a"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->${capitalize(page.name)}</title>
+		<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+		<script src="/structr/js/frontend/frontend.js" type="module" data-structr-meta-id="7d506e138371426d95e34380c217aec9"></script>
+		<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+		<style data-structr-meta-id="2f9fc0d9603c405098da6f0f7ac6f6b0"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/css) -->.hidden {
+	display: none;
+}
+
+span + span {
+	margin-left: 1em;
+}</style>
+	</head>
+	<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+	<body data-structr-meta-id="a7b5050d0f7d415aba324c709f337816">
+		<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+		<h1 data-structr-meta-id="e5dd861cbb6a4f1fb141522eb190f1e5"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->${capitalize(page.name)}</h1>
+		<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+		<div data-structr-meta-id="3af953122f6d415bb16d9d93d4fd9948">
+			<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+			<h2 data-structr-meta-id="c9a4485161824ea39eb9ed99b49c0c38"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Projects</h2>
+			<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+			<div data-structr-meta-id="7026188b4be3462ba8ff62fb120c271d" data-structr-meta-data-key="project" data-structr-meta-function-query="find('Project', sort('name'))">
+				<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+				<button class="delete-button" data-structr-meta-id="d1bc31ead79548e2a97d37fbb5eebd08"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Delete</button><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/html) -->&amp;nbsp;<!-- @structr:owner(admin), @structr:grant(admin,rwda) --><span class="project-id" data-structr-meta-id="5c941c45eb104d92852a9f5f8b7382e6"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->${project.id}</span><!-- @structr:owner(admin), @structr:grant(admin,rwda) --><span class="project-name edit" data-structr-meta-id="944e41942dd9449db41d73df22f067c1"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->${project.name}</span><!-- @structr:owner(admin), @structr:grant(admin,rwda) --><span class="project-name-editor edit hidden" data-structr-meta-id="9e046104adc8409f97c4eaa77f201024">
+					<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+					<input name="name" type="text" value="${project.name}" data-structr-meta-id="5440c9013e5e4b95a99d25c286b5090c">
+				</span>
+				<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+				<button class="edit" onclick="this.parentNode.querySelectorAll('.edit').forEach(e =&gt; e.classList.toggle('hidden'));" data-structr-meta-id="1bb1a2e441524d178bad12abba32978a"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Edit</button>
+				<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+				<button class="edit hidden" onclick="this.parentNode.querySelectorAll('.edit').forEach(e =&gt; e.classList.toggle('hidden'));" data-structr-meta-id="e8ff8eeda0e84676b87f6187ac261f28"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Cancel</button>
+			</div>
+			<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+			<h3 data-structr-meta-id="6f4209f0554441f19e9d9e757026be49"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Actions</h3>
+			<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+			<input placeholder="Enter project name.." data-structr-meta-id="8566278e7ce5468fbfb2a0951a7683fa">
+			<!-- @structr:owner(admin), @structr:grant(admin,rwda) -->
+			<button class="create-button" type="text" data-structr-meta-id="045b4d68882646ebb7fed48897dea363"><!-- @structr:owner(admin), @structr:grant(admin,rwda), @structr:content(text/plain) -->Add project</button>
+		</div>
+	</body>
+</html>

@@ -1,0 +1,1 @@
+return org.structr.web.entity.dom.Page.createProcessingInstruction(this, arg0, arg1);

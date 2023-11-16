@@ -1,0 +1,1 @@
+return org.structr.web.entity.dom.DOMNode.getContent(this, arg0);

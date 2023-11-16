@@ -1,0 +1,1 @@
+org.structr.messaging.engine.entities.MessageClient.sendMessage(this, arg0, arg1, this.getSecurityContext());

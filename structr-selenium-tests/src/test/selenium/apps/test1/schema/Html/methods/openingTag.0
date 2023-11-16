@@ -1,0 +1,6 @@
+final String custTag = getProperty(customOpeningTagProperty);
+if (custTag != null) {
+	arg0.append(custTag);
+} else {
+	super.openingTag(arg0, arg1, arg2, arg3, arg4);
+}

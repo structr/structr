@@ -1,0 +1,25 @@
+<!doctype html>
+<html class="h-full bg-gray-100">
+	<head>
+		<title>Structr - ${localize(titleize(page.name, '-'))}</title>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+		<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+		<script>
+			tailwind.config = {
+				theme: {
+					extend: {
+						colors: {
+							green: '#84ba39',
+  							greenhover: '#97cc4d'
+						}
+					}
+				}
+			}
+		</script>
+		<script type="module" defer src="/structr/js/frontend/frontend.js"></script>
+	</head>
+	<body class="h-full antialiased font-sans" onclick="document.querySelectorAll('.dynamic-menu:not(.hidden)').forEach(m => m.classList.toggle('hidden'))">
+${render(children)}		
+	</body>
+</html>

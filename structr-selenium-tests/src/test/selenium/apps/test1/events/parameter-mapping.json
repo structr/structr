@@ -1,0 +1,13 @@
+[
+  {
+    "constantValue": "",
+    "id": "8d8b80d3f689469687c92ae2c4da1e0d",
+    "inputElement": "8566278e7ce5468fbfb2a0951a7683fa",
+    "name": "New ParameterMapping 934202",
+    "parameterName": "name",
+    "parameterType": "user-input",
+    "scriptExpression": "",
+    "visibleToAuthenticatedUsers": false,
+    "visibleToPublicUsers": false
+  }
+]

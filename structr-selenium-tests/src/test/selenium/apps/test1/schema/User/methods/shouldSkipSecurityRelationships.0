@@ -1,0 +1,1 @@
+return isAdmin() && getProperty(skipSecurityRelationshipsProperty);

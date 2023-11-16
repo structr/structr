@@ -1,0 +1,1 @@
+return Iterables.count(getSyncedNodes()) > 0 || getSharedComponent() != null;

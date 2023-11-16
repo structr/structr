@@ -1,0 +1,1 @@
+try { final org.structr.text.model.StructuredTextNode parent = this.treeGetParent(); if (parent != null) { parent.treeRemoveChild(this); } } catch (FrameworkException fex) { fex.printStackTrace(); }

@@ -1,0 +1,1 @@
+return org.structr.messaging.implementation.kafka.entity.KafkaClient.sendMessage(this,topic,message);

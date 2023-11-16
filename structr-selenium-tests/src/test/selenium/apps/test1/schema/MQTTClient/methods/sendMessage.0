@@ -1,0 +1,1 @@
+return org.structr.messaging.implementation.mqtt.entity.MQTTClient.sendMessage(this, topic, message, this.getSecurityContext());

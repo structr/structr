@@ -1,0 +1,23 @@
+
+run "../snippets/init"
+
+open baseUrl "/test1"
+
+	type tag "input" "Project #1"
+	click text "Add project"
+	waitFor text "Project #1"
+	click text "Delete"
+	pause 200
+	assert not exists text "Project #1"
+
+	type tag "input" "Project #2"
+	click text "Add project"
+	waitFor text "Project #2"
+	click text "Edit"
+	clear css "span.edit input"
+	click text "Edit"
+	type css "span.edit input" "Updated project name"
+	click text "Projects"
+	waitFor text "Updated project name"
+	click text "Delete"
+

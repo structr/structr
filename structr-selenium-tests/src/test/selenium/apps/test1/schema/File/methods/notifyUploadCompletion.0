@@ -1,0 +1,1 @@
+org.structr.web.entity.File.notifyUploadCompletion(this);

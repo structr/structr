@@ -1,0 +1,1 @@
+return StringUtils.defaultString(getProperty(AbstractNode.name), "template");

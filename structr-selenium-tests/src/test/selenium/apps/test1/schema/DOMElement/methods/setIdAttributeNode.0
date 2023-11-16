@@ -1,0 +1,1 @@
+throw new UnsupportedOperationException("Attribute nodes not supported in HTML5.");
