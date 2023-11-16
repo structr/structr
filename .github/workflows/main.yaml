@@ -28,6 +28,8 @@ jobs:
             variableName: MODULES
           - module: structr-neo4j-bolt-driver
             variableName: NEO4J_BOLT_DRIVER
+          - module: structr-selenium-tests
+            variableName: SELENIUM
 
     steps:
       - uses: actions/checkout@v3
