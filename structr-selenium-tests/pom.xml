@@ -38,8 +38,8 @@
 						<argument>${project.build.directory}/failsafe-reports/selenium-summary.xml</argument>
 						<argument>-d</argument>
 						<argument>${basedir}/src/test/selenium/apps/test1</argument>
-						<argument>-k</argument>
-						<argument>${structrLicenseKey}</argument>
+						<!--argument>-k</argument>
+						<argument>${structrLicenseKey}</argument-->
 						<argument>-t</argument>
 						<argument>${basedir}/src/test/selenium/testsuite</argument>
 						<argument>-u</argument>

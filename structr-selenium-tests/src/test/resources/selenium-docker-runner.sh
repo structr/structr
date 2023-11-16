@@ -155,10 +155,12 @@ if [ "$IMAGE_EXISTS" == "true" ] && [ "$REUSE_EXISTING" == "true" ]; then
 	#
 
 	echo "Re-using existing image $NAME" |tee -a $LOG
-	CONTAINER=$(docker create -e AGREE_TO_STRUCTR_PRIVACY_POLICY=yes -e STRUCTR_license_key=$LICENSE -e STRUCTR_application_schema_automigration=true --network $NETWORK --net-alias structr -p $PORT:8082 $NAME)
+	CONTAINER=$(docker create -e AGREE_TO_STRUCTR_PRIVACY_POLICY=yes -e STRUCTR_license_key=$LICENSE -e STRUCTR_application_schema_automigration=true --name structr-selenium-tests --network $NETWORK --net-alias structr -p $PORT:8082 $NAME)
 
 	echo "Starting container.." |tee -a $LOG
 	docker start $CONTAINER >>$LOG || exit 1
+
+	PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "8082/tcp") 0).HostPort}}' structr-selenium-tests)
 
 	echo -n "Waiting for Structr to become available.." |tee -a $LOG
 	sleep $WAIT
@@ -184,7 +186,7 @@ else
 	#
 
 	echo "Creating new container from version $VERSION" |tee -a $LOG
-	CONTAINER=$(docker create -e AGREE_TO_STRUCTR_PRIVACY_POLICY=yes -e STRUCTR_license_key=$LICENSE -e STRUCTR_application_schema_automigration=true --network $NETWORK --net-alias structr -p $PORT:8082 structr/structr:$VERSION)
+	CONTAINER=$(docker create -e AGREE_TO_STRUCTR_PRIVACY_POLICY=yes -e STRUCTR_license_key=$LICENSE -e STRUCTR_application_schema_automigration=true --name structr-selenium-tests --network $NETWORK --net-alias structr -p $PORT:8082 structr/structr:$VERSION)
 
 	echo "Container: $CONTAINER"
 
@@ -202,6 +204,7 @@ else
 
 	echo "Starting container.." |tee -a $LOG
 	docker start $CONTAINER >>$LOG || exit 1
+	PORT=$(docker inspect --format='{{(index (index .NetworkSettings.Ports "8082/tcp") 0).HostPort}}' structr-selenium-tests)
 
 	echo "Waiting for Structr to become available..." |tee -a $LOG
 	sleep $WAIT
