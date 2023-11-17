@@ -230,6 +230,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 .icon-blue {
 	color: var(--medium-blue);
 }
+.icon-dark-blue {
+	color: var(--icon-color-dark-blue);
+}
 .icon-yellow {
 	color: var(--color-folder);
 }

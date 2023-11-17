@@ -130,6 +130,7 @@ let _Icons = {
 	iconDatetime:            'datetime-icon',
 	iconTypeVisibility:      'eye-in-square',
 	iconEyeOpen:             'eye_open',
+	iconEyeStrikeThrough:    'eye_strikethrough',
 	iconGlobe:               'globe-icon',
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',
