@@ -276,14 +276,6 @@ div.connection.collapsed {
 	text-align: center;
 }
 
-div.new-connection svg {
-	display: none;
-}
-
-div.new-connection.collapsed svg {
-	display: initial;
-}
-
 div.connection.collapsed p {
 	display: none;
 }

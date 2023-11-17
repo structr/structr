@@ -796,7 +796,7 @@ public class ConfigServlet extends AbstractServletBase {
 
 		div.block("div").id("status-structr-new-connection").css("warning warning-message hidden");
 
-		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("href", "#circle_plus"));
+		div.block("svg").attr(new Attr("width", 24), new Attr("height", 24)).css("show-add-connection icon-inactive hover:icon-active cursor-pointer").block("use").attr(new Attr("href", "#circle_plus"));
 	}
 
 	private Tag header(final Tag container, final String title) {
