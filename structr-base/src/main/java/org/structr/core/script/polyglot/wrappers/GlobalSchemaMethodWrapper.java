@@ -33,7 +33,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.core.script.Scripting;
 import org.structr.core.script.polyglot.PolyglotWrapper;
-import org.structr.rest.resource.SchemaMethodResource;
+import org.structr.rest.resource.StaticMethodResource;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Actions;
 

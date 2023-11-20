@@ -18,7 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -27,97 +26,108 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
+import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.config.Settings;
+import org.structr.api.parameter.APIParameter;
+import org.structr.rest.RestMethodResult;
+import org.structr.rest.exception.IllegalPathException;
 
 /**
  * Represents an exact UUID match.
  */
-public class UuidResource extends FilterableResource {
+public class UuidResource extends APIEndpoint {
 
-	private String uuid = null;
+	private static final APIParameter uuidParameter = APIParameter.forPattern("uuid", Settings.getValidUUIDRegexString());
+	private static final Logger logger              = LoggerFactory.getLogger(TypeResource.class.getName());
 
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+	public UuidResource() {
 
-		GraphObject obj = getEntity();
-		if (obj != null) {
-
-			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(obj));
-
-		}
-
-		throw new NotFoundException("Entity with ID " + getUuid() + " not found");
+		super(
+			uuidParameter
+		);
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
 
-		this.securityContext = securityContext;
+		final String uuid = call.get(uuidParameter);
+		if (uuid != null) {
 
-		this.setUuid(part);
-
-		return true;
-
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		// do not allow nesting of "bare" uuid resource with type resource
-		// as this will not do what the user expects to do.
-		if (next instanceof TypeResource) {
-
-			throw new IllegalPathException("Cannot resolve URL path, no type resource expected here");
+			return new UuidResourceHandler(securityContext, call.getURL(), uuid);
 		}
 
-		return super.tryCombineWith(next);
+		// only return a handler if there is actually a type with the requested name
+		return null;
 	}
 
-	public GraphObject getEntity() throws FrameworkException {
+	private class UuidResourceHandler extends APICallHandler {
 
-		final App app = StructrApp.getInstance(securityContext);
+		private String uuid = null;
 
-		GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
-		if (entity == null) {
+		public UuidResourceHandler(final SecurityContext securityContext, final String url, final String uuid) {
 
-			entity = app.relationshipQuery().uuid(uuid).getFirst();
+			super(securityContext, url);
+
+			this.uuid = uuid;
 		}
 
-		if (entity == null) {
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+
+			GraphObject obj = getEntity();
+			if (obj != null) {
+
+				return new PagingIterable<>("/" + getURL(), Arrays.asList(obj));
+
+			}
+
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 		}
 
-		return entity;
-	}
+		public GraphObject getEntity() throws FrameworkException {
 
-	public String getUuid() {
+			final App app = StructrApp.getInstance(securityContext);
 
-		return uuid;
-	}
+			GraphObject entity = app.nodeQuery().uuid(uuid).getFirst();
+			if (entity == null) {
 
-	@Override
-	public String getUriPart() {
+				entity = app.relationshipQuery().uuid(uuid).getFirst();
+			}
 
-		return uuid;
-	}
+			if (entity == null) {
+				throw new NotFoundException("Entity with ID " + uuid + " not found");
+			}
 
-	@Override
-	public String getResourceSignature() {
+			return entity;
+		}
 
-		return "/";
-	}
+		@Override
+		public String getURL() {
+			return uuid;
+		}
 
-	@Override
-	public boolean isCollectionResource() {
+		@Override
+		public boolean isCollection() {
 
-		return false;
-	}
+			return false;
+		}
 
-	public void setUuid(String uuid) {
+		@Override
+		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalPathException("POST not allowed on " + getURL());
+		}
 
-		this.uuid = uuid;
+		@Override
+		public Class getEntityClass() {
+			return null;
+		}
 	}
 }

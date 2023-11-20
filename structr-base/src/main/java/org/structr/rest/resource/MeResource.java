@@ -19,92 +19,80 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.parameter.APIParameter;
+import org.structr.rest.exception.IllegalMethodException;
+import org.structr.web.entity.User;
 
 /**
  *
  *
  */
-public class MeResource extends TypedIdResource {
-
-	private static final Logger logger = LoggerFactory.getLogger(MeResource.class.getName());
+public class MeResource extends APIEndpoint {
 
 	public MeResource() {
-		super(null);
-	}
-
-	public MeResource(SecurityContext securityContext) {
-		super(securityContext);
+		super(APIParameter.forStaticString("me"));
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
 
-		this.securityContext = securityContext;
+		final Principal user = securityContext.getUser(true);
+		if (user != null) {
 
-		if ("me".equalsIgnoreCase(part)) {
+			return new MeResourceHandler(securityContext, call.getURL());
+		}
 
-			this.typeResource = new TypeResource();
-			this.typeResource.setSecurityContext(securityContext);
-			this.typeResource.checkAndConfigure("user", securityContext, request);
+		return null;
+	}
+
+	private class MeResourceHandler extends APICallHandler {
+
+		public MeResourceHandler(final SecurityContext securityContext, final String url) {
+			super(securityContext, url);
+		}
+
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			Principal user = securityContext.getUser(true);
 			if (user != null) {
 
-				// we need to create synthetic nested constraints
-				this.idResource = new UuidResource();
-				this.idResource.setSecurityContext(securityContext);
-				this.idResource.checkAndConfigure(user.getProperty(GraphObject.id), securityContext, request);
+				return new PagingIterable<>(getURL(), Arrays.asList(user));
 
+			} else {
+
+				throw new NotAllowedException("No user");
 			}
 		}
 
-		return true;
-	}
-
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		Principal user = securityContext.getUser(true);
-		if (user != null) {
-
-			return new PagingIterable<>("/" + getUriPart(), Arrays.asList(user));
-			//return new ResultStream(resultList, isCollectionResource(), isPrimitiveArray());
-
-		} else {
-
-			throw new NotAllowedException("No user");
-		}
-	}
-
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		if (typeResource != null) {
-			return typeResource.doPost(propertySet);
+		@Override
+		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("POST not allowed on " + url);
 		}
 
-		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
-	}
+		@Override
+		public boolean isCollection() {
+			return false;
+		}
 
-	@Override
-	public String getUriPart() {
-		return "me";
+		@Override
+		public Class getEntityClass() {
+			return User.class;
+		}
 	}
 
 }

@@ -19,105 +19,24 @@
 package org.structr.web.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.structr.api.config.Settings;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.NotAllowedException;
-import org.structr.rest.resource.Resource;
-
-import java.util.Map;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.parameter.APIParameter;
 
 /**
  * Resource that handles logs a user out.
  */
-public class LogoutResource extends Resource {
+public class LogoutResource extends APIEndpoint {
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-
-		this.securityContext = securityContext;
-
-		if (getUriPart().equals(part)) {
-
-			return true;
-		}
-
-		return false;
+	public LogoutResource() {
+		super(APIParameter.forStaticString("logout"));
 	}
 
 	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-
-		if (Settings.CallbacksOnLogout.getValue() == false) {
-			securityContext.disableInnerCallbacks();
-		}
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		try (final Tx tx = app.tx(true, true, true)) {
-
-			securityContext.getAuthenticator().doLogout(securityContext.getRequest());
-
-			tx.success();
-		}
-
-		return new RestMethodResult(200);
-	}
-
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		throw new NotAllowedException("DELETE not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException("OPTIONS not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
-
-	@Override
-	public String getUriPart() {
-		return "logout";
-	}
-
-	@Override
-	public String getResourceSignature() {
-		return "_logout";
-	}
-
-	@Override
-	public boolean isCollectionResource() {
-		return false;
-	}
-
-	@Override
-	public boolean createPostTransaction() {
-		return false;
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+		return new LogoutResourceHandler(securityContext, call.getURL());
 	}
 }

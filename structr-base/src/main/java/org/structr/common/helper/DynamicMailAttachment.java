@@ -16,19 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest;
+package org.structr.common.helper;
 
-import org.structr.rest.resource.Resource;
+import org.apache.commons.mail.EmailAttachment;
 
-import java.util.Map;
-import java.util.regex.Pattern;
+import javax.activation.DataSource;
 
-/**
- * A provider interface that allows external modules to
- * inject resource constraint classes into the JsonRestServlet.
- *
- *
- */
-public interface ResourceProvider {
-	public Map<Pattern, Class<? extends Resource>> getResources();
+public class DynamicMailAttachment extends EmailAttachment {
+
+	private DataSource ds;
+
+	public void setDataSource(DataSource ds) {
+		this.ds = ds;
+	}
+
+	public DataSource getDataSource() {
+		return this.ds;
+	}
 }

@@ -36,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -87,6 +86,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.helper.PathHelper;
 
 /**
  * Main servlet for content rendering.
@@ -213,10 +213,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				RuntimeEventLog.http(path, user);
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
-
-				renderContext.setResourceProvider(config.getResourceProvider());
-
-				final EditMode edit = renderContext.getEditMode(user);
+				final EditMode edit               = renderContext.getEditMode(user);
 
 				DOMNode rootElement = null;
 				AbstractNode dataNode = null;
@@ -598,10 +595,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				}
 
 				final RenderContext renderContext = RenderContext.getInstance(securityContext, request, response);
-
-				renderContext.setResourceProvider(config.getResourceProvider());
-
-				final EditMode edit = renderContext.getEditMode(user);
+				final EditMode edit               = renderContext.getEditMode(user);
 
 				DOMNode rootElement   = null;
 				AbstractNode dataNode = null;

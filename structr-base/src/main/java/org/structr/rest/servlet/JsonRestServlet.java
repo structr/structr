@@ -44,12 +44,13 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.resource.Resource;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoints;
 
 /**
  * Implements the structr REST API.
@@ -87,7 +88,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		Resource resource               = null;
+		APICallHandler handler          = null;
 
 		setCustomResponseHeaders(response);
 
@@ -112,10 +113,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+				handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+				authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
 
-				RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
+				RuntimeEventLog.rest("Delete", handler.getURL(), securityContext.getUser(false));
 
 				tx.success();
 			}
@@ -126,7 +127,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				try {
 
-					result = resource.doDelete();
+					result = handler.doDelete();
 					retry = false;
 
 				} catch (RetryException ddex) {
@@ -136,7 +137,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
-				commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+				commitResponse(securityContext, request, response, result, handler.isCollection());
 				tx.success();
 			}
 
@@ -262,7 +263,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		final List<RestMethodResult> results = new LinkedList<>();
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final APICallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -295,10 +296,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
 
-					RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Post", handler.getURL(), securityContext.getUser(false));
 
 					tx.success();
 				}
@@ -307,13 +308,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 				boolean retry = true;
 				while (retry) {
 
-					if (resource.createPostTransaction()) {
+					if (handler.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
 
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+								results.add(handler.doPost(convertPropertySetToMap(propertySet)));
 							}
 
 							tx.success();
@@ -329,7 +330,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+								results.add(handler.doPost(convertPropertySetToMap(propertySet)));
 							}
 
 							retry = false;
@@ -379,7 +380,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 							}
 						}
 
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						commitResponse(securityContext, request, response, result, handler.isCollection());
 					}
 
 					tx.success();
@@ -446,7 +447,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final APICallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -480,10 +481,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
 
-					RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Put", handler.getURL(), securityContext.getUser(false));
 
 					tx.success();
 				}
@@ -494,7 +495,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
-						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
+						result = handler.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
 
@@ -506,7 +507,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+					commitResponse(securityContext, request, response, result, handler.isCollection());
 					tx.success();
 				}
 
@@ -575,7 +576,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final APICallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -613,15 +614,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
 
-					RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Patch", handler.getURL(), securityContext.getUser(false));
 
 					tx.success();
 				}
 
-				if (resource.isCollectionResource()) {
+				if (handler.isCollection()) {
 
 					final List<Map<String, Object>> inputs = new LinkedList<>();
 
@@ -630,14 +631,14 @@ public class JsonRestServlet extends AbstractDataServlet {
 						inputs.add(convertPropertySetToMap(propertySet));
 					}
 
-					result = resource.doPatch(inputs);
+					result = handler.doPatch(inputs);
 
 					// isolate write output
 					try (final Tx tx = app.tx()) {
 
 						if (result != null) {
 
-							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+							commitResponse(securityContext, request, response, result, handler.isCollection());
 						}
 
 						tx.success();
@@ -658,7 +659,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						try (final Tx tx = app.tx()) {
 
-							result = resource.doPut(flattenedInputs);
+							result = handler.doPut(flattenedInputs);
 							tx.success();
 							retry = false;
 
@@ -670,7 +671,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 					// isolate write output
 					try (final Tx tx = app.tx()) {
 
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						commitResponse(securityContext, request, response, result, handler.isCollection());
 						tx.success();
 					}
 				}
@@ -783,7 +784,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		Resource resource               = null;
+		APICallHandler handler          = null;
 
 		setCustomResponseHeaders(response);
 
@@ -800,11 +801,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// set default value for property view
 			propertyView.set(securityContext, config.getDefaultPropertyView());
 
-			// isolate resource authentication
-			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+			handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+			authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
 
-			RuntimeEventLog.rest(returnContent ? "Get" : "Head", resource.getResourceSignature(), securityContext.getUser(false));
+			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getURL(), securityContext.getUser(false));
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
@@ -815,12 +815,12 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
 			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
+			final Class<? extends GraphObject> type = handler.getEntityClass();
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
 
-			try (final ResultStream result = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
+			try (final ResultStream result = handler.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
 
 				final double queryTimeEnd = System.nanoTime();
 
@@ -834,7 +834,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
+					processResult(securityContext, request, response, result, depth, handler.isCollection());
 				}
 			}
 
@@ -870,8 +870,8 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		}
 
-		if (resource != null) {
-			this.stats.recordStatsValue("json", resource.getResourceSignature(), System.currentTimeMillis() - t0);
+		if (handler != null) {
+			this.stats.recordStatsValue("json", handler.getURL(), System.currentTimeMillis() - t0);
 		}
 	}
 }

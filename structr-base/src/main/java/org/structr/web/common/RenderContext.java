@@ -37,7 +37,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Principal;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.script.Scripting;
-import org.structr.rest.ResourceProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
@@ -80,7 +79,6 @@ public class RenderContext extends ActionContext {
 	private Page page                                  = null;
 	private HttpServletRequest request                 = null;
 	private HttpServletResponse response               = null;
-	private ResourceProvider resourceProvider          = null;
 	private boolean anyChildNodeCreatesNewLine         = false;
 	private boolean indentHtml                         = true;
 	private boolean isPartialRendering                 = false;
@@ -123,7 +121,6 @@ public class RenderContext extends ActionContext {
 		this.page                       = other.page;
 		this.request                    = other.request;
 		this.response                   = other.response;
-		this.resourceProvider           = other.resourceProvider;
 		this.anyChildNodeCreatesNewLine = other.anyChildNodeCreatesNewLine;
 		this.indentHtml                 = other.indentHtml;
 		this.buffer                     = other.buffer;
@@ -297,14 +294,6 @@ public class RenderContext extends ActionContext {
 
 	public HttpServletResponse getResponse() {
 		return response;
-	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
-
-	public ResourceProvider getResourceProvider() {
-		return resourceProvider;
 	}
 
 	public void increaseDepth() {

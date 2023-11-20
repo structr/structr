@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -29,78 +28,97 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
-import java.util.Map;
+import java.util.*;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.parameter.APIParameter;
+import org.structr.core.entity.SchemaNode;
 
 /**
  *
+ *
  */
-public class SchemaTypeResource extends Resource {
+public class SchemaTypeResource extends APIEndpoint {
 
-	protected HttpServletRequest request = null;
-	protected TypeResource typeResource  = null;
-	protected Class entityClass          = null;
-	private String propertyView          = null;
-	private String rawType               = null;
+	private static final APIParameter typeParameter = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
 
-	public SchemaTypeResource(SecurityContext securityContext, TypeResource typeResource) {
-		this.securityContext = securityContext;
-		this.typeResource = typeResource;
-		this.rawType = typeResource.getRawType();
+	public enum UriPart {
+		_schema
+	}
+
+	public SchemaTypeResource() {
+		super(
+			APIParameter.forStaticString(UriPart._schema.name()),
+			typeParameter
+		);
 	}
 
 	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-		return true;
-	}
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
 
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		final Class type = typeResource.getEntityClass();
-		return getSchemaTypeResult(securityContext, rawType, type, propertyView);
-	}
+		final String typeName = call.get(typeParameter);
+		if (typeName != null) {
 
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
-	}
+			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
+			if (entityClass != null) {
 
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		if (next instanceof ViewFilterResource) {
-
-			propertyView = ((ViewFilterResource) next).getPropertyView();
+				return new SchemaTypeResourceHandler(securityContext, call.getURL(), entityClass, typeName, call.getViewName());
+			}
 		}
 
-		return this;
-	}
-
-	@Override
-	public String getUriPart() {
-		return rawType;
-	}
-
-	public String getRawType() {
-		return rawType;
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return entityClass;
-	}
-
-	@Override
-	public String getResourceSignature() {
-		return SchemaResource.UriPart._schema.name().concat("/").concat(SchemaHelper.normalizeEntityName(getUriPart()));
-	}
-
-	@Override
-	public boolean isCollectionResource() {
-		return true;
+		return null;
 	}
 
 	// ----- public static methods -----
 	public static ResultStream getSchemaTypeResult(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
 		return new PagingIterable<>("getSchemaTypeResult(" + rawType + ")", SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
 	}
+
+	private class SchemaTypeResourceHandler extends APICallHandler {
+
+		private Class entityClass = null;
+		private String typeName   = null;
+		private String viewName   = null;
+
+		public SchemaTypeResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final String viewName) {
+
+			super(securityContext, url);
+
+			this.entityClass = entityClass;
+			this.typeName    = typeName;
+			this.viewName    = viewName;
+		}
+
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, entityClass, viewName);
+		}
+
+		@Override
+		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("POST not allowed on " + getURL());
+		}
+
+		@Override
+		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("PUT not allowed on " + getURL());
+		}
+
+		@Override
+		public RestMethodResult doDelete() throws FrameworkException {
+			throw new IllegalMethodException("DELETE not allowed on " + getURL());
+		}
+
+		@Override
+		public Class getEntityClass() {
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+	}
+
 }

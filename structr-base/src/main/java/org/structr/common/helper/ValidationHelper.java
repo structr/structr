@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.helper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -49,8 +49,6 @@ public class ValidationHelper {
 
 	private static final PropertyKey UnknownType       = new GenericProperty("unknown type");
 	private static final Map<String, Pattern> patterns = new ConcurrentHashMap<>();
-
-	// ----- public static methods -----
 
 	/**
 	 * Checks whether the value for the given property key of the given node

@@ -55,7 +55,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.service.*;
 import org.structr.core.Services;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.rest.common.MetricsFilter;
 import org.structr.rest.common.Stats;
@@ -80,23 +79,20 @@ public class HttpService implements RunnableService, StatsCallback {
 
 	private static final Logger logger = LoggerFactory.getLogger(HttpService.class.getName());
 
-	// set of resource providers for this service
-	private final Set<ResourceProvider> resourceProviders = new LinkedHashSet<>();
-
 	private enum LifecycleEvent {
 		Started, Stopped
 	}
 
-	private Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
-	private DefaultSessionCache sessionCache      = null;
-	private GzipHandler gzipHandler               = null;
-	private HttpConfiguration httpConfig          = null;
-	private HttpConfiguration httpsConfig         = null;
-	private SslContextFactory.Server sslContextFactory = null;
-	private Server server                         = null;
-	private Server maintenanceServer              = null;
-	private int requestHeaderSize                 = 8192;
-	private boolean httpsActive                   = false;
+	private final Map<String, Map<String, Stats>> stats = new LinkedHashMap<>();
+	private SslContextFactory.Server sslContextFactory  = null;
+	private DefaultSessionCache sessionCache            = null;
+	private GzipHandler gzipHandler                     = null;
+	private HttpConfiguration httpConfig                = null;
+	private HttpConfiguration httpsConfig               = null;
+	private Server server                               = null;
+	private Server maintenanceServer                    = null;
+	private int requestHeaderSize                       = 8192;
+	private boolean httpsActive                         = false;
 
 	static {
 
@@ -796,10 +792,6 @@ public class HttpService implements RunnableService, StatsCallback {
 		return "rest";
 	}
 
-	public Set<ResourceProvider> getResourceProviders() {
-		return resourceProviders;
-	}
-
 	public SessionCache getSessionCache() {
 		return sessionCache;
 	}
@@ -891,7 +883,7 @@ public class HttpService implements RunnableService, StatsCallback {
 										final StructrHttpServiceConfig cfg = httpServiceServlet.getConfig();
 										if (cfg != null) {
 
-											cfg.initializeFromSettings(servletName, resourceProviders);
+											cfg.initializeFromSettings(servletName);
 										}
 
 										final ServletHolder servletHolder = new ServletHolder(servlet);

@@ -51,6 +51,8 @@ import org.structr.schema.parser.Validator;
 
 import java.util.*;
 import java.util.regex.Pattern;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 
 public class SchemaRelationshipNode extends AbstractSchemaNode {
 

@@ -28,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -47,7 +46,6 @@ import org.structr.rest.auth.JWTHelper;
 import org.structr.rest.auth.SessionHelper;
 import org.structr.web.auth.provider.*;
 import org.structr.web.entity.User;
-import org.structr.web.resource.RegistrationResource;
 import org.structr.web.servlet.HtmlServlet;
 
 import java.io.IOException;
@@ -58,6 +56,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.structr.common.helper.PathHelper;
+import org.structr.web.resource.RegistrationResourceHandler;
 
 /**
  *
@@ -652,7 +652,7 @@ public class UiAuthenticator implements Authenticator {
 
 							logger.debug("No user found, creating new user for {} {}.", credentialKey, value);
 
-							user = RegistrationResource.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
+							user = RegistrationResourceHandler.createUser(superUserContext, credentialKey, value, true, getUserClass(), null);
 
 							// let oauth implementation augment user info
 							oAuth2Client.initializeAutoCreatedUser(user);

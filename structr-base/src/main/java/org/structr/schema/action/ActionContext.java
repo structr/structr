@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -46,6 +45,7 @@ import java.io.IOException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
+import org.structr.common.helper.AdvancedMailContainer;
 
 /**
  *

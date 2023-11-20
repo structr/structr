@@ -39,9 +39,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.rest.JsonInputGSONAdapter;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.serialization.StreamingHtmlWriter;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.rest.service.HttpServiceServlet;
@@ -51,11 +49,9 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.regex.Pattern;
 
 /**
  *
@@ -65,26 +61,13 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	private static final Logger logger = LoggerFactory.getLogger(AbstractDataServlet.class);
 
 	// final fields
-	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
-	protected Value<String> propertyView                                = null;
-	protected String defaultPropertyView                                = null;
+	protected final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
+	protected Value<String> propertyView            = null;
+	protected String defaultPropertyView            = null;
 
 	@Override
 	public void init() {
 
-		// inject resources
-		final ResourceProvider provider = config.getResourceProvider();
-		if (provider != null) {
-
-			resourceMap.putAll(provider.getResources());
-
-		} else {
-
-			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class");
-		}
-
-		// initialize variables
 		this.propertyView        = new ThreadLocalPropertyView();
 		this.defaultPropertyView = config.getDefaultPropertyView();
 	}

@@ -20,6 +20,7 @@ package org.structr.web.datasource;
 
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -34,22 +35,17 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.servlet.JsonRestServlet;
-import org.structr.rest.servlet.ResourceHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.HttpServletRequestWrapper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.common.UiResourceProvider;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.regex.Pattern;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoints;
 
 /**
  * List data source equivalent to a rest resource.
@@ -79,28 +75,21 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 	public Iterable<GraphObject> getData(final RenderContext renderContext, final String restQuery) throws FrameworkException {
 
-		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-		final SecurityContext securityContext                     = renderContext.getSecurityContext();
+		final SecurityContext securityContext = renderContext.getSecurityContext();
+		final Value<String> propertyView      = new ThreadLocalPropertyView();
 
-		ResourceProvider resourceProvider = renderContext.getResourceProvider();
-		if (resourceProvider == null) {
-			try {
-				resourceProvider = UiResourceProvider.class.newInstance();
-			} catch (Throwable t) {
-				logger.error("Couldn't establish a resource provider", t);
-				return Collections.EMPTY_LIST;
-			}
-		}
-
-		// inject resources
-		resourceMap.putAll(resourceProvider.getResources());
-
-		Value<String> propertyView = new ThreadLocalPropertyView();
 		propertyView.set(securityContext, PropertyView.Ui);
 
 		HttpServletRequest request = securityContext.getRequest();
 		if (request == null) {
+
 			request = renderContext.getRequest();
+		}
+
+		HttpServletResponse response = securityContext.getResponse();
+		if (response == null) {
+
+			response = renderContext.getResponse();
 		}
 
 		// initialize variables
@@ -113,10 +102,10 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);
 
-		Resource resource = null;
+		APICallHandler handler = null;
 		try {
 
-			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, wrappedRequest, resourceMap, propertyView);
+			handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -127,7 +116,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		// reset request to old context
 		securityContext.setRequest(origRequest);
 
-		if (resource == null) {
+		if (handler == null) {
 
 			return Collections.EMPTY_LIST;
 
@@ -138,13 +127,13 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
 		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
 		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
-		final Class type               = resource.getEntityClassOrDefault();
+		final Class type               = handler.getEntityClass();
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 
 		try {
-			return resource.doGet(order, pageSize, page);
+			return handler.doGet(order, pageSize, page);
 
 		} catch (NotFoundException nfe) {
 			logger.warn("No result from internal REST query: {}", restQuery);

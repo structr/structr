@@ -24,7 +24,6 @@ import org.structr.api.Predicate;
 import org.structr.api.graph.*;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.*;
 import org.structr.core.GraphObject;
@@ -42,6 +41,7 @@ import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
 import java.util.*;
+import org.structr.common.helper.ValidationHelper;
 
 
 /**

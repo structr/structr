@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -48,6 +47,7 @@ import org.structr.schema.SourceFile;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.ValidationHelper;
 
 /**
  *

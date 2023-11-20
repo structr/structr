@@ -30,7 +30,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
 import org.structr.core.StaticValue;
@@ -45,7 +44,6 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.module.StructrModule;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
@@ -74,6 +72,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import org.structr.common.helper.VersionHelper;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -136,7 +136,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("deploy", DeployCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("deploy", DeployCommand.class);
 	}
 
 	@Override

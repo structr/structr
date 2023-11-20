@@ -34,7 +34,6 @@ import org.structr.api.util.CountResult;
 import org.structr.common.Permission;
 import org.structr.common.Permissions;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -66,6 +65,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import org.structr.common.helper.VersionHelper;
 
 public class Services implements StructrServices, BroadcastReceiver {
 

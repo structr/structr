@@ -16,34 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.helper;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.common.SecurityContext;
 
 /**
  * A helper class that provides methods for URL path splitting etc.
- *
- *
  */
 public class PathHelper {
 
 	public static final String PATH_SEP = "/";
 
-	//~--- fields ---------------------------------------------------------
-
-	private SecurityContext securityContext;
-
-	//~--- constructors ---------------------------------------------------
+	private final SecurityContext securityContext;
 
 	public PathHelper(SecurityContext securityContext) {
 		this.securityContext = securityContext;
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	public static String clean(final String path) {
 
@@ -58,9 +48,6 @@ public class PathHelper {
 	public static String replaceWhitespaceByPercentTwenty(final String path) {
 		return StringUtils.replace(path, " ", "%20");
 	}
-
-
-	//~--- get methods ----------------------------------------------------
 
 	/**
 	 * Assemble a relative path for the given absolute paths

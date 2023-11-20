@@ -38,7 +38,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Optional;
@@ -112,11 +111,9 @@ public abstract class StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.OpenAPIResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 

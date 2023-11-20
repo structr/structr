@@ -47,7 +47,6 @@ import org.structr.core.datasources.GraphDataSource;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.entity.Principal;
-import org.structr.core.entity.Security;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
@@ -70,6 +69,7 @@ import org.w3c.dom.*;
 
 import java.net.URI;
 import java.util.*;
+import org.structr.common.helper.CaseHelper;
 
 /**
  * Combines AbstractNode and org.w3c.dom.Node.

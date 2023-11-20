@@ -20,8 +20,8 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;

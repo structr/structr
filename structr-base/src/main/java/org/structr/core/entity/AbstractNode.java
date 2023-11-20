@@ -52,6 +52,7 @@ import org.structr.schema.action.Function;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.structr.common.helper.ValidationHelper;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -1889,6 +1890,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	// ----- static methods -----
 	public static Object invokeMethod(final SecurityContext securityContext, final Method method, final Object entity, final Map<String, Object> propertySet, final EvaluationHints hints) throws FrameworkException {
+
+		System.out.println("########## METHODS: public static Object invokeMethod() with Method parameter and Map property set.");
 
 		try {
 
