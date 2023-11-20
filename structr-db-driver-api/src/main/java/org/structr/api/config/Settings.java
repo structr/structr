@@ -76,7 +76,7 @@ public class Settings {
 	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines how UUIDs are created, either with or without dashes.<br><br><strong>WARNING</strong>: If configured so that the created UUIDs do not comply with an allowed format, then structr will not start.<br><strong>WARNING</strong>: Requires a restart.");
 
 	// scripting related settings
-	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables chrome debugger initialization in scripting engine.");
+	public static final Setting<Boolean> ScriptingDebugger          = new BooleanSetting(generalGroup,         "Scripting",   "application.scripting.debugger",               false, "Enables <b>Chrome</b> debugger initialization in scripting engine. The current debugger URL will be shown in the server log and also made available on the dashboard.");
 
 	// clustering
 	public static final Setting<Boolean> ClusterModeEnabled            = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
