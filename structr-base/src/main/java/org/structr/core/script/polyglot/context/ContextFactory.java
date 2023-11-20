@@ -32,7 +32,10 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 public abstract class ContextFactory {
-	private static Engine engine = buildEngine();
+
+	private static String debuggerPath        = "/structr/scripting/remotedebugger/";
+	private static String currentDebuggerUUID = "";
+	private static Engine engine              = buildEngine();
 
 	// javascript context builder
 	private static final Context.Builder jsBuilder = Context.newBuilder("js")
@@ -55,12 +58,23 @@ public abstract class ContextFactory {
 				.allowHostAccess(AccessProvider.getHostAccessConfig());
 				//.allowHostClassLookup(new StructrClassPredicate());
 
+	public static String getDebuggerPath() {
+
+		return debuggerPath + currentDebuggerUUID;
+	}
+
 	public static Engine buildEngine() {
+
 		if (Settings.ScriptingDebugger.getChangeHandler() == null) {
+
 			Settings.ScriptingDebugger.setChangeHandler((setting, oldValue, newValue) -> {
+
 				if (oldValue != newValue) {
 
 					engine = buildEngine();
+
+					genericBuilder.engine(engine);
+					jsBuilder.engine(engine);
 				}
 			});
 		}
@@ -75,10 +89,13 @@ public abstract class ContextFactory {
 
 		// Debugging
 		if (Settings.ScriptingDebugger.getValue(false)) {
+
+			currentDebuggerUUID = java.util.UUID.randomUUID().toString();
+
 			engineBuilder
 					// TODO: Add configurable chrome debug
 					.option("inspect", "4242")
-					.option("inspect.Path", "/structr/scripting/remotedebugger/" + java.util.UUID.randomUUID())
+					.option("inspect.Path", getDebuggerPath())
 					.option("inspect.Suspend", "false");
 		}
 
