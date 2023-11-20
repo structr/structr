@@ -20,6 +20,7 @@ package org.structr.common;
 
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;

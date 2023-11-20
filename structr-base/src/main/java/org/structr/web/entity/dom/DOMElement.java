@@ -50,7 +50,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
@@ -68,10 +67,6 @@ import org.structr.web.entity.html.TemplateElement;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.LogoutResource;
-import org.structr.web.resource.RegistrationResource;
-import org.structr.web.resource.ResetPasswordResource;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
@@ -82,6 +77,10 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.structr.web.resource.LoginResourceHandler;
+import org.structr.web.resource.LogoutResourceHandler;
+import org.structr.web.resource.RegistrationResourceHandler;
+import org.structr.web.resource.ResetPasswordResourceHandler;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -476,8 +475,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResource loginResource = new LoginResource();
-		loginResource.setSecurityContext(actionContext.getSecurityContext());
+		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), "/login");
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -489,19 +487,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = loginResource.doPost(properties);
-
-		return result;
+		return loginResource.doPost(properties);
 	}
 
 	private Object handleSignOutAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResource logoutResource = new LogoutResource();
-		logoutResource.setSecurityContext(actionContext.getSecurityContext());
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), "/logout");
+		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -511,9 +505,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = logoutResource.doPost(properties);
-
-		return result;
+		return logoutResource.doPost(properties);
 	}
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -530,11 +522,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResource registrationResource = new RegistrationResource();
-		registrationResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = registrationResource.doPost(properties);
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), "/registration");
 
-		return result;
+		return registrationResource.doPost(properties);
 	}
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
@@ -551,11 +541,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResource resetPasswordResource = new ResetPasswordResource();
-		resetPasswordResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = resetPasswordResource.doPost(properties);
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), "/reset-password");
 
-		return result;
+		return resetPasswordResource.doPost(properties);
 	}
 
 	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
@@ -1521,8 +1509,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (StringUtils.isNotBlank(failureTargetString)) {
 							out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
 						}
-						
-						
+
+
 //						{ // TODO: Migrate tree handling to new action mapping
 //							// toggle-tree-item
 //							if (mapping.containsValue("toggle-tree-item")) {

@@ -27,13 +27,13 @@ import org.structr.api.service.Command;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.core.graph.MaintenanceCommand;
-import org.structr.rest.resource.MaintenanceParameterResource;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
+import org.structr.rest.resource.MaintenanceResource;
 
 /**
  * Maintenance command to update the license key.
@@ -47,7 +47,7 @@ public class UpdateLicenseKeyCommand extends Command implements MaintenanceComma
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("updatelicensekey", UpdateLicenseKeyCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("updatelicensekey", UpdateLicenseKeyCommand.class);
 	}
 
 	@Override

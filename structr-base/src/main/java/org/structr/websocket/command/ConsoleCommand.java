@@ -22,7 +22,6 @@ import org.apache.commons.io.output.ByteArrayOutputStream;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.console.Console;
@@ -39,6 +38,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
+import org.structr.common.helper.VersionHelper;
 
 /**
  * Command to interact with a multi-mode server console.

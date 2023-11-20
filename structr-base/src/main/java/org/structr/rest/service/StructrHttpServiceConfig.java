@@ -24,13 +24,10 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
 import org.structr.core.auth.Authenticator;
-import org.structr.rest.ResourceProvider;
 import org.structr.schema.compiler.NodeExtender;
 
-import java.util.Set;
 
 /**
- *
  *
  */
 public class StructrHttpServiceConfig {
@@ -38,19 +35,10 @@ public class StructrHttpServiceConfig {
 	private static final Logger logger            = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
 
 	private String defaultPropertyView                = PropertyView.Public;
-	private ResourceProvider resourceProvider         = null;
 	private Class authenticatorClass                  = null;
 	private boolean userAutoCreate                    = false;
 	private boolean userAutoLogin                     = false;
 	private int outputNestingDepth                    = 3;
-
-	public ResourceProvider getResourceProvider() {
-		return resourceProvider;
-	}
-
-	public void setResourceProvider(final ResourceProvider resourceProvider) {
-		this.resourceProvider = resourceProvider;
-	}
 
 	public String getDefaultPropertyView() {
 		return defaultPropertyView;
@@ -60,37 +48,12 @@ public class StructrHttpServiceConfig {
 		return outputNestingDepth;
 	}
 
-	public void initializeFromSettings(final String servletName, final Set<ResourceProvider> resourceProviders) throws InstantiationException, IllegalAccessException {
+	public void initializeFromSettings(final String servletName) throws InstantiationException, IllegalAccessException {
 
-		final String resourceProviderKeyName = "resourceprovider";
 		final String authenticatorKeyName    = "authenticator";
 		final String defaultPropertyKeyName  = "defaultview";
 		final String nestingDepthKeyName     = "outputdepth";
-
-		final String resourceProviderValue   = Settings.getOrCreateStringSetting(servletName, resourceProviderKeyName).getValue();
 		final String authenticatorValue      = Settings.getOrCreateStringSetting(servletName, authenticatorKeyName).getValue();
-
-		if (StringUtils.isBlank(resourceProviderValue)) {
-
-			logger.error("Missing resource provider key {}.resourceprovider in configuration file.", servletName);
-
-			throw new IllegalStateException("No resource provider set for servlet " + servletName);
-
-		} else {
-
-			final Class<ResourceProvider> providerClass = loadClass(resourceProviderValue);
-			if (providerClass != null) {
-
-				resourceProvider = providerClass.newInstance();
-				resourceProviders.add(resourceProvider);
-
-			} else {
-
-				logger.error("Unable to initialize resource provider for servlet {}, no resource provider found. Please check structr.conf for a valid resource provider class.", servletName);
-
-				throw new IllegalStateException("No resource provider available for servlet " + servletName);
-			}
-		}
 
 		if (StringUtils.isBlank(authenticatorValue)) {
 

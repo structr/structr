@@ -25,7 +25,6 @@ import org.structr.common.SecurityContext;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.SuperUserAuthenticator;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Optional;
@@ -66,12 +65,10 @@ public class StructrCsvTest extends StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet CsvServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestUserClass.setValue("");
 
 		Settings.CsvServletPath.setValue(csvUrl);
 		Settings.CsvAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.CsvResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 

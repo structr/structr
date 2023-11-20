@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,21 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.api.parameter;
 
-import org.apache.commons.mail.EmailAttachment;
+/**
+ */
+public interface APIParameter {
 
-import javax.activation.DataSource;
+	String key();
+	String urlPattern();
 
-public class DynamicMailAttachment extends EmailAttachment {
-
-	private DataSource ds;
-
-	public void setDataSource(DataSource ds) {
-		this.ds = ds;
+	public static APIParameter forPattern(final String key, final String pattern) {
+		return new PatternParameter(key, pattern);
 	}
 
-	public DataSource getDataSource() {
-		return this.ds;
+	public static APIParameter forStaticString(final String part) {
+		return new StaticParameter(part);
 	}
 }

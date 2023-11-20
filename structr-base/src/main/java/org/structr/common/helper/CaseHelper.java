@@ -16,11 +16,9 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.helper;
 
 import org.apache.commons.lang3.text.WordUtils;
-
-//~--- classes ----------------------------------------------------------------
 
 /**
  * A helper class that contains methods to convert strings to and from

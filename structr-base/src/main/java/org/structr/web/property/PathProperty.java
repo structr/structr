@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -41,6 +40,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import org.structr.common.helper.PathHelper;
 
 /**
  * A property which returns the complete folder path of a {@link Linkable}

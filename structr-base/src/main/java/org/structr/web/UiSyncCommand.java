@@ -28,7 +28,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.*;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.dom.DOMNode;
@@ -36,6 +35,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.dom.ShadowDocument;
 
 import java.util.*;
+import org.structr.rest.resource.MaintenanceResource;
 
 /**
  *
@@ -47,7 +47,7 @@ public class UiSyncCommand extends NodeServiceCommand implements MaintenanceComm
 
 	static {
 
-		MaintenanceParameterResource.registerMaintenanceCommand("syncUi", UiSyncCommand.class);
+		MaintenanceResource.registerMaintenanceCommand("syncUi", UiSyncCommand.class);
 	}
 
 	@Override

@@ -32,155 +32,151 @@ import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.parameter.APIParameter;
 
 /**
  *
  *
  */
-public class RuntimeEventLogResource extends Resource {
+public class RuntimeEventLogResource extends APIEndpoint {
 
 	public enum UriPart {
 		_runtimeEventLog
 	}
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-
-		this.securityContext = securityContext;
-
-		return (UriPart._runtimeEventLog.name().equals(part));
+	public RuntimeEventLogResource() {
+		super(APIParameter.forStaticString(UriPart._runtimeEventLog.name()));
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-
-		final Predicate<RuntimeEvent> predicate = getPredicate();
-		final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
-
-		return new PagingIterable("/" + getUriPart(), resultList, pageSize, page);
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+		return new RuntimeEventLogResourceHandler(securityContext, call.getURL());
 	}
 
-	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+	private class RuntimeEventLogResourceHandler extends APICallHandler {
 
-		final Consumer<RuntimeEvent> visitor    = getVisitor(propertySet);
-		final Predicate<RuntimeEvent> predicate = getPredicate();
-
-		if (visitor != null) {
-
-			RuntimeEventLog.getEvents(predicate).stream().forEach(visitor);
+		public RuntimeEventLogResourceHandler(final SecurityContext securityContext, final String url) {
+			super(securityContext, url);
 		}
 
-		return new RestMethodResult(200);
-	}
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-		throw new IllegalPathException(getResourceSignature() + " has no subresources");
-	}
+			final Predicate<RuntimeEvent> predicate = getPredicate();
+			final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
 
-	@Override
-	public String getUriPart() {
-		return getResourceSignature();
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
-
-	@Override
-	public String getResourceSignature() {
-		return UriPart._runtimeEventLog.name();
-	}
-
-	@Override
-	public boolean isCollectionResource() throws FrameworkException {
-		return true;
-	}
-
-	// ----- private methods -----
-	private Predicate<RuntimeEvent> getPredicate() {
-
-		final AndPredicate<RuntimeEvent> root = new AndPredicate<>();
-
-		if (securityContext != null && securityContext.getRequest() != null) {
-
-			final HttpServletRequest request   = securityContext.getRequest();
-
-			if (request.getParameter("id") != null) {
-
-				final long id = Long.parseLong(request.getParameter("id"));
-
-				root.addPredicate(new Predicate<>() {
-
-					@Override
-					public boolean accept(final RuntimeEvent value) {
-						return id == value.getId();
-					}
-				});
-			}
-
-			if (request.getParameter("seen") != null) {
-
-				final boolean seen = Boolean.parseBoolean(request.getParameter("seen"));
-
-				root.addPredicate(new Predicate<>() {
-
-					@Override
-					public boolean accept(final RuntimeEvent value) {
-						return seen == value.getSeen();
-					}
-				});
-			}
-
-			if (request.getParameter("type") != null) {
-
-				final Set<String> filter = new LinkedHashSet<>(split(request.getParameter("type")));
-
-				root.addPredicate(new Predicate<>() {
-
-					@Override
-					public boolean accept(final RuntimeEvent value) {
-						return filter.contains(value.getType());
-					}
-				});
-			}
+			return new PagingIterable(getURL(), resultList, pageSize, page);
 		}
 
-		return root;
-	}
+		@Override
+		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-	private List<String> split(final String source) {
+			final Consumer<RuntimeEvent> visitor    = getVisitor(propertySet);
+			final Predicate<RuntimeEvent> predicate = getPredicate();
 
-		final List<String> parts = new LinkedList<>();
+			if (visitor != null) {
 
-		if (source != null) {
+				RuntimeEventLog.getEvents(predicate).stream().forEach(visitor);
+			}
 
-			for (final String part : source.split("[,]+")) {
+			return new RestMethodResult(200);
+		}
 
-				final String trimmed = part.trim();
-				if (StringUtils.isNotBlank(trimmed)) {
+		@Override
+		public Class getEntityClass() {
+			return null;
+		}
 
-					parts.add(part);
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+
+		// ----- private methods -----
+		private Predicate<RuntimeEvent> getPredicate() {
+
+			final AndPredicate<RuntimeEvent> root = new AndPredicate<>();
+
+			if (securityContext != null && securityContext.getRequest() != null) {
+
+				final HttpServletRequest request   = securityContext.getRequest();
+
+				if (request.getParameter("id") != null) {
+
+					final long id = Long.parseLong(request.getParameter("id"));
+
+					root.addPredicate(new Predicate<>() {
+
+						@Override
+						public boolean accept(final RuntimeEvent value) {
+							return id == value.getId();
+						}
+					});
+				}
+
+				if (request.getParameter("seen") != null) {
+
+					final boolean seen = Boolean.parseBoolean(request.getParameter("seen"));
+
+					root.addPredicate(new Predicate<>() {
+
+						@Override
+						public boolean accept(final RuntimeEvent value) {
+							return seen == value.getSeen();
+						}
+					});
+				}
+
+				if (request.getParameter("type") != null) {
+
+					final Set<String> filter = new LinkedHashSet<>(split(request.getParameter("type")));
+
+					root.addPredicate(new Predicate<>() {
+
+						@Override
+						public boolean accept(final RuntimeEvent value) {
+							return filter.contains(value.getType());
+						}
+					});
 				}
 			}
+
+			return root;
 		}
 
-		return parts;
-	}
+		private List<String> split(final String source) {
 
-	private Consumer<RuntimeEvent> getVisitor(final Map<String, Object> properties) {
+			final List<String> parts = new LinkedList<>();
 
-		if ("acknowledge".equals(properties.get("action"))) {
-			return t -> t.acknowledge();
+			if (source != null) {
+
+				for (final String part : source.split("[,]+")) {
+
+					final String trimmed = part.trim();
+					if (StringUtils.isNotBlank(trimmed)) {
+
+						parts.add(part);
+					}
+				}
+			}
+
+			return parts;
 		}
 
-		return null;
+		private Consumer<RuntimeEvent> getVisitor(final Map<String, Object> properties) {
+
+			if ("acknowledge".equals(properties.get("action"))) {
+				return t -> t.acknowledge();
+			}
+
+			return null;
+		}
 	}
 }

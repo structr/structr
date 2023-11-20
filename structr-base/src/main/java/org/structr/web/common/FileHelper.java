@@ -37,7 +37,6 @@ import org.apache.tika.mime.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
-import org.structr.common.PathHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -65,6 +64,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.zip.CRC32;
+import org.structr.common.helper.PathHelper;
 
 /**
  * File utility class.

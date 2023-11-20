@@ -30,12 +30,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.MaintenanceCommand;
 import org.structr.core.graph.Tx;
-import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class MaintenanceFunction extends UiAdvancedFunction {
 
@@ -96,7 +96,7 @@ public class MaintenanceFunction extends UiAdvancedFunction {
 				final App app = StructrApp.getInstance(securityContext);
 
 				// determine maintenance command from string
-				final Class<Command> commandType = MaintenanceParameterResource.getMaintenanceCommandClass(commandName);
+				final Class<Command> commandType = MaintenanceResource.getMaintenanceCommandClass(commandName);
 				if (commandType != null) {
 
 					final Command command = app.command(commandType);

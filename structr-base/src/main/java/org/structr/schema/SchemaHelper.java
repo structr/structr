@@ -55,6 +55,8 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaMethod.source;
 import static org.structr.core.entity.SchemaNode.defaultSortKey;
 import static org.structr.core.entity.SchemaNode.defaultSortOrder;

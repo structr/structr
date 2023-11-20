@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -50,6 +49,7 @@ import org.structr.schema.parser.*;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {

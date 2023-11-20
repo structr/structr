@@ -19,10 +19,7 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
@@ -40,20 +37,22 @@ import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import org.structr.api.APICall;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoint;
+import org.structr.api.parameter.APIParameter;
 
 /**
  *
  *
  */
-public class SchemaResource extends Resource {
+public class SchemaResource extends APIEndpoint {
 
-	private static final Logger logger = LoggerFactory.getLogger(SchemaResource.class.getName());
 	private static final StringProperty urlProperty                      = new StringProperty("url");
 	private static final StringProperty typeProperty                     = new StringProperty("type");
 	private static final StringProperty nameProperty                     = new StringProperty("name");
@@ -76,69 +75,13 @@ public class SchemaResource extends Resource {
 		_schema
 	}
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException {
-
-		this.securityContext = securityContext;
-
-		if (UriPart._schema.name().equals(part)) {
-
-			return true;
-		}
-
-		return false;
+	public SchemaResource() {
+		super(APIParameter.forStaticString(UriPart._schema.name()));
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		return getSchemaOverviewResult();
-	}
-
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("POST not allowed on " + getResourceSignature());
-	}
-
-	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
-
-		if (next instanceof TypeResource) {
-
-			SchemaTypeResource schemaTypeResource = new SchemaTypeResource(securityContext, (TypeResource) next);
-
-			return schemaTypeResource;
-
-		}
-
-		if (next != null) {
-
-			logger.warn("Trying to combine SchemaResource with {}.", next.getClass().getName());
-
-		} else {
-
-			logger.warn("Trying to combine SchemaResource with null.");
-		}
-		throw new IllegalPathException("Illegal path, /" + getResourceSignature() + " must be followed by a type resource");
-	}
-
-	@Override
-	public String getUriPart() {
-		return "";
-	}
-
-	@Override
-	public Class getEntityClass() {
-		return null;
-	}
-
-	@Override
-	public String getResourceSignature() {
-		return UriPart._schema.name();
-	}
-
-	@Override
-	public boolean isCollectionResource() throws FrameworkException {
-		return true;
+	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+		return new SchemaResourceHandler(securityContext, call.getURL());
 	}
 
 	// ----- public static methods -----
@@ -307,5 +250,42 @@ public class SchemaResource extends Resource {
 		}
 
 		return null;
+	}
+
+	private class SchemaResourceHandler extends APICallHandler {
+
+		public SchemaResourceHandler(final SecurityContext securityContext, final String url) {
+			super(securityContext, url);
+		}
+
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			return getSchemaOverviewResult();
+		}
+
+		@Override
+		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("POST not allowed on " + getURL());
+		}
+
+		@Override
+		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("PUT not allowed on " + getURL());
+		}
+
+		@Override
+		public RestMethodResult doDelete() throws FrameworkException {
+			throw new IllegalMethodException("DELETE not allowed on " + getURL());
+		}
+
+		@Override
+		public Class getEntityClass() {
+			return null;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
 	}
 }

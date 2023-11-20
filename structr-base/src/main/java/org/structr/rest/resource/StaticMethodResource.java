@@ -43,14 +43,14 @@ import java.util.Map;
 /**
  *
  */
-public class SchemaMethodResource extends WrappingResource {
+public class StaticMethodResource extends WrappingResource {
 
-	private static final Logger logger  = LoggerFactory.getLogger(SchemaMethodResource.class);
-	private TypeResource typeResource   = null;
-	private TypeResource methodResource = null;
-	private SchemaMethod method         = null;
+	private static final Logger logger    = LoggerFactory.getLogger(StaticMethodResource.class);
+	private TypeResource typeResource     = null;
+	private MethodResource methodResource = null;
+	private SchemaMethod method           = null;
 
-	public SchemaMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final TypeResource methodResource) throws IllegalPathException {
+	public StaticMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final MethodResource methodResource) throws IllegalPathException {
 
 		this.typeResource    = typeResource;
 		this.methodResource  = methodResource;
@@ -87,7 +87,7 @@ public class SchemaMethodResource extends WrappingResource {
 
 				final String source = method.getProperty(SchemaMethod.source);
 
-				result = SchemaMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
+				result = StaticMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
 
 				tx.success();
 			}
@@ -108,9 +108,11 @@ public class SchemaMethodResource extends WrappingResource {
 	// ----- private methods -----
 	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName, final String codeSource) throws FrameworkException {
 
+		System.out.println("########## METHODS: public static RestMethodResult invoke() with String source parameter, method name and Map property set.");
+
 		try {
 
-			return SchemaMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
+			return StaticMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
 
 		} catch (UnlicensedScriptException ex) {
 			ex.log(logger);
@@ -144,6 +146,8 @@ public class SchemaMethodResource extends WrappingResource {
 	}
 
 	public static SchemaMethod findMethod(final Class type, final String methodName) throws IllegalPathException {
+
+		System.out.println("########## METHODS: public static SchemaMethod findMethod() with type and methodName.");
 
 		try {
 			final App app         = StructrApp.getInstance();

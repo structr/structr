@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common;
+package org.structr.common.helper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -36,11 +36,8 @@ public abstract class MailHelper {
 
 	private static final String charset      = "UTF-8";
 
-	//~--- constructors ---------------------------------------------------
-
 	public MailHelper() {}
 
-	//~--- methods --------------------------------------------------------
 	public static String sendHtmlMail(final String from, final String fromName, final String to, final String toName, final String cc, final String bcc, final String bounce, final String subject, final String htmlContent, final String textContent) throws EmailException {
 
 		return _sendHtmlMail(from, fromName, to, toName, cc, bcc, bounce, subject, htmlContent, textContent, null);

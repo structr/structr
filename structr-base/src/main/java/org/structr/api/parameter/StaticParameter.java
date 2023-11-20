@@ -16,27 +16,28 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.resource;
-
-import org.structr.common.error.FrameworkException;
+package org.structr.api.parameter;
 
 /**
- * A resource constraint that implements the generic ability to be
- * combined with a ViewFilterResource in order to configure
- * a specific property view.
  *
- *
+ * @author Christian Morgner
  */
-public abstract class FilterableResource extends WrappingResource {
+public class StaticParameter implements APIParameter {
+
+	private String part = null;
+
+	public StaticParameter(final String part) {
+
+		this.part = part;
+	}
 
 	@Override
-	public Resource tryCombineWith(Resource next) throws FrameworkException {
+	public String key() {
+		return null;
+	}
 
-		if (next instanceof ViewFilterResource) {
-			((ViewFilterResource)next).wrapResource(this);
-			return next;
-		}
-
-		return super.tryCombineWith(next);
+	@Override
+	public String urlPattern() {
+		return part;
 	}
 }

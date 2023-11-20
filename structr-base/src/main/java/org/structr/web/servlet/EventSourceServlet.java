@@ -35,10 +35,8 @@ import org.structr.core.entity.Group;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.common.StatsCallback;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
 import org.structr.web.entity.User;
@@ -47,7 +45,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
-import java.util.regex.Pattern;
 
 
 public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceServlet implements HttpServiceServlet {
@@ -56,7 +53,6 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 
 	private static final BlockingDeque<StructrEventSource> eventSources = new LinkedBlockingDeque<>();
 
-	protected final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
 
@@ -64,23 +60,6 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	static PropertyKey<Iterable<Principal>> membersKey = null;
 
 	private SecurityContext securityContext;
-
-	@Override
-	public void init() throws ServletException {
-
-		// inject resources
-		final ResourceProvider provider = config.getResourceProvider();
-		if (provider != null) {
-
-			resourceMap.putAll(provider.getResources());
-
-		} else {
-
-			logger.error("Unable to initialize JsonRestServlet, no resource provider found. Please check structr.conf for a valid resource provider class");
-		}
-
-		super.init();
-	}
 
 	@Override
 	protected EventSource newEventSource(HttpServletRequest hsr) {

@@ -16,18 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.resource;
-
+package org.structr.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
-import org.structr.common.CaseHelper;
 import org.structr.common.Permission;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
@@ -48,46 +51,33 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
-import org.structr.rest.exception.NotFoundException;
-
-import java.util.*;
 
 /**
- * Base class for all resource constraints. Constraints can be combined with succeeding constraints to avoid unneccesary evaluation.
+ *
  */
-public abstract class Resource {
+public abstract class APICallHandler {
 
-	private static final Logger logger = LoggerFactory.getLogger(Resource.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(APICallHandler.class.getName());
 
 	protected SecurityContext securityContext = null;
+	protected String url                      = null;
 
-	public abstract Resource tryCombineWith(Resource next) throws FrameworkException;
+	public APICallHandler(final SecurityContext securityContext, final String url) {
 
-	/**
-	 * Check and configure this instance with the given values. Please note that you need to set the security context of your class in this method.
-	 *
-	 * @param part the uri part that matched this resource
-	 * @param securityContext the security context of the current request
-	 * @param request the current request
-	 * @return whether this resource accepts the given uri part
-	 * @throws FrameworkException
-	 */
-	public abstract boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) throws FrameworkException;
-	public abstract String getUriPart();
-	public abstract Class<? extends GraphObject> getEntityClass();
-	public abstract String getResourceSignature();
-	public abstract boolean isCollectionResource() throws FrameworkException;
+		this.securityContext = securityContext;
+		this.url             = url;
+	}
 
 	public abstract ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException;
 	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
+	public abstract boolean isCollection();
+	public abstract Class getEntityClass();
 
-	@Override
-	public String toString() {
-		return getClass().getName() + "(" + getResourceSignature() + ")";
+	public String getURL() {
+		return url;
 	}
 
 	public RestMethodResult doHead() throws FrameworkException {
-		Thread.dumpStack();
 		throw new IllegalStateException("Resource.doHead() called, this should not happen.");
 	}
 
@@ -175,7 +165,7 @@ public abstract class Resource {
 				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
 
 					final Principal currentUser = securityContext.getUser(false);
-					String user = null;
+					String user;
 
 					if (currentUser == null) {
 						user = securityContext.isSuperUser() ? "superuser" : "anonymous";
@@ -192,7 +182,7 @@ public abstract class Resource {
 			return new RestMethodResult(HttpServletResponse.SC_OK);
 		}
 
-		throw new IllegalPathException(getResourceSignature() + " can only be applied to a non-empty resource");
+		throw new IllegalPathException(getURL() + " can only be applied to a non-empty resource");
 	}
 
 	/**
@@ -236,26 +226,27 @@ public abstract class Resource {
 	}
 
 	// ----- protected methods -----
-	protected PropertyKey findPropertyKey(final TypedIdResource typedIdResource, final TypeResource typeResource) {
+	public NodeInterface createNode(final Class entityClass, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
-		Class sourceNodeType = typedIdResource.getTypeResource().getEntityClass();
-		String rawName = typeResource.getRawType();
-		PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, rawName, false);
+		if (entityClass != null) {
 
-		if (key == null) {
+			// experimental: instruct deserialization strategies to set properties on related nodes
+			securityContext.setAttribute("setNestedProperties", true);
 
-			// try to convert raw name into lower-case variable name
-			key = StructrApp.getConfiguration().getPropertyKeyForJSONName(sourceNodeType, CaseHelper.toLowerCamelCase(rawName), false);
+			final App app                = StructrApp.getInstance(securityContext);
+			final PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
+
+			return app.create(entityClass, properties);
 		}
 
-		return key;
+		throw new NotFoundException("Type " + typeName + " does not exist");
 	}
 
 	protected String buildLocationHeader(final GraphObject newObject) {
 
 		final StringBuilder uriBuilder = securityContext.getBaseURI();
 
-		uriBuilder.append(getUriPart());
+		uriBuilder.append(getURL());
 		uriBuilder.append("/");
 
 		if (newObject != null) {
@@ -272,6 +263,17 @@ public abstract class Resource {
 
 			Collections.sort(list, sortOrder);
 		}
+	}
+
+	protected void collectSearchAttributes(final Class entityClass, final Query query) throws FrameworkException {
+
+		final HttpServletRequest request = securityContext.getRequest();
+
+		// first step: extract searchable attributes from request
+		extractSearchableAttributes(securityContext, entityClass, request, query);
+
+		// second step: distance search?
+		extractDistanceSearch(request, query);
 	}
 
 	protected void extractDistanceSearch(final HttpServletRequest request, final Query query) {
@@ -382,6 +384,37 @@ public abstract class Resource {
 		} catch (final Throwable t) {}
 
 		return -1;
+	}
+
+	protected GraphObject getEntity(final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		if (entityClass == null) {
+
+			if (uuid != null) {
+
+				throw new NotFoundException("Type " + typeName + " does not exist for request with entity ID " + uuid);
+
+			} else {
+
+				throw new NotFoundException("Request specifies no value for type and entity ID");
+			}
+		}
+
+		GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+		if (entity != null) {
+
+			return entity;
+		}
+
+		entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+		if (entity != null) {
+
+			return entity;
+		}
+
+		throw new NotFoundException("Entity with ID " + uuid + " of type " +  typeName +  " does not exist");
 	}
 
 	// ----- private methods -----

@@ -41,6 +41,8 @@ import java.io.IOException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.api.APICallHandler;
+import org.structr.api.APIEndpoints;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
@@ -99,9 +101,8 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			if (securityContext != null) {
 
-				final LoginResource loginResource = getLoginResource();
-
-				if (loginResource.checkAndConfigure(getUriPart(), securityContext, request)) {
+				final APICallHandler loginResource = APIEndpoints.resolveAPICallHandler(securityContext, request);
+				if (loginResource != null) {
 
 					final Map<String, Object> properties = new LinkedHashMap<>();
 

@@ -56,8 +56,8 @@ import java.util.Map;
  */
 public class GraphQLServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
-	private static final Logger logger                                  = LoggerFactory.getLogger(GraphQLServlet.class.getName());
+	public static final int DEFAULT_VALUE_PAGE_SIZE = 20;
+	private static final Logger logger              = LoggerFactory.getLogger(GraphQLServlet.class.getName());
 
 	// final fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();

@@ -19,8 +19,6 @@
 package org.structr.mail.function;
 
 import org.apache.commons.mail.EmailAttachment;
-import org.structr.common.AdvancedMailContainer;
-import org.structr.common.DynamicMailAttachment;
 import org.structr.common.error.FrameworkException;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.mail.AdvancedMailModule;
@@ -29,6 +27,8 @@ import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.File;
 
 import java.net.MalformedURLException;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 
 public class MailAddAttachmentFunction extends AdvancedMailModuleFunction {
 
