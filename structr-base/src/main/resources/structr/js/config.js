@@ -220,11 +220,11 @@ let _Config = {
 			let pwdInput     = $('input#password-' + name);
 			let nowCheckbox  = $('input#connect-checkbox');
 
-			nameInput.parent().removeClass();
-			driverSelect.parent().removeClass();
-			urlInput.parent().removeClass();
-			userInput.parent().removeClass();
-			pwdInput.parent().removeClass();
+			nameInput.closest('p').removeClass();
+			driverSelect.closest('p').removeClass();
+			urlInput.closest('p').removeClass();
+			userInput.closest('p').removeClass();
+			pwdInput.closest('p').removeClass();
 
 			let data = {
 				name:     nameInput.val(),
@@ -402,7 +402,7 @@ let _Config = {
 
 						json.errors.forEach(t => {
 							if (t.property !== undefined && t.token !== undefined) {
-								$(`input#${t.property}-${name}`).parent().addClass(t.token);
+								$(`input#${t.property}-${name}`).closest('p').addClass(t.token);
 							}
 						});
 
