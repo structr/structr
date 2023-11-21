@@ -2340,7 +2340,7 @@ let _Code = {
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			})
+			});
 
 			if (viewIsEditable) {
 
