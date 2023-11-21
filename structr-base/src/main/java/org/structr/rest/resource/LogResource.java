@@ -55,17 +55,17 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  *
  */
-public class LogResource extends APIEndpoint {
+public class LogResource extends RESTEndpoint {
 
 	private static final Logger logger                          = LoggerFactory.getLogger(LogResource.class.getName());
 	private static final Pattern RangeQueryPattern              = Pattern.compile("\\[(.+) TO (.+)\\]");
@@ -89,15 +89,15 @@ public class LogResource extends APIEndpoint {
 	public static final String LOG_RESOURCE_URI                 = "log";
 
 	public LogResource() {
-		super(APIParameter.forStaticString("log"));
+		super(RESTParameter.forStaticString("log"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new LogResourceHandler(securityContext, call.getURL());
 	}
 
-	private class LogResourceHandler extends APICallHandler {
+	private class LogResourceHandler extends RESTCallHandler {
 
 		public LogResourceHandler(final SecurityContext securityContext, final String url) {
 

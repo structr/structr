@@ -38,12 +38,12 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.Arrays;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
-import org.structr.api.parameter.APIParameter;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Represents a type-constrained ID match. A TypedIdResource will always
@@ -51,10 +51,10 @@ import org.structr.core.entity.SchemaNode;
  *
  *
  */
-public class TypedIdResource extends APIEndpoint {
+public class TypedIdResource extends RESTEndpoint {
 
-	private static final APIParameter typeParameter = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final APIParameter uuidParameter = APIParameter.forPattern("uuid", Settings.getValidUUIDRegexString());
+	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
 
 	public TypedIdResource() {
 
@@ -65,7 +65,7 @@ public class TypedIdResource extends APIEndpoint {
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get(typeParameter);
 		final String uuid     = call.get(uuidParameter);
@@ -84,7 +84,7 @@ public class TypedIdResource extends APIEndpoint {
 		return null;
 	}
 
-	private class EntityResourceHandler extends APICallHandler {
+	private class EntityResourceHandler extends RESTCallHandler {
 
 		private Class entityClass = null;
 		private String typeName   = null;
@@ -101,7 +101,7 @@ public class TypedIdResource extends APIEndpoint {
 
 		@Override
 		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(entityClass, typeName, uuid)));
+			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, entityClass, typeName, uuid)));
 		}
 
 		@Override
@@ -126,7 +126,7 @@ public class TypedIdResource extends APIEndpoint {
 
 			try (final Tx tx = app.tx(true, true, false)) {
 
-				final GraphObject obj = getEntity(entityClass, typeName, uuid);
+				final GraphObject obj = getEntity(securityContext, entityClass, typeName, uuid);
 
 				if (obj.isNode()) {
 

@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
-import org.structr.api.APICallHandler;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -57,7 +57,7 @@ import static org.structr.web.agent.ThumbnailAgent.logger;
 import org.structr.web.entity.User;
 import org.structr.web.servlet.HtmlServlet;
 
-public class RegistrationResourceHandler extends APICallHandler {
+public class RegistrationResourceHandler extends RESTCallHandler {
 
 	private enum TemplateKey {
 		CONFIRM_REGISTRATION_SENDER_NAME,

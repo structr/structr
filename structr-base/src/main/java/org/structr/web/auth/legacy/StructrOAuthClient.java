@@ -41,6 +41,9 @@ import org.structr.web.entity.User;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 /**
  * Central class for OAuth client implementations.
@@ -523,10 +526,16 @@ public abstract class StructrOAuthClient {
 
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParamerers = new LinkedHashMap<>();
-		methodParamerers.put("provider", this.getProviderName());
-		methodParamerers.put("userinfo", this.getUserInfo());
+		final Map<String, Object> methodParameters = new LinkedHashMap<>();
+		methodParameters.put("provider", this.getProviderName());
+		methodParameters.put("userinfo", this.getUserInfo());
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParamerers, false, new EvaluationHints());
+		final MethodSignature signature = Methods.getMethodSignatureOrNull(User.class, user, "onOAuthLogin");
+		if (signature != null) {
+
+			final MethodCall call = signature.createCall(methodParameters);
+
+			call.execute(user.getSecurityContext(), new EvaluationHints());
+		}
 	}
 }

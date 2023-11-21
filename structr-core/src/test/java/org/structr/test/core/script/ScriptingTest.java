@@ -65,6 +65,9 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 import static org.testng.AssertJUnit.*;
 
@@ -199,31 +202,31 @@ public class ScriptingTest extends StructrTest {
 				assertEquals("Invalid getProperty result for scripted association", 5, Iterables.count(iterable));
 			}
 
-			final GraphObject sourceNode = app.nodeQuery(sourceType).getFirst();
-			final EvaluationHints hints  = new EvaluationHints();
+			final AbstractNode sourceNode = (AbstractNode)app.nodeQuery(sourceType).getFirst();
+			final EvaluationHints hints   = new EvaluationHints();
 
 			// set testEnum property to OPEN via doTest01 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest01", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[0], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to CLOSED via doTest02 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest02", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest02", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[1], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to TEST via doTest03 function call, check result
-			sourceNode.invokeMethod(securityContext, "doTest03", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest03", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for EnumProperty", testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 
 			// set testEnum property to INVALID via doTest03 function call, expect previous value & error
 			try {
-				sourceNode.invokeMethod(securityContext, "doTest04", Collections.EMPTY_MAP, true, hints);
+				invokeMethod(securityContext, sourceNode, "doTest04", Collections.EMPTY_MAP, true, hints);
 				assertEquals("Invalid setProperty result for EnumProperty",    testEnumType.getEnumConstants()[2], sourceNode.getProperty(testEnumProperty));
 				fail("Setting EnumProperty to invalid value should result in an Exception!");
 
 			} catch (FrameworkException fx) {}
 
 			// test other property types
-			sourceNode.invokeMethod(securityContext, "doTest05", Collections.EMPTY_MAP, true, hints);
+			invokeMethod(securityContext, sourceNode, "doTest05", Collections.EMPTY_MAP, true, hints);
 			assertEquals("Invalid setProperty result for BooleanProperty",                         true, sourceNode.getProperty(testBooleanProperty));
 			assertEquals("Invalid setProperty result for IntegerProperty",                          123, sourceNode.getProperty(testIntegerProperty));
 			assertEquals("Invalid setProperty result for StringProperty",                   "testing..", sourceNode.getProperty(testStringProperty));
@@ -302,7 +305,15 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			app.nodeQuery(sourceType).getFirst().invokeMethod(securityContext, "doTest01", Collections.EMPTY_MAP, true, new EvaluationHints());
+			final AbstractNode node         = (AbstractNode)app.nodeQuery(sourceType).getFirst();
+			final MethodSignature signature = Methods.getMethodSignatureOrNull(node.getClass(), node, "doTest01");
+			if (signature != null) {
+
+				final MethodCall call = signature.createCall(Map.of());
+
+				call.execute(securityContext, new EvaluationHints());
+			}
+
 			tx.success();
 
 		} catch(FrameworkException fex) {

@@ -18,99 +18,49 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
+import org.structr.schema.action.EvaluationHints;
 
 public class StaticTypeWrapper implements ProxyObject {
 
 	private final static Logger logger = LoggerFactory.getLogger(StaticTypeWrapper.class);
-	private final App app;
 	private final Class referencedClass;
 	private final ActionContext actionContext;
 
 	public StaticTypeWrapper(final ActionContext actionContext, final Class referencedClass) {
 
-		this.actionContext = actionContext;
-		this.app = StructrApp.getInstance();
+		this.actionContext   = actionContext;
 		this.referencedClass = referencedClass;
 	}
 
 	@Override
 	public Object getMember(String key) {
 
-		final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(referencedClass);
-		if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
-
-			Method method = methods.get(key);
+		final MethodSignature signature = Methods.getMethodSignatureOrNull(referencedClass, null, key);
+		if (signature != null && signature.isStatic()) {
 
 			final ProxyExecutable executable = arguments -> {
 
 				try {
 
-					int paramCount = method.getParameterCount();
+					final MethodCall call = signature.createCall(arguments);
 
-					if (paramCount == 0) {
+					return PolyglotWrapper.wrap(actionContext, call.execute(actionContext.getSecurityContext(), new EvaluationHints()));
 
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null));
-
-					} else if (paramCount == 1) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-					} else if (paramCount == 2 && arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-
-					} else if (arguments.length == 0) {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-					} else {
-
-						return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-					}
-
-				} catch (IllegalArgumentException ex) {
-
-					throw new RuntimeException(new FrameworkException(422, "Tried to call method \"" + method.getName() + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
-
-				} catch (IllegalAccessException ex) {
-
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-
-				} catch (InvocationTargetException ex) {
-
-					if (ex.getTargetException() instanceof FrameworkException) {
-
-						throw new RuntimeException(ex.getTargetException());
-
-					} else if (ex.getTargetException() instanceof AssertException) {
-
-						throw ((AssertException)ex.getTargetException());
-					}
-
-					logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+				} catch (FrameworkException ex) {
+					throw new RuntimeException(ex);
 				}
-
-				return null;
-
 			};
 
 			return executable;

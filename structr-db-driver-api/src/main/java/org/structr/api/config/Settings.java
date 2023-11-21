@@ -32,7 +32,8 @@ import java.util.regex.Pattern;
  */
 public class Settings {
 
-	private static String uuidRegex;
+	private static String uuidOnlyRegex;
+	private static String uuidPartRegex;
 	private static Pattern uuidPattern;
 
 	public static final String ConfigFileName                 = "structr.conf";
@@ -974,30 +975,37 @@ public class Settings {
 
 	public static String getValidUUIDRegexString() {
 
-		return Settings.uuidRegex;
+		return Settings.uuidOnlyRegex;
+	}
+
+	public static String getValidUUIDRegexStringForURLParts() {
+
+		return Settings.uuidPartRegex;
 	}
 
 	private static void initializeValidUUIDPatternOnce() {
 
-		if (Settings.uuidPattern != null && Settings.uuidRegex != null) {
+		if (Settings.uuidPattern != null && Settings.uuidOnlyRegex != null) {
 			// prevent update
 			return;
 		}
 
-		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
+		switch (Settings.UUIDv4AllowedFormats.getValue()) {
+			case "with_dashes":
+				Settings.uuidOnlyRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-		if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString())) {
+			case "both":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}";
+				break;
 
-			Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.both.toString())) {
-
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-
-		} else {
-
-			// default to "without_dashes":
-			Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
+			default:
+			case "without_dashes":
+				Settings.uuidOnlyRegex = "^[a-fA-F0-9]{32}$";
+				Settings.uuidPartRegex = "[a-fA-F0-9]{32}";
+				break;
 		}
 
 		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());

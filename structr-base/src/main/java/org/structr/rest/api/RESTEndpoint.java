@@ -16,25 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.rest.api;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.structr.api.parameter.APIParameter;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.NotFoundException;
 
 /**
  */
-public abstract class APIEndpoint {
+public abstract class RESTEndpoint {
 
-	private final Map<String, APIParameter> parts = new LinkedHashMap<>();
+	private final Map<String, RESTParameter> parts = new LinkedHashMap<>();
 	private final String pathSeparator            = "/";
 	private Pattern pattern                       = null;
+	private String view                           = null;
 
-	public APIEndpoint(final APIParameter... parameters) {
+	public RESTEndpoint(final RESTParameter... parameters) {
 		initialize(parameters);
 	}
 
@@ -50,18 +55,18 @@ public abstract class APIEndpoint {
 	 *
 	 * @throws FrameworkException
 	 */
-	public abstract APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException;
+	public abstract RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException;
 
 	public Matcher matcher(final String path) {
 		return pattern.matcher(path);
 	}
 
-	public APICall initializeAPICall(final Matcher matcher, final String viewName) {
+	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName) {
 
-		final APICall call = new APICall(this, matcher.group(), viewName);
-		int group          = 1;
+		final RESTCall call = new RESTCall(matcher.group(), viewName);
+		int group           = 1;
 
-		for (final APIParameter part : parts.values()) {
+		for (final RESTParameter part : parts.values()) {
 
 			final String value = matcher.group(group++);
 
@@ -71,12 +76,44 @@ public abstract class APIEndpoint {
 		return call;
 	}
 
+	// ----- protected methods -----
+	protected GraphObject getEntity(final SecurityContext securityContext, final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		if (entityClass == null) {
+
+			if (uuid != null) {
+
+				throw new NotFoundException("Type " + typeName + " does not exist for request with entity ID " + uuid);
+
+			} else {
+
+				throw new NotFoundException("Request specifies no value for type and entity ID");
+			}
+		}
+
+		GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+		if (entity != null) {
+
+			return entity;
+		}
+
+		entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+		if (entity != null) {
+
+			return entity;
+		}
+
+		throw new NotFoundException("Entity with ID " + uuid + " of type " +  typeName +  " does not exist");
+	}
+
 	// ----- private methods -----
-	private void initialize(final APIParameter... parameters) {
+	private void initialize(final RESTParameter... parameters) {
 
 		final StringBuilder buf = new StringBuilder();
 
-		for (final APIParameter parameter : parameters) {
+		for (final RESTParameter parameter : parameters) {
 
 			parts.put(parameter.key(), parameter);
 

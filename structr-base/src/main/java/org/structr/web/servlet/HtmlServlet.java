@@ -87,6 +87,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.structr.common.helper.PathHelper;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 /**
  * Main servlet for content rendering.
@@ -1669,7 +1672,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			// call onDownload callback
 			try {
 
-				file.invokeMethod(securityContext, "onDownload", callbackMap, false, new EvaluationHints());
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(file.getClass(), file, "onDownload");
+				if (signature != null) {
+
+					final MethodCall call = signature.createCall(callbackMap);
+
+					call.execute(securityContext, new EvaluationHints());
+				}
 
 			} catch (FrameworkException fex) {
 				logger.warn("", fex);

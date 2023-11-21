@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,24 +16,20 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.rest.serialization;
-
-import org.structr.common.SecurityContext;
-
-import java.io.Writer;
+package org.structr.rest.api.parameter;
 
 /**
- *
- *
  */
-public class StreamingJsonWriter extends StreamingWriter {
+public interface RESTParameter {
 
-	public StreamingJsonWriter(final String propertyView, final boolean indent, final int outputNestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) {
-		super(propertyView, indent, outputNestingDepth, wrapSingleResultInArray, serializeNulls);
+	String key();
+	String urlPattern();
+
+	public static RESTParameter forPattern(final String key, final String pattern) {
+		return new PatternParameter(key, pattern);
 	}
 
-	@Override
-	public RestWriter getRestWriter(final SecurityContext securityContext, Writer writer) {
-		return new StructrJsonWriter(securityContext, writer);
+	public static RESTParameter forStaticString(final String part) {
+		return new StaticParameter(part);
 	}
 }

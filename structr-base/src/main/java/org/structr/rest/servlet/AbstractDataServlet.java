@@ -34,7 +34,6 @@ import org.structr.common.error.FrameworkException;
 import org.structr.common.error.JsonException;
 import org.structr.core.IJsonInput;
 import org.structr.core.Services;
-import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
@@ -60,17 +59,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractDataServlet.class);
 
-	// final fields
 	protected final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
-	protected Value<String> propertyView            = null;
-	protected String defaultPropertyView            = null;
-
-	@Override
-	public void init() {
-
-		this.propertyView        = new ThreadLocalPropertyView();
-		this.defaultPropertyView = config.getDefaultPropertyView();
-	}
 
 	@Override
 	public StructrHttpServiceConfig getConfig() {
@@ -78,7 +67,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 	}
 
 	// ----- protected methods -----
-	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final boolean wrapSingleResultInArray) {
+	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final String view, final boolean wrapSingleResultInArray) {
 
 		final String serializeNullsSrc    = request.getParameter(RequestKeywords.SerializeNulls.keyword());
 		final String outputDepthSrc       = request.getParameter(RequestKeywords.OutputDepth.keyword());
@@ -114,7 +103,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 					resultIterable.setOverriddenResultCount(result.getOverridenResultCount());
 				}
 
-				writeJson(securityContext, response, resultIterable, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+				writeJson(securityContext, response, resultIterable, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 
 			} else {
 
@@ -129,11 +118,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 					if (nonGraphObjectResult != null && nonGraphObjectResult instanceof Iterable) {
 
-						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), (Iterable) (nonGraphObjectResult)), baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 
 					} else {
 
-						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+						writeJson(securityContext, response, new PagingIterable(request.toString(), Arrays.asList(nonGraphObjectResult)), baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 					}
 				}
 
@@ -145,7 +134,7 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
+	protected void processResult(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final ResultStream result, final String view, final int outputDepth, final boolean wrapSingleResultInArray) throws ServletException, IOException {
 
 		final String serializeNullsSrc = request.getParameter(RequestKeywords.SerializeNulls.keyword());
 		final boolean serializeNulls   = Services.parseBoolean(serializeNullsSrc, true);
@@ -157,11 +146,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 			if (accept != null && accept.contains("text/html")) {
 
-				writeHtml(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+				writeHtml(securityContext, response, result, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 
 			} else {
 
-				writeJson(securityContext, response, result, baseUrl, outputDepth, wrapSingleResultInArray, serializeNulls);
+				writeJson(securityContext, response, result, baseUrl, view, outputDepth, wrapSingleResultInArray, serializeNulls);
 			}
 
 			response.setStatus(HttpServletResponse.SC_OK);
@@ -210,11 +199,11 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final String view, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
 
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
 		final App app                          = StructrApp.getInstance(securityContext);
-		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
+		final StreamingHtmlWriter htmlStreamer = new StreamingHtmlWriter(view, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 		// isolate write output
 		try (final Tx tx = app.tx()) {
 
@@ -230,10 +219,10 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 	}
 
-	protected void writeJson(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws IOException {
+	protected void writeJson(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final String view, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws IOException {
 
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
-		final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(this.propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
+		final StreamingJsonWriter jsonStreamer = new StreamingJsonWriter(view, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 
 		// no trailing semicolon so we dont trip MimeTypes.getContentTypeWithoutCharset
 		response.setContentType("application/json; charset=utf-8");
@@ -318,24 +307,5 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		}
 
 		return gsonBuilder.create();
-	}
-
-	// ----- nested classes -----
-	private class ThreadLocalPropertyView extends ThreadLocal<String> implements Value<String> {
-
-		@Override
-		protected String initialValue() {
-			return config.getDefaultPropertyView();
-		}
-
-		@Override
-		public void set(SecurityContext securityContext, String value) {
-			set(value);
-		}
-
-		@Override
-		public String get(SecurityContext securityContext) {
-			return get();
-		}
 	}
 }

@@ -145,6 +145,10 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.codeSource = codeSource;
 	}
 
+	public CodeSource getCodeSource() {
+		return codeSource;
+	}
+
 	public void setReturnType(final String returnType) {
 		this.returnType = returnType;
 	}
@@ -232,6 +236,13 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		} else {
 
+			// test
+			sourceFile.line(codeSource, "// This method only exists to be able to quickly find the corresponding SchemaNode");
+			sourceFile.line(codeSource, "throw new RuntimeException(\"SchemaMethod called directly!\");");
+
+			// TODO: the below code needs to go into the class ScriptingMethodCall!
+			/*
+
 			final String methodName = this.type.equals(Actions.Type.Custom) ? this.name : this.type.getLogName();
 			final SourceLine line   = sourceFile.line(codeSource, Actions.class.getSimpleName());
 			line.append(".execute(").append(securityContextVariable).append(", ").append(objVariable).append(", ");
@@ -254,6 +265,7 @@ public class ActionEntry implements Comparable<ActionEntry> {
 			line.append(", \"");
 			line.append(codeSource.getUuid());
 			line.append("\");");
+			*/
 		}
 	}
 

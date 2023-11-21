@@ -44,10 +44,9 @@ import org.structr.rest.exception.SystemException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
@@ -72,6 +71,7 @@ import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via
@@ -79,11 +79,11 @@ import org.structr.util.StructrLicenseManager;
  *
  *
  */
-public class MaintenanceResource extends APIEndpoint {
+public class MaintenanceResource extends RESTEndpoint {
 
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class.getName());
 
-	private static final APIParameter nameParameter               = APIParameter.forPattern("name", "[a-zA-Z]+");
+	private static final RESTParameter nameParameter               = RESTParameter.forPattern("name", "[a-zA-Z]+");
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
 	static {
@@ -114,14 +114,13 @@ public class MaintenanceResource extends APIEndpoint {
 
 	public MaintenanceResource() {
 
-		super(
-			APIParameter.forStaticString("maintenance"),
+		super(RESTParameter.forStaticString("maintenance"),
 			nameParameter
 		);
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get(nameParameter);
 		if (typeName != null) {
@@ -165,7 +164,7 @@ public class MaintenanceResource extends APIEndpoint {
 		return maintenanceCommandMap.get(key);
 	}
 
-	private class MaintenanceResourceHandler extends APICallHandler {
+	private class MaintenanceResourceHandler extends RESTCallHandler {
 
 		private String taskOrCommandName = null;
 		private Class taskOrCommand      = null;
@@ -296,7 +295,7 @@ public class MaintenanceResource extends APIEndpoint {
 		}
 	}
 
-	public class SchemaJsonResourceHandler extends APICallHandler {
+	public class SchemaJsonResourceHandler extends RESTCallHandler {
 
 		public SchemaJsonResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

@@ -32,13 +32,13 @@ import org.structr.schema.compiler.NodeExtender;
  */
 public class StructrHttpServiceConfig {
 
-	private static final Logger logger            = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(StructrHttpServiceConfig.class.getName());
 
-	private String defaultPropertyView                = PropertyView.Public;
-	private Class authenticatorClass                  = null;
-	private boolean userAutoCreate                    = false;
-	private boolean userAutoLogin                     = false;
-	private int outputNestingDepth                    = 3;
+	private String defaultPropertyView = PropertyView.Public;
+	private Class authenticatorClass   = null;
+	private boolean userAutoCreate     = false;
+	private boolean userAutoLogin      = false;
+	private int outputNestingDepth     = 3;
 
 	public String getDefaultPropertyView() {
 		return defaultPropertyView;

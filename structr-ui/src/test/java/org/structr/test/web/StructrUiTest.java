@@ -47,6 +47,10 @@ import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  * Base class for all structr UI tests.
@@ -707,5 +711,24 @@ public abstract class StructrUiTest {
 
 			onTimeout.run();
 		}
+	}
+
+	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+
+		final MethodSignature signature = Methods.getMethodSignatureOrNull(node.getClass(), node, methodName);
+		if (signature != null) {
+
+			hints.reportExistingKey(methodName);
+
+			final MethodCall call = signature.createCall(parameters);
+
+			call.execute(securityContext, new EvaluationHints());
+		}
+
+		if (throwIfNotExists) {
+			throw new FrameworkException(400, "Method " + methodName + " not found in type " + node.getType());
+		}
+
+		return null;
 	}
 }

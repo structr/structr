@@ -30,28 +30,28 @@ import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Collection;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 
 /**
  *
  *
  */
-public class EntityResolverResource extends APIEndpoint {
+public class EntityResolverResource extends RESTEndpoint {
 
 	public EntityResolverResource() {
-		super(APIParameter.forStaticString("resolver"));
+		super(RESTParameter.forStaticString("resolver"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new ResolverResourceHandler(securityContext, call.getURL());
 	}
 
-	private class ResolverResourceHandler extends APICallHandler {
+	private class ResolverResourceHandler extends RESTCallHandler {
 
 		public ResolverResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

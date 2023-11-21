@@ -35,26 +35,26 @@ import org.structr.core.graph.RelationshipInterface;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
-import org.structr.api.parameter.APIParameter;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class RelationshipsResource extends APIEndpoint {
+public class RelationshipsResource extends RESTEndpoint {
 
-	private static final APIParameter typeParameter      = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final APIParameter uuidParameter      = APIParameter.forPattern("uuid", Settings.getValidUUIDRegexString());
-	private static final APIParameter directionParameter = APIParameter.forPattern("rel",  "in|out");
+	private static final RESTParameter typeParameter      = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter uuidParameter      = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
+	private static final RESTParameter directionParameter = RESTParameter.forPattern("rel",  "in|out");
 
 	public RelationshipsResource() {
 
@@ -66,7 +66,7 @@ public class RelationshipsResource extends APIEndpoint {
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName  = call.get(typeParameter);
 		final String uuid      = call.get(uuidParameter);
@@ -93,7 +93,7 @@ public class RelationshipsResource extends APIEndpoint {
 		return null;
 	}
 
-	private class RelationshipsResourceHandler extends APICallHandler {
+	private class RelationshipsResourceHandler extends RESTCallHandler {
 
 		public static final String REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES = "domainOnly";
 		private static final Logger logger = LoggerFactory.getLogger(RelationshipsResource.class.getName());
@@ -117,7 +117,7 @@ public class RelationshipsResource extends APIEndpoint {
 		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final List<GraphObject> resultList = new LinkedList<>();
-			final GraphObject obj              = getEntity(entityClass, typeName, uuid);
+			final GraphObject obj              = getEntity(securityContext, entityClass, typeName, uuid);
 
 			if (obj instanceof AbstractNode node) {
 

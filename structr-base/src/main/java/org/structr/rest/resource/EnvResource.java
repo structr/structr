@@ -31,31 +31,31 @@ import org.structr.rest.exception.IllegalMethodException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class EnvResource extends APIEndpoint {
+public class EnvResource extends RESTEndpoint {
 
 	public enum UriPart {
 		_env
 	}
 
 	public EnvResource() {
-		super(APIParameter.forStaticString(UriPart._env.name()));
+		super(RESTParameter.forStaticString(UriPart._env.name()));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new EnvResourceHandler(securityContext, call.getURL());
 	}
 
-	private class EnvResourceHandler extends APICallHandler {
+	private class EnvResourceHandler extends RESTCallHandler {
 
 		public EnvResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

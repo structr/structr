@@ -18,180 +18,119 @@
  */
 package org.structr.rest.resource;
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.action.Actions;
 
-import java.util.Collection;
 import java.util.Map;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
+import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  */
-public class StaticMethodResource extends WrappingResource {
+public class StaticMethodResource extends RESTEndpoint {
 
-	private static final Logger logger    = LoggerFactory.getLogger(StaticMethodResource.class);
-	private TypeResource typeResource     = null;
-	private MethodResource methodResource = null;
-	private SchemaMethod method           = null;
+	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
 
-	public StaticMethodResource(final SecurityContext securityContext, final TypeResource typeResource, final MethodResource methodResource) throws IllegalPathException {
+	public StaticMethodResource() {
 
-		this.typeResource    = typeResource;
-		this.methodResource  = methodResource;
-		this.securityContext = securityContext;
-		this.method          = findMethod(typeResource.getEntityClass(), methodResource.getRawType());
+		super(
+			typeParameter,
+			nameParameter
+		);
 	}
 
 	@Override
-	public boolean checkAndConfigure(final String part, final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		// never return this method in a URL path evaluation
-		return false;
+		final String typeName = call.get(typeParameter);
+		final String name     = call.get(nameParameter);
+
+		if (typeName != null && name != null) {
+
+			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
+			if (entityClass != null) {
+
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(entityClass, null, name);
+				if (signature != null && signature.isStatic()) {
+
+					return new StaticMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+				}
+			}
+		}
+
+		return null;
 	}
 
-	@Override
-	public String getResourceSignature() {
-		return typeResource.getResourceSignature() + "/" + methodResource.getResourceSignature();
-	}
+	private class StaticMethodResourceHandler extends RESTCallHandler {
 
-	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
-	}
+		private MethodCall call = null;
 
-	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public StaticMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
 
-		final App app           = StructrApp.getInstance(securityContext);
-		RestMethodResult result = null;
+			super(securityContext, url);
 
-		if (method != null) {
+			this.call = call;
+		}
+
+		@Override
+		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			throw new IllegalMethodException("GET not allowed on " + getURL());
+		}
+
+		@Override
+		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
 
-				final String source = method.getProperty(SchemaMethod.source);
-
-				result = StaticMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
+				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
 
 				tx.success();
+
+				return result;
+
+			} catch (UnlicensedScriptException ex) {
+				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 			}
 		}
 
-		if (result == null) {
-			throw new IllegalPathException("Type and method name do not match the given path.");
+		@Override
+		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("PUT not allowed on " + getURL());
 		}
 
-		return result;
-	}
-
-	@Override
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
-	}
-
-	// ----- private methods -----
-	public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName, final String codeSource) throws FrameworkException {
-
-		System.out.println("########## METHODS: public static RestMethodResult invoke() with String source parameter, method name and Map property set.");
-
-		try {
-
-			return StaticMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
-
-		} catch (UnlicensedScriptException ex) {
-			ex.log(logger);
+		@Override
+		public RestMethodResult doDelete() throws FrameworkException {
+			throw new IllegalMethodException("DELETE not allowed on " + getURL());
 		}
 
-		return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
-	}
-
-	public static RestMethodResult wrapInResult(final Object obj) {
-
-		RestMethodResult result = null;
-
-		if (obj instanceof RestMethodResult) {
-
-			result = (RestMethodResult)obj;
-
-		} else {
-
-			result = new RestMethodResult(200);
-			result.addContent(obj);
-
-			if (obj instanceof Collection) {
-
-				result.setOverridenResultCount(((Collection)obj).size());
-			}
-
+		@Override
+		public boolean isCollection() {
+			return false;
 		}
 
-		return result;
-
+		@Override
+		public Class getEntityClass() {
+			return null;
+		}
 	}
-
-	public static SchemaMethod findMethod(final Class type, final String methodName) throws IllegalPathException {
-
-		System.out.println("########## METHODS: public static SchemaMethod findMethod() with type and methodName.");
-
-		try {
-			final App app         = StructrApp.getInstance();
-			final String typeName = type.getSimpleName();
-			Class currentType     = type;
-
-			// first step: schema node or one of its parents
-			SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(typeName).getFirst();
-			while (schemaNode != null) {
-
-				for (final SchemaMethod method : schemaNode.getProperty(SchemaNode.schemaMethods)) {
-
-					if (methodName.equals(method.getName()) && !method.isJava()) {
-
-						return method;
-					}
-				}
-
-				currentType = currentType.getSuperclass();
-				if (currentType != null) {
-
-					// skip non-dynamic types
-					if (currentType.getSimpleName().equals(typeName) || !currentType.getName().startsWith("org.structr.dynamic.")) {
-						currentType = currentType.getSuperclass();
-					}
-
-					if (currentType != null && currentType.getName().startsWith("org.structr.dynamic.")) {
-
-						schemaNode = app.nodeQuery(SchemaNode.class).andName(currentType.getSimpleName()).getFirst();
-
-					} else {
-
-						break;
-					}
-
-				} else {
-
-					break;
-				}
-			}
-
-		} catch (FrameworkException fex) {}
-
-		throw new IllegalPathException("Type and method name do not match the given path.");
-	}
-
 }

@@ -21,15 +21,13 @@ package org.structr.test.rest.test.property;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.RequestLoggingFilter;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import static org.hamcrest.Matchers.equalTo;
 import org.structr.api.DatabaseFeature;
 import org.structr.core.Services;
 import org.structr.test.rest.common.IndexingTest;
 import org.testng.annotations.Test;
 
-import static org.hamcrest.Matchers.equalTo;
-
 /**
- *
  *
  */
 public class StringPropertyRestTest extends IndexingTest {
@@ -147,7 +145,6 @@ public class StringPropertyRestTest extends IndexingTest {
 
 	}
 
-	/*@Test*/
 	public void testLargeStrings() {
 
 		// this test needs the schema index on string properties to be present

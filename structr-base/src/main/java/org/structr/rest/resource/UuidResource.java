@@ -30,23 +30,20 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
 import java.util.Map;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
-import org.structr.api.parameter.APIParameter;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Represents an exact UUID match.
  */
-public class UuidResource extends APIEndpoint {
+public class UuidResource extends RESTEndpoint {
 
-	private static final APIParameter uuidParameter = APIParameter.forPattern("uuid", Settings.getValidUUIDRegexString());
-	private static final Logger logger              = LoggerFactory.getLogger(TypeResource.class.getName());
+	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
 
 	public UuidResource() {
 
@@ -56,7 +53,7 @@ public class UuidResource extends APIEndpoint {
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String uuid = call.get(uuidParameter);
 		if (uuid != null) {
@@ -68,7 +65,7 @@ public class UuidResource extends APIEndpoint {
 		return null;
 	}
 
-	private class UuidResourceHandler extends APICallHandler {
+	private class UuidResourceHandler extends RESTCallHandler {
 
 		private String uuid = null;
 

@@ -183,7 +183,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 	@Override
 	public boolean equals(final Object o) {
 
-		return (o != null && new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+		return (o != null && Integer.valueOf(this.hashCode()).equals(o.hashCode()));
 
 	}
 
@@ -642,11 +642,6 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 				}
 				return value;
 		}
-	}
-
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwException, final EvaluationHints hints) throws FrameworkException {
-		throw new UnsupportedOperationException("Invoking a method on a relationship is not supported at the moment.");
 	}
 
 	public void setSourceProperty(final PropertyKey source) {

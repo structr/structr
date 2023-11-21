@@ -16,20 +16,15 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.parameter;
+package org.structr.core.api;
+
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  */
-public interface APIParameter {
+public interface MethodCall {
 
-	String key();
-	String urlPattern();
-
-	public static APIParameter forPattern(final String key, final String pattern) {
-		return new PatternParameter(key, pattern);
-	}
-
-	public static APIParameter forStaticString(final String part) {
-		return new StaticParameter(part);
-	}
+	Object execute(final SecurityContext securityContext, final EvaluationHints hints) throws FrameworkException;
 }

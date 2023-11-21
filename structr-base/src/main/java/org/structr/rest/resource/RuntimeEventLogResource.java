@@ -36,31 +36,31 @@ import org.structr.rest.RestMethodResult;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class RuntimeEventLogResource extends APIEndpoint {
+public class RuntimeEventLogResource extends RESTEndpoint {
 
 	public enum UriPart {
 		_runtimeEventLog
 	}
 
 	public RuntimeEventLogResource() {
-		super(APIParameter.forStaticString(UriPart._runtimeEventLog.name()));
+		super(RESTParameter.forStaticString(UriPart._runtimeEventLog.name()));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new RuntimeEventLogResourceHandler(securityContext, call.getURL());
 	}
 
-	private class RuntimeEventLogResourceHandler extends APICallHandler {
+	private class RuntimeEventLogResourceHandler extends RESTCallHandler {
 
 		public RuntimeEventLogResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

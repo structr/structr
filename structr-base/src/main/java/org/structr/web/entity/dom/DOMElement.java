@@ -70,11 +70,12 @@ import org.structr.web.function.ReplaceDOMChildFunction;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.resource.LoginResourceHandler;
@@ -696,8 +697,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			for (final GraphObject target : targets) {
 
-				// try to execute event method
-				return target.invokeMethod(actionContext.getSecurityContext(), methodName, parameters, false, new EvaluationHints());
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(target.getClass(), target, methodName);
+				if (signature != null) {
+
+					final MethodCall call = signature.createCall(parameters);
+
+					call.execute(actionContext.getSecurityContext(), new EvaluationHints());
+				}
 			}
 
 		} else {
@@ -706,23 +712,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(staticClass);
-				final Method method               = methods.get(methodName);
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(staticClass, null, methodName);
+				if (signature != null) {
 
-				if (method != null) {
+					final MethodCall call = signature.createCall(parameters);
 
-					if (Modifier.isStatic(methods.get(methodName).getModifiers())) {
-
-						return AbstractNode.invokeMethod(actionContext.getSecurityContext(), method, null, parameters, new EvaluationHints());
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method is not static.");
-					}
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method not found.");
+					call.execute(actionContext.getSecurityContext(), new EvaluationHints());
 				}
 
 			} else {

@@ -30,14 +30,15 @@ import java.util.List;
  */
 public class SourceFile extends SimpleJavaFileObject {
 
-	private List<SourceLine> lines            = new LinkedList<>();
-	private String className                  = null;
-	private CharSequence content              = null;
-	private int indentLevel                   = 0;
+	private final List<SourceLine> lines = new LinkedList<>();
+	private String className             = null;
+	private int indentLevel              = 0;
 
 	public SourceFile(final String className) {
 
 		super(URI.create("string:///" + className.replace('.', '/') + Kind.SOURCE.extension), Kind.SOURCE);
+
+		this.className = className;
 	}
 
 	public void importLine(final String className) {

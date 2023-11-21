@@ -33,26 +33,26 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Collections;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  */
-public class CypherQueryResource extends APIEndpoint {
+public class CypherQueryResource extends RESTEndpoint {
 
 	public CypherQueryResource() {
-		super(APIParameter.forStaticString("cypher"));
+		super(RESTParameter.forStaticString("cypher"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new CypherResourceHandler(securityContext, call.getURL());
 	}
 
-	private class CypherResourceHandler extends APICallHandler {
+	private class CypherResourceHandler extends RESTCallHandler {
 
 		public CypherResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

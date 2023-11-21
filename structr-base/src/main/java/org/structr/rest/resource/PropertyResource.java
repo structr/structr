@@ -30,10 +30,10 @@ import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.APICall;
+import org.structr.rest.api.RESTCall;
 import org.structr.common.SecurityContext;
 import org.structr.core.property.*;
-import org.structr.api.APICallHandler;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
@@ -58,7 +58,7 @@ import org.structr.schema.SchemaHelper;
 public class PropertyResource extends AbstractTypeIdNameResource {
 
 	@Override
-	public APICallHandler handleTypeIdName(final SecurityContext securityContext, final APICall call, final String typeName, final String uuid, final String name) {
+	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) {
 
 		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 		if (entityClass != null) {
@@ -80,7 +80,7 @@ public class PropertyResource extends AbstractTypeIdNameResource {
 	}
 
 
-	private class PropertyResourceHandler extends APICallHandler {
+	private class PropertyResourceHandler extends RESTCallHandler {
 
 		private static final Logger logger = LoggerFactory.getLogger(PropertyResourceHandler.class);
 
@@ -111,7 +111,7 @@ public class PropertyResource extends AbstractTypeIdNameResource {
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 
-			final GraphObject sourceEntity = getEntity(entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
 			final Object value             = sourceEntity.getProperty(propertyKey, predicate);
 
 			if (value != null) {
@@ -218,7 +218,7 @@ public class PropertyResource extends AbstractTypeIdNameResource {
 		@Override
 		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
 
-			final GraphObject sourceEntity = getEntity(entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
 			final App app                  = StructrApp.getInstance(securityContext);
 
 			// fetch static relationship definition
@@ -249,7 +249,7 @@ public class PropertyResource extends AbstractTypeIdNameResource {
 		@Override
 		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-			final GraphObject sourceEntity = getEntity(entityClass, typeName, uuid);
+			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
 			RestMethodResult result        = null;
 
 			if (sourceEntity != null && propertyKey instanceof RelationProperty) {
