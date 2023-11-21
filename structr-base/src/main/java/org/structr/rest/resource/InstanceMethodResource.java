@@ -18,9 +18,6 @@
  */
 package org.structr.rest.resource;
 
-import java.lang.reflect.Method;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
@@ -29,19 +26,18 @@ import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
-import org.structr.rest.exception.IllegalPathException;
-import org.structr.schema.action.Actions;
 
-import java.util.Collection;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.schema.SchemaHelper;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -49,36 +45,32 @@ import org.structr.schema.SchemaHelper;
 public class InstanceMethodResource extends AbstractTypeIdNameResource {
 
 	@Override
-	public APICallHandler handleTypeIdName(final SecurityContext securityContext, final APICall call, final String typeName, final String uuid, final String name) {
+	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException {
 
 		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 		if (entityClass != null) {
 
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(entityClass);
-			if (methods.containsKey(name)) {
+			final GraphObject entity        = getEntity(securityContext, entityClass, entityClass.getSimpleName(), uuid);
+			final MethodSignature signature = Methods.getMethodSignatureOrNull(entityClass, entity, name);
 
-				return new InstanceMethodResourceHandler(securityContext, call.getURL(), entityClass, uuid, methods.get(name));
+			if (signature != null) {
+
+				return new InstanceMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
 			}
 		}
 
 		return null;
 	}
 
+	private class InstanceMethodResourceHandler extends RESTCallHandler {
 
-	private class InstanceMethodResourceHandler extends APICallHandler {
+		private MethodCall call = null;
 
-		private static final Logger logger = LoggerFactory.getLogger(InstanceMethodResourceHandler.class);
-		private Class entityClass          = null;
-		private String uuid                = null;
-		private Method method              = null;
-
-		public InstanceMethodResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String uuid, final Method method) {
+		public InstanceMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
 
 			super(securityContext, url);
 
-			this.entityClass = entityClass;
-			this.uuid        = uuid;
-			this.method      = method;
+			this.call = call;
 		}
 
 		@Override
@@ -89,26 +81,19 @@ public class InstanceMethodResource extends AbstractTypeIdNameResource {
 		@Override
 		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-			final App app           = StructrApp.getInstance(securityContext);
-			RestMethodResult result = null;
+			final App app = StructrApp.getInstance(securityContext);
 
-			if (method != null) {
+			try (final Tx tx = app.tx()) {
 
-				try (final Tx tx = app.tx()) {
+				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
 
-					final String source = method.getProperty(SchemaMethod.source);
+				tx.success();
 
-					result = InstanceMethodResource.invoke(securityContext, null, source, propertySet, methodResource.getUriPart(), method.getUuid());
+				return result;
 
-					tx.success();
-				}
+			} catch (UnlicensedScriptException ex) {
+				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 			}
-
-			if (result == null) {
-				throw new IllegalPathException("Type and method name do not match the given path.");
-			}
-
-			return result;
 		}
 
 		@Override
@@ -129,95 +114,6 @@ public class InstanceMethodResource extends AbstractTypeIdNameResource {
 		@Override
 		public Class getEntityClass() {
 			return null;
-		}
-
-		// ----- private methods -----
-		public static RestMethodResult invoke(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> propertySet, final String methodName, final String codeSource) throws FrameworkException {
-
-			System.out.println("########## METHODS: public static RestMethodResult invoke() with String source parameter, method name and Map property set.");
-
-			try {
-
-				return InstanceMethodResource.wrapInResult(Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource));
-
-			} catch (UnlicensedScriptException ex) {
-				ex.log(logger);
-			}
-
-			return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
-		}
-
-		public static RestMethodResult wrapInResult(final Object obj) {
-
-			RestMethodResult result = null;
-
-			if (obj instanceof RestMethodResult) {
-
-				result = (RestMethodResult)obj;
-
-			} else {
-
-				result = new RestMethodResult(200);
-				result.addContent(obj);
-
-				if (obj instanceof Collection) {
-
-					result.setOverridenResultCount(((Collection)obj).size());
-				}
-
-			}
-
-			return result;
-
-		}
-
-		public static SchemaMethod findMethod(final Class type, final String methodName) throws IllegalPathException {
-
-			System.out.println("########## METHODS: public static SchemaMethod findMethod() with type and methodName.");
-
-			try {
-				final App app         = StructrApp.getInstance();
-				final String typeName = type.getSimpleName();
-				Class currentType     = type;
-
-				// first step: schema node or one of its parents
-				SchemaNode schemaNode = app.nodeQuery(SchemaNode.class).andName(typeName).getFirst();
-				while (schemaNode != null) {
-
-					for (final SchemaMethod method : schemaNode.getProperty(SchemaNode.schemaMethods)) {
-
-						if (methodName.equals(method.getName()) && !method.isJava()) {
-
-							return method;
-						}
-					}
-
-					currentType = currentType.getSuperclass();
-					if (currentType != null) {
-
-						// skip non-dynamic types
-						if (currentType.getSimpleName().equals(typeName) || !currentType.getName().startsWith("org.structr.dynamic.")) {
-							currentType = currentType.getSuperclass();
-						}
-
-						if (currentType != null && currentType.getName().startsWith("org.structr.dynamic.")) {
-
-							schemaNode = app.nodeQuery(SchemaNode.class).andName(currentType.getSimpleName()).getFirst();
-
-						} else {
-
-							break;
-						}
-
-					} else {
-
-						break;
-					}
-				}
-
-			} catch (FrameworkException fex) {}
-
-			throw new IllegalPathException("Type and method name do not match the given path.");
 		}
 	}
 }

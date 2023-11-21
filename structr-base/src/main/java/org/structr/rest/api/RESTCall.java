@@ -16,30 +16,24 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.rest.api;
 
 import java.util.LinkedHashMap;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
- * Represents a single call made against an APIEndpoint. Contains the raw
- * string values from the URL that must be converted to actual typed values.
+ * Represents a single REST call made against a RESTEndpoint. Contains the raw
+ * string-based request values that must be converted to actual typed values.
  */
-public class APICall extends LinkedHashMap<APIParameter, String> {
+public class RESTCall extends LinkedHashMap<RESTParameter, String> {
 
-	private APIEndpoint endpoint = null;
 	private String viewName      = null;
 	private String url           = null;
 
-	public APICall(final APIEndpoint endpoint, final String url, final String viewName) {
+	public RESTCall(final String url, final String viewName) {
 
-		this.endpoint = endpoint;
 		this.viewName = viewName;
 		this.url      = url;
-	}
-
-	public APIEndpoint getEndpoint() {
-		return endpoint;
 	}
 
 	public String getURL() {

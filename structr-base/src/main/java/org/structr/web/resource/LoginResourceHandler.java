@@ -26,7 +26,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.APICallHandler;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -52,7 +52,7 @@ import org.structr.web.function.BarcodeFunction;
 
 /**
  */
-public class LoginResourceHandler extends APICallHandler {
+public class LoginResourceHandler extends RESTCallHandler {
 
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResourceHandler.class.getName());
 

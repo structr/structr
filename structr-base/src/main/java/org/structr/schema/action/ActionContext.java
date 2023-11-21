@@ -37,15 +37,15 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.*;
 import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 /**
  *
@@ -286,23 +286,22 @@ public class ActionContext {
 
 				if (data != null) {
 
-					if (data instanceof GraphObject) {
+					if (data instanceof GraphObject graphObject) {
 
-						value = ((GraphObject) data).evaluate(this, key, defaultValue, hints, row, column);
+						value = graphObject.evaluate(this, key, defaultValue, hints, row, column);
 
-					} else if (data instanceof Class) {
+					} else if (data instanceof Class clazz) {
 
-						// static method?
-						final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType((Class) data);
-						if (methods.containsKey(key) && Modifier.isStatic(methods.get(key).getModifiers())) {
+						final MethodSignature signature = Methods.getMethodSignatureOrNull(clazz, null, key);
+						if (signature != null) {
 
 							hints.reportExistingKey(key);
 
-							final ContextStore contextStore = getContextStore();
+							final ContextStore contextStore      = getContextStore();
 							final Map<String, Object> parameters = contextStore.getTemporaryParameters();
-							final Method method = methods.get(key);
+							final MethodCall call                = signature.createCall(parameters);
 
-							return AbstractNode.invokeMethod(securityContext, method, null, parameters, hints);
+							return call.execute(securityContext, hints);
 						}
 
 					} else {

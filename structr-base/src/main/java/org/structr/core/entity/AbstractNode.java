@@ -19,7 +19,6 @@
 package org.structr.core.entity;
 
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,10 +48,11 @@ import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -61,7 +61,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	private static final int permissionResolutionMaxLevel                                                     = Settings.ResolutionDepth.getValue();
 	private static final Logger logger                                                                        = LoggerFactory.getLogger(AbstractNode.class.getName());
-	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<String, Boolean>("Grant result cache", 100000);
+	private static final FixedSizeCache<String, Boolean> isGrantedResultCache                                 = new FixedSizeCache<>("Grant result cache", 100000);
 	private static final FixedSizeCache<String, Object> relationshipTemplateInstanceCache                     = new FixedSizeCache<>("Relationship template cache", 1000);
 	private static final Map<String, Map<String, PermissionResolutionResult>> globalPermissionResolutionCache = new HashMap<>();
 
@@ -1604,36 +1604,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					}
 				}
 
-				final ContextStore contextStore      = actionContext.getContextStore();
-				final Map<String, Object> parameters = contextStore.getTemporaryParameters();
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(entityType, this, key);
+				if (signature != null) {
 
-				final Object value = invokeMethod(actionContext.getSecurityContext(), key, parameters, false, hints);
-				if (value != null) {
+					final ContextStore contextStore      = actionContext.getContextStore();
+					final Map<String, Object> parameters = contextStore.getTemporaryParameters();
+					final MethodCall call                = signature.createCall(parameters);
 
-					return value;
+					return call.execute(actionContext.getSecurityContext(), hints);
 				}
 
 				return Function.numberOrString(defaultValue);
 		}
-	}
-
-	@Override
-	public final Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> propertySet, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
-
-		final Method method = StructrApp.getConfiguration().getExportedMethodsForType(entityType).get(methodName);
-		if (method != null) {
-
-			hints.reportExistingKey(methodName);
-
-			return AbstractNode.invokeMethod(securityContext, method, this, propertySet, hints);
-		}
-
-		// in the case of REST access we want to know if the method exists or not
-		if (throwExceptionForUnknownMethods) {
-			throw new FrameworkException(400, "Method " + methodName + " not found in type " + getType());
-		}
-
-		return null;
 	}
 
 	private Map<String, Security> mapSecurityRelationshipsMapped(final Iterable<Security> src) {
@@ -1754,7 +1736,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		Security secRel = getSecurityRelationship(principal);
 		if (secRel == null) {
 
-			if (permissions.size() > 0) {
+			if (!permissions.isEmpty()) {
 
 				try {
 
@@ -1886,152 +1868,6 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	protected boolean allowedBySchema(final Principal principal, final Permission permission) {
 		return false;
-	}
-
-	// ----- static methods -----
-	public static Object invokeMethod(final SecurityContext securityContext, final Method method, final Object entity, final Map<String, Object> propertySet, final EvaluationHints hints) throws FrameworkException {
-
-		System.out.println("########## METHODS: public static Object invokeMethod() with Method parameter and Map property set.");
-
-		try {
-
-			// new structure: first parameter is always securityContext and second parameter can be Map (for dynamically defined methods)
-			if (method.getParameterTypes().length == 2 && method.getParameterTypes()[0].isAssignableFrom(SecurityContext.class) && method.getParameterTypes()[1].equals(Map.class)) {
-				final Object[] args = new Object[] { securityContext };
-				return method.invoke(entity, ArrayUtils.add(args, propertySet));
-			}
-
-			// second try: extracted parameter list
-			final Object[] args = extractParameters(propertySet, method.getParameterTypes());
-
-			return method.invoke(entity, ArrayUtils.add(args, 0, securityContext));
-
-		} catch (InvocationTargetException itex) {
-
-			final Throwable cause = itex.getCause();
-
-			if (cause instanceof AssertException) {
-
-				final AssertException e = (AssertException)cause;
-				throw new FrameworkException(e.getStatus(), e.getMessage());
-			}
-
-			if (cause instanceof FrameworkException) {
-
-				throw (FrameworkException) cause;
-			}
-
-		} catch (IllegalAccessException | IllegalArgumentException  t) {
-
-			logger.warn("Unable to invoke method {}: {}", method.getName(), t.getMessage());
-		}
-
-		return null;
-	}
-
-	private static Object[] extractParameters(Map<String, Object> properties, Class[] parameterTypes) {
-
-		final List<Object> values = new ArrayList<>(properties.values());
-		final List<Object> parameters = new ArrayList<>();
-		int index = 0;
-
-		// only try to convert when both lists have equal size
-		// subtract one because securityContext is default and not provided by user
-		if (values.size() == (parameterTypes.length - 1)) {
-
-			for (final Class parameterType : parameterTypes) {
-
-				// skip securityContext
-				if (!parameterType.isAssignableFrom(SecurityContext.class)) {
-
-					final Object value = convert(values.get(index++), parameterType);
-					if (value != null) {
-
-						parameters.add(value);
-					}
-				}
-			}
-		}
-
-		return parameters.toArray(new Object[0]);
-	}
-
-	/*
-	 * Tries to convert the given value into an object
-	 * of the given type, using an intermediate type
-	 * of String for the conversion.
-	 */
-	private static Object convert(Object value, Class type) {
-
-		// short-circuit
-		if (type.isAssignableFrom(value.getClass())) {
-			return value;
-		}
-
-		Object convertedObject = null;
-
-		if (type.equals(String.class)) {
-
-			// strings can be returned immediately
-			return value.toString();
-
-		} else if (value instanceof Number) {
-
-			Number number = (Number) value;
-
-			if (type.equals(Integer.class) || type.equals(Integer.TYPE)) {
-				return number.intValue();
-
-			} else if (type.equals(Long.class) || type.equals(Long.TYPE)) {
-				return number.longValue();
-
-			} else if (type.equals(Double.class) || type.equals(Double.TYPE)) {
-				return number.doubleValue();
-
-			} else if (type.equals(Float.class) || type.equals(Float.TYPE)) {
-				return number.floatValue();
-
-			} else if (type.equals(Short.class) || type.equals(Integer.TYPE)) {
-				return number.shortValue();
-
-			} else if (type.equals(Byte.class) || type.equals(Byte.TYPE)) {
-				return number.byteValue();
-
-			}
-
-		} else if (value instanceof List) {
-
-			return value;
-
-		} else if (value instanceof Map) {
-
-			return value;
-
-		} else if (value instanceof Boolean) {
-
-			return value;
-
-		}
-
-		// fallback
-		try {
-
-			Method valueOf = type.getMethod("valueOf", String.class);
-			if (valueOf != null) {
-
-				convertedObject = valueOf.invoke(null, value.toString());
-
-			} else {
-
-				logger.warn("Unable to find static valueOf method for type {}", type);
-			}
-
-		} catch (Throwable t) {
-
-			logger.warn("Unable to deserialize value {} of type {}, Class has no static valueOf method.", new Object[]{value, type});
-		}
-
-		return convertedObject;
 	}
 
 	// ----- nested classes -----

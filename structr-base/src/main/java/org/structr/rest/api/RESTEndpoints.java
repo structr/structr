@@ -16,7 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
@@ -31,6 +31,7 @@ import org.structr.rest.resource.CypherQueryResource;
 import org.structr.rest.resource.EntityResolverResource;
 import org.structr.rest.resource.EnvResource;
 import org.structr.rest.resource.GlobalSchemaMethodsResource;
+import org.structr.rest.resource.InstanceMethodResource;
 import org.structr.rest.resource.LogResource;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.resource.MeResource;
@@ -39,6 +40,7 @@ import org.structr.rest.resource.RelationshipsResource;
 import org.structr.rest.resource.RuntimeEventLogResource;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
+import org.structr.rest.resource.StaticMethodResource;
 import org.structr.rest.resource.TypeResource;
 import org.structr.rest.resource.TypedIdResource;
 import org.structr.rest.resource.UuidResource;
@@ -51,45 +53,47 @@ import org.structr.web.resource.TokenResource;
 /**
  *
  */
-public class APIEndpoints {
+public class RESTEndpoints {
 
 	private static final List<SortedByUsageCount> ENDPOINTS = new LinkedList<>();
 
 	static {
 
 		// initialize static API endpoints
-		APIEndpoints.register(new CypherQueryResource());
-		APIEndpoints.register(new EntityResolverResource());
-		APIEndpoints.register(new EnvResource());
-		APIEndpoints.register(new GlobalSchemaMethodsResource());
-		APIEndpoints.register(new LogResource());
-		APIEndpoints.register(new LoginResource());
-		APIEndpoints.register(new LogoutResource());
-		APIEndpoints.register(new MaintenanceResource());
-		APIEndpoints.register(new MeResource());
-		APIEndpoints.register(new PropertyResource());
-		APIEndpoints.register(new RegistrationResource());
-		APIEndpoints.register(new ResetPasswordResource());
-		APIEndpoints.register(new RelationshipsResource());
-		APIEndpoints.register(new RuntimeEventLogResource());
-		APIEndpoints.register(new SchemaResource());
-		APIEndpoints.register(new SchemaTypeResource());
-		APIEndpoints.register(new TokenResource());
-		APIEndpoints.register(new TypeResource());
-		APIEndpoints.register(new TypedIdResource());
-		APIEndpoints.register(new UuidResource());
+		RESTEndpoints.register(new CypherQueryResource());
+		RESTEndpoints.register(new EntityResolverResource());
+		RESTEndpoints.register(new EnvResource());
+		RESTEndpoints.register(new GlobalSchemaMethodsResource());
+		RESTEndpoints.register(new InstanceMethodResource());
+		RESTEndpoints.register(new LogResource());
+		RESTEndpoints.register(new LoginResource());
+		RESTEndpoints.register(new LogoutResource());
+		RESTEndpoints.register(new MaintenanceResource());
+		RESTEndpoints.register(new MeResource());
+		RESTEndpoints.register(new PropertyResource());
+		RESTEndpoints.register(new RegistrationResource());
+		RESTEndpoints.register(new ResetPasswordResource());
+		RESTEndpoints.register(new RelationshipsResource());
+		RESTEndpoints.register(new RuntimeEventLogResource());
+		RESTEndpoints.register(new SchemaResource());
+		RESTEndpoints.register(new SchemaTypeResource());
+		RESTEndpoints.register(new StaticMethodResource());
+		RESTEndpoints.register(new TokenResource());
+		RESTEndpoints.register(new TypeResource());
+		RESTEndpoints.register(new TypedIdResource());
+		RESTEndpoints.register(new UuidResource());
 	}
 
 	// ----- public static methods -----
-	public static void register(final APIEndpoint endpoint) {
+	public static void register(final RESTEndpoint endpoint) {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
 	}
 
-	public static APICallHandler resolveAPICallHandler(final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
+	public static RESTCallHandler resolveRESTCallHandler(final SecurityContext securityContext, final HttpServletRequest request, final String defaultView) throws FrameworkException {
 
 		final List<String> viewHolder = new LinkedList<>();
-		final String path             = APIEndpoints.removeTrailingViewName(request.getPathInfo(), viewHolder);
-		final String viewName         = viewHolder.isEmpty() ? null : viewHolder.get(0);
+		final String path             = RESTEndpoints.removeTrailingViewName(request.getPathInfo(), viewHolder);
+		final String viewName         = viewHolder.isEmpty() ? defaultView : viewHolder.get(0);
 
 		// endpoints are sorted by frequency of successfully resolved matches
 		Collections.sort(ENDPOINTS);
@@ -99,11 +103,13 @@ public class APIEndpoints {
 			final Matcher matcher = container.matcher(path);
 			if (matcher.matches()) {
 
-				final APIEndpoint endpoint   = container.getItem();
-				final APICall call           = endpoint.initializeAPICall(matcher, viewName);
-				final APICallHandler handler = endpoint.accept(securityContext, call);
+				final RESTEndpoint endpoint   = container.getItem();
+				final RESTCall call           = endpoint.initializeRESTCall(matcher, viewName);
+				final RESTCallHandler handler = endpoint.accept(securityContext, call);
 
 				if (handler != null) {
+
+					handler.setRequestedView(viewName);
 
 					container.incrementUsageCount();
 
@@ -119,11 +125,11 @@ public class APIEndpoints {
 	private static String removeTrailingViewName(final String path, final List<String> propertyView) {
 
 		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
-		final int positionOfLastSlash   = path.lastIndexOf("/") + 1;
+		final int positionOfLastSlash   = path.lastIndexOf("/");
 
-		if (positionOfLastSlash > 0) {
+		if (positionOfLastSlash > -1) {
 
-			final String lastPathElement = path.substring(positionOfLastSlash);
+			final String lastPathElement = path.substring(positionOfLastSlash + 1);
 			if (propertyViews.contains(lastPathElement)) {
 
 				// last path element is a view, save it
@@ -140,10 +146,10 @@ public class APIEndpoints {
 	// ----- nested classes -----
 	private static class SortedByUsageCount implements Comparable<SortedByUsageCount> {
 
-		private APIEndpoint endpoint = null;
+		private RESTEndpoint endpoint = null;
 		private long usageCount      = 0;
 
-		public SortedByUsageCount(final APIEndpoint item) {
+		public SortedByUsageCount(final RESTEndpoint item) {
 			this.endpoint = item;
 		}
 
@@ -171,7 +177,7 @@ public class APIEndpoints {
 			this.usageCount++;
 		}
 
-		public APIEndpoint getItem() {
+		public RESTEndpoint getItem() {
 			return endpoint;
 		}
 

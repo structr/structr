@@ -23,24 +23,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource to register new users.
  */
-public class RegistrationResource extends APIEndpoint {
+public class RegistrationResource extends RESTEndpoint {
 
 	private static final Logger logger = LoggerFactory.getLogger(RegistrationResource.class.getName());
 
 	public RegistrationResource() {
-		super(APIParameter.forStaticString("registration"));
+		super(RESTParameter.forStaticString("registration"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new RegistrationResourceHandler(securityContext, call.getURL());
 	}
 

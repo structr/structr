@@ -18,25 +18,24 @@
  */
 package org.structr.web.resource;
 
-
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource to reset a user's password.
  */
-public class ResetPasswordResource extends APIEndpoint {
+public class ResetPasswordResource extends RESTEndpoint {
 
 	public ResetPasswordResource() {
-		super(APIParameter.forStaticString("reset-password"));
+		super(RESTParameter.forStaticString("reset-password"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new ResetPasswordResourceHandler(securityContext, call.getURL());
 	}
 }

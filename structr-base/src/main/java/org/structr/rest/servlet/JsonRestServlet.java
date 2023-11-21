@@ -49,8 +49,9 @@ import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoints;
+import org.structr.common.PropertyView;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 
 /**
  * Implements the structr REST API.
@@ -88,7 +89,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		APICallHandler handler          = null;
+		RESTCallHandler handler          = null;
 
 		setCustomResponseHeaders(response);
 
@@ -113,10 +114,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
-				authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
+				handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-				RuntimeEventLog.rest("Delete", handler.getURL(), securityContext.getUser(false));
+				RuntimeEventLog.rest("Delete", handler.getResourceSignature(), securityContext.getUser(false));
 
 				tx.success();
 			}
@@ -137,7 +138,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
-				commitResponse(securityContext, request, response, result, handler.isCollection());
+				commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 				tx.success();
 			}
 
@@ -263,7 +264,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		final List<RestMethodResult> results = new LinkedList<>();
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final APICallHandler handler;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -291,15 +292,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			if (securityContext != null) {
 
-				propertyView.set(securityContext, config.getDefaultPropertyView());
-
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
-					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
+					handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-					RuntimeEventLog.rest("Post", handler.getURL(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Post", handler.getResourceSignature(), securityContext.getUser(false));
 
 					tx.success();
 				}
@@ -380,7 +379,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 							}
 						}
 
-						commitResponse(securityContext, request, response, result, handler.isCollection());
+						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					}
 
 					tx.success();
@@ -393,7 +392,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -447,7 +446,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final APICallHandler handler;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -481,10 +480,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					// evaluate constraint chain
-					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
-					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
+					handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-					RuntimeEventLog.rest("Put", handler.getURL(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Put", handler.getResourceSignature(), securityContext.getUser(false));
 
 					tx.success();
 				}
@@ -507,7 +506,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					commitResponse(securityContext, request, response, result, handler.isCollection());
+					commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					tx.success();
 				}
 
@@ -517,7 +516,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -576,7 +575,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final APICallHandler handler;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -609,15 +608,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// allow setting of nested properties in PATCH documents
 				securityContext.setAttribute("setNestedProperties", true);
 
-				propertyView.set(securityContext, config.getDefaultPropertyView());
-
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
-					authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
+					handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-					RuntimeEventLog.rest("Patch", handler.getURL(), securityContext.getUser(false));
+					RuntimeEventLog.rest("Patch", handler.getResourceSignature(), securityContext.getUser(false));
 
 					tx.success();
 				}
@@ -638,7 +635,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 						if (result != null) {
 
-							commitResponse(securityContext, request, response, result, handler.isCollection());
+							commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 						}
 
 						tx.success();
@@ -671,7 +668,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 					// isolate write output
 					try (final Tx tx = app.tx()) {
 
-						commitResponse(securityContext, request, response, result, handler.isCollection());
+						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 						tx.success();
 					}
 				}
@@ -683,7 +680,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -784,7 +781,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
-		APICallHandler handler          = null;
+		RESTCallHandler handler          = null;
 
 		setCustomResponseHeaders(response);
 
@@ -798,13 +795,10 @@ public class JsonRestServlet extends AbstractDataServlet {
 			authenticator = config.getAuthenticator();
 			securityContext = authenticator.initializeAndExamineRequest(request, response);
 
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
+			handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
-			handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
-			authenticator.checkResourceAccess(securityContext, request, handler.getURL(), propertyView.get(securityContext));
-
-			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getURL(), securityContext.getUser(false));
+			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), securityContext.getUser(false));
 
 			// add sorting && pagination
 			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
@@ -834,7 +828,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, depth, handler.isCollection());
+					processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection());
 				}
 			}
 
@@ -871,7 +865,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 
 		if (handler != null) {
-			this.stats.recordStatsValue("json", handler.getURL(), System.currentTimeMillis() - t0);
+			this.stats.recordStatsValue("json", handler.getResourceSignature(), System.currentTimeMillis() - t0);
 		}
 	}
 }

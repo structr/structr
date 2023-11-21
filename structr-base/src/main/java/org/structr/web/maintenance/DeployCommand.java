@@ -32,7 +32,6 @@ import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.fulltext.Indexable;
-import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -202,7 +201,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public StreamingJsonWriter getJsonWriter() {
-		return new StreamingJsonWriter(new StaticValue<String>(PropertyView.All), true, 1, false, true);
+		return new StreamingJsonWriter(PropertyView.All, true, 1, false, true);
 	}
 
 	public Gson getGson() {

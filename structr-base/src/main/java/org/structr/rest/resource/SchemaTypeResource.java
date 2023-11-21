@@ -29,33 +29,32 @@ import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 import java.util.*;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class SchemaTypeResource extends APIEndpoint {
+public class SchemaTypeResource extends RESTEndpoint {
 
-	private static final APIParameter typeParameter = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
 
 	public enum UriPart {
 		_schema
 	}
 
 	public SchemaTypeResource() {
-		super(
-			APIParameter.forStaticString(UriPart._schema.name()),
+		super(RESTParameter.forStaticString(UriPart._schema.name()),
 			typeParameter
 		);
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get(typeParameter);
 		if (typeName != null) {
@@ -75,7 +74,7 @@ public class SchemaTypeResource extends APIEndpoint {
 		return new PagingIterable<>("getSchemaTypeResult(" + rawType + ")", SchemaHelper.getSchemaTypeInfo(securityContext, rawType, type, propertyView));
 	}
 
-	private class SchemaTypeResourceHandler extends APICallHandler {
+	private class SchemaTypeResourceHandler extends RESTCallHandler {
 
 		private Class entityClass = null;
 		private String typeName   = null;

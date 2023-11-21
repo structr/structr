@@ -16,28 +16,29 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api.parameter;
+package org.structr.rest.api.parameter;
 
 /**
  *
- * @author Christian Morgner
  */
-public class StaticParameter implements APIParameter {
+public class PatternParameter implements RESTParameter {
 
-	private String part = null;
+	private String key     = null;
+	private String pattern = null;
 
-	public StaticParameter(final String part) {
+	public PatternParameter(final String key, final String pattern) {
 
-		this.part = part;
+		this.key     = key;
+		this.pattern = pattern;
 	}
 
 	@Override
 	public String key() {
-		return null;
+		return key;
 	}
 
 	@Override
 	public String urlPattern() {
-		return part;
+		return pattern;
 	}
 }

@@ -30,25 +30,25 @@ import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.web.entity.User;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class MeResource extends APIEndpoint {
+public class MeResource extends RESTEndpoint {
 
 	public MeResource() {
-		super(APIParameter.forStaticString("me"));
+		super(RESTParameter.forStaticString("me"));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final Principal user = securityContext.getUser(true);
 		if (user != null) {
@@ -59,7 +59,7 @@ public class MeResource extends APIEndpoint {
 		return null;
 	}
 
-	private class MeResourceHandler extends APICallHandler {
+	private class MeResourceHandler extends RESTCallHandler {
 
 		public MeResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

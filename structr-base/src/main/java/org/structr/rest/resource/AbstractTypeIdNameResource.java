@@ -21,21 +21,21 @@ package org.structr.rest.resource;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
-import org.structr.api.parameter.APIParameter;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource that matches /{type}/{id}/{name} URLs.
  */
-public abstract class AbstractTypeIdNameResource extends APIEndpoint {
+public abstract class AbstractTypeIdNameResource extends RESTEndpoint {
 
-	private static final APIParameter typeParameter = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final APIParameter uuidParameter = APIParameter.forPattern("uuid", Settings.getValidUUIDRegexString());
-	private static final APIParameter nameParameter = APIParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
+	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
 
 	public AbstractTypeIdNameResource() {
 
@@ -46,10 +46,10 @@ public abstract class AbstractTypeIdNameResource extends APIEndpoint {
 		);
 	}
 
-	public abstract APICallHandler handleTypeIdName(final SecurityContext securityContext, final APICall call, final String typeName, final String uuid, final String name);
+	public abstract RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException;
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get(typeParameter);
 		final String uuid     = call.get(uuidParameter);

@@ -18,13 +18,11 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
@@ -36,12 +34,10 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
+import org.structr.schema.action.EvaluationHints;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
@@ -99,76 +95,31 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(node.getClass());
-			if (methods.containsKey(key) && !Modifier.isStatic(methods.get(key).getModifiers())) {
+			final MethodSignature signature = Methods.getMethodSignatureOrNull(node.getClass(), node, key);
+			if (signature != null) {
 
-				final Method method = methods.get(key);
+				// dont call static methods here, but warn instead
+				if (signature.isStatic()) {
 
-				System.out.println("########## METHODS: ProxyExecutable that calls Method.invoke() directly on the Method object.");
+					// At this point method is guaranteed to be static since earlier isStatic check was true
+					logger.warn("Tried calling a static type method in a non-static way on a type instance.");
+					return null;
+				}
 
 				final ProxyExecutable executable = arguments -> {
 
-
-					// This calls an @Exported schema method, which in turn calls Actions.execute(....),
-
 					try {
 
-						int paramCount = method.getParameterCount();
+						final MethodCall call = signature.createCall(arguments);
 
-						if (paramCount == 0) {
+						return PolyglotWrapper.wrap(actionContext, call.execute(actionContext.getSecurityContext(), new EvaluationHints()));
 
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node));
-
-						} else if (paramCount == 1) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
-
-						} else if (paramCount == 2 && arguments.length == 0) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-
-						} else if (arguments.length == 0) {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, actionContext.getSecurityContext()));
-
-						} else {
-
-							return PolyglotWrapper.wrap(actionContext, method.invoke(node, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-						}
-
-					} catch (IllegalArgumentException ex) {
-
-						throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
-
-					} catch (IllegalAccessException ex) {
-
-						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
-
-					} catch (InvocationTargetException ex) {
-
-						if (ex.getTargetException() instanceof FrameworkException) {
-
-							throw new RuntimeException(ex.getTargetException());
-
-						} else if (ex.getTargetException() instanceof AssertException) {
-
-							throw ((AssertException)ex.getTargetException());
-						}
-
-						logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+					} catch (FrameworkException ex) {
+						throw new RuntimeException(ex);
 					}
-
-					return null;
-
 				};
 
 				return executable;
-
-			} else if (methods.containsKey(key)) {
-
-				// At this point method is guaranteed to be static since earlier isStatic check was true
-				logger.warn("Tried calling a static type method in a non-static way on a type instance.");
-				return null;
 
 			} else if (key.equals("grant")) {
 
@@ -249,7 +200,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final Class type = node.getClass();
 
-				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null;
+				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.getMethodSignatureOrNull(type, node, key) != null;
 
 			} else {
 

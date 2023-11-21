@@ -48,10 +48,10 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Content.ContentHandler;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 
 
 
@@ -257,17 +257,14 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final SchemaNode typeNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.name, type.getSimpleName()).getFirst();
+			final List<MethodSignature> methods = Methods.getAllMethods(type);
+			for (final MethodSignature method : methods) {
 
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
-			for (final Entry<String, Method> entry : methods.entrySet()) {
-
-				final String name = entry.getKey();
-				String methodSummary     = "";
-				String methodDescription = "";
+				final String name = method.getName();
 
 				final SchemaMethod schemaMethod = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, typeNode).andName(name).getFirst();
 				if (schemaMethod != null) {
+
 					methodSummary     = schemaMethod.getProperty(SchemaMethod.summary);
 					methodDescription = schemaMethod.getProperty(SchemaMethod.description);
 				}

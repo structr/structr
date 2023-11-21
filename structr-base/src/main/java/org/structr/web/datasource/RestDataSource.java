@@ -20,7 +20,6 @@ package org.structr.web.datasource;
 
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
@@ -44,8 +43,8 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoints;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 
 /**
  * List data source equivalent to a rest resource.
@@ -86,26 +85,18 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			request = renderContext.getRequest();
 		}
 
-		HttpServletResponse response = securityContext.getResponse();
-		if (response == null) {
-
-			response = renderContext.getResponse();
-		}
-
 		// initialize variables
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(request, restQuery);
-
-		// store original request
-		final HttpServletRequest origRequest = securityContext.getRequest();
+		final HttpServletRequest origRequest    = securityContext.getRequest();
 
 		// update request in security context
 		securityContext.setRequest(wrappedRequest);
 
-		APICallHandler handler = null;
+		RESTCallHandler handler = null;
 		try {
 
-			handler = APIEndpoints.resolveAPICallHandler(securityContext, request);
+			handler = RESTEndpoints.resolveRESTCallHandler(securityContext, wrappedRequest, PropertyView.Public);
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -119,7 +110,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		if (handler == null) {
 
 			return Collections.EMPTY_LIST;
-
 		}
 
 		// add sorting & paging

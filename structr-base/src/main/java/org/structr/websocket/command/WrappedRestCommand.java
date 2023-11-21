@@ -25,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.StaticValue;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -35,8 +34,8 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoints;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
 
 
 public class WrappedRestCommand extends AbstractCommand {
@@ -70,13 +69,12 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);
-		final StaticValue fakePropertyView      = new StaticValue(PropertyView.Public);
 
-		APICallHandler handler;
+		RESTCallHandler handler;
 
 		try {
 
-			handler = APIEndpoints.resolveAPICallHandler(socket.getSecurityContext(), wrappedRequest);
+			handler = RESTEndpoints.resolveRESTCallHandler(socket.getSecurityContext(), wrappedRequest, PropertyView.Public);
 
 		} catch (IllegalPathException | NotFoundException e) {
 

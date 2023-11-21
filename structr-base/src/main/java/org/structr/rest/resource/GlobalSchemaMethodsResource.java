@@ -22,77 +22,67 @@ package org.structr.rest.resource;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
+import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.api.MethodCall;
+import org.structr.core.api.MethodSignature;
+import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  *
  */
-public class GlobalSchemaMethodsResource extends APIEndpoint {
+public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 	private static final Logger logger              = LoggerFactory.getLogger(MaintenanceResource.class.getName());
-	private static final APIParameter nameParameter = APIParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
 
 	public GlobalSchemaMethodsResource() {
 
-		super(
-			APIParameter.forStaticString("maintenance"),
-			APIParameter.forStaticString("globalSchemaMethods"),
+		super(RESTParameter.forStaticString("maintenance"),
+			RESTParameter.forStaticString("globalSchemaMethods"),
 			nameParameter
 		);
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(nameParameter);
-		if (typeName != null) {
+		final String methodName = call.get(nameParameter);
+		if (methodName != null) {
 
-			final App app = StructrApp.getInstance();
+			final MethodSignature signature = Methods.getMethodSignatureOrNull(null, null, methodName);
+			if (signature != null && signature.isStatic()) {
 
-			try (final Tx tx = app.tx()) {
-
-				final SchemaMethod method = app.nodeQuery(SchemaMethod.class).andName(typeName).and(SchemaMethod.schemaNode, null).getFirst();
-
-				tx.success();
-
-				if (method != null) {
-
-					return new GlobalSchemaMethodHandler(securityContext, typeName, method);
-				}
-
-			} catch (FrameworkException fex) {
-				logger.error(ExceptionUtils.getStackTrace(fex));
+				return new GlobalSchemaMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
 			}
 		}
 
 		return null;
 	}
 
-	private class GlobalSchemaMethodHandler extends APICallHandler {
+	private class GlobalSchemaMethodResourceHandler extends RESTCallHandler {
 
-		private SchemaMethod method = null;
+		private MethodCall call = null;
 
-		public GlobalSchemaMethodHandler(final SecurityContext securityContext, final String url, final SchemaMethod method) {
+		public GlobalSchemaMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
 
 			super(securityContext, url);
 
-			this.method = method;
+			this.call = call;
 		}
 
 		@Override
@@ -108,27 +98,19 @@ public class GlobalSchemaMethodsResource extends APIEndpoint {
 		@Override
 		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
 
-			final App app           = StructrApp.getInstance(securityContext);
-			RestMethodResult result = null;
+			final App app = StructrApp.getInstance(securityContext);
 
-			if (method != null) {
+			try (final Tx tx = app.tx()) {
 
-				try (final Tx tx = app.tx()) {
+				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
 
-					final String source     = method.getProperty(SchemaMethod.source);
-					final String methodName = method.getName();
+				tx.success();
 
-					result = StaticMethodResource.invoke(securityContext, null, source, propertySet, methodName, method.getUuid());
+				return result;
 
-					tx.success();
-				}
+			} catch (UnlicensedScriptException ex) {
+				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 			}
-
-			if (result == null) {
-				throw new IllegalPathException("Type and method name do not match the given path.");
-			}
-
-			return result;
 		}
 
 		@Override

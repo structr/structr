@@ -19,7 +19,7 @@
 package org.structr.web.resource;
 
 import java.util.Map;
-import org.structr.api.APICallHandler;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -31,7 +31,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.NotAllowedException;
 
-public class LogoutResourceHandler extends APICallHandler {
+public class LogoutResourceHandler extends RESTCallHandler {
 
 	public LogoutResourceHandler(final SecurityContext securityContext, final String url) {
 		super(securityContext, url);

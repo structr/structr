@@ -42,16 +42,16 @@ import org.structr.schema.SchemaHelper;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class SchemaResource extends APIEndpoint {
+public class SchemaResource extends RESTEndpoint {
 
 	private static final StringProperty urlProperty                      = new StringProperty("url");
 	private static final StringProperty typeProperty                     = new StringProperty("type");
@@ -76,11 +76,11 @@ public class SchemaResource extends APIEndpoint {
 	}
 
 	public SchemaResource() {
-		super(APIParameter.forStaticString(UriPart._schema.name()));
+		super(RESTParameter.forStaticString(UriPart._schema.name()));
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 		return new SchemaResourceHandler(securityContext, call.getURL());
 	}
 
@@ -252,7 +252,7 @@ public class SchemaResource extends APIEndpoint {
 		return null;
 	}
 
-	private class SchemaResourceHandler extends APICallHandler {
+	private class SchemaResourceHandler extends RESTCallHandler {
 
 		public SchemaResourceHandler(final SecurityContext securityContext, final String url) {
 			super(securityContext, url);

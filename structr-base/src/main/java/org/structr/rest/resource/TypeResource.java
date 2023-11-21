@@ -52,19 +52,19 @@ import org.structr.schema.SchemaHelper;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import org.structr.api.APICall;
-import org.structr.api.APICallHandler;
-import org.structr.api.APIEndpoint;
-import org.structr.api.parameter.APIParameter;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoint;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource that matches all keywords that might be entity types.
  */
-public class TypeResource extends APIEndpoint {
+public class TypeResource extends RESTEndpoint {
 
-	private static final APIParameter typeParameter = APIParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
+	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
 	private static final Logger logger              = LoggerFactory.getLogger(TypeResource.class.getName());
 
 	public TypeResource() {
@@ -72,7 +72,7 @@ public class TypeResource extends APIEndpoint {
 	}
 
 	@Override
-	public APICallHandler accept(final SecurityContext securityContext, final APICall call) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get(typeParameter);
 		if (typeName != null) {
@@ -128,7 +128,7 @@ public class TypeResource extends APIEndpoint {
 		return typeName;
 	}
 
-	private class CollectionResourceHandler extends APICallHandler {
+	private class CollectionResourceHandler extends RESTCallHandler {
 
 		private ResultTransformer virtualType   = null;
 		private Class entityClass               = null;

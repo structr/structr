@@ -854,7 +854,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 
 				node = app.create(SchemaNode.class, new NodeAttribute(SchemaNode.name, "TestType"));
 				node.setProperty(new StringProperty("_status"), "Enum(one, two, three)");
-				node.setProperty(new StringProperty("___ui"), "status");
+				node.setProperty(new StringProperty("__ui"), "status");
 
 				tx.success();
 			}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,31 +16,30 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.resource;
+package org.structr.core.api;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.structr.common.SecurityContext;
+import java.util.Map;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
- * Resource that handles user logins.
+ *
  */
-public class LoginResource extends RESTEndpoint {
+public abstract class MethodSignature {
 
-	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
+	protected String name = null;
 
-	public LoginResource() {
-		super(RESTParameter.forStaticString("login"));
+	public MethodSignature(final String name) {
+		this.name = name;
 	}
 
-	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LoginResourceHandler(securityContext, call.getURL());
+	public abstract boolean isStatic();
+
+	public abstract MethodCall createCall(final RESTCall parameters) throws FrameworkException;
+	public abstract MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException;
+	public abstract MethodCall createCall(final Object[] arguments) throws FrameworkException;
+
+	public String getName() {
+		return name;
 	}
 }

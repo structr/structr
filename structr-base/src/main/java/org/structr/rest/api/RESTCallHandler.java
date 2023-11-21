@@ -16,10 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.api;
+package org.structr.rest.api;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
@@ -28,6 +29,7 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.NotFoundException;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
@@ -55,14 +57,15 @@ import org.structr.rest.exception.IllegalPathException;
 /**
  *
  */
-public abstract class APICallHandler {
+public abstract class RESTCallHandler {
 
-	private static final Logger logger = LoggerFactory.getLogger(APICallHandler.class.getName());
+	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
 	protected SecurityContext securityContext = null;
+	protected String requestedView            = null;
 	protected String url                      = null;
 
-	public APICallHandler(final SecurityContext securityContext, final String url) {
+	public RESTCallHandler(final SecurityContext securityContext, final String url) {
 
 		this.securityContext = securityContext;
 		this.url             = url;
@@ -73,8 +76,21 @@ public abstract class APICallHandler {
 	public abstract boolean isCollection();
 	public abstract Class getEntityClass();
 
+	public void setRequestedView(final String view) {
+		this.requestedView = view;
+	}
+
+	public String getRequestedView() {
+		return requestedView;
+	}
+
 	public String getURL() {
 		return url;
+	}
+
+	public String getResourceSignature() {
+		// FIXME: fix resource signature
+		return getURL();
 	}
 
 	public RestMethodResult doHead() throws FrameworkException {
@@ -376,6 +392,29 @@ public abstract class APICallHandler {
 		}
 	}
 
+	protected RestMethodResult wrapInResult(final Object obj) {
+
+		RestMethodResult result = null;
+
+		if (obj instanceof RestMethodResult r) {
+
+			result = r;
+
+		} else {
+
+			result = new RestMethodResult(200);
+			result.addContent(obj);
+
+			if (obj instanceof Collection c) {
+
+				result.setOverridenResultCount(c.size());
+			}
+
+		}
+
+		return result;
+	}
+
 	protected static int parseInteger(final Object source) {
 
 		try {
@@ -384,37 +423,6 @@ public abstract class APICallHandler {
 		} catch (final Throwable t) {}
 
 		return -1;
-	}
-
-	protected GraphObject getEntity(final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		if (entityClass == null) {
-
-			if (uuid != null) {
-
-				throw new NotFoundException("Type " + typeName + " does not exist for request with entity ID " + uuid);
-
-			} else {
-
-				throw new NotFoundException("Request specifies no value for type and entity ID");
-			}
-		}
-
-		GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
-		if (entity != null) {
-
-			return entity;
-		}
-
-		entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
-		if (entity != null) {
-
-			return entity;
-		}
-
-		throw new NotFoundException("Entity with ID " + uuid + " of type " +  typeName +  " does not exist");
 	}
 
 	// ----- private methods -----

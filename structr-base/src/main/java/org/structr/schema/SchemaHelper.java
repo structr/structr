@@ -1054,6 +1054,8 @@ public class SchemaHelper {
 		final App app                             = StructrApp.getInstance();
 		final PropertyContainer propertyContainer = entity.getPropertyContainer();
 
+		// FIXME: this block creates SchemaMethod objects from ___-prefixed properties! This is very old and should probably be removed!
+		// FIXME: there are still some test methods that use this feature!
 		for (final String rawActionName : getActions(propertyContainer)) {
 
 			if (propertyContainer.hasProperty(rawActionName)) {
@@ -1441,7 +1443,7 @@ public class SchemaHelper {
 
 			if (Actions.Type.Custom.equals(action.getType())) {
 
-				formatActiveAction(src, codeSource, action);
+				formatScriptMethod(src, codeSource, action);
 
 			} else {
 
@@ -1522,17 +1524,25 @@ public class SchemaHelper {
 		}
 	}
 
-	public static void formatActiveAction(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
-		src.line(codeSource, "@Export");
+	public static void formatScriptMethod(final SourceFile src, final CodeSource codeSource, final ActionEntry action) {
+
+		src.line(codeSource, "@Export(schemaMethodId = \"" + action.getCodeSource().getUuid() + "\")");
+		//src.line(codeSource, "@Export");
+
 		final SourceLine line = src.begin(codeSource, "public ");
+
 		if (action.isStatic()) {
 			line.append("static ");
 		}
+
 		line.append("java.lang.Object ");
 		line.append(action.getName());
 		line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
-		src.line(codeSource, "return");
+
+		//src.line(codeSource, "return");
+
 		action.getSource(src, action.isStatic() ? "null" :"this", true, false);
+
 		src.end();
 	}
 
