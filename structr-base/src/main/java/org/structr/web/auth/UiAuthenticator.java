@@ -402,12 +402,14 @@ public class UiAuthenticator implements Authenticator {
 		RuntimeEventLog.resourceAccess("Method not allowed", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-			"type", "RESOURCE_ACCESS",
-			"message", errorMessage,
-			"uri", securityContext.getCompoundRequestURI(),
+			"type",  "RESOURCE_ACCESS",
+			"message",   errorMessage,
+			"uri",       securityContext.getCompoundRequestURI(),
 			"signature", rawResourceSignature,
-			"method", method,
-			"validUser", validUser
+			"method",    method,
+			"validUser", validUser,
+			"userid",    (validUser ? user.getUuid() : ""),
+			"username",  (validUser ? user.getName() : "")
 		));
 
 		throw new UnauthorizedException("Access denied");
