@@ -1583,7 +1583,6 @@ let _Crud = {
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				console.log('show create dialog!');
 				let elements = _Crud.showCreate(type);
 				dialogText = elements.dialogText;
 			}
@@ -2740,11 +2739,11 @@ type: ${node.type}`;
 		}
 		let typeDef = _Crud.types[type];
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Create new ${type}`);
+		let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
 
-		dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+		dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
 
-		let table = dialogText.querySelector('table');
+		let table = dialog.dialogText.querySelector('table');
 
 		for (let key in _Crud.keys[type]) {
 
@@ -2768,6 +2767,7 @@ type: ${node.type}`;
 
 				_Crud.populateCell(null, key, type, null, cell);
 			}
+
 		}
 
 		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
@@ -2778,6 +2778,8 @@ type: ${node.type}`;
 			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
 			_Crud.crudCreate(type, json, undefined, () => { _Helpers.enableElement(dialogSaveButton); });
 		});
+
+		return dialog;
 	},
 	getHiddenKeys: (type) => {
 
