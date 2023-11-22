@@ -215,40 +215,45 @@ public class NodeService implements SingletonService {
 
 	public void createAdminUser() {
 
-		if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
+		if (Boolean.TRUE.equals(Settings.InitialAdminUserCreate.getValue())) {
 
-			// do two very quick count queries to determine the number of Structr nodes in the database
-			final CountResult count           = getInitialCounts();
-			final long nodeCount              = count.getNodeCount();
-			final boolean hasApplicationNodes = nodeCount > 0;
+			if (!Services.isTesting() && servicesParent.hasExclusiveDatabaseAccess()) {
 
-			if (!hasApplicationNodes) {
+				// do two very quick count queries to determine the number of Structr nodes in the database
+				final CountResult count           = getInitialCounts();
+				final long nodeCount              = count.getNodeCount();
+				final boolean hasApplicationNodes = nodeCount > 0;
 
-				logger.info("Creating initial user..");
+				if (!hasApplicationNodes) {
 
-				final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
-				if (userType != null) {
+					logger.info("Creating initial user..");
 
-					final PropertyKey<Boolean> isAdminKey = StructrApp.key(userType, "isAdmin");
-					final PropertyKey<String> passwordKey = StructrApp.key(userType, "password");
-					final PropertyKey<String> nameKey     = StructrApp.key(userType, "name");
-					final App app                         = StructrApp.getInstance();
+					final Class userType = StructrApp.getConfiguration().getNodeEntityClass("User");
+					if (userType != null) {
 
-					try (final Tx tx = app.tx()) {
+						final App app = StructrApp.getInstance();
 
-						app.create(userType,
-							new NodeAttribute<>(nameKey,     "admin"),
-							new NodeAttribute<>(passwordKey, "admin"),
-							new NodeAttribute<>(isAdminKey,  true)
-						);
+						try (final Tx tx = app.tx()) {
 
-						tx.success();
+							app.create(userType,
+								new NodeAttribute<>(StructrApp.key(userType, "name"),     Settings.InitialAdminUserName.getValue()),
+								new NodeAttribute<>(StructrApp.key(userType, "password"), Settings.InitialAdminUserPassword.getValue()),
+								new NodeAttribute<>(StructrApp.key(userType, "isAdmin"),  true)
+							);
 
-					} catch (Throwable t) {
-						logger.warn("Unable to create initial user: {}", t.getMessage());
+							tx.success();
+
+						} catch (Throwable t) {
+
+							logger.warn("Unable to create initial user: {}", t.getMessage());
+						}
 					}
 				}
 			}
+
+		} else {
+
+			logger.info("Not creating initial user, as per configuration");
 		}
 	}
 
