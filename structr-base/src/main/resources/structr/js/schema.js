@@ -3132,7 +3132,7 @@ let _Schema = {
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
-					closeOnSelect: false,
+					closeOnSelect: true,
 					scrollAfterSelect: false,
 					dropdownParent: dropdownParent
 				});
