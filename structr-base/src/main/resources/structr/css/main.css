@@ -1037,6 +1037,14 @@ img.disabled {
 	max-width: 75%;
 }
 
+.abbr-ellipsis.abbr-80pc {
+	max-width: 80%;
+}
+
+.abbr-ellipsis.abbr-100pc {
+	max-width: 100%;
+}
+
 .abbr-ellipsis.abbr-80 {
 	max-width: 80px;
 }
