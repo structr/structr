@@ -310,10 +310,32 @@ input.readonly {
 /*
 * Search
 */
+
+.dialogText input.search {
+	margin-right: 12px;
+}
+
 .searchResults {
 	height: 100%;
 	overflow-y: auto;
 	flex-grow: 1;
+}
+
+.searchResults h2 {
+	color: var(--gray-333);
+	clear: both;
+	margin: 12px 0 0 12px;
+}
+
+.searchResults .search-results-info {
+	display: block;
+	margin: 8px 0 4px 12px;
+	color: var(--gray-555);
+	font-size: .9rem;
+}
+
+.dialogText .searchResults h2 {
+	margin-top: -4px;
 }
 
 .searchResults h3 {

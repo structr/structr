@@ -2327,6 +2327,7 @@ let _Crud = {
 		el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
 		let searchResults = $('.searchResults', el);
 
+		searchResults.append(`<span class="search-results-info">Showing the first ${optionalPageSize||1000} results. Use the input field to refine your search.</span>`);
 		Structr.resize();
 
 		let types;
