@@ -18,7 +18,7 @@
 	<properties>
 		<jetty.version>11.0.15</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
-		<imageio.version>3.8.0</imageio.version>
+		<imageio.version>3.9.3</imageio.version>
 		<batik.version>[1.17,)</batik.version>
 		<graal.version>22.3.2</graal.version>
 		<apache.sshd.version>2.7.0</apache.sshd.version>

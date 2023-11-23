@@ -967,7 +967,7 @@ public abstract class ImageHelper extends FileHelper {
 
 
 		public static enum Format {
-			png, jpg, jpeg, gif, tiff;
+			png, jpg, jpeg, gif;
 		}
 
 		public static Format defaultFormat = Format.jpeg;
