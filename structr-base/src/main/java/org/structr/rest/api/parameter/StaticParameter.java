@@ -27,13 +27,12 @@ public class StaticParameter implements RESTParameter {
 	private String part = null;
 
 	public StaticParameter(final String part) {
-
 		this.part = part;
 	}
 
 	@Override
 	public String key() {
-		return null;
+		return part;
 	}
 
 	@Override

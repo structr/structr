@@ -224,4 +224,9 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	public boolean isCollection() {
 		return false;
 	}
+
+	@Override
+	public String getResourceSignature() {
+		return "_resetPassword";
+	}
 }

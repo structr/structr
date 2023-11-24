@@ -359,7 +359,7 @@ public abstract class StructrUiTest {
 					.statusCode(200)
 
 				.when()
-					.delete("/resource_access");
+					.delete("/ResourceAccess");
 		}
 
 		// create new grant
@@ -376,7 +376,7 @@ public abstract class StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post("/resource_access");
+				.post("/ResourceAccess");
 	}
 
 	protected void testGet(final String resource, final int expectedStatusCode) {

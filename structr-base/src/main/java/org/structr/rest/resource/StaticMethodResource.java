@@ -47,7 +47,7 @@ import org.structr.schema.action.EvaluationHints;
 public class StaticMethodResource extends RESTEndpoint {
 
 	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
 
 	public StaticMethodResource() {
 

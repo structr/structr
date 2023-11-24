@@ -59,33 +59,33 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testGraphBasedIndexingSearchOnNotionProperties() {
 
-		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
-		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
-		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
-		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
-		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
+		String test01 = createEntity("/TestSix", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/TestSix", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/TestSix", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/TestSix", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/TestSix", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
 
-		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
-		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
-		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
-		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
+		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
+		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
+		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
+		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
 
-		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
-		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
-		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
-		String test16 = createEntity("/test_eights", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
-		String test17 = createEntity("/test_eights", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
-		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
-		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
-		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
+		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
+		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
+		String test16 = createEntity("/TestEight", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
+		String test17 = createEntity("/TestEight", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
+		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
+		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
+		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
 
-		String test21 = createEntity("/test_sixs", "{ name: test21, aString: string21, anInt: 21 }");
-		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
+		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
+		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
 
-		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
+		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with one object,
 		// expected result is a list of two elements:
@@ -104,7 +104,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test02))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
 
 		// test inexact related search with one object,
 		// expected result is a list of four elements:
@@ -127,7 +127,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=0&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testSevenName=0&_loose=1"));
 
 
 		// test simple related search with two objects, AND,
@@ -144,7 +144,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixIds=", test01, ",", test06));
+				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ",", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -163,7 +163,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -181,7 +181,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixIds=", test01));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -202,7 +202,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01, ";", test06));
 
 		// test related search with two related properties,
 		// expected result is a single object:
@@ -220,7 +220,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09&testEightStrings=string20"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09&testEightStrings=string20"));
 
 
 		// test related search with a single related property and two
@@ -240,7 +240,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09&aString=string01&anInt=1"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09&aString=string01&anInt=1"));
 
 		// test related search with two related properties and one
 		// indexed property that should filter the result set.
@@ -259,7 +259,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test07))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
 
 		// test inexact related search with collection property
 		// expected result is a list of four objects:
@@ -280,7 +280,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=2&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=2&_loose=1"));
 
 		// test inexact related search with two collection properties
 		// expected result is a list of four objects:
@@ -302,7 +302,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=1&testSevenName=0&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=1&testSevenName=0&_loose=1"));
 
 		// test inexact related search with collection property and
 		// two filter properties,
@@ -321,7 +321,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test08))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=2&testSevenName=test12&anInt=8&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=2&testSevenName=test12&anInt=8&_loose=1"));
 
 		// test related search with one empty related property,
 		// expected result is a list of two objects:
@@ -340,7 +340,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName="));
+				.get(concat("/TestSix?_sort=name&testSevenName="));
 
 
 		// test related search with one related property and one
@@ -361,7 +361,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=&testEightStrings=string23"));
+				.get(concat("/TestSix?_sort=name&testSevenName=&testEightStrings=string23"));
 
 		// test related search with one related property, one empty
 		// related property and two indexed properties
@@ -380,39 +380,39 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test21))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
+				.get(concat("/TestSix?_sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
 	}
 
 	@Test
 	public void testGraphBasedIndexingSearchOnRelatedNodeProperties() {
 
-		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
-		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
-		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
-		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
-		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
+		String test01 = createEntity("/TestSix", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/TestSix", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/TestSix", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/TestSix", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/TestSix", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
 
-		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
-		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
-		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
-		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
+		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
+		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
+		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
+		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
 
-		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
-		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
-		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
-		String test16 = createEntity("/test_eights", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
-		String test17 = createEntity("/test_eights", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
-		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
-		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
-		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
+		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
+		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
+		String test16 = createEntity("/TestEight", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
+		String test17 = createEntity("/TestEight", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
+		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
+		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
+		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
 
-		String test21 = createEntity("/test_sixs", "{ name: test21, aString: string21, anInt: 21 }");
-		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
+		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
+		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
 
-		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
+		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with two objects, AND,
 		// expected result is empty
@@ -428,7 +428,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ",", test06));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test06));
 
 		// test simple related search with two objects, AND,
 		// expected result is exactly one element
@@ -446,7 +446,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test09))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ",", test02));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test02));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -465,7 +465,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -483,7 +483,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of four elements:
@@ -503,7 +503,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -521,21 +521,21 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test13))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01, ",", test02));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ",", test02));
 
 	}
 
 	//@Test
 	public void testGraphBasedIndexingSearchCombinedWithGeocoding() {
 
-		String test01 = createEntity("/test_eights", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/test_eights", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/test_eights", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/test_eights", "{ name: test04, aString: string04, anInt: 4 }");
+		String test01 = createEntity("/TestEight", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/TestEight", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/TestEight", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/TestEight", "{ name: test04, aString: string04, anInt: 4 }");
 
-		String test05 = createEntity("/test_nines", "{ name: test05, city: Dortmund, street: Strobelallee, testEightIds: [ ", test01, ",", test02, "] }");
-		String test06 = createEntity("/test_nines", "{ name: test06, city: 'Fehlerstadt', street: 'Unbekanntstraße', testEightIds: [ ", test03, ",", test04, "] }");
-		String test07 = createEntity("/test_nines", "{ name: test07, city: München, street: Maximiliansplatz }");
+		String test05 = createEntity("/TestNine", "{ name: test05, city: Dortmund, street: Strobelallee, testEightIds: [ ", test01, ",", test02, "] }");
+		String test06 = createEntity("/TestNine", "{ name: test06, city: 'Fehlerstadt', street: 'Unbekanntstraße', testEightIds: [ ", test03, ",", test04, "] }");
+		String test07 = createEntity("/TestNine", "{ name: test07, city: München, street: Maximiliansplatz }");
 
 		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test05);
 		RestAssured.given().filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200)).get("/TestNine/" + test06);
@@ -559,7 +559,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].longitude",  notNullValue())
 
 			.when()
-				.get(concat("/test_nines"));
+				.get(concat("/TestNine"));
 
 		// test geocoding, expected result is a list of 2 objects
 		// test01 and test02
@@ -577,7 +577,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id",         equalTo(test02))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testNinePostalCodes=44139"));
+				.get(concat("/TestEight?_sort=name&testNinePostalCodes=44139"));
 
 		// test spatial search, expected result is a single object:
 		// test05
@@ -594,7 +594,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=2&_location=Poststraße,Dortmund"));
+				.get(concat("/TestNine?_distance=2&_location=Poststraße,Dortmund"));
 
 
 
@@ -617,7 +617,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal"));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
 
 		// test spatial search in combination with graph-based related node search,
 		// expected result is a single result:
@@ -635,7 +635,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal&testEightIds=", test01));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal&testEightIds=", test01));
 
 		// test spatial search in combination with an empty related node property,
 		// expected result is a single result:
@@ -658,19 +658,19 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				//.body("result[0].id",         equalTo(test06))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal"));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
 	}
 
 	@Test
 	public void testMultiValueSearch() {
 
-		String test01 = createEntity("/test_sixs", "{ aString: string01 }");
-		String test02 = createEntity("/test_sixs", "{ aString: string02 }");
-		String test03 = createEntity("/test_sixs", "{ aString: string03 }");
-		String test04 = createEntity("/test_sixs", "{ aString: string04 }");
-		String test05 = createEntity("/test_sixs", "{ aString: string05 }");
-		String test06 = createEntity("/test_sixs", "{ aString: string06 }");
-		String test07 = createEntity("/test_sixs", "{ aString: string07 }");
+		String test01 = createEntity("/TestSix", "{ aString: string01 }");
+		String test02 = createEntity("/TestSix", "{ aString: string02 }");
+		String test03 = createEntity("/TestSix", "{ aString: string03 }");
+		String test04 = createEntity("/TestSix", "{ aString: string04 }");
+		String test05 = createEntity("/TestSix", "{ aString: string05 }");
+		String test06 = createEntity("/TestSix", "{ aString: string06 }");
+		String test07 = createEntity("/TestSix", "{ aString: string07 }");
 
 		RestAssured
 
@@ -689,7 +689,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[2].id",         equalTo(test06))
 
 			.when()
-				.get(concat("/test_sixs?_sort=aString&aString=string02;string04;string06"));
+				.get(concat("/TestSix?_sort=aString&aString=string02;string04;string06"));
 
 
 	}
@@ -821,7 +821,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.statusCode(200)
 
 				.when()
-					.get(concat("/test_threes?_sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
+					.get(concat("/TestThree?_sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
 
 
 
@@ -843,9 +843,9 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try {
 
 			// create 3 users
-			final String user1 = createEntity("/test_users", "{ name: user1 }");
-			final String user2 = createEntity("/test_users", "{ name: user2 }");
-			final String user3 = createEntity("/test_users", "{ name: user3 }");
+			final String user1 = createEntity("/TestUser", "{ name: user1 }");
+			final String user2 = createEntity("/TestUser", "{ name: user2 }");
+			final String user3 = createEntity("/TestUser", "{ name: user3 }");
 
 			SchemaNode node = null;
 
@@ -860,15 +860,15 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			}
 
 			// create 9 test entities
-			final String test1 = createEntity("/test_types", "{ name: test1, owner: " + user1 + ", status: one }");
-			final String test2 = createEntity("/test_types", "{ name: test2, owner: " + user2 + ", status: two }");
-			final String test3 = createEntity("/test_types", "{ name: test3, owner: " + user3 + ", status: one }");
-			final String test4 = createEntity("/test_types", "{ name: test4, owner: " + user1 + ", status: two }");
-			final String test5 = createEntity("/test_types", "{ name: test5, owner: " + user2 + ", status: three }");
-			final String test6 = createEntity("/test_types", "{ name: test6, owner: " + user3 + ", status: one }");
-			final String test7 = createEntity("/test_types", "{ name: test7, owner: " + user1 + ", status: two }");
-			final String test8 = createEntity("/test_types", "{ name: test8, owner: " + user2 + ", status: three }");
-			final String test9 = createEntity("/test_types", "{ name: test9, owner: " + user3 + ", status: one }");
+			final String test1 = createEntity("/TestType", "{ name: test1, owner: " + user1 + ", status: one }");
+			final String test2 = createEntity("/TestType", "{ name: test2, owner: " + user2 + ", status: two }");
+			final String test3 = createEntity("/TestType", "{ name: test3, owner: " + user3 + ", status: one }");
+			final String test4 = createEntity("/TestType", "{ name: test4, owner: " + user1 + ", status: two }");
+			final String test5 = createEntity("/TestType", "{ name: test5, owner: " + user2 + ", status: three }");
+			final String test6 = createEntity("/TestType", "{ name: test6, owner: " + user3 + ", status: one }");
+			final String test7 = createEntity("/TestType", "{ name: test7, owner: " + user1 + ", status: two }");
+			final String test8 = createEntity("/TestType", "{ name: test8, owner: " + user2 + ", status: three }");
+			final String test9 = createEntity("/TestType", "{ name: test9, owner: " + user3 + ", status: one }");
 
 			// check that all entities are there
 			RestAssured
@@ -897,7 +897,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[8].id",         equalTo(test9))
 
 				.when()
-					.get("/test_types/ui?_sort=name");
+					.get("/TestType/ui?_sort=name");
 
 
 
@@ -922,7 +922,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[2].id",         equalTo(test7))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user1);
+					.get("/TestType/ui?_sort=createdDate&owner=" + user1);
 
 
 
@@ -947,7 +947,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[2].id",         equalTo(test8))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user2);
+					.get("/TestType/ui?_sort=createdDate&owner=" + user2);
 
 
 
@@ -972,7 +972,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[2].id",         equalTo(test9))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user3);
+					.get("/TestType/ui?_sort=createdDate&owner=" + user3);
 
 
 			// check entities of user1 with a given enum are there
@@ -995,7 +995,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[0].id",         equalTo(test1))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user1 + "&status=one");
+					.get("/TestType/ui?_sort=createdDate&owner=" + user1 + "&status=one");
 
 
 			// check entities of user1 with a given enum are there
@@ -1018,7 +1018,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[1].id",         equalTo(test7))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user1 + "&status=two");
+					.get("/TestType/ui?_sort=createdDate&owner=" + user1 + "&status=two");
 
 
 			// check entities of user1 with a given enum are there
@@ -1041,7 +1041,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.body("result[1].id",         equalTo(test8))
 
 				.when()
-					.get("/test_types/ui?_sort=createdDate&owner=" + user2 + "&status=three");
+					.get("/TestType/ui?_sort=createdDate&owner=" + user2 + "&status=three");
 
 
 
@@ -1060,29 +1060,29 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testStaticRelationshipResourceFilter() {
 
-		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
-		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
-		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
-		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
-		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
+		String test01 = createEntity("/TestSix", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/TestSix", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/TestSix", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/TestSix", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/TestSix", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
 
-		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
-		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
-		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
-		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
+		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
+		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
+		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
+		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
 
-		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
-		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
-		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
-		String test16 = createEntity("/test_eights", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
-		String test17 = createEntity("/test_eights", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
-		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
-		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
-		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
-		String test21 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test03, "], aString: string21, anInt: 21 }");
+		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
+		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
+		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
+		String test16 = createEntity("/TestEight", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
+		String test17 = createEntity("/TestEight", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
+		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
+		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
+		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test21 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test03, "], aString: string21, anInt: 21 }");
 
 		// test simple related node search
 		RestAssured
@@ -1104,7 +1104,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test13))
 
 			.when()
-				.get(concat("/test_sixs/", test01, "/testEights?aString=string13&anInt=13"));
+				.get(concat("/TestSix/", test01, "/testEights?aString=string13&anInt=13"));
 
 		// test simple related node search with range query
 		RestAssured
@@ -1127,7 +1127,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test15))
 
 			.when()
-				.get(concat("/test_sixs/", test03, "/testEights?anInt=[14 TO 18]"));
+				.get(concat("/TestSix/", test03, "/testEights?anInt=[14 TO 18]"));
 
 		// test simple related node search with range query (with null start)
 		RestAssured
@@ -1150,7 +1150,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test15))
 
 				.when()
-				.get(concat("/test_sixs/", test03, "/testEights?anInt=[ TO 15]"));
+				.get(concat("/TestSix/", test03, "/testEights?anInt=[ TO 15]"));
 
 		// test simple related node search with range query (with null end)
 		RestAssured
@@ -1173,7 +1173,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test21))
 
 				.when()
-				.get(concat("/test_sixs/", test03, "/testEights?anInt=[15 TO ]"));
+				.get(concat("/TestSix/", test03, "/testEights?anInt=[15 TO ]"));
 	}
 
 	/**
@@ -1187,19 +1187,19 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	public void testAmbiguity() {
 
 		// Create a TestTen with a TestSeven on the fly with {'aString':'test'}
-		createEntity("/test_tens", "{ 'name': 'test01', 'testSeven':{ 'aString' : 'test' } }");
+		createEntity("/TestTen", "{ 'name': 'test01', 'testSeven':{ 'aString' : 'test' } }");
 
 		// Create another TestSeven with {'aString':'test'}
-		createEntity("/test_sevens", "{ 'aString': 'test' }");
+		createEntity("/TestSeven", "{ 'aString': 'test' }");
 
 		// Create another TestTen with another TestSeven on the fly
-		createEntity("/test_tens", "{ 'name': 'test02', 'testSeven':{ 'aString' : 'test' } }");
+		createEntity("/TestTen", "{ 'name': 'test02', 'testSeven':{ 'aString' : 'test' } }");
 	}
 
 	@Test
 	public void testPropertyViewsAndResultSetLayout() {
 
-		String resource = "/test_twos";
+		String resource = "/TestTwo";
 
 		// create entity
 		final String uuid = getUuidFromLocation(RestAssured
@@ -1286,25 +1286,25 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testOutputNestingDepth() {
 
-		String test01 = createEntity("/test_ones", "{ name: test01, anInt: 1 }");
-		String test02 = createEntity("/test_ones", "{ name: test02, anInt: 2 }");
-		String test03 = createEntity("/test_ones", "{ name: test03, anInt: 3 }");
-		String test04 = createEntity("/test_ones", "{ name: test04, anInt: 4 }");
-		String test05 = createEntity("/test_ones", "{ name: test05, anInt: 5 }");
-		String test06 = createEntity("/test_ones", "{ name: test06, anInt: 6 }");
-		String test07 = createEntity("/test_ones", "{ name: test07, anInt: 7 }");
-		String test08 = createEntity("/test_ones", "{ name: test08, anInt: 8 }");
+		String test01 = createEntity("/TestOne", "{ name: test01, anInt: 1 }");
+		String test02 = createEntity("/TestOne", "{ name: test02, anInt: 2 }");
+		String test03 = createEntity("/TestOne", "{ name: test03, anInt: 3 }");
+		String test04 = createEntity("/TestOne", "{ name: test04, anInt: 4 }");
+		String test05 = createEntity("/TestOne", "{ name: test05, anInt: 5 }");
+		String test06 = createEntity("/TestOne", "{ name: test06, anInt: 6 }");
+		String test07 = createEntity("/TestOne", "{ name: test07, anInt: 7 }");
+		String test08 = createEntity("/TestOne", "{ name: test08, anInt: 8 }");
 
-		String test09 = createEntity("/test_twos", "{ name: test09, testOnes: [", test01, ",", test02, "], anInt: 9 }");
-		String test10 = createEntity("/test_twos", "{ name: test10, testOnes: [", test03, ",", test04, "], anInt: 10 }");
-		String test11 = createEntity("/test_twos", "{ name: test11, testOnes: [", test05, ",", test06, "], anInt: 11 }");
-		String test12 = createEntity("/test_twos", "{ name: test12, testOnes: [", test07, ",", test08, "], anInt: 12 }");
+		String test09 = createEntity("/TestTwo", "{ name: test09, testOnes: [", test01, ",", test02, "], anInt: 9 }");
+		String test10 = createEntity("/TestTwo", "{ name: test10, testOnes: [", test03, ",", test04, "], anInt: 10 }");
+		String test11 = createEntity("/TestTwo", "{ name: test11, testOnes: [", test05, ",", test06, "], anInt: 11 }");
+		String test12 = createEntity("/TestTwo", "{ name: test12, testOnes: [", test07, ",", test08, "], anInt: 12 }");
 
-		String test13 = createEntity("/test_elevens", "{ name: test13, testTwos: [", test09, ",", test10, "]}");
-		String test14 = createEntity("/test_elevens", "{ name: test14, testTwos: [", test11, ",", test12, "]}");
+		String test13 = createEntity("/TestEleven", "{ name: test13, testTwos: [", test09, ",", test10, "]}");
+		String test14 = createEntity("/TestEleven", "{ name: test14, testTwos: [", test11, ",", test12, "]}");
 
 		// test depth 0 wich should result only in the 2 TestEleven objects
-		String url = "/test_elevens?_outputNestingDepth=0";
+		String url = "/TestEleven?_outputNestingDepth=0";
 		RestAssured
 
 				.given()
@@ -1327,7 +1327,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(url);
 
 		// test depth 1 wich should result in a list with 2 TestEleven objects with each two TestTwo objects
-		url = "/test_elevens?_outputNestingDepth=1";
+		url = "/TestEleven?_outputNestingDepth=1";
 		RestAssured
 
 				.given()
@@ -1351,7 +1351,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(url);
 
 		// test depth 2 wich should result in a list with 2 TestEleven objects with each two TestTwo objects with each two TestOne objects
-		url = "/test_elevens?_outputNestingDepth=2";
+		url = "/TestEleven?_outputNestingDepth=2";
 		RestAssured
 
 				.given()
@@ -1375,7 +1375,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(url);
 
 		// test default depth value
-		url = "/test_elevens";
+		url = "/TestEleven";
 		RestAssured
 
 				.given()
@@ -1487,33 +1487,33 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 	@Test
 	public void testEmptyAndNonEmptyOnRemoteProperties() {
 
-		String test01 = createEntity("/test_sixs", "{ name: test01, aString: string01, anInt: 1 }");
-		String test02 = createEntity("/test_sixs", "{ name: test02, aString: string02, anInt: 2 }");
-		String test03 = createEntity("/test_sixs", "{ name: test03, aString: string03, anInt: 3 }");
-		String test04 = createEntity("/test_sixs", "{ name: test04, aString: string04, anInt: 4 }");
-		String test05 = createEntity("/test_sixs", "{ name: test05, aString: string05, anInt: 5 }");
-		String test06 = createEntity("/test_sixs", "{ name: test06, aString: string06, anInt: 6 }");
-		String test07 = createEntity("/test_sixs", "{ name: test07, aString: string07, anInt: 7 }");
-		String test08 = createEntity("/test_sixs", "{ name: test08, aString: string08, anInt: 8 }");
+		String test01 = createEntity("/TestSix", "{ name: test01, aString: string01, anInt: 1 }");
+		String test02 = createEntity("/TestSix", "{ name: test02, aString: string02, anInt: 2 }");
+		String test03 = createEntity("/TestSix", "{ name: test03, aString: string03, anInt: 3 }");
+		String test04 = createEntity("/TestSix", "{ name: test04, aString: string04, anInt: 4 }");
+		String test05 = createEntity("/TestSix", "{ name: test05, aString: string05, anInt: 5 }");
+		String test06 = createEntity("/TestSix", "{ name: test06, aString: string06, anInt: 6 }");
+		String test07 = createEntity("/TestSix", "{ name: test07, aString: string07, anInt: 7 }");
+		String test08 = createEntity("/TestSix", "{ name: test08, aString: string08, anInt: 8 }");
 
-		String test09 = createEntity("/test_sevens", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
-		String test10 = createEntity("/test_sevens", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
-		String test11 = createEntity("/test_sevens", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
-		String test12 = createEntity("/test_sevens", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
+		String test09 = createEntity("/TestSeven", "{ name: test09, testSixIds: [", test01, ",", test02, "], aString: string09, anInt: 9 }");
+		String test10 = createEntity("/TestSeven", "{ name: test10, testSixIds: [", test03, ",", test04, "], aString: string10, anInt: 10 }");
+		String test11 = createEntity("/TestSeven", "{ name: test11, testSixIds: [", test05, ",", test06, "], aString: string11, anInt: 11 }");
+		String test12 = createEntity("/TestSeven", "{ name: test12, testSixIds: [", test07, ",", test08, "], aString: string12, anInt: 12 }");
 
-		String test13 = createEntity("/test_eights", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
-		String test14 = createEntity("/test_eights", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
-		String test15 = createEntity("/test_eights", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
-		String test16 = createEntity("/test_eights", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
-		String test17 = createEntity("/test_eights", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
-		String test18 = createEntity("/test_eights", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
-		String test19 = createEntity("/test_eights", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
-		String test20 = createEntity("/test_eights", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
+		String test13 = createEntity("/TestEight", "{ name: test13, testSixIds: [", test01, ",", test02, "], aString: string13, anInt: 13 }");
+		String test14 = createEntity("/TestEight", "{ name: test14, testSixIds: [", test02, ",", test03, "], aString: string14, anInt: 14 }");
+		String test15 = createEntity("/TestEight", "{ name: test15, testSixIds: [", test03, ",", test04, "], aString: string15, anInt: 15 }");
+		String test16 = createEntity("/TestEight", "{ name: test16, testSixIds: [", test04, ",", test05, "], aString: string16, anInt: 16 }");
+		String test17 = createEntity("/TestEight", "{ name: test17, testSixIds: [", test05, ",", test06, "], aString: string17, anInt: 17 }");
+		String test18 = createEntity("/TestEight", "{ name: test18, testSixIds: [", test06, ",", test07, "], aString: string18, anInt: 18 }");
+		String test19 = createEntity("/TestEight", "{ name: test19, testSixIds: [", test07, ",", test08, "], aString: string19, anInt: 19 }");
+		String test20 = createEntity("/TestEight", "{ name: test20, testSixIds: [", test08, ",", test01, "], aString: string20, anInt: 20 }");
 
-		String test21 = createEntity("/test_sixs", "{ name: test21, aString: string21, anInt: 21 }");
-		String test22 = createEntity("/test_sixs", "{ name: test22, aString: string22, anInt: 22 }");
+		String test21 = createEntity("/TestSix", "{ name: test21, aString: string21, anInt: 21 }");
+		String test22 = createEntity("/TestSix", "{ name: test22, aString: string22, anInt: 22 }");
 
-		String test23 = createEntity("/test_eights", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
+		String test23 = createEntity("/TestEight", "{ name: test23, testSixIds: [", test21, ",", test22, "], aString: string23, anInt: 23 }");
 
 		// test simple related search with one object,
 		// expected result is a list of two elements:
@@ -1532,7 +1532,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test02))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
 	}
 
 

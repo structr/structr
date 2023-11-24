@@ -89,7 +89,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		RESTCallHandler handler          = null;
+		RESTCallHandler handler         = null;
 
 		setCustomResponseHeaders(response);
 

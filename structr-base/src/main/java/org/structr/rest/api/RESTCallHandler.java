@@ -89,8 +89,13 @@ public abstract class RESTCallHandler {
 	}
 
 	public String getResourceSignature() {
-		// FIXME: fix resource signature
-		return getURL();
+
+		// remove leading slash from resource access grant
+		if (url.startsWith("/")) {
+			return url.substring(1);
+		}
+
+		return url;
 	}
 
 	public RestMethodResult doHead() throws FrameworkException {

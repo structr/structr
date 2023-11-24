@@ -55,7 +55,7 @@ import org.structr.schema.SchemaHelper;
  * A resource that calls getProperty() addressed by URL, like /TypeName/uuid/propertyName.
  *
  */
-public class PropertyResource extends AbstractTypeIdNameResource {
+public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 	@Override
 	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) {

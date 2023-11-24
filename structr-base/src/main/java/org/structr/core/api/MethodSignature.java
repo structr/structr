@@ -37,7 +37,6 @@ public abstract class MethodSignature {
 
 	public abstract MethodCall createCall(final RESTCall parameters) throws FrameworkException;
 	public abstract MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException;
-	public abstract MethodCall createCall(final Object[] arguments) throws FrameworkException;
 
 	public String getName() {
 		return name;

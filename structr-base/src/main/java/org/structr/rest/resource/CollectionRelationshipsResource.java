@@ -19,8 +19,6 @@
 package org.structr.rest.resource;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
@@ -35,10 +33,10 @@ import org.structr.core.graph.RelationshipInterface;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.core.app.StructrApp;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoint;
-import org.structr.api.config.Settings;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
@@ -50,17 +48,15 @@ import org.structr.rest.api.parameter.RESTParameter;
  *
  *
  */
-public class RelationshipsResource extends RESTEndpoint {
+public class CollectionRelationshipsResource extends RESTEndpoint {
 
 	private static final RESTParameter typeParameter      = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter uuidParameter      = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
 	private static final RESTParameter directionParameter = RESTParameter.forPattern("rel",  "in|out");
 
-	public RelationshipsResource() {
+	public CollectionRelationshipsResource() {
 
 		super(
 			typeParameter,
-			uuidParameter,
 			directionParameter
 		);
 	}
@@ -69,10 +65,9 @@ public class RelationshipsResource extends RESTEndpoint {
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
 		final String typeName  = call.get(typeParameter);
-		final String uuid      = call.get(uuidParameter);
 		final String direction = call.get(directionParameter);
 
-		if (typeName != null && uuid != null && direction != null) {
+		if (typeName != null && direction != null) {
 
 			// test if resource class exists
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
@@ -80,11 +75,11 @@ public class RelationshipsResource extends RESTEndpoint {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, uuid, Direction.INCOMING);
+					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, uuid, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, Direction.OUTGOING);
 				}
 			}
 		}
@@ -93,79 +88,73 @@ public class RelationshipsResource extends RESTEndpoint {
 		return null;
 	}
 
-	private class RelationshipsResourceHandler extends RESTCallHandler {
+	private class RelationshipsResourceHandler extends CollectionResourceHandler {
 
 		public static final String REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES = "domainOnly";
-		private static final Logger logger = LoggerFactory.getLogger(RelationshipsResource.class.getName());
 
-		private Class entityClass   = null;
-		private String typeName     = null;
-		private String uuid         = null;
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final String uuid, final Direction direction) {
+		public RelationshipsResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final Direction direction) {
 
-			super(securityContext, url);
+			super(securityContext, url, StructrApp.getInstance(securityContext).nodeQuery(entityClass), entityClass, typeName, true);
 
-			this.entityClass = entityClass;
-			this.typeName    = typeName;
-			this.uuid        = uuid;
-			this.direction   = direction;
+			this.direction = direction;
 		}
 
 		@Override
 		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final List<GraphObject> resultList = new LinkedList<>();
-			final GraphObject obj              = getEntity(securityContext, entityClass, typeName, uuid);
 
-			if (obj instanceof AbstractNode node) {
+			for (final Object obj : super.doGet(sortOrder, pageSize, page)) {
 
-				List<? extends RelationshipInterface> relationships = null;
+				if (obj instanceof AbstractNode node) {
+					List<? extends RelationshipInterface> relationships = null;
 
-				switch (direction) {
+					switch (direction) {
 
-					case INCOMING:
+						case INCOMING:
 
-						relationships = Iterables.toList(node.getIncomingRelationships());
-						break;
-
-
-					case OUTGOING:
-
-						relationships = Iterables.toList(node.getOutgoingRelationships());
-						break;
-
-				}
+							relationships = Iterables.toList(node.getIncomingRelationships());
+							break;
 
 
-				if (relationships != null) {
+						case OUTGOING:
 
-					boolean filterInternalRelationshipTypes = false;
+							relationships = Iterables.toList(node.getOutgoingRelationships());
+							break;
 
-					if (securityContext != null && securityContext.getRequest() != null) {
-
-						final String filterInternal = securityContext.getRequest().getParameter(REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES);
-						if (filterInternal != null) {
-
-							filterInternalRelationshipTypes = "true".equals(filterInternal);
-						}
 					}
 
-					// allow the user to remove internal relationship types from
-					// the result set using the request parameter "filterInternal=true"
-					if (filterInternalRelationshipTypes) {
 
-						for (final RelationshipInterface rel : relationships) {
+					if (relationships != null) {
 
-							if (!rel.isInternal()) {
-								resultList.add(rel);
+						boolean filterInternalRelationshipTypes = false;
+
+						if (securityContext != null && securityContext.getRequest() != null) {
+
+							final String filterInternal = securityContext.getRequest().getParameter(REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES);
+							if (filterInternal != null) {
+
+								filterInternalRelationshipTypes = "true".equals(filterInternal);
 							}
 						}
 
-					} else {
+						// allow the user to remove internal relationship types from
+						// the result set using the request parameter "filterInternal=true"
+						if (filterInternalRelationshipTypes) {
 
-						resultList.addAll(relationships);
+							for (final RelationshipInterface rel : relationships) {
+
+								if (!rel.isInternal()) {
+									resultList.add(rel);
+								}
+							}
+
+						} else {
+
+							resultList.addAll(relationships);
+						}
 					}
 				}
 			}

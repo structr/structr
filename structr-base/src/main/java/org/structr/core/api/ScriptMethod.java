@@ -18,6 +18,7 @@
  */
 package org.structr.core.api;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -49,18 +50,19 @@ public class ScriptMethod extends MethodSignature {
 
 	@Override
 	public MethodCall createCall(final RESTCall parameters) throws FrameworkException {
-		return new ScriptMethodCall(null);
+
+		final Map<String, Object> converted = new LinkedHashMap<>();
+
+		// convert..
+
+		return createCall(converted);
 	}
 
 	@Override
 	public MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException {
+
 		// this method is called from Java code so the parameters do not need to be converted
 		return new ScriptMethodCall(parameters);
-	}
-
-	@Override
-	public MethodCall createCall(final Object[] arguments) throws FrameworkException {
-		return new ScriptMethodCall(null);
 	}
 
 	private class ScriptMethodCall implements MethodCall {

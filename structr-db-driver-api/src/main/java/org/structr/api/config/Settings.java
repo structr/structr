@@ -975,10 +975,18 @@ public class Settings {
 
 	public static String getValidUUIDRegexString() {
 
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
+
 		return Settings.uuidOnlyRegex;
 	}
 
 	public static String getValidUUIDRegexStringForURLParts() {
+
+		if (Settings.uuidPattern == null) {
+			initializeValidUUIDPatternOnce();
+		}
 
 		return Settings.uuidPartRegex;
 	}
@@ -1008,7 +1016,7 @@ public class Settings {
 				break;
 		}
 
-		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());
+		Settings.uuidPattern = Pattern.compile(Settings.uuidOnlyRegex);
 	}
 
 	public static boolean isValidUuid(final String id) {

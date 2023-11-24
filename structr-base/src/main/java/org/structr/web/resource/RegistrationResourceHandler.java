@@ -197,6 +197,10 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		throw new NotAllowedException("OPTIONS not allowed on " + getURL());
 	}
 
+	@Override
+	public String getResourceSignature() {
+		return "_registration";
+	}
 
 	private void sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 

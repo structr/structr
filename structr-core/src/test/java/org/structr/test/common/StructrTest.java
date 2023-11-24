@@ -454,7 +454,7 @@ public class StructrTest {
 
 			final MethodCall call = signature.createCall(parameters);
 
-			call.execute(securityContext, new EvaluationHints());
+			return call.execute(securityContext, new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

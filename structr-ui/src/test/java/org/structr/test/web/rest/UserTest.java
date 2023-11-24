@@ -42,8 +42,6 @@ import static org.hamcrest.Matchers.equalTo;
  */
 public class UserTest extends StructrUiTest {
 
-	private static final Logger logger = LoggerFactory.getLogger(UserTest.class.getName());
-
 	@Test
 	public void testAdminUserCreation() {
 
@@ -65,7 +63,7 @@ public class UserTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(422)
+				.statusCode(401)
 			.when()
 				.post("/User");
 
@@ -84,7 +82,7 @@ public class UserTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(422)
+				.statusCode(401)
 			.when()
 				.post("/User");
 
