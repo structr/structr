@@ -294,7 +294,9 @@ public class UiAuthenticator implements Authenticator {
 				"uri", securityContext.getCompoundRequestURI(),
 				"signature", rawResourceSignature,
 				"method", method,
-				"validUser", validUser
+				"validUser", validUser,
+				"userid",    (validUser ? user.getUuid() : ""),
+				"username",  (validUser ? user.getName() : "")
 			));
 
 			throw new UnauthorizedException("Access denied");

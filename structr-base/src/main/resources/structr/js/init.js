@@ -2262,7 +2262,7 @@ class MessageBuilder {
 
 		if (this.params.requiresConfirmation === true) {
 
-			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666">${this.params.confirmButtonText}</button>`);
+			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666 mb-2">${this.params.confirmButtonText}</button>`);
 			buttonElement.appendChild(confirmationButton);
 
 			confirmationButton.addEventListener('click', (e) => {
@@ -2272,7 +2272,7 @@ class MessageBuilder {
 
 			if (this.params.allowConfirmAll === true) {
 
-				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666">${this.params.confirmAllButtonText}</button>`);
+				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666 mb-2">${this.params.confirmAllButtonText}</button>`);
 				buttonElement.appendChild(confirmAllButton);
 
 				confirmAllButton.addEventListener('click', () => {
@@ -2295,7 +2295,7 @@ class MessageBuilder {
 
 		for (let btn of this.params.specialInteractionButtons) {
 
-			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666">${btn.text}</button>`);
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mb-2">${btn.text}</button>`);
 			buttonElement.appendChild(specialBtn);
 
 			specialBtn.addEventListener('click', () => {
@@ -2376,7 +2376,7 @@ class MessageBuilder {
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mt-2 mb-1"></div>
+						<div class="message-buttons text-right mt-2"></div>
 					</div>
 				</div>
 			`);
