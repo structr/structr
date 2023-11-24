@@ -64,10 +64,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.UserPrincipalLookupService;
+import java.nio.file.attribute.*;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
@@ -2674,7 +2671,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// File Visitor to set group ownership on files created by the deployment export.
 	public static class GroupAddFileVisitor extends SimpleFileVisitor<Path> {
 
+		final Set<PosixFilePermission> perms = EnumSet.of(
+				PosixFilePermission.GROUP_READ,
+				PosixFilePermission.GROUP_WRITE,
+				PosixFilePermission.GROUP_EXECUTE
+		);
+
 		GroupPrincipal group;
+
 		GroupAddFileVisitor(GroupPrincipal group) {
 			super();
 			this.group = group;
@@ -2683,7 +2687,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
 			try {
-				Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+
+				PosixFileAttributeView view = Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+				view.setGroup(this.group);
+				Files.setPosixFilePermissions(file, perms);
+
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
@@ -2693,7 +2701,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) {
 			try {
-				Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS).setGroup(this.group);
+
+				PosixFileAttributeView view = Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+				view.setGroup(this.group);
+				Files.setPosixFilePermissions(dir, perms);
+
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
