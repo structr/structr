@@ -58,7 +58,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 
@@ -71,17 +71,17 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].dateProperty", equalTo("2013-04-05T08:43:40+0000"))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 	}
 
 	@Test
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test'                     } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test'                     } ").expect().statusCode(201).when().post("/TestThree");
 
 		// test for three elements
 		RestAssured.given()
@@ -95,7 +95,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(4))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		// test strict search
 		RestAssured.given()
@@ -109,7 +109,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].dateProperty", equalTo("2013-04-03T10:34:56+0000"))
 		.when()
-			.get("/test_threes?dateProperty=2013-04-03T10:34:56+0000");
+			.get("/TestThree?dateProperty=2013-04-03T10:34:56+0000");
 
 		// test empty value
 		RestAssured.given()
@@ -124,15 +124,15 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.body("result_count", equalTo(1))
 			.body("result[0].name", equalTo("test"))
 		.when()
-			.get("/test_threes?dateProperty=");
+			.get("/TestThree?dateProperty=");
 	}
 
 	@Test
 	public void testRangeSearch1() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
 
 		// test range query
 		RestAssured.given()
@@ -146,16 +146,16 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?dateProperty=[2013-04-03T10:34:56+0000 TO 2013-04-06T23:59:59+0000]");
+			.get("/TestThree?dateProperty=[2013-04-03T10:34:56+0000 TO 2013-04-06T23:59:59+0000]");
 
 	}
 
 	@Test
 	public void testRangeSearch2() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
 
 		// test range query
 		RestAssured.given()
@@ -169,16 +169,16 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
+			.get("/TestThree?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
 
 	}
 
 	@Test
 	public void testRangeSearch3() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
 
 		// range search pattern with null start
 		RestAssured.given()
@@ -192,15 +192,15 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count", equalTo(2))
 				.when()
-				.get("/test_threes?dateProperty=[ TO 2013-04-06T23:59:59+0000]");
+				.get("/TestThree?dateProperty=[ TO 2013-04-06T23:59:59+0000]");
 	}
 
 	@Test
 	public void testRangeSearch4() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-03T10:34:56+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-05T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'dateProperty' : '2013-04-07T08:43:40+0000' } ").expect().statusCode(201).when().post("/TestThree");
 
 		// range search pattern with null end
 		RestAssured.given()
@@ -214,7 +214,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count", equalTo(1))
 				.when()
-				.get("/test_threes?dateProperty=[2013-04-06T23:59:59+0000 TO ]");
+				.get("/TestThree?dateProperty=[2013-04-06T23:59:59+0000 TO ]");
 	}
 
 	@Test

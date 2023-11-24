@@ -21,6 +21,9 @@ package org.structr.core.api;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,19 +58,19 @@ public class ReflectiveMethod extends MethodSignature {
 
 	@Override
 	public MethodCall createCall(final RESTCall parameters) throws FrameworkException {
-		return new ReflectiveMethodCall(null);
+
+		final Map<String, Object> converted = new LinkedHashMap<>();
+
+		// convert..
+
+		return createCall(converted);
 	}
 
 	@Override
 	public MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException {
+
 		// this method is called from Java code so the parameters do not need to be converted
 		return new ReflectiveMethodCall(parameters);
-	}
-
-	@Override
-	public MethodCall createCall(final Object[] arguments) throws FrameworkException {
-		// this method is called from within the scripting engine so the parameters do not need to be converted
-		return new ReflectiveMethodCall(null);
 	}
 
 	private class ReflectiveMethodCall implements MethodCall {
@@ -81,20 +84,34 @@ public class ReflectiveMethod extends MethodSignature {
 		@Override
 		public Object execute(final SecurityContext securityContext, final EvaluationHints hints) {
 
-			final Object[] args = { securityContext };
+			final List<Object> args = new LinkedList<>();
+
+			if (method.getParameterCount() > 0) {
+				args.add(securityContext);
+			}
+
+			if (method.getParameterCount() > 1) {
+				args.add(propertySet);
+			}
 
 			try {
-				return method.invoke(entity, args);
+				return method.invoke(entity, args.toArray());
 
 			} catch (IllegalArgumentException ex) {
+
+				ex.printStackTrace();
 
 				throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
 
 			} catch (IllegalAccessException ex) {
 
+				ex.printStackTrace();
+
 				logger.error("Unexpected exception while trying to get GraphObject member.", ex);
 
 			} catch (InvocationTargetException ex) {
+
+				ex.printStackTrace();
 
 				if (ex.getTargetException() instanceof FrameworkException) {
 

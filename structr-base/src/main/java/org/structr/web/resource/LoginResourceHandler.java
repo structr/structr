@@ -181,7 +181,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return false;
 	}
 
-	protected Principal getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
+	protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
@@ -204,7 +204,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(String twoFactorToken, String emailOrUsername, String password) throws FrameworkException {
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
 
 		Principal user = null;
 
@@ -220,7 +220,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return user;
 	}
 
-	protected RestMethodResult doLogin(SecurityContext securityContext, Principal user) throws FrameworkException {
+	protected RestMethodResult doLogin(final SecurityContext securityContext, final Principal user) throws FrameworkException {
 
 		AuthHelper.doLogin(securityContext.getRequest(), user);
 
@@ -236,7 +236,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return createRestMethodResult(user);
 	}
 
-	protected RestMethodResult createRestMethodResult(Principal user) {
+	protected RestMethodResult createRestMethodResult(final Principal user) {
 
 		RestMethodResult  returnedMethodResult = new RestMethodResult(200);
 		returnedMethodResult.addContent(user);

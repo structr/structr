@@ -20,8 +20,6 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
@@ -31,8 +29,6 @@ import org.testng.annotations.Test;
  *
  */
 public class UserTest extends StructrUiTest {
-
-	private static final Logger logger = LoggerFactory.getLogger(UserTest.class.getName());
 
 	@Test
 	public void testAdminUserCreation() {
@@ -55,7 +51,7 @@ public class UserTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(422)
+				.statusCode(401)
 			.when()
 				.post("/User");
 
@@ -74,7 +70,7 @@ public class UserTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(422)
+				.statusCode(401)
 			.when()
 				.post("/User");
 

@@ -40,7 +40,7 @@ import org.structr.schema.action.ActionContext;
 public class TokenResource extends RESTEndpoint {
 
 	public TokenResource() {
-		super(RESTParameter.forStaticString("logout"));
+		super(RESTParameter.forStaticString("token"));
 	}
 
 	@Override

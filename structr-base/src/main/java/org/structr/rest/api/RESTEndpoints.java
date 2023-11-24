@@ -27,6 +27,7 @@ import java.util.regex.Matcher;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
+import org.structr.rest.resource.CollectionRelationshipsResource;
 import org.structr.rest.resource.CypherQueryResource;
 import org.structr.rest.resource.EntityResolverResource;
 import org.structr.rest.resource.EnvResource;
@@ -36,7 +37,7 @@ import org.structr.rest.resource.LogResource;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.resource.MeResource;
 import org.structr.rest.resource.PropertyResource;
-import org.structr.rest.resource.RelationshipsResource;
+import org.structr.rest.resource.InstanceRelationshipsResource;
 import org.structr.rest.resource.RuntimeEventLogResource;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
@@ -60,11 +61,13 @@ public class RESTEndpoints {
 	static {
 
 		// initialize static API endpoints
+		RESTEndpoints.register(new CollectionRelationshipsResource());
 		RESTEndpoints.register(new CypherQueryResource());
 		RESTEndpoints.register(new EntityResolverResource());
 		RESTEndpoints.register(new EnvResource());
 		RESTEndpoints.register(new GlobalSchemaMethodsResource());
 		RESTEndpoints.register(new InstanceMethodResource());
+		RESTEndpoints.register(new InstanceRelationshipsResource());
 		RESTEndpoints.register(new LogResource());
 		RESTEndpoints.register(new LoginResource());
 		RESTEndpoints.register(new LogoutResource());
@@ -73,7 +76,6 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new PropertyResource());
 		RESTEndpoints.register(new RegistrationResource());
 		RESTEndpoints.register(new ResetPasswordResource());
-		RESTEndpoints.register(new RelationshipsResource());
 		RESTEndpoints.register(new RuntimeEventLogResource());
 		RESTEndpoints.register(new SchemaResource());
 		RESTEndpoints.register(new SchemaTypeResource());

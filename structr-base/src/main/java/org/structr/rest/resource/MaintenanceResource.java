@@ -83,7 +83,7 @@ public class MaintenanceResource extends RESTEndpoint {
 
 	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class.getName());
 
-	private static final RESTParameter nameParameter               = RESTParameter.forPattern("name", "[a-zA-Z]+");
+	private static final RESTParameter nameParameter               = RESTParameter.forPattern("name", "[a-zA-Z_]+");
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
 	static {

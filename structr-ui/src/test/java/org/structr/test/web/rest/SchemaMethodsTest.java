@@ -60,14 +60,14 @@ public class SchemaMethodsTest extends StructrUiTest {
 			.expect()
 				.statusCode(401)
 			.when()
-				.post("/globalSchemaMethods/myTestMethod01");
+				.post("/myTestMethod01");
 
 
 		// Add Grant and allow POST for public users
 		try (final Tx tx = app.tx()) {
 
 			app.create(ResourceAccess.class,
-				new NodeAttribute<>(ResourceAccess.signature, "MyTestMethod01"),
+				new NodeAttribute<>(ResourceAccess.signature, "/myTestMethod01"),
 				new NodeAttribute<>(ResourceAccess.flags, 64L),
 				new NodeAttribute<>(ResourceAccess.visibleToPublicUsers, true)
 			);
@@ -88,7 +88,7 @@ public class SchemaMethodsTest extends StructrUiTest {
 				.statusCode(200)
 				.body("result", equalTo("hello world!"))
 			.when()
-			 .post("/globalSchemaMethods/myTestMethod01");
+			 .post("/myTestMethod01");
 	}
 
 	@Test
@@ -101,7 +101,8 @@ public class SchemaMethodsTest extends StructrUiTest {
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.schemaNode, testType),
 				new NodeAttribute<>(SchemaMethod.name, "testTypeMethod01"),
-				new NodeAttribute<>(SchemaMethod.source, "'MyTestType.testTypeMethod01 here'")
+				new NodeAttribute<>(SchemaMethod.source, "'MyTestType.testTypeMethod01 here'"),
+				new NodeAttribute<>(SchemaMethod.isStatic, true)
 			);
 
 			tx.success();
@@ -126,7 +127,7 @@ public class SchemaMethodsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(ResourceAccess.class,
-				new NodeAttribute<>(ResourceAccess.signature, "MyTestType/TestTypeMethod01"),
+				new NodeAttribute<>(ResourceAccess.signature, "MyTestType/testTypeMethod01"),
 				new NodeAttribute<>(ResourceAccess.flags, 64L),
 				new NodeAttribute<>(ResourceAccess.visibleToPublicUsers, true)
 			);

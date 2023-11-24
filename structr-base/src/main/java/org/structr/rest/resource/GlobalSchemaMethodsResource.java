@@ -22,8 +22,6 @@ package org.structr.rest.resource;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoint;
@@ -47,13 +45,11 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
-	private static final Logger logger              = LoggerFactory.getLogger(MaintenanceResource.class.getName());
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
 
 	public GlobalSchemaMethodsResource() {
 
-		super(RESTParameter.forStaticString("maintenance"),
-			RESTParameter.forStaticString("globalSchemaMethods"),
+		super(
 			nameParameter
 		);
 	}
@@ -65,7 +61,7 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 		if (methodName != null) {
 
 			final MethodSignature signature = Methods.getMethodSignatureOrNull(null, null, methodName);
-			if (signature != null && signature.isStatic()) {
+			if (signature != null) {
 
 				return new GlobalSchemaMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
 			}

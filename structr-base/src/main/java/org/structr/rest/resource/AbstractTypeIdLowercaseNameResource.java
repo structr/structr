@@ -31,13 +31,13 @@ import org.structr.rest.api.parameter.RESTParameter;
 /**
  * A resource that matches /{type}/{id}/{name} URLs.
  */
-public abstract class AbstractTypeIdNameResource extends RESTEndpoint {
+public abstract class AbstractTypeIdLowercaseNameResource extends RESTEndpoint {
 
 	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
 	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z_A-Z][a-z_A-Z0-9]*");
+	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
 
-	public AbstractTypeIdNameResource() {
+	public AbstractTypeIdLowercaseNameResource() {
 
 		super(
 			typeParameter,

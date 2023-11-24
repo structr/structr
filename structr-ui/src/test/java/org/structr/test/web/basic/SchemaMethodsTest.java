@@ -31,14 +31,14 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -63,6 +63,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test01SchemaMethodOnBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
@@ -116,6 +117,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test02SchemaMethodOnCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
 
 			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
 
@@ -328,6 +330,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
@@ -558,7 +561,7 @@ public class SchemaMethodsTest extends FrontendTest {
 					.body("errors[0].detail",    equalTo("errorrr"))
 
 				.when()
-					.post("/maintenance/globalSchemaMethods/globalTest1");
+					.post("/globalTest1");
 
 			RestAssured
 
@@ -583,6 +586,6 @@ public class SchemaMethodsTest extends FrontendTest {
 					.body("errors[0].detail",    equalTo("errorrr"))
 
 				.when()
-					.post("/maintenance/globalSchemaMethods/globalTest2");
+					.post("/globalTest2");
 	}
 }

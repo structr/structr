@@ -90,4 +90,8 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	public boolean createPostTransaction() {
 		return false;
 	}
+
+	public String getResourceSignature() {
+		return "_logout";
+	}
 }

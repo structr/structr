@@ -70,7 +70,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test01"));
+			.post(concat("/TestOne/", id, "/test01"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -82,7 +82,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test02"));
+			.post(concat("/TestOne/", id, "/test02"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -94,7 +94,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test03"));
+			.post(concat("/TestOne/", id, "/test03"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -106,7 +106,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test04"));
+			.post(concat("/TestOne/", id, "/test04"));
 
 	}
 
@@ -124,7 +124,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(404)
 			.when()
-				.get("/test_objects/abc123def456abc123def456abc123de");
+				.get("/TestObject/abc123def456abc123def456abc123de");
 
 	}
 
@@ -142,7 +142,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/test_objects")
+				.post("/TestObject")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -167,7 +167,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.body("serialization_time", lessThan("0.02"))
 				.body("result.id",          equalTo(uuid))
 			.when()
-				.get("/test_objects/" + uuid)
+				.get("/TestObject/" + uuid)
 				.jsonPath().get("result.name");
 
 		System.out.println("name (should be null): " + name);
@@ -193,7 +193,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/test_objects")
+				.post("/TestObject")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -218,7 +218,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.body("serialization_time",	lessThan("0.05"))
 				.body("result",			isEntity(TestObject.class))
 			.when()
-				.get("/test_objects/" + uuid);
+				.get("/TestObject/" + uuid);
 
 	}
 
@@ -234,7 +234,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/test_objects")
+				.post("/TestObject")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -257,7 +257,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 			.when()
-				.put("/test_objects/" + uuid);
+				.put("/TestObject/" + uuid);
 
 		// check for modified name
 		RestAssured
@@ -273,7 +273,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 				.body("result",			isEntity(TestObject.class))
 				.body("result.name",            equalTo("modified"))
 			.when()
-				.get("/test_objects/" + uuid);
+				.get("/TestObject/" + uuid);
 
 	}
 }

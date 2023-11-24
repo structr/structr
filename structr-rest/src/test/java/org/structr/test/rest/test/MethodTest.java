@@ -19,6 +19,7 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
@@ -30,6 +31,8 @@ import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import java.util.Map;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.SchemaNode;
 
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
@@ -81,6 +84,20 @@ public class MethodTest extends StructrRestTestBase {
 		final String ext1  = createEntity("/Extended1",  "{ name: 'Extended1' }");
 		final String ext11 = createEntity("/Extended11", "{ name: 'Extended11' }");
 		final String ext2  = createEntity("/Extended2",  "{ name: 'Extended2' }");
+
+		try (final Tx tx = app.tx()) {
+
+			for (final String type : List.of("BaseType", "Extended1", "Extended11", "Extended2")) {
+
+				System.out.println("##################################################### " + type);
+				System.out.println(StructrApp.getInstance().nodeQuery(SchemaNode.class).andName(type).getFirst().getGeneratedSourceCode(securityContext));
+
+				tx.success();
+			}
+
+		} catch (Throwable t) {
+			t.printStackTrace();
+		}
 
 		// test inherited methods
 		assertEquals("Invalid inheritance result, overriding method is not called", "BaseType", RestAssured.given().contentType("application/json; charset=UTF-8")

@@ -137,6 +137,8 @@ public abstract class ContextFactory {
 
 			} catch (Exception ex) {
 
+				ex.printStackTrace();
+
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
 		}

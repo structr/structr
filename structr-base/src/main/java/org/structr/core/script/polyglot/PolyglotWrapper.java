@@ -34,6 +34,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.structr.common.error.FrameworkException;
 
 public abstract class PolyglotWrapper {
 
@@ -240,6 +241,59 @@ public abstract class PolyglotWrapper {
 		}
 
 		return obj;
+	}
+
+	public static Map<String, Object> unwrapExecutableArguments(final ActionContext actionContext, final String methodName, final Value[] arguments) throws FrameworkException {
+
+		/*
+		int paramCount = method.getParameterCount();
+
+		if (paramCount == 0) {
+
+			return PolyglotWrapper.wrap(actionContext, method.invoke(null));
+
+		} else if (paramCount == 1) {
+
+			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+
+		} else if (paramCount == 2 && arguments.length == 0) {
+
+			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
+
+		} else if (arguments.length == 0) {
+
+			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
+
+		} else {
+
+			return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
+		}
+		*/
+
+
+		final Map<String, Object> parameters = new LinkedHashMap<>();
+
+		if (arguments.length > 0) {
+
+			final Object value = PolyglotWrapper.unwrap(actionContext, arguments[0]);
+
+			if (arguments.length == 1 && value instanceof Map map) {
+
+				parameters.putAll(map);
+
+			} else {
+
+				throw new RuntimeException(
+					new FrameworkException(
+						422,
+						"Tried to call method \"" + methodName + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."
+					)
+				);
+
+			}
+		}
+
+		return parameters;
 	}
 
 	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {

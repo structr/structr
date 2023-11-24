@@ -37,7 +37,6 @@ public abstract class RESTEndpoint {
 	private final Map<String, RESTParameter> parts = new LinkedHashMap<>();
 	private final String pathSeparator            = "/";
 	private Pattern pattern                       = null;
-	private String view                           = null;
 
 	public RESTEndpoint(final RESTParameter... parameters) {
 		initialize(parameters);

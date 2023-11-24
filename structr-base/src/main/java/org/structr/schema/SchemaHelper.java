@@ -20,7 +20,6 @@ package org.structr.schema;
 
 import graphql.Scalars;
 import graphql.schema.*;
-import javatools.parsers.PlingStemmer;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -449,8 +448,7 @@ public class SchemaHelper {
 
 										// try reflection
 										for (final Method m : type.getMethods()) {
-											final String stemmedName = PlingStemmer.stem(StringUtils.capitalize(m.getName()));
-											if (lastPart.equals(stemmedName)) {
+											if (lastPart.equals(StringUtils.capitalize(m.getName()))) {
 												methodFound = true;
 											}
 										}
@@ -1539,7 +1537,7 @@ public class SchemaHelper {
 		line.append(action.getName());
 		line.append("(final SecurityContext arg0, final java.util.Map<java.lang.String, java.lang.Object> parameters) throws FrameworkException {");
 
-		//src.line(codeSource, "return");
+		src.line(codeSource, "return");
 
 		action.getSource(src, action.isStatic() ? "null" :"this", true, false);
 

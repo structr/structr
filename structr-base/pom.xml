@@ -143,11 +143,6 @@
 			<artifactId>graphql-java</artifactId>
 			<version>12.0</version>
 		</dependency>
-		<dependency>
-			<groupId>de.mpg.mpi-inf</groupId>
-			<artifactId>javatools</artifactId>
-			<version>1.1</version>
-		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
 		<dependency>
 			<groupId>org.graalvm.sdk</groupId>
@@ -219,14 +214,12 @@
 		<dependency>
 			<groupId>jakarta.xml.bind</groupId>
 			<artifactId>jakarta.xml.bind-api</artifactId>
-			<version>${jaxb.version}</version>
 			<optional>true</optional>
 		</dependency>
 		<!-- JAXB RI, Jakarta XML Binding -->
 		<dependency>
 			<groupId>com.sun.xml.bind</groupId>
 			<artifactId>jaxb-impl</artifactId>
-			<version>${jaxb.version}</version>
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>

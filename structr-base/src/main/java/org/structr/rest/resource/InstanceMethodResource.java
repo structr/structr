@@ -42,7 +42,7 @@ import org.structr.schema.action.EvaluationHints;
 /**
  *
  */
-public class InstanceMethodResource extends AbstractTypeIdNameResource {
+public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource {
 
 	@Override
 	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException {
@@ -50,12 +50,15 @@ public class InstanceMethodResource extends AbstractTypeIdNameResource {
 		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 		if (entityClass != null) {
 
-			final GraphObject entity        = getEntity(securityContext, entityClass, entityClass.getSimpleName(), uuid);
-			final MethodSignature signature = Methods.getMethodSignatureOrNull(entityClass, entity, name);
+			final GraphObject entity = getEntity(securityContext, entityClass, entityClass.getSimpleName(), uuid);
+			if (entity != null) {
 
-			if (signature != null) {
+				// use actual type of entity returned to support inheritance
+				final MethodSignature signature = Methods.getMethodSignatureOrNull(entity.getClass(), entity, name);
+				if (signature != null) {
 
-				return new InstanceMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+					return new InstanceMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+				}
 			}
 		}
 

@@ -496,7 +496,7 @@ public class SchemaTest extends StructrTest {
 			assertTrue("Result should be of type Set", result instanceof Set);
 
 			final Set<String> set = (Set)result;
-			final String[] array  = set.toArray(new String[0]);
+			final String[] array  = set.toArray(String[]::new);
 
 			assertEquals("Invalid Java schema method result", "one",   array[0]);
 			assertEquals("Invalid Java schema method result", "two",   array[1]);

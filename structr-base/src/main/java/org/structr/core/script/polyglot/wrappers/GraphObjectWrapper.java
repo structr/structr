@@ -18,6 +18,7 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
+import java.util.Map;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -110,7 +111,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					try {
 
-						final MethodCall call = signature.createCall(arguments);
+						final Map<String, Object> parameters = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
+						final MethodCall call                = signature.createCall(parameters);
 
 						return PolyglotWrapper.wrap(actionContext, call.execute(actionContext.getSecurityContext(), new EvaluationHints()));
 

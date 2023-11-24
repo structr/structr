@@ -116,9 +116,6 @@ public class Actions {
 
 	public static Object execute(final SecurityContext securityContext, final GraphObject entity, final String source, final Map<String, Object> parameters, final String methodName, final String codeSource) throws FrameworkException, UnlicensedScriptException {
 
-		// This is the actual method that is called from within the generated Java source code in an @Exported method!
-		System.out.println("########## METHODS: called from @Exported method via Actions.execute()!");
-
 		final ContextStore store = securityContext.getContextStore();
 		final Map<String, Object> previousParams = store.getTemporaryParameters();
 

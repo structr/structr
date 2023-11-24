@@ -497,8 +497,8 @@ public class DOMAndPageTest extends StructrUiTest {
 
 		// create a folder and a subfolder
 
-		String folder01 = createEntityAsSuperUser("/folder", "{ name: 'folder 01', visibleToPublicUsers: true }");
-		String folder02 = createEntityAsSuperUser("/folder", "{ name: 'folder 02', visibleToPublicUsers: true, parent: '" + folder01 + "'}");
+		String folder01 = createEntityAsSuperUser("/Folder", "{ name: 'folder 01', visibleToPublicUsers: true }");
+		String folder02 = createEntityAsSuperUser("/Folder", "{ name: 'folder 02', visibleToPublicUsers: true, parent: '" + folder01 + "'}");
 
 		grant("Folder", 4095, true);
 
@@ -522,7 +522,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder01))
 
 			.when()
-				.get("/folder?name=folder 01");
+				.get("/Folder?name=folder 01");
 
 
 		// find subfolder by name
@@ -545,7 +545,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder02))
 
 			.when()
-				.get("/folder?name=folder 02");
+				.get("/Folder?name=folder 02");
 
 		// find folder by path
 		RestAssured
@@ -567,7 +567,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder01))
 
 			.when()
-				.get("/folder?path=/folder 01");
+				.get("/Folder?path=/folder 01");
 
 		// find subfolder by path
 		RestAssured
@@ -589,7 +589,7 @@ public class DOMAndPageTest extends StructrUiTest {
 				.body("result[0].id", equalTo(folder02))
 
 			.when()
-				.get("/folder?path=/folder 01/folder 02");
+				.get("/Folder?path=/folder 01/folder 02");
 	}
 
 	@Test
