@@ -348,7 +348,6 @@ let _Editors = {
 
 					let textBefore = model.getValueInRange({startLineNumber: 0, startColumn: 0, endLineNumber: position.lineNumber, endColumn: position.column});
 					let textAfter  = model.getValueInRange({startLineNumber: position.lineNumber, startColumn: position.column, endLineNumber: position.lineNumber+1, endColumn: 0});
-					// let word       = model.getWordUntilPosition(position);
 
 					let isAutoscriptEnv        = model.uri.isAutoscriptEnv || false;
 					let forceAllowAutoComplete = model.uri.forceAllowAutoComplete || false;
@@ -362,14 +361,31 @@ let _Editors = {
 						if (doAutocomplete) {
 
 							Command.autocomplete(model.uri.structr_uuid, isAutoscriptEnv, textBefore, textAfter, position.lineNumber, position.column, contentType, (result) => {
+
+								// prevent monaco from sorting the entries
+								let len = ("" + result.length).length;
+								let cnt = 0;
+
 								resolve(
 									result.map((hint) => {
+
+										// see https://microsoft.github.io/monaco-editor/typedoc/interfaces/languages.CompletionItem.html#documentation
 										return {
-											label: hint.text,
-											insertText: hint.text,
-											documentation: hint.displayText,
-											kind: monaco.languages.CompletionItemKind.Property, // see https://microsoft.github.io/monaco-editor/api/enums/monaco.languages.completionitemkind.html
-											// range: xxx
+											sortText:      ("" + cnt++).padStart(len, '0'), // effectively disable sorting
+											label:         hint.text,
+
+											// is shown on the right of the initial popup and on top of the secondary popup
+											detail:        _Editors.getAutocompletionDetailForType(hint.type),
+
+											// is shown in the secondary popup under the "detail" line
+											// see https://microsoft.github.io/monaco-editor/typedoc/interfaces/IMarkdownString.html
+											documentation: {
+												supportHtml: true,
+												value: hint.documentation
+											},
+
+											kind:          _Editors.getAutoCompletionHindKind(hint.type),
+											insertText:    hint.replacement ?? hint.text
 										}
 									})
 								);
@@ -392,6 +408,40 @@ let _Editors = {
 				monaco.languages.registerCompletionItemProvider({ language: lang.id }, defaultCompletionProvider);
 			}
 		}
+	},
+	getAutoCompletionHindKind: (type) => {
+		// see https://microsoft.github.io/monaco-editor/typedoc/enums/languages.CompletionItemKind.html#Method
+		switch (type) {
+			case "built-in function":
+				return monaco.languages.CompletionItemKind.Function;
+			case "method":
+			case "global schema method":
+				return monaco.languages.CompletionItemKind.Method;
+			case "property":
+				return monaco.languages.CompletionItemKind.Property;
+			case "keyword":
+				return monaco.languages.CompletionItemKind.Keyword;
+			case "typeName":
+				return monaco.languages.CompletionItemKind.Class;
+		}
+
+		return monaco.languages.CompletionItemKind.Function;
+	},
+	getAutocompletionDetailForType: (type) => {
+
+		switch (type) {
+			case "built-in function":
+			case "method":
+			case "global schema method":
+			case "property":
+			case "keyword":
+				return type;
+
+			case "typeName":
+				return "type";
+		}
+
+		return '';
 	},
 	getModelURI: (id, propertyName, extraInfo) => {
 

@@ -16,60 +16,46 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.core.function;
+package org.structr.autocomplete;
 
-import org.structr.schema.action.Hint;
+public abstract class BuiltinFunctionHint extends AbstractHint {
 
-/**
- *
- *
- */
-public class KeywordHint extends Hint {
-
-	private String replacement = null;
-	private String name        = null;
-	private String desc        = null;
-
-	public KeywordHint(final String name, final String desc) {
-		this.name = name;
-		this.desc = desc;
-	}
+	public abstract String shortDescription();
+	public abstract String getSignature();
 
 	@Override
 	public String getDisplayName() {
-		return getName();
+
+		// show method with signature right away
+		return getReplacement();
+	}
+
+	@Override
+	public String getDocumentation() {
+		return shortDescription();
 	}
 
 	@Override
 	public String getReplacement() {
 
-		if (replacement != null) {
-			return replacement;
+		final StringBuilder buf = new StringBuilder();
+
+		buf.append(getName());
+		buf.append("(");
+
+		final String signature = getSignature();
+		if (signature != null) {
+
+			buf.append(signature);
 		}
 
-		return getName();
-	}
+		buf.append(")");
 
-	public void setReplacement(final String replacement) {
-		this.replacement = replacement;
-	}
-
-	public boolean hasComplexReplacement() {
-		return !getName().equals(getReplacement());
+		return buf.toString();
 	}
 
 	@Override
-	public String shortDescription() {
-		return desc;
-	}
-
-	@Override
-	public String getSignature() {
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return name;
+	public String getType() {
+		return "built-in function";
 	}
 }
