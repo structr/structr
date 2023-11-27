@@ -182,7 +182,7 @@ public class SchemaHelper {
 
 				if (normalizedType == null) {
 
-					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityName)));
+					normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityName));
 
 				}
 
@@ -201,34 +201,12 @@ public class SchemaHelper {
 
 			if (normalizedType == null) {
 
-				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(stem(possibleEntityString)));
+				normalizedType = StringUtils.capitalize(CaseHelper.toUpperCamelCase(possibleEntityString));
 
 			}
 
 			return normalizedType;
 		}
-	}
-
-	private static String stem(final String term) {
-
-		String lastWord;
-		String begin = "";
-
-		if (StringUtils.contains(term, WORD_SEPARATOR)) {
-
-			lastWord = StringUtils.substringAfterLast(term, WORD_SEPARATOR);
-			begin = StringUtils.substringBeforeLast(term, WORD_SEPARATOR);
-
-		} else {
-
-			lastWord = term;
-
-		}
-
-		lastWord = PlingStemmer.stem(lastWord);
-
-		return begin.concat(WORD_SEPARATOR).concat(lastWord);
-
 	}
 
 	public static Class getEntityClassForRawType(final String rawType) {

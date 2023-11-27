@@ -1243,7 +1243,7 @@ let _Schema = {
 
 				_Schema.showSchemaRecompileMessage();
 
-				fetch(`${Structr.rootUrl}schema_nodes`, {
+				fetch(`${Structr.rootUrl}SchemaNode`, {
 					method: 'POST',
 					body: JSON.stringify(data)
 				}).then(response => {
@@ -1407,7 +1407,7 @@ let _Schema = {
 	relationships: {
 		loadRels: async () => {
 
-			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes');
+			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
 			let data     = await response.json();
 
 			let existingRels = {};
@@ -1864,7 +1864,7 @@ let _Schema = {
 
 			_Schema.showSchemaRecompileMessage();
 
-			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes', {
+			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode', {
 				method: 'POST',
 				body: JSON.stringify(data)
 			});
@@ -1887,7 +1887,7 @@ let _Schema = {
 
 			_Schema.showSchemaRecompileMessage();
 
-			let response = await fetch(Structr.rootUrl + 'schema_relationship_nodes/' + id, {
+			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode/' + id, {
 				method: 'DELETE'
 			});
 
@@ -1909,7 +1909,7 @@ let _Schema = {
 
 			_Schema.showSchemaRecompileMessage();
 
-			let getResponse = await fetch(`${Structr.rootUrl}schema_relationship_nodes/${entity.id}`);
+			let getResponse = await fetch(`${Structr.rootUrl}SchemaRelationshipNode/${entity.id}`);
 
 			if (getResponse.ok) {
 
@@ -1921,7 +1921,7 @@ let _Schema = {
 
 				if (hasChanges) {
 
-					let putResponse = await fetch(`${Structr.rootUrl}schema_relationship_nodes/${entity.id}`, {
+					let putResponse = await fetch(`${Structr.rootUrl}SchemaRelationshipNode/${entity.id}`, {
 						method: 'PUT',
 						body: JSON.stringify(newData)
 					});
@@ -3846,7 +3846,7 @@ let _Schema = {
 
 		_Schema.showSchemaRecompileMessage();
 
-		let response = await fetch(`${Structr.rootUrl}schema_nodes/${id}`, {
+		let response = await fetch(`${Structr.rootUrl}SchemaNode/${id}`, {
 			method: 'DELETE'
 		});
 		let data = await response.json();
