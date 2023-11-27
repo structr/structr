@@ -36,6 +36,10 @@ import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
+import org.structr.core.script.polyglot.function.DoAsFunction;
+import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
+import org.structr.core.script.polyglot.function.DoPrivilegedFunction;
+import org.structr.core.script.polyglot.function.IncludeJSFunction;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
@@ -160,17 +164,22 @@ public abstract class AbstractHintProvider {
 
 		} else {
 
-			addAllHints(hints);
+			addAllHints(actionContext, hints);
 		}
 
 		result.setExpression(expression);
 	}
 
-	protected void addAllHints(final List<AbstractHint> hints) {
+	protected void addAllHints(final ActionContext actionContext, final List<AbstractHint> hints) {
 
 		for (final Function<Object, Object> func : Functions.getFunctions()) {
 			hints.add(func);
 		}
+
+		hints.add(new IncludeJSFunction(actionContext));
+		hints.add(new DoInNewTransactionFunction(actionContext, null));
+		hints.add(new DoAsFunction(actionContext));
+		hints.add(new DoPrivilegedFunction(actionContext));
 
 		// sort current hints = only built-in functions
 		// sort case-insensitive so POST and GET etc do not show up at the top
@@ -189,9 +198,6 @@ public abstract class AbstractHintProvider {
 		hints.add(0, createKeywordHint("methodParameters",    "Access method parameters", "methodParameters"));
 		hints.add(0, createKeywordHint("me",                  "The current user", "me"));
 		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
-		hints.add(0, createKeywordHint("includeJs",           "Include JavaScript files", "includeJs"));
-		hints.add(0, createKeywordHint("doPrivileged",        "Open a privileged context", "doPrivileged"));
-		hints.add(0, createKeywordHint("doInNewTransaction",  "Open a new transaction context", "doInNewTransaction"));
 		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
 		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
 		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
@@ -387,7 +393,7 @@ public abstract class AbstractHintProvider {
 
 				case "root":
 					if (tokenTypes.size() < 3) {
-						addAllHints(hints);
+						addAllHints(actionContext, hints);
 						return true;
 					}
 					break;

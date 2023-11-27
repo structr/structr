@@ -20,10 +20,11 @@ package org.structr.core.script.polyglot.function;
 
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.SecurityContext;
 import org.structr.schema.action.ActionContext;
 
-public class DoPrivilegedFunction implements ProxyExecutable {
+public class DoPrivilegedFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
 	private final ActionContext actionContext;
 
@@ -66,5 +67,46 @@ public class DoPrivilegedFunction implements ProxyExecutable {
 		}
 
 		return result;
+	}
+
+
+	@Override
+	public String getName() {
+		return "doPrivileged";
+	}
+
+	@Override
+	public String shortDescription() {
+		return """
+**JavaScript-only**
+
+Runs the given function in a privileged (superuser) context. This can be useful in scenarios where no security checks should run (e.g. bulk import, bulk deletion).
+
+**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+
+Example:
+```
+${{
+	let userToDelete = $.find('User', { name: 'user_to_delete' })[0];
+
+	$.doPrivileged(() => {
+
+		// look up user again to set correct access rights
+		let user = $.find('User', userToDelete.id);
+
+		// delete all projects owned by user
+		$.delete($.find('Project', { projectOwner: user }));
+
+		// delete user
+		$.delete(user);
+	});
+}}
+```
+""";
+	}
+
+	@Override
+	public String getSignature() {
+		return "function";
 	}
 }

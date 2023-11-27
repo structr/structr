@@ -88,7 +88,7 @@ public abstract class AbstractHint {
 
 		final GraphObjectMap item = new GraphObjectMap();
 
-		item.put(text,   getDisplayName());
+		item.put(text,             getDisplayName());
 		item.put(documentationKey, getDocumentation());
 		item.put(replacementKey,   getReplacement());
 		item.put(typeKey,          getType());

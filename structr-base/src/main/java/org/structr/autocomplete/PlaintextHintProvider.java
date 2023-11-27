@@ -79,7 +79,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (last instanceof RootExpression) {
 
-			addAllHints(hints);
+			addAllHints(ctx, hints);
 		}
 
 		if (last instanceof ValueExpression) {
@@ -100,7 +100,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 			} else {
 
-				addAllHints(hints);
+				addAllHints(ctx, hints);
 			}
 		}
 
@@ -137,7 +137,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		} else {
 
-			addAllHints(hints);
+			addAllHints(actionContext, hints);
 		}
 	}
 

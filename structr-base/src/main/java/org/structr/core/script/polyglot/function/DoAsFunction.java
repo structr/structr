@@ -22,6 +22,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +32,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 
-public class DoAsFunction implements ProxyExecutable {
+public class DoAsFunction extends BuiltinFunctionHint implements ProxyExecutable {
     private static final Logger logger = LoggerFactory.getLogger(DoAsFunction.class);
     private final ActionContext actionContext;
 
@@ -75,5 +76,38 @@ public class DoAsFunction implements ProxyExecutable {
         }
 
         return null;
+    }
+
+    @Override
+    public String getName() {
+        return "doAs";
+    }
+
+    @Override
+    public String shortDescription() {
+        return """
+**JavaScript-only**
+
+Runs the given function in the context of the given user.
+
+**Important**: Any node resource, which was loaded outside of the function scope, must be looked up again inside the function scope to prevent access problems.
+
+Example:
+```
+${{
+    let user = $.find('User', { name: 'user_to_impersonate' })[0];
+
+    $.doAs(user, () => {
+
+        // code to be run as the given user
+    });
+}}
+```
+""";
+    }
+
+    @Override
+    public String getSignature() {
+        return "user, function";
     }
 }
