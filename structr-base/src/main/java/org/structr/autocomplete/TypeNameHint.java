@@ -38,6 +38,6 @@ public class TypeNameHint extends AbstractHint {
 
     @Override
     public String getType() {
-        return "typeName";
+        return "Type name";
     }
 }

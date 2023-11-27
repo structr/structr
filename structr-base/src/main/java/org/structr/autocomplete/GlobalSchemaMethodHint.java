@@ -31,6 +31,6 @@ public class GlobalSchemaMethodHint extends MethodHint {
 
     @Override
     public String getType() {
-        return "global schema method";
+        return "Global schema method";
     }
 }

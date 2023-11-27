@@ -42,6 +42,6 @@ public class KeywordHint extends AbstractHint {
 
 	@Override
 	public String getType() {
-		return "keyword";
+		return "Keyword";
 	}
 }

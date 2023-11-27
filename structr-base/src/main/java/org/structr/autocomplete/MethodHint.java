@@ -60,6 +60,6 @@ public class MethodHint extends AbstractHint {
 
 	@Override
 	public String getType() {
-		return "method";
+		return "Method";
 	}
 }

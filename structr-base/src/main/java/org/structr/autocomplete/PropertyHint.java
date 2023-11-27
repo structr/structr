@@ -33,6 +33,6 @@ public class PropertyHint extends AbstractHint {
 
 	@Override
 	public String getType() {
-		return "property";
+		return "Property";
 	}
 }

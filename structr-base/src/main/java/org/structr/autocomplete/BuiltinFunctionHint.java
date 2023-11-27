@@ -56,6 +56,6 @@ public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	@Override
 	public String getType() {
-		return "built-in function";
+		return "Built-in function";
 	}
 }
