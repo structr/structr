@@ -243,7 +243,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", fileName, t.getMessage());
+			logger.warn("Indexing of {} failed: {}", indexable.getProperty(StructrApp.key(File.class, "path")), t.getMessage());
 
 			return false;
 		}
