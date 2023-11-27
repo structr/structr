@@ -25,6 +25,7 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
+import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.ArgumentTypeException;
@@ -47,7 +48,7 @@ import java.util.*;
  *
  *
  */
-public abstract class Function<S, T> extends Hint {
+public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 	protected static final Logger logger = LoggerFactory.getLogger(Functions.class.getName());
 

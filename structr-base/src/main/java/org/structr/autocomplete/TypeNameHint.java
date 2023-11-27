@@ -18,36 +18,26 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.schema.action.Hint;
+public class TypeNameHint extends AbstractHint {
 
-/**
- *
- *
- */
-public class SeparatorHint extends Hint {
+    public TypeNameHint(final String name, final String simpleTypeName) {
 
-	@Override
-	public String getDisplayName() {
-		return null;
-	}
+        this.name          = name;
+        this.documentation = simpleTypeName;
+    }
 
-	@Override
-	public String getReplacement() {
-		return null;
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	public String shortDescription() {
-		return null;
-	}
+    @Override
+    public String getDocumentation() {
+        return "Schema type **" + this.documentation + "**";
+    }
 
-	@Override
-	public String getSignature() {
-		return null;
-	}
-
-	@Override
-	public String getName() {
-		return null;
-	}
+    @Override
+    public String getType() {
+        return "typeName";
+    }
 }

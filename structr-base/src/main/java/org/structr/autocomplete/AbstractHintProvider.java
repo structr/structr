@@ -29,9 +29,9 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
-import org.structr.core.function.KeywordHint;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
@@ -39,7 +39,6 @@ import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.action.Hint;
 import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Content.ContentHandler;
 
@@ -55,19 +54,7 @@ public abstract class AbstractHintProvider {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractHintProvider.class);
 
-	private enum QueryType {
-		REST, Cypher, XPath, Function
-	}
-
-	public static final Property<String> displayText = new StringProperty("displayText");
-	public static final Property<String> className   = new StringProperty("className");
-	public static final Property<String> text        = new StringProperty("text");
-	public static final Property<GraphObject> from   = new GenericProperty("from");
-	public static final Property<GraphObject> to     = new GenericProperty("to");
-	public static final Property<Integer> line       = new IntProperty("line");
-	public static final Property<Integer> ch         = new IntProperty("ch");
-
-	protected abstract List<Hint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
+	protected abstract List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult);
 	protected abstract String getFunctionName(final String sourceName);
 
 	protected final Comparator comparator     = new HintComparator();
@@ -132,107 +119,35 @@ public abstract class AbstractHintProvider {
 
 	public List<GraphObject> getHints(final ActionContext actionContext, final GraphObject currentEntity, final String script, final int cursorLine, final int cursorPosition) {
 
-		final ParseResult parseResult = new ParseResult();
-		final List<Hint> allHints     = getAllHints(actionContext, currentEntity, script, parseResult);
-		final List<GraphObject> hints = new LinkedList<>();
-		final String lastToken        = parseResult.getLastToken();
-		final boolean unrestricted    = lastToken.endsWith("(") || lastToken.endsWith(("."));
-		final int lastTokenLength     = unrestricted ? 0 : lastToken.length();
-		int maxNameLength             = 0;
+		final ParseResult parseResult     = new ParseResult();
+		final List<AbstractHint> allHints = getAllHints(actionContext, currentEntity, script, parseResult);
+		final List<GraphObject> hints     = new LinkedList<>();
+		final String lastToken            = parseResult.getLastToken();
+		final boolean unrestricted        = lastToken.endsWith("(") || lastToken.endsWith(("."));
 
-		for (final Hint hint : allHints) {
+		for (final AbstractHint hint : allHints) {
 
-			if (hint instanceof SeparatorHint) {
-
-				final GraphObjectMap item = new GraphObjectMap();
-
-				item.put(displayText, "");
-				item.put(className  , "separator");
-				item.put(text,        "");
-
-				hints.add(item);
-
-			} else if (!hint.isHidden()) {
+			if (!hint.isHidden()) {
 
 				final String functionName = getFunctionName(hint.getReplacement());
 				final String displayName  = getFunctionName(hint.getDisplayName());
 
 				if ((unrestricted || displayName.startsWith(lastToken)) && ( (!script.endsWith(functionName)) || (script.endsWith(functionName) && hint instanceof Function) )) {
 
-					final GraphObjectMap item = new GraphObjectMap();
-
-					if (hint.mayModify()) {
-
-						item.put(text, displayName);
-
-					} else {
-
-						item.put(text, displayName);
-					}
-
-					item.put(displayText, displayName + " - " + textOrPlaceholder(hint.shortDescription()));
-
-					addPosition(item, hint, cursorLine, cursorPosition - lastTokenLength, cursorPosition);
-
-					if (displayName.length() > maxNameLength) {
-						maxNameLength = displayName.length();
-					}
-
-					hints.add(item);
+					hints.add(hint.toGraphObject());
 				}
 			}
 		}
 
-		alignHintDescriptions(hints, maxNameLength + 1);
-
 		return hints;
 	}
 
-	protected String visitReplacement(final String replacement) {
-		return replacement;
+	protected AbstractHint createKeywordHint(final String name, final String description, final String replacement) {
+
+		return new KeywordHint(name, description, replacement);
 	}
 
-	protected Hint createHint(final String name, final String description, final String replacement) {
-
-		final KeywordHint hint = new KeywordHint(name, description);
-
-		if (replacement != null) {
-			hint.setReplacement(replacement);
-		}
-
-		return hint;
-	}
-
-	protected void alignHintDescriptions(final List<GraphObject> hints, final int maxNameLength) {
-
-		// insert appropriate number of spaces into description to align function names
-		for (final GraphObject item : hints) {
-
-			final String text = item.getProperty(displayText);
-			final int pos     = text.indexOf(" - ");
-
-			if (pos >= 0 && pos < maxNameLength) {
-
-				final StringBuilder buf = new StringBuilder(text);
-				buf.insert(pos, StringUtils.leftPad("", maxNameLength - pos));
-
-				// ignore exception, won't happen on a GraphObjectMap anyway
-				try { item.setProperty(displayText, buf.toString()); } catch (FrameworkException fex) {}
-			}
-		}
-	}
-
-	protected String textOrPlaceholder(final String source) {
-
-		if (StringUtils.isBlank(source)) {
-
-			return "   (no description available yet)";
-		}
-
-		return source;
-	}
-
-	protected void handleJSExpression(final ActionContext actionContext, final GraphObject currentNode, final String expression, final List<Hint> hints, final ParseResult result) {
+	protected void handleJSExpression(final ActionContext actionContext, final GraphObject currentNode, final String expression, final List<AbstractHint> hints, final ParseResult result) {
 
 		final String[] expressionParts = StringUtils.splitPreserveAllTokens(expression, ".(");
 		final List<String> tokens      = Arrays.asList(expressionParts);
@@ -250,36 +165,50 @@ public abstract class AbstractHintProvider {
 		result.setExpression(expression);
 	}
 
-	protected void addAllHints(final List<Hint> hints) {
+	protected void addAllHints(final List<AbstractHint> hints) {
 
 		for (final Function<Object, Object> func : Functions.getFunctions()) {
 			hints.add(func);
 		}
 
-		// sort hints
+		// sort current hints = only built-in functions
+		// sort case-insensitive so POST and GET etc do not show up at the top
 		Collections.sort(hints, comparator);
 
 		// Important: Order is reverse alphanumeric, so add(0, ...) means insert at the beginning.
 		// If you change something here, make sure to change AutocompleteTest.java accordingly.
 
 		// add keywords, keep in sync and include everything from StructrBinding.getMemberKeys()
-		hints.add(0, createHint("this",                "The current object", "this"));
-		hints.add(0, createHint("session",             "The current session", "session"));
-		hints.add(0, createHint("response",            "The current response",       "response"));
-		hints.add(0, createHint("request",             "The current request", "request"));
-		hints.add(0, createHint("predicate",           "Search predicate", "predicate"));
-		hints.add(0, createHint("page",                "The current page",           "page"));
-		hints.add(0, createHint("methodParameters",    "Access method parameters", "methodParameters"));
-		hints.add(0, createHint("me",                  "The current user", "me"));
-		hints.add(0, createHint("locale",              "The current locale",         "locale"));
-		hints.add(0, createHint("includeJs",           "Include JavaScript files", "includeJs"));
-		hints.add(0, createHint("doPrivileged",        "Open a privileged context", "doPrivileged"));
-		hints.add(0, createHint("doInNewTransaction",  "Open a new transaction context", "doInNewTransaction"));
-		hints.add(0, createHint("current",             "The current details object", "current"));
-		hints.add(0, createHint("cache",               "Time-based cache object", "cache"));
-		hints.add(0, createHint("batch",               "Open a batch transaction context", "batch"));
-		hints.add(0, createHint("applicationStore",    "The application store", "applicationStore"));
+		hints.add(0, createKeywordHint("this",                "The current object", "this"));
+		hints.add(0, createKeywordHint("session",             "The current session", "session"));
+		hints.add(0, createKeywordHint("response",            "The current response",       "response"));
+		hints.add(0, createKeywordHint("request",             "The current request", "request"));
+		hints.add(0, createKeywordHint("predicate",           "Search predicate", "predicate"));
+		hints.add(0, createKeywordHint("page",                "The current page",           "page"));
+		hints.add(0, createKeywordHint("methodParameters",    "Access method parameters", "methodParameters"));
+		hints.add(0, createKeywordHint("me",                  "The current user", "me"));
+		hints.add(0, createKeywordHint("locale",              "The current locale",         "locale"));
+		hints.add(0, createKeywordHint("includeJs",           "Include JavaScript files", "includeJs"));
+		hints.add(0, createKeywordHint("doPrivileged",        "Open a privileged context", "doPrivileged"));
+		hints.add(0, createKeywordHint("doInNewTransaction",  "Open a new transaction context", "doInNewTransaction"));
+		hints.add(0, createKeywordHint("current",             "The current details object", "current"));
+		hints.add(0, createKeywordHint("cache",               "Time-based cache object", "cache"));
+		hints.add(0, createKeywordHint("batch",               "Open a batch transaction context", "batch"));
+		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
 
+		// add global schema methods to show at the start of the list
+		try {
+
+			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
+
+			for (final SchemaMethod method : methods) {
+				hints.add(0, new GlobalSchemaMethodHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+			}
+
+		} catch (FrameworkException fex) {
+
+			logger.warn("", fex);
+		}
 	}
 
 	protected void addNonempty(final List<String> list, final String string) {
@@ -289,20 +218,19 @@ public abstract class AbstractHintProvider {
 		}
 	}
 
-	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<Hint> hints, final ParseResult result) {
+	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<AbstractHint> hints, final ParseResult result) {
 
-		final List<Hint> methodHints = new LinkedList<>();
+		final List<AbstractHint> methodHints = new LinkedList<>();
 
 		try {
 
-			// properties
+			// entity properties
 			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
 			for (final GraphObjectMap property : typeInfo) {
 
 				final Map<String, Object> map = property.toMap();
 				final String name             = (String)map.get("jsonName");
 				final String propertyType     = (String)map.get("uiType");
-				final String className        = (String)map.get("className");
 				final String declaringClass   = (String)map.get("declaringClass");
 
 				// skip properties defined in NodeInterface class, except for name
@@ -315,16 +243,27 @@ public abstract class AbstractHintProvider {
 				//	continue;
 				//}
 
-				hints.add(createHint(name, propertyType, name));
+				hints.add(new PropertyHint(name, propertyType));
 			}
 
-			// methods go into their own collection, are sorted and the appended to the list
+			// entity methods
+			// go into their own collection, are sorted and the appended to the list
+			final SchemaNode typeNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.name, type.getSimpleName()).getFirst();
+
 			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
 			for (final Entry<String, Method> entry : methods.entrySet()) {
 
 				final String name = entry.getKey();
+				String methodSummary     = "";
+				String methodDescription = "";
 
-				methodHints.add(createHint(name + "()", "custom method", name));
+				final SchemaMethod schemaMethod = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, typeNode).andName(name).getFirst();
+				if (schemaMethod != null) {
+					methodSummary     = schemaMethod.getProperty(SchemaMethod.summary);
+					methodDescription = schemaMethod.getProperty(SchemaMethod.description);
+				}
+
+				methodHints.add(new MethodHint(name, methodSummary, methodDescription));
 			}
 
 			Collections.sort(methodHints, comparator);
@@ -339,7 +278,7 @@ public abstract class AbstractHintProvider {
 		hints.addAll(methodHints);
 	}
 
-	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
 
 		List<String> tokenTypes = new LinkedList<>();
 		Class type              = null;
@@ -459,7 +398,7 @@ public abstract class AbstractHintProvider {
 					final Function func = Functions.get(tokenType);
 					if (func != null) {
 
-						final List<Hint> contextHints = func.getContextHints(result.getLastToken());
+						final List<AbstractHint> contextHints = func.getContextHints(result.getLastToken());
 						if (contextHints != null) {
 
 							hints.addAll(contextHints);
@@ -480,27 +419,11 @@ public abstract class AbstractHintProvider {
 		return false;
 	}
 
-	// ----- private methods -----
-	private void addPosition(final GraphObjectMap item, final Hint hint, final int cursorLine, final int replaceFrom, final int replaceTo) {
-
-		final GraphObjectMap fromObject = new GraphObjectMap();
-		final GraphObjectMap toObject   = new GraphObjectMap();
-
-		fromObject.put(line, cursorLine);
-		fromObject.put(ch, replaceFrom);
-
-		toObject.put(line, cursorLine);
-		toObject.put(ch, replaceTo);
-
-		item.put(from, fromObject);
-		item.put(to, toObject);
-	}
-
 	// ----- nested classes -----
-	protected static class HintComparator implements Comparator<Hint> {
+	protected static class HintComparator implements Comparator<AbstractHint> {
 
 		@Override
-		public int compare(final Hint o1, final Hint o2) {
+		public int compare(final AbstractHint o1, final AbstractHint o2) {
 
 			final boolean firstIsDynamic  = o1.isDynamic();
 			final boolean secindIsDynamic = o2.isDynamic();
@@ -513,7 +436,7 @@ public abstract class AbstractHintProvider {
 				return 1;
 			}
 
-			return o1.getName().compareTo(o2.getName());
+			return o1.getName().toLowerCase().compareTo(o2.getName().toLowerCase());
 		}
 	}
 
