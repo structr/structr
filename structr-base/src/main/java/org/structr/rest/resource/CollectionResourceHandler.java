@@ -46,6 +46,7 @@ import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
@@ -64,9 +65,9 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	private Query query                     = null;
 	private boolean isNode                  = true;
 
-	public CollectionResourceHandler(final SecurityContext securityContext, final String url, final Query query, final Class entityClass, final String typeName, final boolean isNode) {
+	public CollectionResourceHandler(final SecurityContext securityContext, final RESTCall call, final Query query, final Class entityClass, final String typeName, final boolean isNode) {
 
-		super(securityContext, url);
+		super(securityContext, call);
 
 		this.securityContext   = securityContext;
 		this.entityClass       = entityClass;

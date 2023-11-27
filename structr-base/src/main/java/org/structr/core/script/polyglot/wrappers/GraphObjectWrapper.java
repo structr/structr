@@ -35,8 +35,7 @@ import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.core.script.polyglot.function.GrantFunction;
 import org.structr.schema.action.ActionContext;
 
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.schema.action.EvaluationHints;
 
@@ -96,11 +95,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final MethodSignature signature = Methods.getMethodSignatureOrNull(node.getClass(), node, key);
-			if (signature != null) {
+			final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, key);
+			if (method != null) {
 
 				// dont call static methods here, but warn instead
-				if (signature.isStatic()) {
+				if (method.isStatic()) {
 
 					// At this point method is guaranteed to be static since earlier isStatic check was true
 					logger.warn("Tried calling a static type method in a non-static way on a type instance.");
@@ -111,10 +110,9 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					try {
 
-						final Map<String, Object> parameters = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
-						final MethodCall call                = signature.createCall(parameters);
+						final Map<String, Object> converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
 
-						return PolyglotWrapper.wrap(actionContext, call.execute(actionContext.getSecurityContext(), new EvaluationHints()));
+						return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), converted, new EvaluationHints()));
 
 					} catch (FrameworkException ex) {
 						throw new RuntimeException(ex);
@@ -202,7 +200,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final Class type = node.getClass();
 
-				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.getMethodSignatureOrNull(type, node, key) != null;
+				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.resolveMethod(type, node, key) != null;
 
 			} else {
 

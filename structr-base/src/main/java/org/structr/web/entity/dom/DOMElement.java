@@ -73,9 +73,9 @@ import org.w3c.dom.*;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.rest.api.RESTCall;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.resource.LoginResourceHandler;
@@ -476,7 +476,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), "/login");
+		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), new RESTCall("/login", PropertyView.Public));
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -495,7 +495,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), "/logout");
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), new RESTCall("/logout", PropertyView.Public));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
@@ -523,7 +523,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), "/registration");
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), new RESTCall("/registration", PropertyView.Public));
 
 		return registrationResource.doPost(properties);
 	}
@@ -542,7 +542,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), "/reset-password");
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), new RESTCall("/reset-password", PropertyView.Public));
 
 		return resetPasswordResource.doPost(properties);
 	}
@@ -697,12 +697,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			for (final GraphObject target : targets) {
 
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(target.getClass(), target, methodName);
-				if (signature != null) {
+				final AbstractMethod method = Methods.resolveMethod(target.getClass(), target, methodName);
+				if (method != null) {
 
-					final MethodCall call = signature.createCall(parameters);
-
-					call.execute(actionContext.getSecurityContext(), new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), parameters, new EvaluationHints());
 				}
 			}
 
@@ -712,12 +710,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(staticClass, null, methodName);
-				if (signature != null) {
+				final AbstractMethod method = Methods.resolveMethod(staticClass, null, methodName);
+				if (method != null) {
 
-					final MethodCall call = signature.createCall(parameters);
-
-					call.execute(actionContext.getSecurityContext(), new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), parameters, new EvaluationHints());
 				}
 
 			} else {

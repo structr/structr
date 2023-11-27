@@ -20,8 +20,6 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.test.web.StructrUiTest;
 import org.structr.web.auth.UiAuthenticator;
 import org.testng.annotations.Test;
@@ -33,8 +31,6 @@ import static org.testng.AssertJUnit.assertNotNull;
  *
  */
 public class LoginLogoutTest extends StructrUiTest {
-
-	private static final Logger logger = LoggerFactory.getLogger(LoginLogoutTest.class.getName());
 
 	@Test
 	public void testLoginLogout() {

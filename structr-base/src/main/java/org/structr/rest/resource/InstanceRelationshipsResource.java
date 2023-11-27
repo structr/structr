@@ -52,25 +52,21 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class InstanceRelationshipsResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter      = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter uuidParameter      = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
-	private static final RESTParameter directionParameter = RESTParameter.forPattern("rel",  "in|out");
-
 	public InstanceRelationshipsResource() {
 
 		super(
-			typeParameter,
-			uuidParameter,
-			directionParameter
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts()),
+			RESTParameter.forPattern("rel",  "in|out")
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName  = call.get(typeParameter);
-		final String uuid      = call.get(uuidParameter);
-		final String direction = call.get(directionParameter);
+		final String typeName  = call.get("type");
+		final String uuid      = call.get("uuid");
+		final String direction = call.get("rel");
 
 		if (typeName != null && uuid != null && direction != null) {
 
@@ -80,11 +76,11 @@ public class InstanceRelationshipsResource extends RESTEndpoint {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, uuid, Direction.INCOMING);
+					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, uuid, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, uuid, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, uuid, Direction.OUTGOING);
 				}
 			}
 		}
@@ -103,9 +99,9 @@ public class InstanceRelationshipsResource extends RESTEndpoint {
 		private String uuid         = null;
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final String uuid, final Direction direction) {
+		public RelationshipsResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String uuid, final Direction direction) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;

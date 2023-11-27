@@ -43,22 +43,18 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class UuidResource extends RESTEndpoint {
 
-	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
-
 	public UuidResource() {
 
-		super(
-			uuidParameter
-		);
+		super(RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts()));
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String uuid = call.get(uuidParameter);
+		final String uuid = call.get("uuid");
 		if (uuid != null) {
 
-			return new UuidResourceHandler(securityContext, call.getURL(), uuid);
+			return new UuidResourceHandler(securityContext, call, uuid);
 		}
 
 		// only return a handler if there is actually a type with the requested name
@@ -69,9 +65,9 @@ public class UuidResource extends RESTEndpoint {
 
 		private String uuid = null;
 
-		public UuidResourceHandler(final SecurityContext securityContext, final String url, final String uuid) {
+		public UuidResourceHandler(final SecurityContext securityContext, final RESTCall call, final String uuid) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			this.uuid = uuid;
 		}

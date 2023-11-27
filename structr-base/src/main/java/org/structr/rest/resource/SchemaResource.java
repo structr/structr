@@ -81,7 +81,7 @@ public class SchemaResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new SchemaResourceHandler(securityContext, call.getURL());
+		return new SchemaResourceHandler(securityContext, call);
 	}
 
 	// ----- public static methods -----
@@ -254,8 +254,8 @@ public class SchemaResource extends RESTEndpoint {
 
 	private class SchemaResourceHandler extends RESTCallHandler {
 
-		public SchemaResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public SchemaResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

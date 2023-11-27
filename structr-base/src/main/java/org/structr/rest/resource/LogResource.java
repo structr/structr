@@ -94,14 +94,14 @@ public class LogResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LogResourceHandler(securityContext, call.getURL());
+		return new LogResourceHandler(securityContext, call);
 	}
 
 	private class LogResourceHandler extends RESTCallHandler {
 
-		public LogResourceHandler(final SecurityContext securityContext, final String url) {
+		public LogResourceHandler(final SecurityContext securityContext, final RESTCall call) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			subjectProperty.setDeclaringClass(LogResource.class);
 			objectProperty.setDeclaringClass(LogResource.class);

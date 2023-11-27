@@ -18,19 +18,18 @@
  */
 package org.structr.core.api;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
+import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.rest.api.RESTCall;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
 /**
  */
-public class ScriptMethod extends MethodSignature {
+public class ScriptMethod extends AbstractMethod {
 
 	private GraphObject entity  = null;
 	private SchemaMethod method = null;
@@ -48,39 +47,53 @@ public class ScriptMethod extends MethodSignature {
 		return method.isStaticMethod();
 	}
 
+	/*
 	@Override
-	public MethodCall createCall(final RESTCall parameters) throws FrameworkException {
+	public MethodCall createCall() throws FrameworkException {
 
-		final Map<String, Object> converted = new LinkedHashMap<>();
+		final List<SchemaMethodParameter> declaredParameters = new LinkedList<>();
+		final Map<String, Object> converted                  = new LinkedHashMap<>();
 
-		// convert..
+		// "Method xy in class/interface ABC cannot be applied to given types. Required: ..., found: ..."
+
+		//FIXME: how can we implement method parameters here, via REST and via scripting?
+
+
+		declaredParameters.addAll(Iterables.toList(method.getParameters()));
+
+		Collections.sort(declaredParameters, (a, b) -> {
+			return a.getProperty(SchemaMethodParameter.index).compareTo(b.getProperty(SchemaMethodParameter.index));
+		});
+
+		for (final SchemaMethodParameter param : declaredParameters) {
+
+			final String parameterName = param.getName();
+			final String inputValue    = restParameters.get(parameterName);
+			final String type          = param.getParameterType();
+
+			// handle type
+			final Object convertedValue = inputValue;
+
+			converted.put(parameterName, convertedValue);
+		}
 
 		return createCall(converted);
 	}
+	*/
 
 	@Override
-	public MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException {
+	public Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) throws FrameworkException {
 
-		// this method is called from Java code so the parameters do not need to be converted
-		return new ScriptMethodCall(parameters);
-	}
-
-	private class ScriptMethodCall implements MethodCall {
-
-		private Map<String, Object> propertySet = null;
-
-		public ScriptMethodCall(final Map<String, Object> propertySet) {
-			this.propertySet = propertySet;
-		}
-
-		@Override
-		public Object execute(final SecurityContext securityContext, final EvaluationHints hints) throws FrameworkException {
+		try {
 
 			final String methodName = method.getName();
 			final String codeSource = method.getUuid();
 			final String source     = method.getProperty("source");
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", propertySet, methodName, codeSource);
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", arguments, methodName, codeSource);
+
+		} catch (AssertException e)   {
+			throw new FrameworkException(e.getStatus(), e.getMessage());
 		}
 	}
 }

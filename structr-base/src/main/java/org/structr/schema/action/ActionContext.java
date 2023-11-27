@@ -43,8 +43,7 @@ import org.structr.schema.parser.DatePropertyParser;
 import java.io.IOException;
 import java.util.*;
 import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 /**
@@ -292,16 +291,15 @@ public class ActionContext {
 
 					} else if (data instanceof Class clazz) {
 
-						final MethodSignature signature = Methods.getMethodSignatureOrNull(clazz, null, key);
-						if (signature != null) {
+						final AbstractMethod method = Methods.resolveMethod(clazz, null, key);
+						if (method != null) {
 
 							hints.reportExistingKey(key);
 
-							final ContextStore contextStore      = getContextStore();
-							final Map<String, Object> parameters = contextStore.getTemporaryParameters();
-							final MethodCall call                = signature.createCall(parameters);
+							final ContextStore contextStore     = getContextStore();
+							final Map<String, Object> arguments = contextStore.getTemporaryParameters();
 
-							return call.execute(securityContext, hints);
+							return method.execute(securityContext, arguments, hints);
 						}
 
 					} else {

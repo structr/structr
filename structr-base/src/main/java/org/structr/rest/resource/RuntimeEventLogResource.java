@@ -57,13 +57,13 @@ public class RuntimeEventLogResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new RuntimeEventLogResourceHandler(securityContext, call.getURL());
+		return new RuntimeEventLogResourceHandler(securityContext, call);
 	}
 
 	private class RuntimeEventLogResourceHandler extends RESTCallHandler {
 
-		public RuntimeEventLogResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public RuntimeEventLogResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

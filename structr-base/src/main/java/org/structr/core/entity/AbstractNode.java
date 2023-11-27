@@ -50,8 +50,7 @@ import org.structr.schema.action.Function;
 
 import java.util.*;
 import org.structr.common.helper.ValidationHelper;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 /**
@@ -1604,14 +1603,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					}
 				}
 
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(entityType, this, key);
-				if (signature != null) {
+				final AbstractMethod method = Methods.resolveMethod(entityType, this, key);
+				if (method != null) {
 
 					final ContextStore contextStore      = actionContext.getContextStore();
 					final Map<String, Object> parameters = contextStore.getTemporaryParameters();
-					final MethodCall call                = signature.createCall(parameters);
 
-					return call.execute(actionContext.getSecurityContext(), hints);
+					return method.execute(actionContext.getSecurityContext(), parameters, hints);
 				}
 
 				return Function.numberOrString(defaultValue);

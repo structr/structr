@@ -49,13 +49,13 @@ public class CypherQueryResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new CypherResourceHandler(securityContext, call.getURL());
+		return new CypherResourceHandler(securityContext, call);
 	}
 
 	private class CypherResourceHandler extends RESTCallHandler {
 
-		public CypherResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public CypherResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

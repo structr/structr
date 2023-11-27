@@ -30,8 +30,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Map;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
@@ -46,32 +45,29 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class StaticMethodResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
-
 	public StaticMethodResource() {
 
 		super(
-			typeParameter,
-			nameParameter
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(typeParameter);
-		final String name     = call.get(nameParameter);
+		final String typeName = call.get("type");
+		final String name     = call.get("name");
 
 		if (typeName != null && name != null) {
 
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(entityClass, null, name);
-				if (signature != null && signature.isStatic()) {
+				final AbstractMethod method = Methods.resolveMethod(entityClass, null, name);
+				if (method != null && method.isStatic()) {
 
-					return new StaticMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+					return new StaticMethodResourceHandler(securityContext, call, method);
 				}
 			}
 		}
@@ -81,13 +77,13 @@ public class StaticMethodResource extends RESTEndpoint {
 
 	private class StaticMethodResourceHandler extends RESTCallHandler {
 
-		private MethodCall call = null;
+		private AbstractMethod method = null;
 
-		public StaticMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
+		public StaticMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
-			this.call = call;
+			this.method = method;
 		}
 
 		@Override
@@ -102,7 +98,7 @@ public class StaticMethodResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
 
 				tx.success();
 

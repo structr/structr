@@ -40,8 +40,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.web.entity.User;
 
@@ -220,12 +219,10 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 		methodParameters.put("provider", this.provider);
 		methodParameters.put("userinfo", this.getUserInfo());
 
-		final MethodSignature signature = Methods.getMethodSignatureOrNull(User.class, user, "onOAuthLogin");
-		if (signature != null) {
+		final AbstractMethod method = Methods.resolveMethod(User.class, user, "onOAuthLogin");
+		if (method != null) {
 
-			final MethodCall call = signature.createCall(methodParameters);
-
-			call.execute(user.getSecurityContext(), new EvaluationHints());
+			method.execute(user.getSecurityContext(), methodParameters, new EvaluationHints());
 		}
 	}
 

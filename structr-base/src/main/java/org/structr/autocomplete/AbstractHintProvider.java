@@ -50,7 +50,7 @@ import org.structr.web.entity.dom.Content.ContentHandler;
 import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 

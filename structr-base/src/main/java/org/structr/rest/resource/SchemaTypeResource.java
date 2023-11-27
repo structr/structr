@@ -41,28 +41,27 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class SchemaTypeResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-
 	public enum UriPart {
 		_schema
 	}
 
 	public SchemaTypeResource() {
-		super(RESTParameter.forStaticString(UriPart._schema.name()),
-			typeParameter
+		super(
+			RESTParameter.forStaticString(UriPart._schema.name()),
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern)
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(typeParameter);
+		final String typeName = call.get("type");
 		if (typeName != null) {
 
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				return new SchemaTypeResourceHandler(securityContext, call.getURL(), entityClass, typeName, call.getViewName());
+				return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, call.getViewName());
 			}
 		}
 
@@ -80,9 +79,9 @@ public class SchemaTypeResource extends RESTEndpoint {
 		private String typeName   = null;
 		private String viewName   = null;
 
-		public SchemaTypeResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final String viewName) {
+		public SchemaTypeResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String viewName) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;

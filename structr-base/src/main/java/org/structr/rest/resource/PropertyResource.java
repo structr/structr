@@ -72,7 +72,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 			if (key != null) {
 
-				return new PropertyResourceHandler(securityContext, call.getURL(), entityClass, uuid, key);
+				return new PropertyResourceHandler(securityContext, call, entityClass, uuid, key);
 			}
 		}
 
@@ -90,9 +90,9 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		private String keyName          = null;
 		private String uuid             = null;
 
-		public PropertyResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String uuid, final PropertyKey propertyKey) {
+		public PropertyResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String uuid, final PropertyKey propertyKey) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			this.typeName    = entityClass.getSimpleName();
 			this.entityClass = entityClass;
@@ -318,6 +318,11 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public boolean isCollection() {
 			return propertyKey.isCollection();
+		}
+
+		@Override
+		public String getResourceSignature() {
+			return call.get("type") + "/_" + CaseHelper.toUpperCamelCase(propertyKey.jsonName());
 		}
 	}
 

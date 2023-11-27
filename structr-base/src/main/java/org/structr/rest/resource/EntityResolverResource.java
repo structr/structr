@@ -48,13 +48,13 @@ public class EntityResolverResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new ResolverResourceHandler(securityContext, call.getURL());
+		return new ResolverResourceHandler(securityContext, call);
 	}
 
 	private class ResolverResourceHandler extends RESTCallHandler {
 
-		public ResolverResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public ResolverResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

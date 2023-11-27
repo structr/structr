@@ -19,13 +19,12 @@
 package org.structr.rest.api;
 
 import java.util.LinkedHashMap;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Represents a single REST call made against a RESTEndpoint. Contains the raw
  * string-based request values that must be converted to actual typed values.
  */
-public class RESTCall extends LinkedHashMap<RESTParameter, String> {
+public class RESTCall extends LinkedHashMap<String, String> {
 
 	private String viewName      = null;
 	private String url           = null;

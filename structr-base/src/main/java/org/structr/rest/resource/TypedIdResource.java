@@ -42,6 +42,7 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.parameter.RESTParameter;
 
@@ -53,22 +54,19 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class TypedIdResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
-
 	public TypedIdResource() {
 
 		super(
-			typeParameter,
-			uuidParameter
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts())
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(typeParameter);
-		final String uuid     = call.get(uuidParameter);
+		final String typeName = call.get("type");
+		final String uuid     = call.get("uuid");
 
 		if (typeName != null && uuid != null) {
 
@@ -76,7 +74,7 @@ public class TypedIdResource extends RESTEndpoint {
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				return new EntityResourceHandler(securityContext, call.getURL(), entityClass, typeName, uuid);
+				return new EntityResourceHandler(securityContext, call, entityClass, typeName, uuid);
 			}
 		}
 
@@ -90,9 +88,9 @@ public class TypedIdResource extends RESTEndpoint {
 		private String typeName   = null;
 		private String uuid       = null;
 
-		public EntityResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final String uuid) {
+		public EntityResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String uuid) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;
@@ -151,6 +149,20 @@ public class TypedIdResource extends RESTEndpoint {
 			}
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
+		}
+
+		@Override
+		public String getResourceSignature() {
+
+			String signature = call.get("type");
+
+			// append requested view to resource signature
+			if (!isDefaultView()) {
+
+				signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
+			}
+
+			return signature;
 		}
 	}
 }

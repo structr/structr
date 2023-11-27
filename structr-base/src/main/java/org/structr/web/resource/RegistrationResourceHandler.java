@@ -49,6 +49,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.AbstractDataServlet;
@@ -74,8 +75,8 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
-	public RegistrationResourceHandler(final SecurityContext securityContext, final String url) {
-		super(securityContext, url);
+	public RegistrationResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+		super(securityContext, call);
 	}
 
 	@Override

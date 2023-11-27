@@ -34,9 +34,11 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
+import org.structr.common.PropertyView;
 import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.Value;
 import org.structr.core.app.App;
@@ -63,12 +65,12 @@ public abstract class RESTCallHandler {
 
 	protected SecurityContext securityContext = null;
 	protected String requestedView            = null;
-	protected String url                      = null;
+	protected RESTCall call                   = null;
 
-	public RESTCallHandler(final SecurityContext securityContext, final String url) {
+	public RESTCallHandler(final SecurityContext securityContext, final RESTCall call) {
 
 		this.securityContext = securityContext;
-		this.url             = url;
+		this.call            = call;
 	}
 
 	public abstract ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException;
@@ -85,17 +87,25 @@ public abstract class RESTCallHandler {
 	}
 
 	public String getURL() {
-		return url;
+		return call.getURL();
 	}
 
 	public String getResourceSignature() {
 
+		String signature = getURL();
+
 		// remove leading slash from resource access grant
-		if (url.startsWith("/")) {
-			return url.substring(1);
+		if (signature.startsWith("/")) {
+			signature = signature.substring(1);
 		}
 
-		return url;
+		// append requested view to resource signature
+		if (!isDefaultView()) {
+
+			signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
+		}
+
+		return signature;
 	}
 
 	public RestMethodResult doHead() throws FrameworkException {
@@ -428,6 +438,10 @@ public abstract class RESTCallHandler {
 		} catch (final Throwable t) {}
 
 		return -1;
+	}
+
+	protected boolean isDefaultView() {
+		return PropertyView.Public.equals(requestedView);
 	}
 
 	// ----- private methods -----

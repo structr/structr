@@ -22,8 +22,6 @@ package org.structr.rest.resource;
 import jakarta.servlet.http.HttpServletResponse;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.agent.Task;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
@@ -81,9 +79,6 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class MaintenanceResource extends RESTEndpoint {
 
-	private static final Logger logger = LoggerFactory.getLogger(MaintenanceResource.class.getName());
-
-	private static final RESTParameter nameParameter               = RESTParameter.forPattern("name", "[a-zA-Z_]+");
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 
 	static {
@@ -114,27 +109,28 @@ public class MaintenanceResource extends RESTEndpoint {
 
 	public MaintenanceResource() {
 
-		super(RESTParameter.forStaticString("maintenance"),
-			nameParameter
+		super(
+			RESTParameter.forStaticString("maintenance"),
+			RESTParameter.forPattern("name", "[a-zA-Z_]+")
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(nameParameter);
+		final String typeName = call.get("name");
 		if (typeName != null) {
 
 			if ("_schemaJson".equals(typeName)) {
 
 				// handle schema json
-				return new SchemaJsonResourceHandler(securityContext, call.getURL());
+				return new SchemaJsonResourceHandler(securityContext, call);
 			}
 
 			if (maintenanceCommandMap.containsKey(typeName)) {
 
 				// handle maintenance command
-				return new MaintenanceResourceHandler(securityContext, call.getURL(), typeName, maintenanceCommandMap.get(typeName));
+				return new MaintenanceResourceHandler(securityContext, call, typeName, maintenanceCommandMap.get(typeName));
 			}
 
 		}
@@ -169,9 +165,9 @@ public class MaintenanceResource extends RESTEndpoint {
 		private String taskOrCommandName = null;
 		private Class taskOrCommand      = null;
 
-		public MaintenanceResourceHandler(final SecurityContext SecurityContext, final String url, final String taskOrCommandName, final Class taskOrCommand) {
+		public MaintenanceResourceHandler(final SecurityContext SecurityContext, final RESTCall call, final String taskOrCommandName, final Class taskOrCommand) {
 
-			super(SecurityContext, url);
+			super(SecurityContext, call);
 
 			this.taskOrCommandName = taskOrCommandName;
 			this.taskOrCommand     = taskOrCommand;
@@ -297,8 +293,8 @@ public class MaintenanceResource extends RESTEndpoint {
 
 	public class SchemaJsonResourceHandler extends RESTCallHandler {
 
-		public SchemaJsonResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public SchemaJsonResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

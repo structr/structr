@@ -28,8 +28,7 @@ import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -45,25 +44,23 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
-
 	public GlobalSchemaMethodsResource() {
 
 		super(
-			nameParameter
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String methodName = call.get(nameParameter);
+		final String methodName = call.get("name");
 		if (methodName != null) {
 
-			final MethodSignature signature = Methods.getMethodSignatureOrNull(null, null, methodName);
-			if (signature != null) {
+			final AbstractMethod method = Methods.resolveMethod(null, null, methodName);
+			if (method != null) {
 
-				return new GlobalSchemaMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+				return new GlobalSchemaMethodResourceHandler(securityContext, call, method);
 			}
 		}
 
@@ -72,13 +69,13 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 	private class GlobalSchemaMethodResourceHandler extends RESTCallHandler {
 
-		private MethodCall call = null;
+		private AbstractMethod method = null;
 
-		public GlobalSchemaMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
+		public GlobalSchemaMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
-			this.call = call;
+			this.method = method;
 		}
 
 		@Override
@@ -98,7 +95,7 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
 
 				tx.success();
 

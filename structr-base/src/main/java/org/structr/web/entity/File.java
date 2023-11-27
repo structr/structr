@@ -74,8 +74,7 @@ import java.nio.charset.IllegalCharsetNameException;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 /**
@@ -431,12 +430,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-			final MethodSignature signature = Methods.getMethodSignatureOrNull(thisFile.getClass(), thisFile, "onUpload");
-			if (signature != null) {
+			final AbstractMethod method = Methods.resolveMethod(thisFile.getClass(), thisFile, "onUpload");
+			if (method != null) {
 
-				final MethodCall call = signature.createCall(Map.of());
-
-				call.execute(ctx, new EvaluationHints());
+				method.execute(ctx, Map.of(), new EvaluationHints());
 			}
 
 			tx.success();

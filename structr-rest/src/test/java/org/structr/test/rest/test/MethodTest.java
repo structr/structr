@@ -189,4 +189,52 @@ public class MethodTest extends StructrRestTestBase {
 			.body().as(Map.class).get("result")
 		);
 	}
+
+	@Test
+	public void testParameterConversion() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("test1", "{ return $.this.test2($.methodParameters); }");
+			base.addMethod("test2", "{ return $.methodParameters; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		// test inherited methods
+		final Map map = (Map)RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/BaseType/" + base + "/test1")
+
+			.body().as(Map.class).get("result");
+
+		//assert that the method parameters are passed through internally
+		assertEquals("Test",  map.get("name"));
+		assertEquals(3,       map.get("key"));
+		assertEquals("test",  ((Map)map.get("map")).get("m"));
+		assertEquals(1,       ((List)map.get("set")).get(0));
+		assertEquals(2,       ((List)map.get("set")).get(1));
+		assertEquals(3,       ((List)map.get("set")).get(2));
+		assertEquals(25,      ((Map)((List)map.get("list")).get(0)).get("id"));
+		assertEquals("aaa",   ((Map)((List)map.get("list")).get(0)).get("name"));
+	}
 }

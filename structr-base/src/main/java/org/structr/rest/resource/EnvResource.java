@@ -52,13 +52,13 @@ public class EnvResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new EnvResourceHandler(securityContext, call.getURL());
+		return new EnvResourceHandler(securityContext, call);
 	}
 
 	private class EnvResourceHandler extends RESTCallHandler {
 
-		public EnvResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public EnvResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override
