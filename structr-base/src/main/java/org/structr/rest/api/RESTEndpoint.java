@@ -69,7 +69,7 @@ public abstract class RESTEndpoint {
 
 			final String value = matcher.group(group++);
 
-			call.put(part, value);
+			call.put(part.key(), value);
 		}
 
 		return call;

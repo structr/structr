@@ -37,6 +37,6 @@ public class LogoutResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LogoutResourceHandler(securityContext, call.getURL());
+		return new LogoutResourceHandler(securityContext, call);
 	}
 }

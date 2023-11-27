@@ -67,7 +67,7 @@ public class SchemaMethodsTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			app.create(ResourceAccess.class,
-				new NodeAttribute<>(ResourceAccess.signature, "/myTestMethod01"),
+				new NodeAttribute<>(ResourceAccess.signature, "myTestMethod01"),
 				new NodeAttribute<>(ResourceAccess.flags, 64L),
 				new NodeAttribute<>(ResourceAccess.visibleToPublicUsers, true)
 			);

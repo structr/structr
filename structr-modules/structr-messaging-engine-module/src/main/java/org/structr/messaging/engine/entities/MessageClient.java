@@ -37,8 +37,7 @@ import org.structr.schema.action.EvaluationHints;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 public interface MessageClient extends NodeInterface {
@@ -111,12 +110,10 @@ public interface MessageClient extends NodeInterface {
 
 						try {
 
-							final MethodSignature signature = Methods.getMethodSignatureOrNull(sub.getClass(), sub, "onMessage");
-							if (signature != null) {
+							final AbstractMethod method = Methods.resolveMethod(sub.getClass(), sub, "onMessage");
+							if (method != null) {
 
-								final MethodCall call = signature.createCall(params);
-
-								call.execute(securityContext, new EvaluationHints());
+								method.execute(securityContext, params, new EvaluationHints());
 							}
 
 						} catch (FrameworkException e) {

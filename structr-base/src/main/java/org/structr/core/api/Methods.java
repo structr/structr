@@ -34,9 +34,9 @@ import org.structr.core.entity.SchemaMethod;
  */
 public class Methods {
 
-	public static List<MethodSignature> getAllMethods(final Class type) {
+	public static List<AbstractMethod> getAllMethods(final Class type) {
 
-		final List<MethodSignature> signatures = new LinkedList<>();
+		final List<AbstractMethod> signatures = new LinkedList<>();
 
 		if (type != null) {
 
@@ -45,7 +45,7 @@ public class Methods {
 			for (final Method method : methods.values()) {
 
 				try {
-					signatures.add(Methods.createMethodSignature(method, null));
+					signatures.add(Methods.createMethod(method, null));
 
 				} catch
 					(FrameworkException fex) {
@@ -69,7 +69,7 @@ public class Methods {
 		return signatures;
 	}
 
-	public static MethodSignature getMethodSignatureOrNull(final Class type, final GraphObject instance, final String methodName) {
+	public static AbstractMethod resolveMethod(final Class type, final GraphObject instance, final String methodName) {
 
 		// A method can either be a Java method, which we need to call with Method.invoke() via reflection,
 		// OR a scripting method which will in turn call Actions.execute(), so we want do differentiate
@@ -103,7 +103,7 @@ public class Methods {
 			if (method != null) {
 
 				try {
-					return Methods.createMethodSignature(method, instance);
+					return Methods.createMethod(method, instance);
 
 				} catch (FrameworkException fex) {
 					throw new RuntimeException(fex);
@@ -115,7 +115,7 @@ public class Methods {
 	}
 
 	// ----- private static methods -----
-	private static MethodSignature createMethodSignature(final Method method, final GraphObject entity) throws FrameworkException {
+	private static AbstractMethod createMethod(final Method method, final GraphObject entity) throws FrameworkException {
 
 		final Export exp = method.getAnnotation(Export.class);
 		final String id  = exp.schemaMethodId();

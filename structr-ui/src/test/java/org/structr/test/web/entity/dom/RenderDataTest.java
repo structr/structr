@@ -94,7 +94,7 @@ public class RenderDataTest extends DOMTest {
 			final Element p1 = doc.createElement("p");
 
 			final PropertyMap p1Properties = new PropertyMap();
-			p1Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "users?_sort=name");
+			p1Properties.put(StructrApp.key(DOMElement.class, "restQuery"), "User?_sort=name");
 			p1Properties.put(StructrApp.key(DOMElement.class, "dataKey"), "user");
 			((DOMElement) p1).setProperties(((DOMElement) p1).getSecurityContext(), p1Properties);
 

@@ -19,24 +19,23 @@
 package org.structr.core.api;
 
 import java.util.Map;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.RESTCall;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  */
-public abstract class MethodSignature {
+public abstract class AbstractMethod {
 
 	protected String name = null;
 
-	public MethodSignature(final String name) {
+	public AbstractMethod(final String name) {
 		this.name = name;
 	}
 
 	public abstract boolean isStatic();
-
-	public abstract MethodCall createCall(final RESTCall parameters) throws FrameworkException;
-	public abstract MethodCall createCall(final Map<String, Object> parameters) throws FrameworkException;
+	public abstract Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) throws FrameworkException;
 
 	public String getName() {
 		return name;

@@ -36,6 +36,6 @@ public class ResetPasswordResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new ResetPasswordResourceHandler(securityContext, call.getURL());
+		return new ResetPasswordResourceHandler(securityContext, call);
 	}
 }

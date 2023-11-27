@@ -50,22 +50,19 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class CollectionRelationshipsResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter      = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter directionParameter = RESTParameter.forPattern("rel",  "in|out");
-
 	public CollectionRelationshipsResource() {
 
 		super(
-			typeParameter,
-			directionParameter
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
+			RESTParameter.forPattern("rel",  "in|out")
 		);
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName  = call.get(typeParameter);
-		final String direction = call.get(directionParameter);
+		final String typeName  = call.get("type");
+		final String direction = call.get("rel");
 
 		if (typeName != null && direction != null) {
 
@@ -75,11 +72,11 @@ public class CollectionRelationshipsResource extends RESTEndpoint {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, Direction.INCOMING);
+					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(securityContext, call.getURL(), entityClass, typeName, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, Direction.OUTGOING);
 				}
 			}
 		}
@@ -94,9 +91,9 @@ public class CollectionRelationshipsResource extends RESTEndpoint {
 
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final SecurityContext securityContext, final String url, final Class entityClass, final String typeName, final Direction direction) {
+		public RelationshipsResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
 
-			super(securityContext, url, StructrApp.getInstance(securityContext).nodeQuery(entityClass), entityClass, typeName, true);
+			super(securityContext, call, StructrApp.getInstance(securityContext).nodeQuery(entityClass), entityClass, typeName, true);
 
 			this.direction = direction;
 		}

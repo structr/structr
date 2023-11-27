@@ -298,7 +298,7 @@ public class UiScriptingTest extends StructrUiTest {
 			div.appendChild(p);
 
 			final PropertyMap changedProperties = new PropertyMap();
-			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/divs");
+			changedProperties.put(StructrApp.key(DOMElement.class, "restQuery"), "/Div");
 			changedProperties.put(StructrApp.key(DOMElement.class, "dataKey"), "div");
 			p.setProperties(p.getSecurityContext(), changedProperties);
 
@@ -494,7 +494,7 @@ public class UiScriptingTest extends StructrUiTest {
 		RestAssured
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should no be returned because it is run by admin
+				.accept("application/json; properties=id,type,name,folders,testFunction")	// folders is not included in the someprops view BUT should not be returned because it is run by admin
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))

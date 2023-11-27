@@ -28,8 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.schema.action.EvaluationHints;
 
@@ -48,17 +47,16 @@ public class StaticTypeWrapper implements ProxyObject {
 	@Override
 	public Object getMember(String key) {
 
-		final MethodSignature signature = Methods.getMethodSignatureOrNull(referencedClass, null, key);
-		if (signature != null && signature.isStatic()) {
+		final AbstractMethod method = Methods.resolveMethod(referencedClass, null, key);
+		if (method != null && method.isStatic()) {
 
 			final ProxyExecutable executable = arguments -> {
 
 				try {
 
-					final Map<String, Object> parameters = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
-					final MethodCall call                = signature.createCall(parameters);
+					final Map<String, Object> converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
 
-					return PolyglotWrapper.wrap(actionContext, call.execute(actionContext.getSecurityContext(), new EvaluationHints()));
+					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), converted, new EvaluationHints()));
 
 				} catch (FrameworkException ex) {
 					throw new RuntimeException(ex);

@@ -30,6 +30,7 @@ import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
+import org.structr.common.helper.CaseHelper;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoint;
@@ -49,20 +50,13 @@ public class MeResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-
-		final Principal user = securityContext.getUser(true);
-		if (user != null) {
-
-			return new MeResourceHandler(securityContext, call.getURL());
-		}
-
-		return null;
+		return new MeResourceHandler(securityContext, call);
 	}
 
 	private class MeResourceHandler extends RESTCallHandler {
 
-		public MeResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public MeResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override
@@ -81,7 +75,7 @@ public class MeResource extends RESTEndpoint {
 
 		@Override
 		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + url);
+			throw new IllegalMethodException("POST not allowed on " + call.getURL());
 		}
 
 		@Override
@@ -92,6 +86,20 @@ public class MeResource extends RESTEndpoint {
 		@Override
 		public Class getEntityClass() {
 			return User.class;
+		}
+
+		@Override
+		public String getResourceSignature() {
+
+			String signature = "User";
+
+			// append requested view to resource signature
+			if (!isDefaultView()) {
+
+				signature += "/_" + CaseHelper.toUpperCamelCase(requestedView);
+			}
+
+			return signature;
 		}
 	}
 

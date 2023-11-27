@@ -45,8 +45,7 @@ import org.structr.schema.action.EvaluationHints;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 /**
@@ -337,12 +336,10 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 				properties.put("sender", message.getFrom());
 				properties.put("message", message.getBody());
 
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(client.getClass(), client, callbackName);
-				if (signature != null) {
+				final AbstractMethod method = Methods.resolveMethod(client.getClass(), client, callbackName);
+				if (method != null) {
 
-					final MethodCall call = signature.createCall(properties);
-
-					call.execute(SecurityContext.getSuperUserInstance(), new EvaluationHints());
+					method.execute(SecurityContext.getSuperUserInstance(), properties, new EvaluationHints());
 				}
 			}
 

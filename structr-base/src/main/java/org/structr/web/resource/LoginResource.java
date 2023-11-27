@@ -41,6 +41,6 @@ public class LoginResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LoginResourceHandler(securityContext, call.getURL());
+		return new LoginResourceHandler(securityContext, call);
 	}
 }

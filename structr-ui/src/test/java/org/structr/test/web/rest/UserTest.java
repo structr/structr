@@ -36,8 +36,6 @@ public class UserTest extends StructrUiTest {
 		createEntityAsSuperUser("/User", "{ 'name': 'admin', 'password': 'admin', 'isAdmin': true }");
 		createEntityAsSuperUser("/User", "{ 'name': 'user', 'password': 'password'}");
 
-		grant("User", UiAuthenticator.NON_AUTH_USER_POST | UiAuthenticator.AUTH_USER_POST, true);
-
 		// anonymous user is not allowed to create admin user
 		RestAssured
 			.given()
@@ -55,7 +53,26 @@ public class UserTest extends StructrUiTest {
 			.when()
 				.post("/User");
 
-		// ordinary user is not allowed to create admin user
+		grant("User", UiAuthenticator.NON_AUTH_USER_POST | UiAuthenticator.AUTH_USER_POST, true);
+
+		// anonymous user is not allowed to create admin user even with grant because isAdmin is read-only
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.body("{ 'name': 'Administrator', 'password': 'test', 'isAdmin': true }")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(401))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(403))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+			.expect()
+				.statusCode(422)
+			.when()
+				.post("/User");
+
+		// ordinary user is not allowed to create admin user even with grant because isAdmin is read-only
 		RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
@@ -70,7 +87,7 @@ public class UserTest extends StructrUiTest {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 			.expect()
-				.statusCode(401)
+				.statusCode(422)
 			.when()
 				.post("/User");
 

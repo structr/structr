@@ -65,8 +65,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 
 import static org.testng.AssertJUnit.*;
@@ -305,13 +304,11 @@ public class ScriptingTest extends StructrTest {
 		// grant read access to test user
 		try (final Tx tx = app.tx()) {
 
-			final AbstractNode node         = (AbstractNode)app.nodeQuery(sourceType).getFirst();
-			final MethodSignature signature = Methods.getMethodSignatureOrNull(node.getClass(), node, "doTest01");
-			if (signature != null) {
+			final AbstractNode node     = (AbstractNode)app.nodeQuery(sourceType).getFirst();
+			final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, "doTest01");
+			if (method != null) {
 
-				final MethodCall call = signature.createCall(Map.of());
-
-				call.execute(securityContext, new EvaluationHints());
+				method.execute(securityContext, Map.of(), new EvaluationHints());
 			}
 
 			tx.success();

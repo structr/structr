@@ -45,13 +45,13 @@ public class TokenResource extends RESTEndpoint {
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new TokenResourceHandler(securityContext, call.getURL());
+		return new TokenResourceHandler(securityContext, call);
 	}
 
 	private class TokenResourceHandler extends LoginResourceHandler {
 
-		public TokenResourceHandler(final SecurityContext securityContext, final String url) {
-			super(securityContext, url);
+		public TokenResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+			super(securityContext, call);
 		}
 
 		@Override

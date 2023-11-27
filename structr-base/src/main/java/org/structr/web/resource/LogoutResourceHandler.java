@@ -29,12 +29,13 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
 import org.structr.rest.exception.NotAllowedException;
 
 public class LogoutResourceHandler extends RESTCallHandler {
 
-	public LogoutResourceHandler(final SecurityContext securityContext, final String url) {
-		super(securityContext, url);
+	public LogoutResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+		super(securityContext, call);
 	}
 
 	@Override

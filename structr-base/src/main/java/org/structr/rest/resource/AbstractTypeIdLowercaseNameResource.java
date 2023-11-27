@@ -33,16 +33,13 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public abstract class AbstractTypeIdLowercaseNameResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-	private static final RESTParameter uuidParameter = RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts());
-	private static final RESTParameter nameParameter = RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*");
 
 	public AbstractTypeIdLowercaseNameResource() {
 
 		super(
-			typeParameter,
-			uuidParameter,
-			nameParameter
+			RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern),
+			RESTParameter.forPattern("uuid", Settings.getValidUUIDRegexStringForURLParts()),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
 		);
 	}
 
@@ -51,9 +48,9 @@ public abstract class AbstractTypeIdLowercaseNameResource extends RESTEndpoint {
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get(typeParameter);
-		final String uuid     = call.get(uuidParameter);
-		final String name     = call.get(nameParameter);
+		final String typeName = call.get("type");
+		final String uuid     = call.get("uuid");
+		final String name     = call.get("name");
 
 		if (typeName != null && uuid != null && name != null) {
 

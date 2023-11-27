@@ -31,8 +31,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Map;
-import org.structr.core.api.MethodCall;
-import org.structr.core.api.MethodSignature;
+import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -54,10 +53,10 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 			if (entity != null) {
 
 				// use actual type of entity returned to support inheritance
-				final MethodSignature signature = Methods.getMethodSignatureOrNull(entity.getClass(), entity, name);
-				if (signature != null) {
+				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), entity, name);
+				if (method != null) {
 
-					return new InstanceMethodResourceHandler(securityContext, call.getURL(), signature.createCall(call));
+					return new InstanceMethodResourceHandler(securityContext, call, method);
 				}
 			}
 		}
@@ -67,13 +66,13 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 	private class InstanceMethodResourceHandler extends RESTCallHandler {
 
-		private MethodCall call = null;
+		private AbstractMethod method = null;
 
-		public InstanceMethodResourceHandler(final SecurityContext securityContext, final String url, final MethodCall call) {
+		public InstanceMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
 
-			super(securityContext, url);
+			super(securityContext, call);
 
-			this.call = call;
+			this.method = method;
 		}
 
 		@Override
@@ -88,15 +87,15 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(call.execute(securityContext, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
 
 				tx.success();
 
 				return result;
-
 			} catch (UnlicensedScriptException ex) {
 				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
 			}
+
 		}
 
 		@Override

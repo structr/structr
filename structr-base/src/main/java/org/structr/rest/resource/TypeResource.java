@@ -40,16 +40,14 @@ import org.structr.rest.api.parameter.RESTParameter;
  */
 public class TypeResource extends RESTEndpoint {
 
-	private static final RESTParameter typeParameter = RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern);
-
 	public TypeResource() {
-		super(typeParameter);
+		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern));
 	}
 
 	@Override
 	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final String typeName =call.get(typeParameter);
+		final String typeName = call.get("type");
 		if (typeName != null) {
 
 			final App app = StructrApp.getInstance(securityContext);
@@ -63,11 +61,11 @@ public class TypeResource extends RESTEndpoint {
 
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-					return new CollectionResourceHandler(securityContext, call.getURL(), app.relationshipQuery(entityClass), entityClass, rawType, false);
+					return new CollectionResourceHandler(securityContext, call, app.relationshipQuery(entityClass), entityClass, rawType, false);
 
 				} else {
 
-					return new CollectionResourceHandler(securityContext, call.getURL(), app.nodeQuery(entityClass), entityClass, rawType, true);
+					return new CollectionResourceHandler(securityContext, call, app.nodeQuery(entityClass), entityClass, rawType, true);
 				}
 			}
 		}

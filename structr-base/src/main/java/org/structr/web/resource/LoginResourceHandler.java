@@ -45,6 +45,7 @@ import org.structr.core.auth.exception.TwoFactorAuthenticationTokenInvalidExcept
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.action.ActionContext;
@@ -58,9 +59,9 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 	protected HttpServletRequest request = null;
 
-	public LoginResourceHandler(final SecurityContext securityContext, final String url) {
+	public LoginResourceHandler(final SecurityContext securityContext, final RESTCall call) {
 
-		super(securityContext, url);
+		super(securityContext, call);
 
 		this.request = securityContext.getRequest();
 	}
