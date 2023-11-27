@@ -34,6 +34,7 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.SchemaHelper.Type;
@@ -197,13 +198,15 @@ public abstract class AbstractHintProvider {
 		hints.add(0, createKeywordHint("applicationStore",    "The application store", "applicationStore"));
 
 		// add global schema methods to show at the start of the list
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
 
 			for (final SchemaMethod method : methods) {
 				hints.add(0, new GlobalSchemaMethodHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
 			}
+
+			tx.success();
 
 		} catch (FrameworkException fex) {
 
@@ -222,7 +225,7 @@ public abstract class AbstractHintProvider {
 
 		final List<AbstractHint> methodHints = new LinkedList<>();
 
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 
 			// entity properties
 			final List<GraphObjectMap> typeInfo = SchemaHelper.getSchemaTypeInfo(actionContext.getSecurityContext(), type.getSimpleName(), type, PropertyView.All);
@@ -267,6 +270,8 @@ public abstract class AbstractHintProvider {
 			}
 
 			Collections.sort(methodHints, comparator);
+
+			tx.success();
 
 		} catch (FrameworkException ex) {
 			java.util.logging.Logger.getLogger(JavascriptHintProvider.class.getName()).log(Level.SEVERE, null, ex);

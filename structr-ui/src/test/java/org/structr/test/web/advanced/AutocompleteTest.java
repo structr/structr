@@ -305,16 +305,16 @@ public class AutocompleteTest extends StructrUiTest {
 	// ----- private methods -----
 	void assertFullResult(final List<GraphObject> result) {
 
-		final Map<String, Object> current  = ((GraphObjectMap)result.get(3)).toMap();
-		final Map<String, Object> locale   = ((GraphObjectMap)result.get(7)).toMap();
-		final Map<String, Object> me       = ((GraphObjectMap)result.get(8)).toMap();
-		final Map<String, Object> page     = ((GraphObjectMap)result.get(10)).toMap();
-		final Map<String, Object> request  = ((GraphObjectMap)result.get(12)).toMap();
-		final Map<String, Object> response = ((GraphObjectMap)result.get(13)).toMap();
-		final Map<String, Object> thisObj  = ((GraphObjectMap)result.get(15)).toMap();
-		final Map<String, Object> delete   = ((GraphObjectMap)result.get(16)).toMap();
-		final Map<String, Object> get      = ((GraphObjectMap)result.get(17)).toMap();
-		final Map<String, Object> head     = ((GraphObjectMap)result.get(18)).toMap();
+		final Map<String, Object> current    = ((GraphObjectMap)result.get(3)).toMap();
+		final Map<String, Object> locale     = ((GraphObjectMap)result.get(7)).toMap();
+		final Map<String, Object> me         = ((GraphObjectMap)result.get(8)).toMap();
+		final Map<String, Object> page       = ((GraphObjectMap)result.get(10)).toMap();
+		final Map<String, Object> request    = ((GraphObjectMap)result.get(12)).toMap();
+		final Map<String, Object> response   = ((GraphObjectMap)result.get(13)).toMap();
+		final Map<String, Object> thisObj    = ((GraphObjectMap)result.get(15)).toMap();
+		final Map<String, Object> abbr       = ((GraphObjectMap)result.get(16)).toMap();
+		final Map<String, Object> add        = ((GraphObjectMap)result.get(17)).toMap();
+		final Map<String, Object> add_header = ((GraphObjectMap)result.get(18)).toMap();
 
 		assertEquals("Invalid autocomplete result", "current",                                          current.get("text"));
 		assertEquals("Invalid autocomplete result", "locale",                                           locale.get("text"));
@@ -324,9 +324,9 @@ public class AutocompleteTest extends StructrUiTest {
 		assertEquals("Invalid autocomplete result", "response",                                         response.get("text"));
 		assertEquals("Invalid autocomplete result", "page",                                             page.get("text"));
 		assertEquals("Invalid autocomplete result", "this",                                             thisObj.get("text"));
-		assertEquals("Invalid autocomplete result", "DELETE(url [, contentType ])",                     delete.get("text"));
-		assertEquals("Invalid autocomplete result", "GET(url [, contentType [, username, password] ])", get.get("text"));
-		assertEquals("Invalid autocomplete result", "HEAD(url [, username, password ])",                head.get("text"));
+		assertEquals("Invalid autocomplete result", "abbr(str, maxLength[, abbr = '…'])",               abbr.get("text"));
+		assertEquals("Invalid autocomplete result", "add(values...)",                                   add.get("text"));
+		assertEquals("Invalid autocomplete result", "add_header(name, value)",                          add_header.get("text"));
 
 	}
 
