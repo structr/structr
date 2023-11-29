@@ -241,6 +241,8 @@ let Structr = {
 		visibleToAuthenticatedUsers: "Auth. Vis."
 	},
 	dialogTimeoutId: undefined,
+	instanceName: '',
+	instanceStage: '',
 	getDiffMatchPatch: () => {
 		if (!Structr.diffMatchPatch) {
 			Structr.diffMatchPatch = new diff_match_patch();
@@ -248,12 +250,8 @@ let Structr = {
 		return Structr.diffMatchPatch;
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
-	setFunctionBarHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.functionBar, html);
-	},
-	setMainContainerHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.mainContainer, html);
-	},
+	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
+	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
 
 	moveUIOffscreen: () => {
 
@@ -370,6 +368,14 @@ let Structr = {
 			StructrWS.user = name;
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
+	},
+	updateDocumentTitle: () => {
+
+		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
+
+		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+
+		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
 	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
@@ -854,6 +860,10 @@ let Structr = {
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			Structr.instanceName  = envInfo.instanceName;
+			Structr.instanceStage = envInfo.instanceStage;
+			Structr.updateDocumentTitle();
+
 			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
 			if (true === envInfo.maintenanceModeActive) {
@@ -1007,19 +1017,22 @@ let Structr = {
 
 			Structr.mainMenu.lastMenuEntry = name;
 
-			for (let menuEntry of document.querySelectorAll('.menu li')) {
-				menuEntry.classList.remove('active');
+			for (let entry of document.querySelectorAll('.menu li')) {
+				entry.classList.remove('active');
 			}
 
 			li.classList.add('active');
 
-			document.title       = `Structr ${menuEntry.textContent.trim()}`;
+			Structr.updateDocumentTitle();
 			window.location.hash = Structr.mainMenu.lastMenuEntry;
 
 			if (Structr.mainMenu.lastMenuEntry && Structr.mainMenu.lastMenuEntry !== 'logout') {
 				LSWrapper.setItem(Structr.mainMenu.lastMenuEntryKey, Structr.mainMenu.lastMenuEntry);
 			}
 		},
+		getActiveEntry: () => {
+			return document.querySelector('#menu .active');
+		}
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: (el) => {
