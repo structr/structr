@@ -20,17 +20,23 @@ package org.structr.flow.impl;
 
 import org.structr.common.PropertyView;
 import org.structr.common.View;
+import org.structr.core.GraphObject;
 import org.structr.core.property.EndNodes;
 import org.structr.core.property.Property;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.Scripting;
 import org.structr.flow.api.DataSource;
 import org.structr.flow.engine.Context;
 import org.structr.flow.engine.FlowException;
 import org.structr.flow.impl.rels.FlowDataInput;
 import org.structr.module.api.DeployableEntity;
+import org.structr.schema.action.ActionContext;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class FlowParameterDataSource extends FlowBaseNode implements DataSource, DeployableEntity {
 
@@ -46,6 +52,49 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
 		final String _key = getProperty(key);
 		if (_key != null) {
 
+			if (_key.contains(".")) {
+
+				List<String> parts = Arrays.stream(_key.split("\\.")).collect(Collectors.toList());
+
+				if (parts.size() > 0) {
+
+					Object entity = context.getParameter(parts.get(0));
+
+					if (parts.size() > 1) {
+
+						parts.remove(0);
+						String key = String.join(".", parts);
+
+						if (entity instanceof GraphObject) {
+
+							return ((GraphObject)entity).getProperty(key);
+						} else if (entity instanceof Map) {
+
+							Object result = entity;
+							while (parts.size() > 0) {
+
+								if (result instanceof Map) {
+									result = ((Map<?,?>)result).get(parts.get(0));
+									parts.remove(0);
+
+									if (parts.size() == 0) {
+
+										return result;
+									}
+								} else {
+
+									return null;
+								}
+							}
+						}
+					} else {
+
+						return entity;
+					}
+				}
+
+				return null;
+			}
 			return context.getParameter(_key);
 		}
 
