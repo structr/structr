@@ -313,8 +313,9 @@ let _Graph = {
 		});
 
 		$(document).on('click', '#tooltipBtnProps', function() {
-			var id = $(this).attr("value");
-			_Entities.showProperties({id: id});
+			var id   = $(this).attr("value");
+			var type = $(this).data("type");
+			_Entities.showProperties({id: id, type: type });
 			_Graph.graphBrowser.closeTooltip();
 		});
 
@@ -580,6 +581,7 @@ let _Graph = {
 	},
 
 	drawNode: function(node, x, y) {
+
 		if (_Helpers.isIn(node.id, _Graph.nodeIds) || _Helpers.isIn(node.type, _Graph.filteredNodeTypes)) {
 			return;
 		}
@@ -601,7 +603,8 @@ let _Graph = {
 
 			_Graph.graphBrowser.addNode({
 				id: node.id || node.name,
-				label: (node.name || node.tag || node.id.substring(0, 5) + '…') ,
+				label: (node.name || node.tag || node.id.substring(0, 5) + '…'),
+				labelForTooltip: (node.name || node.tag || node.id || `Unnamed ${node.type}`),
 				x: x || newX,
 				y: y || newY,
 				size: 20,
@@ -927,35 +930,36 @@ let _Graph = {
 		`;
 	},
 	renderNodeTooltip: (node) => {
+
 		_Graph.graphBrowser.hideExpandButtons();
 
 		return `
-			<div class='tooltipArrowUp'></div>
-			<div class='graphTooltip'>
-				<div class='tooltipHeader'>
+			<div class="tooltipArrowUp"></div>
+			<div class="graphTooltip">
+				<div class="tooltipHeader flex items-center justify-between p-2">
+					<span class="truncate" style="max-width: 300px;">${node.labelForTooltip}</span>
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close')}
-					<p class='tooltipTitle'>${node.label}</p>
 				</div>
-				<div class='tooltipContent' style='border-top: solid ${_Graph.color[node.nodeType]} 4px;'>
-					<div class='tooltipBody'>
-						<table class='tooltipTable'>
+				<div class="tooltipContent py-1" style="border-top: solid ${_Graph.color[node.nodeType]} 4px;">
+					<div class="tooltipBody">
+						<table class="tooltipTable">
 							<tbody>
 								<tr>
-									<td class='tooltipTableLabel'>Id:</td>
-									<td class='graphTooltipSelectable'>${node.id}</td>
+									<td class="tooltipTableLabel">Id:</td>
+									<td class="graphTooltipSelectable">${node.id}</td>
 								</tr>
 								<tr>
-									<td class='tooltipTableLabel'>Type:</td>
-									<td class='graphTooltipSelectable'>${node.nodeType}</td>
+									<td class="tooltipTableLabel">Type:</td>
+									<td class="graphTooltipSelectable">${node.nodeType}</td>
 								</tr>
 							</tbody>
 						</table>
 					</div>
-					<div id='tooltipFooter${node.id}' class='tooltipFooter'>
+					<div id="tooltipFooter${node.id}" class="tooltipFooter pt-2">
 						<div>
-							<button id='tooltipBtnProps' value='${node.id}'>Properties</button>
-							<button id='tooltipBtnDrop' value='${node.id}'>Remove</button>
-							<button id='tooltipBtnDel' value='${node.id}'>Delete</button>
+							<button id="tooltipBtnProps" value="${node.id}" data-type="${node.nodeType}">Properties</button>
+							<button id="tooltipBtnDrop" value="${node.id}">Remove</button>
+							<button id="tooltipBtnDel" value="${node.id}">Delete</button>
 						</div>
 					</div>
 				</div>
@@ -963,39 +967,40 @@ let _Graph = {
 		`;
 	},
 	renderEdgeTooltip: (edge) => {
+
 		return `
-			<div class='tooltipArrowUp'></div>
-			<div class='graphTooltip'>
-				<div class='tooltipHeader'>
-					<p class='tooltipTitle'>${edge.label}</p>
+			<div class="tooltipArrowUp"></div>
+			<div class="graphTooltip">
+				<div class="tooltipHeader flex items-center justify-between p-2">
+					<span>${edge.label}</span>
 					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 12, 12, _Icons.getSvgIconClassesForColoredIcon(['closeTooltipBtn', 'icon-grey', 'cursor-pointer']), 'Close')}
 				</div>
-				<div class='tooltipBody'>
-					<table class='tooltipTable'>
+				<div class="tooltipBody">
+					<table class="tooltipTable">
 						<tbody>
 							<tr>
-								<td class='tooltipTableLabel'>Id: </td>
-								<td class='graphTooltipSelectable'>${edge.id}</td>
+								<td class="tooltipTableLabel">Id: </td>
+								<td class="graphTooltipSelectable">${edge.id}</td>
 							</tr>
 							<tr>
-								<td class='tooltipTableLabel'>relType: </td>
-								<td class='graphTooltipSelectable'>${edge.relType}</td>
+								<td class="tooltipTableLabel">relType: </td>
+								<td class="graphTooltipSelectable">${edge.relType}</td>
 							</tr>
 							<tr>
-								<td class='tooltipTableLabel'>Source: </td>
-								<td class='graphTooltipSelectable'>${edge.source}</td>
+								<td class="tooltipTableLabel">Source: </td>
+								<td class="graphTooltipSelectable">${edge.source}</td>
 							</tr>
 							<tr>
-								<td class='tooltipTableLabel'>Target: </td>
-								<td class='graphTooltipSelectable edgeTableEl'>${edge.target}</td>
+								<td class="tooltipTableLabel">Target: </td>
+								<td class="graphTooltipSelectable edgeTableEl">${edge.target}</td>
 							</tr>
 						</tbody>
 					</table>
 				</div>
-				<div id='edgeTooltipFooter' class='tooltipFooter'>
+				<div id="edgeTooltipFooter" class="tooltipFooter">
 					<div>
-						<button id='tooltipBtnProps' value='${edge.id}'>Properties</button>
-						<button id='tooltipBtnDel' value='${edge.id}'>Delete</button>
+						<button id="tooltipBtnProps" value="${edge.id}">Properties</button>
+						<button id="tooltipBtnDel" value="${edge.id}">Delete</button>
 					</div>
 				</div>
 			</div>
