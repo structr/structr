@@ -652,9 +652,25 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			Files.walkFileTree(target, new GroupAddFileVisitor(group));
 
+		} catch (UnsupportedOperationException ex) {
+
+			publishWarningMessage("Unable to set group ownership", "The filesystem you are writing to does not have a user/group lookup service. A group named '" + groupName + "' can not be looked up. The deployment export files will not have that group association.");
+
+			logger.warn("The filesystem you are writing to does not have a user/group lookup service. A group named '{}' can not be looked up. The deployment export files will not have that group association.", groupName);
+
+		} catch (UserPrincipalNotFoundException ex) {
+
+			publishWarningMessage("Unable to set group ownership", "A group named '" + groupName + "' was not found. The deployment export files will not have that group association.");
+
+			logger.warn("Unable to set group ownership", "A group named '{}' was not found. The deployment export files will not have that group association.", groupName);
+
 		} catch (Exception ex) {
 
-			logger.warn("can't set group {} for deployment export files: {}", groupName, ex.getMessage());
+			publishWarningMessage("Unable to set group ownership", "An error occurred trying to look up a group named '" + groupName + "'. The deployment export files will not have that group association. See server log for more details.");
+
+			logger.warn("An error occurred trying to look up a group named '{}'. The deployment export files will not have that group association. Error detail follows:", groupName);
+
+			ex.printStackTrace();
 		}
 	}
 
@@ -2671,12 +2687,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	// File Visitor to set group ownership on files created by the deployment export.
 	public static class GroupAddFileVisitor extends SimpleFileVisitor<Path> {
 
-		final Set<PosixFilePermission> perms = EnumSet.of(
-				PosixFilePermission.GROUP_READ,
-				PosixFilePermission.GROUP_WRITE,
-				PosixFilePermission.GROUP_EXECUTE
-		);
-
 		GroupPrincipal group;
 
 		GroupAddFileVisitor(GroupPrincipal group) {
@@ -2686,29 +2696,54 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		@Override
 		public FileVisitResult visitFile(Path file, BasicFileAttributes attr) {
+
 			try {
 
-				PosixFileAttributeView view = Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-				view.setGroup(this.group);
-				Files.setPosixFilePermissions(file, perms);
+				final PosixFileAttributeView view = Files.getFileAttributeView(file, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+
+				if (view != null) {
+
+					view.setGroup(this.group);
+
+					final Set<PosixFilePermission> newPerms = Files.getPosixFilePermissions(file, LinkOption.NOFOLLOW_LINKS);
+					newPerms.add(PosixFilePermission.GROUP_READ);
+					newPerms.add(PosixFilePermission.GROUP_WRITE);
+
+					Files.setPosixFilePermissions(file, newPerms);
+				}
 
 			} catch (IOException e) {
+
 				throw new RuntimeException(e);
 			}
+
 			return CONTINUE;
 		}
 
 		@Override
 		public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attr) {
+
 			try {
 
-				PosixFileAttributeView view = Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
-				view.setGroup(this.group);
-				Files.setPosixFilePermissions(dir, perms);
+				final PosixFileAttributeView view = Files.getFileAttributeView(dir, PosixFileAttributeView.class, LinkOption.NOFOLLOW_LINKS);
+
+				if (view != null) {
+
+					view.setGroup(this.group);
+
+					final Set<PosixFilePermission> newPerms = Files.getPosixFilePermissions(dir, LinkOption.NOFOLLOW_LINKS);
+					newPerms.add(PosixFilePermission.GROUP_READ);
+					newPerms.add(PosixFilePermission.GROUP_WRITE);
+					newPerms.add(PosixFilePermission.GROUP_EXECUTE);
+
+					Files.setPosixFilePermissions(dir, newPerms);
+				}
 
 			} catch (IOException e) {
+
 				throw new RuntimeException(e);
 			}
+
 			return CONTINUE;
 		}
 	}
