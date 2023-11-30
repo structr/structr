@@ -55,50 +55,57 @@ public class FlowParameterDataSource extends FlowBaseNode implements DataSource,
 			if (_key.contains(".")) {
 
 				List<String> parts = Arrays.stream(_key.split("\\.")).collect(Collectors.toList());
-
 				if (parts.size() > 0) {
 
 					Object entity = context.getParameter(parts.get(0));
+					parts.remove(0);
+					return resolveParts(entity, parts);
+				} else {
 
-					if (parts.size() > 1) {
-
-						parts.remove(0);
-						String key = String.join(".", parts);
-
-						if (entity instanceof GraphObject) {
-
-							return ((GraphObject)entity).getProperty(key);
-						} else if (entity instanceof Map) {
-
-							Object result = entity;
-							while (parts.size() > 0) {
-
-								if (result instanceof Map) {
-									result = ((Map<?,?>)result).get(parts.get(0));
-									parts.remove(0);
-
-									if (parts.size() == 0) {
-
-										return result;
-									}
-								} else {
-
-									return null;
-								}
-							}
-						}
-					} else {
-
-						return entity;
-					}
+					return null;
 				}
-
-				return null;
 			}
 			return context.getParameter(_key);
 		}
 
 		return null;
+	}
+
+	private Object resolveParts(Object obj, List<String> parts) {
+		if (!parts.isEmpty()) {
+
+			Object resolvedPart = getValue(obj, parts.get(0));
+			parts.remove(0);
+			return resolveParts(resolvedPart, parts);
+		}
+
+		return obj;
+	}
+
+	private Object getValue(Object obj, String key) {
+
+		if (obj instanceof GraphObject) {
+
+			return getGraphObjectValue((GraphObject) obj, key);
+		} else if (obj instanceof Map) {
+
+			return getMapValue((Map<?,?>) obj, key);
+		}
+
+		return null;
+	}
+
+	private Object getMapValue(Map<?,?> map, String key) {
+		if (map.containsKey(key)) {
+
+			return map.get(key);
+		}
+		return null;
+	}
+
+	private Object getGraphObjectValue(GraphObject go, String key) {
+
+		return go.getProperty(key);
 	}
 
 	@Override
