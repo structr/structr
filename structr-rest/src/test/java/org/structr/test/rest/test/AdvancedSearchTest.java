@@ -860,15 +860,15 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 			}
 
 			// create 9 test entities
-			final String test1 = createEntity("/test_types", "{ name: test1, owner: " + user1 + ", status: one }");
-			final String test2 = createEntity("/test_types", "{ name: test2, owner: " + user2 + ", status: two }");
-			final String test3 = createEntity("/test_types", "{ name: test3, owner: " + user3 + ", status: one }");
-			final String test4 = createEntity("/test_types", "{ name: test4, owner: " + user1 + ", status: two }");
-			final String test5 = createEntity("/test_types", "{ name: test5, owner: " + user2 + ", status: three }");
-			final String test6 = createEntity("/test_types", "{ name: test6, owner: " + user3 + ", status: one }");
-			final String test7 = createEntity("/test_types", "{ name: test7, owner: " + user1 + ", status: two }");
-			final String test8 = createEntity("/test_types", "{ name: test8, owner: " + user2 + ", status: three }");
-			final String test9 = createEntity("/test_types", "{ name: test9, owner: " + user3 + ", status: one }");
+			final String test1 = createEntity("/TestType", "{ name: test1, owner: " + user1 + ", status: one }");
+			final String test2 = createEntity("/TestType", "{ name: test2, owner: " + user2 + ", status: two }");
+			final String test3 = createEntity("/TestType", "{ name: test3, owner: " + user3 + ", status: one }");
+			final String test4 = createEntity("/TestType", "{ name: test4, owner: " + user1 + ", status: two }");
+			final String test5 = createEntity("/TestType", "{ name: test5, owner: " + user2 + ", status: three }");
+			final String test6 = createEntity("/TestType", "{ name: test6, owner: " + user3 + ", status: one }");
+			final String test7 = createEntity("/TestType", "{ name: test7, owner: " + user1 + ", status: two }");
+			final String test8 = createEntity("/TestType", "{ name: test8, owner: " + user2 + ", status: three }");
+			final String test9 = createEntity("/TestType", "{ name: test9, owner: " + user3 + ", status: one }");
 
 			// check that all entities are there
 			RestAssured

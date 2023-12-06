@@ -119,7 +119,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result.id",          equalTo(testTwo))
 			.when()
-				.get("/TestTwos/" + testTwo);
+				.get("/TestTwo/" + testTwo);
 
 	}
 
