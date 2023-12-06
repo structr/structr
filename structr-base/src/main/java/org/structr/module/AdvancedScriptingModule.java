@@ -86,7 +86,6 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DisablePreventDuplicateRelationshipsFunction());
 		Functions.put(licenseManager, new DisableUuidValidationFunction());
 		Functions.put(licenseManager, new EnableNotificationsFunction());
-		Functions.put(licenseManager, new RInterpreterFunction());
 		Functions.put(licenseManager, new EvaluateScriptFunction());
 		Functions.put(licenseManager, new AncestorTypesFunction());
 		Functions.put(licenseManager, new InheritingTypesFunction());
