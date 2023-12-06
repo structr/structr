@@ -39,7 +39,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	public void test000NotFoundError() {
 
 		// create empty object
-		String uuid = createEntity("/test_object", "{}");
+		String uuid = createEntity("/TestObject", "{}");
 
 		// provoke 404 error with GET on non-existing resource
 		RestAssured
@@ -56,12 +56,9 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	/**
 	 * Test different notations of the REST endpoint (first URI part).
 	 *
-	 * For the class TestTwo, the following notations are allowed:
+	 * For the class TestTwo, the following notation is allowed:
 	 *
-	 *    /test_two
-	 *    /test_twos
 	 *    /TestTwo
-	 *    /TestTwos
 	 *
 	 */
 	@Test
@@ -89,7 +86,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result.id",          equalTo(testTwo))
 			.when()
-				.get("/test_two/" + testTwo);
+				.get("/TestTwo/" + testTwo);
 
 		RestAssured
 
@@ -155,7 +152,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",          equalTo(testOne))
 			.when()
-				.get("/test_two/" + testTwo + "/TestOne")
+				.get("/TestTwo/" + testTwo + "/test_ones")
 			.prettyPrint();
 
 	}
@@ -189,7 +186,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",       equalTo(testOne))
 			.when()
-				.get("/test_two/" + testTwo + "/testOnes");
+				.get("/TestTwo/" + testTwo + "/testOnes");
 	}
 
 	@Test
