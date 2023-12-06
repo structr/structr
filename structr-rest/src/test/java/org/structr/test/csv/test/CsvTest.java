@@ -44,7 +44,7 @@ public class CsvTest extends StructrCsvTest {
 
 	private static final Logger logger = LoggerFactory.getLogger(CsvTest.class.getName());
 
-	private final String testOneResource = "/test_one";
+	private final String testOneResource = "/TestOne";
 	private final String testOneCSVWithDefaultCharacters5EntriesNoError = "\"id\";\"type\";\"name\";\"anInt\";\"aLong\";\"aDate\"\r\n"
 			+ "\"0979aebeb9ae42a7b3594db3da12875e\";\"TestOne\";\"TestOne-1\";\"1\";\"10\";\"2012-09-18T00:33:12+0000\"\r\n"
 			+ "\"a3e07672b1064c28a1093b7024c7087d\";\"TestOne\";\"TestOne-2\";\"2\";\"20\";\"2012-09-18T01:33:12+0000\"\r\n"
