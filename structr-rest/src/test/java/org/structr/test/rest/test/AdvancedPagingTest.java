@@ -59,7 +59,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 	public void test01Paging() {
 
 		// create a root object
-		String resource = "/test_twos";
+		String resource = "/TestTwo";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -67,7 +67,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/test_ones");
+		resource = resource.concat("/").concat(baseId).concat("/TestOne");
 
 		// create sub objects
 		for (int i=0; i<10; i++) {
@@ -82,7 +82,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		}
 
-		resource = "/test_ones";
+		resource = "/TestOne";
 
 		for (int page=1; page<5; page++) {
 
@@ -122,7 +122,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		// create a root object
 
-		String resource = "/test_twos";
+		String resource = "/TestTwo";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -130,7 +130,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/test_ones");
+		resource = resource.concat("/").concat(baseId).concat("/TestOne");
 
 		// create sub objects
 		for (int i=0; i<10; i++) {
@@ -143,7 +143,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		}
 
-		resource = "/test_twos/" + baseId + "/test_ones";
+		resource = "/TestTwo/" + baseId + "/TestOne";
 
 		for (int page=1; page<5; page++) {
 
@@ -177,7 +177,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		// create a root object
 
 		final List<String> testOneIDs = new LinkedList<>();
-		String resource               = "/test_twos";
+		String resource               = "/TestTwo";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -185,7 +185,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/test_ones");
+		resource = resource.concat("/").concat(baseId).concat("/TestOne");
 
 		// create sub objects
 		for (int i=0; i<20; i++) {
@@ -215,7 +215,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[2].id", equalTo(testOneIDs.get(2)))
 
 			.when()
-				.get("/test_twos");
+				.get("/TestTwo");
 
 
 		RestAssured
@@ -236,7 +236,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[2].id", equalTo(testOneIDs.get(5)))
 
 			.when()
-				.get("/test_twos");
+				.get("/TestTwo");
 
 
 		RestAssured
@@ -264,7 +264,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[9].id", equalTo(testOneIDs.get(19)))
 
 			.when()
-				.get("/test_twos");
+				.get("/TestTwo");
 
 
 	}
@@ -310,7 +310,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",        hasSize(2))
 				.body("result_count",  equalTo(2))
 			.when()
-				.get("/test_threes");
+				.get("/TestThree");
 
 		/* Test 2: Test that we created one TestFive */
 		RestAssured
@@ -321,7 +321,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",       hasSize(1))
 				.body("result_count", equalTo(1))
 			.when()
-				.get("/test_fives");
+				.get("/TestFive");
 
 		/* Test 3: Test that we can correctly search for objects **without** a connection to another node */
 		RestAssured

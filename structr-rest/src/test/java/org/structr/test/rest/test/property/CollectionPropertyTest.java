@@ -44,7 +44,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/test_ones")
+				.post("/TestOne")
 				.getHeader("Location");
 
 			testOneIds[i] = getUuidFromLocation(location);
@@ -58,7 +58,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_fives")
+			.post("/TestFive")
 			.getHeader("Location");
 
 		String testFiveId = getUuidFromLocation(location);
@@ -73,7 +73,7 @@ public class CollectionPropertyTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result.manyToManyTestOnes", hasItems(testOneIds[0], testOneIds[1], testOneIds[2]))
 		.when()
-			.get("/test_fives/" + testFiveId);
+			.get("/TestFive/" + testFiveId);
 
 
 	}

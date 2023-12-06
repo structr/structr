@@ -40,7 +40,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 		String uuid = getUuidFromLocation(location);
@@ -57,7 +57,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].booleanArrayProperty[3]", equalTo(true))
 			.body("result[0].booleanArrayProperty[4]", equalTo(false))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -65,7 +65,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put("/test_threes/" + uuid);
+			.put("/TestThree/" + uuid);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -77,7 +77,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].booleanArrayProperty[1]", equalTo(true))
 			.body("result[0].booleanArrayProperty[2]", equalTo(false))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
@@ -100,7 +100,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
@@ -143,7 +143,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 		RestAssured.given()

@@ -61,7 +61,7 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 		// configuration changes, so this test class is a duplicate of
 		// the existing StructrRestTestBase.. :(
 
-		String resource = "/test_twos";
+		String resource = "/TestTwo";
 
 		// create entity
 		final String uuid = getUuidFromLocation(RestAssured

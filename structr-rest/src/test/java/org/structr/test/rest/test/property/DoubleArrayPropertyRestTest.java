@@ -40,7 +40,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 		String uuid = getUuidFromLocation(location);
@@ -57,7 +57,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].doubleArrayProperty[3]", equalTo(4.0f))
 			.body("result[0].doubleArrayProperty[4]", equalTo(5.0f))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -65,7 +65,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put("/test_threes/" + uuid);
+			.put("/TestThree/" + uuid);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -77,7 +77,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].doubleArrayProperty[1]", equalTo(4.0f))
 			.body("result[0].doubleArrayProperty[2]", equalTo(5.0f))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
@@ -100,7 +100,7 @@ public class DoubleArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 

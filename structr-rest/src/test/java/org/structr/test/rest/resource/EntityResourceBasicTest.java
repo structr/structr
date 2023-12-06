@@ -70,7 +70,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test01"));
+			.post(concat("/TestOne/", id, "/test01"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -82,7 +82,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test02"));
+			.post(concat("/TestOne/", id, "/test02"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -94,7 +94,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test03"));
+			.post(concat("/TestOne/", id, "/test03"));
 
 
 		// execute test method, expect sane result (not 500)
@@ -106,7 +106,7 @@ public class EntityResourceBasicTest extends StructrRestTestBase {
 			.expect()
 			.statusCode(200)
 			.when()
-			.post(concat("/test_ones/", id, "/test04"));
+			.post(concat("/TestOne/", id, "/test04"));
 
 	}
 

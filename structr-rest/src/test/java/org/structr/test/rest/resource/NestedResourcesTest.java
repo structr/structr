@@ -100,7 +100,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result.id",          equalTo(testTwo))
 			.when()
-				.get("/test_twos/" + testTwo);
+				.get("/TestTwo/" + testTwo);
 
 		RestAssured
 
@@ -155,7 +155,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",          equalTo(testOne))
 			.when()
-				.get("/test_two/" + testTwo + "/test_ones")
+				.get("/test_two/" + testTwo + "/TestOne")
 			.prettyPrint();
 
 	}

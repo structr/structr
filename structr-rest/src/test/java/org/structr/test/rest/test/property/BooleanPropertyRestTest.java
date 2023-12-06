@@ -40,7 +40,7 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
@@ -53,7 +53,7 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].booleanProperty", equalTo(Boolean.TRUE))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 
 		RestAssured.given()
@@ -66,7 +66,7 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(422)
 		.when()
-			.put("/test_threes/" + uuid);
+			.put("/TestThree/" + uuid);
 
 		// PUT with old value should be ignored
 		RestAssured.given()
@@ -79,7 +79,7 @@ public class BooleanPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put("/test_threes/" + uuid);
+			.put("/TestThree/" + uuid);
 
 	}
 }

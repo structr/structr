@@ -43,7 +43,7 @@ public class StringPropertyRestTest extends IndexingTest {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 
@@ -59,17 +59,17 @@ public class StringPropertyRestTest extends IndexingTest {
 			.statusCode(200)
 			.body("result[0].stringProperty", equalTo("This is a test!"))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 	}
 
 	@Test
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test1' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test2' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test3' } ").expect().statusCode(201).when().post("/test_threes");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'           : 'test4' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test1' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test2' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'stringProperty' : 'test3' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'           : 'test4' } ").expect().statusCode(201).when().post("/TestThree");
 
 		// test for three elements
 		RestAssured.given()
@@ -83,7 +83,7 @@ public class StringPropertyRestTest extends IndexingTest {
 			.statusCode(200)
 			.body("result_count", equalTo(4))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 		// test strict search
 		RestAssured.given()
@@ -189,7 +189,7 @@ public class StringPropertyRestTest extends IndexingTest {
 		.expect()
 			.statusCode(200)
 		.when()
-			.delete("/test_threes");
+			.delete("/TestThree");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -199,7 +199,7 @@ public class StringPropertyRestTest extends IndexingTest {
 		.expect()
 			.statusCode(expectedStatusCode)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 		if (expectedStatusCode == 201) {
@@ -215,7 +215,7 @@ public class StringPropertyRestTest extends IndexingTest {
 				.statusCode(200)
 				.body("result[0].stringProperty", equalTo(largeString))
 			.when()
-				.get("/test_threes");
+				.get("/TestThree");
 		}
 	}
 }

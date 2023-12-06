@@ -40,7 +40,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location");
 
 		String uuid = getUuidFromLocation(location);
@@ -55,7 +55,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].dateArrayProperty[1]", equalTo("2019-03-05T23:45:00+0000"))
 			.body("result[0].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 		.when()
-			.get("/test_threes");
+			.get("/TestThree");
 
 	}
 
@@ -69,7 +69,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
@@ -79,7 +79,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes")
+			.post("/TestThree")
 			.getHeader("Location")
 		);
 
