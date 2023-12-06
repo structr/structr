@@ -39,7 +39,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	public void test000NotFoundError() {
 
 		// create empty object
-		String uuid = createEntity("/TestObject", "{}");
+		String uuid = createEntity("/test_object", "{}");
 
 		// provoke 404 error with GET on non-existing resource
 		RestAssured
@@ -49,22 +49,25 @@ public class NestedResourcesTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(404)
 			.when()
-				.get("/TestObject/" + uuid + "/nonexisting");
+				.get("/test_objects/" + uuid + "/nonexisting");
 
 	}
 
 	/**
 	 * Test different notations of the REST endpoint (first URI part).
 	 *
-	 * For the class TestTwo, the following notation is allowed:
+	 * For the class TestTwo, the following notations are allowed:
 	 *
+	 *    /test_two
+	 *    /test_twos
 	 *    /TestTwo
+	 *    /TestTwos
 	 *
 	 */
 	@Test
 	public void test010EndpointNotations() {
 
-		String testOne = createEntity("/TestOne", "{ \"name\": \"TestOne\" }");
+		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
 
 		System.out.println(testOne);
@@ -72,7 +75,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 		String body = "{ \"test_ones\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
 
-		String testTwo = createEntity("/TestTwo", body);
+		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
 
 		System.out.println(testTwo);
@@ -86,7 +89,18 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result.id",          equalTo(testTwo))
 			.when()
-				.get("/TestTwo/" + testTwo);
+				.get("/test_two/" + testTwo);
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result_count",       equalTo(1))
+				.body("result.id",          equalTo(testTwo))
+			.when()
+				.get("/test_twos/" + testTwo);
 
 		RestAssured
 
@@ -108,18 +122,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result.id",          equalTo(testTwo))
 			.when()
-				.get("/TestTwo/" + testTwo);
-
-		RestAssured
-
-			.given()
-				.contentType("application/json; charset=UTF-8")
-			.expect()
-				.statusCode(200)
-				.body("result_count",       equalTo(1))
-				.body("result.id",          equalTo(testTwo))
-			.when()
-				.get("/TestTwo/" + testTwo);
+				.get("/TestTwos/" + testTwo);
 
 	}
 
@@ -130,7 +133,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	@Test
 	public void test020EndpointNotations() {
 
-		String testOne = createEntity("/TestOne", "{ \"name\": \"TestOne\" }");
+		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
 
 		System.out.println(testOne);
@@ -138,7 +141,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 		String body = "{ \"test_ones\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
 
-		String testTwo = createEntity("/TestTwo", body);
+		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
 
 		System.out.println(testTwo);
@@ -152,7 +155,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",          equalTo(testOne))
 			.when()
-				.get("/TestTwo/" + testTwo + "/test_ones")
+				.get("/test_two/" + testTwo + "/test_ones")
 			.prettyPrint();
 
 	}
@@ -164,7 +167,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 	@Test
 	public void test030EndpointNotations() {
 
-		String testOne = createEntity("/TestOne", "{ \"name\": \"TestOne\" }");
+		String testOne = createEntity("/test_one", "{ \"name\": \"TestOne\" }");
 		assertNotNull(testOne);
 
 		System.out.println(testOne);
@@ -172,7 +175,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 		String body = "{ \"testOnes\": [ \"" + testOne + "\" ] }";
 		System.out.println(body);
 
-		String testTwo = createEntity("/TestTwo", body);
+		String testTwo = createEntity("/test_two", body);
 		assertNotNull(testTwo);
 
 		System.out.println(testTwo);
@@ -186,7 +189,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",       equalTo(testOne))
 			.when()
-				.get("/TestTwo/" + testTwo + "/testOnes");
+				.get("/test_two/" + testTwo + "/testOnes");
 	}
 
 	@Test
@@ -195,22 +198,22 @@ public class NestedResourcesTest extends StructrRestTestBase {
 		final StringBuilder buf = new StringBuilder();
 
 		buf.append("\"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\", \"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\",\"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\",\"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\",\"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\",\"");
-		buf.append(createEntity("/TestOne", "{ }"));
+		buf.append(createEntity("/test_one", "{ }"));
 		buf.append("\"");
 
-		createEntity("/TestTwo","{ }");
-		createEntity("/TestTwo","{ }");
-		createEntity("/TestTwo","{ testOnes: [ " + buf.toString() + " ] }");
+		createEntity("/test_two","{ }");
+		createEntity("/test_two","{ }");
+		createEntity("/test_two","{ testOnes: [ " + buf.toString() + " ] }");
 
 		RestAssured
 
@@ -220,7 +223,7 @@ public class NestedResourcesTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(200)
 			.when()
-				.get("/TestTwo");
+				.get("/test_two");
 
 
 	}

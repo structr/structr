@@ -66,7 +66,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count",       equalTo(0))
 			.when()
-				.get("/TestObject");
+				.get("/test_objects");
 
 	}
 
@@ -84,7 +84,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/TestObject")
+				.post("/test_objects")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -107,7 +107,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0].id",       equalTo(uuid))
 			.when()
-				.get("/TestObject")
+				.get("/test_objects")
 				.jsonPath().get("result[0].name");
 
 		// name must be null
@@ -131,7 +131,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/TestObject")
+				.post("/test_objects")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -154,7 +154,7 @@ public class CollectionResourceBasicTest extends StructrRestTestBase {
 				.body("result_count",       equalTo(1))
 				.body("result[0]",          isEntity(TestObject.class))
 			.when()
-				.get("/TestObject");
+				.get("/test_objects");
 
 	}
 

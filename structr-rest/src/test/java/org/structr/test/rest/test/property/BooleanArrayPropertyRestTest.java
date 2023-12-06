@@ -40,7 +40,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 		String uuid = getUuidFromLocation(location);
@@ -57,7 +57,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].booleanArrayProperty[3]", equalTo(true))
 			.body("result[0].booleanArrayProperty[4]", equalTo(false))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -65,7 +65,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put("/TestThree/" + uuid);
+			.put("/test_threes/" + uuid);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -77,7 +77,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].booleanArrayProperty[1]", equalTo(true))
 			.body("result[0].booleanArrayProperty[2]", equalTo(false))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location")
 		);
 
@@ -100,7 +100,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location")
 		);
 
@@ -113,7 +113,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/TestThree?booleanArrayProperty=");
+			.get("/test_threes?booleanArrayProperty=");
 
 
 		// test search for empty array property
@@ -124,7 +124,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/TestThree?booleanArrayProperty=[]");
+			.get("/test_threes?booleanArrayProperty=[]");
 	}
 
 
@@ -143,7 +143,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -164,7 +164,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/TestThree?_sort=name&booleanArrayProperty=true");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -181,7 +181,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[0]", equalTo(false))
 			.body("result[1].booleanArrayProperty[1]", equalTo(false))
 		.when()
-			.get("/TestThree?_sort=name&booleanArrayProperty=false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=false");
 	}
 
 
@@ -199,7 +199,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree?_sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -220,7 +220,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[1]", equalTo(false))
 
 		.when()
-			.get("/TestThree?_sort=name&booleanArrayProperty=true;false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true;false");
 
 	}
 
@@ -239,7 +239,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree?_sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -258,6 +258,6 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/TestThree?_sort=name&booleanArrayProperty=true,false");
+			.get("/test_threes?_sort=name&booleanArrayProperty=true,false");
 	}
 }

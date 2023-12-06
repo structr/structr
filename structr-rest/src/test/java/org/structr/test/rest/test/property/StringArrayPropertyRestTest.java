@@ -40,7 +40,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 		String uuid = getUuidFromLocation(location);
@@ -57,7 +57,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -65,7 +65,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.put("/TestThree/" + uuid);
+			.put("/test_threes/" + uuid);
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -77,7 +77,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[1]", equalTo("four"))
 			.body("result[0].stringArrayProperty[2]", equalTo("five"))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 	}
 
 	@Test
@@ -90,7 +90,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location")
 		);
 
@@ -100,7 +100,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location")
 		);
 
@@ -113,7 +113,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/TestThree?stringArrayProperty=");
+			.get("/test_threes?stringArrayProperty=");
 
 
 		// test search for empty array property
@@ -124,7 +124,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/TestThree?stringArrayProperty=[]");
+			.get("/test_threes?stringArrayProperty=[]");
 
 
 
@@ -147,7 +147,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree?_sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -179,7 +179,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].stringArrayProperty[4]", equalTo("five"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one");
+			.get("/test_threes?_sort=name&stringArrayProperty=one");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -207,7 +207,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].stringArrayProperty[3]", equalTo("four"))
 			.body("result[3].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=two");
+			.get("/test_threes?_sort=name&stringArrayProperty=two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -232,7 +232,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].stringArrayProperty[3]", equalTo("four"))
 			.body("result[2].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=three");
+			.get("/test_threes?_sort=name&stringArrayProperty=three");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -253,7 +253,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[3]", equalTo("four"))
 			.body("result[1].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=four");
+			.get("/test_threes?_sort=name&stringArrayProperty=four");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -269,7 +269,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=five");
+			.get("/test_threes?_sort=name&stringArrayProperty=five");
 	}
 
 
@@ -287,7 +287,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree?_sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -303,7 +303,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[0]", equalTo("two"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one;two");
+			.get("/test_threes?_sort=name&stringArrayProperty=one;two");
 
 	}
 
@@ -322,7 +322,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree?_sort=name")
+			.post("/test_threes?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -341,7 +341,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one,two");
+			.get("/test_threes?_sort=name&stringArrayProperty=one,two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -356,6 +356,6 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/TestThree?_sort=name&stringArrayProperty=one,two,three");
+			.get("/test_threes?_sort=name&stringArrayProperty=one,two,three");
 	}
 }

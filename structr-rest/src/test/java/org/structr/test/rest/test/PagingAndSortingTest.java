@@ -67,7 +67,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(201)
 			.when()
-				.post("/TestOne")
+				.post("/test_one")
 				.getHeader("Location");
 
 		// POST must return a Location header
@@ -92,7 +92,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("serialization_time", lessThan("0.1"))
 				.body("result[0]",          isEntity(TestOne.class))
 			.when()
-				.get("/TestOne");
+				.get("/test_one");
 
 	}
 
@@ -105,7 +105,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		// create some objects
 
-		String resource = "/TestOne";
+		String resource = "/test_one";
 
 		RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '" + aDate3 + "' } ")
@@ -402,7 +402,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 			// create some objects
 
-			String resource = "/TestOne";
+			String resource = "/test_one";
 
 			RestAssured.given().contentType("application/json; charset=UTF-8")
 				.body(" { 'name' : 'TestOne-3', 'anInt' : 3, 'aLong' : 30, 'aDate' : '" + aDate3 + "' } ")

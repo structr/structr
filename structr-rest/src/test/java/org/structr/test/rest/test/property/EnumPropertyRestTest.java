@@ -43,7 +43,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 		Response response = RestAssured.given()
@@ -58,7 +58,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(200)
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		assertEquals(TestEnum.Status2.name(), response.getBody().jsonPath().get("result[0].enumProperty"));
 
@@ -67,9 +67,9 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 	@Test
 	public void testSearchOnNode() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status1' } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status2' } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status3' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status1' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status2' } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'enumProperty' : 'Status3' } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test for three elements
 		RestAssured.given()
@@ -84,7 +84,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(3))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		// test strict search
 		RestAssured.given()
@@ -99,16 +99,16 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].enumProperty", equalTo(TestEnum.Status2.name()))
 		.when()
-			.get("/TestThree?enumProperty=Status2");
+			.get("/test_threes?enumProperty=Status2");
 
 	}
 
 	@Test
 	public void testSearchOnRelationship() {
 
-		final String test01   = createEntity("/TestOne", "{ name: test01 }");
-		final String test02   = createEntity("/TestTwo", "{ name: test02, test_ones: [", test01, "] }");
-		final String resource = "/TwoOneOneToMany";
+		final String test01   = createEntity("/test_ones", "{ name: test01 }");
+		final String test02   = createEntity("/test_twos", "{ name: test02, test_ones: [", test01, "] }");
+		final String resource = "/two_one_one_to_manys";
 
 		String id = RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -173,7 +173,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 			.body("errors[0].token",    equalTo("must_be_one_of"))
 			.body("errors[0].detail",   equalTo("Status1, Status2, Status3, Status4"))
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 	}
 }

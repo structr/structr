@@ -59,7 +59,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post("/User");
+				.post("/users");
 
 		// create resource access objects
 		/*
@@ -80,7 +80,7 @@ public class PropertyViewTest extends StructrUiTest {
 			about having sufficient permissions to cause a 400 error.
 		*/
 
-		String resource = "/TestOne";
+		String resource = "/test_ones";
 
 		// first: test failures without resource access object
 		testGet(   resource,                                        401);
@@ -248,7 +248,7 @@ public class PropertyViewTest extends StructrUiTest {
 				.statusCode(201)
 
 			.when()
-				.post("/User").header("Location"));
+				.post("/users").header("Location"));
 
 		// create resource access objects
 		/*
@@ -264,7 +264,7 @@ public class PropertyViewTest extends StructrUiTest {
 
 		*/
 
-		String resource = "/TestOne";
+		String resource = "/test_ones";
 
 		// grant GET and POST for authenticated users
 		grant("TestOne", 5, true);

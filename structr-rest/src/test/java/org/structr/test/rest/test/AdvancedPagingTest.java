@@ -59,7 +59,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 	public void test01Paging() {
 
 		// create a root object
-		String resource = "/TestTwo";
+		String resource = "/test_twos";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -82,7 +82,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		}
 
-		resource = "/TestOne";
+		resource = "/test_ones";
 
 		for (int page=1; page<5; page++) {
 
@@ -122,7 +122,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		// create a root object
 
-		String resource = "/TestTwo";
+		String resource = "/test_twos";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -143,7 +143,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		}
 
-		resource = "/TestTwo/" + baseId + "/TestOne";
+		resource = "/test_twos/" + baseId + "/test_ones";
 
 		for (int page=1; page<5; page++) {
 
@@ -177,7 +177,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		// create a root object
 
 		final List<String> testOneIDs = new LinkedList<>();
-		String resource               = "/TestTwo";
+		String resource               = "/test_twos";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")
 			.body(" { 'name' : 'TestTwo-0', 'anInt' : 0, 'aLong' : 0, 'aDate' : '2012-09-18T00:33:12+0200' } ")
@@ -215,7 +215,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[2].id", equalTo(testOneIDs.get(2)))
 
 			.when()
-				.get("/TestTwo");
+				.get("/test_twos");
 
 
 		RestAssured
@@ -236,7 +236,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[2].id", equalTo(testOneIDs.get(5)))
 
 			.when()
-				.get("/TestTwo");
+				.get("/test_twos");
 
 
 		RestAssured
@@ -264,7 +264,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].test_ones[9].id", equalTo(testOneIDs.get(19)))
 
 			.when()
-				.get("/TestTwo");
+				.get("/test_twos");
 
 
 	}
@@ -310,7 +310,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",        hasSize(2))
 				.body("result_count",  equalTo(2))
 			.when()
-				.get("/TestThree");
+				.get("/test_threes");
 
 		/* Test 2: Test that we created one TestFive */
 		RestAssured
@@ -321,7 +321,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result",       hasSize(1))
 				.body("result_count", equalTo(1))
 			.when()
-				.get("/TestFive");
+				.get("/test_fives");
 
 		/* Test 3: Test that we can correctly search for objects **without** a connection to another node */
 		RestAssured
@@ -333,7 +333,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].name", equalTo(notConnectedNodeName))
 				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
 			.when()
-				.get("/TestThree?oneToOneTestFive=null");
+				.get("/test_threes?oneToOneTestFive=null");
 
 
 		/* Test 4: Test that we can correctly search for objects **without** a connection to another node WHILE also reducing pagesize to 1	*/
@@ -347,7 +347,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.body("result[0].name", equalTo(notConnectedNodeName))
 				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
 			.when()
-				.get("/TestThree?oneToOneTestFive=null&_pageSize=1");
+				.get("/test_threes?oneToOneTestFive=null&_pageSize=1");
 
 	}
 
