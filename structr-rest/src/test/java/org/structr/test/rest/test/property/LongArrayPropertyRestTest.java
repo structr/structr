@@ -113,7 +113,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/test_threes?longArrayProperty=");
+			.get("/TestThree?longArrayProperty=");
 
 
 		// test search for empty array property
@@ -124,7 +124,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/test_threes?longArrayProperty=[]");
+			.get("/TestThree?longArrayProperty=[]");
 
 
 
@@ -147,7 +147,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -179,7 +179,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].longArrayProperty[4]", equalTo(5))
 
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=1");
+			.get("/TestThree?_sort=name&longArrayProperty=1");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -207,7 +207,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].longArrayProperty[3]", equalTo(4))
 			.body("result[3].longArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=2");
+			.get("/TestThree?_sort=name&longArrayProperty=2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -232,7 +232,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].longArrayProperty[3]", equalTo(4))
 			.body("result[2].longArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=3");
+			.get("/TestThree?_sort=name&longArrayProperty=3");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -253,7 +253,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].longArrayProperty[3]", equalTo(4))
 			.body("result[1].longArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=4");
+			.get("/TestThree?_sort=name&longArrayProperty=4");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -269,7 +269,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].longArrayProperty[3]", equalTo(4))
 			.body("result[0].longArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=5");
+			.get("/TestThree?_sort=name&longArrayProperty=5");
 	}
 
 
@@ -287,7 +287,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -303,7 +303,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].longArrayProperty[0]", equalTo(2))
 
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=1;2");
+			.get("/TestThree?_sort=name&longArrayProperty=1;2");
 
 	}
 
@@ -342,7 +342,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].longArrayProperty[2]", equalTo(3))
 
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=1,2");
+			.get("/TestThree?_sort=name&longArrayProperty=1,2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -357,7 +357,7 @@ public class LongArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].longArrayProperty[2]", equalTo(3))
 
 		.when()
-			.get("/test_threes?_sort=name&longArrayProperty=1,2,3");
+			.get("/TestThree?_sort=name&longArrayProperty=1,2,3");
 	}
 
 	@Test

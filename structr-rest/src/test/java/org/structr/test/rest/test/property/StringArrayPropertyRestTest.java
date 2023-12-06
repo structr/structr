@@ -113,7 +113,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/test_threes?stringArrayProperty=");
+			.get("/TestThree?stringArrayProperty=");
 
 
 		// test search for empty array property
@@ -124,7 +124,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/test_threes?stringArrayProperty=[]");
+			.get("/TestThree?stringArrayProperty=[]");
 
 
 
@@ -147,7 +147,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -179,7 +179,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].stringArrayProperty[4]", equalTo("five"))
 
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=one");
+			.get("/TestThree?_sort=name&stringArrayProperty=one");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -207,7 +207,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].stringArrayProperty[3]", equalTo("four"))
 			.body("result[3].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=two");
+			.get("/TestThree?_sort=name&stringArrayProperty=two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -232,7 +232,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].stringArrayProperty[3]", equalTo("four"))
 			.body("result[2].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=three");
+			.get("/TestThree?_sort=name&stringArrayProperty=three");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -253,7 +253,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[3]", equalTo("four"))
 			.body("result[1].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=four");
+			.get("/TestThree?_sort=name&stringArrayProperty=four");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -269,7 +269,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[3]", equalTo("four"))
 			.body("result[0].stringArrayProperty[4]", equalTo("five"))
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=five");
+			.get("/TestThree?_sort=name&stringArrayProperty=five");
 	}
 
 
@@ -287,7 +287,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -303,7 +303,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[0]", equalTo("two"))
 
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=one;two");
+			.get("/TestThree?_sort=name&stringArrayProperty=one;two");
 
 	}
 
@@ -322,7 +322,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -341,7 +341,7 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=one,two");
+			.get("/TestThree?_sort=name&stringArrayProperty=one,two");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -356,6 +356,6 @@ public class StringArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].stringArrayProperty[2]", equalTo("three"))
 
 		.when()
-			.get("/test_threes?_sort=name&stringArrayProperty=one,two,three");
+			.get("/TestThree?_sort=name&stringArrayProperty=one,two,three");
 	}
 }

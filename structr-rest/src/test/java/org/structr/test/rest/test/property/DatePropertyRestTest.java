@@ -109,7 +109,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].dateProperty", equalTo("2013-04-03T10:34:56+0000"))
 		.when()
-			.get("/test_threes?dateProperty=2013-04-03T10:34:56+0000");
+			.get("/TestThree?dateProperty=2013-04-03T10:34:56+0000");
 
 		// test empty value
 		RestAssured.given()
@@ -124,7 +124,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.body("result_count", equalTo(1))
 			.body("result[0].name", equalTo("test"))
 		.when()
-			.get("/test_threes?dateProperty=");
+			.get("/TestThree?dateProperty=");
 	}
 
 	@Test
@@ -146,7 +146,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?dateProperty=[2013-04-03T10:34:56+0000 TO 2013-04-06T23:59:59+0000]");
+			.get("/TestThree?dateProperty=[2013-04-03T10:34:56+0000 TO 2013-04-06T23:59:59+0000]");
 
 	}
 
@@ -169,7 +169,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/test_threes?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
+			.get("/TestThree?dateProperty=[2013-04-01T00:00:00+0000 TO 2013-04-06T23:59:59+0000]");
 
 	}
 
@@ -192,7 +192,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count", equalTo(2))
 				.when()
-				.get("/test_threes?dateProperty=[ TO 2013-04-06T23:59:59+0000]");
+				.get("/TestThree?dateProperty=[ TO 2013-04-06T23:59:59+0000]");
 	}
 
 	@Test
@@ -214,7 +214,7 @@ public class DatePropertyRestTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result_count", equalTo(1))
 				.when()
-				.get("/test_threes?dateProperty=[2013-04-06T23:59:59+0000 TO ]");
+				.get("/TestThree?dateProperty=[2013-04-06T23:59:59+0000 TO ]");
 	}
 
 	@Test

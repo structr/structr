@@ -92,7 +92,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/test_threes?dateArrayProperty=");
+			.get("/TestThree?dateArrayProperty=");
 
 
 		// test search for empty array property
@@ -103,7 +103,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/test_threes?dateArrayProperty=[]");
+			.get("/TestThree?dateArrayProperty=[]");
 
 
 
@@ -124,7 +124,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -145,7 +145,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -162,7 +162,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].dateArrayProperty[1]", equalTo("2019-03-05T23:45:00+0000"))
 			.body("result[1].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2019-03-05T23:45:00+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2019-03-05T23:45:00+0000");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -177,7 +177,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2020-11-24T14:15:16+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2020-11-24T14:15:16+0000");
 
 	}
 
@@ -196,7 +196,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -212,7 +212,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].dateArrayProperty[0]", equalTo("2019-03-05T23:45:00+0000"))
 
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000;2019-03-05T23:45:00+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000;2019-03-05T23:45:00+0000");
 
 	}
 
@@ -231,7 +231,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -250,7 +250,7 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000,2019-03-05T23:45:00+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000,2019-03-05T23:45:00+0000");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -265,6 +265,6 @@ public class DateArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].dateArrayProperty[2]", equalTo("2020-11-24T14:15:16+0000"))
 
 		.when()
-			.get("/test_threes?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000,2019-03-05T23:45:00+0000,2020-11-24T14:15:16+0000");
+			.get("/TestThree?_sort=name&dateArrayProperty=2019-02-05T12:34:56+0000,2019-03-05T23:45:00+0000,2020-11-24T14:15:16+0000");
 	}
 }

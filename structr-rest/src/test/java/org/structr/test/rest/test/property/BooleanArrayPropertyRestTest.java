@@ -113,7 +113,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/test_threes?booleanArrayProperty=");
+			.get("/TestThree?booleanArrayProperty=");
 
 
 		// test search for empty array property
@@ -124,7 +124,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/test_threes?booleanArrayProperty=[]");
+			.get("/TestThree?booleanArrayProperty=[]");
 	}
 
 
@@ -164,7 +164,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/test_threes?_sort=name&booleanArrayProperty=true");
+			.get("/TestThree?_sort=name&booleanArrayProperty=true");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -181,7 +181,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[0]", equalTo(false))
 			.body("result[1].booleanArrayProperty[1]", equalTo(false))
 		.when()
-			.get("/test_threes?_sort=name&booleanArrayProperty=false");
+			.get("/TestThree?_sort=name&booleanArrayProperty=false");
 	}
 
 
@@ -199,7 +199,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -220,7 +220,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].booleanArrayProperty[1]", equalTo(false))
 
 		.when()
-			.get("/test_threes?_sort=name&booleanArrayProperty=true;false");
+			.get("/TestThree?_sort=name&booleanArrayProperty=true;false");
 
 	}
 
@@ -239,7 +239,7 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -258,6 +258,6 @@ public class BooleanArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].booleanArrayProperty[2]", equalTo(true))
 
 		.when()
-			.get("/test_threes?_sort=name&booleanArrayProperty=true,false");
+			.get("/TestThree?_sort=name&booleanArrayProperty=true,false");
 	}
 }

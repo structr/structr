@@ -104,7 +104,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test02))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
 
 		// test inexact related search with one object,
 		// expected result is a list of four elements:
@@ -127,7 +127,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=0&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testSevenName=0&_loose=1"));
 
 
 		// test simple related search with two objects, AND,
@@ -144,7 +144,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixIds=", test01, ",", test06));
+				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ",", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -163,7 +163,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixIds=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -181,7 +181,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixIds=", test01));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -202,7 +202,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixIds=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixIds=", test01, ";", test06));
 
 		// test related search with two related properties,
 		// expected result is a single object:
@@ -220,7 +220,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09&testEightStrings=string20"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09&testEightStrings=string20"));
 
 
 		// test related search with a single related property and two
@@ -240,7 +240,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test01))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09&aString=string01&anInt=1"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09&aString=string01&anInt=1"));
 
 		// test related search with two related properties and one
 		// indexed property that should filter the result set.
@@ -259,7 +259,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test07))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=string19&testSevenName=test12&anInt=7"));
 
 		// test inexact related search with collection property
 		// expected result is a list of four objects:
@@ -280,7 +280,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=2&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=2&_loose=1"));
 
 		// test inexact related search with two collection properties
 		// expected result is a list of four objects:
@@ -302,7 +302,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test04))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=1&testSevenName=0&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=1&testSevenName=0&_loose=1"));
 
 		// test inexact related search with collection property and
 		// two filter properties,
@@ -321,7 +321,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test08))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testEightStrings=2&testSevenName=test12&anInt=8&_loose=1"));
+				.get(concat("/TestSix?_sort=name&testEightStrings=2&testSevenName=test12&anInt=8&_loose=1"));
 
 		// test related search with one empty related property,
 		// expected result is a list of two objects:
@@ -340,7 +340,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName="));
+				.get(concat("/TestSix?_sort=name&testSevenName="));
 
 
 		// test related search with one related property and one
@@ -361,7 +361,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test22))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=&testEightStrings=string23"));
+				.get(concat("/TestSix?_sort=name&testSevenName=&testEightStrings=string23"));
 
 		// test related search with one related property, one empty
 		// related property and two indexed properties
@@ -380,7 +380,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test21))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
+				.get(concat("/TestSix?_sort=name&testSevenName=&testEightStrings=string23&aString=string21&anInt=21"));
 	}
 
 	@Test
@@ -428,7 +428,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result_count", equalTo(0))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ",", test06));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test06));
 
 		// test simple related search with two objects, AND,
 		// expected result is exactly one element
@@ -446,7 +446,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test09))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ",", test02));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ",", test02));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -465,7 +465,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test11))
 
 			.when()
-				.get(concat("/test_sevens?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestSeven?_sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with one object,
 		// expected result is a list of two elements
@@ -483,7 +483,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of four elements:
@@ -503,7 +503,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[3].id", equalTo(test20))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01, ";", test06));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ";", test06));
 
 		// test simple related search with two objects, OR
 		// expected result is a list of two elements:
@@ -521,7 +521,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id", equalTo(test13))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testSixs=", test01, ",", test02));
+				.get(concat("/TestEight?_sort=name&testSixs=", test01, ",", test02));
 
 	}
 
@@ -577,7 +577,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id",         equalTo(test02))
 
 			.when()
-				.get(concat("/test_eights?_sort=name&testNinePostalCodes=44139"));
+				.get(concat("/TestEight?_sort=name&testNinePostalCodes=44139"));
 
 		// test spatial search, expected result is a single object:
 		// test05
@@ -594,7 +594,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=2&_location=Poststraße,Dortmund"));
+				.get(concat("/TestNine?_distance=2&_location=Poststraße,Dortmund"));
 
 
 
@@ -617,7 +617,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal"));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
 
 		// test spatial search in combination with graph-based related node search,
 		// expected result is a single result:
@@ -635,7 +635,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[0].id",         equalTo(test05))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal&testEightIds=", test01));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal&testEightIds=", test01));
 
 		// test spatial search in combination with an empty related node property,
 		// expected result is a single result:
@@ -658,7 +658,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				//.body("result[0].id",         equalTo(test06))
 
 			.when()
-				.get(concat("/test_nines?_distance=100&_location=Bahnhofstraße,Wuppertal"));
+				.get(concat("/TestNine?_distance=100&_location=Bahnhofstraße,Wuppertal"));
 	}
 
 	@Test
@@ -689,7 +689,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[2].id",         equalTo(test06))
 
 			.when()
-				.get(concat("/test_sixs?_sort=aString&aString=string02;string04;string06"));
+				.get(concat("/TestSix?_sort=aString&aString=string02;string04;string06"));
 
 
 	}
@@ -821,7 +821,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 					.statusCode(200)
 
 				.when()
-					.get(concat("/test_threes?_sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
+					.get(concat("/TestThree?_sort=createdDate&owner=" + uuid  + "&enumProperty=" + TestEnum.Status1));
 
 
 
@@ -1304,7 +1304,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		String test14 = createEntity("/TestEleven", "{ name: test14, testTwos: [", test11, ",", test12, "]}");
 
 		// test depth 0 wich should result only in the 2 TestEleven objects
-		String url = "/test_elevens?_outputNestingDepth=0";
+		String url = "/TestEleven?_outputNestingDepth=0";
 		RestAssured
 
 				.given()
@@ -1327,7 +1327,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(url);
 
 		// test depth 1 wich should result in a list with 2 TestEleven objects with each two TestTwo objects
-		url = "/test_elevens?_outputNestingDepth=1";
+		url = "/TestEleven?_outputNestingDepth=1";
 		RestAssured
 
 				.given()
@@ -1351,7 +1351,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.get(url);
 
 		// test depth 2 wich should result in a list with 2 TestEleven objects with each two TestTwo objects with each two TestOne objects
-		url = "/test_elevens?_outputNestingDepth=2";
+		url = "/TestEleven?_outputNestingDepth=2";
 		RestAssured
 
 				.given()
@@ -1532,7 +1532,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 				.body("result[1].id", equalTo(test02))
 
 			.when()
-				.get(concat("/test_sixs?_sort=name&testSevenName=test09"));
+				.get(concat("/TestSix?_sort=name&testSevenName=test09"));
 	}
 
 

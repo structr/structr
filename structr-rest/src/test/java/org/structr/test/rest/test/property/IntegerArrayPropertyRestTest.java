@@ -113,7 +113,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id2))
 		.when()
-			.get("/test_threes?integerArrayProperty=");
+			.get("/TestThree?integerArrayProperty=");
 
 		// test search for empty array property
 		RestAssured.given()
@@ -123,7 +123,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].id", equalTo(id1))
 		.when()
-			.get("/test_threes?integerArrayProperty=[]");
+			.get("/TestThree?integerArrayProperty=[]");
 	}
 
 
@@ -143,7 +143,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -175,7 +175,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[4].integerArrayProperty[4]", equalTo(5))
 
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=1");
+			.get("/TestThree?_sort=name&integerArrayProperty=1");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -203,7 +203,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[3].integerArrayProperty[3]", equalTo(4))
 			.body("result[3].integerArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=2");
+			.get("/TestThree?_sort=name&integerArrayProperty=2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -228,7 +228,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[2].integerArrayProperty[3]", equalTo(4))
 			.body("result[2].integerArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=3");
+			.get("/TestThree?_sort=name&integerArrayProperty=3");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -249,7 +249,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].integerArrayProperty[3]", equalTo(4))
 			.body("result[1].integerArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=4");
+			.get("/TestThree?_sort=name&integerArrayProperty=4");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -265,7 +265,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].integerArrayProperty[3]", equalTo(4))
 			.body("result[0].integerArrayProperty[4]", equalTo(5))
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=5");
+			.get("/TestThree?_sort=name&integerArrayProperty=5");
 	}
 
 
@@ -283,7 +283,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -299,7 +299,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].integerArrayProperty[0]", equalTo(2))
 
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=1;2");
+			.get("/TestThree?_sort=name&integerArrayProperty=1;2");
 
 	}
 
@@ -319,7 +319,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/test_threes?_sort=name")
+			.post("/TestThree?_sort=name")
 			.getHeader("Location");
 
 		RestAssured.given()
@@ -338,7 +338,7 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[1].integerArrayProperty[2]", equalTo(3))
 
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=1,2");
+			.get("/TestThree?_sort=name&integerArrayProperty=1,2");
 
 		RestAssured.given()
 			.contentType("application/json; charset=UTF-8")
@@ -353,6 +353,6 @@ public class IntegerArrayPropertyRestTest extends StructrRestTestBase {
 			.body("result[0].integerArrayProperty[2]", equalTo(3))
 
 		.when()
-			.get("/test_threes?_sort=name&integerArrayProperty=1,2,3");
+			.get("/TestThree?_sort=name&integerArrayProperty=1,2,3");
 	}
 }

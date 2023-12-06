@@ -99,7 +99,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].enumProperty", equalTo(TestEnum.Status2.name()))
 		.when()
-			.get("/test_threes?enumProperty=Status2");
+			.get("/TestThree?enumProperty=Status2");
 
 	}
 
