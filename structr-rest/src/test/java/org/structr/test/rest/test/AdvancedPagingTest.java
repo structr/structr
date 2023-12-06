@@ -67,7 +67,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/TestOne");
+		resource = resource.concat("/").concat(baseId).concat("/test_ones");
 
 		// create sub objects
 		for (int i=0; i<10; i++) {
@@ -130,7 +130,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/TestOne");
+		resource = resource.concat("/").concat(baseId).concat("/test_ones");
 
 		// create sub objects
 		for (int i=0; i<10; i++) {
@@ -185,7 +185,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		String baseId = getUuidFromLocation(location);
 
-		resource = resource.concat("/").concat(baseId).concat("/TestOne");
+		resource = resource.concat("/").concat(baseId).concat("/test_ones");
 
 		// create sub objects
 		for (int i=0; i<20; i++) {
