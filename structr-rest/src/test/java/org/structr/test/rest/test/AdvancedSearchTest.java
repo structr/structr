@@ -843,9 +843,9 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try {
 
 			// create 3 users
-			final String user1 = createEntity("/test_users", "{ name: user1 }");
-			final String user2 = createEntity("/test_users", "{ name: user2 }");
-			final String user3 = createEntity("/test_users", "{ name: user3 }");
+			final String user1 = createEntity("/TestUser", "{ name: user1 }");
+			final String user2 = createEntity("/TestUser", "{ name: user2 }");
+			final String user3 = createEntity("/TestUser", "{ name: user3 }");
 
 			SchemaNode node = null;
 
