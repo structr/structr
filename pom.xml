@@ -80,11 +80,6 @@
 			<name>Central Repository</name>
 			<url>https://repo.maven.apache.org/maven2</url>
 		</repository>
-		<repository>
-			<id>bedatadriven</id>
-			<name>bedatadriven public repo</name>
-			<url>https://nexus.bedatadriven.com/content/groups/public/</url>
-		</repository>
 	</repositories>
 
 	<dependencyManagement>
