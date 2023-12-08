@@ -27,8 +27,10 @@ import org.structr.api.config.Settings;
 import org.structr.api.util.ProgressWatcher;
 import org.structr.api.util.ResultStream;
 import org.structr.common.QueryRange;
+import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
@@ -71,10 +73,12 @@ public abstract class StreamingWriter {
 	private int outputNestingDepth                        = 3;
 	private Value<String> propertyView                    = null;
 	protected boolean indent                              = true;
-	protected boolean compactNestedProperties             = true;
 	protected boolean wrapSingleResultInArray             = false;
 	private int skippedDeletedObjects                     = 0;
 	private Integer overriddenResultCount                 = null;
+
+	private boolean reduceNestedObjectsForRestrictedViews = true;
+	private int reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
 
 	public abstract RestWriter getRestWriter(final SecurityContext securityContext, final Writer writer);
 
@@ -102,10 +106,6 @@ public abstract class StreamingWriter {
 		nonSerializerClasses.add(Character.class.getName());
 		nonSerializerClasses.add(StringBuffer.class.getName());
 		nonSerializerClasses.add(Boolean.class.getName());
-
-
-		//this.writer = new StructrWriter(writer);
-		//this.writer.setIndent("   ");
 	}
 
 	public void streamSingle(final SecurityContext securityContext, final Writer output, final GraphObject obj) throws IOException {
@@ -116,10 +116,11 @@ public abstract class StreamingWriter {
 
 		configureWriter(writer);
 
+		this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(securityContext.getRequest().getParameter(RequestKeywords.OutputReductionDepth.keyword()), Settings.JsonReduceNestedObjectsDepth.getValue());
+
 		writer.beginDocument(null, view);
 		root.serialize(writer, obj, view, 0, visitedObjects);
 		writer.endDocument();
-
 	}
 
 	public void stream(final SecurityContext securityContext, final Writer output, final ResultStream result, final String baseUrl) throws IOException {
@@ -133,6 +134,8 @@ public abstract class StreamingWriter {
 		final RestWriter rootWriter = getRestWriter(securityContext, output);
 
 		configureWriter(rootWriter);
+
+		this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(securityContext.getRequest().getParameter(RequestKeywords.OutputReductionDepth.keyword()), Settings.JsonReduceNestedObjectsDepth.getValue());
 
 		// result fields in alphabetical order
 		final Set<Integer> visitedObjects = new LinkedHashSet<>();
@@ -428,7 +431,7 @@ public abstract class StreamingWriter {
 					if (keys != null) {
 
 						// speciality for all, custom and ui view: limit recursive rendering to (id, type, name)
-						if (compactNestedProperties && depth > 0 && Schema.RestrictedViews.contains(localPropertyView)) {
+						if (reduceNestedObjectsForRestrictedViews && depth > reduceNestedObjectsInRestrictedViewsDepth && Schema.RestrictedViews.contains(localPropertyView)) {
 							keys = idTypeNameOnly;
 						}
 

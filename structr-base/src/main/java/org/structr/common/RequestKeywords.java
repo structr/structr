@@ -56,6 +56,7 @@ public enum RequestKeywords {
 	ParallelizeJsonOutput("parallelizeJsonOutput"),
 	SerializeNulls("serializeNulls"),
 	BatchSize("batchSize"),
+	OutputReductionDepth("outputReductionDepth"),
 
 	// edit mode
 	EditMode("edit"),
