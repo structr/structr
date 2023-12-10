@@ -21,6 +21,8 @@ package org.structr.core.api;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.Parameter;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +45,7 @@ public class ReflectiveMethod extends AbstractMethod {
 
 	public ReflectiveMethod(final Method method, final GraphObject entity) {
 
-		super(method.getName());
+		super(method.getName(), null, null);
 
 		this.method = method;
 		this.entity = entity;
@@ -52,6 +54,19 @@ public class ReflectiveMethod extends AbstractMethod {
 	@Override
 	public boolean isStatic() {
 		return Modifier.isStatic(method.getModifiers());
+	}
+
+	@Override
+	public Map<String, String> getParameters() {
+
+		final Map<String, String> parameters = new LinkedHashMap<>();
+
+		for (final Parameter p : method.getParameters()) {
+
+			parameters.put(p.getName(), p.getType().getSimpleName());
+		}
+
+		return parameters;
 	}
 
 	@Override

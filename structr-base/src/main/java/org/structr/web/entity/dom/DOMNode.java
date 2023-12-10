@@ -1793,6 +1793,8 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			} catch (FrameworkException fex) {
 
+				fex.printStackTrace();
+
 				final Logger logger = LoggerFactory.getLogger(DOMNode.class);
 				logger.warn("Could not retrieve data from graph data source {}: {}", source, fex);
 			}

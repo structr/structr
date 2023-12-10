@@ -19,9 +19,8 @@
 package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
@@ -42,8 +41,6 @@ import static org.testng.AssertJUnit.fail;
  *
  */
 public class MethodTest extends StructrRestTestBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(MethodTest.class.getName());
 
 	@Test
 	public void testMethodInheritance() {
@@ -191,7 +188,7 @@ public class MethodTest extends StructrRestTestBase {
 	}
 
 	@Test
-	public void testParameterConversion() {
+	public void testParameterPassing() {
 
 		// setup 1: create types
 		try (final Tx tx = app.tx()) {
@@ -236,5 +233,106 @@ public class MethodTest extends StructrRestTestBase {
 		assertEquals(3,       ((List)map.get("set")).get(2));
 		assertEquals(25,      ((Map)((List)map.get("list")).get(0)).get("id"));
 		assertEquals("aaa",   ((Map)((List)map.get("list")).get(0)).get("name"));
+	}
+
+	@Test
+	public void testRESTParameterConversionInJavascriptMethod() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("test", """
+{
+	$.log('Test: ', $.methodParameters.name);
+	return {
+                name: $.methodParameters.name,
+                key: $.methodParameters.key,
+                map: $.methodParameters.map,
+                set: $.methodParameters.set,
+                list: $.methodParameters.list,
+                date: $.methodParameters.date,
+                test: typeof $.methodParameters.date
+        };
+}
+                        """)
+				.addParameter("name", "String")
+				.addParameter("key", "int")
+				.addParameter("map", "Map")
+				.addParameter("set", "Set")
+				.addParameter("list", "List")
+				.addParameter("date", "Date");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		// FIXME: this test doesn't test anything yet..
+
+		// test inherited methods
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ date: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/BaseType/" + base + "/test");
+	}
+
+	@Test
+	public void testRESTParameterConversionInStructrScriptMethod() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("test", "methodParameters")
+				.addParameter("name", "String")
+				.addParameter("key", "int")
+				.addParameter("map", "Map")
+				.addParameter("set", "Set")
+				.addParameter("list", "List")
+				.addParameter("date", "Date");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		// FIXME: this test doesn't test anything yet..
+
+		// test inherited methods
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ data: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
+			.expect()
+				.statusCode(200)
+			.when()
+				.post("/BaseType/" + base + "/test");
 	}
 }

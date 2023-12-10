@@ -61,7 +61,14 @@ public class SchemaTypeResource extends RESTEndpoint {
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, call.getViewName());
+				if (call.isDefaultView()) {
+
+					return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, null);
+
+				} else {
+
+					return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, call.getViewName());
+				}
 			}
 		}
 

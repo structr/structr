@@ -19,6 +19,12 @@
 package org.structr.schema.action;
 
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +40,6 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
-
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
 
 /**
  *

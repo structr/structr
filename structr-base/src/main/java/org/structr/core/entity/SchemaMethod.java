@@ -445,6 +445,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	// ----- private static methods -----
 	public static String getCachedSourceCode(final String uuid) throws FrameworkException {
 
+		// this method is called from generated Java code in ActionEntry.java line 242
+
 		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
 		if (method != null) {
 

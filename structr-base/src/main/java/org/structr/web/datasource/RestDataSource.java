@@ -63,10 +63,15 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final RenderContext renderContext = (RenderContext) actionContext;
 
 		final PropertyKey<String> restQueryKey = StructrApp.key(DOMNode.class, "restQuery");
-		final String restQuery                 = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
+		String restQuery                       = ((DOMNode) referenceNode).getPropertyWithVariableReplacement(renderContext, restQueryKey);
 
 		if (restQuery == null || restQuery.isEmpty()) {
 			return Collections.EMPTY_LIST;
+		}
+
+		// new pattern resolution needs leading slash
+		if (!restQuery.startsWith("/")) {
+			restQuery = "/" + restQuery;
 		}
 
 		return getData(renderContext, restQuery);
