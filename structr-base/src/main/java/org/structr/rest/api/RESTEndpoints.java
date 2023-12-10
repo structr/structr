@@ -106,7 +106,7 @@ public class RESTEndpoints {
 			if (matcher.matches()) {
 
 				final RESTEndpoint endpoint   = container.getItem();
-				final RESTCall call           = endpoint.initializeRESTCall(matcher, viewName);
+				final RESTCall call           = endpoint.initializeRESTCall(matcher, viewName, viewHolder.isEmpty());
 				final RESTCallHandler handler = endpoint.accept(securityContext, call);
 
 				if (handler != null) {
@@ -120,7 +120,7 @@ public class RESTEndpoints {
 			}
 		}
 
-		throw new FrameworkException(404, "Cannot resolve URL path");
+		throw new FrameworkException(404, "Cannot resolve URL path " + path);
 	}
 
 	// ----- private static methods -----

@@ -306,6 +306,21 @@ public abstract class StructrRestTestBase {
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
 	}
 
+	protected Map<String, Object> generalPurposePostMethod(final String resource, final String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(buf.toString())
+			.when().post(resource).getBody().as(Map.class);
+	}
+
 	protected String concat(String... parts) {
 
 		StringBuilder buf = new StringBuilder();

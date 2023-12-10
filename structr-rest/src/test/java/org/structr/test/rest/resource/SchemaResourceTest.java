@@ -42,7 +42,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -72,7 +72,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -103,7 +103,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -133,7 +133,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -162,7 +162,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -192,7 +192,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -220,7 +220,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -250,7 +250,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -279,7 +279,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -309,7 +309,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -340,7 +340,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -370,7 +370,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -402,7 +402,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -433,7 +433,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -466,7 +466,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -499,7 +499,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -533,7 +533,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -565,7 +565,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -597,7 +597,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -628,7 +628,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -660,7 +660,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -691,7 +691,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -722,7 +722,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -754,7 +754,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -786,7 +786,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -819,7 +819,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -851,7 +851,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -890,7 +890,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
@@ -930,7 +930,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.contentType("application/json; charset=UTF-8")
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
@@ -985,7 +985,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
@@ -999,7 +999,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -1026,7 +1026,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
 
@@ -1040,7 +1040,7 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 				.given()
 				.contentType("application/json; charset=UTF-8")
-				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
 				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
@@ -1079,5 +1079,57 @@ public class SchemaResourceTest extends StructrRestTestBase {
 
 			.when()
 				.post("/Test2/" + test2 + "/test");
+	}
+
+	@Test
+	public void testSchemaResourceResponseForAdminUi() {
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				//.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+
+			.expect()
+				.statusCode(200)
+
+				.body("result_count",                       equalTo(1))
+				.body("result",	                            hasSize(1))
+				.body("result[0].url",                      equalTo("/Group"))
+				.body("result[0].type",                     equalTo("Group"))
+				.body("result[0].className",                equalTo("org.structr.dynamic.Group"))
+				.body("result[0].extendsClass",             equalTo("org.structr.dynamic.Principal"))
+				.body("result[0].isRel",                    equalTo(false))
+				.body("result[0].flags",                    equalTo(0))
+
+				.body("result[0].views.all.id.jsonName",    equalTo("id"))
+				.body("result[0].views.all.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result[0].views.all.type.jsonName",  equalTo("type"))
+				.body("result[0].views.all.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result[0].views.all.name.jsonName",  equalTo("name"))
+				.body("result[0].views.all.name.className", equalTo("org.structr.core.property.StringProperty"))
+
+				.body("result[0].views.ui.id.jsonName",    equalTo("id"))
+				.body("result[0].views.ui.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result[0].views.ui.type.jsonName",  equalTo("type"))
+				.body("result[0].views.ui.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result[0].views.ui.name.jsonName",  equalTo("name"))
+				.body("result[0].views.ui.name.className", equalTo("org.structr.core.property.StringProperty"))
+
+				.body("result[0].views.public.id.jsonName",    equalTo("id"))
+				.body("result[0].views.public.id.className",   equalTo("org.structr.core.property.UuidProperty"))
+				.body("result[0].views.public.type.jsonName",  equalTo("type"))
+				.body("result[0].views.public.type.className", equalTo("org.structr.core.property.TypeProperty"))
+				.body("result[0].views.public.name.jsonName",  equalTo("name"))
+				.body("result[0].views.public.name.className", equalTo("org.structr.core.property.StringProperty"))
+
+			.when()
+				.get("/_schema/Group");
+
 	}
 }

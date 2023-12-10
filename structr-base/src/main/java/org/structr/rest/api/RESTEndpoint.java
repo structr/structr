@@ -60,9 +60,9 @@ public abstract class RESTEndpoint {
 		return pattern.matcher(path);
 	}
 
-	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName) {
+	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView) {
 
-		final RESTCall call = new RESTCall(matcher.group(), viewName);
+		final RESTCall call = new RESTCall(matcher.group(), viewName, isDefaultView);
 		int group           = 1;
 
 		for (final RESTParameter part : parts.values()) {

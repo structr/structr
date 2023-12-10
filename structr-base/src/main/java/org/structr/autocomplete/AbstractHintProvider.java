@@ -29,7 +29,6 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
@@ -52,6 +51,7 @@ import java.util.*;
 import java.util.logging.Level;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.graph.Tx;
 
 
 
@@ -257,17 +257,12 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final List<MethodSignature> methods = Methods.getAllMethods(type);
-			for (final MethodSignature method : methods) {
+			final List<AbstractMethod> methods = Methods.getAllMethods(type);
+			for (final AbstractMethod method : methods) {
 
-				final String name = method.getName();
-
-				final SchemaMethod schemaMethod = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, typeNode).andName(name).getFirst();
-				if (schemaMethod != null) {
-
-					methodSummary     = schemaMethod.getProperty(SchemaMethod.summary);
-					methodDescription = schemaMethod.getProperty(SchemaMethod.description);
-				}
+				final String name              = method.getName();
+				final String methodSummary     = method.getSummary();
+				final String methodDescription = method.getDescription();
 
 				methodHints.add(new MethodHint(name, methodSummary, methodDescription));
 			}

@@ -476,7 +476,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), new RESTCall("/login", PropertyView.Public));
+		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), new RESTCall("/login", PropertyView.Public, true));
 
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
@@ -495,7 +495,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), new RESTCall("/logout", PropertyView.Public));
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), new RESTCall("/logout", PropertyView.Public, true));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
@@ -523,7 +523,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), new RESTCall("/registration", PropertyView.Public));
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), new RESTCall("/registration", PropertyView.Public, true));
 
 		return registrationResource.doPost(properties);
 	}
@@ -542,7 +542,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), new RESTCall("/reset-password", PropertyView.Public));
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), new RESTCall("/reset-password", PropertyView.Public, true));
 
 		return resetPasswordResource.doPost(properties);
 	}

@@ -36,6 +36,7 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.EvaluationHints;
@@ -75,15 +76,10 @@ public class StaticMethodResource extends RESTEndpoint {
 		return null;
 	}
 
-	private class StaticMethodResourceHandler extends RESTCallHandler {
-
-		private AbstractMethod method = null;
+	private class StaticMethodResourceHandler extends RESTMethodCallHandler {
 
 		public StaticMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
-
-			super(securityContext, call);
-
-			this.method = method;
+			super(securityContext, call, method);
 		}
 
 		@Override
@@ -98,7 +94,8 @@ public class StaticMethodResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
+				final Map<String, Object> arguments = convertArguments(propertySet);
+				final RestMethodResult result       = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
 
 				tx.success();
 

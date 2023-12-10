@@ -28,16 +28,43 @@ import org.structr.schema.action.EvaluationHints;
  */
 public abstract class AbstractMethod {
 
-	protected String name = null;
+	protected String description = null;
+	protected String summary     = null;
+	protected String name        = null;
 
-	public AbstractMethod(final String name) {
-		this.name = name;
+	public AbstractMethod(final String name, final String summary, final String description) {
+
+		this.description = description;
+		this.summary     = summary;
+		this.name        = name;
 	}
 
+	/*
+- Konvertierung von REST-Parametern
+- Definition von Methodensignaturen (Typ usw.)
+- dynamische Page-Pfade
+
+
+
+
+- Minimalziel: String-Inputs, die wir per REST reinkriegen, z.B. in Date konvertieren zu können
+- eine Art von automatischer Validierung beim Aufruf
+
+	*/
+
 	public abstract boolean isStatic();
+	public abstract Map<String, String> getParameters();
 	public abstract Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) throws FrameworkException;
 
 	public String getName() {
 		return name;
+	}
+
+	public String getSummary() {
+		return summary;
+	}
+
+	public String getDescription() {
+		return description;
 	}
 }

@@ -18,12 +18,14 @@
  */
 package org.structr.core.api;
 
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -31,15 +33,23 @@ import org.structr.schema.action.EvaluationHints;
  */
 public class ScriptMethod extends AbstractMethod {
 
-	private GraphObject entity  = null;
-	private SchemaMethod method = null;
+	private final Map<String, String> parameters = new LinkedHashMap<>();
+	private GraphObject entity                   = null;
+	private SchemaMethod method                  = null;
+	private String source                        = null;
 
 	public ScriptMethod(final SchemaMethod method, final GraphObject entity) {
 
-		super(method.getName());
+		super(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description));
 
+		this.source = method.getProperty(SchemaMethod.source);
 		this.method = method;
 		this.entity = entity;
+
+		for (final SchemaMethodParameter p : method.getParameters()) {
+
+			parameters.put(p.getName(), p.getParameterType());
+		}
 	}
 
 	@Override
@@ -47,50 +57,17 @@ public class ScriptMethod extends AbstractMethod {
 		return method.isStaticMethod();
 	}
 
-	/*
 	@Override
-	public MethodCall createCall() throws FrameworkException {
-
-		final List<SchemaMethodParameter> declaredParameters = new LinkedList<>();
-		final Map<String, Object> converted                  = new LinkedHashMap<>();
-
-		// "Method xy in class/interface ABC cannot be applied to given types. Required: ..., found: ..."
-
-		//FIXME: how can we implement method parameters here, via REST and via scripting?
-
-
-		declaredParameters.addAll(Iterables.toList(method.getParameters()));
-
-		Collections.sort(declaredParameters, (a, b) -> {
-			return a.getProperty(SchemaMethodParameter.index).compareTo(b.getProperty(SchemaMethodParameter.index));
-		});
-
-		for (final SchemaMethodParameter param : declaredParameters) {
-
-			final String parameterName = param.getName();
-			final String inputValue    = restParameters.get(parameterName);
-			final String type          = param.getParameterType();
-
-			// handle type
-			final Object convertedValue = inputValue;
-
-			converted.put(parameterName, convertedValue);
-		}
-
-		return createCall(converted);
+	public Map<String, String> getParameters() {
+		return parameters;
 	}
-	*/
 
 	@Override
 	public Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) throws FrameworkException {
 
 		try {
 
-			final String methodName = method.getName();
-			final String codeSource = method.getUuid();
-			final String source     = method.getProperty("source");
-
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", arguments, methodName, codeSource);
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", arguments, name, method.getUuid());
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());

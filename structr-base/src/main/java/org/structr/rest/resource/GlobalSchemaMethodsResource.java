@@ -34,6 +34,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.action.EvaluationHints;
@@ -67,15 +68,10 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 		return null;
 	}
 
-	private class GlobalSchemaMethodResourceHandler extends RESTCallHandler {
-
-		private AbstractMethod method = null;
+	private class GlobalSchemaMethodResourceHandler extends RESTMethodCallHandler {
 
 		public GlobalSchemaMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
-
-			super(securityContext, call);
-
-			this.method = method;
+			super(securityContext, call, method);
 		}
 
 		@Override
@@ -95,7 +91,8 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
+				final Map<String, Object> arguments = convertArguments(propertySet);
+				final RestMethodResult result       = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
 
 				tx.success();
 

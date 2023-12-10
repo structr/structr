@@ -26,13 +26,15 @@ import java.util.LinkedHashMap;
  */
 public class RESTCall extends LinkedHashMap<String, String> {
 
-	private String viewName      = null;
-	private String url           = null;
+	private String viewName       = null;
+	private String url            = null;
+	private boolean isDefaultView = false;
 
-	public RESTCall(final String url, final String viewName) {
+	public RESTCall(final String url, final String viewName, final boolean isDefaultView) {
 
-		this.viewName = viewName;
-		this.url      = url;
+		this.isDefaultView = isDefaultView;
+		this.viewName      = viewName;
+		this.url           = url;
 	}
 
 	public String getURL() {
@@ -41,5 +43,9 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	public String getViewName() {
 		return viewName;
+	}
+
+	public boolean isDefaultView() {
+		return isDefaultView;
 	}
 }

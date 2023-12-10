@@ -35,6 +35,7 @@ import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.EvaluationHints;
 
@@ -64,15 +65,10 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 		return null;
 	}
 
-	private class InstanceMethodResourceHandler extends RESTCallHandler {
-
-		private AbstractMethod method = null;
+	private class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		public InstanceMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
-
-			super(securityContext, call);
-
-			this.method = method;
+			super(securityContext, call, method);
 		}
 
 		@Override
@@ -87,7 +83,8 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 			try (final Tx tx = app.tx()) {
 
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, propertySet, new EvaluationHints()));
+				final Map<String, Object> arguments = convertArguments(propertySet);
+				final RestMethodResult result       = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
 
 				tx.success();
 
