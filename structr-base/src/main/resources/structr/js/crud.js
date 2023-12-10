@@ -1533,7 +1533,9 @@ let _Crud = {
 	},
 	crudCreate: (type, json, onError) => {
 
-		fetch(Structr.rootUrl + type, {
+		let url = Structr.rootUrl + type;
+
+		fetch(url, {
 			method: 'POST',
 			body: json
 		}).then(async response => {
