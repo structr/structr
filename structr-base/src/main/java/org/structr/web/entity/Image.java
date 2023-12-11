@@ -39,8 +39,7 @@ import org.structr.core.entity.Relation;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyKey;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.schema.SchemaService;
 import org.structr.web.agent.ThumbnailTask;
 import org.structr.web.common.FileHelper;
@@ -284,7 +283,7 @@ public interface Image extends File {
 
 		final SecurityContext securityContext           = thisImage.getSecurityContext();
 		final String originalContentType                = thisImage.getContentType();
-		final Image existingThumbnail                   = getExistingThumbnail(thisImage, maxWidth, maxHeight);
+		final Image existingThumbnail                   = getExistingThumbnail(thisImage, maxWidth, maxHeight, cropToFit);
 
 		if (existingThumbnail != null) {
 
@@ -329,28 +328,32 @@ public interface Image extends File {
 		return StringUtils.stripEnd(thisImage.getName(),  "_thumb_" + tnWidth + "x" + tnHeight);
 	}
 
-	public static Image getExistingThumbnail(final Image thisImage, final int maxWidth, final int maxHeight) {
+	public static Image getExistingThumbnail(final Image thisImage, final int maxWidth, final int maxHeight, final boolean cropToFit) {
 		final Class<Relation> thumbnailRel              = StructrApp.getConfiguration().getRelationshipEntityClass("ImageTHUMBNAILImage");
 		final Iterable<Relation> thumbnailRelationships = thisImage.getOutgoingRelationships(thumbnailRel);
 		final List<String> deprecatedThumbnails         = new ArrayList<>();
 
 		// Try to find an existing thumbnail that matches the specifications
 		if (thumbnailRelationships != null) {
+
 			for (final Relation r : thumbnailRelationships) {
 
-				final Integer w = r.getProperty(StructrApp.key(Image.class, "width"));
-				final Integer h = r.getProperty(StructrApp.key(Image.class, "height"));
+				final Integer w = r.getProperty(new IntProperty("maxWidth"));
+				final Integer h = r.getProperty(new IntProperty("maxHeight"));
+				final Boolean c = r.getProperty(new BooleanProperty("cropToFit"));
 
 				if (w != null && h != null) {
-					if (((w == maxWidth) && (h <= maxHeight)) || ((w <= maxWidth) && (h == maxHeight)) || (thisImage.getWidth() != null && thisImage.getHeight() != null && thisImage.getWidth() < maxWidth)) {
+
+					if ((w == maxWidth && h == maxHeight) && c == cropToFit) {
 
 						//FIXME: Implement deletion of mismatching thumbnails, since they have become obsolete
 						final Image thumbnail = (Image) r.getTargetNode();
 
 						final Long checksum = r.getProperty(StructrApp.key(Image.class, "checksum"));
 
-						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise
-						if (checksum != null && checksum.equals(thisImage.getChecksum())) {
+						// Check if existing thumbnail rel matches the correct checksum and mark as deprecated otherwise.
+						// An empty checksum is probably only because the thumbnail generation task is not finished yet, so we assume everything is finde.
+						if (checksum == null || checksum.equals(thisImage.getChecksum())) {
 
 							return thumbnail;
 						} else {
