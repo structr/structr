@@ -30,7 +30,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.Tx;
-import org.structr.core.property.PropertyMap;
+import org.structr.core.property.*;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
@@ -99,7 +99,7 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 			final Image originalImage             = app.nodeQuery(Image.class).uuid(imageUuid).getFirst();
 			Image thumbnail = null;
 
-			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight) != null) {
+			if (originalImage == null || Image.getExistingThumbnail(originalImage, maxWidth, maxHeight, cropToFit) != null) {
 
 				return;
 			}
@@ -137,6 +137,11 @@ public class ThumbnailAgent extends Agent<ThumbnailWorkObject> {
 					relProperties.put(StructrApp.key(Image.class, "width"),                  tnWidth);
 					relProperties.put(StructrApp.key(Image.class, "height"),                 tnHeight);
 					relProperties.put(StructrApp.key(Image.class, "checksum"),               originalImage.getChecksum());
+
+					// We have to store the specs here in order to find existing thumbnails based on the specs they've been created for, not actual dimensions.
+					relProperties.put(new IntProperty("maxWidth"),                           maxWidth);
+					relProperties.put(new IntProperty("maxHeight"),                          maxHeight);
+					relProperties.put(new BooleanProperty( "cropToFit"),                     cropToFit);
 
 					app.create(originalImage, thumbnail, thumbnailRel, relProperties);
 
