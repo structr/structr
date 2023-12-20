@@ -40,7 +40,7 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 
@@ -53,17 +53,17 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].integerProperty", equalTo(2345))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 	}
 
 	@Test
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'       : 'test' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'       : 'test' } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test for three elements
 		RestAssured.given()
@@ -77,7 +77,7 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(4))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		// test strict search
 		RestAssured.given()
@@ -91,7 +91,7 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].integerProperty", equalTo(2))
 		.when()
-			.get("/TestThree?integerProperty=2");
+			.get("/test_threes?integerProperty=2");
 
 		// test empty value
 		RestAssured.given()
@@ -106,15 +106,15 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.body("result_count", equalTo(1))
 			.body("result[0].name", equalTo("test"))
 		.when()
-			.get("/TestThree?integerProperty=");
+			.get("/test_threes?integerProperty=");
 	}
 
 	@Test
 	public void testRangeSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 1 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 2 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 3 } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test range query
 		RestAssured.given()
@@ -128,7 +128,7 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(2))
 		.when()
-			.get("/TestThree?integerProperty=[1 TO 2]");
+			.get("/test_threes?integerProperty=[1 TO 2]");
 
 	}
 
@@ -136,13 +136,13 @@ public class IntegerPropertyRestTest extends StructrRestTestBase {
 	public void testConverters() {
 
 		// test int property on regular node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/test_threes");
 
 		// test int property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_integerProperty': 'Integer' } ").expect().statusCode(201).when().post("/SchemaNode");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_integerProperty': 'Integer' } ").expect().statusCode(201).when().post("/schema_nodes");
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : asdf } ").expect().statusCode(422).when().post("/tests");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'integerProperty' : 'asdf' } ").expect().statusCode(422).when().post("/tests");
 	}
 }

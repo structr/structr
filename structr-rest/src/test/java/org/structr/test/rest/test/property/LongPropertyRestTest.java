@@ -40,7 +40,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(201)
 		.when()
-			.post("/TestThree")
+			.post("/test_threes")
 			.getHeader("Location");
 
 
@@ -53,17 +53,17 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].longProperty", equalTo(2857312362L))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 	}
 
 	@Test
 	public void testSearch() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test' } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name'         : 'test' } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test for three elements
 		RestAssured.given()
@@ -77,7 +77,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(4))
 		.when()
-			.get("/TestThree");
+			.get("/test_threes");
 
 		// test strict search
 		RestAssured.given()
@@ -91,7 +91,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result[0].longProperty", equalTo(1365151420000L))
 		.when()
-			.get("/TestThree?longProperty=1365151420000");
+			.get("/test_threes?longProperty=1365151420000");
 
 		// test empty value
 		RestAssured.given()
@@ -106,16 +106,16 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.body("result_count", equalTo(1))
 			.body("result[0].name", equalTo("test"))
 		.when()
-			.get("/TestThree?longProperty=");
+			.get("/test_threes?longProperty=");
 
 	}
 
 	@Test
 	public void testRangeSearch1() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test range query
 		RestAssured.given()
@@ -129,16 +129,16 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/TestThree?longProperty=[1364000000000 TO 1365285599000]");
+			.get("/test_threes?longProperty=[1364000000000 TO 1365285599000]");
 
 	}
 
 	@Test
 	public void testRangeSearch2() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test range query
 		RestAssured.given()
@@ -152,16 +152,16 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/TestThree?longProperty=[1365000000000 TO 1365285599000]");
+			.get("/test_threes?longProperty=[1365000000000 TO 1365285599000]");
 
 	}
 
 	@Test
 	public void testRangeSearch3() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test range query
 		RestAssured.given()
@@ -175,7 +175,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/TestThree?longProperty=[1364985296000 TO 1365285599000]");
+			.get("/test_threes?longProperty=[1364985296000 TO 1365285599000]");
 
 	}
 
@@ -188,7 +188,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 
 			long val = base * (i - 10);
 
-			RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : " + val + " } ").expect().statusCode(201).when().post("/TestThree");
+			RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : " + val + " } ").expect().statusCode(201).when().post("/test_threes");
 		}
 
 		// test range query
@@ -203,16 +203,16 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(11))
 		.when()
-			.get("/TestThree?longProperty=[" + (base * -5) + " TO " + base * 5 + "]");
+			.get("/test_threes?longProperty=[" + (base * -5) + " TO " + base * 5 + "]");
 
 	}
 
 	@Test
 	public void testRangeSearchLargeInterval1() {
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647001 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 1365151420000 } ").expect().statusCode(201).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 2147483647003 } ").expect().statusCode(201).when().post("/test_threes");
 
 		// test range query
 		RestAssured.given()
@@ -226,7 +226,7 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 			.statusCode(200)
 			.body("result_count", equalTo(1))
 		.when()
-			.get("/TestThree?longProperty=[123 TO 1365285599000]");
+			.get("/test_threes?longProperty=[123 TO 1365285599000]");
 
 	}
 
@@ -234,14 +234,14 @@ public class LongPropertyRestTest extends StructrRestTestBase {
 	public void testConverters() {
 
 		// test int property on regular node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : asdf } ").expect().statusCode(422).when().post("/TestThree");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/TestThree");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : asdf } ").expect().statusCode(422).when().post("/test_threes");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/test_threes");
 
 		// test int property on dynamic node
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_longProperty': 'Long' } ").expect().statusCode(201).when().post("/SchemaNode");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'name': 'Test', '_longProperty': 'Long' } ").expect().statusCode(201).when().post("/schema_nodes");
 
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : asdf } ").expect().statusCode(422).when().post("/Test");
-		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/Test");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : asdf } ").expect().statusCode(422).when().post("/tests");
+		RestAssured.given().contentType("application/json; charset=UTF-8").body(" { 'longProperty' : 'asdf' } ").expect().statusCode(422).when().post("/tests");
 	}
 
 }
