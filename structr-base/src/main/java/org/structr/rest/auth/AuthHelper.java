@@ -248,10 +248,6 @@ public class AuthHelper {
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
 
-		if (user != null) {
-			Services.getInstance().broadcastLogin(user);
-		}
-
 		if (request.getSession(false) == null) {
 			SessionHelper.newSession(request);
 		}

@@ -41,6 +41,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
 import org.structr.core.GraphObject;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
@@ -1195,7 +1196,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			return false;
 		}
 
-		final PropertyKey<String> confirmationKeyKey = StructrApp.key(User.class, "confirmationKey");
+		final PropertyKey<String> confirmationKey = StructrApp.key(User.class, "confirmationKey");
 
 		if (CONFIRM_REGISTRATION_PAGE.equals(path)) {
 
@@ -1204,7 +1205,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			List<Principal> results;
 			try (final Tx tx = app.tx()) {
 
-				results = app.nodeQuery(Principal.class).and(confirmationKeyKey, key).getAsList();
+				results = app.nodeQuery(Principal.class).and(confirmationKey, key).getAsList();
 
 				tx.success();
 			}
@@ -1216,7 +1217,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				try (final Tx tx = app.tx()) {
 
 					// Clear confirmation key and set session id
-					user.setProperty(confirmationKeyKey, null);
+					user.setProperty(confirmationKey, null);
 
 					if (AuthHelper.isConfirmationKeyValid(key, Settings.ConfirmationKeyRegistrationValidityPeriod.getValue())) {
 
@@ -1236,6 +1237,9 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					tx.success();
 				}
+
+				// broadcast login to cluster for the user
+				Services.getInstance().broadcastLogin(user);
 
 				// Redirect to target path
 				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
@@ -1329,6 +1333,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 					tx.success();
 				}
+
+				Services.getInstance().broadcastLogin(user);
 			}
 
 			// Redirect to target path

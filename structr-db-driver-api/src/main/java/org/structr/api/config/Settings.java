@@ -80,6 +80,8 @@ public class Settings {
 
 	// clustering
 	public static final Setting<Boolean> ClusterModeEnabled            = new BooleanSetting(generalGroup,         "Application", "application.cluster.enabled",                  false, "Enables cluster mode (experimental)");
+	public static final Setting<String> ClusterName                   = new StringSetting(generalGroup,          "Application", "application.cluster.name",                    "structr", "The name of the Structr cluster");
+	public static final Setting<Boolean> ClusterDebugLogEnabled       = new BooleanSetting(generalGroup,         "Application", "application.cluster.log.enabled",                  false, "Enables debug logging for cluster mode communication");
 
 	public static final Setting<String> BasePath                       = new StringSetting(generalGroup,             "Paths",       "base.path",                             ".", "Path of the Structr working directory. All files will be located relative to this directory.");
 	public static final Setting<String> TmpPath                        = new StringSetting(generalGroup,             "Paths",       "tmp.path",                              System.getProperty("java.io.tmpdir"), "Path to the temporary directory. Uses <code>java.io.tmpdir</code> by default");

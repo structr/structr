@@ -40,6 +40,7 @@ import org.jgroups.protocols.pbcast.STABLE;
 import org.jgroups.stack.Protocol;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 
 
 /**
@@ -48,8 +49,8 @@ import org.slf4j.LoggerFactory;
 public class ClusterManager {
 
 	private static final Logger logger   = LoggerFactory.getLogger(ClusterManager.class);
-	private final String clusterName     = "structr";
-	private final boolean loggingEnabled = false;
+	private String clusterName     = "structr";
+	private boolean loggingEnabled = true;
 	private JChannel channel;
 	private String name;
 
@@ -76,6 +77,10 @@ public class ClusterManager {
 			new GMS(),
 			new FRAG2()
 		};
+
+		final String configuredClusterName = Settings.ClusterName.getValue("structr");
+		clusterName = configuredClusterName;
+		loggingEnabled = Settings.ClusterDebugLogEnabled.getValue();
 
 		logger.info("Connecting to cluster {}..", clusterName);
 
@@ -124,6 +129,10 @@ public class ClusterManager {
 
 		if (loggingEnabled) {
 			logger.info("[{}] sending {}", name, msg);
+
+			if (payload != null) {
+				logger.info("[{}] payload {}", name, payload.toString());
+			}
 		}
 
 		channel.send(message);

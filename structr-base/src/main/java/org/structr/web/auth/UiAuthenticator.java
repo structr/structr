@@ -422,8 +422,6 @@ public class UiAuthenticator implements Authenticator {
 
 		if  (user != null) {
 
-			Services.getInstance().broadcastLogin(user);
-
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {
 
