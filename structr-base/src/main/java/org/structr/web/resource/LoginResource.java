@@ -29,6 +29,7 @@ import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
+import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
@@ -39,6 +40,7 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.FilterableResource;
 import org.structr.schema.action.ActionContext;
+import org.structr.web.entity.html.P;
 import org.structr.web.function.BarcodeFunction;
 
 import java.io.UnsupportedEncodingException;
@@ -89,6 +91,7 @@ public class LoginResource extends FilterableResource {
 		RestMethodResult returnedMethodResult = null;
 		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(ctx);
+		Principal user                        = null;
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
@@ -98,7 +101,8 @@ public class LoginResource extends FilterableResource {
 
 			try {
 
-				returnedMethodResult = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
+				user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
+				returnedMethodResult = doLogin(securityContext, user);
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -116,7 +120,7 @@ public class LoginResource extends FilterableResource {
 
 					try {
 
-						final Principal user            = ex.getUser();
+						user            = ex.getUser();
 						final Map<String, Object> hints = new HashMap();
 
 						hints.put("MARGIN", 0);
@@ -144,6 +148,9 @@ public class LoginResource extends FilterableResource {
 			// should not happen
 			throw new AuthenticationException(getErrorMessage());
 		}
+
+		// broadcast login to cluster for the user
+		Services.getInstance().broadcastLogin(user);
 
 		return returnedMethodResult;
 	}
@@ -188,7 +195,7 @@ public class LoginResource extends FilterableResource {
 		return false;
 	}
 
-	protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
+	protected Principal getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
 		if (StringUtils.equals(superUserName, emailOrUsername)) {
@@ -204,8 +211,7 @@ public class LoginResource extends FilterableResource {
 			final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(securityContext.getRequest()));
 
 			if (twoFactorAuthenticationSuccessOrNotNecessary) {
-
-				 return doLogin(securityContext, user);
+				return user;
 			}
 		}
 
