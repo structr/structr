@@ -18,6 +18,7 @@
  */
 package org.structr.rest.serialization;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.eclipse.jetty.io.QuietException;
@@ -135,7 +136,11 @@ public abstract class StreamingWriter {
 
 		configureWriter(rootWriter);
 
-		this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(securityContext.getRequest().getParameter(RequestKeywords.OutputReductionDepth.keyword()), Settings.JsonReduceNestedObjectsDepth.getValue());
+		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
+		HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.keyword()), this.reduceNestedObjectsInRestrictedViewsDepth);
+		}
 
 		// result fields in alphabetical order
 		final Set<Integer> visitedObjects = new LinkedHashSet<>();
