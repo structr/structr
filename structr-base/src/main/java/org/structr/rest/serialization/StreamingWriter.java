@@ -117,7 +117,7 @@ public abstract class StreamingWriter {
 
 		configureWriter(writer);
 
-		this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(securityContext.getRequest().getParameter(RequestKeywords.OutputReductionDepth.keyword()), Settings.JsonReduceNestedObjectsDepth.getValue());
+		setReduceNestedObjectsInRestrictedViewsDepth(securityContext);
 
 		writer.beginDocument(null, view);
 		root.serialize(writer, obj, view, 0, visitedObjects);
@@ -136,11 +136,7 @@ public abstract class StreamingWriter {
 
 		configureWriter(rootWriter);
 
-		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
-		HttpServletRequest request = securityContext.getRequest();
-		if (request != null) {
-			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.keyword()), this.reduceNestedObjectsInRestrictedViewsDepth);
-		}
+		setReduceNestedObjectsInRestrictedViewsDepth(securityContext);
 
 		// result fields in alphabetical order
 		final Set<Integer> visitedObjects = new LinkedHashSet<>();
@@ -340,6 +336,14 @@ public abstract class StreamingWriter {
 			writer.setIndent("	");
 		}
 
+	}
+
+	private void setReduceNestedObjectsInRestrictedViewsDepth (SecurityContext securityContext) {
+		this.reduceNestedObjectsInRestrictedViewsDepth = Settings.JsonReduceNestedObjectsDepth.getValue();
+		HttpServletRequest request = securityContext.getRequest();
+		if (request != null) {
+			this.reduceNestedObjectsInRestrictedViewsDepth = Services.parseInt(request.getParameter(RequestKeywords.OutputReductionDepth.keyword()), this.reduceNestedObjectsInRestrictedViewsDepth);
+		}
 	}
 
 	// ----- nested classes -----
