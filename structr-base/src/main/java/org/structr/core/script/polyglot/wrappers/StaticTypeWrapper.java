@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import java.util.Map;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -30,6 +29,7 @@ import org.structr.schema.action.ActionContext;
 
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 import org.structr.schema.action.EvaluationHints;
 
 public class StaticTypeWrapper implements ProxyObject {
@@ -45,7 +45,7 @@ public class StaticTypeWrapper implements ProxyObject {
 	}
 
 	@Override
-	public Object getMember(String key) {
+	public Object getMember(final String key) {
 
 		final AbstractMethod method = Methods.resolveMethod(referencedClass, null, key);
 		if (method != null && method.isStatic()) {
@@ -54,9 +54,9 @@ public class StaticTypeWrapper implements ProxyObject {
 
 				try {
 
-					final Map<String, Object> converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
+					final Arguments unwrapped = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
 
-					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), converted, new EvaluationHints()));
+					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), unwrapped, new EvaluationHints()));
 
 				} catch (FrameworkException ex) {
 					throw new RuntimeException(ex);
@@ -75,11 +75,11 @@ public class StaticTypeWrapper implements ProxyObject {
 	}
 
 	@Override
-	public boolean hasMember(String key) {
+	public boolean hasMember(final String key) {
 		return true;
 	}
 
 	@Override
-	public void putMember(String key, Value value) {
+	public void putMember(final String key, final Value value) {
 	}
 }

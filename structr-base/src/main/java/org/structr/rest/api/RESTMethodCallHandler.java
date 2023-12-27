@@ -18,10 +18,7 @@
  */
 package org.structr.rest.api;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
 import org.structr.core.api.AbstractMethod;
 
 /**
@@ -35,29 +32,5 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 		super(securityContext, call);
 
 		this.method = method;
-	}
-
-	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
-
-		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
-		final Map<String, String> declaredParameters = method.getParameters();
-
-		for (final String name : restInput.keySet()) {
-
-			final String type  = declaredParameters.get(name);
-			final Object input = restInput.get(name);
-
-			convertedArguments.put(name, convert(input, type));
-		}
-
-		return convertedArguments;
-	}
-
-	private Object convert(final Object input, final String type) {
-
-		// TODO: implement conversion...
-		System.out.println("RESTMethodCallHandler: NOT converting " + input + " to " + type + ", implementation missing.");
-
-		return input;
 	}
 }

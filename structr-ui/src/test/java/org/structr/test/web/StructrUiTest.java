@@ -48,6 +48,7 @@ import java.net.URL;
 import java.util.*;
 import java.util.function.Supplier;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.schema.action.EvaluationHints;
 
@@ -719,7 +720,7 @@ public abstract class StructrUiTest {
 
 			hints.reportExistingKey(methodName);
 
-			method.execute(securityContext, parameters, new EvaluationHints());
+			method.execute(securityContext, Arguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

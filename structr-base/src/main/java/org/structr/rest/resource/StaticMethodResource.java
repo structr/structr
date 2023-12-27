@@ -31,6 +31,7 @@ import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Map;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
@@ -94,8 +95,8 @@ public class StaticMethodResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final Map<String, Object> arguments = convertArguments(propertySet);
-				final RestMethodResult result       = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
+				final Arguments arguments     = Arguments.fromMap(propertySet);
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
 
 				tx.success();
 

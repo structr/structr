@@ -18,7 +18,6 @@
  */
 package org.structr.core.script.polyglot.wrappers;
 
-import java.util.Map;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.graalvm.polyglot.proxy.ProxyObject;
@@ -37,6 +36,7 @@ import org.structr.schema.action.ActionContext;
 
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 import org.structr.schema.action.EvaluationHints;
 
 public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
@@ -110,7 +110,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					try {
 
-						final Map<String, Object> converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, key, arguments);
+						final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
 
 						return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), converted, new EvaluationHints()));
 

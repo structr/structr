@@ -41,6 +41,7 @@ import java.util.HashMap;
 import java.util.Map;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 
 public interface MessageSubscriber extends NodeInterface {
 
@@ -84,8 +85,6 @@ public interface MessageSubscriber extends NodeInterface {
 	static void subscribeOnAllClients(MessageSubscriber thisSubscriber, final SecurityContext securityContext) {
 
 		if (!StringUtils.isEmpty(thisSubscriber.getTopic()) && (thisSubscriber.getTopic() != null)) {
-			Map<String, Object> params = new HashMap<>();
-			params.put("topic", thisSubscriber.getTopic());
 
 			Iterable<MessageClient> clientsList = thisSubscriber.getClients();
 			clientsList.forEach(client -> {
@@ -94,6 +93,10 @@ public interface MessageSubscriber extends NodeInterface {
 
 					final AbstractMethod method = Methods.resolveMethod(client.getClass(), client, "subscribeTopic");
 					if (method != null) {
+
+						final Arguments params = new Arguments();
+						
+						params.add("topic", thisSubscriber.getTopic());
 
 						method.execute(securityContext, params, new EvaluationHints());
 					}

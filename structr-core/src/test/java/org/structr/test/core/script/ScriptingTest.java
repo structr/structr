@@ -66,6 +66,7 @@ import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 import static org.testng.AssertJUnit.*;
@@ -308,7 +309,7 @@ public class ScriptingTest extends StructrTest {
 			final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, Map.of(), new EvaluationHints());
+				method.execute(securityContext, new Arguments(), new EvaluationHints());
 			}
 
 			tx.success();

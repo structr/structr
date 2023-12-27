@@ -434,7 +434,6 @@ public class SchemaMethodsTest extends FrontendTest {
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
-
 	}
 
 	@Test
@@ -445,7 +444,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"	var newGroup = Structr.create('Group', 'name', 'testGroup');\n" +
 				"	var newUser  = Structr.create('User', 'name', 'testUser');\n" +
 				"\n" +
-				"	newGroup.addMember(newUser);\n" +
+				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
 				"	return newGroup.members.length;" +
 				"}}";
@@ -471,7 +470,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	var beforeRemove = 'before: ' + group.members.length;" +
 				"\n" +
-				"	group.removeMember(user);\n" +
+				"	group.removeMember({ user: user });\n" +
 				"\n" +
 				"	return beforeRemove + ' - after: ' + group.members.length;" +
 				"}}";
@@ -588,4 +587,11 @@ public class SchemaMethodsTest extends FrontendTest {
 				.when()
 					.post("/globalTest2");
 	}
+
+	@Test
+	public void testBlockingOfLifecycleMethods() {
+
+		fail("Implement test here!");
+	}
+
 }

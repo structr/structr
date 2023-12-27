@@ -35,6 +35,8 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 
 public abstract class PolyglotWrapper {
 
@@ -243,57 +245,18 @@ public abstract class PolyglotWrapper {
 		return obj;
 	}
 
-	public static Map<String, Object> unwrapExecutableArguments(final ActionContext actionContext, final String methodName, final Value[] arguments) throws FrameworkException {
+	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
 
-		/*
-		int paramCount = method.getParameterCount();
+		final Arguments arguments = new Arguments();
 
-		if (paramCount == 0) {
+		for (final Value value : args) {
 
-			return PolyglotWrapper.wrap(actionContext, method.invoke(null));
+			// we don't have names for the arguments here... :(
+			arguments.add(null, PolyglotWrapper.unwrap(actionContext, value));
 
-		} else if (paramCount == 1) {
-
-			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-		} else if (paramCount == 2 && arguments.length == 0) {
-
-			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext(), new HashMap<String, Object>()));
-
-		} else if (arguments.length == 0) {
-
-			return PolyglotWrapper.wrap(actionContext, method.invoke(null, actionContext.getSecurityContext()));
-
-		} else {
-
-			return PolyglotWrapper.wrap(actionContext, method.invoke(null, ArrayUtils.add(Arrays.stream(arguments).map(arg -> PolyglotWrapper.unwrap(actionContext, arg)).toArray(), 0, actionContext.getSecurityContext())));
-		}
-		*/
-
-
-		final Map<String, Object> parameters = new LinkedHashMap<>();
-
-		if (arguments.length > 0) {
-
-			final Object value = PolyglotWrapper.unwrap(actionContext, arguments[0]);
-
-			if (arguments.length == 1 && value instanceof Map map) {
-
-				parameters.putAll(map);
-
-			} else {
-
-				throw new RuntimeException(
-					new FrameworkException(
-						422,
-						"Tried to call method \"" + methodName + "\" with invalid parameters. SchemaMethods expect their parameters to be passed as an object."
-					)
-				);
-
-			}
 		}
 
-		return parameters;
+		return arguments;
 	}
 
 	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {

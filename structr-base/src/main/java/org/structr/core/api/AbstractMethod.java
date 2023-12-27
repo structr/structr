@@ -18,7 +18,6 @@
  */
 package org.structr.core.api;
 
-import java.util.Map;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.EvaluationHints;
@@ -53,8 +52,8 @@ public abstract class AbstractMethod {
 	*/
 
 	public abstract boolean isStatic();
-	public abstract Map<String, String> getParameters();
-	public abstract Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) throws FrameworkException;
+	public abstract Parameters getParameters();
+	public abstract Object execute(final SecurityContext securityContext, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
 
 	public String getName() {
 		return name;
@@ -66,5 +65,38 @@ public abstract class AbstractMethod {
 
 	public String getDescription() {
 		return description;
+	}
+
+	protected void checkAndConvertArguments(final Arguments arguments) throws FrameworkException {
+
+
+
+
+		/*
+				throw new RuntimeException(
+					new FrameworkException(
+						422,
+						"Tried to call method \"" + method.getName() + "\" with invalid arguments. SchemaMethods expect their arguments to be passed as an object."
+					)
+				);
+
+		*/
+
+		final List<Object> args = new LinkedList<>();
+
+		// The following code bridges the gap between an argument map (coming from JS scripting)
+		// and unnamed order-based arguments of regular Java methods.
+
+		// The first parameter is always a SecurityContext object. The second parameter MUST be
+		// Map<String, Object>, otherwise the method cannot be called from a scripting context.
+
+		if (method.getParameterCount() > 0) {
+			args.add(securityContext);
+		}
+
+		if (method.getParameterCount() > 1) {
+			args.add(arguments);
+		}
+		//
 	}
 }

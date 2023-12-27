@@ -74,6 +74,7 @@ import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.rest.api.RESTCall;
 
@@ -700,7 +701,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				final AbstractMethod method = Methods.resolveMethod(target.getClass(), target, methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), parameters, new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), Arguments.fromMap(parameters), new EvaluationHints());
 				}
 			}
 
@@ -713,7 +714,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				final AbstractMethod method = Methods.resolveMethod(staticClass, null, methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), parameters, new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), Arguments.fromMap(parameters), new EvaluationHints());
 				}
 
 			} else {
