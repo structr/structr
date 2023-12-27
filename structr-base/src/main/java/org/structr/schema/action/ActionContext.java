@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.*;
 import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 /**
@@ -296,8 +297,9 @@ public class ActionContext {
 
 							hints.reportExistingKey(key);
 
-							final ContextStore contextStore     = getContextStore();
-							final Map<String, Object> arguments = contextStore.getTemporaryParameters();
+							final ContextStore contextStore = getContextStore();
+							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
+							final Arguments arguments       = Arguments.fromMap(temp);
 
 							return method.execute(securityContext, arguments, hints);
 						}

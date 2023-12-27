@@ -50,6 +50,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.schema.action.EvaluationHints;
 
@@ -451,7 +452,7 @@ public class StructrTest {
 
 			hints.reportExistingKey(methodName);
 
-			return method.execute(securityContext, parameters, new EvaluationHints());
+			return method.execute(securityContext, Arguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

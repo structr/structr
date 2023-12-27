@@ -43,9 +43,8 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 /**
@@ -330,16 +329,17 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 			final XMPPClient client = StructrApp.getInstance().get(XMPPClient.class, uuid);
 			if (client != null) {
 
-				final String callbackName            = "onXMPP" + message.getClass().getSimpleName();
-				final Map<String, Object> properties = new HashMap<>();
-
-				properties.put("sender", message.getFrom());
-				properties.put("message", message.getBody());
-
+				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
 				final AbstractMethod method = Methods.resolveMethod(client.getClass(), client, callbackName);
+
 				if (method != null) {
 
-					method.execute(SecurityContext.getSuperUserInstance(), properties, new EvaluationHints());
+					final Arguments arguments = new Arguments();
+
+					arguments.add("sender",  message.getFrom());
+					arguments.add("message", message.getBody());
+
+					method.execute(SecurityContext.getSuperUserInstance(), arguments, new EvaluationHints());
 				}
 			}
 

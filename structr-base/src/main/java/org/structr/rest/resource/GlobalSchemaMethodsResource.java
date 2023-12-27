@@ -29,6 +29,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -91,8 +92,8 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 			try (final Tx tx = app.tx()) {
 
-				final Map<String, Object> arguments = convertArguments(propertySet);
-				final RestMethodResult result       = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
+				final Arguments arguments     = Arguments.fromMap(propertySet);
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
 
 				tx.success();
 

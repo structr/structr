@@ -21,11 +21,6 @@ package org.structr.core.api;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Parameter;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -40,15 +35,17 @@ public class ReflectiveMethod extends AbstractMethod {
 
 	private static final Logger logger = LoggerFactory.getLogger(ReflectiveMethod.class);
 
-	private GraphObject entity = null;
-	private Method method      = null;
+	private Parameters parameters = null;
+	private GraphObject entity    = null;
+	private Method method         = null;
 
 	public ReflectiveMethod(final Method method, final GraphObject entity) {
 
 		super(method.getName(), null, null);
 
-		this.method = method;
-		this.entity = entity;
+		this.parameters = Parameters.fromMethod(method);
+		this.method     = method;
+		this.entity     = entity;
 	}
 
 	@Override
@@ -57,39 +54,24 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Map<String, String> getParameters() {
-
-		final Map<String, String> parameters = new LinkedHashMap<>();
-
-		for (final Parameter p : method.getParameters()) {
-
-			parameters.put(p.getName(), p.getType().getSimpleName());
-		}
-
+	public Parameters getParameters() {
 		return parameters;
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final Map<String, Object> arguments, final EvaluationHints hints) {
+	public Object execute(final SecurityContext securityContext, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
 
-		final List<Object> args = new LinkedList<>();
-
-		if (method.getParameterCount() > 0) {
-			args.add(securityContext);
-		}
-
-		if (method.getParameterCount() > 1) {
-			args.add(arguments);
-		}
+		checkAndConvertArguments(arguments);
 
 		try {
-			return method.invoke(entity, args.toArray());
+
+			return method.invoke(entity, arguments.toArray());
 
 		} catch (IllegalArgumentException ex) {
 
 			ex.printStackTrace();
 
-			throw new RuntimeException(new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid parameters. SchemaMethods expect their parameters to be passed as an object."));
+			throw new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid arguments. SchemaMethods expect their arguments to be passed as an object.");
 
 		} catch (IllegalAccessException ex) {
 

@@ -35,10 +35,9 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.EvaluationHints;
 
 import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 
 public interface MessageClient extends NodeInterface {
 
@@ -104,14 +103,15 @@ public interface MessageClient extends NodeInterface {
 					String subTopic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
 					if (subTopic != null && (subTopic.equals(topic) || subTopic.equals("*"))) {
 
-						Map<String, Object> params = new HashMap<>();
-						params.put("topic", topic);
-						params.put("message", message);
-
 						try {
 
 							final AbstractMethod method = Methods.resolveMethod(sub.getClass(), sub, "onMessage");
 							if (method != null) {
+
+								final Arguments params = new Arguments();
+
+								params.add("topic", topic);
+								params.add("message", message);
 
 								method.execute(securityContext, params, new EvaluationHints());
 							}

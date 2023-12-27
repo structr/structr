@@ -51,6 +51,7 @@ import org.structr.schema.action.Function;
 import java.util.*;
 import org.structr.common.helper.ValidationHelper;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 /**
@@ -1606,10 +1607,11 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				final AbstractMethod method = Methods.resolveMethod(entityType, this, key);
 				if (method != null) {
 
-					final ContextStore contextStore      = actionContext.getContextStore();
-					final Map<String, Object> parameters = contextStore.getTemporaryParameters();
+					final ContextStore contextStore = actionContext.getContextStore();
+					final Map<String, Object> temp  = contextStore.getTemporaryParameters();
+					final Arguments arguments       = Arguments.fromMap(temp);
 
-					return method.execute(actionContext.getSecurityContext(), parameters, hints);
+					return method.execute(actionContext.getSecurityContext(), arguments, hints);
 				}
 
 				return Function.numberOrString(defaultValue);

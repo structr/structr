@@ -39,9 +39,9 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.entity.User;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 /**
@@ -525,14 +525,15 @@ public abstract class StructrOAuthClient {
 
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParameters = new LinkedHashMap<>();
-		methodParameters.put("provider", this.getProviderName());
-		methodParameters.put("userinfo", this.getUserInfo());
-
 		final AbstractMethod method = Methods.resolveMethod(User.class, user, "onOAuthLogin");
 		if (method != null) {
 
-			method.execute(user.getSecurityContext(), methodParameters, new EvaluationHints());
+			final Arguments arguments = new Arguments();
+
+			arguments.add("provider", this.getProviderName());
+			arguments.add("userinfo", this.getUserInfo());
+
+			method.execute(user.getSecurityContext(), arguments, new EvaluationHints());
 		}
 	}
 }

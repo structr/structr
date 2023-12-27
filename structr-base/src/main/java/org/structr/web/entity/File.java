@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 
 /**
  *
@@ -433,7 +434,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 			final AbstractMethod method = Methods.resolveMethod(thisFile.getClass(), thisFile, "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, Map.of(), new EvaluationHints());
+				method.execute(ctx, new Arguments(), new EvaluationHints());
 			}
 
 			tx.success();

@@ -88,6 +88,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.structr.common.helper.PathHelper;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
 
 /**
@@ -1674,7 +1675,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				final AbstractMethod method = Methods.resolveMethod(file.getClass(), file, "onDownload");
 				if (method != null) {
 
-					method.execute(securityContext, callbackMap, new EvaluationHints());
+					method.execute(securityContext, Arguments.fromMap(callbackMap), new EvaluationHints());
 				}
 
 			} catch (FrameworkException fex) {
