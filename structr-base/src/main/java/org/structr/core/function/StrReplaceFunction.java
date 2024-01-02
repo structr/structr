@@ -23,6 +23,8 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
+import java.util.regex.PatternSyntaxException;
+
 public class StrReplaceFunction extends CoreFunction {
 
 	public static final String ERROR_MESSAGE_STR_REPLACE = "Usage: ${str_replace(subject, search, replacement)}. Example: ${str_replace(\"Hello Wrlod!\", \"Wrlod\", \"World\")}";
@@ -55,6 +57,10 @@ public class StrReplaceFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+		} catch (PatternSyntaxException ex) {
+
+			logParameterError(caller, sources, "Error in RegEx: " + ex.getMessage(),ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 
