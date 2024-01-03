@@ -229,8 +229,6 @@ input.readonly {
 
 #images .node img.thumbnail,
 .resourceBox td img.thumbnail {
-	margin-top: -42px;
-	margin-left: -50%;
 	max-width: 100px;
 	max-height: 100px;
 }
@@ -243,10 +241,7 @@ input.readonly {
 .resourceBox td .image,
 #relatedNodesList .image {
 	width: 102px;
-	height: 106px;
-	/*float: left;*/
 	margin-right: 4px;
-	position: relative;
 }
 
 .resourceBox td .node .remove {
@@ -265,7 +260,6 @@ input.readonly {
 	opacity: .8;
 }
 
-
 .resourceBox td .thumbnailZoom,
 #relatedNodesList .node .thumbnailZoom {
 	max-width: 300px;
@@ -274,12 +268,20 @@ input.readonly {
 	z-index: 4;
 }
 
-.resourceBox td div.wrap,
+.resourceBox div.wrap,
 #relatedNodesList .node div.wrap {
+	position: relative;
+	margin-bottom: 10px;
+}
+
+.image-info-overlay {
 	position: absolute;
-	bottom: 0;
-	left: 50%;
-	margin-bottom: 4px;
+	top: 8px;
+	left: 8px;
+	padding: 2px 4px;
+	color: black;
+	background-color: white;
+	opacity: .50;
 }
 
 #dialogBox .dialogText div.img {
@@ -308,10 +310,32 @@ input.readonly {
 /*
 * Search
 */
+
+.dialogText input.search {
+	margin-right: 12px;
+}
+
 .searchResults {
 	height: 100%;
 	overflow-y: auto;
 	flex-grow: 1;
+}
+
+.searchResults h2 {
+	color: var(--gray-333);
+	clear: both;
+	margin: 12px 0 0 12px;
+}
+
+.searchResults .search-results-info {
+	display: block;
+	margin: 8px 0 4px 12px;
+	color: var(--gray-555);
+	font-size: .9rem;
+}
+
+.dialogText .searchResults h2 {
+	margin-top: -4px;
 }
 
 .searchResults h3 {
@@ -328,7 +352,7 @@ input.readonly {
 }
 
 .searchResults .node {
-	margin: 0 4px 4px 0;
+	margin: 0 12px 12px 0;
 }
 
 img.loader {

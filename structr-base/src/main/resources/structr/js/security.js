@@ -823,17 +823,16 @@ let _ResourceAccessGrants = {
 		let grantData = {
 			type: 'ResourceAccess',
 			signature: signature,
-			flags: flags
+			flags: flags,
+			// no grantees because otherwise admin is a grantee and this messes with the error messages
+			grantees: []
 		};
 
 		if (additionalData) {
 			grantData = Object.assign(grantData, additionalData);
 		}
 
-		Command.create(grantData, (node) => {
-			// delete grantees because otherwise admin is a grantee and this messes with the error messages
-			Command.setProperty(node.id, 'grantees', null, false, callback);
-		});
+		Command.create(grantData, callback);
 	},
 	getVerbFromKey: (key = '') => {
 		return key.substring(key.lastIndexOf('_')+1, key.length);

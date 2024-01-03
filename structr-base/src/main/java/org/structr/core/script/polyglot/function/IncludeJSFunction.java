@@ -21,12 +21,13 @@ package org.structr.core.script.polyglot.function;
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
+import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.core.script.polyglot.PolyglotWrapper;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 
-public class IncludeJSFunction implements ProxyExecutable {
+public class IncludeJSFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
 	private final ActionContext actionContext;
 
@@ -49,5 +50,39 @@ public class IncludeJSFunction implements ProxyExecutable {
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getName() {
+		return "includeJs";
+	}
+
+	@Override
+	public String shortDescription() {
+		return """
+**JavaScript-only**
+
+Searches a file with the three following conditions and evaluates it in the current javascript context so that common functionality can be used in multiple places.
+
+Conditions:
+
+- name parameter must match file name (with extension)
+- file must have flag useAsJavascriptLibrary = true
+- file content type must be one of "text/javascript", "application/javascript" or "application/javascript+module"
+
+Example:
+```
+${{
+	$.includeJs('myLibrary.js');
+
+	// can access all variables/functions declared in myLibrary.js
+}}
+```
+""";
+	}
+
+	@Override
+	public String getSignature() {
+		return "name";
 	}
 }

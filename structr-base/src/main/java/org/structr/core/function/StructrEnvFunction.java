@@ -28,6 +28,7 @@ import org.structr.core.property.ArrayProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.StringProperty;
+import org.structr.core.script.polyglot.context.ContextFactory;
 import org.structr.schema.action.ActionContext;
 
 public class StructrEnvFunction extends AdvancedScriptingFunction {
@@ -94,6 +95,12 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
 		info.setProperty(new StringProperty("validUUIDv4Regex"), Settings.getValidUUIDRegexString());
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
+
+		info.setProperty(new StringProperty("debuggerActive"), Settings.ScriptingDebugger.getValue());
+
+		if (Settings.ScriptingDebugger.getValue()) {
+			info.setProperty(new StringProperty("debuggerPath"), ContextFactory.getDebuggerPath());
+		}
 
 		return info;
 	}

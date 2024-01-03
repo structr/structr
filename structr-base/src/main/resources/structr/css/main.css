@@ -236,6 +236,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 .icon-blue {
 	color: var(--medium-blue);
 }
+.icon-dark-blue {
+	color: var(--icon-color-dark-blue);
+}
 .icon-yellow {
 	color: var(--color-folder);
 }
@@ -1032,6 +1035,14 @@ img.disabled {
 
 .abbr-ellipsis.abbr-75pc {
 	max-width: 75%;
+}
+
+.abbr-ellipsis.abbr-80pc {
+	max-width: 80%;
+}
+
+.abbr-ellipsis.abbr-100pc {
+	max-width: 100%;
 }
 
 .abbr-ellipsis.abbr-80 {
@@ -2136,14 +2147,20 @@ th.center {
 }
 
 .app-tile img {
+	width: 83%;
+	margin: 13.5% 20% 0 8.5%;
+}
+
+.app-tile .app-thumbnail-frame {
 	width: 100%;
-	border-bottom: 1px solid var(--black-opacity-125);
+	background-repeat: no-repeat;
+	background-image: url('https://apps.structr.com/assets/images/frame.svg');
 }
 
 .app-tile h4 {
 	margin: 1rem;
 	/*font-size: 1em;*/
-	font-weight: 500;
+	font-weight: 600;
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
@@ -2365,8 +2382,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .tooltipHeader {
-	padding-top: 2pt;
-	height: 16pt;
 	background-color: var(--gray-ccc);
 }
 
@@ -2382,10 +2397,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .closeTooltipBtn {
-	position: absolute;
-	right: 2pt;
-	top: 12pt;
-	margin: 2pt;
 	cursor: pointer;
 }
 
@@ -2411,17 +2422,8 @@ td#cascading-options, td#propagation-options {
 	/*font-size: 9pt;*/
 }
 
-.tooltipTitle {
-	margin-top: 12pt;
-	margin-right: 4pt;
-	margin-left: 4pt;
-	/*font-size: 9pt;*/
-	display: inline;
-}
-
 .tooltipText {
 	color: black ! important;
-	/*font-size: 11pt;*/
 	display: inline;
 }
 
@@ -2970,6 +2972,23 @@ i.fa-sitemap {
 	background-color: var(--structr-green);
 	color: var(--solid-black);
 	z-index: 99999;
+}
+
+.preview-context-menu .menu-entry-html {
+	margin-left: 1.5rem;
+	margin-right: 1rem;
+}
+
+.preview-context-menu .typeIcon {
+	position: absolute;
+	top: .5rem;
+	left: .5rem;
+}
+
+.preview-context-menu .context_menu_icon {
+	position: absolute;
+	top: .5rem;
+	right: .5rem;
 }
 
 .menu-entry-container {

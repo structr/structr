@@ -394,7 +394,7 @@ let _Dialogs = {
 			let dialogTextWrapperElement = _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper');
 			if (dialogTextWrapperElement) {
 
-				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 3rem)`;
+				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
 				dialogTextWrapperElement.style.height = `${dialogHeight - horizontalOffset}px`;
 			}
 

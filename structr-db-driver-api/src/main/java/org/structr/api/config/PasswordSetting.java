@@ -57,6 +57,8 @@ public class PasswordSetting extends Setting<String> {
 		if (value != null) {
 			input.attr(new Attr("value", value));
 		}
+
+		renderResetButton(group);
 	}
 
 	@Override

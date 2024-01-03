@@ -187,12 +187,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 									tokenizer.write(eMail);
 								}
-
-								final String twitterName = _owner.getProperty(StructrApp.key(Person.class, "twitterName"));
-								if (twitterName != null) {
-
-									tokenizer.write(twitterName);
-								}
 							}
 
 							// index document excluding stop words
@@ -249,7 +243,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", fileName, t.getMessage());
+			logger.warn("Indexing of {} failed: {}", indexable.getProperty(StructrApp.key(File.class, "path")), t.getMessage());
 
 			return false;
 		}

@@ -20,10 +20,7 @@ package org.structr.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.sun.net.httpserver.HttpContext;
-import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
-import com.sun.net.httpserver.HttpServer;
+import com.sun.net.httpserver.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -123,32 +120,48 @@ public class StructrHttpsLicenseVerifier {
 						final String method = exchange.getRequestMethod();
 
 						// support HEAD and GET requests to check health
-						if ("get".equalsIgnoreCase(method) || "head".equalsIgnoreCase(method)) {
+						if ("head".equalsIgnoreCase(method)) {
 
 							exchange.sendResponseHeaders(200, 0);
+
+						} else if ("get".equalsIgnoreCase(method)) {
+
+							String responseString = "Structr license server status ok";
+							byte[] response = responseString.getBytes("utf-8");
+
+							exchange.sendResponseHeaders(200, response.length);
+							try (final OutputStream out = exchange.getResponseBody()) {
+
+								out.write(response);
+								out.flush();
+							}
 
 						} else if ("post".equalsIgnoreCase(method)) {
 
 							final InputStream is = exchange.getRequestBody();
 							final int bufSize    = 4096;
-
-							// decrypt AES stream key using RSA block cipher
-							final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
-							final byte[] ivSpec     = blockCipher.doFinal(IOUtils.readFully(is, 256));
-							final byte[] buf        = new byte[bufSize];
-							int count               = 0;
-
-							// initialize cipher using stream key
-							streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
+							final byte[] buf = new byte[bufSize];
+							int count = 0;
 
 							// we want to be able to control the number of bytes AND the timeout
 							// of the underlying socket, so that we read the available amount of
 							// data until the socket times out or we have read all the data.
 							try {
-
+								// decrypt AES stream key using RSA block cipher
+								final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
+								final byte[] ivSpec = blockCipher.doFinal(IOUtils.readFully(is, 256));
 								count = is.read(buf, 0, bufSize);
 
-							} catch (IOException ioex) { }
+								// initialize cipher using stream key
+								streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
+
+							} catch (IOException exception) {}
+
+							if (count == 0) {
+
+								logger.info("received empty or malformed request body from {}", exchange.getRemoteAddress());
+								exchange.sendResponseHeaders(400, 0);
+							}
 
 							final byte[] decrypted        = streamCipher.doFinal(buf, 0, count);
 							final String data             = new String(decrypted, "utf-8");
@@ -157,26 +170,35 @@ public class StructrHttpsLicenseVerifier {
 							final List<Pair> pairs        = split(data).stream().map(StructrHttpsLicenseVerifier::keyValue).collect(Collectors.toList());
 							final Map<String, String> map = pairs.stream().filter(Objects::nonNull).collect(Collectors.toMap(Pair::getLeft, Pair::getRight));
 
-							// validate data against customer database
-							if (isValid(map)) {
+							// send signatur of name field back to client
+							final String name     = (String)map.get(StructrLicenseManager.NameKey);
+							final byte[] response = name.getBytes("utf-8");
 
-								// send signatur of name field back to client
-								final String name     = (String)map.get(StructrLicenseManager.NameKey);
-								final byte[] response = name.getBytes("utf-8");
+							// send response body
+							try (final OutputStream out = exchange.getResponseBody()) {
 
 								exchange.getResponseHeaders().add("Content-Type", "application/octet-stream");
 								exchange.sendResponseHeaders(200, 256);
 
-								// send response body
-								try (final OutputStream out = exchange.getResponseBody()) {
+								// validate data against customer database
+								if (isValid(map)) {
 
 									out.write(sign(response));
 									out.flush();
+
+								} else {
+
+									logger.info("License verification failed.");
+
+									// in case license isn't valid, we send a false response
+									out.write(sign("invalid".getBytes("utf-8")));
+									out.flush();
 								}
 
-							} else {
+							} catch (Throwable t) {
 
-								logger.info("License verification failed.");
+								logger.info("License verification failed, can't get response body.");
+								exchange.sendResponseHeaders(400, 0);
 							}
 
 						} else {
@@ -187,6 +209,7 @@ public class StructrHttpsLicenseVerifier {
 
 					} catch (Throwable t) {
 
+						exchange.sendResponseHeaders(400, 0);
 						t.printStackTrace();
 
 					} finally {

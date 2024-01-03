@@ -60,31 +60,31 @@ public class FlowGetProperty extends FlowDataSource {
 
 		if (_nodeSource != null && (_nameSource != null || _propertyName != null) ) {
 
-			final Object node = _nodeSource.get(context);
-			if (node != null) {
+			final Object input = _nodeSource.get(context);
+			if (input != null) {
 
-				if (node instanceof GraphObject) {
+				if (input instanceof GraphObject) {
 
-					Object name;
+					Object mapKey;
 
 					if (_nameSource != null) {
-						name = _nameSource.get(context);
+						mapKey = _nameSource.get(context);
 					} else {
-						name = _propertyName;
+						mapKey = _propertyName;
 					}
 
-					if (name != null) {
+					if (mapKey != null) {
 
-						if (name instanceof String) {
+						if (mapKey instanceof String) {
 
-							final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(node.getClass(), (String) name, false);
+							final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(input.getClass(), (String) mapKey, false);
 							if (key != null) {
 
-								return ((GraphObject) node).getProperty(key);
+								return ((GraphObject) input).getProperty(key);
 
 							} else {
 
-								logger.warn("Name source of {} returned unknown property key {}", getUuid(), name);
+								logger.warn("Name source of {} returned unknown property key {}", getUuid(), key);
 							}
 						}
 
@@ -93,9 +93,26 @@ public class FlowGetProperty extends FlowDataSource {
 						logger.warn("Name source of {} returned null", getUuid());
 					}
 
+				} else if (input instanceof Map) {
+
+					Object key;
+
+					if (_nameSource != null) {
+						key = _nameSource.get(context);
+					} else {
+						key = _propertyName;
+					}
+
+					if (key != null) {
+
+						return ((Map<?, ?>) input).get(key);
+					} else {
+
+						logger.warn("Name source of {} returned null", getUuid());
+					}
 				} else {
 
-					logger.warn("Node data source of {} returned invalid object of type {}", getUuid(), node.getClass().getName());
+					logger.warn("Node data source of {} returned invalid object of type {}", getUuid(), input.getClass().getName());
 				}
 
 			} else {

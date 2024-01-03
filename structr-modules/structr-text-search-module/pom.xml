@@ -40,7 +40,25 @@
 		</dependency>
 		<dependency>
 			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parsers</artifactId>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-parser-scientific-package</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-langdetect</artifactId>
+			<type>pom</type>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.tika</groupId>
+			<artifactId>tika-langdetect-optimaize</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>org.testng</groupId>

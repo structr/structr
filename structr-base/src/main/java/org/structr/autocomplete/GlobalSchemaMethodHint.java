@@ -18,31 +18,19 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.common.CaseHelper;
-import org.structr.core.GraphObject;
-import org.structr.core.function.ParseResult;
-import org.structr.schema.action.ActionContext;
+public class GlobalSchemaMethodHint extends MethodHint {
 
-import java.util.LinkedList;
-import java.util.List;
+    public GlobalSchemaMethodHint(String name, String summary, String description) {
+        super(name, summary, description);
+    }
 
-/**
- *
- */
-public class JavaHintProvider extends AbstractHintProvider {
+    @Override
+    public String getReplacement() {
+        return "globalSchemaMethods." + getDisplayName();
+    }
 
-	@Override
-	protected List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
-		return new LinkedList<>();
-	}
-
-	@Override
-	protected String getFunctionName(final String source) {
-
-		if (source.contains("_")) {
-			return CaseHelper.toLowerCamelCase(source);
-		}
-
-		return source;
-	}
+    @Override
+    public String getType() {
+        return "Global schema method";
+    }
 }

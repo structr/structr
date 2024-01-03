@@ -139,7 +139,8 @@ public class ViewFilterResource extends WrappingResource {
 			}
 
 			signature.append("_");
-			signature.append(SchemaHelper.normalizeEntityName(propertyView));
+			signature.append(StringUtils.capitalize(propertyView));
+
 		}
 
 		return StringUtils.stripEnd(signature.toString(), "/");

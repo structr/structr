@@ -18,36 +18,30 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.schema.action.Hint;
+public class KeywordHint extends AbstractHint {
 
-/**
- *
- *
- */
-public class SeparatorHint extends Hint {
+	public KeywordHint(final String name, final String documentation, final String replacement) {
 
-	@Override
-	public String getDisplayName() {
-		return null;
+		this.name          = name;
+		this.documentation = documentation;
+		this.replacement   = replacement;
 	}
 
-	@Override
-	public String getReplacement() {
-		return null;
+	public void setReplacement(final String replacement) {
+		this.replacement = replacement;
 	}
 
-	@Override
-	public String shortDescription() {
-		return null;
-	}
-
-	@Override
-	public String getSignature() {
-		return null;
+	public boolean hasComplexReplacement() {
+		return !getName().equals(getReplacement());
 	}
 
 	@Override
 	public String getName() {
-		return null;
+		return name;
+	}
+
+	@Override
+	public String getType() {
+		return "Keyword";
 	}
 }

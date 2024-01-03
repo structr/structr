@@ -1477,7 +1477,9 @@ let _Code = {
 
 				let parameterTplRow = $('.template', apiTab);
 				let parameterContainer = parameterTplRow.parent();
-				_Helpers.fastRemoveElement(parameterTplRow[0]);
+
+				// do not use "fastRemove" because it also removes all children and we want to use it as a template afterwards
+				parameterTplRow[0].remove();
 
 				let addParameterRow = (parameter) => {
 
@@ -2340,7 +2342,7 @@ let _Code = {
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			})
+			});
 
 			if (viewIsEditable) {
 

@@ -18,31 +18,26 @@
  */
 package org.structr.autocomplete;
 
-import org.structr.common.CaseHelper;
-import org.structr.core.GraphObject;
-import org.structr.core.function.ParseResult;
-import org.structr.schema.action.ActionContext;
+public class TypeNameHint extends AbstractHint {
 
-import java.util.LinkedList;
-import java.util.List;
+    public TypeNameHint(final String name, final String simpleTypeName) {
 
-/**
- *
- */
-public class JavaHintProvider extends AbstractHintProvider {
+        this.name          = name;
+        this.documentation = simpleTypeName;
+    }
 
-	@Override
-	protected List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
-		return new LinkedList<>();
-	}
+    @Override
+    public String getName() {
+        return name;
+    }
 
-	@Override
-	protected String getFunctionName(final String source) {
+    @Override
+    public String getDocumentation() {
+        return "Schema type **" + this.documentation + "**";
+    }
 
-		if (source.contains("_")) {
-			return CaseHelper.toLowerCamelCase(source);
-		}
-
-		return source;
-	}
+    @Override
+    public String getType() {
+        return "Type name";
+    }
 }
