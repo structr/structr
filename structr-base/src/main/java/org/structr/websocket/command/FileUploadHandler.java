@@ -30,6 +30,11 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.Channel;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
+
+import static java.nio.file.StandardOpenOption.*;
 
 public class FileUploadHandler {
 
@@ -53,7 +58,7 @@ public class FileUploadHandler {
 			SeekableByteChannel channel;
 			try {
 
-				channel = getChannel(false);
+				channel = getChannel();
 				this.size = channel.size();
 				updateSize(this.size);
 
@@ -65,7 +70,12 @@ public class FileUploadHandler {
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
-		SeekableByteChannel channel = getChannel(sequenceNumber > 0);
+		final Set<StandardOpenOption> options = new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC));
+		if (sequenceNumber == 0) {
+			options.add(TRUNCATE_EXISTING);
+		}
+
+		SeekableByteChannel channel = getChannel(options);
 
 		if (channel != null && channel.isOpen()) {
 
@@ -111,7 +121,7 @@ public class FileUploadHandler {
 
 		try {
 
-			Channel channel = getChannel(false);
+			Channel channel = getChannel();
 
 			if (channel != null && channel.isOpen()) {
 
@@ -135,10 +145,14 @@ public class FileUploadHandler {
 	}
 
 	// ----- private methods -----
-	private SeekableByteChannel getChannel(final boolean append) throws IOException {
+	private SeekableByteChannel getChannel() throws IOException {
+		return getChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
+	}
+
+	private SeekableByteChannel getChannel(final Set<? extends OpenOption> options) throws IOException {
 
 		if (this.privateChannel == null) {
-			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel();
+			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel(options);
 		}
 
 		return this.privateChannel;

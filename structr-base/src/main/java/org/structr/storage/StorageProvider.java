@@ -24,7 +24,13 @@ import javax.activation.DataSource;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.OpenOption;
+import java.util.Set;
+
 import org.structr.web.entity.StorageConfiguration;
+
+import static java.nio.file.StandardOpenOption.*;
+import static java.nio.file.StandardOpenOption.SYNC;
 
 public interface StorageProvider extends DataSource {
 
@@ -45,10 +51,10 @@ public interface StorageProvider extends DataSource {
 	OutputStream getOutputStream(final boolean append);
 
 	default SeekableByteChannel getSeekableByteChannel() {
-		return getSeekableByteChannel(false, false);
+		return getSeekableByteChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
 	}
 
-	SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate);
+	SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options);
 
 	void moveTo(final StorageProvider newFileStorageProvider);
 
