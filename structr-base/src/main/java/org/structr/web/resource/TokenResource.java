@@ -178,5 +178,10 @@ public class TokenResource extends RESTEndpoint {
 
 			return returnedMethodResult;
 		}
+
+		@Override
+		public String getResourceSignature() {
+			return "_token";
+		}
 	}
 }

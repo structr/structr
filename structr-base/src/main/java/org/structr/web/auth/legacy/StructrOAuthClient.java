@@ -525,7 +525,7 @@ public abstract class StructrOAuthClient {
 
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(User.class, user, "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(User.class, "onOAuthLogin");
 		if (method != null) {
 
 			final Arguments arguments = new Arguments();
@@ -533,7 +533,7 @@ public abstract class StructrOAuthClient {
 			arguments.add("provider", this.getProviderName());
 			arguments.add("userinfo", this.getUserInfo());
 
-			method.execute(user.getSecurityContext(), arguments, new EvaluationHints());
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
 		}
 	}
 }

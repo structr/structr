@@ -431,10 +431,10 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-			final AbstractMethod method = Methods.resolveMethod(thisFile.getClass(), thisFile, "onUpload");
+			final AbstractMethod method = Methods.resolveMethod(thisFile.getClass(), "onUpload");
 			if (method != null) {
 
-				method.execute(ctx, new Arguments(), new EvaluationHints());
+				method.execute(ctx, thisFile, new Arguments(), new EvaluationHints());
 			}
 
 			tx.success();
@@ -898,8 +898,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 
 	static Map<String, Object> extractStructure(final File thisFile) throws FrameworkException {
-		StructrApp.getInstance(thisFile.getSecurityContext()).getContentAnalyzer().analyzeContent(thisFile);
-		return null;
+		return StructrApp.getInstance(thisFile.getSecurityContext()).getContentAnalyzer().analyzeContent(thisFile);
 	}
 
 	// ----- interface JavaScriptSource -----

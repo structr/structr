@@ -698,10 +698,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			for (final GraphObject target : targets) {
 
-				final AbstractMethod method = Methods.resolveMethod(target.getClass(), target, methodName);
+				final AbstractMethod method = Methods.resolveMethod(target.getClass(), methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), Arguments.fromMap(parameters), new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
 				}
 			}
 
@@ -711,10 +711,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final AbstractMethod method = Methods.resolveMethod(staticClass, null, methodName);
+				final AbstractMethod method = Methods.resolveMethod(staticClass, methodName);
 				if (method != null) {
 
-					method.execute(actionContext.getSecurityContext(), Arguments.fromMap(parameters), new EvaluationHints());
+					method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
 				}
 
 			} else {

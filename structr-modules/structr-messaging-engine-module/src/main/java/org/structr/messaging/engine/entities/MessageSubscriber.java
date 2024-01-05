@@ -91,14 +91,14 @@ public interface MessageSubscriber extends NodeInterface {
 
 				try {
 
-					final AbstractMethod method = Methods.resolveMethod(client.getClass(), client, "subscribeTopic");
+					final AbstractMethod method = Methods.resolveMethod(client.getClass(), "subscribeTopic");
 					if (method != null) {
 
 						final Arguments params = new Arguments();
-						
+
 						params.add("topic", thisSubscriber.getTopic());
 
-						method.execute(securityContext, params, new EvaluationHints());
+						method.execute(securityContext, client, params, new EvaluationHints());
 					}
 
 				} catch (FrameworkException e) {

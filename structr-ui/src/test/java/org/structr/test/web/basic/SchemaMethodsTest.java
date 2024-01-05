@@ -587,11 +587,4 @@ public class SchemaMethodsTest extends FrontendTest {
 				.when()
 					.post("/globalTest2");
 	}
-
-	@Test
-	public void testBlockingOfLifecycleMethods() {
-
-		fail("Implement test here!");
-	}
-
 }

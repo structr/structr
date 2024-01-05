@@ -22,6 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
@@ -31,18 +32,21 @@ import org.structr.schema.action.EvaluationHints;
 public class ScriptMethod extends AbstractMethod {
 
 	private Parameters parameters  = null;
-	private GraphObject entity     = null;
 	private SchemaMethod method    = null;
 	private String source          = null;
 
-	public ScriptMethod(final SchemaMethod method, final GraphObject entity) {
+	public ScriptMethod(final SchemaMethod method) {
 
 		super(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description));
 
 		this.parameters = Parameters.fromSchemaMethod(method);
 		this.source     = method.getProperty(SchemaMethod.source);
 		this.method     = method;
-		this.entity     = entity;
+	}
+
+	@Override
+	public String toString() {
+		return method.getName() + "(" + parameters.toString() + ")";
 	}
 
 	@Override
@@ -56,16 +60,71 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+	public String getFullMethodName() {
 
-		checkAndConvertArguments(arguments);
+		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
+		if (declaringClass == null) {
+
+			return "user-defined function " + method.getName();
+
+		} else {
+
+			return "method " + declaringClass.getName() + "." + method.getName();
+		}
+	}
+
+	@Override
+	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+		final Arguments converted = checkAndConvertArguments(securityContext, arguments, false);
 
 		try {
 
-			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", arguments.toMap(), name, method.getUuid());
+			// the next statement calls Arguments#toMap() which should
+			return Actions.execute(securityContext, entity, "${" + source.trim() + "}", converted.toMap(), name, method.getUuid());
 
 		} catch (AssertException e)   {
 			throw new FrameworkException(e.getStatus(), e.getMessage());
+		} catch (IllegalArgumentTypeException iatx) {
+			throwIllegalArgumentExceptionForMapBasedArguments();
 		}
+
+		return null;
 	}
+
+	/*
+
+		There are some instances of exported methods that must be called with non-map parameters.
+		We need to support this, but we should warn about it.
+
+		Example:
+
+		type.addMethod("sendMessage")
+			.setReturnType(RestMethodResult.class.getName())
+			.addParameter("ctx", SecurityContext.class.getName())
+			.addParameter("topic", String.class.getName())
+			.addParameter("message", String.class.getName())
+			.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
+			.addException(FrameworkException.class.getName())
+			.setDoExport(true);
+	*/
+
+	/*
+
+	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
+
+		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
+		final Map<String, String> declaredParameters = method.getParameters();
+
+		for (final String name : restInput.keySet()) {
+
+			final String type  = declaredParameters.get(name);
+			final Object input = restInput.get(name);
+
+			convertedArguments.put(name, convert(input, type));
+		}
+
+		return convertedArguments;
+	}
+	*/
 }

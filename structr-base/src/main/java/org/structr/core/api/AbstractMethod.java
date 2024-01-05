@@ -18,9 +18,14 @@
  */
 package org.structr.core.api;
 
+import java.util.LinkedHashMap;
+import java.util.Map.Entry;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.GraphObject;
+import org.structr.core.api.Arguments.Argument;
 import org.structr.schema.action.EvaluationHints;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -38,22 +43,10 @@ public abstract class AbstractMethod {
 		this.name        = name;
 	}
 
-	/*
-- Konvertierung von REST-Parametern
-- Definition von Methodensignaturen (Typ usw.)
-- dynamische Page-Pfade
-
-
-
-
-- Minimalziel: String-Inputs, die wir per REST reinkriegen, z.B. in Date konvertieren zu können
-- eine Art von automatischer Validierung beim Aufruf
-
-	*/
-
 	public abstract boolean isStatic();
 	public abstract Parameters getParameters();
-	public abstract Object execute(final SecurityContext securityContext, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
+	public abstract String getFullMethodName();
+	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
 
 	public String getName() {
 		return name;
@@ -67,36 +60,214 @@ public abstract class AbstractMethod {
 		return description;
 	}
 
-	protected void checkAndConvertArguments(final Arguments arguments) throws FrameworkException {
+	// ----- protected methods -----
+	protected Arguments checkAndConvertArguments(final SecurityContext securityContext, final Arguments arguments, final boolean ensureArgumentsArePresent) throws FrameworkException, IllegalArgumentTypeException {
 
+		final Parameters parameters = getParameters();
+		if (parameters.isEmpty()) {
 
-
-
-		/*
-				throw new RuntimeException(
-					new FrameworkException(
-						422,
-						"Tried to call method \"" + method.getName() + "\" with invalid arguments. SchemaMethods expect their arguments to be passed as an object."
-					)
-				);
-
-		*/
-
-		final List<Object> args = new LinkedList<>();
-
-		// The following code bridges the gap between an argument map (coming from JS scripting)
-		// and unnamed order-based arguments of regular Java methods.
-
-		// The first parameter is always a SecurityContext object. The second parameter MUST be
-		// Map<String, Object>, otherwise the method cannot be called from a scripting context.
-
-		if (method.getParameterCount() > 0) {
-			args.add(securityContext);
+			// don't convert anything if the method defines no formal parameters
+			return arguments;
 		}
 
-		if (method.getParameterCount() > 1) {
-			args.add(arguments);
+		final Arguments converted = new Arguments();
+
+		// return early if there is nothing to convert
+		if (parameters.hasSecurityContextAndMapParameters()) {
+
+			converted.add(securityContext);
+			converted.add(arguments.toMap());
+
+			return converted;
 		}
-		//
+
+		int index = 0;
+
+		// special handling for reflective methods: first argument MUST be SecurityContext
+		if (parameters.requiresSecurityContextAsFirstArgument()) {
+
+			converted.add(securityContext);
+			index++;
+		}
+
+		// The below block tries to convert method arguments according to declared parameters (if present).
+		// We go over all arguments, check if there is a corresponding parameter, and convert the value if yes.
+		for (final Argument arg : arguments.getAll()) {
+
+			// named argument?
+			final String parameterName  = arg.getName();
+			final Object parameterValue = arg.getValue();
+
+			final String type = parameters.getTypeByNameOrIndex(parameterName, index);
+			if (type != null) {
+
+				final Object value = convertValue(parameterValue, type);
+
+				if (parameterName != null) {
+
+					converted.add(parameterName, value);
+
+				} else {
+
+					converted.add(parameters.getNameByIndex(index), value);
+				}
+			}
+
+			index++;
+		}
+
+		if (ensureArgumentsArePresent) {
+
+			int pos = 0;
+
+			// go over all parameters and ensure that there is a value for each parameters
+			for (final Entry<String, String> entry : parameters.entrySet()) {
+
+				final String parameterName = entry.getKey();
+				final String parameterType = entry.getValue();
+
+				final Object argument = converted.get(pos++);
+				if (argument == null) {
+
+					switch (parameterType) {
+
+						case "Map":
+							converted.add(parameterName, new LinkedHashMap());
+							break;
+
+						case "SecurityContext":
+							converted.add(parameterName, securityContext);
+							break;
+					}
+
+				} else {
+
+					// check type of argument, but only if it's not a SecurityContext,
+					// because otherwise we need to make sure that a SuperUserSecurityContext
+					// is also a valid type, but we only have string types, and no
+					// inheritance, etc..
+
+					if (!SecurityContext.class.getSimpleName().equals(parameterType)) {
+
+						// fixme: we cannot do this check here because we don't have actual type / inheritance info..
+						/*
+						if (!parameterType.equals(argument.getClass().getSimpleName())) {
+
+							throwIllegalArgumentExceptionForUnnamedArguments(parameters, converted);
+						}
+						*/
+					}
+				}
+
+			}
+		}
+
+
+		return converted;
+	}
+
+	/*
+	protected Arguments checkAndConvertArguments(final SecurityContext securityContext, final Arguments arguments, final boolean ensureArgumentsArePresent) throws FrameworkException {
+
+		final Parameters parameters = getParameters();
+		if (parameters.isEmpty()) {
+
+			// don't convert anything if the method defines no formal parameters
+			return arguments;
+		}
+
+		final Arguments converted = new Arguments();
+		int index                 = 0;
+
+		for (final Entry<String, String> entry : parameters.entrySet()) {
+
+			final String name = entry.getKey();
+			final String type = entry.getValue();
+
+			// special handling for SecurityContext
+			if (SecurityContext.class.getSimpleName().equals(type)) {
+
+				converted.add(securityContext);
+
+			} else if (name != null) {
+
+				Object value = arguments.get(name);
+				if (value != null) {
+
+					converted.add(name, convertValue(value, type));
+
+				} else {
+
+					// fetch value by index, assuming order of arguments is correct
+					value = arguments.get(index++);
+					if (value != null) {
+
+						converted.add(name, convertValue(value, type));
+
+					} else {
+
+						// make sure that a java.reflect.Method gets all arguments
+						if (ensureArgumentsArePresent) {
+
+							// we need to pass an empty map
+							if ("Map".equals(type)) {
+
+								converted.add(new LinkedHashMap<>());
+
+							} else {
+
+								converted.add(null);
+							}
+						}
+					}
+				}
+
+			} else {
+
+				// fixme: this might be wrong..
+				throwIllegalArgumentExceptionForMapBasedArguments();
+			}
+		}
+
+		return converted;
+	}
+	*/
+
+	protected Object convertValue(final Object input, final String targetType) {
+
+		if ("Date".equals(targetType) && input instanceof String stringInput) {
+
+			return DatePropertyParser.parseISO8601DateString(stringInput);
+		}
+
+		if (("long".equals(targetType) || "Long".equals(targetType)) && input instanceof Number number) {
+
+			return number.longValue();
+		}
+
+		if (("int".equals(targetType) || "Integer".equals(targetType)) && input instanceof Number number) {
+
+			return number.intValue();
+		}
+
+		if (("double".equals(targetType) || "Double".equals(targetType)) && input instanceof Number number) {
+
+			return number.doubleValue();
+		}
+
+		if (("float".equals(targetType) || "Float".equals(targetType)) && input instanceof Number number) {
+
+			return number.floatValue();
+		}
+
+		return input;
+	}
+
+	protected void throwIllegalArgumentExceptionForMapBasedArguments() throws FrameworkException {
+		throw new FrameworkException(422, "Tried to call " + getFullMethodName() + " with illegal arguments. To fix this error, you can either specify method parameters, or call the method with a single argument of type object, e.g. { \"name\": \"example\" }.");
+	}
+
+	protected void throwIllegalArgumentExceptionForUnnamedArguments(final Parameters parameters, final Arguments arguments) throws FrameworkException {
+		throw new FrameworkException(422, "Tried to call " + getFullMethodName() + " with illegal arguments. Expected: " + parameters.formatForErrorMessage() + ", actual: " + arguments.formatForErrorMessage());
 	}
 }

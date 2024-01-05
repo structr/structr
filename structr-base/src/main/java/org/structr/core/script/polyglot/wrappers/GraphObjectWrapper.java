@@ -95,7 +95,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		} else {
 
 			// Lookup method, if it's not in cache
-			final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, key);
+			final AbstractMethod method = Methods.resolveMethod(node.getClass(), key);
 			if (method != null) {
 
 				// dont call static methods here, but warn instead
@@ -112,7 +112,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 						final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
 
-						return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), converted, new EvaluationHints()));
+						return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), node, converted, new EvaluationHints()));
 
 					} catch (FrameworkException ex) {
 						throw new RuntimeException(ex);
@@ -200,7 +200,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final Class type = node.getClass();
 
-				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.resolveMethod(type, node, key) != null;
+				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.resolveMethod(type, key) != null;
 
 			} else {
 

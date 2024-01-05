@@ -19,29 +19,99 @@
 package org.structr.core.api;
 
 import java.lang.reflect.Method;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import org.apache.commons.lang3.ClassUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.structr.api.util.Iterables;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 
 /**
  * Base class for parameters that can be defined by Method implementations.
  */
-public class Parameters {
+public class Parameters extends LinkedHashMap<String, String> {
 
-	private final List<Parameter> parameters = new LinkedList<>();
+	private boolean hasSecurityContextAndMapParameters = false;
+	private boolean requiredSecurityContextFirst      = false;
 
-	public void put(final String name, final String type) {
-		parameters.add(new Parameter(name, type));
+	public String formatForErrorMessage() {
+
+		final List<String> elements = new LinkedList<>();
+
+		for (final String type : values()) {
+
+			// do not include internal SecurityContext parameter in error message
+			if (!"SecurityContext".equals(type)) {
+
+				elements.add(type);
+			}
+		}
+
+		return StringUtils.join(elements);
 	}
 
+	public boolean requiresSecurityContextAsFirstArgument() {
+		return requiredSecurityContextFirst;
+	}
+
+	public void setRequiresSecurityContextAsFirstArgument(final boolean value) {
+		requiredSecurityContextFirst = value;
+	}
+
+	public boolean hasSecurityContextAndMapParameters() {
+		return hasSecurityContextAndMapParameters;
+	}
+
+	public void setHasExportedMethodDefaultSignature(final boolean value) {
+		hasSecurityContextAndMapParameters = value;
+	}
+
+	public String getNameByIndex(final int index) {
+		return Iterables.nth(this.keySet(), index);
+	}
+
+	public String getTypeByNameOrIndex(final String name, final int index) {
+
+		if (name != null) {
+
+			final String value = this.get(name);
+			if (value != null) {
+
+				return value;
+	}
+		}
+
+		// fallback: get by index
+		return Iterables.nth(this.values(), index);
+	}
+
+	// ----- public static methods -----
 	public static Parameters fromMethod(final Method method) {
 
 		final Parameters parameters = new Parameters();
+		int index                   = 0;
 
 		for (final java.lang.reflect.Parameter p : method.getParameters()) {
 
-			parameters.put(p.getName(), p.getType().getSimpleName());
+			final Class nonPrimitiveType = ClassUtils.primitiveToWrapper(p.getType());
+
+			if (nonPrimitiveType.isAssignableFrom(SecurityContext.class) && index == 0) {
+				parameters.setRequiresSecurityContextAsFirstArgument(true);
+			}
+
+			// default export method signature detected, store this info for later use
+			if (parameters.requiresSecurityContextAsFirstArgument() && nonPrimitiveType.isAssignableFrom(Map.class) && index == 1) {
+				parameters.setHasExportedMethodDefaultSignature(true);
+			}
+
+			// Convert primitive types to corresponding object type to avoid int != Integer
+			parameters.put(p.getName(), nonPrimitiveType.getSimpleName());
+
+			index++;
 		}
 
 		return parameters;
@@ -58,68 +128,4 @@ public class Parameters {
 
 		return parameters;
 	}
-
-	private class Parameter {
-
-		private String name = null;
-		private String type = null;
-
-		public Parameter(final String name, final String type) {
-
-			this.name = name;
-			this.type = type;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public String getType() {
-			return type;
-		}
-	}
-
-	/*
-
-		There are some instances of exported methods that must be called with non-map parameters.
-		We need to support this, but we should warn about it.
-
-		Example:
-
-		type.addMethod("sendMessage")
-			.setReturnType(RestMethodResult.class.getName())
-			.addParameter("ctx", SecurityContext.class.getName())
-			.addParameter("topic", String.class.getName())
-			.addParameter("message", String.class.getName())
-			.setSource("return " + MessageClient.class.getName() + ".sendMessage(this, topic, message, ctx);")
-			.addException(FrameworkException.class.getName())
-			.setDoExport(true);
-	*/
-
-	/*
-
-	protected Map<String, Object> convertArguments(final Map<String, Object> restInput) throws FrameworkException {
-
-		final Map<String, Object> convertedArguments = new LinkedHashMap<>();
-		final Map<String, String> declaredParameters = method.getParameters();
-
-		for (final String name : restInput.keySet()) {
-
-			final String type  = declaredParameters.get(name);
-			final Object input = restInput.get(name);
-
-			convertedArguments.put(name, convert(input, type));
-		}
-
-		return convertedArguments;
-	}
-
-	private Object convert(final Object input, final String type) {
-
-		// TODO: implement conversion...
-		System.out.println("RESTMethodCallHandler: NOT converting " + input + " to " + type + ", implementation missing.");
-
-		return input;
-	}
-	*/
 }

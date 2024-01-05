@@ -47,7 +47,7 @@ public class StaticTypeWrapper implements ProxyObject {
 	@Override
 	public Object getMember(final String key) {
 
-		final AbstractMethod method = Methods.resolveMethod(referencedClass, null, key);
+		final AbstractMethod method = Methods.resolveMethod(referencedClass, key);
 		if (method != null && method.isStatic()) {
 
 			final ProxyExecutable executable = arguments -> {
@@ -56,7 +56,7 @@ public class StaticTypeWrapper implements ProxyObject {
 
 					final Arguments unwrapped = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
 
-					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), unwrapped, new EvaluationHints()));
+					return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), null, unwrapped, new EvaluationHints()));
 
 				} catch (FrameworkException ex) {
 					throw new RuntimeException(ex);

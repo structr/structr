@@ -66,7 +66,7 @@ public class StaticMethodResource extends RESTEndpoint {
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				final AbstractMethod method = Methods.resolveMethod(entityClass, null, name);
+				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
 				if (method != null && method.isStatic()) {
 
 					return new StaticMethodResourceHandler(securityContext, call, method);
@@ -96,7 +96,7 @@ public class StaticMethodResource extends RESTEndpoint {
 			try (final Tx tx = app.tx()) {
 
 				final Arguments arguments     = Arguments.fromMap(propertySet);
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
 
 				tx.success();
 

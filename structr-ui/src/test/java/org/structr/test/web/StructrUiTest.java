@@ -715,12 +715,12 @@ public abstract class StructrUiTest {
 
 	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, methodName);
+		final AbstractMethod method = Methods.resolveMethod(node.getClass(), methodName);
 		if (method != null) {
 
 			hints.reportExistingKey(methodName);
 
-			method.execute(securityContext, Arguments.fromMap(parameters), new EvaluationHints());
+			method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
 		}
 
 		if (throwIfNotExists) {

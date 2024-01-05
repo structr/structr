@@ -18,8 +18,10 @@
  */
 package org.structr.test.web.advanced;
 
+import com.google.common.collect.Iterators;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import java.util.Collection;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
@@ -160,10 +162,10 @@ public class HttpFunctionsTest extends StructrUiTest {
 			if (StringUtils.isNumeric(part)) {
 
 				int index = Integer.valueOf(part);
-				if (current instanceof List) {
+				if (current instanceof Collection) {
 
-					final List list = (List)current;
-					if (index >= list.size()) {
+					final Collection collection = (Collection)current;
+					if (index >= collection.size()) {
 
 						// value for nonexisting fields must be null
 						assertEquals("Invalid map path result for " + mapPath, value, null);
@@ -173,7 +175,7 @@ public class HttpFunctionsTest extends StructrUiTest {
 
 					} else {
 
-						current = list.get(index);
+						current = Iterators.get(collection.iterator(), index);
 					}
 				}
 

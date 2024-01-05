@@ -306,10 +306,10 @@ public class ScriptingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final AbstractNode node     = (AbstractNode)app.nodeQuery(sourceType).getFirst();
-			final AbstractMethod method = Methods.resolveMethod(node.getClass(), node, "doTest01");
+			final AbstractMethod method = Methods.resolveMethod(node.getClass(), "doTest01");
 			if (method != null) {
 
-				method.execute(securityContext, new Arguments(), new EvaluationHints());
+				method.execute(securityContext, node, new Arguments(), new EvaluationHints());
 			}
 
 			tx.success();

@@ -292,7 +292,7 @@ public class ActionContext {
 
 					} else if (data instanceof Class clazz) {
 
-						final AbstractMethod method = Methods.resolveMethod(clazz, null, key);
+						final AbstractMethod method = Methods.resolveMethod(clazz, key);
 						if (method != null) {
 
 							hints.reportExistingKey(key);
@@ -301,7 +301,7 @@ public class ActionContext {
 							final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 							final Arguments arguments       = Arguments.fromMap(temp);
 
-							return method.execute(securityContext, arguments, hints);
+							return method.execute(securityContext, null, arguments, hints);
 						}
 
 					} else {

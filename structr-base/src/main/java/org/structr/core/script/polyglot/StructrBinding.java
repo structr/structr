@@ -89,6 +89,8 @@ public class StructrBinding implements ProxyObject {
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
 			case "methodParameters":
+			case "arguments":
+			case "args":
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
 			case "globalSchemaMethods":
 				return new GlobalSchemaMethodWrapper(actionContext);

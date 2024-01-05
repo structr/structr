@@ -809,7 +809,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
 			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-			final Class<? extends GraphObject> type = handler.getEntityClass();
+			final Class<? extends GraphObject> type = handler.getEntityClassOrDefault();
 
 			// evaluate constraints and measure query time
 			final double queryTimeStart = System.nanoTime();
