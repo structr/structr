@@ -182,6 +182,11 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return false;
 	}
 
+	@Override
+	public String getResourceSignature() {
+		return "_login";
+	}
+
 	protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();

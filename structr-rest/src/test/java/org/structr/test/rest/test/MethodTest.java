@@ -30,10 +30,17 @@ import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
 import java.util.Map;
+import static org.hamcrest.Matchers.equalTo;
+import org.structr.common.SecurityContext;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaNode;
+import org.structr.core.script.Scripting;
+import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.ActionContext;
 
 import static org.testng.AssertJUnit.assertEquals;
+import static org.testng.AssertJUnit.assertTrue;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -244,27 +251,14 @@ public class MethodTest extends StructrRestTestBase {
 			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
 			final JsonObjectType base  = schema.addType("BaseType");
 
-			// methods
-			base.addMethod("test", """
-{
-	$.log('Test: ', $.methodParameters.name);
-	return {
-                name: $.methodParameters.name,
-                key: $.methodParameters.key,
-                map: $.methodParameters.map,
-                set: $.methodParameters.set,
-                list: $.methodParameters.list,
-                date: $.methodParameters.date,
-                test: typeof $.methodParameters.date
-        };
-}
-                        """)
-				.addParameter("name", "String")
-				.addParameter("key", "int")
-				.addParameter("map", "Map")
-				.addParameter("set", "Set")
-				.addParameter("list", "List")
-				.addParameter("date", "Date");
+			// first method with parameter definition => input should be converted to Date
+			base.addMethod("test1", "{ return { date: $.args.date, isDate: $.args.date instanceof Date };}").addParameter("date", "Date");
+
+			// second method without parameter definition => input should not be converted (result: string)
+			base.addMethod("test2", "{ return { date: $.args.date, isDate: $.args.date instanceof Date };}");
+
+			// third method calls first, but input should not be converted because it doesn't come from a REST call
+			base.addMethod("test3", "{ return $.this.test1({ date: new Date(2022, 0, 1) }); }");
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -278,18 +272,43 @@ public class MethodTest extends StructrRestTestBase {
 
 		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
 
-		// FIXME: this test doesn't test anything yet..
-
-		// test inherited methods
+		// test call via REST, date must be converted
 		RestAssured
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body("{ date: '2023-01-05T22:00:00+0000', name: 'Test', key: 3, map: { m: 'test' }, set: [1, 2, 3], list: [{ id: 25, name: 'aaa' }] }")
+				.body("{ date: '2024-01-01T00:00:00+0000' }")
 			.expect()
 				.statusCode(200)
+				.body("result.date", equalTo("Mon Jan 01 00:00:00 UTC 2024"))
+				.body("result.isDate", equalTo(true))
 			.when()
-				.post("/BaseType/" + base + "/test");
+				.post("/BaseType/" + base + "/test1");
+
+		// test call via Javascript, date is not sent via REST
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ date: '2024-01-01T00:00:00+0000' }")
+			.expect()
+				.statusCode(200)
+				.body("result.date",   equalTo("2024-01-01T00:00:00+0000"))
+				.body("result.isDate", equalTo(false))
+			.when()
+				.post("/BaseType/" + base + "/test2");
+
+		// test call via Javascript, date is not sent via REST
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.date",   equalTo("Sat Jan 01 00:00:00 UTC 2022"))
+				.body("result.isDate", equalTo(true))
+			.when()
+				.post("/BaseType/" + base + "/test3");
 	}
 
 	@Test
@@ -335,4 +354,174 @@ public class MethodTest extends StructrRestTestBase {
 			.when()
 				.post("/BaseType/" + base + "/test");
 	}
+
+	@Test
+	public void testJavaArgumentPassing1() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			base.addMethod("testJavaArgumentPassing")
+				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("topic", String.class.getName())
+				.addParameter("message", String.class.getName())
+				.setSource("return new RestMethodResult(200, topic + \", \" + message);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ topic: 'topic', message: 'message' }")
+			.expect()
+				.statusCode(200)
+				.body("message", equalTo("topic, message"))
+			.when()
+				.post("/BaseType/" + base + "/testJavaArgumentPassing");
+	}
+
+	@Test
+	public void testJavaArgumentPassing2() {
+
+		// setup 1: create types
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			base.addMethod("testJavaArgumentPassing")
+				.setReturnType(RestMethodResult.class.getName())
+				.addParameter("ctx", SecurityContext.class.getName())
+				.addParameter("topic", String.class.getName())
+				.addParameter("message", String.class.getName())
+				.setSource("return new RestMethodResult(200, topic + \", \" + message);")
+				.addException(FrameworkException.class.getName())
+				.setDoExport(true);
+
+			// define method without parameters so it must be called with a map argument
+			base.addMethod("doTest1", "{ return $.this.testJavaArgumentPassing('topic', 'message'); }");
+
+			// define method with parameters so it can be called with unnamed arguments
+			base.addMethod("doTest2", "{ return $.this.testJavaArgumentPassing('topic', 'message'); }")
+				.addParameter("topic", "String")
+				.addParameter("message", "String");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String uuid  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		try (final Tx tx = app.tx()) {
+
+			final Class type       = StructrApp.getConfiguration().getNodeEntityClass("BaseType");
+			final GraphObject node = app.get(type, uuid);
+
+			try {
+
+				Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest1('topic', 'message'); }}", "test script that expects an exception");
+
+				fail("Calling a method with illegal arguments should throw an exception.");
+
+			} catch (FrameworkException fex) {
+				// success
+			}
+
+			{
+				// test doTest1 with map-based arguments (should succeed)
+				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest1({ topic: 'topic', message: 'message' }); }}", "test script that expects success");
+				assertTrue("Invalid method result", value instanceof RestMethodResult);
+				final RestMethodResult result = (RestMethodResult)value;
+				assertEquals("Invalid method result", "topic, message", result.getMessage());
+			}
+
+			{
+				// test doTest2 with unnamed arguments (should succeed)
+				final Object value = Scripting.evaluate(new ActionContext(securityContext), node, "${{ return $.this.doTest2('topic', 'message'); }}", "test script that expects success");
+				assertTrue("Invalid method result", value instanceof RestMethodResult);
+				final RestMethodResult result = (RestMethodResult)value;
+				assertEquals("Invalid method result", "topic, message", result.getMessage());
+			}
+
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+	}
+
+	public void testMethodParametersObject() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("test1", "{ return $.methodParameters; }");
+			base.addMethod("test2", "{ return $.args; }");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ key1: 'value1', key2: 2 }")
+			.expect()
+				.statusCode(200)
+				.body("result.key1", equalTo("value1"))
+				.body("result.key2", equalTo(2))
+			.when()
+				.post("/BaseType/" + base + "/test1");
+
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{ key1: 'value1', key2: 2 }")
+			.expect()
+				.statusCode(200)
+				.body("result.key1", equalTo("value1"))
+				.body("result.key2", equalTo(2))
+			.when()
+				.post("/BaseType/" + base + "/test2");
+	}
+
 }

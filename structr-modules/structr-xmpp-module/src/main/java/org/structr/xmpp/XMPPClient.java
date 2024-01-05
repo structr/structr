@@ -330,7 +330,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 			if (client != null) {
 
 				final String callbackName   = "onXMPP" + message.getClass().getSimpleName();
-				final AbstractMethod method = Methods.resolveMethod(client.getClass(), client, callbackName);
+				final AbstractMethod method = Methods.resolveMethod(client.getClass(), callbackName);
 
 				if (method != null) {
 
@@ -339,7 +339,7 @@ public interface XMPPClient extends NodeInterface, XMPPInfo {
 					arguments.add("sender",  message.getFrom());
 					arguments.add("message", message.getBody());
 
-					method.execute(SecurityContext.getSuperUserInstance(), arguments, new EvaluationHints());
+					method.execute(SecurityContext.getSuperUserInstance(), client, arguments, new EvaluationHints());
 				}
 			}
 

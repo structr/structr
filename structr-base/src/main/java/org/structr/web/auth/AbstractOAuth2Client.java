@@ -215,7 +215,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final AbstractMethod method = Methods.resolveMethod(User.class, user, "onOAuthLogin");
+		final AbstractMethod method = Methods.resolveMethod(User.class, "onOAuthLogin");
 		if (method != null) {
 
 			final Arguments arguments = new Arguments();
@@ -223,7 +223,7 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 			arguments.add("provider", this.provider);
 			arguments.add("userinfo", this.getUserInfo());
 
-			method.execute(user.getSecurityContext(), arguments, new EvaluationHints());
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
 		}
 	}
 

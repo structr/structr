@@ -225,8 +225,6 @@ public class SchemaHelper {
 
 		}
 
-		lastWord = PlingStemmer.stem(lastWord);
-
 		return begin.concat(WORD_SEPARATOR).concat(lastWord);
 
 	}

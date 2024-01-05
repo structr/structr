@@ -148,14 +148,13 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 
-		final int nodeCount      = 2440;
-		final int relCount       = 2852;
-		final int typedNodeCount = 612;
+		final int nodeCount           = 1828;
+		final int relCount            = 2852;
+		final int resourceAccessCount = 0;
 
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
@@ -169,7 +168,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
@@ -184,9 +182,8 @@ public class ConsoleTest extends StructrUiTest {
 
 		final String typedNodeIndexRebuildOutput =
 			"Starting (re-)indexing all nodes of type ResourceAccess\r\n" +
-			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
-			"RebuildNodeIndex: " + typedNodeCount + " objects processed\r\n" +
-			"Done with (re-)indexing " + typedNodeCount + " nodes\r\n";
+			"RebuildNodeIndex: " + resourceAccessCount + " objects processed\r\n" +
+			"Done with (re-)indexing " + resourceAccessCount + " nodes\r\n";
 
 		final String typedRelationshipIndexRebuildOutput =
 			"Starting (re-)indexing all relationships of type ResourceAccess\r\n" +
@@ -196,7 +193,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: 1000 objects processed\r\n" +
-			"SetNodeUuid: 2000 objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";

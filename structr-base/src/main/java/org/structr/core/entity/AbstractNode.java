@@ -1604,14 +1604,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					}
 				}
 
-				final AbstractMethod method = Methods.resolveMethod(entityType, this, key);
+				final AbstractMethod method = Methods.resolveMethod(entityType, key);
 				if (method != null) {
 
 					final ContextStore contextStore = actionContext.getContextStore();
 					final Map<String, Object> temp  = contextStore.getTemporaryParameters();
 					final Arguments arguments       = Arguments.fromMap(temp);
 
-					return method.execute(actionContext.getSecurityContext(), arguments, hints);
+					return method.execute(actionContext.getSecurityContext(), this, arguments, hints);
 				}
 
 				return Function.numberOrString(defaultValue);

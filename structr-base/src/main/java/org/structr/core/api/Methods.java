@@ -25,7 +25,6 @@ import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
-import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
 
@@ -45,7 +44,7 @@ public class Methods {
 			for (final Method method : methods.values()) {
 
 				try {
-					signatures.add(Methods.createMethod(method, null));
+					signatures.add(Methods.createMethod(method));
 
 				} catch
 					(FrameworkException fex) {
@@ -58,7 +57,7 @@ public class Methods {
 			try {
 				for (final SchemaMethod globalMethod : StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).getResultStream()) {
 
-					signatures.add(new ScriptMethod(globalMethod, null));
+					signatures.add(new ScriptMethod(globalMethod));
 				}
 
 			} catch (FrameworkException fex) {
@@ -69,7 +68,7 @@ public class Methods {
 		return signatures;
 	}
 
-	public static AbstractMethod resolveMethod(final Class type, final GraphObject instance, final String methodName) {
+	public static AbstractMethod resolveMethod(final Class type, final String methodName) {
 
 		// A method can either be a Java method, which we need to call with Method.invoke() via reflection,
 		// OR a scripting method which will in turn call Actions.execute(), so we want do differentiate
@@ -79,15 +78,15 @@ public class Methods {
 			throw new RuntimeException(new FrameworkException(422, "Cannot resolve method without methodName!"));
 		}
 
-		// no type, no instance => global schema method!
-		if (type == null && instance == null) {
+		// no type => global schema method!
+		if (type == null) {
 
 			try {
 
 				final SchemaMethod method = StructrApp.getInstance().nodeQuery(SchemaMethod.class).andName(methodName).and(SchemaMethod.schemaNode, null).getFirst();
 				if (method != null) {
 
-					return new ScriptMethod(method, null);
+					return new ScriptMethod(method);
 				}
 
 			} catch (FrameworkException fex) {
@@ -103,7 +102,7 @@ public class Methods {
 			if (method != null) {
 
 				try {
-					return Methods.createMethod(method, instance);
+					return Methods.createMethod(method);
 
 				} catch (FrameworkException fex) {
 					throw new RuntimeException(fex);
@@ -115,7 +114,7 @@ public class Methods {
 	}
 
 	// ----- private static methods -----
-	private static AbstractMethod createMethod(final Method method, final GraphObject entity) throws FrameworkException {
+	private static AbstractMethod createMethod(final Method method) throws FrameworkException {
 
 		final Export exp = method.getAnnotation(Export.class);
 		final String id  = exp.schemaMethodId();
@@ -125,11 +124,11 @@ public class Methods {
 			final SchemaMethod schemaMethod = StructrApp.getInstance().get(SchemaMethod.class, id);
 			if (schemaMethod != null) {
 
-				return new ScriptMethod(schemaMethod, entity);
+				return new ScriptMethod(schemaMethod);
 			}
 		}
 
-		return new ReflectiveMethod(method, entity);
+		return new ReflectiveMethod(method);
 
 	}
 

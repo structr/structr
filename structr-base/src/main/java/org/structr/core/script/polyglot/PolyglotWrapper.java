@@ -31,6 +31,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.time.ZoneId;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -251,8 +252,19 @@ public abstract class PolyglotWrapper {
 
 		for (final Value value : args) {
 
-			// we don't have names for the arguments here... :(
-			arguments.add(null, PolyglotWrapper.unwrap(actionContext, value));
+			final Object unwrapped = PolyglotWrapper.unwrap(actionContext, value);
+			if (unwrapped instanceof Map map) {
+
+				for (final Entry<String, Object> entry : ((Map<String, Object>)map).entrySet()) {
+
+					arguments.add(entry);
+				}
+
+			} else {
+
+				// we don't have names for the arguments here... :(
+				arguments.add(null, unwrapped);
+			}
 
 		}
 

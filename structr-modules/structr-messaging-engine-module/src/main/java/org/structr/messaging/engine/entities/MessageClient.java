@@ -105,7 +105,7 @@ public interface MessageClient extends NodeInterface {
 
 						try {
 
-							final AbstractMethod method = Methods.resolveMethod(sub.getClass(), sub, "onMessage");
+							final AbstractMethod method = Methods.resolveMethod(sub.getClass(), "onMessage");
 							if (method != null) {
 
 								final Arguments params = new Arguments();
@@ -113,7 +113,7 @@ public interface MessageClient extends NodeInterface {
 								params.add("topic", topic);
 								params.add("message", message);
 
-								method.execute(securityContext, params, new EvaluationHints());
+								method.execute(securityContext, sub, params, new EvaluationHints());
 							}
 
 						} catch (FrameworkException e) {

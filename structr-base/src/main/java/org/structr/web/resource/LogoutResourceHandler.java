@@ -92,6 +92,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 		return false;
 	}
 
+	@Override
 	public String getResourceSignature() {
 		return "_logout";
 	}

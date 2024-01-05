@@ -59,7 +59,7 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 		final String methodName = call.get("name");
 		if (methodName != null) {
 
-			final AbstractMethod method = Methods.resolveMethod(null, null, methodName);
+			final AbstractMethod method = Methods.resolveMethod(null, methodName);
 			if (method != null) {
 
 				return new GlobalSchemaMethodResourceHandler(securityContext, call, method);
@@ -93,7 +93,7 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 			try (final Tx tx = app.tx()) {
 
 				final Arguments arguments     = Arguments.fromMap(propertySet);
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
 
 				tx.success();
 

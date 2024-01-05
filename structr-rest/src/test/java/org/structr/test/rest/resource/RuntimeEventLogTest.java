@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,17 +16,32 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.fulltext;
+package org.structr.test.rest.resource;
 
-import java.util.Map;
-import org.structr.common.error.FrameworkException;
+import io.restassured.RestAssured;
+import io.restassured.filter.log.ResponseLoggingFilter;
+import org.structr.test.rest.common.StructrRestTestBase;
+import org.testng.annotations.Test;
 
-import java.util.Set;
+
 
 /**
  */
-public interface ContentAnalyzer {
+public class RuntimeEventLogTest extends StructrRestTestBase {
 
-	Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException;
-	Set<String> getStopWords(final String language);
+	@Test
+	public void testRuntimeEventLogWithSorting() {
+
+		RestAssured
+
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+				.body("{}")
+			.expect()
+				.statusCode(200)
+			.when()
+				.get("/_runtimeEventLog?_order=absoluteTimestamp&_sort=desc&_pageSize=100");
+
+	}
 }

@@ -36,16 +36,19 @@ public class ReflectiveMethod extends AbstractMethod {
 	private static final Logger logger = LoggerFactory.getLogger(ReflectiveMethod.class);
 
 	private Parameters parameters = null;
-	private GraphObject entity    = null;
 	private Method method         = null;
 
-	public ReflectiveMethod(final Method method, final GraphObject entity) {
+	public ReflectiveMethod(final Method method) {
 
 		super(method.getName(), null, null);
 
 		this.parameters = Parameters.fromMethod(method);
 		this.method     = method;
-		this.entity     = entity;
+	}
+
+	@Override
+	public String toString() {
+		return method.getName() + "(" + parameters.toString() + ")";
 	}
 
 	@Override
@@ -59,25 +62,28 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
-	public Object execute(final SecurityContext securityContext, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+	public String getFullMethodName() {
+		return "method " + method.getDeclaringClass().getSimpleName() + "." + method.getName();
+	}
 
-		checkAndConvertArguments(arguments);
+	@Override
+	public Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException {
+
+		final Arguments converted = checkAndConvertArguments(securityContext, arguments, true);
 
 		try {
 
-			return method.invoke(entity, arguments.toArray());
+			return method.invoke(entity, converted.toArray());
 
 		} catch (IllegalArgumentException ex) {
 
-			ex.printStackTrace();
-
-			throw new FrameworkException(422, "Tried to call method " + method.getName() + " with invalid arguments. SchemaMethods expect their arguments to be passed as an object.");
+			throwIllegalArgumentExceptionForUnnamedArguments(parameters, converted);
 
 		} catch (IllegalAccessException ex) {
 
 			ex.printStackTrace();
 
-			logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+			logger.error("Unexpected exception while trying to execute method " + getName() + ".", ex);
 
 		} catch (InvocationTargetException ex) {
 
@@ -92,7 +98,7 @@ public class ReflectiveMethod extends AbstractMethod {
 				throw ((AssertException)ex.getTargetException());
 			}
 
-			logger.error("Unexpected exception while trying to get GraphObject member.", ex);
+			logger.error("Unexpected exception while trying to execute method " + getName() + ".", ex);
 		}
 
 		return null;

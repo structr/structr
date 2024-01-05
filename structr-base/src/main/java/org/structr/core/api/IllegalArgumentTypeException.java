@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2024 Structr GmbH
+ * Copyright (C) 2010-2023 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,17 +16,10 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.common.fulltext;
-
-import java.util.Map;
-import org.structr.common.error.FrameworkException;
-
-import java.util.Set;
+package org.structr.core.api;
 
 /**
+ *
  */
-public interface ContentAnalyzer {
-
-	Map<String, Object> analyzeContent(final Indexable indexable) throws FrameworkException;
-	Set<String> getStopWords(final String language);
+public class IllegalArgumentTypeException extends RuntimeException {
 }

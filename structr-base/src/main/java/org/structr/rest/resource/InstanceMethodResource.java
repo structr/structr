@@ -55,10 +55,10 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 			if (entity != null) {
 
 				// use actual type of entity returned to support inheritance
-				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), entity, name);
+				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), name);
 				if (method != null) {
 
-					return new InstanceMethodResourceHandler(securityContext, call, method);
+					return new InstanceMethodResourceHandler(securityContext, call, method, entity);
 				}
 			}
 		}
@@ -68,8 +68,12 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 	private class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
-		public InstanceMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
+		private GraphObject entity = null;
+
+		public InstanceMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method, final GraphObject entity) {
 			super(securityContext, call, method);
+
+			this.entity = entity;
 		}
 
 		@Override
@@ -85,7 +89,7 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 			try (final Tx tx = app.tx()) {
 
 				final Arguments arguments     = Arguments.fromMap(propertySet);
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, arguments, new EvaluationHints()));
+				final RestMethodResult result = wrapInResult(method.execute(securityContext, entity, arguments, new EvaluationHints()));
 
 				tx.success();
 
