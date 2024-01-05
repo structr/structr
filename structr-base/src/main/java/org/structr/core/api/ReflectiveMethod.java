@@ -89,13 +89,13 @@ public class ReflectiveMethod extends AbstractMethod {
 
 			ex.printStackTrace();
 
-			if (ex.getTargetException() instanceof FrameworkException) {
+			if (ex.getTargetException() instanceof FrameworkException fex) {
 
-				throw new RuntimeException(ex.getTargetException());
+				throw fex;
 
-			} else if (ex.getTargetException() instanceof AssertException) {
+			} else if (ex.getTargetException() instanceof AssertException aex) {
 
-				throw ((AssertException)ex.getTargetException());
+				throw aex;
 			}
 
 			logger.error("Unexpected exception while trying to execute method " + getName() + ".", ex);
