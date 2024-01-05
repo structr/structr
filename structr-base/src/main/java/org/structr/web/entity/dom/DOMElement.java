@@ -1295,7 +1295,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// make repeater data object ID available
 			final GraphObject repeaterDataObject = renderContext.getDataObject();
-			if (repeaterDataObject != null) {
+			if (repeaterDataObject != null && StringUtils.isNotBlank(thisElement.getDataKey())) {
 
 				out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 			}
