@@ -44,17 +44,17 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrSchemaDefinition.class.getName());
 
-	protected final Set<String> existingPropertyNames = new TreeSet<>();
-	private StructrTypeDefinitions typeDefinitions    = null;
-	private StructrGlobalSchemaMethods globalMethods  = null;
-	private String description                        = null;
-	private String title                              = null;
-	private URI id                                    = null;
+	protected final Set<String> existingPropertyNames       = new TreeSet<>();
+	private StructrTypeDefinitions typeDefinitions          = null;
+	private StructrGlobalSchemaMethods userDefinedFunctions = null;
+	private String description                              = null;
+	private String title                                    = null;
+	private URI id                                          = null;
 
 	public StructrSchemaDefinition(final URI id) {
 
 		this.typeDefinitions = new StructrTypeDefinitions(this);
-		this.globalMethods   = new StructrGlobalSchemaMethods();
+		this.userDefinedFunctions   = new StructrGlobalSchemaMethods();
 		this.id              = id;
 	}
 
@@ -71,8 +71,8 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		return typeDefinitions.getTypes();
 	}
 
-	public List<Map<String, Object>> getGlobalMethods() {
-		return globalMethods.serialize();
+	public List<Map<String, Object>> getUserDefinedFunctions() {
+		return userDefinedFunctions.serialize();
 	}
 
 	@Override
@@ -135,7 +135,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		final App app = StructrApp.getInstance();
 
 		typeDefinitions.createDatabaseSchema(app, importMode);
-		globalMethods.createDatabaseSchema(app, importMode);
+		userDefinedFunctions.createDatabaseSchema(app, importMode);
 	}
 
 	@Override
@@ -202,7 +202,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 		final Map<String, Object> map = new TreeMap<>();
 
 		map.put(JsonSchema.KEY_DEFINITIONS, typeDefinitions.serialize());
-		map.put(JsonSchema.KEY_METHODS,     globalMethods.serialize());
+		map.put(JsonSchema.KEY_METHODS,     userDefinedFunctions.serialize());
 
 		return map;
 	}
@@ -212,7 +212,7 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 		final Map<String, Object> operations = new TreeMap<>();
 
-		operations.putAll(globalMethods.serializeOpenAPIOperations(tag));
+		operations.putAll(userDefinedFunctions.serializeOpenAPIOperations(tag));
 		operations.putAll(typeDefinitions.serializeOpenAPIOperations(tag));
 
 		return operations;
@@ -231,10 +231,10 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 			throw new IllegalStateException("Invalid JSON object for schema definitions, missing value for 'definitions'.");
 		}
 
-		final List<Map<String, Object>> globalSchemaMethods = (List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS);
-		if (globalSchemaMethods != null) {
+		final List<Map<String, Object>> userFunctions = (List<Map<String, Object>>) source.get(JsonSchema.KEY_METHODS);
+		if (userFunctions != null) {
 
-			globalMethods.deserialize(globalSchemaMethods);
+			userDefinedFunctions.deserialize(userFunctions);
 
 		} else {
 
@@ -259,11 +259,11 @@ public class StructrSchemaDefinition implements JsonSchema, StructrDefinition {
 
 	void deserialize(final App app) throws FrameworkException {
 		typeDefinitions.deserialize(app);
-		globalMethods.deserialize(app);
+		userDefinedFunctions.deserialize(app);
 	}
 
 	void clearGlobalMethods() {
-		globalMethods.clear();
+		userDefinedFunctions.clear();
 	}
 
 	StructrDefinition resolveJsonPointer(final String reference) {

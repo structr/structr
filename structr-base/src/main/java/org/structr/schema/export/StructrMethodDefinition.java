@@ -34,7 +34,7 @@ import org.structr.core.entity.SchemaMethod;
 import org.structr.core.entity.SchemaMethodParameter;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.openapi.common.OpenAPIResponseReference;
-import org.structr.schema.openapi.operation.OpenAPIGlobalSchemaMethodOperation;
+import org.structr.schema.openapi.operation.OpenAPIUserDefinedFunctionOperation;
 import org.structr.schema.openapi.operation.OpenAPIMethodOperation;
 import org.structr.schema.openapi.operation.OpenAPIStaticMethodOperation;
 import org.structr.schema.openapi.request.OpenAPIRequestResponse;
@@ -65,6 +65,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean doExport                                  = false;
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
+	private boolean isPrivate                                 = false;
 	private JsonType parent                                   = null;
 	private String returnType                                 = null;
 	private String openAPIReturnType                          = null;
@@ -233,6 +234,17 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
+	public boolean isPrivate() {
+		return isPrivate;
+	}
+
+	@Override
+	public JsonMethod setIsPrivate(final boolean isPrivate) {
+		this.isPrivate = isPrivate;
+		return this;
+	}
+
+	@Override
 	public boolean overridesExisting() {
 		return overridesExisting;
 	}
@@ -340,6 +352,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.source,                getSource());
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
+		updateProperties.put(SchemaMethod.isPrivate,             isPrivate());
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 
@@ -427,6 +440,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.isStatic = (Boolean)_isStatic;
 		}
 
+		final Object _isPrivate = source.get(JsonSchema.KEY_IS_PRIVATE);
+		if (_isPrivate != null && _isPrivate instanceof Boolean) {
+
+			this.isPrivate = (Boolean)_isPrivate;
+		}
+
 		final Object _overridesExisting = source.get(JsonSchema.KEY_OVERRIDES_EXISTING);
 		if (_overridesExisting != null && _overridesExisting instanceof Boolean) {
 
@@ -493,6 +512,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setReturnType(method.getProperty(SchemaMethod.returnType));
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setIsStatic(method.getProperty(SchemaMethod.isStatic));
+		setIsPrivate(method.getProperty(SchemaMethod.isPrivate));
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
 		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
@@ -539,6 +559,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_EXCEPTIONS, exceptions);
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
+		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);
@@ -601,7 +622,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 				} else {
 
-					operations.put("/maintenance/globalSchemaMethods/" + getName(), Map.of("post", new OpenAPIGlobalSchemaMethodOperation(this)));
+					operations.put("/" + getName(), Map.of("post", new OpenAPIUserDefinedFunctionOperation(this)));
 				}
 			}
 		}

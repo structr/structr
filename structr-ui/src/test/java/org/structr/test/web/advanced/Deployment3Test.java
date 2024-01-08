@@ -141,12 +141,22 @@ public class Deployment3Test extends DeploymentTestBase {
 		// setup
 		try (final Tx tx = app.tx()) {
 
+			final SchemaNode testType = app.create(SchemaNode.class, "TestType");
+
+			// create one method with a schema node
 			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.schemaNode,                  testType),
 				new NodeAttribute<>(SchemaMethod.name,                        "method1"),
 				new NodeAttribute<>(SchemaMethod.source,                      "source1"),
-				new NodeAttribute<>(SchemaMethod.virtualFileName,             "virtualFileName1")
+				new NodeAttribute<>(SchemaMethod.includeInOpenAPI,            true),
+				new NodeAttribute<>(SchemaMethod.tags,                        new String[] { "tag1", "tag2" }),
+				new NodeAttribute<>(SchemaMethod.summary,                     "summary"),
+				new NodeAttribute<>(SchemaMethod.description,                 "description"),
+				new NodeAttribute<>(SchemaMethod.isStatic,                    true),
+				new NodeAttribute<>(SchemaMethod.isPrivate,                   true)
 			);
 
+			// and one without (i.e. user-defined function)
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name,                       "method2"),
 				new NodeAttribute<>(SchemaMethod.source,                     "source2"),
@@ -172,9 +182,18 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertNotNull("Invalid deployment result", method1);
 			assertNotNull("Invalid deployment result", method2);
 
-			assertEquals("Invalid SchemaMethod deployment result", "method1",          method1.getProperty(SchemaMethod.name));
-			assertEquals("Invalid SchemaMethod deployment result", "source1",          method1.getProperty(SchemaMethod.source));
-			assertEquals("Invalid SchemaMethod deployment result", "virtualFileName1", method1.getProperty(SchemaMethod.virtualFileName));
+			assertEquals("Invalid SchemaMethod deployment result", "method1",                       method1.getProperty(SchemaMethod.name));
+			assertEquals("Invalid SchemaMethod deployment result", "source1",                       method1.getProperty(SchemaMethod.source));
+			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.includeInOpenAPI));
+			assertEquals("Invalid SchemaMethod deployment result", "tag1",                          method1.getProperty(SchemaMethod.tags)[0]);
+			assertEquals("Invalid SchemaMethod deployment result", "tag2",                          method1.getProperty(SchemaMethod.tags)[1]);
+			assertEquals("Invalid SchemaMethod deployment result", "summary",                       method1.getProperty(SchemaMethod.summary));
+			assertEquals("Invalid SchemaMethod deployment result", "description",                   method1.getProperty(SchemaMethod.description));
+			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isStatic));
+			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isPrivate));
+
+			
+			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
 			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(SchemaMethod.name));
 			assertEquals("Invalid SchemaMethod deployment result", "source2",          method2.getProperty(SchemaMethod.source));

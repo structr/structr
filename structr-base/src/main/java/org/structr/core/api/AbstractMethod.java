@@ -44,6 +44,7 @@ public abstract class AbstractMethod {
 	}
 
 	public abstract boolean isStatic();
+	public abstract boolean isPrivate();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;

@@ -32,7 +32,7 @@ import org.testng.annotations.Test;
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
 
-public class SchemaMethodsTest extends StructrUiTest {
+public class SchemaMethodsRestTest extends StructrUiTest {
 
 	@Test
 	public void test001SimpleGlobalSchemaMethodCallViaRestAsPublicUser() {
@@ -149,5 +149,79 @@ public class SchemaMethodsTest extends StructrUiTest {
 				.body("result", equalTo("MyTestType.testTypeMethod01 here"))
 			.when()
 				.post("/MyTestType/testTypeMethod01");
+	}
+
+	@Test
+	public void test003PrivateSchemaMethodCallViaRest() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+
+			// create private method that is not exported via REST
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name, "myTestMethod01"),
+				new NodeAttribute<>(SchemaMethod.source, "'hello world!'"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		// test that resource access grant is required
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("x-user", "admin", "x-password", "admin")
+			.expect()
+				.statusCode(404)
+			.when()
+				.post("/myTestMethod01");
+
+	}
+
+	@Test
+	public void test004AssertLifecycleMethodsNotAvailableViaRest() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+
+			// create private method that is not exported via REST
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name, "onCreate"),
+				new NodeAttribute<>(SchemaMethod.source, "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String uuid = createEntityAsUser("admin", "admin", "/TestType", "{ name: 'teeest' }");
+
+		// test that resource access grant is required
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("x-user", "admin", "x-password", "admin")
+			.expect()
+				.statusCode(404)
+			.when()
+				.post("/TestType/" + uuid + "/onCreate");
+
 	}
 }

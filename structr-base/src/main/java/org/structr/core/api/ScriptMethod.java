@@ -50,6 +50,11 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean isPrivate() {
+		return method.isPrivateMethod();
+	}
+
+	@Override
 	public boolean isStatic() {
 		return method.isStaticMethod();
 	}

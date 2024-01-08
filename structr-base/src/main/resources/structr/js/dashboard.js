@@ -801,7 +801,7 @@ let _Dashboard = {
 
 					if (data.result.length === 0) {
 
-						container.textContent = 'No global schema methods.';
+						container.textContent = 'No user-defined functions.';
 
 					} else {
 
@@ -1232,7 +1232,7 @@ let _Dashboard = {
 					<a href="#dashboard:deployment">Deployment</a>
 				</li>
 				<li>
-					<a href="#dashboard:global-schema-methods">Global schema methods</a>
+					<a href="#dashboard:global-schema-methods">User-defined functions</a>
 				</li>
 				<li>
 					<a href="#dashboard:server-log">Server Log</a>

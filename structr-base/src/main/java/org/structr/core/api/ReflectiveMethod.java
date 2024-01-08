@@ -52,6 +52,11 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean isPrivate() {
+		return Modifier.isPrivate(method.getModifiers());
+	}
+
+	@Override
 	public boolean isStatic() {
 		return Modifier.isStatic(method.getModifiers());
 	}

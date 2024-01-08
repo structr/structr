@@ -57,7 +57,10 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	JsonMethod setCallSuper(final boolean callsSuper);
 
 	boolean isStatic();
-	JsonMethod setIsStatic(final boolean callsSuper);
+	JsonMethod setIsStatic(final boolean isStatic);
+
+	boolean isPrivate();
+	JsonMethod setIsPrivate(final boolean isPrivate);
 
 	List<String> getExceptions();
 	JsonMethod addException(final String exception);

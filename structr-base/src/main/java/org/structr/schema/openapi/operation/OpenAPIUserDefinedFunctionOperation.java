@@ -25,23 +25,23 @@ import org.structr.schema.openapi.common.OpenAPISchemaReference;
 import java.util.Map;
 import java.util.Set;
 
-public class OpenAPIGlobalSchemaMethodOperation extends OpenAPIOperation {
+public class OpenAPIUserDefinedFunctionOperation extends OpenAPIOperation {
 
-	public OpenAPIGlobalSchemaMethodOperation(final StructrMethodDefinition method) {
+	public OpenAPIUserDefinedFunctionOperation(final StructrMethodDefinition method) {
 
 
 		super(
 			// summary
-			StringUtils.isBlank(method.getSummary()) ? "Executes global schema method " + method.getName() + "()." : method.getSummary(),
+			StringUtils.isBlank(method.getSummary()) ? "Executes user-defined function " + method.getName() + "()." : method.getSummary(),
 
 			// description
-			StringUtils.isBlank(method.getDescription()) ? "Executes global schema method " + method.getName() + "()." : method.getDescription(),
+			StringUtils.isBlank(method.getDescription()) ? "Executes user-defined function " + method.getName() + "()." : method.getDescription(),
 
 			// operationId
 			"executeGlobal." + method.getName(),
 
 			// tags
-			Set.of("Global schema methods"),
+			Set.of("User-defined functions"),
 
 			// parameters
 			null,

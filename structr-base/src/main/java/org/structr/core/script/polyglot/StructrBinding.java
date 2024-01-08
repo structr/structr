@@ -36,6 +36,8 @@ import org.structr.schema.action.Function;
 import java.util.Arrays;
 import java.util.Set;
 import org.structr.common.helper.CaseHelper;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
 
 import static org.structr.core.script.polyglot.PolyglotWrapper.wrap;
 
@@ -55,86 +57,113 @@ public class StructrBinding implements ProxyObject {
 	public Object getMember(String name) {
 
 		switch (name) {
+
 			case "get":
 				return getGetFunctionWrapper();
+
 			case "this":
 				return wrap(actionContext, entity);
+
 			case "me":
 				return wrap(actionContext,actionContext.getSecurityContext().getUser(false));
+
 			case "predicate":
 				return new PredicateBinding(actionContext, entity);
+
 			case "batch":
 				logger.warn("The batch() function has been renamed to doInNewTransaction() to better communicate the semantics. Using batch() is deprecated as it will be removed in future versions.");
+				// no break or return here, we want the below result to be returned!
+
 			case "do_in_new_transaction":
 			case "doInNewTransaction":
 				return new DoInNewTransactionFunction(actionContext, entity);
+
 			case "include_js":
 			case "includeJs":
 				return new IncludeJSFunction(actionContext);
+
 			case "do_privileged":
 			case "doPrivileged":
 				return new DoPrivilegedFunction(actionContext);
+
 			case "do_as":
 			case "doAs":
 				return new DoAsFunction(actionContext);
+
 			case "request":
 				return new HttpServletRequestWrapper(actionContext, actionContext.getSecurityContext().getRequest());
+
 			case "session":
 				return new HttpSessionWrapper(actionContext, actionContext.getSecurityContext().getSession());
+
 			case "cache":
 				return new CacheFunction(actionContext, entity);
+
 			case "vars":
 			case "requestStore":
 				return new PolyglotProxyMap(actionContext, actionContext.getRequestStore());
+
 			case "applicationStore":
 				return new PolyglotProxyMap(actionContext, Services.getInstance().getApplicationStore());
+
 			case "methodParameters":
 			case "arguments":
 			case "args":
 				return new PolyglotProxyMap(actionContext, actionContext.getContextStore().getTemporaryParameters());
+
 			case "globalSchemaMethods":
-				return new GlobalSchemaMethodWrapper(actionContext);
+				// deprecated, we want user-defined functions in the global scope!
+				return new UserDefinedFunctionWrapper(actionContext);
+
 			default:
+
+				// 1: look for user-defined function with the given name
+				final AbstractMethod method = Methods.resolveMethod(null, name);
+				if (method != null) {
+
+					return Methods.getProxyExecutable(actionContext, null, method);
+				}
+
+				// 2: look for built-in function with the given name
 				Function<Object, Object> func = Functions.get(CaseHelper.toUnderscore(name, false));
 				if (func != null) {
 
 					return new FunctionWrapper(actionContext, entity, func);
 				}
 
+				// 3: check if a named constant exists
 				if (actionContext.getConstant(name) != null) {
 					return wrap(actionContext,actionContext.getConstant(name));
 				}
 
+				// 4: check request store
 				if (actionContext.getRequestStore().containsKey(name)) {
 					return wrap(actionContext, actionContext.getRequestStore().get(name));
 				}
 
-				final EvaluationHints hints = new EvaluationHints();
-				Object structrScriptResult  = null;
+				// 5: StructrScript result (what is this?)
+				{
+					final EvaluationHints hints = new EvaluationHints();
+					Object structrScriptResult  = null;
 
-				try {
+					try {
 
-					structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
+						structrScriptResult = PolyglotWrapper.wrap(actionContext, actionContext.evaluate(entity, name, null, null, 0, hints, 1, 1));
 
-				} catch (FrameworkException ex) {
+					} catch (FrameworkException ex) {
 
-					logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
-				}
+						logger.error("Unexpected exception while trying to apply get function shortcut on script binding object.", ex);
+					}
 
-				if (structrScriptResult != null) {
+					if (structrScriptResult != null) {
 
-					if (structrScriptResult instanceof Class) {
-
-						// Try to do a static class lookup as last resort
-						final Class clazz = (Class)structrScriptResult;
-						if (clazz != null) {
+						if (structrScriptResult instanceof Class clazz) {
 
 							return new StaticTypeWrapper(actionContext, clazz);
 						}
 
+						return structrScriptResult;
 					}
-
-					return structrScriptResult;
 				}
 
 				return null;

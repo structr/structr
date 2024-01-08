@@ -20,6 +20,8 @@ package org.structr.rest.resource;
 
 
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
@@ -44,14 +46,15 @@ import org.structr.schema.action.EvaluationHints;
  *
  *
  */
-public class GlobalSchemaMethodsResource extends RESTEndpoint {
+public class DeprecatedGlobalSchemaMethodsResource extends RESTEndpoint {
 
-	public GlobalSchemaMethodsResource() {
+	private static final Logger logger = LoggerFactory.getLogger(DeprecatedGlobalSchemaMethodsResource.class);
+
+	public DeprecatedGlobalSchemaMethodsResource() {
 
 		super(
-			// 12/2023: we decided to rename global schema methods to user-defined functions
-			// and make them available in the global scope just like built-in functions, hence
-			// the path 
+			RESTParameter.forStaticString("maintenance"),
+			RESTParameter.forStaticString("globalSchemaMethods"),
 			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
 		);
 	}
@@ -64,6 +67,12 @@ public class GlobalSchemaMethodsResource extends RESTEndpoint {
 
 			final AbstractMethod method = Methods.resolveMethod(null, methodName);
 			if (method != null) {
+
+				logger.warn("Using deprecated URL {} to call user-defined function {}, please use {} instead. Support for this path will be dropped in the near future.",
+					call.getURL(),
+					methodName,
+					"/" + methodName
+				);
 
 				return new GlobalSchemaMethodResourceHandler(securityContext, call, method);
 			}
