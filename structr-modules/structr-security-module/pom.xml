@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>5.0.1</version>
+		<version>5.1.0</version>
 	</parent>
 	<artifactId>structr-security-module</artifactId>
 	<packaging>jar</packaging>

@@ -1286,6 +1286,13 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 				}
 			}
 
+			// make repeater data object ID available
+			final GraphObject repeaterDataObject = renderContext.getDataObject();
+			if (repeaterDataObject != null && StringUtils.isNotBlank(thisElement.getDataKey())) {
+
+				out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
+			}
+
 			// include arbitrary data-* attributes
 			thisElement.renderSharedComponentConfiguration(out, editMode);
 			thisElement.renderCustomAttributes(out, renderContext.getSecurityContext(), renderContext);
@@ -1507,8 +1514,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (StringUtils.isNotBlank(failureTargetString)) {
 							out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
 						}
-						
-						
+
+
 //						{ // TODO: Migrate tree handling to new action mapping
 //							// toggle-tree-item
 //							if (mapping.containsValue("toggle-tree-item")) {
@@ -1614,13 +1621,6 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 							}
 						}
 
-					}
-
-					// make repeater data object ID available
-					final GraphObject repeaterDataObject = renderContext.getDataObject();
-					if (repeaterDataObject != null) {
-
-						out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 					}
 
 					final DOMElement thisElementWithSuperuserContext = StructrApp.getInstance().get(DOMElement.class, thisElement.getUuid());
