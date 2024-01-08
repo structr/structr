@@ -72,6 +72,15 @@
 	top: 4rem;
 }
 
+#main.no-search-results::before {
+	content: "- No search results -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 1;
+}
+
 body {
 	min-width: initial ! important;
 }
