@@ -515,9 +515,6 @@ let _Code = {
 
 					_Code.hideSchemaRecompileMessage();
 				}
-			})
-			Command.setProperties(entity.id, formData, () => {
-
 			});
 		}
 	},
@@ -1511,7 +1508,7 @@ let _Code = {
 					parameterContainer.append(clone);
 
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						_Helpers.fastRemoveElement(clone);
+						clone.remove();
 
 						_Code.updateDirtyFlag(result);
 					});
