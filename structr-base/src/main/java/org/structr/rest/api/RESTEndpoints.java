@@ -29,6 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.rest.resource.CollectionRelationshipsResource;
 import org.structr.rest.resource.CypherQueryResource;
+import org.structr.rest.resource.DeprecatedGlobalSchemaMethodsResource;
 import org.structr.rest.resource.EntityResolverResource;
 import org.structr.rest.resource.EnvResource;
 import org.structr.rest.resource.GlobalSchemaMethodsResource;
@@ -63,6 +64,7 @@ public class RESTEndpoints {
 		// initialize static API endpoints
 		RESTEndpoints.register(new CollectionRelationshipsResource());
 		RESTEndpoints.register(new CypherQueryResource());
+		RESTEndpoints.register(new DeprecatedGlobalSchemaMethodsResource());
 		RESTEndpoints.register(new EntityResolverResource());
 		RESTEndpoints.register(new EnvResource());
 		RESTEndpoints.register(new GlobalSchemaMethodsResource());

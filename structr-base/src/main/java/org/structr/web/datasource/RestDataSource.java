@@ -109,9 +109,6 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		}
 
-		// reset request to old context
-		securityContext.setRequest(origRequest);
-
 		if (handler == null) {
 
 			return Collections.EMPTY_LIST;
@@ -131,7 +128,13 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 			return handler.doGet(order, pageSize, page);
 
 		} catch (NotFoundException nfe) {
+
 			logger.warn("No result from internal REST query: {}", restQuery);
+
+		} finally {
+
+			// reset request to old context
+			securityContext.setRequest(origRequest);
 		}
 
 		return Collections.EMPTY_LIST;

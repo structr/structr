@@ -56,7 +56,7 @@ public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource 
 
 				// use actual type of entity returned to support inheritance
 				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), name);
-				if (method != null) {
+				if (method != null && !method.isPrivate()) {
 
 					return new InstanceMethodResourceHandler(securityContext, call, method, entity);
 				}

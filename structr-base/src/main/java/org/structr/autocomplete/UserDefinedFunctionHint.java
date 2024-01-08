@@ -18,19 +18,19 @@
  */
 package org.structr.autocomplete;
 
-public class GlobalSchemaMethodHint extends MethodHint {
+public class UserDefinedFunctionHint extends MethodHint {
 
-    public GlobalSchemaMethodHint(String name, String summary, String description) {
+    public UserDefinedFunctionHint(String name, String summary, String description) {
         super(name, summary, description);
     }
 
     @Override
     public String getReplacement() {
-        return "globalSchemaMethods." + getDisplayName();
+        return "$." + getDisplayName();
     }
 
     @Override
     public String getType() {
-        return "Global schema method";
+        return "User-defined function";
     }
 }

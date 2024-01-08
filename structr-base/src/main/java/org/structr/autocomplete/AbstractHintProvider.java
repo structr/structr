@@ -33,7 +33,6 @@ import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
@@ -209,7 +208,7 @@ public abstract class AbstractHintProvider {
 			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
 
 			for (final SchemaMethod method : methods) {
-				hints.add(0, new GlobalSchemaMethodHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
 			}
 
 			tx.success();
@@ -257,7 +256,7 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final List<AbstractMethod> methods = Methods.getAllMethods(type);
+			final Collection<AbstractMethod> methods = Methods.getAllMethods(type).values();
 			for (final AbstractMethod method : methods) {
 
 				final String name              = method.getName();

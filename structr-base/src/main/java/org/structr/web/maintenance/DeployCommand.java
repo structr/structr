@@ -1095,14 +1095,14 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			if (Settings.SchemaDeploymentFormat.getValue().equals("tree")) {
 
-				// move global schema methods to files
-				final List<Map<String, Object>> globalSchemaMethods = schema.getGlobalMethods();
+				// move user-defined functions to files
+				final List<Map<String, Object>> userDefinedFunctions = schema.getUserDefinedFunctions();
 
-				if (!globalSchemaMethods.isEmpty()) {
+				if (!userDefinedFunctions.isEmpty()) {
 
 					final Path globalMethodsFolder = Files.createDirectories(targetFolder.resolve(DEPLOYMENT_SCHEMA_GLOBAL_METHODS_FOLDER));
 
-					for (Map<String, Object> schemaMethod : globalSchemaMethods) {
+					for (Map<String, Object> schemaMethod : userDefinedFunctions) {
 
 						final String methodName            = (String) schemaMethod.get("name");
 
@@ -2375,7 +2375,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 							if (Files.exists(globalMethodsFolder)) {
 
-								for (Map<String, Object> schemaMethod : schema.getGlobalMethods()) {
+								for (Map<String, Object> schemaMethod : schema.getUserDefinedFunctions()) {
 
 									final String methodName = (String) schemaMethod.get("name");
 

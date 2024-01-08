@@ -534,7 +534,7 @@ let _Code = {
 			let defaultEntries = [
 				{
 					id:       path + '/globals',
-					text:     'Global Methods',
+					text:     'User-defined functions',
 					children: true,
 					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'globals' },
@@ -1385,7 +1385,7 @@ let _Code = {
 	},
 	displaySchemaMethodContent: (data) => {
 
-		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
+		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
 		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
@@ -1991,7 +1991,7 @@ let _Code = {
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.recentElements.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
+		_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
@@ -2471,7 +2471,7 @@ let _Code = {
 	},
 	getUrlForSchemaMethod: (schemaMethod) => {
 		return Structr.rootUrl +
-			((schemaMethod.schemaNode === null) ? 'maintenance/globalSchemaMethods/' : schemaMethod.schemaNode.name + '/' )+
+			((schemaMethod.schemaNode === null) ? '' : schemaMethod.schemaNode.name + '/' ) +
 			schemaMethod.name;
 	},
 	runSchemaMethod: (schemaMethod) => {
@@ -2479,7 +2479,7 @@ let _Code = {
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
 		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 		let runButton = _Dialogs.custom.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -3036,7 +3036,7 @@ let _Code = {
 			</div>
 		`,
 		globals: config => `
-			<h2>Global schema methods</h2>
+			<h2>User-defined functions</h2>
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `

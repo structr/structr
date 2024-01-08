@@ -19,23 +19,27 @@
 package org.structr.core.api;
 
 import java.lang.reflect.Method;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Export;
+import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.script.polyglot.PolyglotWrapper;
+import org.structr.schema.action.ActionContext;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  */
 public class Methods {
 
-	public static List<AbstractMethod> getAllMethods(final Class type) {
+	public static Map<String, AbstractMethod> getAllMethods(final Class type) {
 
-		final List<AbstractMethod> signatures = new LinkedList<>();
+		final Map<String, AbstractMethod> allMethods = new LinkedHashMap<>();
 
 		if (type != null) {
 
@@ -44,7 +48,7 @@ public class Methods {
 			for (final Method method : methods.values()) {
 
 				try {
-					signatures.add(Methods.createMethod(method));
+					allMethods.put(method.getName(), Methods.createMethod(method));
 
 				} catch
 					(FrameworkException fex) {
@@ -57,7 +61,7 @@ public class Methods {
 			try {
 				for (final SchemaMethod globalMethod : StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).getResultStream()) {
 
-					signatures.add(new ScriptMethod(globalMethod));
+					allMethods.put(globalMethod.getName(), new ScriptMethod(globalMethod));
 				}
 
 			} catch (FrameworkException fex) {
@@ -65,7 +69,7 @@ public class Methods {
 			}
 		}
 
-		return signatures;
+		return allMethods;
 	}
 
 	public static AbstractMethod resolveMethod(final Class type, final String methodName) {
@@ -112,6 +116,23 @@ public class Methods {
 
 		return null;
 	}
+
+	public static ProxyExecutable getProxyExecutable(final ActionContext actionContext, final GraphObject entity, final AbstractMethod method) {
+
+		return (arguments) -> {
+
+			try {
+
+				final Arguments converted = PolyglotWrapper.unwrapExecutableArguments(actionContext, method, arguments);
+
+				return PolyglotWrapper.wrap(actionContext, method.execute(actionContext.getSecurityContext(), entity, converted, new EvaluationHints()));
+
+			} catch (FrameworkException ex) {
+				throw new RuntimeException(ex);
+			}
+		};
+	}
+
 
 	// ----- private static methods -----
 	private static AbstractMethod createMethod(final Method method) throws FrameworkException {
