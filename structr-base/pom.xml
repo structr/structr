@@ -268,7 +268,7 @@
 		<dependency>
 			<groupId>com.vladsch.flexmark</groupId>
 			<artifactId>flexmark-all</artifactId>
-			<version>0.20.0</version>
+			<version>0.64.8</version>
 			<exclusions>
 				<exclusion>
 					<groupId>junit</groupId>
@@ -279,6 +279,11 @@
 					<artifactId>flexmark-pdf-converter</artifactId>
 				</exclusion>
 			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>com.vladsch.flexmark</groupId>
+			<artifactId>flexmark-util</artifactId>
+			<version>0.64.8</version>
 		</dependency>
 		<dependency>
 			<groupId>net.java</groupId>
@@ -490,12 +495,12 @@
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>core</artifactId>
-			<version>3.3.3</version>
+			<version>3.5.2</version>
 		</dependency>
 		<dependency>
 			<groupId>com.google.zxing</groupId>
 			<artifactId>javase</artifactId>
-			<version>3.3.3</version>
+			<version>3.5.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.github.jai-imageio</groupId>
