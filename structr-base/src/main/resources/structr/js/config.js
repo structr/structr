@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 document.addEventListener('DOMContentLoaded', () => {
 	_Config.init();
 });
@@ -462,6 +461,7 @@ let _Config = {
 let _Search = {
 	hitClass: 'search-matches',
 	noHitClass: 'no-search-match',
+	noHitAtAllClass: 'no-search-results',
 	lsSearchStringKey: 'structrConfigSearchKey',
 	containsIgnoreCase: (haystack, needle) => {
     	return haystack.toLowerCase().includes(needle.toLowerCase());
@@ -545,6 +545,9 @@ let _Search = {
     	}
     },
 	clearSearch: () => {
+
+		document.getElementById('main').classList.remove(_Search.noHitAtAllClass);
+
     	document.querySelectorAll('.' + _Search.hitClass).forEach((node) => {
     		node.classList.remove(_Search.hitClass);
     	});
@@ -688,7 +691,8 @@ let _Search = {
 				// in case a password field got auto-focused by the browser
 				document.getElementById('search-box').focus();
 			} else {
-				// nothing to show!
+
+				document.getElementById('main').classList.add(_Search.noHitAtAllClass);
 			}
 		}
 	}

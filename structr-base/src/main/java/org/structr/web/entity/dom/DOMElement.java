@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -1295,7 +1295,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			// make repeater data object ID available
 			final GraphObject repeaterDataObject = renderContext.getDataObject();
-			if (repeaterDataObject != null) {
+			if (repeaterDataObject != null && StringUtils.isNotBlank(thisElement.getDataKey())) {
 
 				out.append(" data-repeater-data-object-id=\"").append(repeaterDataObject.getUuid()).append("\"");
 			}

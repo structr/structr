@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -97,18 +97,10 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate) {
+	public SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options) {
 		try {
 
 			ensureFileExists();
-			Set<OpenOption> options = new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC));
-			if (append) {
-				options.add(APPEND);
-			}
-			if (truncate || !append) {
-				options.add(TRUNCATE_EXISTING);
-			}
-
 			return FileChannel.open(fsHelper.getFileOnDisk(getAbstractFile()).toPath(), options);
 		} catch (IOException ex) {
 
@@ -129,7 +121,7 @@ public class LocalFSStorageProvider extends AbstractStorageProvider {
 
 		// If provider class is local as well, check if file needs to be moved
 		// Ensure files exist and abstract files are actual files
-		if(getAbstractFile() != null && getAbstractFile() instanceof org.structr.web.entity.File && newFileStorageProvider.getAbstractFile() != null && newFileStorageProvider.getAbstractFile() instanceof org.structr.web.entity.File) {
+		if (getAbstractFile() != null && getAbstractFile() instanceof org.structr.web.entity.File && newFileStorageProvider.getAbstractFile() != null && newFileStorageProvider.getAbstractFile() instanceof org.structr.web.entity.File) {
 			// Check file paths and only move if they differ
 			if (!getAbstractFile().getPath().equals(newFileStorageProvider.getAbstractFile().getPath())) {
 

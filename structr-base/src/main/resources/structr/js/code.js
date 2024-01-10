@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -514,9 +514,6 @@ let _Code = {
 
 					_Code.hideSchemaRecompileMessage();
 				}
-			})
-			Command.setProperties(entity.id, formData, () => {
-
 			});
 		}
 	},
@@ -1510,7 +1507,7 @@ let _Code = {
 					parameterContainer.append(clone);
 
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						_Helpers.fastRemoveElement(clone);
+						clone.remove();
 
 						_Code.updateDirtyFlag(result);
 					});
