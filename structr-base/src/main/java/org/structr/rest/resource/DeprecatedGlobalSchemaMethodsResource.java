@@ -26,7 +26,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.UnlicensedScriptException;
@@ -38,15 +37,16 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTMethodCallHandler;
-import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  *
  */
-public class DeprecatedGlobalSchemaMethodsResource extends RESTEndpoint {
+public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeprecatedGlobalSchemaMethodsResource.class);
 

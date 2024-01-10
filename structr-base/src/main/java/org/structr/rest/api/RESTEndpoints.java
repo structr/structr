@@ -23,6 +23,8 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -32,13 +34,14 @@ import org.structr.rest.resource.CypherQueryResource;
 import org.structr.rest.resource.DeprecatedGlobalSchemaMethodsResource;
 import org.structr.rest.resource.EntityResolverResource;
 import org.structr.rest.resource.EnvResource;
-import org.structr.rest.resource.GlobalSchemaMethodsResource;
+import org.structr.rest.resource.UserDefinedFunctionsResource;
 import org.structr.rest.resource.InstanceMethodResource;
 import org.structr.rest.resource.LogResource;
 import org.structr.rest.resource.MaintenanceResource;
 import org.structr.rest.resource.MeResource;
 import org.structr.rest.resource.PropertyResource;
 import org.structr.rest.resource.InstanceRelationshipsResource;
+import org.structr.rest.resource.MeMethodResource;
 import org.structr.rest.resource.RuntimeEventLogResource;
 import org.structr.rest.resource.SchemaResource;
 import org.structr.rest.resource.SchemaTypeResource;
@@ -57,7 +60,8 @@ import org.structr.web.resource.TokenResource;
  */
 public class RESTEndpoints {
 
-	private static final List<SortedByUsageCount> ENDPOINTS = new LinkedList<>();
+	private static final List<SortedByUsageCount> ENDPOINTS = new CopyOnWriteArrayList<>();
+	private static final AtomicInteger count                = new AtomicInteger(0);
 
 	static {
 
@@ -67,13 +71,14 @@ public class RESTEndpoints {
 		RESTEndpoints.register(new DeprecatedGlobalSchemaMethodsResource());
 		RESTEndpoints.register(new EntityResolverResource());
 		RESTEndpoints.register(new EnvResource());
-		RESTEndpoints.register(new GlobalSchemaMethodsResource());
+		RESTEndpoints.register(new UserDefinedFunctionsResource());
 		RESTEndpoints.register(new InstanceMethodResource());
 		RESTEndpoints.register(new InstanceRelationshipsResource());
 		RESTEndpoints.register(new LogResource());
 		RESTEndpoints.register(new LoginResource());
 		RESTEndpoints.register(new LogoutResource());
 		RESTEndpoints.register(new MaintenanceResource());
+		RESTEndpoints.register(new MeMethodResource());
 		RESTEndpoints.register(new MeResource());
 		RESTEndpoints.register(new PropertyResource());
 		RESTEndpoints.register(new RegistrationResource());
@@ -91,6 +96,7 @@ public class RESTEndpoints {
 	// ----- public static methods -----
 	public static void register(final RESTEndpoint endpoint) {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
+		System.out.println(endpoint.toString());
 	}
 
 	public static RESTCallHandler resolveRESTCallHandler(final SecurityContext securityContext, final HttpServletRequest request, final String defaultView) throws FrameworkException {
@@ -99,8 +105,15 @@ public class RESTEndpoints {
 		final String path             = RESTEndpoints.removeTrailingViewName(request.getPathInfo(), viewHolder);
 		final String viewName         = viewHolder.isEmpty() ? defaultView : viewHolder.get(0);
 
-		// endpoints are sorted by frequency of successfully resolved matches
-		Collections.sort(ENDPOINTS);
+		// sort endpoints every 1000 calls
+		if (count.addAndGet(1) > 1000) {
+
+			// sort endpoints by frequency of successfully resolved matches
+			Collections.sort(ENDPOINTS);
+
+			// reset counter
+			count.set(0);
+		}
 
 		for (final SortedByUsageCount container : ENDPOINTS) {
 
@@ -164,6 +177,7 @@ public class RESTEndpoints {
 
 		@Override
 		public int hashCode() {
+			// make sure we can identify endpoints uniquely
 			return endpoint.hashCode();
 		}
 

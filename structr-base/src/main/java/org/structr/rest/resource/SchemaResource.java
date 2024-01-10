@@ -42,16 +42,16 @@ import org.structr.schema.SchemaHelper;
 
 import java.lang.reflect.Modifier;
 import java.util.*;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class SchemaResource extends RESTEndpoint {
+public class SchemaResource extends ExactMatchEndpoint {
 
 	private static final StringProperty urlProperty                      = new StringProperty("url");
 	private static final StringProperty typeProperty                     = new StringProperty("type");

@@ -38,12 +38,12 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.Arrays;
 import java.util.Map;
+import org.structr.api.config.Settings;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
-import org.structr.api.config.Settings;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
@@ -52,7 +52,7 @@ import org.structr.rest.api.parameter.RESTParameter;
  *
  *
  */
-public class TypedIdResource extends RESTEndpoint {
+public class TypedIdResource extends ExactMatchEndpoint {
 
 	public TypedIdResource() {
 

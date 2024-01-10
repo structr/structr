@@ -49,6 +49,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
@@ -142,15 +143,25 @@ public abstract class RESTCallHandler {
 
 					for (final GraphObject obj : result) {
 
-						hasMore = true;
-
 						if (obj.isNode()) {
 
-							app.delete((NodeInterface)obj);
+							final NodeInterface node = (NodeInterface)obj;
+
+							if (!TransactionCommand.isDeleted(node.getNode())) {
+
+								app.delete(node);
+								hasMore = true;
+							}
 
 						} else {
 
-							app.delete((RelationshipInterface)obj);
+							final RelationshipInterface relationship = (RelationshipInterface)obj;
+
+							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
+
+								app.delete(relationship);
+								hasMore = true;
+							}
 						}
 
 						count++;

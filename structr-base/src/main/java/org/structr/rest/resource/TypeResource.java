@@ -30,15 +30,15 @@ import org.structr.schema.SchemaHelper;
 
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource that matches all keywords that might be entity types.
  */
-public class TypeResource extends RESTEndpoint {
+public class TypeResource extends ExactMatchEndpoint {
 
 	public TypeResource() {
 		super(RESTParameter.forPattern("type", SchemaNode.schemaNodeNamePattern));

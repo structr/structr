@@ -35,22 +35,22 @@ import org.structr.core.graph.RelationshipInterface;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.config.Settings;
 import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
 import org.structr.core.graph.NodeInterface;
 import org.structr.rest.RestMethodResult;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class InstanceRelationshipsResource extends RESTEndpoint {
+public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 	public InstanceRelationshipsResource() {
 

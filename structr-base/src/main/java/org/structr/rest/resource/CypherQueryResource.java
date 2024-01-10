@@ -33,15 +33,15 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Collections;
 import java.util.Map;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  */
-public class CypherQueryResource extends RESTEndpoint {
+public class CypherQueryResource extends ExactMatchEndpoint {
 
 	public CypherQueryResource() {
 		super(RESTParameter.forStaticString("cypher"));

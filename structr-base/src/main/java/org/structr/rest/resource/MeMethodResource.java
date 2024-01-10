@@ -20,37 +20,42 @@ package org.structr.rest.resource;
 
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
+import org.structr.core.entity.Principal;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.schema.SchemaHelper;
+import org.structr.rest.api.WildcardMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  */
-public class InstanceMethodResource extends AbstractTypeIdLowercaseNameResource {
+public class MeMethodResource extends WildcardMatchEndpoint {
+
+	public MeMethodResource() {
+		super(
+			RESTParameter.forStaticString("me"),
+			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
+		);
+	}
 
 	@Override
-	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException {
+	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
 
-		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
-		if (entityClass != null) {
+		final Principal user = securityContext.getUser(true);
+		if (user != null) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, entityClass.getSimpleName(), uuid);
-			if (entity != null) {
+			final String name = call.get("name");
 
-				// use actual type of entity returned to support inheritance
-				final AbstractMethod method = Methods.resolveMethod(entity.getClass(), name);
-				if (method != null && !method.isPrivate()) {
+			// use actual type of entity returned to support inheritance
+			final AbstractMethod method = Methods.resolveMethod(user.getClass(), name);
+			if (method != null && !method.isPrivate()) {
 
-					return new InstanceMethodResourceHandler(securityContext, call, method, entity);
-				}
+				return new InstanceMethodResourceHandler(securityContext, call, method, user);
 			}
 		}
 
 		return null;
 	}
-
 }

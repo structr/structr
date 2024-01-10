@@ -25,13 +25,13 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * Resource that handles user logins.
  */
-public class LoginResource extends RESTEndpoint {
+public class LoginResource extends ExactMatchEndpoint {
 
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResource.class.getName());
 

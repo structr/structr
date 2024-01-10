@@ -30,18 +30,18 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
 import java.util.Map;
+import org.structr.api.config.Settings;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
-import org.structr.api.config.Settings;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.IllegalPathException;
 
 /**
  * Represents an exact UUID match.
  */
-public class UuidResource extends RESTEndpoint {
+public class UuidResource extends ExactMatchEndpoint {
 
 	public UuidResource() {
 

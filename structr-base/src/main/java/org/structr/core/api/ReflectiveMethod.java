@@ -62,6 +62,16 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean useGET() {
+		return false;
+	}
+
+	@Override
+	public boolean usePOST() {
+		return true;
+	}
+
+	@Override
 	public Parameters getParameters() {
 		return parameters;
 	}

@@ -36,16 +36,16 @@ import org.structr.rest.RestMethodResult;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class RuntimeEventLogResource extends RESTEndpoint {
+public class RuntimeEventLogResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
 		_runtimeEventLog

@@ -103,6 +103,18 @@ public class Arguments {
 		return arguments;
 	}
 
+	public static Arguments fromPath(final List<String> parts) {
+
+		final Arguments arguments = new Arguments();
+
+		for (final String part : parts) {
+
+			arguments.add(part);
+		}
+
+		return arguments;
+	}
+
 	public Map<String, Object> toMap() {
 
 		// this can only work if we have named arguments

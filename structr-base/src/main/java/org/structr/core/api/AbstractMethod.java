@@ -45,6 +45,8 @@ public abstract class AbstractMethod {
 
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
+	public abstract boolean useGET();
+	public abstract boolean usePOST();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;
@@ -241,24 +243,56 @@ public abstract class AbstractMethod {
 			return DatePropertyParser.parseISO8601DateString(stringInput);
 		}
 
-		if (("long".equals(targetType) || "Long".equals(targetType)) && input instanceof Number number) {
+		if ("long".equals(targetType) || "Long".equals(targetType)) {
 
-			return number.longValue();
+			if (input instanceof Number number) {
+
+				return number.longValue();
+			}
+
+			if (input instanceof String string) {
+
+				return Long.valueOf(string);
+			}
 		}
 
-		if (("int".equals(targetType) || "Integer".equals(targetType)) && input instanceof Number number) {
+		if ("int".equals(targetType) || "Integer".equals(targetType)) {
 
-			return number.intValue();
+			if (input instanceof Number number) {
+
+				return number.intValue();
+			}
+
+			if (input instanceof String string) {
+
+				return Integer.valueOf(string);
+			}
 		}
 
-		if (("double".equals(targetType) || "Double".equals(targetType)) && input instanceof Number number) {
+		if ("double".equals(targetType) || "Double".equals(targetType)) {
 
-			return number.doubleValue();
+			if (input instanceof Number number) {
+
+				return number.doubleValue();
+			}
+
+			if (input instanceof String string) {
+
+				return Double.valueOf(string);
+			}
 		}
 
-		if (("float".equals(targetType) || "Float".equals(targetType)) && input instanceof Number number) {
+		if ("float".equals(targetType) || "Float".equals(targetType)) {
+			
+			if (input instanceof Number number) {
 
-			return number.floatValue();
+				return number.floatValue();
+			}
+
+			if (input instanceof String string) {
+
+				return Float.valueOf(string);
+			}
 		}
 
 		return input;
