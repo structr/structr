@@ -36,8 +36,8 @@ import org.structr.core.api.Methods;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.RESTMethodCallHandler;
+import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.SchemaHelper;
 import org.structr.schema.action.EvaluationHints;
@@ -45,7 +45,7 @@ import org.structr.schema.action.EvaluationHints;
 /**
  *
  */
-public class StaticMethodResource extends RESTEndpoint {
+public class StaticMethodResource extends WildcardMatchEndpoint {
 
 	public StaticMethodResource() {
 

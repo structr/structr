@@ -16,27 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.web.resource;
+package org.structr.rest.api;
 
-
-import org.structr.common.SecurityContext;
-import org.structr.common.error.FrameworkException;
-import org.structr.rest.api.RESTCall;
-import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
- * Resource that handles logs a user out.
+ *
  */
-public class LogoutResource extends ExactMatchEndpoint {
+public abstract class ExactMatchEndpoint extends RESTEndpoint {
 
-	public LogoutResource() {
-		super(RESTParameter.forStaticString("logout"));
+	public ExactMatchEndpoint(final RESTParameter... parameters) {
+		super(parameters);
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LogoutResourceHandler(securityContext, call);
+	public boolean isWildcardMatch() {
+		return false;
 	}
 }

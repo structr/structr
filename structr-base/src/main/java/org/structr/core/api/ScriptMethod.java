@@ -60,6 +60,16 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
+	public boolean useGET() {
+		return true;
+	}
+
+	@Override
+	public boolean usePOST() {
+		return true;
+	}
+
+	@Override
 	public Parameters getParameters() {
 		return parameters;
 	}

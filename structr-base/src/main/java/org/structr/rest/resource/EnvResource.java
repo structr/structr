@@ -31,16 +31,16 @@ import org.structr.rest.exception.IllegalMethodException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class EnvResource extends RESTEndpoint {
+public class EnvResource extends ExactMatchEndpoint {
 
 	public enum UriPart {
 		_env

@@ -31,18 +31,18 @@ import org.structr.rest.exception.NotAllowedException;
 import java.util.Arrays;
 import java.util.Map;
 import org.structr.common.helper.CaseHelper;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.web.entity.User;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  *
  *
  */
-public class MeResource extends RESTEndpoint {
+public class MeResource extends ExactMatchEndpoint {
 
 	public MeResource() {
 		super(RESTParameter.forStaticString("me"));

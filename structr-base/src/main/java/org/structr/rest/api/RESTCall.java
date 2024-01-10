@@ -18,7 +18,10 @@
  */
 package org.structr.rest.api;
 
+import java.util.Arrays;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Represents a single REST call made against a RESTEndpoint. Contains the raw
@@ -26,9 +29,10 @@ import java.util.LinkedHashMap;
  */
 public class RESTCall extends LinkedHashMap<String, String> {
 
-	private String viewName       = null;
-	private String url            = null;
-	private boolean isDefaultView = false;
+	private final List<String> parameters = new LinkedList<>();
+	private String viewName               = null;
+	private String url                    = null;
+	private boolean isDefaultView         = false;
 
 	public RESTCall(final String url, final String viewName, final boolean isDefaultView) {
 
@@ -47,5 +51,13 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	public boolean isDefaultView() {
 		return isDefaultView;
+	}
+
+	public void addParameters(final String[] parts) {
+		parameters.addAll(Arrays.asList(parts));
+	}
+
+	public List<String> getRawParameters() {
+		return parameters;
 	}
 }

@@ -24,7 +24,6 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
 import org.structr.common.error.UnlicensedScriptException;
@@ -36,22 +35,23 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTMethodCallHandler;
-import org.structr.rest.exception.NotAllowedException;
+import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.action.EvaluationHints;
 
 /**
  *
  *
  */
-public class GlobalSchemaMethodsResource extends RESTEndpoint {
+public class UserDefinedFunctionsResource extends WildcardMatchEndpoint {
 
-	public GlobalSchemaMethodsResource() {
+	public UserDefinedFunctionsResource() {
 
 		super(
 			// 12/2023: we decided to rename global schema methods to user-defined functions
 			// and make them available in the global scope just like built-in functions, hence
-			// the path 
+			// the path
 			RESTParameter.forPattern("name", "[a-z][a-z_A-Z0-9]*")
 		);
 	}

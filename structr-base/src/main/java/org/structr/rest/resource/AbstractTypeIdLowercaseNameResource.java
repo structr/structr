@@ -19,20 +19,19 @@
 package org.structr.rest.resource;
 
 
+import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
-import org.structr.api.config.Settings;
-import org.structr.core.entity.SchemaNode;
+import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource that matches /{type}/{id}/{name} URLs.
  */
-public abstract class AbstractTypeIdLowercaseNameResource extends RESTEndpoint {
-
+public abstract class AbstractTypeIdLowercaseNameResource extends WildcardMatchEndpoint {
 
 	public AbstractTypeIdLowercaseNameResource() {
 

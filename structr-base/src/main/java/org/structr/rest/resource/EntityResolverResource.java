@@ -30,9 +30,9 @@ import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Collection;
 import java.util.Map;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 
@@ -40,7 +40,7 @@ import org.structr.rest.api.parameter.RESTParameter;
  *
  *
  */
-public class EntityResolverResource extends RESTEndpoint {
+public class EntityResolverResource extends ExactMatchEndpoint {
 
 	public EntityResolverResource() {
 		super(RESTParameter.forStaticString("resolver"));

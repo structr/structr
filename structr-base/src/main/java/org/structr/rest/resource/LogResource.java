@@ -55,9 +55,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 
 /**
@@ -65,7 +65,7 @@ import org.structr.rest.api.parameter.RESTParameter;
  *
  *
  */
-public class LogResource extends RESTEndpoint {
+public class LogResource extends ExactMatchEndpoint {
 
 	private static final Logger logger                          = LoggerFactory.getLogger(LogResource.class.getName());
 	private static final Pattern RangeQueryPattern              = Pattern.compile("\\[(.+) TO (.+)\\]");

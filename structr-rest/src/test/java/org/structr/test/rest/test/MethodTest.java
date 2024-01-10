@@ -476,6 +476,7 @@ public class MethodTest extends StructrRestTestBase {
 		}
 	}
 
+	@Test
 	public void testMethodParametersObject() {
 
 		try (final Tx tx = app.tx()) {
@@ -522,6 +523,59 @@ public class MethodTest extends StructrRestTestBase {
 				.body("result.key2", equalTo(2))
 			.when()
 				.post("/BaseType/" + base + "/test2");
+	}
+
+
+	@Test
+	public void testGETMethodParametersInURL() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("test1", "{ return $.methodParameters; }")
+				.addParameter("key1", "String")
+				.addParameter("key2", "Integer");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base  = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(200)
+				.body("result.key1", equalTo("value1"))
+				.body("result.key2", equalTo(2))
+			.when()
+				.get("/BaseType/" + base + "/test1/value1/2");
+
+		RestAssured
+			.given()
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.contentType("application/json; charset=UTF-8")
+			.expect()
+				.statusCode(422)
+				.body("code",                equalTo(422))
+				.body("message",             equalTo("Cannot parse input for argument key2"))
+				.body("errors[0].method",    equalTo("test1"))
+				.body("errors[0].parameter", equalTo("key2"))
+				.body("errors[0].token",     equalTo("must_be_numerical"))
+				.body("errors[0].value",     equalTo("two"))
+			.when()
+				.get("/BaseType/" + base + "/test1//two");
 	}
 
 }

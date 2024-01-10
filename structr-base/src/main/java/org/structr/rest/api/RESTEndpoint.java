@@ -22,6 +22,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,6 +37,7 @@ public abstract class RESTEndpoint {
 
 	private final Map<String, RESTParameter> parts = new LinkedHashMap<>();
 	private final String pathSeparator            = "/";
+	private String uniquePath                     = null;
 	private Pattern pattern                       = null;
 
 	public RESTEndpoint(final RESTParameter... parameters) {
@@ -56,6 +58,30 @@ public abstract class RESTEndpoint {
 	 */
 	public abstract RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException;
 
+	/**
+	 * Indicates whether this endpoint only matches URLs that
+	 * match the pattern exactly, or if arbitrary strings are
+	 * allowed after the prefix.
+	 *
+	 * @return whether this endpoint matches arbitrary paths after the prefix
+	 */
+	public abstract boolean isWildcardMatch();
+
+	@Override
+	public String toString() {
+		return this.getClass().getSimpleName() + "(" + uniquePath + ")";
+	}
+
+	@Override
+	public int hashCode() {
+		return uniquePath.hashCode();
+	}
+
+	@Override
+	public boolean equals(final Object obj) {
+		return obj != null && this.hashCode() == obj.hashCode();
+	}
+
 	public Matcher matcher(final String path) {
 		return pattern.matcher(path);
 	}
@@ -70,6 +96,17 @@ public abstract class RESTEndpoint {
 			final String value = matcher.group(group++);
 
 			call.put(part.key(), value);
+		}
+
+		if (isWildcardMatch() && matcher.groupCount() >= group) {
+
+			// optional part is the last group
+			final String optionalPart = matcher.group(group);
+			if (StringUtils.isNotBlank(optionalPart)) {
+
+				// first slash must be removed because it creates an empty first value
+				call.addParameters(optionalPart.substring(1).split("[/]+"));
+			}
 		}
 
 		return call;
@@ -122,6 +159,12 @@ public abstract class RESTEndpoint {
 			buf.append(")");
 		}
 
-		this.pattern = Pattern.compile(buf.toString());
+		if (isWildcardMatch()) {
+
+			buf.append("(/.*)?");
+		}
+
+		this.uniquePath = buf.toString();
+		this.pattern    = Pattern.compile(uniquePath);
 	}
 }

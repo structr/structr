@@ -44,7 +44,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
 import org.structr.api.schema.InvalidSchemaException;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.service.Command;
@@ -63,13 +62,14 @@ import org.structr.core.graph.ClearDatabase;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.ManageThreadsCommand;
 import org.structr.core.graph.SyncCommand;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.RDFImporter;
 import org.structr.schema.importer.SchemaAnalyzer;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.util.StructrLicenseManager;
-import org.structr.rest.api.parameter.RESTParameter;
 
 /**
  * A resource constraint that allows to execute maintenance tasks via
@@ -77,7 +77,7 @@ import org.structr.rest.api.parameter.RESTParameter;
  *
  *
  */
-public class MaintenanceResource extends RESTEndpoint {
+public class MaintenanceResource extends ExactMatchEndpoint {
 
 	private static final Map<String, Class> maintenanceCommandMap = new LinkedHashMap<>();
 

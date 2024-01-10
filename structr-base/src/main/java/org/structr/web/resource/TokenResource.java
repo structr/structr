@@ -30,14 +30,14 @@ import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.api.RESTEndpoint;
-import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.parameter.RESTParameter;
 
 
-public class TokenResource extends RESTEndpoint {
+public class TokenResource extends ExactMatchEndpoint {
 
 	public TokenResource() {
 		super(RESTParameter.forStaticString("token"));
