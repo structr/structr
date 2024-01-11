@@ -246,7 +246,7 @@ public abstract class AbstractMethod {
 
 			throw new FrameworkException(
 				422,
-				"Cannot parse input for parameter '" + parameterName + "' in '" + getFullMethodName(),
+				"Cannot parse input for ‛" + parameterName + "‛ in " + getFullMethodName(),
 				new SemanticErrorToken(
 					null,
 					null,

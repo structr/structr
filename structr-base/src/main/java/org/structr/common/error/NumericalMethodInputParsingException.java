@@ -27,7 +27,7 @@ public class NumericalMethodInputParsingException extends FrameworkException {
 
 		super(
 			422,
-			"Cannot parse input for parameter '" + parameterName + "' in " + longMethodName,
+			"Cannot parse input for ‛" + parameterName + "‛ in " + longMethodName,
 			new SemanticErrorToken(null, null, "must_be_numerical").withValue(value).with("method", methodName).with("parameter", parameterName)
 		);
 	}

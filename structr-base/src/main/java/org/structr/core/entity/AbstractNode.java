@@ -278,7 +278,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					internalSystemPropertiesUnlocked = false;
 				} else {
 
-					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getType(), key.jsonName()));
+					throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getType(), key.jsonName()));
 				}
 
 			}
@@ -294,7 +294,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					internalSystemPropertiesUnlocked = false;
 				} else {
 
-					throw new FrameworkException(404, "Property " + key.jsonName() + " is read-only", new InternalSystemPropertyToken(getType(), key.jsonName()));
+					throw new FrameworkException(404, "Property ‛" + key.jsonName() + "‛ is read-only", new InternalSystemPropertyToken(getType(), key.jsonName()));
 				}
 
 			}
@@ -1458,13 +1458,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					// check for system properties
 					if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-						throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
+						throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
 					}
 
 					// check for read-only properties
 					if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-						throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
+						throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
 					}
 				}
 			}
@@ -1488,13 +1488,13 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			// check for system properties
 			if (key.isSystemInternal() && !internalSystemPropertiesUnlocked) {
 
-				throw new FrameworkException(422, "Property " + key.jsonName() + " is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
+				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is an internal system property", new InternalSystemPropertyToken(getClass().getSimpleName(), key.jsonName()));
 			}
 
 			// check for read-only properties
 			if ((key.isReadOnly() || key.isWriteOnce()) && !readOnlyPropertiesUnlocked && !securityContext.isSuperUser()) {
 
-				throw new FrameworkException(422, "Property " + key.jsonName() + " is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
+				throw new FrameworkException(422, "Property ‛" + key.jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(getClass().getSimpleName(), key.jsonName()));
 			}
 
 			return key.setProperty(securityContext, this, value);
