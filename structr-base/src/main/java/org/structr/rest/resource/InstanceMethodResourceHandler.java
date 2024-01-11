@@ -60,7 +60,7 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 			try (final Tx tx = app.tx()) {
 
-				final Arguments arguments     = Arguments.fromPath(call.getRawParameters());
+				final Arguments arguments     = Arguments.fromPath(call.getPathParameters());
 				final RestMethodResult result = wrapInResult(method.execute(securityContext, entity, arguments, new EvaluationHints()));
 
 				tx.success();

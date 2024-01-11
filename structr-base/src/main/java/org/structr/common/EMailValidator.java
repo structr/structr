@@ -50,7 +50,7 @@ public class EMailValidator implements Validator {
 
 				valid = false;
 
-				errorBuffer.add(new SemanticErrorToken(type.getSimpleName(), eMail, "must_contain_at_character", _eMail));
+				errorBuffer.add(new SemanticErrorToken(type.getSimpleName(), "eMail", "must_contain_at_character").withDetail(_eMail));
 			}
 		}
 

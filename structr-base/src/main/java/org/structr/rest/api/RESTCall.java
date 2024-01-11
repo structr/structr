@@ -29,10 +29,10 @@ import java.util.List;
  */
 public class RESTCall extends LinkedHashMap<String, String> {
 
-	private final List<String> parameters = new LinkedList<>();
-	private String viewName               = null;
-	private String url                    = null;
-	private boolean isDefaultView         = false;
+	private final List<String> pathParameters = new LinkedList<>();
+	private String viewName                   = null;
+	private String url                        = null;
+	private boolean isDefaultView             = false;
 
 	public RESTCall(final String url, final String viewName, final boolean isDefaultView) {
 
@@ -53,11 +53,11 @@ public class RESTCall extends LinkedHashMap<String, String> {
 		return isDefaultView;
 	}
 
-	public void addParameters(final String[] parts) {
-		parameters.addAll(Arrays.asList(parts));
+	public void addPathParameters(final String[] parts) {
+		pathParameters.addAll(Arrays.asList(parts));
 	}
 
-	public List<String> getRawParameters() {
-		return parameters;
+	public List<String> getPathParameters() {
+		return pathParameters;
 	}
 }

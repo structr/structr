@@ -96,7 +96,6 @@ public class RESTEndpoints {
 	// ----- public static methods -----
 	public static void register(final RESTEndpoint endpoint) {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
-		System.out.println(endpoint.toString());
 	}
 
 	public static RESTCallHandler resolveRESTCallHandler(final SecurityContext securityContext, final HttpServletRequest request, final String defaultView) throws FrameworkException {

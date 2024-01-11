@@ -19,17 +19,15 @@
 package org.structr.common.error;
 
 /**
- * Indicates that a property value must match a given expression.
  *
  *
  */
-public class MatchToken extends SemanticErrorToken {
+public class NumberFormatToken extends SemanticErrorToken {
 
-	public MatchToken(final String type, final String propertyKey, final String expression, final Object value) {
+	public NumberFormatToken(final String type, final String property, final Object value) {
 
-		super(type, propertyKey, "must_match");
+		super(type, property, "must_be_numerical");
 
-		withDetail(expression);
 		withValue(value);
 	}
 }

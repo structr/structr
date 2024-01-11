@@ -105,7 +105,7 @@ public abstract class RESTEndpoint {
 			if (StringUtils.isNotBlank(optionalPart)) {
 
 				// first slash must be removed because it creates an empty first value
-				call.addParameters(optionalPart.substring(1).split("[/]+"));
+				call.addPathParameters(optionalPart.substring(1).split("[/]+"));
 			}
 		}
 

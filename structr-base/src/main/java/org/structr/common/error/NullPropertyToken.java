@@ -18,16 +18,12 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property value may not be null.
- *
- *
  */
 public class NullPropertyToken extends SemanticErrorToken {
 
-	public NullPropertyToken(final String type, final PropertyKey propertyKey) {
+	public NullPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "must_not_be_null");
 	}
 }

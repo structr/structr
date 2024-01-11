@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that the length of a property value is too large.
  *
@@ -27,7 +25,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class TooLongToken extends SemanticErrorToken {
 
-	public TooLongToken(final String type, final PropertyKey propertyKey, int maxLength) {
-		super(type, propertyKey, "must_be_shorter_than", maxLength);
+	public TooLongToken(final String type, final String propertyKey, int maxLength) {
+
+		super(type, propertyKey, "must_be_shorter_than");
+
+		withDetail(maxLength);
 	}
 }

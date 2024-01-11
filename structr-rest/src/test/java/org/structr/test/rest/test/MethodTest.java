@@ -525,7 +525,6 @@ public class MethodTest extends StructrRestTestBase {
 				.post("/BaseType/" + base + "/test2");
 	}
 
-
 	@Test
 	public void testGETMethodParametersInURL() {
 
@@ -537,7 +536,8 @@ public class MethodTest extends StructrRestTestBase {
 			// methods
 			base.addMethod("test1", "{ return $.methodParameters; }")
 				.addParameter("key1", "String")
-				.addParameter("key2", "Integer");
+				.addParameter("key2", "Integer")
+				.setUsesGet(true);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
 
@@ -569,7 +569,7 @@ public class MethodTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(422)
 				.body("code",                equalTo(422))
-				.body("message",             equalTo("Cannot parse input for argument key2"))
+				.body("message",             equalTo("Cannot parse input for parameter 'key2' in method BaseType.test1"))
 				.body("errors[0].method",    equalTo("test1"))
 				.body("errors[0].parameter", equalTo("key2"))
 				.body("errors[0].token",     equalTo("must_be_numerical"))

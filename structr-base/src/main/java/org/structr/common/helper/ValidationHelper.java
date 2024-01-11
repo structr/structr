@@ -29,7 +29,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
@@ -47,7 +46,6 @@ public class ValidationHelper {
 
 	private static final Logger logger = LoggerFactory.getLogger(ValidationHelper.class.getName());
 
-	private static final PropertyKey UnknownType       = new GenericProperty("unknown type");
 	private static final Map<String, Pattern> patterns = new ConcurrentHashMap<>();
 
 	/**
@@ -74,12 +72,12 @@ public class ValidationHelper {
 
 			}
 
-			errorBuffer.add(new TooShortToken(type, key, minLength));
+			errorBuffer.add(new TooShortToken(type, key.jsonName(), minLength));
 			return false;
 
 		}
 
-		errorBuffer.add(new EmptyPropertyToken(type, key));
+		errorBuffer.add(new EmptyPropertyToken(type, key.jsonName()));
 		return false;
 	}
 
@@ -100,7 +98,7 @@ public class ValidationHelper {
 			return true;
 		}
 
-		errorBuffer.add(new EmptyPropertyToken(node.getType(), key));
+		errorBuffer.add(new EmptyPropertyToken(node.getType(), key.jsonName()));
 
 		return false;
 	}
@@ -120,7 +118,7 @@ public class ValidationHelper {
 		final String type  = node.getType();
 		if (key == null) {
 
-			errorBuffer.add(new EmptyPropertyToken(type, UnknownType));
+			errorBuffer.add(new EmptyPropertyToken(type, "unknown type"));
 			return false;
 		}
 
@@ -141,7 +139,7 @@ public class ValidationHelper {
 			}
 		}
 
-		errorBuffer.add(new EmptyPropertyToken(type, key));
+		errorBuffer.add(new EmptyPropertyToken(type, key.jsonName()));
 
 		return false;
 	}
@@ -165,7 +163,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, expression, value));
+		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), expression, value));
 		return false;
 	}
 
@@ -208,7 +206,7 @@ public class ValidationHelper {
 		}
 
 		// no match
-		errorBuffer.add(new MatchToken(node.getType(), key, Settings.getValidUUIDRegexString(), value));
+		errorBuffer.add(new MatchToken(node.getType(), key.jsonName(), Settings.getValidUUIDRegexString(), value));
 		return false;
 	}
 
@@ -253,7 +251,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -308,7 +306,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -360,7 +358,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -416,7 +414,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -469,7 +467,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -525,7 +523,7 @@ public class ValidationHelper {
 
 				if (!inRange) {
 
-					errorBuffer.add(new RangeToken(type, key, range));
+					errorBuffer.add(new RangeToken(type, key.jsonName(), range));
 				}
 
 				return inRange;
@@ -602,7 +600,7 @@ public class ValidationHelper {
 							// we can assume that the object currently examined is the first
 							// existing object, hence all others get the error message with the
 							// UUID of the first one.
-							errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid(), value));
+							errorBuffer.add(new UniqueToken(object.getType(), key.jsonName(), object.getUuid(), foundNode.getUuid(), value));
 
 							// error!
 							return false;
@@ -751,7 +749,7 @@ public class ValidationHelper {
 						// we can assume that the object currently examined is the first
 						// existing object, hence all others get the error message with the
 						// UUID of the first one.
-						errorBuffer.add(new UniqueToken(object.getType(), key, object.getUuid(), foundNode.getUuid(), value));
+						errorBuffer.add(new UniqueToken(object.getType(), key.jsonName(), object.getUuid(), foundNode.getUuid(), value));
 
 						// error!
 						return false;

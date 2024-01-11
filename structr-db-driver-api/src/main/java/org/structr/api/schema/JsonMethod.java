@@ -59,6 +59,9 @@ public interface JsonMethod extends Comparable<JsonMethod> {
 	boolean isStatic();
 	JsonMethod setIsStatic(final boolean isStatic);
 
+	boolean usesGet();
+	JsonMethod setUsesGet(final boolean usesGet);
+
 	boolean isPrivate();
 	JsonMethod setIsPrivate(final boolean isPrivate);
 

@@ -5258,7 +5258,7 @@ public class ScriptingTest extends StructrTest {
 
 		} catch (FrameworkException fex) {
 
-			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input error for property test", fex.getMessage());
+			assertEquals("Wrong error message for exception inside of advanced find() context", "Cannot parse input for property 'test'", fex.getMessage());
 		}
 
 	}

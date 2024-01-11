@@ -25,6 +25,10 @@ package org.structr.common.error;
 public class InvalidSchemaToken extends ErrorToken {
 
 	public InvalidSchemaToken(final String type, final String source, final String errorToken) {
-		super(type, null, errorToken, source);
+
+		super(errorToken);
+
+		withType(type);
+		withDetail(source);
 	}
 }

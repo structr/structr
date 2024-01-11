@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a property is read-only.
  *
@@ -27,7 +25,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class ReadOnlyPropertyToken extends SemanticErrorToken {
 
-	public ReadOnlyPropertyToken(final String type, final PropertyKey propertyKey) {
+	public ReadOnlyPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "is_read_only_property");
 	}
 }

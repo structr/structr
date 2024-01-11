@@ -24,7 +24,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.app.Query;
 import org.structr.core.converter.PropertyConverter;
@@ -35,6 +35,7 @@ import org.structr.core.graph.search.SearchAttributeGroup;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.*;
+import org.structr.common.error.PropertyInputParsingException;
 
 /**
  * A property that stores and retrieves an array of the given type.
@@ -315,7 +316,11 @@ public class ArrayProperty<T> extends AbstractPrimitiveProperty<T[]> {
 				final T value = fromString(o.toString());
 
 				if (value == null) {
-					throw new FrameworkException(422, "Invalid input", new NumberToken(this.getDeclaringClass().getSimpleName(), this));
+
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+					);
 				}
 
 				result.add(value);

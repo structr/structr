@@ -2069,12 +2069,12 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 
 			if (_name.contains("/")) {
 
-				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "may_not_contain_slashes", _name));
+				errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name.jsonName(), "may_not_contain_slashes").withDetail(_name));
 
 			} else if (thisNode instanceof Page) {
 
 				if (!_name.equals(_name.replaceAll("[#?\\%;/]", ""))) {
-					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name, "contains_illegal_characters", _name));
+					errorBuffer.add(new SemanticErrorToken(thisNode.getType(), AbstractNode.name.jsonName(), "contains_illegal_characters").withDetail(_name));
 				}
 			}
 		}

@@ -18,10 +18,13 @@
  */
 package org.structr.core.api;
 
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map.Entry;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.error.NumericalMethodInputParsingException;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
 import org.structr.schema.action.EvaluationHints;
@@ -98,22 +101,17 @@ public abstract class AbstractMethod {
 		for (final Argument arg : arguments.getAll()) {
 
 			// named argument?
-			final String parameterName  = arg.getName();
+			String parameterName        = arg.getName();
 			final Object parameterValue = arg.getValue();
+
+			if (parameterName == null) {
+				parameterName = parameters.getNameByIndex(index);
+			}
 
 			final String type = parameters.getTypeByNameOrIndex(parameterName, index);
 			if (type != null) {
 
-				final Object value = convertValue(parameterValue, type);
-
-				if (parameterName != null) {
-
-					converted.add(parameterName, value);
-
-				} else {
-
-					converted.add(parameters.getNameByIndex(index), value);
-				}
+				converted.add(parameterName, convertValue(parameterName, parameterValue, type));
 			}
 
 			index++;
@@ -236,11 +234,25 @@ public abstract class AbstractMethod {
 	}
 	*/
 
-	protected Object convertValue(final Object input, final String targetType) {
+	protected Object convertValue(final String parameterName, final Object input, final String targetType) throws FrameworkException {
 
 		if ("Date".equals(targetType) && input instanceof String stringInput) {
 
-			return DatePropertyParser.parseISO8601DateString(stringInput);
+			final Date date = DatePropertyParser.parseISO8601DateString(stringInput);
+			if (date != null) {
+
+				return date;
+			}
+
+			throw new FrameworkException(
+				422,
+				"Cannot parse input for parameter '" + parameterName + "' in '" + getFullMethodName(),
+				new SemanticErrorToken(
+					null,
+					null,
+					"invalid_date_format"
+				).withValue(input).with("method", getName()).with("parameter", parameterName)
+			);
 		}
 
 		if ("long".equals(targetType) || "Long".equals(targetType)) {
@@ -252,7 +264,14 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-				return Long.valueOf(string);
+				try {
+
+					return Long.valueOf(string);
+
+				} catch (NumberFormatException nex) {
+
+					throw new NumericalMethodInputParsingException(getFullMethodName(), getName(), parameterName, input);
+				}
 			}
 		}
 
@@ -265,7 +284,15 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-				return Integer.valueOf(string);
+
+				try {
+
+					return Integer.valueOf(string);
+
+				} catch (NumberFormatException nex) {
+
+					throw new NumericalMethodInputParsingException(getFullMethodName(), getName(), parameterName, input);
+				}
 			}
 		}
 
@@ -278,12 +305,20 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-				return Double.valueOf(string);
+
+				try {
+
+					return Double.valueOf(string);
+
+				} catch (NumberFormatException nex) {
+
+					throw new NumericalMethodInputParsingException(getFullMethodName(), getName(), parameterName, input);
+				}
 			}
 		}
 
 		if ("float".equals(targetType) || "Float".equals(targetType)) {
-			
+
 			if (input instanceof Number number) {
 
 				return number.floatValue();
@@ -291,7 +326,15 @@ public abstract class AbstractMethod {
 
 			if (input instanceof String string) {
 
-				return Float.valueOf(string);
+
+				try {
+
+					return Float.valueOf(string);
+
+				} catch (NumberFormatException nex) {
+
+					throw new NumericalMethodInputParsingException(getFullMethodName(), getName(), parameterName, input);
+				}
 			}
 		}
 

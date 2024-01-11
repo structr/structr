@@ -61,12 +61,12 @@ public class ScriptMethod extends AbstractMethod {
 
 	@Override
 	public boolean useGET() {
-		return true;
+		return method.usesGet();
 	}
 
 	@Override
 	public boolean usePOST() {
-		return true;
+		return !useGET();
 	}
 
 	@Override

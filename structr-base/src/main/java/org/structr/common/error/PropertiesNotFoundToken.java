@@ -18,7 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 
 /**
@@ -28,7 +27,10 @@ import org.structr.core.property.PropertyMap;
  */
 public class PropertiesNotFoundToken extends SemanticErrorToken {
 
-	public PropertiesNotFoundToken(final String type, final PropertyKey key, final PropertyMap attributes) {
-		super(type, key, "object_not_found", attributes);
+	public PropertiesNotFoundToken(final String type, final String propertyKey, final PropertyMap attributes) {
+
+		super(type, propertyKey, "object_not_found");
+
+		withDetail(attributes);
 	}
 }

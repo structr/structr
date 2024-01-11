@@ -18,8 +18,6 @@
  */
 package org.structr.test.web.advanced;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonSchema;
 import org.structr.api.schema.JsonType;
 import org.structr.common.error.FrameworkException;
@@ -55,8 +53,6 @@ import java.util.Map;
 import static org.testng.AssertJUnit.*;
 
 public class Deployment3Test extends DeploymentTestBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(Deployment3Test.class.getName());
 
 	@Test
 	public void test31RoundtripWithEmptyContentElements() {
@@ -153,7 +149,8 @@ public class Deployment3Test extends DeploymentTestBase {
 				new NodeAttribute<>(SchemaMethod.summary,                     "summary"),
 				new NodeAttribute<>(SchemaMethod.description,                 "description"),
 				new NodeAttribute<>(SchemaMethod.isStatic,                    true),
-				new NodeAttribute<>(SchemaMethod.isPrivate,                   true)
+				new NodeAttribute<>(SchemaMethod.isPrivate,                   true),
+				new NodeAttribute<>(SchemaMethod.usesGet,                     true)
 			);
 
 			// and one without (i.e. user-defined function)
@@ -192,7 +189,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isStatic));
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isPrivate));
 
-			
+
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!
 
 			assertEquals("Invalid SchemaMethod deployment result", "method2",          method2.getProperty(SchemaMethod.name));
