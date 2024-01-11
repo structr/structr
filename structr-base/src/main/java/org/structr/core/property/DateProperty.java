@@ -188,7 +188,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 				} else {
 
-					throw new FrameworkException(422, "Unnkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source));
 
 				}
 			}

@@ -85,7 +85,7 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
-			throw new FrameworkException(422, "Empty notion property expression for property " + source.getPropertyName() + ".", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
+			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression for property " + source.getPropertyName() + "."));
 		}
 
 		final StringBuilder buf = new StringBuilder();
@@ -186,11 +186,11 @@ public class NotionPropertyParser extends PropertySourceGenerator {
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid notion property expression for property " + source.getPropertyName() +  ".", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + "."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + "."));
 			}
 
 			if (properties.isEmpty()) {
-				throw new FrameworkException(422, "Invalid notion property expression for property " + source.getPropertyName() +  ".", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + ", notion must define at least one property."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(entity.getClassName(), source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression for property " + source.getPropertyName() + ", notion must define at least one property."));
 			}
 		}
 

@@ -72,7 +72,7 @@ public abstract class AbstractReadOnlyProperty<T> extends Property<T> {
 
 	@Override
 	public Object setProperty(SecurityContext securityContext, GraphObject obj, final T value) throws FrameworkException {
-		throw new FrameworkException(422, "Property " + jsonName() + " is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), jsonName));
+		throw new FrameworkException(422, "Property ‛" + jsonName() + "‛ is read-only", new ReadOnlyPropertyToken(obj.getClass().getSimpleName(), jsonName));
 	}
 
 	@Override

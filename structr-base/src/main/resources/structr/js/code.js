@@ -1386,7 +1386,7 @@ let _Code = {
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,usesGet,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -1596,7 +1596,7 @@ let _Code = {
 			});
 
 			// run button
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic && !result.isPrivate) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
@@ -3049,10 +3049,24 @@ let _Code = {
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
-					<div class="checkbox hidden entity-method">
-						<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
-							<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
-						</label>
+					<div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Method is private
+							</label>
+						</div>
+					</div>
+					<div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can be called via GET instead of POST.">
+								<input type="checkbox" data-property="usesGet" ${config.method.usesGet ? 'checked' : ''}> Method uses GET instead of POST
+							</label>
+						</div>
 					</div>
 				</div>
 			</div>
