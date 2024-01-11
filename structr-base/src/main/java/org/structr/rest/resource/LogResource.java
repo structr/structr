@@ -270,15 +270,15 @@ public class LogResource extends ExactMatchEndpoint {
 					final ErrorBuffer errorBuffer = new ErrorBuffer();
 
 					if (StringUtils.isEmpty(subjectId)) {
-						errorBuffer.add(new EmptyPropertyToken("LogFile", subjectProperty));
+						errorBuffer.add(new EmptyPropertyToken("LogFile", subjectProperty.jsonName()));
 					}
 
 					if (StringUtils.isEmpty(objectId)) {
-						errorBuffer.add(new EmptyPropertyToken("LogFile", objectProperty));
+						errorBuffer.add(new EmptyPropertyToken("LogFile", objectProperty.jsonName()));
 					}
 
 					if (StringUtils.isEmpty(action)) {
-						errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty));
+						errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty.jsonName()));
 					}
 
 					throw new FrameworkException(422, "Log entry must consist of at least subjectId, objectId and action", errorBuffer);

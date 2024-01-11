@@ -19,17 +19,16 @@
 package org.structr.core.property;
 
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.NumberToken;
+import org.structr.common.error.NumberFormatToken;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
 
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.common.error.PropertyInputParsingException;
 
 /**
 * A property that stores and retrieves a simple Integer value.
@@ -37,8 +36,6 @@ import java.util.TreeMap;
  *
  */
 public class IntProperty extends AbstractPrimitiveProperty<Integer> implements NumericalPropertyKey<Integer> {
-
-	private static final Logger logger = LoggerFactory.getLogger(IntProperty.class.getName());
 
 	public IntProperty(final String name) {
 		super(name);
@@ -109,7 +106,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+					);
 				}
 			}
 
@@ -151,7 +151,10 @@ public class IntProperty extends AbstractPrimitiveProperty<Integer> implements N
 
 				} catch (Throwable t) {
 
-					throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new NumberToken(declaringClass.getSimpleName(), IntProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new NumberFormatToken(declaringClass.getSimpleName(), jsonName(), source)
+					);
 				}
 			}
 

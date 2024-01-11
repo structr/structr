@@ -30,6 +30,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Map;
+import org.structr.api.util.PagingIterable;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
@@ -85,25 +86,54 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 		@Override
 		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			throw new IllegalMethodException("GET not allowed on " + getURL());
-		}
 
-		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		if (method.useGET()) {
 
 			final App app = StructrApp.getInstance(securityContext);
 
 			try (final Tx tx = app.tx()) {
 
-				final Arguments arguments     = Arguments.fromMap(propertySet);
+				final Arguments arguments     = Arguments.fromPath(call.getPathParameters());
 				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
 
 				tx.success();
 
-				return result;
+				return new PagingIterable("GET " + getURL(), result.getContent());
 
 			} catch (UnlicensedScriptException ex) {
-				return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
+
+				throw new FrameworkException(500, "Call to unlicensed function, see server log file for more details.");
+			}
+
+		} else {
+
+			throw new IllegalMethodException("GET not allowed on " + getURL());
+		}
+		}
+
+		@Override
+		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+
+			if (method.usePOST()) {
+
+				final App app = StructrApp.getInstance(securityContext);
+
+				try (final Tx tx = app.tx()) {
+
+					final Arguments arguments     = Arguments.fromMap(propertySet);
+					final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
+
+					tx.success();
+
+					return result;
+
+				} catch (UnlicensedScriptException ex) {
+					return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
+				}
+
+			} else {
+
+				throw new IllegalMethodException("POST not allowed on " + getURL());
 			}
 		}
 

@@ -21,8 +21,6 @@ package org.structr.core.function;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
-import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
 public class ErrorFunction extends AdvancedScriptingFunction {
@@ -60,15 +58,13 @@ public class ErrorFunction extends AdvancedScriptingFunction {
 			switch (sources.length) {
 
 				case 2: {
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, (String)sources[0]);
-					ctx.raiseError(422, new SemanticErrorToken(type, key, (String)sources[1]));
+					ctx.raiseError(422, new SemanticErrorToken(type, (String)sources[0], (String)sources[1]));
 
 					break;
 				}
 
 				case 3: {
-					final PropertyKey key = StructrApp.getConfiguration().getPropertyKeyForJSONName(entityType, (String)sources[0]);
-					ctx.raiseError(422, new SemanticErrorToken(type, key, (String)sources[1], sources[2]));
+					ctx.raiseError(422, new SemanticErrorToken(type, (String)sources[0], (String)sources[1]).withDetail(sources[2]));
 
 					break;
 				}

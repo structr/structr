@@ -170,7 +170,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 					final boolean renameSuccess = AbstractFile.renameMountedAbstractFile(thisFile.getParent(), thisFile, "", prevName);
 
 					if (!renameSuccess) {
-						errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFile.name, "Renaming failed"));
+						errorBuffer.add(new SemanticErrorToken("RenameFailed", AbstractFile.name.jsonName(), "Renaming failed"));
 					}
 				}
 			}
@@ -195,7 +195,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 					if (errorBuffer != null) {
 
-						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey, file.getUuid(), thisFile.getUuid(), filePath);
+						final UniqueToken token = new UniqueToken(AbstractFile.class.getSimpleName(), pathKey.jsonName(), file.getUuid(), thisFile.getUuid(), filePath);
 						token.setValue(filePath);
 
 						errorBuffer.add(token);

@@ -18,10 +18,9 @@
  */
 package org.structr.web.error;
 
-import org.structr.common.error.SemanticErrorToken;
-import org.structr.core.property.PropertyKey;
 
 import java.util.Map;
+import org.structr.common.error.SemanticErrorToken;
 
 /**
  *
@@ -29,7 +28,10 @@ import java.util.Map;
  */
 public class DynamicValidationError extends SemanticErrorToken {
 
-	public DynamicValidationError(final String type, final PropertyKey key, final Map<String, Object> attributes) {
-		super(type, key, "validation_error", attributes);
+	public DynamicValidationError(final String type, final String propertyKey, final Map<String, Object> attributes) {
+
+		super(type, propertyKey, "validation_error");
+
+		withDetail(attributes);
 	}
 }

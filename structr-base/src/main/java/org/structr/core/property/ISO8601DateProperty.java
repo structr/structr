@@ -27,6 +27,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.util.Date;
+import org.structr.common.error.PropertyInputParsingException;
 
 /**
  * A property that stores and retrieves a Date string in ISO8601 format. This property
@@ -96,7 +97,10 @@ public class ISO8601DateProperty extends DateProperty {
 
 				} else {
 
-					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
+					throw new PropertyInputParsingException(
+						jsonName(),
+						new DateFormatToken(declaringClass.getSimpleName(), jsonName())
+					);
 
 				}
 			}

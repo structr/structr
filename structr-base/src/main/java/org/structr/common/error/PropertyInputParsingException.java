@@ -19,17 +19,11 @@
 package org.structr.common.error;
 
 /**
- * Indicates that a property value must match a given expression.
- *
- *
+ * Specialized exception for errors in property input parsing.
  */
-public class MatchToken extends SemanticErrorToken {
+public class PropertyInputParsingException extends FrameworkException {
 
-	public MatchToken(final String type, final String propertyKey, final String expression, final Object value) {
-
-		super(type, propertyKey, "must_match");
-
-		withDetail(expression);
-		withValue(value);
+	public PropertyInputParsingException(final String propertyName, final ErrorToken errorToken) {
+		super(422, "Cannot parse input for property '" + propertyName + "'", errorToken);
 	}
 }

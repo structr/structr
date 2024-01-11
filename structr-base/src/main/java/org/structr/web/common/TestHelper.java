@@ -223,7 +223,7 @@ public class TestHelper {
 
 		final StringBuilder body = new StringBuilder("{ name: ");
 
-		body.append("'test");
+		body.append("'Test");
 		body.append(++count);
 		body.append("'");
 

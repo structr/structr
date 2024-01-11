@@ -155,11 +155,11 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				RelationshipInterface newRelationship = null;
 
 				if (sourceNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getSourceIdProperty()));
+					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getSourceIdProperty().jsonName()));
 				}
 
 				if (targetNode == null) {
-					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getTargetIdProperty()));
+					errorBuffer.add(new EmptyPropertyToken(entityClass.getSimpleName(), template.getTargetIdProperty().jsonName()));
 				}
 
 				if (errorBuffer.hasError()) {

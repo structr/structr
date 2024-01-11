@@ -65,7 +65,7 @@ public class ConstantBooleanProperty extends AbstractPrimitiveProperty<Boolean>	
 
 	@Override
 	public Object setProperty(final SecurityContext securityContext, final GraphObject obj, final Boolean value) throws FrameworkException {
-		throw new FrameworkException(422, "Unable to change value of a constant property", new ReadOnlyPropertyToken(obj.getType(), this));
+		throw new FrameworkException(422, "Unable to change value of a constant property", new ReadOnlyPropertyToken(obj.getType(), jsonName()));
 	}
 
 	@Override

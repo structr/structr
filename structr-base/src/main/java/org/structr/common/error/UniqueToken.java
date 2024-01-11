@@ -18,9 +18,6 @@
  */
 package org.structr.common.error;
 
-import com.google.gson.JsonObject;
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a specific property value already exists in the database.
  *
@@ -28,42 +25,18 @@ import org.structr.core.property.PropertyKey;
  */
 public class UniqueToken extends SemanticErrorToken {
 
-	private final String existingUuid;
+	public UniqueToken(final String type, final String property, final String uuid, final String existingUuid, final Object value) {
 
-	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid) {
-		super(type, propertyKey, "already_taken", uuid);
-		existingUuid = null;
-	}
+		super(type, property, "already_taken");
 
-	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid, final String existingUuid) {
-		super(type, propertyKey, "already_taken", uuid);
-		this.existingUuid = existingUuid;
-	}
+		withDetail(uuid);
+		withValue(value);
 
-	public UniqueToken(final String type, final PropertyKey propertyKey, final String uuid, final String existingUuid, final Object value) {
-		super(type, propertyKey, "already_taken", uuid, value);
-		this.existingUuid = existingUuid;
-	}
-
-	public JsonObject toJSON() {
-
-		final JsonObject token = new JsonObject();
-
-		token.add("type",     getStringOrNull(getType()));
-		token.add("property", getStringOrNull(getProperty()));
-		token.add("token",    getStringOrNull(getToken()));
-
-		// optional
-		addIfNonNull(token, "detail", getObjectOrNull(getDetail()));
-		addIfNonNull(token, "value",  getObjectOrNull(getValue()));
-		addIfNonNull(token, "existingNodeUuid",  getObjectOrNull(getExistingUuid()));
-
-		return token;
+		with("existingNodeUuid", existingUuid);
 	}
 
 	public String getExistingUuid() {
-
-		return this.existingUuid;
+		return (String)data.get("existingNodeUuid");
 	}
 
 	@Override

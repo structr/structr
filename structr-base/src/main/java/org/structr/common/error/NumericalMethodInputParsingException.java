@@ -18,15 +18,17 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
- *
- *
+ * Specialized exception for errors in property input parsing.
  */
-public class NumberToken extends SemanticErrorToken {
+public class NumericalMethodInputParsingException extends FrameworkException {
 
-	public NumberToken(final String type, final PropertyKey key) {
-		super(type, key, "must_be_numerical");
+	public NumericalMethodInputParsingException(final String longMethodName, final String methodName, final String parameterName, final Object value) {
+
+		super(
+			422,
+			"Cannot parse input for parameter '" + parameterName + "' in " + longMethodName,
+			new SemanticErrorToken(null, null, "must_be_numerical").withValue(value).with("method", methodName).with("parameter", parameterName)
+		);
 	}
 }
