@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 document.addEventListener('DOMContentLoaded', () => {
 	_Config.init();
 });
@@ -142,12 +141,41 @@ let _Config = {
 		loadingMessageId: 'config-database-loading',
 		init: () => {
 
-			for (let collapsed of document.querySelectorAll('.new-connection.collapsed')) {
+			document.querySelector('.show-add-connection').addEventListener('click', (e) => {
 
-				collapsed.addEventListener('click', () => {
-					collapsed.classList.remove('collapsed');
-				});
-			}
+				let connectionPanel = e.target.closest('.connection');
+
+				let newConnPasswordInput = connectionPanel.querySelector('#password-structr-new-connection');
+
+				let newParent = _Helpers.createSingleDOMElementFromHTML('<div class="relative"></div>');
+
+				newConnPasswordInput.parentNode.appendChild(newParent);
+				newParent.appendChild(newConnPasswordInput);
+
+				let showPasswordIcon = `
+					<div class="absolute flex h-full items-center right-2 top-0">
+						${_Icons.getSvgIcon(_Icons.iconEyeOpen, 22, 22, _Icons.getSvgIconClassesForColoredIcon(['icon-dark-blue', 'cursor-pointer']), 'Show password')}
+					</div>
+				`;
+
+				newParent.insertAdjacentHTML('beforeend', showPasswordIcon);
+				newParent.querySelector('svg').addEventListener('click', (e) => {
+					switch (newConnPasswordInput.type) {
+						case "text":
+							newConnPasswordInput.type = 'password';
+							_Icons.updateSvgIconInElement(e.target.closest('svg'), _Icons.iconEyeStrikeThrough, _Icons.iconEyeOpen);
+							break;
+						case "password":
+							newConnPasswordInput.type = 'text';
+							_Icons.updateSvgIconInElement(e.target.closest('svg'), _Icons.iconEyeOpen, _Icons.iconEyeStrikeThrough);
+							break;
+					}
+				})
+
+				connectionPanel.classList.remove('collapsed');
+
+				_Helpers.fastRemoveElement(e.target.closest('.show-add-connection'));
+			});
 
 			let addConnectionButton = document.querySelector('#add-connection');
 			addConnectionButton.addEventListener('click', () => {
@@ -191,11 +219,11 @@ let _Config = {
 			let pwdInput     = $('input#password-' + name);
 			let nowCheckbox  = $('input#connect-checkbox');
 
-			nameInput.parent().removeClass();
-			driverSelect.parent().removeClass();
-			urlInput.parent().removeClass();
-			userInput.parent().removeClass();
-			pwdInput.parent().removeClass();
+			nameInput.closest('p').removeClass();
+			driverSelect.closest('p').removeClass();
+			urlInput.closest('p').removeClass();
+			userInput.closest('p').removeClass();
+			pwdInput.closest('p').removeClass();
 
 			let data = {
 				name:     nameInput.val(),
@@ -268,7 +296,7 @@ let _Config = {
 			document.querySelector('#url-structr-new-connection').value      = 'bolt://localhost:7687';
 			document.querySelector('#database-structr-new-connection').value = 'neo4j';
 			document.querySelector('#username-structr-new-connection').value = 'neo4j';
-			document.querySelector('#password-structr-new-connection').value = 'neo4j';
+			document.querySelector('#password-structr-new-connection').value = 'adminneo4j';
 		},
 		saveConnection: (name) => {
 
@@ -373,7 +401,7 @@ let _Config = {
 
 						json.errors.forEach(t => {
 							if (t.property !== undefined && t.token !== undefined) {
-								$(`input#${t.property}-${name}`).parent().addClass(t.token);
+								$(`input#${t.property}-${name}`).closest('p').addClass(t.token);
 							}
 						});
 
@@ -433,6 +461,7 @@ let _Config = {
 let _Search = {
 	hitClass: 'search-matches',
 	noHitClass: 'no-search-match',
+	noHitAtAllClass: 'no-search-results',
 	lsSearchStringKey: 'structrConfigSearchKey',
 	containsIgnoreCase: (haystack, needle) => {
     	return haystack.toLowerCase().includes(needle.toLowerCase());
@@ -516,6 +545,9 @@ let _Search = {
     	}
     },
 	clearSearch: () => {
+
+		document.getElementById('main').classList.remove(_Search.noHitAtAllClass);
+
     	document.querySelectorAll('.' + _Search.hitClass).forEach((node) => {
     		node.classList.remove(_Search.hitClass);
     	});
@@ -659,7 +691,8 @@ let _Search = {
 				// in case a password field got auto-focused by the browser
 				document.getElementById('search-box').focus();
 			} else {
-				// nothing to show!
+
+				document.getElementById('main').classList.add(_Search.noHitAtAllClass);
 			}
 		}
 	}

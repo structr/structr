@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,8 @@ import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
+
+import java.util.regex.PatternSyntaxException;
 
 public class StrReplaceFunction extends CoreFunction {
 
@@ -55,6 +57,10 @@ public class StrReplaceFunction extends CoreFunction {
 
 			logParameterError(caller, sources, pe.getMessage(), ctx.isJavaScriptContext());
 			return usage(ctx.isJavaScriptContext());
+		} catch (PatternSyntaxException ex) {
+
+			logParameterError(caller, sources, "Error in RegEx: " + ex.getMessage(),ctx.isJavaScriptContext());
+			return null;
 		}
 	}
 

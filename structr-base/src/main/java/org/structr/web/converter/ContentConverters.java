@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,10 @@ package org.structr.web.converter;
 
 import com.vladsch.flexmark.html.HtmlRenderer;
 import com.vladsch.flexmark.parser.Parser;
-import com.vladsch.flexmark.profiles.pegdown.Extensions;
-import com.vladsch.flexmark.profiles.pegdown.PegdownOptionsAdapter;
-import com.vladsch.flexmark.util.options.MutableDataSet;
+import com.vladsch.flexmark.profile.pegdown.Extensions;
+import com.vladsch.flexmark.profile.pegdown.PegdownOptionsAdapter;
+import com.vladsch.flexmark.util.data.MutableDataSet;
+import com.vladsch.flexmark.util.misc.Extension;
 import net.java.textilej.parser.MarkupParser;
 import net.java.textilej.parser.markup.confluence.ConfluenceDialect;
 import net.java.textilej.parser.markup.mediawiki.MediaWikiDialect;
@@ -57,7 +58,8 @@ public class ContentConverters {
 			public String adapt(String s) throws FrameworkException {
 
 				if (s != null) {
-					com.vladsch.flexmark.ast.Node document = flexMarkProcessor.get().parser.parse(s);
+
+					com.vladsch.flexmark.util.ast.Node document = flexMarkProcessor.get().parser.parse(s);
 					return flexMarkProcessor.get().renderer.render(document);
 				}
 
@@ -176,7 +178,7 @@ public class ContentConverters {
 
 			final MutableDataSet options = new MutableDataSet();
 
-                        options.setAll(PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL));
+            options.setAll(PegdownOptionsAdapter.flexmarkOptions(Extensions.ALL));
 //			options.set(HtmlRenderer.SOFT_BREAK, "<br />\n");
 
 			Parser parser = Parser.builder(options).build();

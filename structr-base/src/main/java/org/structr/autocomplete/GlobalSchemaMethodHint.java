@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,19 +16,21 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-'use strict';
+package org.structr.autocomplete;
 
-export class Handler {
+public class GlobalSchemaMethodHint extends MethodHint {
 
-	constructor(frontendModule) {
-		this.frontendModule = frontendModule;
-	}
+    public GlobalSchemaMethodHint(String name, String summary, String description) {
+        super(name, summary, description);
+    }
 
-	handleReloadTarget(reloadTarget, element, parameters, status, options) {
+    @Override
+    public String getReplacement() {
+        return "globalSchemaMethods." + getDisplayName();
+    }
 
-		// remove prefix "event:"
-		let event = reloadTarget.substring(6);
-
-		element.dispatchEvent(new CustomEvent(event, { bubbles: true, detail: { result: parameters, status: status, element: element } }));
-	}
+    @Override
+    public String getType() {
+        return "Global schema method";
+    }
 }

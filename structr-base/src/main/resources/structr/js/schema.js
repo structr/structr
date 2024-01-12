@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
@@ -3132,7 +3131,7 @@ let _Schema = {
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
-					closeOnSelect: false,
+					closeOnSelect: true,
 					scrollAfterSelect: false,
 					dropdownParent: dropdownParent
 				});

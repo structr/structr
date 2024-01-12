@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -130,6 +130,7 @@ let _Icons = {
 	iconDatetime:            'datetime-icon',
 	iconTypeVisibility:      'eye-in-square',
 	iconEyeOpen:             'eye_open',
+	iconEyeStrikeThrough:    'eye_strikethrough',
 	iconGlobe:               'globe-icon',
 	iconOpenInNewPage:       'link_external',
 	iconListWithCog:         'list-cog',

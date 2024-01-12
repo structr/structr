@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -152,7 +152,7 @@ public class StructrFilePath extends StructrPath {
 
 					final File file = (File)actualFile;
 
-					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(append, truncate);
+					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
 				}
 
 				tx.success();
@@ -168,7 +168,7 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel(append, truncate);
+					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel(options);
 
 					tx.success();
 

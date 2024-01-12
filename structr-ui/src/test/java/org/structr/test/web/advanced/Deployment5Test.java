@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import java.io.IOException;
 import org.hamcrest.Matchers;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
@@ -29,6 +30,9 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.web.common.FileHelper;
+import org.structr.web.entity.File;
+import org.structr.web.entity.Folder;
 import org.structr.web.entity.User;
 import org.structr.web.entity.dom.DOMElement;
 import org.structr.web.entity.dom.DOMNode;
@@ -481,5 +485,103 @@ public class Deployment5Test extends DeploymentTestBase {
 
 		// test
 		compare(calculateHash(), true);
+	}
+
+	@Test
+	public void test56RenamedFileAndFolderInNewerVersionOfDeploymentExport() {
+
+		/**
+		 * This method tests/ensures that the state of files/folders after a deployment import reprensents what was actually in the export data
+		 *
+		 * We first create v2 and export it, then we artificially go back to v1 and import the v2 export.
+		 * The file/folder should then be identical to the one imported
+		 */
+
+		final String v1FolderName = "rezources";
+		final String v2FolderName = "resources";
+
+		final String v1FileName   = "app.mun.js";
+		final String v2FileName   = "app.min.js";
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String folderPath = "/" + v2FolderName + "/js/";
+			final Folder folder     = FileHelper.createFolderPath(securityContext, folderPath);
+			final File file         = FileHelper.createFile(securityContext, "/* app.min.js */".getBytes("utf-8"), "text/javascript", File.class, v2FileName, true);
+			final Folder rootFolder = getRootFolder(folder);
+
+			assertNotNull("Root folder should not be null", rootFolder);
+
+			// root folder needs to have "includeInFrontendExport" set
+			rootFolder.setProperty(StructrApp.key(Folder.class, "includeInFrontendExport"), true);
+
+			file.setProperty(StructrApp.key(File.class, "parent"), folder);
+
+			tx.success();
+
+		} catch (IOException | FrameworkException fex) {
+
+			logger.warn("", fex);
+			fail("Unexpected exception.");
+		}
+
+		// test, don't clean the database but change folder+file name back to v1
+		doImportExportRoundtrip(true, false, t -> {
+
+			try (final Tx tx = app.tx()) {
+
+				final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
+				folder.setProperty(AbstractNode.name, v1FolderName);
+
+				final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
+				file.setProperty(AbstractNode.name, v1FileName);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+				fail("Unexpected exception.");
+			}
+
+			try (final Tx tx = app.tx()) {
+
+				final Folder folder = app.nodeQuery(Folder.class).andName(v1FolderName).getFirst();
+				final File file = app.nodeQuery(File.class).andName(v1FileName).getFirst();
+
+				assertNotNull("Folder rename did not work", folder);
+				assertNotNull("File rename did not work", file);
+
+				tx.success();
+
+			} catch (FrameworkException fex) {
+
+				logger.warn("", fex);
+				fail("Unexpected exception.");
+			}
+
+			return null;
+		});
+
+		// check that the correct file/folder name is set
+		try (final Tx tx = app.tx()) {
+
+			final Folder folder = app.nodeQuery(Folder.class).andName(v2FolderName).getFirst();
+
+			assertNotNull("Invalid deployment result", folder);
+
+			final File file = app.nodeQuery(File.class).andName(v2FileName).getFirst();
+
+			assertNotNull("Invalid deployment result", file);
+
+			assertEquals("Deployment import does not restore parent attribute correctly", folder, file.getParent().getParent());
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
 	}
 }

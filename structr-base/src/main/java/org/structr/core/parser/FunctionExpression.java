@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,6 +19,7 @@
 package org.structr.core.parser;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.GraphObject;
@@ -28,7 +29,6 @@ import org.structr.core.graph.Tx;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.action.Function;
-import org.structr.schema.action.Hint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -119,7 +119,7 @@ public class FunctionExpression extends Expression {
 		return function;
 	}
 
-	public List<Hint> getContextHints() {
+	public List<AbstractHint> getContextHints() {
 
 		if (this.function != null) {
 

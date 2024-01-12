@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 const globalFinalizationRegistry = new FinalizationRegistry(message => console.log('finalized: ' + message));
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -241,6 +240,8 @@ let Structr = {
 		visibleToAuthenticatedUsers: "Auth. Vis."
 	},
 	dialogTimeoutId: undefined,
+	instanceName: '',
+	instanceStage: '',
 	getDiffMatchPatch: () => {
 		if (!Structr.diffMatchPatch) {
 			Structr.diffMatchPatch = new diff_match_patch();
@@ -248,12 +249,8 @@ let Structr = {
 		return Structr.diffMatchPatch;
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
-	setFunctionBarHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.functionBar, html);
-	},
-	setMainContainerHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.mainContainer, html);
-	},
+	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
+	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
 
 	moveUIOffscreen: () => {
 
@@ -370,6 +367,14 @@ let Structr = {
 			StructrWS.user = name;
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
+	},
+	updateDocumentTitle: () => {
+
+		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
+
+		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+
+		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
 	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
@@ -854,6 +859,10 @@ let Structr = {
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
+			Structr.instanceName  = envInfo.instanceName;
+			Structr.instanceStage = envInfo.instanceStage;
+			Structr.updateDocumentTitle();
+
 			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
 			if (true === envInfo.maintenanceModeActive) {
@@ -1007,19 +1016,22 @@ let Structr = {
 
 			Structr.mainMenu.lastMenuEntry = name;
 
-			for (let menuEntry of document.querySelectorAll('.menu li')) {
-				menuEntry.classList.remove('active');
+			for (let entry of document.querySelectorAll('.menu li')) {
+				entry.classList.remove('active');
 			}
 
 			li.classList.add('active');
 
-			document.title       = `Structr ${menuEntry.textContent.trim()}`;
+			Structr.updateDocumentTitle();
 			window.location.hash = Structr.mainMenu.lastMenuEntry;
 
 			if (Structr.mainMenu.lastMenuEntry && Structr.mainMenu.lastMenuEntry !== 'logout') {
 				LSWrapper.setItem(Structr.mainMenu.lastMenuEntryKey, Structr.mainMenu.lastMenuEntry);
 			}
 		},
+		getActiveEntry: () => {
+			return document.querySelector('#menu .active');
+		}
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: (el) => {
@@ -1516,25 +1528,18 @@ let Structr = {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
 
-					builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+					let createGrant = (grantData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
 						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
 
-						let additionalData = {};
-
-						if (data.validUser === true) {
-							additionalData.visibleToAuthenticatedUsers = true;
-						} else {
-							additionalData.visibleToPublicUsers = true;
-						}
-
-						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, grantData);
 
 						let resourceAccessKey = 'resource-access';
 
 						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
 						if (!grantPagerConfig) {
+
 							grantPagerConfig = {
 								id: resourceAccessKey,
 								type: resourceAccessKey,
@@ -1543,9 +1548,12 @@ let Structr = {
 								sort: "signature",
 								order: "asc"
 							};
+
 						} else {
+
 							grantPagerConfig = JSON.parse(grantPagerConfig);
 						}
+
 						grantPagerConfig.filters = {
 							flags: false,
 							signature: data.signature
@@ -1553,13 +1561,26 @@ let Structr = {
 
 						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
-						if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+						if (Structr.isModuleActive(_Security)) {
+
 							_Security.selectTab(resourceAccessKey);
+
 						} else {
+
 							LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
 							window.location.href = '#security';
 						}
-					}, 'Dismiss');
+					};
+
+					if (data.validUser === false) {
+
+						builder.specialInteractionButton('Create and show grant for <b>public</b> users', () => { createGrant({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+
+					} else {
+
+						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid }] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+					}
 
 					builder.show();
 				}
@@ -1645,7 +1666,7 @@ let Structr = {
 
 							} else {
 
-								builder.specialInteractionButton('Open in editor', function(btn) {
+								builder.specialInteractionButton('Open in editor', () => {
 
 									switch (data.nodeType) {
 										case 'Content':
@@ -1708,7 +1729,7 @@ let Structr = {
 									builder.text(`${data.message}<br><br>Source: ${title}`);
 								}
 
-								builder.specialInteractionButton('Go to element in page tree', function (btn) {
+								builder.specialInteractionButton('Go to element in page tree', () => {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
@@ -2216,7 +2237,8 @@ class MessageBuilder {
 			updatesButtons: false,
 			appendsText: false,
 			appendSelector: '',
-			incrementsUniqueCount: false
+			incrementsUniqueCount: false,
+			specialInteractionButtons: []
 		};
 	}
 
@@ -2248,27 +2270,24 @@ class MessageBuilder {
 		return this;
 	};
 
-	getButtonHtml() {
-
-		return `
-			${(this.params.requiresConfirmation ? `<button class="confirm inline-flex items-center hover:border-gray-666">${this.params.confirmButtonText}</button>` : '')}
-			${(this.params.requiresConfirmation && this.params.allowConfirmAll ? `<button class="confirmAll inline-flex items-center hover:border-gray-666">${this.params.confirmAllButtonText}</button>` : '')}
-			${(this.params.specialInteractionButton ? `<button class="special inline-flex items-center hover:border-gray-666">${this.params.specialInteractionButton.text}</button>` : '')}
-		`;
-	};
-
-	activateButtons() {
+	appendButtons(buttonElement) {
 
 		if (this.params.requiresConfirmation === true) {
 
-			document.querySelector(`#${this.params.msgId} button.confirm`).addEventListener('click', (e) => {
+			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666 mb-2">${this.params.confirmButtonText}</button>`);
+			buttonElement.appendChild(confirmationButton);
+
+			confirmationButton.addEventListener('click', (e) => {
 				e.target.closest('button').remove();
 				this.dismiss();
 			});
 
 			if (this.params.allowConfirmAll === true) {
 
-				document.querySelector(`#${this.params.msgId} button.confirmAll`).addEventListener('click', () => {
+				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666 mb-2">${this.params.confirmAllButtonText}</button>`);
+				buttonElement.appendChild(confirmAllButton);
+
+				confirmAllButton.addEventListener('click', () => {
 					for (let confirmButton of document.querySelectorAll(`#info-area button.confirm`)) {
 						confirmButton.click();
 					}
@@ -2286,10 +2305,14 @@ class MessageBuilder {
 			});
 		}
 
-		if (this.params.specialInteractionButton) {
+		for (let btn of this.params.specialInteractionButtons) {
 
-			document.querySelector(`#${this.params.msgId} button.special`).addEventListener('click', () => {
-				this.params.specialInteractionButton.action();
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mb-2">${btn.text}</button>`);
+			buttonElement.appendChild(specialBtn);
+
+			specialBtn.addEventListener('click', () => {
+
+				btn.action?.();
 
 				this.dismiss();
 			});
@@ -2346,8 +2369,7 @@ class MessageBuilder {
 					let buttonsContainer = existingMessage.querySelector('.message-buttons');
 					_Helpers.fastRemoveAllChildren(buttonsContainer);
 
-					buttonsContainer.insertAdjacentHTML('beforeend', this.getButtonHtml());
-					this.activateButtons();
+					this.appendButtons(buttonsContainer);
 				}
 			}
 		}
@@ -2366,16 +2388,14 @@ class MessageBuilder {
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mt-2 mb-1">
-							${this.getButtonHtml()}
-						</div>
+						<div class="message-buttons text-right mt-2"></div>
 					</div>
 				</div>
 			`);
 
-			document.querySelector('#info-area').appendChild(message);
+			this.appendButtons(message.querySelector('.message-buttons'));
 
-			this.activateButtons();
+			document.querySelector('#info-area').appendChild(message);
 		}
 	};
 
@@ -2394,10 +2414,10 @@ class MessageBuilder {
 
 	specialInteractionButton(buttonText, callback, confirmButtonText) {
 
-		this.params.specialInteractionButton = {
+		this.params.specialInteractionButtons.push({
 			text: buttonText,
 			action: callback
-		};
+		});
 
 		return this.requiresConfirmation(confirmButtonText);
 	};

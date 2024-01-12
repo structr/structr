@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -56,6 +56,7 @@ public enum RequestKeywords {
 	ParallelizeJsonOutput("parallelizeJsonOutput"),
 	SerializeNulls("serializeNulls"),
 	BatchSize("batchSize"),
+	OutputReductionDepth("outputReductionDepth"),
 
 	// edit mode
 	EditMode("edit"),

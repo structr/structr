@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,8 +28,10 @@ import org.structr.web.entity.File;
 
 import java.io.*;
 import java.nio.channels.SeekableByteChannel;
+import java.nio.file.OpenOption;
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.structr.web.entity.StorageConfiguration;
 
@@ -72,7 +74,7 @@ public class InMemoryStorageProvider extends AbstractStorageProvider {
 	}
 
 	@Override
-	public SeekableByteChannel getSeekableByteChannel(boolean append, boolean truncate) {
+	public SeekableByteChannel getSeekableByteChannel(final Set<? extends OpenOption> options) {
 
 		return new SavingInMemorySeekableByteChannel();
 	}

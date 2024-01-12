@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -51,7 +51,7 @@ public class TokenResource extends LoginResource {
     }
 
     @Override
-    protected RestMethodResult getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
+    protected Principal getUserForCredentials(SecurityContext securityContext, String emailOrUsername, String password, String twoFactorToken, String twoFactorCode, Map<String, Object> propertySet) throws FrameworkException {
 
         Principal user = null;
 
@@ -83,7 +83,7 @@ public class TokenResource extends LoginResource {
                     AuthHelper.sendLoginNotification(user, securityContext.getRequest());
                 }
 
-                return doLogin(securityContext, user);
+                return user;
             }
         }
 

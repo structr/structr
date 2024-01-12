@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,8 @@ package org.structr.core.function;
 
 import org.structr.api.config.Settings;
 import org.structr.api.search.Occurrence;
+import org.structr.autocomplete.AbstractHint;
+import org.structr.autocomplete.TypeNameHint;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -31,7 +33,6 @@ import org.structr.core.function.search.SearchFunctionPredicate;
 import org.structr.core.function.search.SearchParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
-import org.structr.schema.action.Hint;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -44,9 +45,9 @@ import java.util.Map.Entry;
 public abstract class AbstractQueryFunction extends CoreFunction implements QueryFunction {
 
 	@Override
-	public List<Hint> getContextHints(final String lastToken) {
+	public List<AbstractHint> getContextHints(final String lastToken) {
 
-		final List<Hint> hints = new LinkedList<>();
+		final List<AbstractHint> hints = new LinkedList<>();
 		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
 		for (final Entry<String, Class<? extends NodeInterface>> entry : StructrApp.getConfiguration().getNodeEntities().entrySet()) {
@@ -54,7 +55,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 			final String name = entry.getKey();
 			final Class type  = entry.getValue();
 
-			hints.add(new KeywordHint(quoteChar + name + quoteChar, type.getName()));
+			hints.add(new TypeNameHint(quoteChar + name + quoteChar, type.getSimpleName()));
 		}
 
 		return hints;

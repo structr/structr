@@ -45,17 +45,18 @@
 	</prerequisites>
 
 	<properties>
-		<java.version>20</java.version>
-		<maven.compiler.source>20</maven.compiler.source>
-		<maven.compiler.target>20</maven.compiler.target>
+		<java.version>21</java.version>
+		<maven.compiler.source>18</maven.compiler.source>
+		<maven.compiler.target>18</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
 		<test.neo4j.version>neo4j:4.4</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
-		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
+		<maven.plugin.jar.version>3.3.0</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
+		<tika.version>2.9.1</tika.version>
 	</properties>
 
 	<modules>
@@ -78,11 +79,6 @@
 			<id>central</id>
 			<name>Central Repository</name>
 			<url>https://repo.maven.apache.org/maven2</url>
-		</repository>
-		<repository>
-			<id>bedatadriven</id>
-			<name>bedatadriven public repo</name>
-			<url>https://nexus.bedatadriven.com/content/groups/public/</url>
 		</repository>
 	</repositories>
 
@@ -192,39 +188,39 @@
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-core</artifactId>
-				<version>2.5.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parsers</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<type>pom</type>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parsers-standard-package</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parser-scientific-package</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<type>pom</type>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect-optimaize</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -377,8 +373,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.11.0</version>
 				<configuration>
-					<source>20</source>
-					<target>20</target>
+					<source>18</source>
+					<target>18</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
 				</configuration>
@@ -444,7 +440,7 @@
 						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>
-						<year>2023</year>
+						<year>2024</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>

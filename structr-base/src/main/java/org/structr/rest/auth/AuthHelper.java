@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -247,10 +247,6 @@ public class AuthHelper {
 	}
 
 	public static void doLogin(final HttpServletRequest request, final Principal user) throws FrameworkException {
-
-		if (user != null) {
-			Services.getInstance().broadcastLogin(user);
-		}
 
 		if (request.getSession(false) == null) {
 			SessionHelper.newSession(request);

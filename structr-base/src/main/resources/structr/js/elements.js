@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -708,6 +708,7 @@ let _Elements = {
 				});
 			}
 		},
+		prevAnimFrameReqId_updateMenuGroupVisibility: undefined,
 		updateMenuGroupVisibility: () => {
 
 			let windowHeight = window.innerHeight;
@@ -722,12 +723,16 @@ let _Elements = {
 
 						childrenMenu.classList.remove('hidden');
 
-						let boundingRect = childrenMenu.getBoundingClientRect()
+						_Helpers.requestAnimationFrameWrapper(_Elements.contextMenu.prevAnimFrameReqId_updateMenuGroupVisibility, () => {
 
-						let bottomOfMenu = boundingRect.y + boundingRect.height;
-						if (bottomOfMenu > windowHeight) {
-							childrenMenu.style.top = (-1 - (bottomOfMenu - windowHeight) - 12) + 'px';
-						}
+							let boundingRect = childrenMenu.getBoundingClientRect();
+
+							let bottomOfMenu = boundingRect.y + boundingRect.height;
+							if (bottomOfMenu > windowHeight) {
+								childrenMenu.style.top = (-1 - (bottomOfMenu - windowHeight) - 12) + 'px';
+							}
+						});
+
 					}
 				});
 

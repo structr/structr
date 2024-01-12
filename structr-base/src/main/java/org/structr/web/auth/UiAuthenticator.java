@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -294,7 +294,9 @@ public class UiAuthenticator implements Authenticator {
 				"uri", securityContext.getCompoundRequestURI(),
 				"signature", rawResourceSignature,
 				"method", method,
-				"validUser", validUser
+				"validUser", validUser,
+				"userid",    (validUser ? user.getUuid() : ""),
+				"username",  (validUser ? user.getName() : "")
 			));
 
 			throw new UnauthorizedException("Access denied");
@@ -402,12 +404,14 @@ public class UiAuthenticator implements Authenticator {
 		RuntimeEventLog.resourceAccess("Method not allowed", eventLogMap);
 
 		TransactionCommand.simpleBroadcastGenericMessage(Map.of(
-			"type", "RESOURCE_ACCESS",
-			"message", errorMessage,
-			"uri", securityContext.getCompoundRequestURI(),
+			"type",  "RESOURCE_ACCESS",
+			"message",   errorMessage,
+			"uri",       securityContext.getCompoundRequestURI(),
 			"signature", rawResourceSignature,
-			"method", method,
-			"validUser", validUser
+			"method",    method,
+			"validUser", validUser,
+			"userid",    (validUser ? user.getUuid() : ""),
+			"username",  (validUser ? user.getName() : "")
 		));
 
 		throw new UnauthorizedException("Access denied");
@@ -421,8 +425,6 @@ public class UiAuthenticator implements Authenticator {
 		final Principal user               = AuthHelper.getPrincipalForPassword(eMailKey, emailOrUsername, password);
 
 		if  (user != null) {
-
-			Services.getInstance().broadcastLogin(user);
 
 			final boolean allowLoginBeforeConfirmation = Settings.RegistrationAllowLoginBeforeConfirmation.getValue();
 			if (user.getProperty(confKey) != null && !allowLoginBeforeConfirmation) {

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,6 +70,15 @@
 
 #main {
 	top: 4rem;
+}
+
+#main.no-search-results::before {
+	content: "- No search results -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 1;
 }
 
 body {
@@ -274,14 +283,6 @@ div.connection.collapsed {
 	box-shadow: none;
 	border-radius: 0;
 	text-align: center;
-}
-
-div.new-connection svg {
-	display: none;
-}
-
-div.new-connection.collapsed svg {
-	display: initial;
 }
 
 div.connection.collapsed p {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -348,17 +348,18 @@ let _Dragndrop = {
 				// highlight dropzone to create new shared components
 				_Pages.sharedComponents.highlightNewSharedComponentDropZone();
 
-				// highlight dropzones related to event mapping
-				for (let eventMappingDropzone of _Pages.centerPane?.querySelectorAll('.element-dropzone') ?? []) {
-					_Pages.highlightDropZone(eventMappingDropzone);
-				}
+			}
+
+			// highlight dropzones related to event mapping
+			for (let eventMappingDropzone of _Pages.centerPane?.querySelectorAll('.element-dropzone') ?? []) {
+				_Pages.highlightDropZone(eventMappingDropzone);
 			}
 		},
 		dragEnd: (e, entity, node) => {
 
 			_Pages.sharedComponents.unhighlightNewSharedComponentDropZone();
 
-			// highlight dropzones related to event mapping
+			// un-highlight dropzones related to event mapping
 			for (let eventMappingDropzone of _Pages.centerPane?.querySelectorAll('.element-dropzone') ?? []) {
 				_Pages.unhighlightDropZone(eventMappingDropzone);
 			}
@@ -578,24 +579,10 @@ let _Dragndrop = {
 				e.preventDefault();
 
 				_Dragndrop.clearDragNDropClasses();
-
-				let dropNotAllowed = _Pages.sharedComponents.isNodeInSharedComponents(Structr.node(_Dragndrop.dragEntity.id)[0]);
-				if (dropNotAllowed) {
-
-					e.dataTransfer.dropEffect = 'none';
-
-				} else {
-
-					e.dataTransfer.dropEffect = 'move';
-				}
+				e.dataTransfer.dropEffect = 'move';
 
 				domElement.classList.add(_Dragndrop.cssClasses.dragOverClass);
-
-				if (dropNotAllowed) {
-					domElement.classList.add(_Dragndrop.cssClasses.dragNodeDropNotPossibleClass);
-				} else {
-					_Dragndrop.setDragHover(domElement);
-				}
+				_Dragndrop.setDragHover(domElement);
 			});
 
 			domElement.addEventListener('dragover', (e) => {
@@ -604,12 +591,7 @@ let _Dragndrop = {
 					return;
 				}
 
-				let dropNotAllowed = _Pages.sharedComponents.isNodeInSharedComponents(Structr.node(_Dragndrop.dragEntity.id)[0]);
-				if (!dropNotAllowed) {
-					// preventDefault indicates that this is a valid drop target
-					e.preventDefault();
-				}
-
+				e.preventDefault();
 				e.stopPropagation();
 			});
 

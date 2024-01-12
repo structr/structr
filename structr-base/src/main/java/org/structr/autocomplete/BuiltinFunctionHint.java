@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,24 +16,27 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.schema.action;
+package org.structr.autocomplete;
 
-import java.util.List;
-
-/**
- *
- *
- */
-public abstract class Hint {
-
-	private boolean dontModify     = false;
-	private boolean isDynamic      = false;
+public abstract class BuiltinFunctionHint extends AbstractHint {
 
 	public abstract String shortDescription();
 	public abstract String getSignature();
-	public abstract String getName();
 
+	@Override
 	public String getDisplayName() {
+
+		// show method with signature right away
+		return getReplacement();
+	}
+
+	@Override
+	public String getDocumentation() {
+		return shortDescription();
+	}
+
+	@Override
+	public String getReplacement() {
 
 		final StringBuilder buf = new StringBuilder();
 
@@ -51,31 +54,8 @@ public abstract class Hint {
 		return buf.toString();
 	}
 
-	public String getReplacement() {
-		return getName();
-	}
-
-	public void allowNameModification(final boolean allowModification) {
-		this.dontModify = !allowModification;
-	}
-
-	public boolean mayModify() {
-		return !dontModify;
-	}
-
-	public void setIsDynamic(final boolean isDynamic) {
-		this.isDynamic = isDynamic;
-	}
-
-	public boolean isDynamic() {
-		return isDynamic;
-	}
-
-	public boolean isHidden() {
-		return false;
-	}
-
-	public List<Hint> getContextHints(final String lastToken) {
-		return null;
+	@Override
+	public String getType() {
+		return "Built-in function";
 	}
 }

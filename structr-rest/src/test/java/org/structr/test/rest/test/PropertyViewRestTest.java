@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,6 +22,7 @@ package org.structr.test.rest.test;
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 import org.structr.api.config.Settings;
+import org.structr.common.RequestKeywords;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
@@ -349,4 +350,79 @@ public class PropertyViewRestTest extends StructrRestTestBase {
 				.get(resource.concat("/customView"));
 
 	}
+
+	@Test
+	public void testOutputReductionDepthRequestKeyword() {
+
+		final String testFiveUUID  = createEntity("/TestFive", "{ \"name\": \"TestFive\" }");
+		final String testThreeUUID = createEntity("/TestThree", "{ \"name\": \"TestThree\", \"oneToOneTestFive\": \"" + testFiveUUID + "\" }");
+
+		// test that the default outputReductionDepth is 0 and nested elements are limited to id,type,name when using the "all" view
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.statusCode(200)
+					.body("result.id",                                 equalTo(testThreeUUID))
+					.body("result.type",                               equalTo("TestThree"))
+					.body("result.name",                               equalTo("TestThree"))
+					.body("result.oneToOneTestFive.id",                equalTo(testFiveUUID))
+					.body("result.oneToOneTestFive.type",              equalTo("TestFive"))
+					.body("result.oneToOneTestFive.name",              equalTo("TestFive"))
+					.body("result.oneToOneTestFive.oneToOneTestThree", nullValue())
+				.when()
+					.get("/TestThree/" + testThreeUUID + "/all");
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+					.statusCode(200)
+					.body("result.id",                                                  equalTo(testThreeUUID))
+					.body("result.type",                                                equalTo("TestThree"))
+					.body("result.name",                                                equalTo("TestThree"))
+					.body("result.oneToOneTestFive.id",                                 equalTo(testFiveUUID))
+					.body("result.oneToOneTestFive.type",                               equalTo("TestFive"))
+					.body("result.oneToOneTestFive.name",                               equalTo("TestFive"))
+
+					// test that the nested object is limited to 3 keys (id, type, name)
+					.body("result.oneToOneTestFive.oneToOneTestThree",                  aMapWithSize(3))
+					.body("result.oneToOneTestFive.oneToOneTestThree.id",               equalTo(testThreeUUID))
+					.body("result.oneToOneTestFive.oneToOneTestThree.type",             equalTo("TestThree"))
+					.body("result.oneToOneTestFive.oneToOneTestThree.name",             equalTo("TestThree"))
+
+				.when()
+					.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.keyword() + "=1");
+
+		// remove redundancy reduction, so that TestThree.TestFive.TestThree is not limited by that and can contain TestFive again
+		Settings.JsonRedundancyReduction.setValue(false);
+
+		RestAssured
+				.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseTo(System.out))
+				.expect()
+				.statusCode(200)
+				.body("result.id",                                                  equalTo(testThreeUUID))
+				.body("result.type",                                                equalTo("TestThree"))
+				.body("result.name",                                                equalTo("TestThree"))
+				.body("result.oneToOneTestFive.id",                                 equalTo(testFiveUUID))
+				.body("result.oneToOneTestFive.type",                               equalTo("TestFive"))
+				.body("result.oneToOneTestFive.name",                               equalTo("TestFive"))
+
+				// test that the nested object is limited to 3 keys (id, type, name)
+				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive",                  aMapWithSize(3))
+				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive.id",               equalTo(testFiveUUID))
+				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive.type",             equalTo("TestFive"))
+				.body("result.oneToOneTestFive.oneToOneTestThree.oneToOneTestFive.name",             equalTo("TestFive"))
+
+				.when()
+				.get("/TestThree/" + testThreeUUID + "/all?" + RequestKeywords.OutputReductionDepth.keyword() + "=2");
+
+
+		Settings.JsonRedundancyReduction.getValue(true);
+	}
+
 }

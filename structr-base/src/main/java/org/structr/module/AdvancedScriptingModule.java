@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -86,7 +86,6 @@ public class AdvancedScriptingModule implements StructrModule {
 		Functions.put(licenseManager, new DisablePreventDuplicateRelationshipsFunction());
 		Functions.put(licenseManager, new DisableUuidValidationFunction());
 		Functions.put(licenseManager, new EnableNotificationsFunction());
-		Functions.put(licenseManager, new RInterpreterFunction());
 		Functions.put(licenseManager, new EvaluateScriptFunction());
 		Functions.put(licenseManager, new AncestorTypesFunction());
 		Functions.put(licenseManager, new InheritingTypesFunction());

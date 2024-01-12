@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -514,9 +514,6 @@ let _Code = {
 
 					_Code.hideSchemaRecompileMessage();
 				}
-			})
-			Command.setProperties(entity.id, formData, () => {
-
 			});
 		}
 	},
@@ -1477,7 +1474,9 @@ let _Code = {
 
 				let parameterTplRow = $('.template', apiTab);
 				let parameterContainer = parameterTplRow.parent();
-				_Helpers.fastRemoveElement(parameterTplRow[0]);
+
+				// do not use "fastRemove" because it also removes all children and we want to use it as a template afterwards
+				parameterTplRow[0].remove();
 
 				let addParameterRow = (parameter) => {
 
@@ -1508,7 +1507,7 @@ let _Code = {
 					parameterContainer.append(clone);
 
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
-						_Helpers.fastRemoveElement(clone);
+						clone.remove();
 
 						_Code.updateDirtyFlag(result);
 					});
@@ -2340,7 +2339,7 @@ let _Code = {
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			})
+			});
 
 			if (viewIsEditable) {
 

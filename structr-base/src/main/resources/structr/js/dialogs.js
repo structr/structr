@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 let _Dialogs = {
 	basic: {
 		wrapperClass: 'non-block-ui-wrapper',
@@ -394,7 +393,7 @@ let _Dialogs = {
 			let dialogTextWrapperElement = _Dialogs.custom.elements.dialogBox.querySelector('.dialogTextWrapper');
 			if (dialogTextWrapperElement) {
 
-				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 3rem)`;
+				dialogTextWrapperElement.style.width  = `calc(${dialogWidth}px - 2rem)`;
 				dialogTextWrapperElement.style.height = `${dialogHeight - horizontalOffset}px`;
 			}
 

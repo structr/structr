@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -139,7 +139,8 @@ public class ViewFilterResource extends WrappingResource {
 			}
 
 			signature.append("_");
-			signature.append(SchemaHelper.normalizeEntityName(propertyView));
+			signature.append(StringUtils.capitalize(propertyView));
+
 		}
 
 		return StringUtils.stripEnd(signature.toString(), "/");

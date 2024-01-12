@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -57,6 +57,8 @@ public class PasswordSetting extends Setting<String> {
 		if (value != null) {
 			input.attr(new Attr("value", value));
 		}
+
+		renderResetButton(group);
 	}
 
 	@Override

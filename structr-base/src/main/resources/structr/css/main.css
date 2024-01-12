@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -235,6 +235,9 @@ button:hover:not(.disabled), button:focus:not(.disabled) {
 }
 .icon-blue {
 	color: var(--medium-blue);
+}
+.icon-dark-blue {
+	color: var(--icon-color-dark-blue);
 }
 .icon-yellow {
 	color: var(--color-folder);
@@ -1032,6 +1035,14 @@ img.disabled {
 
 .abbr-ellipsis.abbr-75pc {
 	max-width: 75%;
+}
+
+.abbr-ellipsis.abbr-80pc {
+	max-width: 80%;
+}
+
+.abbr-ellipsis.abbr-100pc {
+	max-width: 100%;
 }
 
 .abbr-ellipsis.abbr-80 {
@@ -2371,8 +2382,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .tooltipHeader {
-	padding-top: 2pt;
-	height: 16pt;
 	background-color: var(--gray-ccc);
 }
 
@@ -2388,10 +2397,6 @@ td#cascading-options, td#propagation-options {
 }
 
 .closeTooltipBtn {
-	position: absolute;
-	right: 2pt;
-	top: 12pt;
-	margin: 2pt;
 	cursor: pointer;
 }
 
@@ -2417,17 +2422,8 @@ td#cascading-options, td#propagation-options {
 	/*font-size: 9pt;*/
 }
 
-.tooltipTitle {
-	margin-top: 12pt;
-	margin-right: 4pt;
-	margin-left: 4pt;
-	/*font-size: 9pt;*/
-	display: inline;
-}
-
 .tooltipText {
 	color: black ! important;
-	/*font-size: 11pt;*/
 	display: inline;
 }
 

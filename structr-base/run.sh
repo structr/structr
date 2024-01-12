@@ -17,7 +17,7 @@ JAVA=`which java`
 LATEST=`ls target/structr-base-*.jar | grep -v 'sources.jar' | grep -v 'javadoc.jar' | sort | tail -1`
 VERSION=${LATEST#target/structr-base-};VERSION=${VERSION%%.jar}
 STRUCTR="-Djava.awt.headless=true -Djava.system.class.loader=org.structr.StructrClassLoader -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv6Addresses=false -Duser.timezone=Europe/Berlin -Duser.country=US -Duser.language=en -Djava.util.logging.config.file=logging.properties.debug -Dorg.apache.sshd.registerBouncyCastle=false -Dorg.neo4j.io.pagecache.implSingleFilePageSwapper.channelStripePower=0 -cp target/lib/*:$LATEST org.structr.Server"
-STRUCTR_ARGS="-server -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseG1GC -Dinstance=$NAME"
+STRUCTR_ARGS="-server -Xms${HEAPSIZE}g -Xmx${HEAPSIZE}g -XX:+UseNUMA -XX:+UseG1GC -XX:+UseCodeCacheFlushing -Dinstance=$NAME"
 
 PIDFILE=$BASE_DIR/structr-$NAME.pid
 LOGS_DIR=$BASE_DIR/logs

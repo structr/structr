@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -66,6 +66,7 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		boolean sendSuccess = false;
+		Principal user      = null;
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
@@ -73,7 +74,7 @@ public class LoginCommand extends AbstractCommand {
 			final String password       = webSocketData.getNodeDataStringValue("password");
 			final String twoFactorToken = webSocketData.getNodeDataStringValue("twoFactorToken");
 			final String twoFactorCode  = webSocketData.getNodeDataStringValue("twoFactorCode");
-			Principal user              = null;
+
 
 			try {
 
@@ -102,8 +103,6 @@ public class LoginCommand extends AbstractCommand {
 				}
 
 				if (user != null) {
-
-					Services.getInstance().broadcastLogin(user);
 
 					final boolean twoFactorAuthenticationSuccessOrNotNecessary = AuthHelper.handleTwoFactorAuthentication(user, twoFactorCode, twoFactorToken, ActionContext.getRemoteAddr(getWebSocket().getRequest()));
 
@@ -203,6 +202,10 @@ public class LoginCommand extends AbstractCommand {
 		}
 
 		if (sendSuccess) {
+
+			// send broadcast to cluster members to refresh user from db
+			Services.getInstance().broadcastLogin(user);
+
 			getWebSocket().send(webSocketData, false);
 		}
 	}

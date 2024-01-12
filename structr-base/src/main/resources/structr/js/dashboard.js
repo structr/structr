@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -85,6 +85,23 @@ let _Dashboard = {
 			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
 
 			_Helpers.activateCommentsInElement(Structr.mainContainer);
+
+			// Update GraalVM Scripting Debugger Info
+			let graalVMScriptingDebuggerCell = document.querySelector('#graal-vm-chrome-scripting-debugger');
+			if (dashboardUiConfig.envInfo.debuggerActive) {
+
+				graalVMScriptingDebuggerCell.insertAdjacentHTML('beforeend', _Dashboard.templates.graalVMChromeScriptingDebugger({ path: dashboardUiConfig.envInfo.debuggerPath }));
+
+			} else {
+
+				let inactive = _Helpers.createSingleDOMElementFromHTML('<div>inactive</div>');
+				graalVMScriptingDebuggerCell.appendChild(inactive);
+
+				_Helpers.appendInfoTextToElement({
+					element: inactive,
+					text: 'The GraalVM Chrome Scripting Debugger can be used after enabling the setting <b>application.scripting.debugger</b> in structr.conf'
+				});
+			}
 
 			// UISettings.showSettingsForCurrentModule();
 
@@ -1086,6 +1103,10 @@ let _Dashboard = {
 								<td class="key">Database Driver</td>
 								<td><div class="db-driver flex items-center">${config.databaseDriver}</div></td>
 							</tr>
+							<tr>
+								<td class="key">Scripting Debugger</td>
+								<td id="graal-vm-chrome-scripting-debugger"></td>
+							</tr>
 						</table>
 					</div>
 
@@ -1354,6 +1375,17 @@ let _Dashboard = {
 				</div>
 
 			</div>
+		`,
+		graalVMChromeScriptingDebugger: config => `
+			<p>To access the GraalVM Chrome Scripting Debugger, open a new tab with the following URL in Chrome:</p>
+
+			<code>devtools://devtools/bundled/js_app.html?ws=127.0.0.1:4242${config.path}</code>
+
+			<p>
+				Using the <code>debugger;</code> statement in any of your custom scripts, you can then inspect the source code and debug from there.
+			</p>
+
+			<p>For more information, please refer to the <a href="https://www.graalvm.org/tools/chrome-debugger">GraalVM documentation regarding the Chrome Debugger</a></p>
 		`,
 		functions: config => `
 			<ul class="tabs-menu flex-grow">
