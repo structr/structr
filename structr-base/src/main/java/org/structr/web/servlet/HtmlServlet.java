@@ -90,6 +90,8 @@ import org.structr.common.helper.PathHelper;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.web.common.PagePaths;
+import org.structr.web.entity.path.PagePath;
 
 /**
  * Main servlet for content rendering.
@@ -237,15 +239,28 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				} else {
 
-					// special optimization for UUID-addressed partials
-					if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
+					// check new dynamic paths first
+					final PagePath pagePath = PagePaths.resolve(path);
+					if (pagePath != null) {
 
-						final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
-						if (node != null && node instanceof DOMElement) {
+						rootElement = pagePath.getPage();
 
-							rootElement = (DOMElement) node;
+						// process parameters here..
+					}
 
-							renderContext.setIsPartialRendering(true);
+
+					if (rootElement == null) {
+
+						// special optimization for UUID-addressed partials
+						if (uriParts.length == 1 && Settings.isValidUuid(uriParts[0])) {
+
+							final AbstractNode node = findNodeByUuid(securityContext, uriParts[0]);
+							if (node != null && node instanceof DOMElement) {
+
+								rootElement = (DOMElement) node;
+
+								renderContext.setIsPartialRendering(true);
+							}
 						}
 					}
 

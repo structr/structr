@@ -569,7 +569,7 @@ public class MethodTest extends StructrRestTestBase {
 			.expect()
 				.statusCode(422)
 				.body("code",                equalTo(422))
-				.body("message",             equalTo("Cannot parse input for parameter 'key2' in method BaseType.test1"))
+				.body("message",             equalTo("Cannot parse input for parameter ‛key2‛ in method BaseType.test1"))
 				.body("errors[0].method",    equalTo("test1"))
 				.body("errors[0].parameter", equalTo("key2"))
 				.body("errors[0].token",     equalTo("must_be_numerical"))

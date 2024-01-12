@@ -3057,7 +3057,7 @@ let _Code = {
 						</div>
 						<div class="checkbox hidden entity-method">
 							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
-								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> Method is private
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> NOT callable via REST
 							</label>
 						</div>
 					</div>
