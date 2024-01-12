@@ -182,8 +182,7 @@ public abstract class AbstractRelationship<S extends NodeInterface, T extends No
 
 	@Override
 	public boolean equals(final Object o) {
-
-		return (o != null && new Integer(this.hashCode()).equals(new Integer(o.hashCode())));
+		return (o != null && Integer.valueOf(this.hashCode()).equals(o.hashCode()));
 
 	}
 

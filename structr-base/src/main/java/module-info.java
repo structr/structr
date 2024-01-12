@@ -43,6 +43,11 @@ module structr.base {
     requires cssparser;
     requires diff.match.patch;
     requires dom4j;
+    requires flexmark.profile.pegdown;
+    requires flexmark.util.ast;
+    requires flexmark.util.data;
+    requires flexmark.util.misc;
+    requires flexmark;
     requires graphql.java;
     requires java.jwt;
     requires java.xml.bind;
@@ -52,6 +57,7 @@ module structr.base {
     requires jgroups.kubernetes;
     requires jgroups;
     requires jmimemagic;
+    requires json.path;
     requires json;
     requires jwks.rsa;
     requires metadata.extractor;
@@ -97,11 +103,6 @@ module structr.base {
     requires xml.apis.ext;
     requires zero.allocation.hashing;
     requires zip4j;
-    requires flexmark;
-    requires flexmark.profile.pegdown;
-    requires flexmark.util.ast;
-    requires flexmark.util.data;
-    requires flexmark.util.misc;
 
     exports org.structr;
     exports org.structr.agent;

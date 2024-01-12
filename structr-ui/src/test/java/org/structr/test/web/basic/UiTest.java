@@ -90,8 +90,8 @@ public class UiTest extends StructrUiTest {
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
-			assertEquals(new Integer(200), tn.getWidth());
-			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
+			assertEquals(Integer.valueOf(200), tn.getWidth());
+			assertEquals(Integer.valueOf(48), tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.Format.jpeg, tn.getContentType());
 
 			tx.success();

@@ -154,12 +154,7 @@
 			<artifactId>javatools</artifactId>
 			<version>1.1</version>
 		</dependency>
-		<!-- https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk -->
-		<dependency>
-			<groupId>org.graalvm.sdk</groupId>
-			<artifactId>graal-sdk</artifactId>
-			<version>${graal.version}</version>
-		</dependency>
+
 		<dependency>
 			<groupId>org.graalvm.polyglot</groupId>
 			<artifactId>polyglot</artifactId>

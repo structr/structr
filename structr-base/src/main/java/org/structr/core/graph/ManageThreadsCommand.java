@@ -154,7 +154,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 			if (thread.getId() == id) {
 
 				logger.info("Trying to kill thread {}..", id);
-				thread.stop();
+				thread.interrupt();
 			}
 		}
 

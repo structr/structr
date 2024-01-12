@@ -324,7 +324,7 @@
 			<dependency>
 				<groupId>io.rest-assured</groupId>
 				<artifactId>rest-assured</artifactId>
-				<version>5.3.0</version>
+				<version>5.4.0</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -375,8 +375,10 @@
 				<configuration>
 					<source>18</source>
 					<target>18</target>
+					<release>18</release>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
+					<useModulePath>true</useModulePath>
 				</configuration>
 			</plugin>
 			<plugin>
