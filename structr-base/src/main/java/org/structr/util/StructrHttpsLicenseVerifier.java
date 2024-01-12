@@ -143,19 +143,21 @@ public class StructrHttpsLicenseVerifier {
 							final byte[] buf = new byte[bufSize];
 							int count = 0;
 
+							final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
+							final byte[] ivSpec = blockCipher.doFinal(IOUtils.readFully(is, 256));
+
+							streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
+
 							// we want to be able to control the number of bytes AND the timeout
 							// of the underlying socket, so that we read the available amount of
 							// data until the socket times out or we have read all the data.
 							try {
-								// decrypt AES stream key using RSA block cipher
-								final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
-								final byte[] ivSpec = blockCipher.doFinal(IOUtils.readFully(is, 256));
+
 								count = is.read(buf, 0, bufSize);
 
-								// initialize cipher using stream key
-								streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
-
-							} catch (IOException exception) {}
+							} catch (IOException exception) {
+								logger.info("Exception reading request input stream {}", exception.getMessage());
+							}
 
 							if (count == 0) {
 
