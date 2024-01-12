@@ -64,6 +64,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType site = (JsonObjectType)schema.getType("Site");
 		final JsonObjectType type = schema.addType("Page");
+		final JsonObjectType path = schema.addType("PagePath");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
 		type.setImplements(URI.create("#/definitions/Linkable"));
@@ -176,6 +177,7 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
 		site.relate(type, "CONTAINS", Cardinality.ManyToMany, "sites", "pages");
+		type.relate(path, "HAS_PATH", Cardinality.OneToMany, "page", "paths");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "linkingElements");
@@ -186,11 +188,13 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addViewProperty(PropertyView.Public, "name");
 		type.addViewProperty(PropertyView.Public, "owner");
 		type.addViewProperty(PropertyView.Public, "sites");
+		type.addViewProperty(PropertyView.Public, "paths");
 
 		type.addViewProperty(PropertyView.Ui, "pageCreatesRawData");
 		type.addViewProperty(PropertyView.Ui, "dontCache");
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "sites");
+		type.addViewProperty(PropertyView.Ui, "paths");
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
