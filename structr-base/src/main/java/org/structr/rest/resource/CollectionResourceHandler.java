@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
@@ -48,7 +49,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.exception.IllegalPathException;
+import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
 import org.structr.schema.SchemaHelper;
 
@@ -62,22 +63,19 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	private ResultTransformer virtualType   = null;
 	private Class entityClass               = null;
 	private String typeName                 = null;
-	private Query query                     = null;
 	private boolean isNode                  = true;
 
-	public CollectionResourceHandler(final SecurityContext securityContext, final RESTCall call, final Query query, final Class entityClass, final String typeName, final boolean isNode) {
+	public CollectionResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final boolean isNode) {
 
-		super(securityContext, call);
+		super(call);
 
-		this.securityContext   = securityContext;
 		this.entityClass       = entityClass;
-		this.query             = query;
 		this.typeName          = typeName;
 		this.isNode            = isNode;
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 		boolean includeHidden   = true;
 		boolean publicOnly      = false;
@@ -88,7 +86,9 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				throw new NotFoundException("Type " + typeName + " does not exist");
 			}
 
-			collectSearchAttributes(entityClass, query);
+			final Query query = createQuery(StructrApp.getInstance(securityContext), entityClass, isNode);
+
+			collectSearchAttributes(securityContext, entityClass, query);
 
 			if (virtualType != null) {
 
@@ -120,7 +120,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		// virtual type?
 		if (virtualType != null) {
@@ -130,11 +130,11 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		if (isNode) {
 
 			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-			final NodeInterface newNode   = createNode(entityClass, typeName, propertySet);
+			final NodeInterface newNode   = createNode(securityContext, entityClass, typeName, propertySet);
 
 			if (newNode != null) {
 
-				result.addHeader("Location", buildLocationHeader(newNode));
+				result.addHeader("Location", buildLocationHeader(securityContext, newNode));
 				result.addContent(newNode.getUuid());
 			}
 
@@ -149,8 +149,8 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			if (template != null) {
 
-				final NodeInterface sourceNode        = identifyStartNode(template, propertySet);
-				final NodeInterface targetNode        = identifyEndNode(template, propertySet);
+				final NodeInterface sourceNode        = identifyStartNode(securityContext, template, propertySet);
+				final NodeInterface targetNode        = identifyEndNode(securityContext, template, propertySet);
 				final PropertyMap properties          = PropertyMap.inputTypeToJavaType(securityContext, entityClass, propertySet);
 				RelationshipInterface newRelationship = null;
 
@@ -173,7 +173,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 				RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_CREATED);
 				if (newRelationship != null) {
 
-					result.addHeader("Location", buildLocationHeader(newRelationship));
+					result.addHeader("Location", buildLocationHeader(securityContext, newRelationship));
 					result.addContent(newRelationship.getUuid());
 				}
 
@@ -187,12 +187,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalPathException("PUT not allowed on " + typeName + " collection resource");
-	}
-
-	@Override
-	public RestMethodResult doPatch(final List<Map<String, Object>> propertySets) throws FrameworkException {
+	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
 
 		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
 		final App app                                = StructrApp.getInstance(securityContext);
@@ -263,7 +258,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 					} else {
 
-						createNode(entityClass, typeName, propertySet);
+						createNode(securityContext, entityClass, typeName, propertySet);
 					}
 				}
 
@@ -277,13 +272,29 @@ public class CollectionResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+		// override super method to provide more specific error message
+		throw new IllegalMethodException("PUT not allowed on ‛" + typeName + "‛ collection resource", getAllowedHttpMethodsForOptionsCall());
+	}
+
+	@Override
+	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+		return genericDelete(securityContext);
+	}
+
+	@Override
+	public Class getEntityClass(final SecurityContext securityContext) {
 		return entityClass;
 	}
 
 	@Override
 	public boolean isCollection() {
 		return true;
+	}
+
+	@Override
+	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+		return Set.of("DELETE", "GET", "OPTIONS", "PATCH", "POST");
 	}
 
 	// ----- private methods -----
@@ -300,7 +311,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	private NodeInterface identifyStartNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeInterface identifyStartNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> sourceIdProperty = template.getSourceIdProperty();
 		final Class sourceType                  = template.getSourceType();
@@ -323,7 +334,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	private NodeInterface identifyEndNode(final Relation template, final Map<String, Object> properties) throws FrameworkException {
+	private NodeInterface identifyEndNode(final SecurityContext securityContext, final Relation template, final Map<String, Object> properties) throws FrameworkException {
 
 		final Property<String> targetIdProperty = template.getTargetIdProperty();
 		final Class targetType                  = template.getTargetType();
@@ -358,5 +369,15 @@ public class CollectionResourceHandler extends RESTCallHandler {
 		}
 
 		return defaultValue;
+	}
+
+	private Query createQuery(final App app, final Class type, final boolean isNode) {
+
+		if (isNode) {
+
+			return app.nodeQuery(type);
+		}
+
+		return app.relationshipQuery(type);
 	}
 }

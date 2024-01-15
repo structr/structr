@@ -76,7 +76,10 @@ import java.util.Map.Entry;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCall;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
 import org.structr.web.resource.LoginResourceHandler;
@@ -477,9 +480,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResourceHandler loginResource = new LoginResourceHandler(actionContext.getSecurityContext(), new RESTCall("/login", PropertyView.Public, true));
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
+		final Map<String, Object> properties     = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -489,14 +492,15 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		return loginResource.doPost(properties);
+		return loginResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignOutAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(actionContext.getSecurityContext(), new RESTCall("/logout", PropertyView.Public, true));
+		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
@@ -507,11 +511,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		return logoutResource.doPost(properties);
+		return logoutResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -524,13 +529,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(actionContext.getSecurityContext(), new RESTCall("/registration", PropertyView.Public, true));
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return registrationResource.doPost(properties);
+		return registrationResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -543,9 +549,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(actionContext.getSecurityContext(), new RESTCall("/reset-password", PropertyView.Public, true));
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return resetPasswordResource.doPost(properties);
+		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {

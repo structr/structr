@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Matcher;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.Services;
 import org.structr.rest.resource.CollectionRelationshipsResource;
@@ -98,7 +97,7 @@ public class RESTEndpoints {
 		ENDPOINTS.add(new SortedByUsageCount(endpoint));
 	}
 
-	public static RESTCallHandler resolveRESTCallHandler(final SecurityContext securityContext, final HttpServletRequest request, final String defaultView) throws FrameworkException {
+	public static RESTCallHandler resolveRESTCallHandler(final HttpServletRequest request, final String defaultView, final Class userType) throws FrameworkException {
 
 		final List<String> viewHolder = new LinkedList<>();
 		final String path             = RESTEndpoints.removeTrailingViewName(request.getPathInfo(), viewHolder);
@@ -120,8 +119,8 @@ public class RESTEndpoints {
 			if (matcher.matches()) {
 
 				final RESTEndpoint endpoint   = container.getItem();
-				final RESTCall call           = endpoint.initializeRESTCall(matcher, viewName, viewHolder.isEmpty());
-				final RESTCallHandler handler = endpoint.accept(securityContext, call);
+				final RESTCall call           = endpoint.initializeRESTCall(matcher, viewName, viewHolder.isEmpty(), userType);
+				final RESTCallHandler handler = endpoint.accept(call);
 
 				if (handler != null) {
 

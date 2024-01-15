@@ -19,7 +19,6 @@
 package org.structr.web.resource;
 
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -36,7 +35,7 @@ public class LogoutResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LogoutResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new LogoutResourceHandler(call);
 	}
 }

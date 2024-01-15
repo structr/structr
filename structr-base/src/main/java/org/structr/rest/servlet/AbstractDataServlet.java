@@ -66,6 +66,16 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 		return config;
 	}
 
+	// ----- public static methods -----
+	public static Class getTypeOrDefault(final Object obj, final Class defaultType) {
+
+		if (obj != null) {
+			return obj.getClass();
+		}
+
+		return defaultType;
+	}
+
 	// ----- protected methods -----
 	protected void commitResponse(final SecurityContext securityContext, final HttpServletRequest request, final HttpServletResponse response, final RestMethodResult result, final String view, final boolean wrapSingleResultInArray) {
 
@@ -259,6 +269,12 @@ public abstract class AbstractDataServlet extends AbstractServletBase implements
 
 		final PrintWriter writer = response.getWriter();
 		final Gson gson          = getGson();
+
+		// set response headers (for Allow in 405)
+		final Map<String, String> headers = fex.headers();
+		for (final String header : headers.keySet()) {
+			response.addHeader(header, headers.get(header));
+		}
 
 		// set status & write JSON output
 		response.setStatus(fex.getStatus());

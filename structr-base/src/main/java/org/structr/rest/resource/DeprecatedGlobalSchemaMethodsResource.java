@@ -20,14 +20,13 @@ package org.structr.rest.resource;
 
 
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
@@ -39,7 +38,6 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.action.EvaluationHints;
 
 /**
@@ -60,7 +58,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String methodName = call.get("name");
 		if (methodName != null) {
@@ -74,7 +72,7 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 					"/" + methodName
 				);
 
-				return new GlobalSchemaMethodResourceHandler(securityContext, call, method);
+				return new GlobalSchemaMethodResourceHandler(call, method);
 			}
 		}
 
@@ -83,22 +81,12 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 
 	private class GlobalSchemaMethodResourceHandler extends RESTMethodCallHandler {
 
-		public GlobalSchemaMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
-			super(securityContext, call, method);
+		public GlobalSchemaMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+			super(call, method);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			throw new NotAllowedException("GET not allowed, use POST to execute schema methods.");
-		}
-
-		@Override
-		public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-			throw new NotAllowedException("PUT not allowed, use POST to execute schema methods.");
-		}
-
-		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -117,13 +105,18 @@ public class DeprecatedGlobalSchemaMethodsResource extends WildcardMatchEndpoint
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
 			return false;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("OPTIONS", "POST");
 		}
 	}
 }

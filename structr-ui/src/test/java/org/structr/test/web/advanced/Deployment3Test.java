@@ -49,6 +49,7 @@ import java.io.IOException;
 import java.lang.Object;
 import java.util.HashMap;
 import java.util.Map;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 
 import static org.testng.AssertJUnit.*;
 
@@ -150,7 +151,7 @@ public class Deployment3Test extends DeploymentTestBase {
 				new NodeAttribute<>(SchemaMethod.description,                 "description"),
 				new NodeAttribute<>(SchemaMethod.isStatic,                    true),
 				new NodeAttribute<>(SchemaMethod.isPrivate,                   true),
-				new NodeAttribute<>(SchemaMethod.usesGet,                     true)
+				new NodeAttribute<>(SchemaMethod.httpVerb,                    HttpVerb.GET)
 			);
 
 			// and one without (i.e. user-defined function)
@@ -188,6 +189,7 @@ public class Deployment3Test extends DeploymentTestBase {
 			assertEquals("Invalid SchemaMethod deployment result", "description",                   method1.getProperty(SchemaMethod.description));
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isStatic));
 			assertEquals("Invalid SchemaMethod deployment result", true,                            (boolean)method1.getProperty(SchemaMethod.isPrivate));
+			assertEquals("Invalid SchemaMethod deployment result", HttpVerb.GET,                    method1.getProperty(SchemaMethod.httpVerb));
 
 
 			// Add new SchemaMethod properties here to make sure they are included in the schema import/export!

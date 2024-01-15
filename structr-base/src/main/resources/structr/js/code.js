@@ -1386,7 +1386,7 @@ let _Code = {
 	displaySchemaMethodContent: (data) => {
 
 		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,usesGet,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -3062,11 +3062,18 @@ let _Code = {
 						</div>
 					</div>
 					<div>
+						<!-- hide this checkbox if isPrivate is checked! --
 						<div class="checkbox hidden entity-method">
-							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can be called via GET instead of POST.">
-								<input type="checkbox" data-property="usesGet" ${config.method.usesGet ? 'checked' : ''}> Method uses GET instead of POST
+							<select id="http-verb-input" data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
 							</label>
 						</div>
+						-->
 					</div>
 				</div>
 			</div>

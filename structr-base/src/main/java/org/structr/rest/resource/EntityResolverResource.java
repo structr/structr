@@ -19,17 +19,15 @@
 package org.structr.rest.resource;
 
 
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -47,23 +45,18 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new ResolverResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new ResolverResourceHandler(call);
 	}
 
 	private class ResolverResourceHandler extends RESTCallHandler {
 
-		public ResolverResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public ResolverResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			throw new IllegalMethodException("GET not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final RestMethodResult result = new RestMethodResult(200);
 			final Object src              = propertySet.get("ids");
@@ -92,23 +85,18 @@ public class EntityResolverResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
-			throw new IllegalMethodException("DELETE not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("PUT not allowed on " + getURL());
-		}
-
-		@Override
 		public boolean isCollection() {
 			return true;
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("OPTIONS", "POST");
 		}
 	}
 }

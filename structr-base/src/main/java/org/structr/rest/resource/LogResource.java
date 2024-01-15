@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +26,6 @@ import org.structr.api.config.Settings;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -38,7 +36,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.logging.entity.LogEvent;
 
 import java.io.File;
@@ -55,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -93,15 +91,15 @@ public class LogResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new LogResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new LogResourceHandler(call);
 	}
 
 	private class LogResourceHandler extends RESTCallHandler {
 
-		public LogResourceHandler(final SecurityContext securityContext, final RESTCall call) {
+		public LogResourceHandler(final RESTCall call) {
 
-			super(securityContext, call);
+			super(call);
 
 			subjectProperty.setDeclaringClass(LogResource.class);
 			objectProperty.setDeclaringClass(LogResource.class);
@@ -111,7 +109,7 @@ public class LogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class<? extends GraphObject> getEntityClass() {
+		public Class<? extends GraphObject> getEntityClass(final SecurityContext securityContext) {
 			return GraphObject.class;
 		}
 
@@ -121,7 +119,7 @@ public class LogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final HttpServletRequest request = securityContext.getRequest();
 			if (request != null) {
@@ -166,7 +164,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 				} else if (logState.doActionQuery()) {
 
-					processData(logState);
+					processData(securityContext, logState);
 
 				} else {
 
@@ -213,7 +211,7 @@ public class LogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final HttpServletRequest request = securityContext.getRequest();
 			if (request != null) {
@@ -225,7 +223,7 @@ public class LogResource extends ExactMatchEndpoint {
 
 					try (final Context context  = new Context(1000)) {
 
-						collectFilesAndStore(context, new File(filesPath + SUBJECTS).toPath(), 0);
+						collectFilesAndStore(securityContext, context, new File(filesPath + SUBJECTS).toPath(), 0);
 
 					} catch (FrameworkException fex) {
 						logger.warn("", fex);
@@ -281,7 +279,7 @@ public class LogResource extends ExactMatchEndpoint {
 						errorBuffer.add(new EmptyPropertyToken("LogFile", actionProperty.jsonName()));
 					}
 
-					throw new FrameworkException(422, "Log entry must consist of at least subjectId, objectId and action", errorBuffer);
+					throw new FrameworkException(422, "Log entry must consist of at least ‛subjectId‛, ‛objectId‛ and ‛action‛", errorBuffer);
 				}
 			}
 
@@ -290,37 +288,17 @@ public class LogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("PUT not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
-			throw new IllegalMethodException("DELETE not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doHead() throws FrameworkException {
-			throw new IllegalMethodException("HEAD not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doOptions() throws FrameworkException {
-
-			final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
-
-			result.addHeader("Allow", "GET,POST,OPTIONS");
-
-			return result;
-		}
-
-		@Override
 		public boolean createPostTransaction() {
 			return false;
 		}
 
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
+		}
+
 		// ----- private methods -----
-		private void collectFilesAndStore(final Context context, final Path dir, final int level) throws FrameworkException {
+		private void collectFilesAndStore(final SecurityContext securityContext, final Context context, final Path dir, final int level) throws FrameworkException {
 
 			if (level == 1) {
 				logger.info("Path {}", dir);
@@ -332,11 +310,11 @@ public class LogResource extends ExactMatchEndpoint {
 
 					if (Files.isDirectory(p)) {
 
-						collectFilesAndStore(context, p, level+1);
+						collectFilesAndStore(securityContext, context, p, level+1);
 
 					} else {
 
-						context.update(storeLogEntry(p));
+						context.update(storeLogEntry(securityContext, p));
 
 						// update object count and commit
 						context.commit(true);
@@ -351,7 +329,7 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 		}
 
-		private void processData(final LogState state) throws FrameworkException {
+		private void processData(final SecurityContext securityContext, final LogState state) throws FrameworkException {
 
 			if (state.doCorrelate()) {
 
@@ -445,7 +423,7 @@ public class LogResource extends ExactMatchEndpoint {
 			}
 		}
 
-		private int storeLogEntry(final Path path) throws IOException, FrameworkException {
+		private int storeLogEntry(final SecurityContext securityContext, final Path path) throws IOException, FrameworkException {
 
 			final App app          = StructrApp.getInstance(securityContext);
 			final String fileName  = path.getFileName().toString();

@@ -19,7 +19,16 @@
 package org.structr.rest.api;
 
 import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.common.error.UnlicensedScriptException;
+import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
+import org.structr.rest.RestMethodResult;
+import org.structr.schema.action.EvaluationHints;
 
 /**
  */
@@ -27,10 +36,28 @@ public abstract class RESTMethodCallHandler extends RESTCallHandler {
 
 	protected AbstractMethod method = null;
 
-	public RESTMethodCallHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
+	public RESTMethodCallHandler(final RESTCall call, final AbstractMethod method) {
 
-		super(securityContext, call);
+		super(call);
 
 		this.method = method;
+	}
+
+	// ----- protected methods -----
+	protected RestMethodResult executeMethod(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments) throws FrameworkException {
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		try (final Tx tx = app.tx()) {
+
+			final RestMethodResult result = wrapInResult(method.execute(securityContext, entity, arguments, new EvaluationHints()));
+
+			tx.success();
+
+			return result;
+
+		} catch (UnlicensedScriptException ex) {
+			return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
+		}
 	}
 }

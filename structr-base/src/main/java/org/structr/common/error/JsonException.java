@@ -19,6 +19,7 @@
 package org.structr.common.error;
 
 import com.google.gson.JsonElement;
+import java.util.Map;
 
 /**
  * Common base class for FrameworkException and AssertException to be able
@@ -26,6 +27,7 @@ import com.google.gson.JsonElement;
  */
 public interface JsonException {
 
+	Map<String, String> headers();
 	JsonElement toJSON();
 	int getStatus();
 }

@@ -20,7 +20,6 @@ package org.structr.rest.resource;
 
 
 import org.structr.api.config.Settings;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
@@ -42,10 +41,10 @@ public abstract class AbstractTypeIdLowercaseNameResource extends WildcardMatchE
 		);
 	}
 
-	public abstract RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException;
+	public abstract RESTCallHandler handleTypeIdName(final RESTCall call, final String typeName, final String uuid, final String name) throws FrameworkException;
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
 		final String uuid     = call.get("uuid");
@@ -53,7 +52,7 @@ public abstract class AbstractTypeIdLowercaseNameResource extends WildcardMatchE
 
 		if (typeName != null && uuid != null && name != null) {
 
-			return handleTypeIdName(securityContext, call, typeName, uuid, name);
+			return handleTypeIdName(call, typeName, uuid, name);
 		}
 
 		return null;

@@ -29,8 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.mail.EmailException;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -51,7 +49,6 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import static org.structr.web.agent.ThumbnailAgent.logger;
@@ -75,22 +72,12 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 		CONFIRM_REGISTRATION_ERROR_PAGE_KEY
 	}
 
-	public RegistrationResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-		super(securityContext, call);
+	public RegistrationResourceHandler(final RESTCall call) {
+		super(call);
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		boolean existingUser                  = false;
 		RestMethodResult returnedMethodResult = null;
@@ -151,7 +138,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 
 				try (final Tx tx = app.tx(true, true, true)) {
 
-					sendInvitationLink(user, propertySet, confKey, localeString);
+					sendInvitationLink(securityContext, user, propertySet, confKey, localeString);
 
 					tx.success();
 
@@ -194,16 +181,11 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException("OPTIONS not allowed on " + getURL());
-	}
-
-	@Override
 	public String getResourceSignature() {
 		return "_registration";
 	}
 
-	private void sendInvitationLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
+	private void sendInvitationLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String confKey, final String localeString) throws FrameworkException, EmailException {
 
 		final PropertyKey<String> eMailKey = StructrApp.key(User.class, "eMail");
 		final String userEmail             = user.getProperty(eMailKey);
@@ -458,7 +440,7 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public Class getEntityClass(final SecurityContext securityContext) {
 		return null;
 	}
 
@@ -470,5 +452,10 @@ public class RegistrationResourceHandler extends RESTCallHandler {
 	@Override
 	public boolean createPostTransaction() {
 		return false;
+	}
+
+	@Override
+	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+		return Set.of("OPTIONS", "POST");
 	}
 }

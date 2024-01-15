@@ -49,6 +49,10 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	public static final String schemaMethodNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
 
+	public enum HttpVerb {
+		GET, PUT, POST, PATCH, DELETE
+	}
+
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
 	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
 	public static final Property<String>             signature               = new StringProperty("signature").indexed();
@@ -68,7 +72,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             description             = new StringProperty("description");
 	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
 	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate");
-	public static final Property<Boolean>            usesGet                 = new BooleanProperty("usesGet");
+	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST);
 	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
 	// property which is only used to mark a schema method as "will be deleted"
@@ -79,19 +83,19 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, usesGet
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, httpVerb
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, usesGet
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, usesGet
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, usesGet
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
 
 	public Iterable<SchemaMethodParameter> getParameters() {
@@ -152,8 +156,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return getProperty(isPrivate);
 	}
 
-	public boolean usesGet() {
-		return getProperty(usesGet);
+	public HttpVerb getHttpVerb() {
+		return getProperty(httpVerb);
 	}
 
 	public boolean isJava() {

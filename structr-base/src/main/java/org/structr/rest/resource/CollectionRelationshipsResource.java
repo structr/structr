@@ -24,7 +24,6 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -32,16 +31,13 @@ import org.structr.core.graph.RelationshipInterface;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import org.structr.core.app.StructrApp;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.core.graph.NodeInterface;
-import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -58,7 +54,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName  = call.get("type");
 		final String direction = call.get("rel");
@@ -71,11 +67,11 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, Direction.INCOMING);
+					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(call, entityClass, typeName, Direction.OUTGOING);
 				}
 			}
 		}
@@ -90,19 +86,19 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
+		public RelationshipsResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final Direction direction) {
 
-			super(securityContext, call, StructrApp.getInstance(securityContext).nodeQuery(entityClass), entityClass, typeName, true);
+			super(call, entityClass, typeName, true);
 
 			this.direction = direction;
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final List<GraphObject> resultList = new LinkedList<>();
 
-			for (final Object obj : super.doGet(sortOrder, pageSize, page)) {
+			for (final Object obj : super.doGet(securityContext, sortOrder, pageSize, page)) {
 
 				if (obj instanceof AbstractNode node) {
 					List<? extends RelationshipInterface> relationships = null;
@@ -164,12 +160,7 @@ public class CollectionRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + getURL());
-		}
-
-		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 	}

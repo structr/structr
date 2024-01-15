@@ -167,7 +167,7 @@ public class EnumPropertyRestTest extends StructrRestTestBase {
 		.expect()
 			.statusCode(422)
 			.body("code",    equalTo(422))
-			.body("message", equalTo("Cannot parse input for property enumProperty"))
+			.body("message", equalTo("Cannot parse input for property ‛enumProperty‛"))
 			.body("errors[0].type",     equalTo("TestThree"))
 			.body("errors[0].property", equalTo("enumProperty"))
 			.body("errors[0].token",    equalTo("must_be_one_of"))

@@ -19,10 +19,9 @@
 package org.structr.web.resource;
 
 import java.util.Map;
+import java.util.Set;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -30,16 +29,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
-import org.structr.rest.exception.NotAllowedException;
 
 public class LogoutResourceHandler extends RESTCallHandler {
 
-	public LogoutResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-		super(securityContext, call);
+	public LogoutResourceHandler(final RESTCall call) {
+		super(call);
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (Settings.CallbacksOnLogout.getValue() == false) {
 			securityContext.disableInnerCallbacks();
@@ -58,27 +56,7 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		throw new NotAllowedException("DELETE not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException("OPTIONS not allowed on " + getURL());
-	}
-
-	@Override
-	public Class getEntityClass() {
+	public Class getEntityClass(final SecurityContext securityContext) {
 		return null;
 	}
 
@@ -95,5 +73,10 @@ public class LogoutResourceHandler extends RESTCallHandler {
 	@Override
 	public String getResourceSignature() {
 		return "_logout";
+	}
+
+	@Override
+	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+		return Set.of("OPTIONS", "POST");
 	}
 }

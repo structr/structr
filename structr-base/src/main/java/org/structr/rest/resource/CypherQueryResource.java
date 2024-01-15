@@ -22,7 +22,6 @@ package org.structr.rest.resource;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -33,6 +32,8 @@ import org.structr.rest.exception.NotFoundException;
 
 import java.util.Collections;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -48,18 +49,18 @@ public class CypherQueryResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new CypherResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new CypherResourceHandler(call);
 	}
 
 	private class CypherResourceHandler extends RESTCallHandler {
 
-		public CypherResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public CypherResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			// Admins only
 			if (!securityContext.isSuperUser()) {
@@ -88,7 +89,7 @@ public class CypherQueryResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			// Admins only
 			if (!securityContext.isSuperUser()) {
@@ -122,13 +123,18 @@ public class CypherQueryResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
 			return true;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
 		}
 	}
 }

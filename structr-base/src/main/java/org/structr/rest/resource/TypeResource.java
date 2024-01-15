@@ -30,7 +30,6 @@ import org.structr.schema.SchemaHelper;
 
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
@@ -45,12 +44,13 @@ public class TypeResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
 		if (typeName != null) {
 
-			final App app = StructrApp.getInstance(securityContext);
+			// note: this check is carried out with SuperUser permissions!
+			final App app = StructrApp.getInstance();
 
 			// check if this resource representes a virtual type
 			final String rawType = checkVirtualType(app, typeName);
@@ -61,11 +61,11 @@ public class TypeResource extends ExactMatchEndpoint {
 
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-					return new CollectionResourceHandler(securityContext, call, app.relationshipQuery(entityClass), entityClass, rawType, false);
+					return new CollectionResourceHandler(call, entityClass, rawType, false);
 
 				} else {
 
-					return new CollectionResourceHandler(securityContext, call, app.nodeQuery(entityClass), entityClass, rawType, true);
+					return new CollectionResourceHandler(call, entityClass, rawType, true);
 				}
 			}
 		}

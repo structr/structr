@@ -24,7 +24,6 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.Permission;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -38,7 +37,9 @@ import org.structr.schema.SchemaHelper;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.common.helper.CaseHelper;
@@ -63,7 +64,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
 		final String uuid     = call.get("uuid");
@@ -74,7 +75,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
-				return new EntityResourceHandler(securityContext, call, entityClass, typeName, uuid);
+				return new EntityResourceHandler(call, entityClass, typeName, uuid);
 			}
 		}
 
@@ -88,9 +89,9 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		private String typeName   = null;
 		private String uuid       = null;
 
-		public EntityResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String uuid) {
+		public EntityResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid) {
 
-			super(securityContext, call);
+			super(call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;
@@ -98,17 +99,22 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 			return new PagingIterable<>(getURL(), Arrays.asList(getEntity(securityContext, entityClass, typeName, uuid)));
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + typeName + " entity resource");
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("POST not allowed on " + typeName + " entity resource", getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return entityClass;
 		}
 
@@ -118,7 +124,7 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -163,6 +169,11 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			}
 
 			return signature;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
 		}
 	}
 }

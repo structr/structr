@@ -64,7 +64,6 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		final JsonSchema schema   = SchemaService.getDynamicSchema();
 		final JsonObjectType site = (JsonObjectType)schema.getType("Site");
 		final JsonObjectType type = schema.addType("Page");
-		final JsonObjectType path = schema.addType("PagePath");
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/Page"));
 		type.setImplements(URI.create("#/definitions/Linkable"));
@@ -177,7 +176,6 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		createElement2.setSource("return " + Page.class.getName() + ".createElement(this, tag, false);");
 
 		site.relate(type, "CONTAINS", Cardinality.ManyToMany, "sites", "pages");
-		type.relate(path, "HAS_PATH", Cardinality.OneToMany, "page", "paths");
 
 		// view configuration
 		type.addViewProperty(PropertyView.Public, "linkingElements");

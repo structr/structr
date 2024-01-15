@@ -31,13 +31,13 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCall;
-import org.structr.common.SecurityContext;
 import org.structr.core.property.*;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.Predicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
@@ -58,7 +58,7 @@ import org.structr.schema.SchemaHelper;
 public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 	@Override
-	public RESTCallHandler handleTypeIdName(final SecurityContext securityContext, final RESTCall call, final String typeName, final String uuid, final String name) {
+	public RESTCallHandler handleTypeIdName(final RESTCall call, final String typeName, final String uuid, final String name) {
 
 		final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 		if (entityClass != null) {
@@ -72,7 +72,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 			if (key != null) {
 
-				return new PropertyResourceHandler(securityContext, call, entityClass, uuid, key);
+				return new PropertyResourceHandler(call, entityClass, uuid, key);
 			}
 		}
 
@@ -90,9 +90,9 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		private String keyName          = null;
 		private String uuid             = null;
 
-		public PropertyResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String uuid, final PropertyKey propertyKey) {
+		public PropertyResourceHandler(final RESTCall call, final Class entityClass, final String uuid, final PropertyKey propertyKey) {
 
-			super(securityContext, call);
+			super(call);
 
 			this.typeName    = entityClass.getSimpleName();
 			this.entityClass = entityClass;
@@ -102,12 +102,12 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
 
 			final Query query = StructrApp.getInstance(securityContext).nodeQuery();
 
 			// use search context from type resource
-			collectSearchAttributes(entityClass, query);
+			collectSearchAttributes(securityContext, entityClass, query);
 
 			final Predicate<GraphObject> predicate = query.toPredicate();
 
@@ -216,7 +216,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
 			final App app                  = StructrApp.getInstance(securityContext);
@@ -247,7 +247,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final GraphObject sourceEntity = getEntity(securityContext, entityClass, typeName, uuid);
 			RestMethodResult result        = null;
@@ -281,7 +281,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 
 					// the notion can not deserialize objects with a single key, or the POSTed propertySet did not contain a key to deserialize,
 					// so we create a new node from the POSTed properties and link the source node to it. (this is the "old" implementation)
-					newNode = createNode(relatedType, relatedType.getSimpleName(), propertySet);
+					newNode = createNode(securityContext, relatedType, relatedType.getSimpleName(), propertySet);
 					if (newNode != null) {
 
 						relationProperty.addSingleElement(securityContext, sourceEntity, newNode);
@@ -291,7 +291,7 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 				if (newNode != null) {
 
 					result = new RestMethodResult(HttpServletResponse.SC_CREATED);
-					result.addHeader("Location", buildLocationHeader(newNode));
+					result.addHeader("Location", buildLocationHeader(securityContext, newNode));
 
 					return result;
 				}
@@ -305,7 +305,12 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			return genericDelete(securityContext);
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
 
 			if (entityClass == null && propertyKey != null) {
 
@@ -323,6 +328,11 @@ public class PropertyResource extends AbstractTypeIdLowercaseNameResource {
 		@Override
 		public String getResourceSignature() {
 			return call.get("type") + "/_" + CaseHelper.toUpperCamelCase(propertyKey.jsonName());
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT", "POST");
 		}
 	}
 

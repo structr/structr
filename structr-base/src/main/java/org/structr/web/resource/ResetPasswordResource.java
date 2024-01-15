@@ -18,7 +18,6 @@
  */
 package org.structr.web.resource;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -35,7 +34,7 @@ public class ResetPasswordResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new ResetPasswordResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new ResetPasswordResourceHandler(call);
 	}
 }

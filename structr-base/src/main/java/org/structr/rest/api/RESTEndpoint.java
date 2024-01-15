@@ -23,13 +23,8 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.NotFoundException;
 
 /**
  */
@@ -49,14 +44,13 @@ public abstract class RESTEndpoint {
 	 * by this endpoint, or null of the call cannot be handled by this
 	 * endpoint.
 	 *
-	 * @param securityContext
 	 * @param call
 	 *
 	 * @return an APICallHandler, or null
 	 *
 	 * @throws FrameworkException
 	 */
-	public abstract RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException;
+	public abstract RESTCallHandler accept(final RESTCall call) throws FrameworkException;
 
 	/**
 	 * Indicates whether this endpoint only matches URLs that
@@ -86,9 +80,9 @@ public abstract class RESTEndpoint {
 		return pattern.matcher(path);
 	}
 
-	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView) {
+	public RESTCall initializeRESTCall(final Matcher matcher, final String viewName, final boolean isDefaultView, final Class userType) {
 
-		final RESTCall call = new RESTCall(matcher.group(), viewName, isDefaultView);
+		final RESTCall call = new RESTCall(matcher.group(), viewName, isDefaultView, userType);
 		int group           = 1;
 
 		for (final RESTParameter part : parts.values()) {
@@ -110,38 +104,6 @@ public abstract class RESTEndpoint {
 		}
 
 		return call;
-	}
-
-	// ----- protected methods -----
-	protected GraphObject getEntity(final SecurityContext securityContext, final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
-
-		final App app = StructrApp.getInstance(securityContext);
-
-		if (entityClass == null) {
-
-			if (uuid != null) {
-
-				throw new NotFoundException("Type " + typeName + " does not exist for request with entity ID " + uuid);
-
-			} else {
-
-				throw new NotFoundException("Request specifies no value for type and entity ID");
-			}
-		}
-
-		GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
-		if (entity != null) {
-
-			return entity;
-		}
-
-		entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
-		if (entity != null) {
-
-			return entity;
-		}
-
-		throw new NotFoundException("Entity with ID " + uuid + " of type " +  typeName +  " does not exist");
 	}
 
 	// ----- private methods -----

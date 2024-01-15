@@ -26,6 +26,7 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,11 +41,11 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.helper.CaseHelper;
 import org.structr.core.GraphObject;
-import org.structr.core.Value;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
+import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.NodeInterface;
@@ -64,20 +65,17 @@ public abstract class RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(RESTCallHandler.class.getName());
 
-	protected SecurityContext securityContext = null;
-	protected String requestedView            = null;
-	protected RESTCall call                   = null;
+	private GraphObject cachedEntity = null;
+	protected String requestedView   = null;
+	protected RESTCall call          = null;
 
-	public RESTCallHandler(final SecurityContext securityContext, final RESTCall call) {
-
-		this.securityContext = securityContext;
-		this.call            = call;
+	public RESTCallHandler(final RESTCall call) {
+		this.call = call;
 	}
 
-	public abstract ResultStream doGet(final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException;
-	public abstract RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException;
+	public abstract Set<String> getAllowedHttpMethodsForOptionsCall();
 	public abstract boolean isCollection();
-	public abstract Class getEntityClass();
+	public abstract Class getEntityClass(final SecurityContext securityContext) throws FrameworkException;
 
 	public void setRequestedView(final String view) {
 		this.requestedView = view;
@@ -109,140 +107,85 @@ public abstract class RESTCallHandler {
 		return signature;
 	}
 
-	public RestMethodResult doHead() throws FrameworkException {
-		throw new IllegalStateException("Resource.doHead() called, this should not happen.");
-	}
-
-	public RestMethodResult doOptions() throws FrameworkException {
-		return new RestMethodResult(HttpServletResponse.SC_OK);
-	}
-
-	public RestMethodResult doPatch(List<Map<String, Object>> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("PATCH not allowed on " + getClass().getSimpleName());
-	}
-
-	public RestMethodResult doDelete() throws FrameworkException {
-
-		final App app      = StructrApp.getInstance(securityContext);
-		final int pageSize = 500;
-		int count          = 0;
-		int chunk          = 0;
-		boolean hasMore    = true;
-
-		while (hasMore) {
-
-			// will be set to true below if at least one result was processed
-			hasMore = false;
-
-			try (final Tx tx = app.tx(true, true, false)) {
-
-				chunk++;
-
-				// always fetch the first page
-				try (final ResultStream<GraphObject> result = doGet(null, pageSize, 1)) {
-
-					for (final GraphObject obj : result) {
-
-						if (obj.isNode()) {
-
-							final NodeInterface node = (NodeInterface)obj;
-
-							if (!TransactionCommand.isDeleted(node.getNode())) {
-
-								app.delete(node);
-								hasMore = true;
-							}
-
-						} else {
-
-							final RelationshipInterface relationship = (RelationshipInterface)obj;
-
-							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
-
-								app.delete(relationship);
-								hasMore = true;
-							}
-						}
-
-						count++;
-					}
-				}
-
-				tx.success();
-
-				logger.info("DeleteObjects: {} objects processed", count);
-
-			} catch (NotFoundException nfex) {
-
-				// ignore NotFoundException
-
-			} catch (Throwable t) {
-
-				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.toString());
-
-				// we need to break here, otherwise the delete call will loop
-				// endlessly, trying to delete the erroneous objects.
-				break;
-			}
-		}
-
-		return new RestMethodResult(HttpServletResponse.SC_OK);
-	}
-
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-
-		final List<GraphObject> results = Iterables.toList(doGet(null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
-
-		if (results != null && !results.isEmpty()) {
-
-			final Class type = results.get(0).getClass();
-
-			// instruct deserialization strategies to set properties on related nodes
-			securityContext.setAttribute("setNestedProperties", true);
-
-			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
-
-			for (final GraphObject obj : results) {
-
-				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
-
-					final Principal currentUser = securityContext.getUser(false);
-					String user;
-
-					if (currentUser == null) {
-						user = securityContext.isSuperUser() ? "superuser" : "anonymous";
-					} else {
-						user = currentUser.getProperty(AbstractNode.id);
-					}
-
-					throw new FrameworkException(403, "Modification of node " + obj.getProperty(GraphObject.id) + " with type " + obj.getProperty(GraphObject.type) + " by user " + user + " not permitted.");
-				}
-
-				obj.setProperties(securityContext, properties);
-			}
-
-			return new RestMethodResult(HttpServletResponse.SC_OK);
-		}
-
-		throw new IllegalPathException(getURL() + " can only be applied to a non-empty resource");
+	/**
+	 * Default implementation of the HTTP GET method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
+	 *
+	 * @param securityContext
+	 * @param sortOrder
+	 * @param pageSize
+	 * @param page
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, final int pageSize, final int page) throws FrameworkException {
+		throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
 	/**
+	 * Default implementation of the HTTP HEAD method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
 	 *
-	 * @param propertyView
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
 	 */
-	public void configurePropertyView(final Value<String> propertyView) {
+	public RestMethodResult doHead() throws FrameworkException {
+		throw new IllegalMethodException("HEAD not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
-	public void postProcessResultSet(final ResultStream result) {
+	/**
+	 * Default implementation of the HTTP PATCH method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
+	 *
+	 * @param securityContext
+	 * @param propertySet
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
+		throw new IllegalMethodException("PATCH not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+	}
+
+	/**
+	 * Default implementation of the HTTP DELETE method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
+	 *
+	 * @param securityContext
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+		throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+	}
+
+	/**
+	 * Default implementation of the HTTP PUT method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
+	 *
+	 * @param securityContext
+	 * @param propertySet
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+		throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+	}
+
+	/**
+	 * Default implementation of the HTTP POST method that returns 405 Method Not Allowed. Override this method
+	 * to provide an actual implementation.
+	 *
+	 * @param securityContext
+	 * @param propertySet
+	 * @return
+	 * @throws org.structr.common.error.FrameworkException
+	 */
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+		throw new IllegalMethodException("POST not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 	}
 
 	public boolean isPrimitiveArray() {
 		return false;
-	}
-
-	public void setSecurityContext(final SecurityContext securityContext) {
-		this.securityContext = securityContext;
 	}
 
 	/**
@@ -256,19 +199,25 @@ public abstract class RESTCallHandler {
 		return true;
 	}
 
-	public Class getEntityClassOrDefault() {
+	public Class getEntityClassOrDefault(final SecurityContext securityContext) {
 
-		final Class entityClass = getEntityClass();
-		if (entityClass != null) {
+		try {
 
-			return entityClass;
+			final Class entityClass = getEntityClass(securityContext);
+			if (entityClass != null) {
+
+				return entityClass;
+			}
+
+		} catch (FrameworkException fex) {
+			// what do?
+			fex.printStackTrace();
 		}
 
 		return AbstractNode.class;
 	}
 
-	// ----- protected methods -----
-	public NodeInterface createNode(final Class entityClass, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
+	public NodeInterface createNode(final SecurityContext securityContext, final Class entityClass, final String typeName, final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (entityClass != null) {
 
@@ -284,7 +233,52 @@ public abstract class RESTCallHandler {
 		throw new NotFoundException("Type " + typeName + " does not exist");
 	}
 
-	protected String buildLocationHeader(final GraphObject newObject) {
+	// ----- protected methods -----
+	protected GraphObject getEntity(final SecurityContext securityContext, final Class entityClass, final String typeName, final String uuid) throws FrameworkException {
+
+		if (cachedEntity != null) {
+			return cachedEntity;
+		}
+
+		final App app = StructrApp.getInstance(securityContext);
+
+		if (entityClass == null) {
+
+			if (uuid != null) {
+
+				throw new FrameworkException(404, "Type ‛" + typeName + "‛ does not exist");
+
+			} else {
+
+				throw new FrameworkException(400, "Request specifies no value for type and entity ID");
+			}
+		}
+
+		if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
+
+			final GraphObject entity = app.relationshipQuery(entityClass).uuid(uuid).getFirst();
+			if (entity != null) {
+
+				cachedEntity = entity;
+
+				return entity;
+			}
+
+		} else {
+
+			final GraphObject entity = app.nodeQuery(entityClass).uuid(uuid).getFirst();
+			if (entity != null) {
+
+				cachedEntity = entity;
+
+				return entity;
+			}
+		}
+
+		throw new FrameworkException(404, "Entity with ID ‛" + uuid + "‛ of type ‛" +  typeName +  "‛ does not exist");
+	}
+
+	protected String buildLocationHeader(final SecurityContext securityContext, final GraphObject newObject) {
 
 		final StringBuilder uriBuilder = securityContext.getBaseURI();
 
@@ -307,7 +301,7 @@ public abstract class RESTCallHandler {
 		}
 	}
 
-	protected void collectSearchAttributes(final Class entityClass, final Query query) throws FrameworkException {
+	protected void collectSearchAttributes(final SecurityContext securityContext, final Class entityClass, final Query query) throws FrameworkException {
 
 		final HttpServletRequest request = securityContext.getRequest();
 
@@ -453,6 +447,112 @@ public abstract class RESTCallHandler {
 
 	protected boolean isDefaultView() {
 		return PropertyView.Public.equals(requestedView);
+	}
+
+	public RestMethodResult genericPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+		final List<GraphObject> results = Iterables.toList(doGet(securityContext, null, NodeFactory.DEFAULT_PAGE_SIZE, NodeFactory.DEFAULT_PAGE));
+
+		if (results != null && !results.isEmpty()) {
+
+			final Class type = results.get(0).getClass();
+
+			// instruct deserialization strategies to set properties on related nodes
+			securityContext.setAttribute("setNestedProperties", true);
+
+			PropertyMap properties = PropertyMap.inputTypeToJavaType(securityContext, type, propertySet);
+
+			for (final GraphObject obj : results) {
+
+				if (obj.isNode() && !obj.getSyncNode().isGranted(Permission.write, securityContext)) {
+
+					final Principal currentUser = securityContext.getUser(false);
+					String user;
+
+					if (currentUser == null) {
+						user = securityContext.isSuperUser() ? "superuser" : "anonymous";
+					} else {
+						user = currentUser.getProperty(AbstractNode.id);
+					}
+
+					throw new FrameworkException(403, "Modification of node " + obj.getProperty(GraphObject.id) + " with type " + obj.getProperty(GraphObject.type) + " by user " + user + " not permitted.");
+				}
+
+				obj.setProperties(securityContext, properties);
+			}
+
+			return new RestMethodResult(HttpServletResponse.SC_OK);
+		}
+
+		throw new IllegalPathException(getURL() + " can only be applied to a non-empty resource");
+	}
+
+	protected RestMethodResult genericDelete(final SecurityContext securityContext) throws FrameworkException {
+
+		final App app      = StructrApp.getInstance(securityContext);
+		final int pageSize = 500;
+		int count          = 0;
+		int chunk          = 0;
+		boolean hasMore    = true;
+
+		while (hasMore) {
+
+			// will be set to true below if at least one result was processed
+			hasMore = false;
+
+			try (final Tx tx = app.tx(true, true, false)) {
+
+				chunk++;
+
+				// always fetch the first page
+				try (final ResultStream<GraphObject> result = doGet(securityContext, null, pageSize, 1)) {
+
+					for (final GraphObject obj : result) {
+
+						if (obj.isNode()) {
+
+							final NodeInterface node = (NodeInterface)obj;
+
+							if (!TransactionCommand.isDeleted(node.getNode())) {
+
+								app.delete(node);
+								hasMore = true;
+							}
+
+						} else {
+
+							final RelationshipInterface relationship = (RelationshipInterface)obj;
+
+							if (!TransactionCommand.isDeleted(relationship.getRelationship())) {
+
+								app.delete(relationship);
+								hasMore = true;
+							}
+						}
+
+						count++;
+					}
+				}
+
+				tx.success();
+
+				logger.info("DeleteObjects: {} objects processed", count);
+
+			} catch (NotFoundException nfex) {
+
+				// ignore NotFoundException
+
+			} catch (Throwable t) {
+
+				logger.warn("Exception in DELETE chunk #{}: {}", chunk, t.toString());
+
+				// we need to break here, otherwise the delete call will loop
+				// endlessly, trying to delete the erroneous objects.
+				break;
+			}
+		}
+
+		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
 	// ----- private methods -----

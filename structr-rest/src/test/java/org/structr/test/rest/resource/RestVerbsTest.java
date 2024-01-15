@@ -66,9 +66,9 @@ public class RestVerbsTest extends StructrRestTestBase {
 		}
 		*/
 
-		expectNotOk(400)
-			.body("code",    Matchers.equalTo(400))
-			.body("message", Matchers.equalTo("PUT not allowed on TestOne collection resource"))
+		expectNotOk(405)
+			.body("code",    Matchers.equalTo(405))
+			.body("message", Matchers.equalTo("PUT not allowed on ‛TestOne‛ collection resource"))
 			.when().put("/TestOne");
 
 	}

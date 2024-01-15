@@ -254,7 +254,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				user = currentUser.getProperty(AbstractNode.id);
 			}
 
-			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
+			throw new FrameworkException(403, "Modification of node ‛" + this.getProperty(AbstractNode.id) + "‛ with type ‛" + this.getProperty(AbstractNode.type) + "‛ by user ‛" + user + "‛ not permitted");
 		}
 
 		if (this.dbNode != null) {
