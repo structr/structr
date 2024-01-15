@@ -19,14 +19,11 @@
 package org.structr.rest.resource;
 
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Direction;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractNode;
@@ -34,16 +31,15 @@ import org.structr.core.graph.RelationshipInterface;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.core.graph.NodeInterface;
-import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 /**
@@ -62,7 +58,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName  = call.get("type");
 		final String uuid      = call.get("uuid");
@@ -76,11 +72,11 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 
 				if ("in".equals(direction)) {
 
-					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, uuid, Direction.INCOMING);
+					return new RelationshipsResourceHandler(call, entityClass, typeName, uuid, Direction.INCOMING);
 
 				} else {
 
-					return new RelationshipsResourceHandler(securityContext, call, entityClass, typeName, uuid, Direction.OUTGOING);
+					return new RelationshipsResourceHandler(call, entityClass, typeName, uuid, Direction.OUTGOING);
 				}
 			}
 		}
@@ -92,16 +88,15 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 	private class RelationshipsResourceHandler extends RESTCallHandler {
 
 		public static final String REQUEST_PARAMETER_FILTER_INTERNAL_RELATIONSHIP_TYPES = "domainOnly";
-		private static final Logger logger = LoggerFactory.getLogger(InstanceRelationshipsResource.class.getName());
 
 		private Class entityClass   = null;
 		private String typeName     = null;
 		private String uuid         = null;
 		private Direction direction = null;
 
-		public RelationshipsResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String uuid, final Direction direction) {
+		public RelationshipsResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String uuid, final Direction direction) {
 
-			super(securityContext, call);
+			super(call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;
@@ -110,7 +105,7 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final List<GraphObject> resultList = new LinkedList<>();
 			final GraphObject obj              = getEntity(securityContext, entityClass, typeName, uuid);
@@ -175,13 +170,13 @@ public class InstanceRelationshipsResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + getURL());
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
 		}
 
 		@Override
-		public Class getEntityClass() {
-			return null;
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS");
 		}
 	}
 }

@@ -30,14 +30,16 @@ import java.util.List;
 public class RESTCall extends LinkedHashMap<String, String> {
 
 	private final List<String> pathParameters = new LinkedList<>();
+	private Class userType                    = null;
 	private String viewName                   = null;
 	private String url                        = null;
 	private boolean isDefaultView             = false;
 
-	public RESTCall(final String url, final String viewName, final boolean isDefaultView) {
+	public RESTCall(final String url, final String viewName, final boolean isDefaultView, final Class userType) {
 
 		this.isDefaultView = isDefaultView;
 		this.viewName      = viewName;
+		this.userType      = userType;
 		this.url           = url;
 	}
 
@@ -59,5 +61,9 @@ public class RESTCall extends LinkedHashMap<String, String> {
 
 	public List<String> getPathParameters() {
 		return pathParameters;
+	}
+
+	public Class getUserType() {
+		return userType;
 	}
 }

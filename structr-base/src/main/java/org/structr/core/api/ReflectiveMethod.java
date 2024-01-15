@@ -27,6 +27,7 @@ import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.schema.action.EvaluationHints;
 
 /**
@@ -62,13 +63,8 @@ public class ReflectiveMethod extends AbstractMethod {
 	}
 
 	@Override
-	public boolean useGET() {
-		return false;
-	}
-
-	@Override
-	public boolean usePOST() {
-		return true;
+	public HttpVerb getHttpVerb() {
+		return HttpVerb.POST;
 	}
 
 	@Override
@@ -78,7 +74,7 @@ public class ReflectiveMethod extends AbstractMethod {
 
 	@Override
 	public String getFullMethodName() {
-		return "method " + method.getDeclaringClass().getSimpleName() + "." + method.getName();
+		return "method ‛" + method.getDeclaringClass().getSimpleName() + "." + method.getName() + "‛";
 	}
 
 	@Override

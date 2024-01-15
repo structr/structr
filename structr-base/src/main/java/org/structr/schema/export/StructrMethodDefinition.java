@@ -66,8 +66,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private boolean callSuper                                 = false;
 	private boolean isStatic                                  = false;
 	private boolean isPrivate                                 = false;
-	private boolean usesGet                                   = false;
 	private JsonType parent                                   = null;
+	private String httpVerb                                   = "POST";
 	private String returnType                                 = null;
 	private String openAPIReturnType                          = null;
 	private String codeType                                   = null;
@@ -246,14 +246,14 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	}
 
 	@Override
-	public JsonMethod setUsesGet(final boolean usesGet) {
-		this.usesGet = usesGet;
+	public JsonMethod setHttpVerb(final String httpVerb) {
+		this.httpVerb = httpVerb;
 		return this;
 	}
 
 	@Override
-	public boolean usesGet() {
-		return usesGet;
+	public String getHttpVerb() {
+		return httpVerb;
 	}
 
 	@Override
@@ -365,7 +365,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.isPartOfBuiltInSchema, true);
 		updateProperties.put(SchemaMethod.isStatic,              isStatic());
 		updateProperties.put(SchemaMethod.isPrivate,             isPrivate());
-		updateProperties.put(SchemaMethod.usesGet,               usesGet());
+		updateProperties.put(SchemaMethod.httpVerb,              SchemaMethod.HttpVerb.valueOf(getHttpVerb()));
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 
@@ -459,10 +459,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			this.isPrivate = (Boolean)_isPrivate;
 		}
 
-		final Object _usesGet = source.get(JsonSchema.KEY_USES_GET);
-		if (_usesGet != null && _usesGet instanceof Boolean) {
+		final Object _httpVerb = source.get(JsonSchema.KEY_HTTP_VERB);
+		if (_httpVerb != null && _httpVerb instanceof String) {
 
-			this.usesGet = (Boolean)_usesGet;
+			this.httpVerb = (String)_httpVerb;
 		}
 
 		final Object _overridesExisting = source.get(JsonSchema.KEY_OVERRIDES_EXISTING);
@@ -532,7 +532,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setCallSuper(method.getProperty(SchemaMethod.callSuper));
 		setIsStatic(method.getProperty(SchemaMethod.isStatic));
 		setIsPrivate(method.getProperty(SchemaMethod.isPrivate));
-		setUsesGet(method.getProperty(SchemaMethod.usesGet));
+		setHttpVerb(method.getProperty(SchemaMethod.httpVerb).name());
 		setOverridesExisting(method.getProperty(SchemaMethod.overridesExisting));
 		setDoExport(method.getProperty(SchemaMethod.doExport));
 		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
@@ -580,7 +580,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		map.put(JsonSchema.KEY_CALL_SUPER, callSuper);
 		map.put(JsonSchema.KEY_IS_STATIC, isStatic);
 		map.put(JsonSchema.KEY_IS_PRIVATE, isPrivate);
-		map.put(JsonSchema.KEY_USES_GET, usesGet);
+		map.put(JsonSchema.KEY_HTTP_VERB, httpVerb);
 		map.put(JsonSchema.KEY_OVERRIDES_EXISTING, overridesExisting);
 		map.put(JsonSchema.KEY_DO_EXPORT, doExport);
 		map.put(JsonSchema.KEY_INCLUDE_IN_OPENAPI, includeInOpenAPI);

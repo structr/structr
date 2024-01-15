@@ -43,8 +43,11 @@ import org.structr.web.common.RenderContext;
 import org.structr.web.entity.dom.DOMNode;
 
 import java.util.Collections;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 /**
  * List data source equivalent to a rest resource.
@@ -81,6 +84,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 
 		final SecurityContext securityContext = renderContext.getSecurityContext();
 		final Value<String> propertyView      = new ThreadLocalPropertyView();
+		final Principal currentUser           = securityContext.getUser(false);
 
 		propertyView.set(securityContext, PropertyView.Ui);
 
@@ -101,7 +105,7 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		RESTCallHandler handler = null;
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(securityContext, wrappedRequest, PropertyView.Public);
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -119,13 +123,13 @@ public class RestDataSource implements GraphDataSource<Iterable<GraphObject>> {
 		final String pageParameter     = wrappedRequest.getParameter(RequestKeywords.PageNumber.keyword());
 		final String[] sortKeyNames    = wrappedRequest.getParameterValues(RequestKeywords.SortKey.keyword());
 		final String[] sortOrders      = wrappedRequest.getParameterValues(RequestKeywords.SortOrder.keyword());
-		final Class type               = handler.getEntityClass();
+		final Class type               = handler.getEntityClass(securityContext);
 		final DefaultSortOrder order   = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 		final int pageSize             = parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 		final int page                 = parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
 
 		try {
-			return handler.doGet(order, pageSize, page);
+			return handler.doGet(securityContext, order, pageSize, page);
 
 		} catch (NotFoundException nfe) {
 

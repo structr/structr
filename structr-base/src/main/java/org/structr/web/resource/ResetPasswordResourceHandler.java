@@ -20,12 +20,11 @@ package org.structr.web.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -40,7 +39,6 @@ import org.structr.core.script.Scripting;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.servlet.AbstractDataServlet;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.entity.User;
@@ -67,22 +65,12 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		RESET_PASSWORD_ERROR_PAGE_KEY
 	}
 
-	public ResetPasswordResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-		super(securityContext, call);
+	public ResetPasswordResourceHandler(final RESTCall call) {
+		super(call);
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		if (propertySet.containsKey("eMail")) {
 
@@ -106,7 +94,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 				// update confirmation key
 				user.setProperties(SecurityContext.getSuperUserInstance(), new PropertyMap(confirmationKey, confKey));
 
-				if (!sendResetPasswordLink(user, propertySet, localeString, confKey)) {
+				if (!sendResetPasswordLink(securityContext, user, propertySet, localeString, confKey)) {
 
 					throw new FrameworkException(503, "Unable to send confirmation e-mail.");
 				}
@@ -127,12 +115,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 		}
 	}
 
-	@Override
-	public RestMethodResult doOptions() throws FrameworkException {
-		throw new NotAllowedException("OPTIONS not allowed on " + getURL());
-	}
-
-	private boolean sendResetPasswordLink(final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
+	private boolean sendResetPasswordLink(final SecurityContext securityContext, final Principal user, final Map<String, Object> propertySetFromUserPOST, final String localeString, final String confKey) throws FrameworkException {
 
 		final String userEmail  = user.getProperty("eMail");
 		final ActionContext ctx = new ActionContext(SecurityContext.getInstance(user, AccessMode.Frontend));
@@ -217,7 +200,7 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public Class getEntityClass() {
+	public Class getEntityClass(final SecurityContext securityContext) {
 		return null;
 	}
 
@@ -229,5 +212,10 @@ public class ResetPasswordResourceHandler extends RESTCallHandler {
 	@Override
 	public String getResourceSignature() {
 		return "_resetPassword";
+	}
+
+	@Override
+	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+		return Set.of("OPTIONS", "POST");
 	}
 }

@@ -22,7 +22,6 @@ package org.structr.rest.resource;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.rest.RestMethodResult;
@@ -30,12 +29,13 @@ import org.structr.rest.exception.NotAllowedException;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.common.helper.CaseHelper;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.web.entity.User;
 
 /**
@@ -49,18 +49,18 @@ public class MeResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new MeResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new MeResourceHandler(call);
 	}
 
 	private class MeResourceHandler extends RESTCallHandler {
 
-		public MeResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public MeResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			Principal user = securityContext.getUser(true);
 			if (user != null) {
@@ -74,8 +74,13 @@ public class MeResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + call.getURL());
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
+		}
+
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			return genericDelete(securityContext);
 		}
 
 		@Override
@@ -84,7 +89,7 @@ public class MeResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return User.class;
 		}
 
@@ -100,6 +105,11 @@ public class MeResource extends ExactMatchEndpoint {
 			}
 
 			return signature;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
 		}
 	}
 

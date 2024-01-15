@@ -21,7 +21,6 @@ package org.structr.rest.resource;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.App;
@@ -29,14 +28,14 @@ import org.structr.core.app.StructrApp;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
-import java.util.Map;
+import java.util.Set;
 import org.structr.api.config.Settings;
+import org.structr.common.SecurityContext;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
-import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
-import org.structr.rest.exception.IllegalPathException;
 
 /**
  * Represents an exact UUID match.
@@ -49,12 +48,12 @@ public class UuidResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String uuid = call.get("uuid");
 		if (uuid != null) {
 
-			return new UuidResourceHandler(securityContext, call, uuid);
+			return new UuidResourceHandler(call, uuid);
 		}
 
 		// only return a handler if there is actually a type with the requested name
@@ -65,17 +64,17 @@ public class UuidResource extends ExactMatchEndpoint {
 
 		private String uuid = null;
 
-		public UuidResourceHandler(final SecurityContext securityContext, final RESTCall call, final String uuid) {
+		public UuidResourceHandler(final RESTCall call, final String uuid) {
 
-			super(securityContext, call);
+			super(call);
 
 			this.uuid = uuid;
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			GraphObject obj = getEntity();
+			GraphObject obj = getEntity(securityContext);
 			if (obj != null) {
 
 				return new PagingIterable<>("/" + getURL(), Arrays.asList(obj));
@@ -85,7 +84,12 @@ public class UuidResource extends ExactMatchEndpoint {
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
 		}
 
-		public GraphObject getEntity() throws FrameworkException {
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			return genericDelete(securityContext);
+		}
+
+		public GraphObject getEntity(final SecurityContext securityContext) throws FrameworkException {
 
 			final App app = StructrApp.getInstance(securityContext);
 
@@ -109,18 +113,17 @@ public class UuidResource extends ExactMatchEndpoint {
 
 		@Override
 		public boolean isCollection() {
-
 			return false;
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalPathException("POST not allowed on " + getURL());
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
 		}
 
 		@Override
-		public Class getEntityClass() {
-			return null;
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("DELETE", "GET", "OPTIONS", "PUT");
 		}
 	}
 }

@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
+import org.structr.web.entity.User;
 
 /**
  * Simple login servlet, acts as a bridge for form-base HTTP login.
@@ -100,7 +101,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 
 			if (securityContext != null) {
 
-				final RESTCallHandler loginResource = getLoginResource(securityContext, request);
+				final RESTCallHandler loginResource = getLoginResource(request);
 				if (loginResource != null) {
 
 					final Map<String, Object> properties = new LinkedHashMap<>();
@@ -116,7 +117,7 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 						}
 					}
 
-					final RestMethodResult result = loginResource.doPost(properties);
+					final RestMethodResult result = loginResource.doPost(securityContext, properties);
 
 					// send HTTP headers and redirect
 					for (final Entry<String, String> entry : result.getHeaders().entrySet()) {
@@ -166,8 +167,8 @@ public class LoginServlet extends AbstractDataServlet implements HttpServiceServ
 		return "login";
 	}
 
-	protected RESTCallHandler getLoginResource(final SecurityContext securityContext, final HttpServletRequest request) throws FrameworkException {
-		return RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+	protected RESTCallHandler getLoginResource(final HttpServletRequest request) throws FrameworkException {
+		return RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
 	}
 
 	// ----- private methods -----

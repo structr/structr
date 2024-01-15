@@ -22,6 +22,7 @@ import com.google.gson.*;
 import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -35,10 +36,11 @@ import java.util.Map.Entry;
  */
 public class FrameworkException extends Exception implements JsonException {
 
-	private ErrorBuffer errorBuffer  = new ErrorBuffer();
-	private Map<String, String> data = null;
-	private String message           = null;
-	private int status               = HttpServletResponse.SC_OK;
+	private final Map<String, String> headers = new LinkedHashMap<>();
+	private ErrorBuffer errorBuffer           = new ErrorBuffer();
+	private Map<String, String> data          = null;
+	private String message                    = null;
+	private int status                        = HttpServletResponse.SC_OK;
 
 	public FrameworkException(final int status, final String message) {
 		this(status, message, (ErrorToken)null);
@@ -99,6 +101,11 @@ public class FrameworkException extends Exception implements JsonException {
 
 		return buf.toString();
 
+	}
+
+	@Override
+	public Map<String, String> headers() {
+		return headers;
 	}
 
 	@Override

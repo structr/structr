@@ -24,8 +24,6 @@ import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 import java.util.*;
@@ -53,7 +51,7 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
 		if (typeName != null) {
@@ -63,11 +61,11 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 
 				if (call.isDefaultView()) {
 
-					return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, null);
+					return new SchemaTypeResourceHandler(call, entityClass, typeName, null);
 
 				} else {
 
-					return new SchemaTypeResourceHandler(securityContext, call, entityClass, typeName, call.getViewName());
+					return new SchemaTypeResourceHandler(call, entityClass, typeName, call.getViewName());
 				}
 			}
 		}
@@ -86,9 +84,9 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		private String typeName   = null;
 		private String viewName   = null;
 
-		public SchemaTypeResourceHandler(final SecurityContext securityContext, final RESTCall call, final Class entityClass, final String typeName, final String viewName) {
+		public SchemaTypeResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final String viewName) {
 
-			super(securityContext, call);
+			super(call);
 
 			this.entityClass = entityClass;
 			this.typeName    = typeName;
@@ -96,33 +94,23 @@ public class SchemaTypeResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 			return SchemaTypeResource.getSchemaTypeResult(securityContext, typeName, entityClass, viewName);
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("PUT not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
-			throw new IllegalMethodException("DELETE not allowed on " + getURL());
-		}
-
-		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
 			return true;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS");
 		}
 	}
 

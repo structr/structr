@@ -27,6 +27,7 @@ import org.structr.common.error.NumericalMethodInputParsingException;
 import org.structr.common.error.SemanticErrorToken;
 import org.structr.core.GraphObject;
 import org.structr.core.api.Arguments.Argument;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -48,8 +49,7 @@ public abstract class AbstractMethod {
 
 	public abstract boolean isStatic();
 	public abstract boolean isPrivate();
-	public abstract boolean useGET();
-	public abstract boolean usePOST();
+	public abstract HttpVerb getHttpVerb();
 	public abstract Parameters getParameters();
 	public abstract String getFullMethodName();
 	public abstract Object execute(final SecurityContext securityContext, final GraphObject entity, final Arguments arguments, final EvaluationHints hints) throws FrameworkException;

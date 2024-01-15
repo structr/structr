@@ -141,7 +141,7 @@ public class StructrTest {
 		);
 		final Set<String> uiTypes = Set.of(
 			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
+			"JavaScriptSource", "LinkSource", "Linkable", "Page", "PagePath", "PagePathParameter", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
 		);
 
 		SchemaService.getBlacklist().addAll(htmlTypes);

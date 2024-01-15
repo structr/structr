@@ -18,22 +18,21 @@
  */
 package org.structr.rest.resource;
 
+import java.util.List;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.common.error.UnlicensedScriptException;
-import org.structr.core.app.App;
-import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Map;
+import java.util.Set;
 import org.structr.api.util.PagingIterable;
+import org.structr.common.SecurityContext;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
 import org.structr.core.api.Methods;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.core.entity.SchemaNode;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -41,7 +40,6 @@ import org.structr.rest.api.RESTMethodCallHandler;
 import org.structr.rest.api.WildcardMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
 import org.structr.schema.SchemaHelper;
-import org.structr.schema.action.EvaluationHints;
 
 /**
  *
@@ -57,7 +55,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("type");
 		final String name     = call.get("name");
@@ -70,7 +68,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
 				if (method != null && method.isStatic()) {
 
-					return new StaticMethodResourceHandler(securityContext, call, method);
+					return new StaticMethodResourceHandler(call, method);
 				}
 			}
 		}
@@ -80,71 +78,76 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 
 	private class StaticMethodResourceHandler extends RESTMethodCallHandler {
 
-		public StaticMethodResourceHandler(final SecurityContext securityContext, final RESTCall call, final AbstractMethod method) {
-			super(securityContext, call, method);
+		public StaticMethodResourceHandler(final RESTCall call, final AbstractMethod method) {
+			super(call, method);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		if (method.useGET()) {
+			if (HttpVerb.GET.equals(method.getHttpVerb())) {
 
-			final App app = StructrApp.getInstance(securityContext);
-
-			try (final Tx tx = app.tx()) {
-
-				final Arguments arguments     = Arguments.fromPath(call.getPathParameters());
-				final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
-
-				tx.success();
+				final RestMethodResult result = executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
 
 				return new PagingIterable("GET " + getURL(), result.getContent());
 
-			} catch (UnlicensedScriptException ex) {
+			} else {
 
-				throw new FrameworkException(500, "Call to unlicensed function, see server log file for more details.");
+				throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 			}
-
-		} else {
-
-			throw new IllegalMethodException("GET not allowed on " + getURL());
-		}
 		}
 
 		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-			if (method.usePOST()) {
+			if (HttpVerb.POST.equals(method.getHttpVerb())) {
 
-				final App app = StructrApp.getInstance(securityContext);
-
-				try (final Tx tx = app.tx()) {
-
-					final Arguments arguments     = Arguments.fromMap(propertySet);
-					final RestMethodResult result = wrapInResult(method.execute(securityContext, null, arguments, new EvaluationHints()));
-
-					tx.success();
-
-					return result;
-
-				} catch (UnlicensedScriptException ex) {
-					return new RestMethodResult(500, "Call to unlicensed function, see server log file for more details.");
-				}
+				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
 
 			} else {
 
-				throw new IllegalMethodException("POST not allowed on " + getURL());
+				throw new IllegalMethodException("POST not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 			}
 		}
 
 		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("PUT not allowed on " + getURL());
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			if (HttpVerb.PUT.equals(method.getHttpVerb())) {
+
+				return executeMethod(securityContext, null, Arguments.fromMap(propertySet));
+
+			} else {
+
+				throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+			}
 		}
 
 		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
-			throw new IllegalMethodException("DELETE not allowed on " + getURL());
+		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySet) throws FrameworkException {
+
+			if (HttpVerb.PATCH.equals(method.getHttpVerb())) {
+
+				// FIXME, only the first property set is used, we need to test this
+				return executeMethod(securityContext, null, Arguments.fromMap(propertySet.get(0)));
+
+			} else {
+
+				throw new IllegalMethodException("PATCH not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+			}
+		}
+
+		@Override
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+
+			if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
+
+				return executeMethod(securityContext, null, Arguments.fromPath(call.getPathParameters()));
+
+			} else {
+
+				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+			}
 		}
 
 		@Override
@@ -153,8 +156,13 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of(method.getHttpVerb().name());
 		}
 	}
 }

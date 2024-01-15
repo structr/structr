@@ -19,6 +19,7 @@
 package org.structr.web.resource;
 
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
@@ -44,14 +45,14 @@ public class TokenResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new TokenResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new TokenResourceHandler(call);
 	}
 
 	private class TokenResourceHandler extends LoginResourceHandler {
 
-		public TokenResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public TokenResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
@@ -62,13 +63,13 @@ public class TokenResource extends ExactMatchEndpoint {
 		@Override
 		protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
-			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
+			Principal user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
 			boolean isFromRefreshToken = false;
 
 			if (user == null) {
 
-				String refreshToken = getRefreshToken(propertySet);
+				String refreshToken = getRefreshToken(securityContext, propertySet);
 
 				if (refreshToken != null) {
 
@@ -115,7 +116,7 @@ public class TokenResource extends ExactMatchEndpoint {
 			return createRestMethodResult(securityContext, tokenMap);
 		}
 
-		private String getRefreshToken(final Map<String, Object> propertySet) {
+		private String getRefreshToken(final SecurityContext securityContext, final Map<String, Object> propertySet) {
 
 			String refreshToken = (String)propertySet.get("refresh_token");
 			if (refreshToken != null) {
@@ -123,7 +124,8 @@ public class TokenResource extends ExactMatchEndpoint {
 				return refreshToken;
 			}
 
-			if (this.request == null) {
+			final HttpServletRequest request = securityContext.getRequest();
+			if (request == null) {
 				return null;
 			}
 

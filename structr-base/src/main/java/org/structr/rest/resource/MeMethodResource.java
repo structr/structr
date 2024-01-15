@@ -18,9 +18,7 @@
  */
 package org.structr.rest.resource;
 
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.entity.Principal;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Methods;
 import org.structr.rest.api.RESTCall;
@@ -41,19 +39,16 @@ public class MeMethodResource extends WildcardMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
-		final Principal user = securityContext.getUser(true);
-		if (user != null) {
+		final String name       = call.get("name");
+		final Class entityClass = call.getUserType();
 
-			final String name = call.get("name");
+		// use actual type of entity returned to support inheritance
+		final AbstractMethod method = Methods.resolveMethod(entityClass, name);
+		if (method != null && !method.isPrivate()) {
 
-			// use actual type of entity returned to support inheritance
-			final AbstractMethod method = Methods.resolveMethod(user.getClass(), name);
-			if (method != null && !method.isPrivate()) {
-
-				return new InstanceMethodResourceHandler(securityContext, call, method, user);
-			}
+			return new MeMethodResourceHandler(call, method);
 		}
 
 		return null;

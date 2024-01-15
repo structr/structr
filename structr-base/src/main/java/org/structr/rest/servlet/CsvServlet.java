@@ -59,8 +59,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
 import org.structr.common.PropertyView;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
+import org.structr.web.entity.User;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
@@ -111,22 +113,25 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
+
 			final App app = StructrApp.getInstance(securityContext);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
 
+			final Principal currentUser = securityContext.getUser(false);
+
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				tx.success();
 			}
 
-			RuntimeEventLog.csv("Get", handler.getResourceSignature(), securityContext.getUser(false));
+			RuntimeEventLog.csv("Get", handler.getResourceSignature(), currentUser);
 
 			try (final Tx tx = app.tx()) {
 
@@ -142,7 +147,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-				final Class<? extends GraphObject> type = handler.getEntityClassOrDefault();
+				final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
 				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
 				// Should line breaks be removed?
@@ -152,12 +157,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				try (final ResultStream result = handler.doGet(sortOrder, pageSize, page)) {
+				try (final ResultStream result = handler.doGet(securityContext, sortOrder, pageSize, page)) {
 
 					if (result != null) {
-
-						// allow resource to modify result set
-						handler.postProcessResultSet(result);
 
 						try (Writer writer = response.getWriter()) {
 
@@ -261,15 +263,17 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			if (securityContext != null) {
 
+				final Principal currentUser = securityContext.getUser(false);
+
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					handler = RESTEndpoints.resolveRESTCallHandler(securityContext, request, config.getDefaultPropertyView());
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
 					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 					tx.success();
 				}
 
-				RuntimeEventLog.csv("Post", handler.getResourceSignature(), securityContext.getUser(false));
+				RuntimeEventLog.csv("Post", handler.getResourceSignature(), currentUser);
 
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
@@ -291,7 +295,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getEntityClass(), fieldSeparator, quoteCharacter, rangeHeader);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getEntityClass(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
 
 					if (handler.createPostTransaction()) {
 
@@ -312,7 +316,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 									for (final JsonInput propertySet : currentChunk) {
 
-										handleCsvPropertySet(results, handler, propertySet);
+										handleCsvPropertySet(securityContext, results, handler, propertySet);
 
 									}
 
@@ -340,7 +344,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								for (final JsonInput propertySet : csv) {
 
-									handleCsvPropertySet(results, handler, propertySet);
+									handleCsvPropertySet(securityContext, results, handler, propertySet);
 								}
 
 								tx.success();
@@ -360,7 +364,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 							for (final JsonInput propertySet : csv) {
 
-								handleCsvPropertySet(results, handler, propertySet);
+								handleCsvPropertySet(securityContext, results, handler, propertySet);
 							}
 
 						} catch (RetryException ddex) {
@@ -479,11 +483,11 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		return "csv";
 	}
 
-	private void handleCsvPropertySet (final List<RestMethodResult> results, final RESTCallHandler handler, final JsonInput propertySet) throws FrameworkException {
+	private void handleCsvPropertySet(final SecurityContext securityContext, final List<RestMethodResult> results, final RESTCallHandler handler, final JsonInput propertySet) throws FrameworkException {
 
 		try {
 
-			results.add(handler.doPost(convertPropertySetToMap(propertySet)));
+			results.add(handler.doPost(securityContext, convertPropertySetToMap(propertySet)));
 
 		} catch (FrameworkException fxe) {
 

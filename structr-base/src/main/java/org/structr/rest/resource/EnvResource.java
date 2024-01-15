@@ -21,16 +21,14 @@ package org.structr.rest.resource;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.function.StructrEnvFunction;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -51,18 +49,18 @@ public class EnvResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new EnvResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new EnvResourceHandler(call);
 	}
 
 	private class EnvResourceHandler extends RESTCallHandler {
 
-		public EnvResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public EnvResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final List<GraphObjectMap> resultList = new LinkedList<>();
 
@@ -72,18 +70,18 @@ public class EnvResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + getURL());
-		}
-
-		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
 			return false;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS");
 		}
 	}
 }

@@ -18,18 +18,16 @@
  */
 package org.structr.web.resource;
 
-import jakarta.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.config.Settings;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
@@ -47,7 +45,6 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.auth.AuthHelper;
-import org.structr.rest.exception.NotAllowedException;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.function.BarcodeFunction;
 
@@ -57,13 +54,8 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 	protected static final Logger logger = LoggerFactory.getLogger(LoginResourceHandler.class.getName());
 
-	protected HttpServletRequest request = null;
-
-	public LoginResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-
-		super(securityContext, call);
-
-		this.request = securityContext.getRequest();
+	public LoginResourceHandler(final RESTCall call) {
+		super(call);
 	}
 
 	@Override
@@ -76,7 +68,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String username       = (String) propertySet.get("name");
 		final String email          = (String) propertySet.get("eMail");
@@ -158,22 +150,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new NotAllowedException("GET not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-		throw new NotAllowedException("PUT not allowed on " + getURL());
-	}
-
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		throw new NotAllowedException("DELETE not allowed on " + getURL());
-	}
-
-	@Override
-	public Class getEntityClass() {
+	public Class getEntityClass(final SecurityContext securityContext) {
 		return null;
 	}
 
@@ -187,6 +164,12 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return "_login";
 	}
 
+	@Override
+	public Set<String> getAllowedHttpMethodsForOptionsCall() {
+		return Set.of("OPTIONS", "POST");
+	}
+
+	// ----- protected methods -----
 	protected Principal getUserForCredentials(final SecurityContext securityContext, final String emailOrUsername, final String password, final String twoFactorToken, final String twoFactorCode, final Map<String, Object> propertySet) throws FrameworkException {
 
 		final String superUserName = Settings.SuperUserName.getValue();
@@ -196,7 +179,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 		Principal user = null;
 
-		user = getUserForTwoFactorTokenOrEmailOrUsername(twoFactorToken, emailOrUsername, password);
+		user = getUserForTwoFactorTokenOrEmailOrUsername(securityContext, twoFactorToken, emailOrUsername, password);
 
 		if (user != null) {
 
@@ -210,7 +193,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		return null;
 	}
 
-	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
+	protected Principal getUserForTwoFactorTokenOrEmailOrUsername(final SecurityContext securityContext, final String twoFactorToken, final String emailOrUsername, final String password) throws FrameworkException {
 
 		Principal user = null;
 

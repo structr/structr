@@ -34,8 +34,12 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Map;
+import org.structr.common.SecurityContext;
+import org.structr.core.entity.Principal;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 
 public class WrappedRestCommand extends AbstractCommand {
@@ -64,8 +68,10 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		}
 
-		final StructrWebSocket socket        = this.getWebSocket();
-		final String url                     = webSocketData.getNodeDataStringValue("url");
+		final StructrWebSocket socket         = this.getWebSocket();
+		final SecurityContext securityContext = socket.getSecurityContext();
+		final String url                      = webSocketData.getNodeDataStringValue("url");
+		final Principal currentUser           = securityContext.getUser(false);
 
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);
@@ -74,7 +80,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		try {
 
-			handler = RESTEndpoints.resolveRESTCallHandler(socket.getSecurityContext(), wrappedRequest, PropertyView.Public);
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -84,22 +90,22 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		}
 
-		final String data                    = webSocketData.getNodeDataStringValue("data");
-		final Gson gson                      = new GsonBuilder().create();
-		final Map<String, Object> jsonData   = gson.fromJson(data, Map.class);
+		final String data                     = webSocketData.getNodeDataStringValue("data");
+		final Gson gson                       = new GsonBuilder().create();
+		final Map<String, Object> jsonData    = gson.fromJson(data, Map.class);
 
 		RestMethodResult result = null;
 
 		switch (method) {
 			case "PUT":
 				// we want to update data
-				result = handler.doPut(jsonData);
+				result = handler.doPut(securityContext, jsonData);
 
 				break;
 
 			case "POST":
 				// we either want to create data or call a method on an object
-				result = handler.doPost(jsonData);
+				result = handler.doPost(securityContext, jsonData);
 
 
 				break;

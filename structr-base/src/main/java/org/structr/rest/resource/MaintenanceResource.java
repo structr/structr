@@ -42,6 +42,7 @@ import org.structr.rest.exception.SystemException;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.api.schema.InvalidSchemaException;
@@ -64,6 +65,7 @@ import org.structr.core.graph.ManageThreadsCommand;
 import org.structr.core.graph.SyncCommand;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.parameter.RESTParameter;
+import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.maintenance.SnapshotCommand;
 import org.structr.schema.export.StructrSchema;
 import org.structr.schema.importer.RDFImporter;
@@ -116,7 +118,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
 		final String typeName = call.get("name");
 		if (typeName != null) {
@@ -124,13 +126,13 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			if ("_schemaJson".equals(typeName)) {
 
 				// handle schema json
-				return new SchemaJsonResourceHandler(securityContext, call);
+				return new SchemaJsonResourceHandler(call);
 			}
 
 			if (maintenanceCommandMap.containsKey(typeName)) {
 
 				// handle maintenance command
-				return new MaintenanceResourceHandler(securityContext, call, typeName, maintenanceCommandMap.get(typeName));
+				return new MaintenanceResourceHandler(call, typeName, maintenanceCommandMap.get(typeName));
 			}
 
 		}
@@ -165,28 +167,33 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		private String taskOrCommandName = null;
 		private Class taskOrCommand      = null;
 
-		public MaintenanceResourceHandler(final SecurityContext SecurityContext, final RESTCall call, final String taskOrCommandName, final Class taskOrCommand) {
+		public MaintenanceResourceHandler(final RESTCall call, final String taskOrCommandName, final Class taskOrCommand) {
 
-			super(SecurityContext, call);
+			super(call);
 
 			this.taskOrCommandName = taskOrCommandName;
 			this.taskOrCommand     = taskOrCommand;
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-			throw new NotAllowedException("GET not allowed on " + getURL());
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+			throw new IllegalMethodException("GET not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
-		public RestMethodResult doPut(Map<String, Object> propertySet) throws FrameworkException {
-			throw new NotAllowedException("PUT not allowed on " + getURL());
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			throw new IllegalMethodException("PUT not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
+			throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+		}
 
-			if (securityContext != null && isSuperUser()) {
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+
+			if (securityContext != null && isSuperUser(securityContext)) {
 
 				if (this.taskOrCommand != null) {
 
@@ -272,7 +279,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
@@ -282,23 +289,33 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			return true;
 		}
 
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("POST");
+		}
+
 		// ----- private methods -----
-		private boolean isSuperUser() throws FrameworkException {
+		private boolean isSuperUser(final SecurityContext securityContext) throws FrameworkException {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
-				return securityContext.isSuperUser();
+
+				final boolean isSuperUser = securityContext.isSuperUser();
+
+				tx.success();
+
+				return isSuperUser;
 			}
 		}
 	}
 
 	public class SchemaJsonResourceHandler extends RESTCallHandler {
 
-		public SchemaJsonResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public SchemaJsonResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public Class<? extends GraphObject> getEntityClass() {
+		public Class<? extends GraphObject> getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
@@ -308,7 +325,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
 			final JsonSchema jsonSchema = StructrSchema.createFromDatabase(StructrApp.getInstance());
 			final String schema         = jsonSchema.toString();
@@ -318,7 +335,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public RestMethodResult doPost(Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			if(propertySet != null && propertySet.containsKey("schema")) {
 
@@ -337,6 +354,11 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 			}
 
 			return new RestMethodResult(400, "Invalid request body. Specify schema json string as 'schema' in request body.");
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
 		}
 	}
 }

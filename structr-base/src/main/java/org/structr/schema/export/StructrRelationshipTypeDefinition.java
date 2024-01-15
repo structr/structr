@@ -44,23 +44,23 @@ import java.util.TreeMap;
  */
 public class StructrRelationshipTypeDefinition extends StructrTypeDefinition<SchemaRelationshipNode> implements JsonReferenceType {
 
-	private JsonReferenceProperty sourceReference = null;
-	private JsonReferenceProperty targetReference = null;
-	private String sourcePropertyName             = null;
-	private String targetPropertyName             = null;
-	private String relationshipType               = null;
-	private URI sourceType                        = null;
-	private URI targetType                        = null;
-	private Cardinality cardinality               = null;
-	private Cascade cascadingDelete               = null;
-	private Cascade cascadingCreate               = null;
-	private PropagationDirection permissionPropagation       = PropagationDirection.None;
-	private PropagationMode readPropagation           = PropagationMode.Remove;
-	private PropagationMode writePropagation          = PropagationMode.Remove;
-	private PropagationMode deletePropagation         = PropagationMode.Remove;
-	private PropagationMode accessControlPropagation  = PropagationMode.Remove;
-	private String aclHiddenProperties            = null;
-	private boolean isPartOfBuiltInSchema         = false;
+	private JsonReferenceProperty sourceReference       = null;
+	private JsonReferenceProperty targetReference       = null;
+	private String sourcePropertyName                   = null;
+	private String targetPropertyName                   = null;
+	private String relationshipType                     = null;
+	private URI sourceType                              = null;
+	private URI targetType                              = null;
+	private Cardinality cardinality                     = null;
+	private Cascade cascadingDelete                     = null;
+	private Cascade cascadingCreate                     = null;
+	private PropagationDirection permissionPropagation  = PropagationDirection.None;
+	private PropagationMode readPropagation             = PropagationMode.Remove;
+	private PropagationMode writePropagation            = PropagationMode.Remove;
+	private PropagationMode deletePropagation           = PropagationMode.Remove;
+	private PropagationMode accessControlPropagation    = PropagationMode.Remove;
+	private String aclHiddenProperties                  = null;
+	private boolean isPartOfBuiltInSchema               = false;
 
 	public StructrRelationshipTypeDefinition(final StructrSchemaDefinition root, final String name) {
 

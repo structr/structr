@@ -26,7 +26,6 @@ import org.structr.api.Predicate;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEvent;
 import org.structr.common.event.RuntimeEventLog;
@@ -36,6 +35,7 @@ import org.structr.rest.RestMethodResult;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import org.structr.common.SecurityContext;
 import org.structr.rest.api.ExactMatchEndpoint;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
@@ -56,30 +56,30 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new RuntimeEventLogResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new RuntimeEventLogResourceHandler(call);
 	}
 
 	private class RuntimeEventLogResourceHandler extends RESTCallHandler {
 
-		public RuntimeEventLogResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public RuntimeEventLogResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-			final Predicate<RuntimeEvent> predicate = getPredicate();
+			final Predicate<RuntimeEvent> predicate = getPredicate(securityContext);
 			final List<GraphObject> resultList      = RuntimeEventLog.getEvents(predicate).stream().map(e -> e.toGraphObject()).collect(Collectors.toList());
 
 			return new PagingIterable(getURL(), resultList, pageSize, page);
 		}
 
 		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
 			final Consumer<RuntimeEvent> visitor    = getVisitor(propertySet);
-			final Predicate<RuntimeEvent> predicate = getPredicate();
+			final Predicate<RuntimeEvent> predicate = getPredicate(securityContext);
 
 			if (visitor != null) {
 
@@ -90,7 +90,7 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
@@ -99,8 +99,13 @@ public class RuntimeEventLogResource extends ExactMatchEndpoint {
 			return true;
 		}
 
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS", "POST");
+		}
+
 		// ----- private methods -----
-		private Predicate<RuntimeEvent> getPredicate() {
+		private Predicate<RuntimeEvent> getPredicate(final SecurityContext securityContext) {
 
 			final AndPredicate<RuntimeEvent> root = new AndPredicate<>();
 

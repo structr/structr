@@ -35,8 +35,6 @@ import org.structr.core.entity.Relation.Multiplicity;
 import org.structr.core.entity.SchemaRelationshipNode;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.*;
-import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.SchemaHelper;
 
@@ -80,8 +78,8 @@ public class SchemaResource extends ExactMatchEndpoint {
 	}
 
 	@Override
-	public RESTCallHandler accept(final SecurityContext securityContext, final RESTCall call) throws FrameworkException {
-		return new SchemaResourceHandler(securityContext, call);
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new SchemaResourceHandler(call);
 	}
 
 	// ----- public static methods -----
@@ -254,38 +252,28 @@ public class SchemaResource extends ExactMatchEndpoint {
 
 	private class SchemaResourceHandler extends RESTCallHandler {
 
-		public SchemaResourceHandler(final SecurityContext securityContext, final RESTCall call) {
-			super(securityContext, call);
+		public SchemaResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
 		@Override
-		public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
+		public ResultStream doGet(final SecurityContext securityContext, final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 			return getSchemaOverviewResult();
 		}
 
 		@Override
-		public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("POST not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-			throw new IllegalMethodException("PUT not allowed on " + getURL());
-		}
-
-		@Override
-		public RestMethodResult doDelete() throws FrameworkException {
-			throw new IllegalMethodException("DELETE not allowed on " + getURL());
-		}
-
-		@Override
-		public Class getEntityClass() {
+		public Class getEntityClass(final SecurityContext securityContext) {
 			return null;
 		}
 
 		@Override
 		public boolean isCollection() {
 			return true;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("GET", "OPTIONS");
 		}
 	}
 }

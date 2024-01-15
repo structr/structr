@@ -24,6 +24,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
+import org.structr.core.entity.SchemaMethod.HttpVerb;
 import org.structr.schema.action.Actions;
 import org.structr.schema.action.EvaluationHints;
 
@@ -60,13 +61,8 @@ public class ScriptMethod extends AbstractMethod {
 	}
 
 	@Override
-	public boolean useGET() {
-		return method.usesGet();
-	}
-
-	@Override
-	public boolean usePOST() {
-		return !useGET();
+	public HttpVerb getHttpVerb() {
+		return method.getHttpVerb();
 	}
 
 	@Override
@@ -80,11 +76,11 @@ public class ScriptMethod extends AbstractMethod {
 		final AbstractSchemaNode declaringClass = method.getProperty(SchemaMethod.schemaNode);
 		if (declaringClass == null) {
 
-			return "user-defined function " + method.getName();
+			return "user-defined function ‛" + method.getName() + "‛";
 
 		} else {
 
-			return "method " + declaringClass.getName() + "." + method.getName();
+			return "method ‛" + declaringClass.getName() + "." + method.getName() + "‛";
 		}
 	}
 

@@ -47,6 +47,9 @@ public interface PagePath extends NodeInterface {
 
 		type.addPropertyGetter("page",       Page.class);
 		type.addPropertyGetter("parameters", Iterable.class);
+
+		final JsonObjectType page = schema.addType("Page");
+		page.relate(type, "HAS_PATH", Cardinality.OneToMany, "page", "paths");
 	}}
 
 	// implemented by method created with addPropertyGetter above
