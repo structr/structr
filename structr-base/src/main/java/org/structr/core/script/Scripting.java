@@ -352,8 +352,6 @@ public class Scripting {
 
 			context.enter();
 
-			final StringBuilder wrappedScript = new StringBuilder();
-
 			// Clear output buffer
 			actionContext.clear();
 
@@ -363,28 +361,11 @@ public class Scripting {
 				actionContext.getErrorBuffer().setStatus(0);
 			}
 
-			switch (engineName) {
-				case "R":
-					wrappedScript.append("main <- function() {");
-					wrappedScript.append(snippet.getSource());
-					wrappedScript.append("}\n");
-					break;
-				case "python":
-					// Prepend tabs
-					final String tabPrependedScript = Arrays.stream(snippet.getSource().trim().split("\n")).map(line -> "	" + line).collect(Collectors.joining("\n"));
-					wrappedScript.append("def main():\n");
-					wrappedScript.append(tabPrependedScript);
-					wrappedScript.append("\n");
-					break;
-			}
-
-			context.eval(engineName, wrappedScript.toString());
 			Object result = null;
 
 			try {
 
-				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
-
+				result = context.eval(engineName, snippet.getSource());
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
