@@ -104,9 +104,15 @@
 	background-color: var(--light-gray-bg-f3) ! important;
 }
 
+#folder-contents tr[id] .node-action-icon,
+#folder-contents .tile .node-action-icon {
+	display: inline-block;
+	opacity: 0%;
+}
+
 #folder-contents tr[id]:hover .node-action-icon,
 #folder-contents .tile:hover .node-action-icon {
-	display: inline-block;
+	opacity: 100%;
 }
 
 #folder-contents .nodeActive {
@@ -131,18 +137,26 @@
 }
 
 #folder-contents table th:nth-child(3) {
-	width: 10%;
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(4) {
-	width: 10%;
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(5) {
-	width: calc(20% - 24px);
+	width: 5%;
 }
 
 #folder-contents table th:nth-child(6) {
+	width: 10%;
+}
+
+#folder-contents table th:nth-child(7) {
+	width: calc(20% - 24px);
+}
+
+#folder-contents table th:nth-child(8) {
 	width: 20%;
 }
 
@@ -176,8 +190,8 @@
 	color: var(--inactive-tab-text);
 }
 
-#files-table tbody tr td.id {
-	color: var(--gray-ddd);
+#files-table tbody tr td span.id_ {
+	color: var(--gray-ccc);
 }
 
 #files-table tbody tr td .node {
