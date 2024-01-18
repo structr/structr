@@ -18,71 +18,44 @@
  */
 package org.structr.web.common;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Map.Entry;
+import org.apache.commons.lang3.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.graph.Tx;
 import org.structr.web.entity.dom.Page;
 import org.structr.web.entity.path.PagePath;
-import org.structr.web.entity.path.PagePathParameter;
 
 /**
  */
 public class PagePaths {
 
-	private static final Map<String, Pattern> patterns = new LinkedHashMap<>();
+	public static Page findPageAndResolveParameters(final RenderContext renderContext, final String fullPath) throws FrameworkException {
 
-	public static PagePath resolve(final String fullPath) throws FrameworkException {
+		// we need to split the path ourselves because we need to be able to detect "empty" parts (//)
+		final String[] requestParts = StringUtils.splitPreserveAllTokens(StringUtils.substringAfter(fullPath, "/"), "/");
+		final App app               = StructrApp.getInstance();
+		final int requestLength     = requestParts.length;
 
-		final App app  = StructrApp.getInstance();
+		if (requestLength > 0) {
 
-		try (final Tx tx = app.tx()) {
+			for (final PagePath pathCandidate : app.nodeQuery(PagePath.class).getResultStream()) {
 
-			for (final PagePath path : app.nodeQuery(PagePath.class).getResultStream()) {
+				final Map<String, Object> values = pathCandidate.tryResolvePath(requestParts);
+				if (values != null) {
 
-				final String uuid = path.getUuid();
+					// handle values
+					for (final Entry<String, Object> entry : values.entrySet()) {
+						renderContext.setConstant(entry.getKey(), entry.getValue());
+					}
 
-				Pattern pattern = patterns.get(uuid);
-				if (pattern == null) {
-
-					pattern = Pattern.compile(getPattern(path));
-					patterns.put(uuid, pattern);
-				}
-
-				final Matcher matcher = pattern.matcher(fullPath);
-				if (matcher.matches()) {
-
-					return path;
+					// return resolved page
+					return pathCandidate.getPage();
 				}
 			}
-
-			tx.success();
 		}
 
 		return null;
-	}
-
-	private static String getPattern(final PagePath path) {
-
-		final StringBuilder buf = new StringBuilder();
-
-		final Page page = path.getPage();
-		if (page != null) {
-
-			buf.append("/");
-			buf.append(page.getName());
-
-			for (final PagePathParameter parameter : path.getParameters()) {
-
-				buf.append("/");
-				buf.append("(.*)");
-			}
-		}
-
-		return buf.toString();
 	}
 }

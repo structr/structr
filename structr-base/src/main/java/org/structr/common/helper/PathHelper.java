@@ -20,7 +20,6 @@ package org.structr.common.helper;
 
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.SecurityContext;
 
 /**
  * A helper class that provides methods for URL path splitting etc.
@@ -28,12 +27,6 @@ import org.structr.common.SecurityContext;
 public class PathHelper {
 
 	public static final String PATH_SEP = "/";
-
-	private final SecurityContext securityContext;
-
-	public PathHelper(SecurityContext securityContext) {
-		this.securityContext = securityContext;
-	}
 
 	public static String clean(final String path) {
 

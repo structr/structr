@@ -57,19 +57,23 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test02PUT() {
 
-		/*
-		{
-			"code": 400,
-			"message": "PUT not allowed on TestOne collection resource",
-			"errors": [
-    			]
-		}
-		*/
+		final List<TestOne> nodes = createNodes(1);
 
+		// test collection resource
 		expectNotOk(405)
 			.body("code",    Matchers.equalTo(405))
 			.body("message", Matchers.equalTo("PUT not allowed on ‛TestOne‛ collection resource"))
 			.when().put("/TestOne");
+
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/TestOne/" + nodes.get(0).getUuid());
+
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/" + nodes.get(0).getUuid());
 
 	}
 
@@ -147,7 +151,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -197,7 +200,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -277,7 +279,6 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.given()
 				.filter(ResponseLoggingFilter.logResponseTo(System.out))
 				.contentType("application/json; charset=UTF-8")
-				.body(createPatchBody(ids))
 
 			.expect()
 				.statusCode(200)
@@ -322,6 +323,37 @@ public class RestVerbsTest extends StructrRestTestBase {
 			.when()
 
 				.patch("/TestOne");
+	}
+
+	@Test
+	public void test05PATCHOnEntityResource() {
+
+		final String id = createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }");
+
+		// do PATCH 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("{ name: 'moep1', anInt: 42, aLong: 13 }")
+			.expect().statusCode(200).when().patch("/TestOne/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep1"))
+			.body("result.anInt",    equalTo(42))
+			.body("result.aLong",    equalTo(13))
+			.when().get("/TestOne/" + id);
+
+
+		// do PATCH 2
+		RestAssured.given().contentType("application/json; charset=UTF-8").body("[ { name: 'moep2' }, { anInt: 43 }, { aLong: 14 } ]")
+			.expect().statusCode(200).when().patch("/TestOne/" + id);
+
+		// check result 1
+		RestAssured.given().contentType("application/json; charset=UTF-8").expect().statusCode(200)
+			.body("result.id",       equalTo(id))
+			.body("result.name",     equalTo("moep2"))
+			.body("result.anInt",    equalTo(43))
+			.body("result.aLong",    equalTo(14))
+			.when().get("/TestOne/" + id);
 	}
 
 	// ----- private methods -----

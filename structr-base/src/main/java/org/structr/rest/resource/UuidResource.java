@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Set;
 import org.structr.api.config.Settings;
 import org.structr.common.SecurityContext;
@@ -82,6 +83,11 @@ public class UuidResource extends ExactMatchEndpoint {
 			}
 
 			throw new NotFoundException("Entity with ID " + uuid + " not found");
+		}
+
+		@Override
+		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
+			return genericPut(securityContext, propertySet);
 		}
 
 		@Override

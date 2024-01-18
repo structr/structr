@@ -526,6 +526,65 @@ public class MethodTest extends StructrRestTestBase {
 	}
 
 	@Test
+	public void testHttpVerbs() {
+
+		try (final Tx tx = app.tx()) {
+
+			final JsonSchema schema    = StructrSchema.createFromDatabase(app);
+			final JsonObjectType base  = schema.addType("BaseType");
+
+			// methods
+			base.addMethod("doGet",    "{ return 'get'; }").setHttpVerb("GET");
+			base.addMethod("doPut",    "{ return 'put'; }").setHttpVerb("PUT");
+			base.addMethod("doPost",   "{ return 'post'; }").setHttpVerb("POST");
+			base.addMethod("doPatch",  "{ return 'patch'; }").setHttpVerb("PATCH");
+			base.addMethod("doDelete", "{ return 'delete'; }").setHttpVerb("DELETE");
+
+			StructrSchema.extendDatabaseSchema(app, schema);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
+			fail("Unexpected exception");
+		}
+
+		final String base = createEntity("/BaseType", "{ name: 'BaseType' }");
+
+		RestAssured.expect().statusCode(200).body("result", equalTo("get")).when().get("/BaseType/" + base + "/doGet");
+		RestAssured.expect().statusCode(405).when().put("/BaseType/" + base + "/doGet");
+		RestAssured.expect().statusCode(405).when().post("/BaseType/" + base + "/doGet");
+		RestAssured.expect().statusCode(405).when().patch("/BaseType/" + base + "/doGet");
+		RestAssured.expect().statusCode(405).when().delete("/BaseType/" + base + "/doGet");
+
+		RestAssured.expect().statusCode(405).when().get("/BaseType/" + base + "/doPut");
+		RestAssured.expect().statusCode(200).body("result", equalTo("put")).when().put("/BaseType/" + base + "/doPut");
+		RestAssured.expect().statusCode(405).when().post("/BaseType/" + base + "/doPut");
+		RestAssured.expect().statusCode(405).when().patch("/BaseType/" + base + "/doPut");
+		RestAssured.expect().statusCode(405).when().delete("/BaseType/" + base + "/doPut");
+
+		RestAssured.expect().statusCode(405).when().get("/BaseType/" + base + "/doPost");
+		RestAssured.expect().statusCode(405).when().put("/BaseType/" + base + "/doPost");
+		RestAssured.expect().statusCode(200).body("result", equalTo("post")).when().post("/BaseType/" + base + "/doPost");
+		RestAssured.expect().statusCode(405).when().patch("/BaseType/" + base + "/doPost");
+		RestAssured.expect().statusCode(405).when().delete("/BaseType/" + base + "/doPost");
+
+		RestAssured.expect().statusCode(405).when().get("/BaseType/" + base + "/doPatch");
+		RestAssured.expect().statusCode(405).when().put("/BaseType/" + base + "/doPatch");
+		RestAssured.expect().statusCode(405).when().post("/BaseType/" + base + "/doPatch");
+		RestAssured.expect().statusCode(200).body("result", equalTo("patch")).when().patch("/BaseType/" + base + "/doPatch");
+		RestAssured.expect().statusCode(405).when().delete("/BaseType/" + base + "/doPatch");
+
+		RestAssured.expect().statusCode(405).when().get("/BaseType/" + base + "/doDelete");
+		RestAssured.expect().statusCode(405).when().put("/BaseType/" + base + "/doDelete");
+		RestAssured.expect().statusCode(405).when().post("/BaseType/" + base + "/doDelete");
+		RestAssured.expect().statusCode(405).when().patch("/BaseType/" + base + "/doDelete");
+		RestAssured.expect().statusCode(200).body("result", equalTo("delete")).when().delete("/BaseType/" + base + "/doDelete");
+	}
+
+
+	@Test
 	public void testGETMethodParametersInURL() {
 
 		try (final Tx tx = app.tx()) {

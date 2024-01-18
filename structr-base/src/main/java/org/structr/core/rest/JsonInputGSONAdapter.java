@@ -30,12 +30,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Controls deserialization of property sets.
- *
- *
  */
 public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSerializer<IJsonInput>, JsonDeserializer<IJsonInput> {
 
@@ -45,9 +41,9 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 	public IJsonInput createInstance(final Type type) {
 
 		try {
-			return (IJsonInput)type.getClass().newInstance();
+			return (IJsonInput)type.getClass().getDeclaredConstructor().newInstance();
 
-		} catch (InstantiationException | IllegalAccessException e) {
+		} catch (Throwable e) {
 			logger.warn("", e);
 		}
 

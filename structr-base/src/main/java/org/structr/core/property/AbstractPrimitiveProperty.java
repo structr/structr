@@ -342,7 +342,9 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		try {
 
-			return (Transformer)Class.forName(fqcn).newInstance();
+			final Class clazz = Class.forName(fqcn);
+
+			return (Transformer)clazz.getConstructor().newInstance();
 
 		} catch (Throwable t) {
 		}

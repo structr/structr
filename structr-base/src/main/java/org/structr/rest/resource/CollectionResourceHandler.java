@@ -302,7 +302,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 		try {
 
-			return (Relation)entityClass.newInstance();
+			return (Relation)entityClass.getDeclaredConstructor().newInstance();
 
 		} catch (Throwable t) {
 

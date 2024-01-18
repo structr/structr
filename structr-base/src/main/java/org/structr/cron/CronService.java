@@ -105,7 +105,7 @@ public class CronService extends Thread implements RunnableService {
 
 									if (taskClass != null) {
 
-										Task task = (Task)taskClass.newInstance();
+										Task task = (Task)taskClass.getDeclaredConstructor().newInstance();
 
 										logger.debug("Starting task {}", taskClassName);
 										StructrApp.getInstance().processTasks(task);
@@ -170,7 +170,7 @@ public class CronService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		final String taskList = Settings.CronTasks.getValue();
 		if (StringUtils.isNotBlank(taskList)) {

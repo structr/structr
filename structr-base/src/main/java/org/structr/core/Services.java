@@ -160,7 +160,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		try {
 
-			final T command          = commandType.newInstance();
+			final T command          = commandType.getDeclaredConstructor().newInstance();
 			final Class serviceClass = command.getServiceClass();
 
 			// inject security context first
@@ -725,7 +725,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			// initializers.
 			try {
 
-				configuration = (ConfigurationProvider)Class.forName(configurationClass).newInstance();
+				configuration = (ConfigurationProvider)Class.forName(configurationClass).getDeclaredConstructor().newInstance();
 				configuration.initialize(licenseManager);
 
 			} catch (Throwable t) {
@@ -805,7 +805,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			logger.info("Creating {}..", serviceClass.getSimpleName());
 
-			final Service service = (Service) serviceClass.newInstance();
+			final Service service = (Service) serviceClass.getDeclaredConstructor().newInstance();
 
 			if (licenseManager != null && !licenseManager.isValid(service)) {
 

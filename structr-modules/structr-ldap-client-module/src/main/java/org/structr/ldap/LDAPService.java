@@ -406,7 +406,7 @@ public class LDAPService extends Thread implements SingletonService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		logger.info("host:    {}", Settings.LDAPHost.getValue("localhost"));
 		logger.info("port:    {}", Settings.LDAPPort.getValue(389));

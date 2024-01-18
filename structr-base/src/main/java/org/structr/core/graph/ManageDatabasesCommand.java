@@ -33,6 +33,7 @@ import org.structr.core.Services;
 import org.structr.core.function.Functions;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 import static org.structr.api.service.DatabaseConnection.*;
@@ -371,11 +372,11 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 				if (driverClassString != null) {
 
-					databaseService = (DatabaseService) Class.forName((String) driverClassString).newInstance();
+					databaseService = (DatabaseService) Class.forName((String) driverClassString).getDeclaredConstructor().newInstance();
 
 				} else {
 
-					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").newInstance();
+					databaseService = (DatabaseService) Class.forName("org.structr.bolt.BoltDatabaseService").getDeclaredConstructor().newInstance();
 				}
 
 				if (databaseService == null) {
@@ -396,7 +397,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 					}
 				}
 
-			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException ex) {
+			} catch (ClassNotFoundException|InstantiationException|IllegalAccessException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
 				errorBuffer.add(new SemanticErrorToken("Driver", "driver", "driver_error"));
 			}
 		}

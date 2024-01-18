@@ -237,7 +237,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				final Authenticator authenticator = config.getAuthenticator();
 				authenticator.initializeAndExamineRequest(request, response);
-				
+
 				tx.success();
 			}
 
@@ -665,59 +665,37 @@ public class JsonRestServlet extends AbstractDataServlet {
 					tx.success();
 				}
 
-				if (handler.isCollection()) {
+				final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					final List<Map<String, Object>> inputs = new LinkedList<>();
+				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+					inputs.add(convertPropertySetToMap(propertySet));
+				}
 
-						inputs.add(convertPropertySetToMap(propertySet));
-					}
+				// isolate doPatch
+				boolean retry = true;
+				while (retry) {
 
-					result = handler.doPatch(securityContext, inputs);
-
-					// isolate write output
 					try (final Tx tx = app.tx()) {
 
-						if (result != null) {
-
-							commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
-						}
-
+						result = handler.doPatch(securityContext, inputs);
 						tx.success();
+						retry = false;
+
+					} catch (RetryException ddex) {
+						retry = true;
 					}
+				}
 
-				} else {
+				// isolate write output
+				try (final Tx tx = app.tx()) {
 
-					final Map<String, Object> flattenedInputs = new HashMap<>();
-
-					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-						flattenedInputs.putAll(convertPropertySetToMap(propertySet));
-					}
-
-					// isolate doPatch (redirect to doPut)
-					boolean retry = true;
-					while (retry) {
-
-						try (final Tx tx = app.tx()) {
-
-							// FIXME: why is doPut used here??
-							result = handler.doPut(securityContext, flattenedInputs);
-							tx.success();
-							retry = false;
-
-						} catch (RetryException ddex) {
-							retry = true;
-						}
-					}
-
-					// isolate write output
-					try (final Tx tx = app.tx()) {
+					if (result != null) {
 
 						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
-						tx.success();
 					}
+
+					tx.success();
 				}
 
 			} else {

@@ -143,7 +143,7 @@ public class CSVFileImportJob extends FileImportJob {
 					targetEntityType  = StructrApp.getConfiguration().getRelationshipEntityClass(targetType);
 					currentImportType = IMPORT_TYPE.REL;
 
-					final Relation template = (Relation)targetEntityType.newInstance();
+					final Relation template = (Relation)targetEntityType.getDeclaredConstructor().newInstance();
 					relSourceType = template.getSourceType();
 					relTargetType = template.getTargetType();
 

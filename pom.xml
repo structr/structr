@@ -377,6 +377,7 @@
 					<target>17</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
+				 <showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>

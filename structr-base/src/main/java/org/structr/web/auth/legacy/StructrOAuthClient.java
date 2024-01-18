@@ -190,7 +190,7 @@ public abstract class StructrOAuthClient {
 
 						try {
 
-							final StructrOAuthClient oauthServer = (StructrOAuthClient) serverClass.newInstance();
+							final StructrOAuthClient oauthServer = (StructrOAuthClient) serverClass.getDeclaredConstructor().newInstance();
 							oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
 							if (isVerboseLoggingEnabled()) {

@@ -1152,7 +1152,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 					try {
 
 						// we need to make sure that a module is initialized exactly once
-						final StructrModule structrModule = (StructrModule) clazz.newInstance();
+						final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
 						final String moduleName = structrModule.getName();
 
 						if (!modules.containsKey(moduleName)) {
@@ -1263,7 +1263,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 												if (StructrModule.class.isAssignableFrom(clazz) && !(Modifier.isAbstract(modifiers))) {
 
 													// we need to make sure that a module is initialized exactly once
-													final StructrModule structrModule = (StructrModule) clazz.newInstance();
+													final StructrModule structrModule = (StructrModule) clazz.getDeclaredConstructor().newInstance();
 
 													structrModule.registerModuleFunctions(licenseManager);
 
@@ -1348,7 +1348,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 		try {
 
-			return (Relation) clazz.newInstance();
+			return (Relation) clazz.getDeclaredConstructor().newInstance();
 
 		} catch (Throwable t) {
 			// ignore
