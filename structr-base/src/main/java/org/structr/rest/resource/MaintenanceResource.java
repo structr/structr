@@ -20,6 +20,7 @@ package org.structr.rest.resource;
 
 
 import jakarta.servlet.http.HttpServletResponse;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import org.structr.agent.Task;
@@ -205,7 +206,7 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 
 						if (Task.class.isAssignableFrom(taskOrCommand)) {
 
-							final Task task = (Task) taskOrCommand.newInstance();
+							final Task task = (Task) taskOrCommand.getDeclaredConstructor().newInstance();
 
 							app.processTasks(task);
 
@@ -248,10 +249,8 @@ public class MaintenanceResource extends ExactMatchEndpoint {
 						// return 200 OK
 						return new RestMethodResult(HttpServletResponse.SC_OK);
 
-					} catch (InstantiationException iex) {
-						throw new SystemException(iex.getMessage());
-					} catch (IllegalAccessException iaex) {
-						throw new SystemException(iaex.getMessage());
+					} catch (NoSuchMethodException|InvocationTargetException|InstantiationException|IllegalAccessException ex) {
+						throw new SystemException(ex.getMessage());
 					}
 
 				} else {

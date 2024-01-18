@@ -155,7 +155,7 @@ public abstract class AbstractMessage {
 
 					try {
 
-						msg = type.newInstance();
+						msg = type.getDeclaredConstructor().newInstance();
 
 						msg.setSenderTimestamp(timestamp);
 						msg.setId(messageId);

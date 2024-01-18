@@ -36,6 +36,8 @@ import org.structr.rest.exception.IllegalMethodException;
 import org.structr.schema.SchemaHelper;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.config.Settings;
@@ -114,13 +116,18 @@ public class TypedIdResource extends ExactMatchEndpoint {
 		}
 
 		@Override
-		public Class getEntityClass(final SecurityContext securityContext) {
-			return entityClass;
-		}
+		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
 
-		@Override
-		public boolean isCollection() {
-			return false;
+			// flatten input (not sure if good, but existing behaviour..)
+			final Map<String, Object> flattenedInputs = new HashMap<>();
+
+			for (Map<String, Object> propertySet : propertySets) {
+
+				flattenedInputs.putAll(propertySet);
+			}
+
+			// redirect to doPut
+			return doPut(securityContext, flattenedInputs);
 		}
 
 		@Override
@@ -155,6 +162,16 @@ public class TypedIdResource extends ExactMatchEndpoint {
 			}
 
 			return new RestMethodResult(HttpServletResponse.SC_OK);
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return entityClass;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return false;
 		}
 
 		@Override

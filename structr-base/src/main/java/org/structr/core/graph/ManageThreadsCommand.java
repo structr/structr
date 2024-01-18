@@ -147,6 +147,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 		return threads;
 	}
 
+	@SuppressWarnings("deprecation")
 	private Object killThread() {
 
 		for (final Thread thread : Thread.getAllStackTraces().keySet()) {

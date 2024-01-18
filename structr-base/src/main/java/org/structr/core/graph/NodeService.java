@@ -35,7 +35,6 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 
 import java.io.File;
 
@@ -66,14 +65,14 @@ public class NodeService implements SingletonService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		this.servicesParent = services;
 
 		final String databaseDriver = Settings.DatabaseDriver.getPrefixedValue(serviceName);
 		String errorMessage         = null;
 
-		databaseService = (DatabaseService)Class.forName(databaseDriver).newInstance();
+		databaseService = (DatabaseService)Class.forName(databaseDriver).getDeclaredConstructor().newInstance();
 		if (databaseService != null) {
 
 			if (databaseService.initialize(serviceName, services.getVersion(), services.getInstanceName())) {

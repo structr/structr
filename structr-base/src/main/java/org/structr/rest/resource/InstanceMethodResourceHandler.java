@@ -29,7 +29,9 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.api.AbstractMethod;
 import org.structr.core.api.Arguments;
+import org.structr.core.app.StructrApp;
 import org.structr.core.entity.SchemaMethod.HttpVerb;
+import org.structr.core.graph.Tx;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTMethodCallHandler;
@@ -120,9 +122,15 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 
 		if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
 
-			final GraphObject entity = getEntity(securityContext, entityClass, typeName, uuid);
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			return executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+				final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
+				final RestMethodResult result =  executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+
+				tx.success();
+
+				return result;
+			}
 
 		} else {
 

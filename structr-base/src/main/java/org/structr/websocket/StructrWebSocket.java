@@ -214,7 +214,7 @@ public class StructrWebSocket implements WebSocketListener {
 			try {
 
 
-				AbstractCommand abstractCommand = (AbstractCommand) type.newInstance();
+				AbstractCommand abstractCommand = (AbstractCommand) type.getDeclaredConstructor().newInstance();
 
 				abstractCommand.setWebSocket(this);
 				abstractCommand.setSession(session);
@@ -276,7 +276,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 				}
 
-			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
+			} catch (Throwable t) {
 
 				try (final Tx tx = app.tx(true, true, true)) {
 
@@ -299,9 +299,6 @@ public class StructrWebSocket implements WebSocketListener {
 				} catch (FrameworkException fex) {
 					logger.warn("Unable to send websocket result: {}", fex.getMessage());
 				}
-
-				return;
-
 			}
 
 		} else {
@@ -310,9 +307,6 @@ public class StructrWebSocket implements WebSocketListener {
 
 			// send 400 Bad Request
 			send(MessageBuilder.status().code(400).message("Unknown command").build(), true);
-
-			return;
-
 		}
 	}
 
@@ -498,7 +492,7 @@ public class StructrWebSocket implements WebSocketListener {
 
 		try {
 
-			final AbstractCommand msg = (AbstractCommand) command.newInstance();
+			final AbstractCommand msg = (AbstractCommand) command.getDeclaredConstructor().newInstance();
 
 			commandSet.put(msg.getCommand(), command);
 

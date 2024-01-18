@@ -188,7 +188,7 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 	}
 
 	@Override
-	public ServiceResult initialize(StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return new ServiceResult(true);
 	}
 

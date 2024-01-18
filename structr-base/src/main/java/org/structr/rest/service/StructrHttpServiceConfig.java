@@ -18,6 +18,7 @@
  */
 package org.structr.rest.service;
 
+import java.lang.reflect.InvocationTargetException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,11 +86,10 @@ public class StructrHttpServiceConfig {
 		}
 
 		try {
-			authenticator = (Authenticator) authenticatorClass.newInstance();
+			authenticator = (Authenticator) authenticatorClass.getDeclaredConstructor().newInstance();
 
-		} catch (InstantiationException | IllegalAccessException t) {
-
-			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, t.getMessage() } );
+		} catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+			logger.error("Unable to instantiate authenticator {}: {}", new Object[] { authenticatorClass, ex.getMessage() } );
 		}
 
 		return authenticator;

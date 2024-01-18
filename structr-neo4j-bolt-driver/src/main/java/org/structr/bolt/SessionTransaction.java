@@ -161,7 +161,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (!isPing || db.logPingQueries()) {
 
-				if (map != null && map.size() > 0) {
+				if (map != null && map.isEmpty()) {
 
 					if (statement.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);

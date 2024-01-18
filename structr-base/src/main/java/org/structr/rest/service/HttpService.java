@@ -65,6 +65,7 @@ import org.structr.schema.SchemaService;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -209,7 +210,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, IllegalAccessException, InstantiationException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		final LicenseManager licenseManager = services.getLicenseManager();
 		final boolean isTest                = Services.isTesting();
@@ -872,7 +873,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 							try {
 
-								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).newInstance();
+								final HttpServlet servlet = (HttpServlet)Class.forName(servletClassName).getDeclaredConstructor().newInstance();
 								if (servlet instanceof HttpServiceServlet) {
 
 									final HttpServiceServlet httpServiceServlet = (HttpServiceServlet)servlet;
@@ -903,8 +904,7 @@ public class HttpService implements RunnableService, StatsCallback {
 									}
 								}
 
-							} catch (ClassNotFoundException nfex) {
-
+							} catch (ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException nfex) {
 								logger.warn("Unable to instantiate servlet class {} for servlet {}", servletClassName, servletName);
 							}
 
@@ -963,7 +963,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				if (StringUtils.isNotBlank(listenerClass)) {
 
 					try {
-						final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).newInstance();
+						final HttpServiceLifecycleListener listener = (HttpServiceLifecycleListener) Class.forName(listenerClass).getDeclaredConstructor().newInstance();
 						switch (event) {
 
 							case Started:
@@ -975,8 +975,7 @@ public class HttpService implements RunnableService, StatsCallback {
 								break;
 						}
 
-					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException ex) {
-
+					} catch (InstantiationException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalArgumentException | InvocationTargetException ex) {
 						logger.error("Unable to send lifecycle event to listener " + listenerClass, ex);
 					}
 				}

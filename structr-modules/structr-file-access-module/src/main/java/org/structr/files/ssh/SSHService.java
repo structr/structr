@@ -20,7 +20,6 @@ package org.structr.files.ssh;
 
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.sshd.common.Factory;
-import org.apache.sshd.common.NamedFactory;
 import org.apache.sshd.common.config.keys.KeyUtils;
 import org.apache.sshd.common.config.keys.PublicKeyEntry;
 import org.apache.sshd.common.config.keys.PublicKeyEntryResolver;
@@ -57,7 +56,6 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.schema.SchemaService;
 
 import java.io.IOException;
-import java.net.URI;
 import java.nio.file.CopyOption;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
@@ -86,7 +84,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 
 		logger.info("Setting up SSH server..");
 

@@ -53,6 +53,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import org.structr.web.entity.path.PagePath;
 
 /**
  * Represents a page resource.
@@ -193,6 +194,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 		type.addViewProperty(PropertyView.Ui, "children");
 		type.addViewProperty(PropertyView.Ui, "sites");
 		type.addViewProperty(PropertyView.Ui, "paths");
+
+		type.addPropertyGetter("paths", Iterable.class);
 	}}
 
 	public static final Set<String> nonBodyTags = new HashSet<>(Arrays.asList(new String[] { "html", "head", "body", "meta", "link" } ));
@@ -200,8 +203,8 @@ public interface Page extends DOMNode, Linkable, Document, DOMImplementation {
 	Element createElement(final String tag, final boolean suppressException);
 	Integer getCacheForSeconds();
 
+	Iterable<PagePath> getPaths();
 	Iterable<DOMNode> getElements();
-
 	Iterable<Site> getSites();
 
 	void setVersion(int version) throws FrameworkException;

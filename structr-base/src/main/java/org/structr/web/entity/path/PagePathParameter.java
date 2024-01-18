@@ -19,11 +19,13 @@
 package org.structr.web.entity.path;
 
 import java.net.URI;
+import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
+import org.structr.schema.parser.DatePropertyParser;
 
 /**
  *
@@ -37,7 +39,65 @@ public interface PagePathParameter extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PagePathParameter"));
 
-		type.addStringProperty("parameterName", PropertyView.Public, PropertyView.Ui);
-		type.addStringProperty("parameterType", PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("position",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("valueType",    PropertyView.Public, PropertyView.Ui);
+		type.addStringProperty("defaultValue", PropertyView.Public, PropertyView.Ui);
+		type.addBooleanProperty("isOptional",  PropertyView.Public, PropertyView.Ui);
+
+		type.addPropertyGetter("position",      Integer.class);
+		type.addPropertyGetter("valueType",     String.class);
+		type.addPropertyGetter("defaultValue",  String.class);
+		type.addPropertyGetter("isOptional",    Boolean.TYPE);
 	}}
+
+	Integer getPosition();
+	String getValueType();
+	String getDefaultValue();
+	boolean getIsOptional();
+
+	default Object convert(final String src) {
+
+		try {
+
+			if (src != null) {
+
+				final String valueType = getValueType();
+
+				switch (valueType) {
+
+					case "String":
+						return src;
+
+					case "Double":
+						return Double.valueOf(src);
+
+					case "Float":
+						return Double.valueOf(src).floatValue();
+
+					case "Integer":
+						return Double.valueOf(src).intValue();
+
+					case "Long":
+						return Double.valueOf(src).longValue();
+
+					case "Boolean":
+						return Boolean.valueOf(src);
+
+					case "Date":
+						return DatePropertyParser.parseISO8601DateString(src);
+
+					default:
+						LoggerFactory.getLogger(PagePathParameter.class).warn("Unknown valueType '{}', NOT converting input for PagePathParameter with path {}.", valueType, getName());
+						return src;
+				}
+			}
+
+		} catch (Throwable t) {
+
+			// log error (or report it to somewhere), but don't fail here  because we are resolving a URL in the frontend and we don't want to send a 422 to the client..
+			LoggerFactory.getLogger(PagePathParameter.class).warn("Exception while converting input for PagePathParameter with path {}: {}", getName(), t.getMessage());
+		}
+
+		return null;
+	}
 }

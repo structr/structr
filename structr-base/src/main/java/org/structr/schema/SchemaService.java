@@ -93,7 +93,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
 
@@ -252,7 +252,7 @@ public class SchemaService implements Service {
 
 									// do full reload
 									config.registerEntityType(newType);
-									newType.newInstance();
+									newType.getDeclaredConstructor().newInstance();
 
 								} catch (final Throwable t) {
 

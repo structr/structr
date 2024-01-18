@@ -1525,7 +1525,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			try {
 
-				instance = type.newInstance();
+				instance = type.getDeclaredConstructor().newInstance();
 				relationshipTemplateInstanceCache.put(type.getName(), instance);
 
 			} catch (Throwable t) {
