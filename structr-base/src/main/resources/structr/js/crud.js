@@ -26,7 +26,7 @@ let _Crud = {
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	defaultType: 'Page',
-	defaultView: 'all',
+	defaultView: 'custom',
 	defaultSort: 'createdDate',
 	defaultOrder: 'desc',
 	defaultPage: 1,
