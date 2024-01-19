@@ -2118,13 +2118,17 @@ let _Crud = {
 
 		} else {
 
-			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
+			simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
 
 			if (isRel && _Crud.relInfo[type]) {
 
 				if (key === 'sourceId') {
 					simpleType = _Crud.relInfo[type].source;
 				} else if (key === 'targetId') {
+					simpleType = _Crud.relInfo[type].target;
+				} else if (key === 'sourceNode') {
+					simpleType = _Crud.relInfo[type].source;
+				} else if (key === 'targetNode') {
 					simpleType = _Crud.relInfo[type].target;
 				}
 			}
