@@ -21,6 +21,7 @@ package org.structr.web.common;
 import java.util.Map;
 import java.util.Map.Entry;
 import org.apache.commons.lang3.StringUtils;
+import org.structr.common.ContextStore;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
@@ -45,9 +46,12 @@ public class PagePaths {
 				final Map<String, Object> values = pathCandidate.tryResolvePath(requestParts);
 				if (values != null) {
 
+					final ContextStore contextStore = renderContext.getSecurityContext().getContextStore();
+
 					// handle values
 					for (final Entry<String, Object> entry : values.entrySet()) {
-						renderContext.setConstant(entry.getKey(), entry.getValue());
+
+						contextStore.setConstant(entry.getKey(), entry.getValue());
 					}
 
 					// return resolved page

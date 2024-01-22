@@ -20,6 +20,8 @@ package org.structr.test.web.advanced;
 
 import io.restassured.RestAssured;
 import io.restassured.response.ResponseBody;
+import java.util.Random;
+import org.apache.commons.lang.StringUtils;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeAttribute;
@@ -38,11 +40,7 @@ import org.testng.annotations.Test;
 public class DynamicPathsTest extends FrontendTest {
 
 	@Test
-	public void test001DynamicPaths() {
-
-		String path1Id = null;
-		String path2Id = null;
-		String path3Id = null;
+	public void test001DynamicPathResolution() {
 
 		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
 
@@ -78,8 +76,6 @@ public class DynamicPathsTest extends FrontendTest {
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "Integer"),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "1")
 				);
-
-				path1Id = path.getUuid();
 			}
 
 			{
@@ -95,17 +91,20 @@ public class DynamicPathsTest extends FrontendTest {
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
 					new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue2")
 				);
-
-				path2Id = path.getUuid();
 			}
 
 			{
-				final PagePath path = app.create(PagePath.class,
+				app.create(PagePath.class,
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
 					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test3/{key1}/{key2}/{key3}")
 				);
+			}
 
-				path3Id = path.getUuid();
+			{
+				app.create(PagePath.class,
+					new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+					new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test4/{key2}/{key3}")
+				);
 			}
 
 			tx.success();
@@ -113,11 +112,6 @@ public class DynamicPathsTest extends FrontendTest {
 		} catch (FrameworkException fex) {
 			fail("Unexpected exception.");
 		}
-
-		// verify that the path is split into parts correctly in onCreate and onSave
-		//assertEquals("Path was not split correctly", "test1,prefix_(.*),(.*)", StringUtils.join(getBody(200, "/PagePath/" + path1Id).jsonPath().getList("result.parts"), ","));
-		//assertEquals("Path was not split correctly", "test2,(.*)_(.*)_(.*)",   StringUtils.join(getBody(200, "/PagePath/" + path2Id).jsonPath().getList("result.parts"), ","));
-		//assertEquals("Path was not split correctly", "test3,(.*),(.*),(.*)",   StringUtils.join(getBody(200, "/PagePath/" + path3Id).jsonPath().getList("result.parts"), ","));
 
 		RestAssured.basePath = "/";
 
@@ -164,15 +158,230 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test3////"));
 		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test3/////"));
 		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/test3/value1"));
-		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/test3/value1"));
 		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/test3/value1/1234"));
 		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/test3/value1/two"));
+
+		// /{key1}/test4/{key2}/{key3} with no parameters defined
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test4/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test4/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4//"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4///"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4////"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test4/////"));
+		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/value1/test4"));
+		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/value1/test4/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/value1/test4/two"));
+
+		// status code check only!
+		getContent(404, "/structr/html/test4");
+		getContent(404, "/structr/html/test4/");
+	}
+
+	@Test
+	public void test002DynamicPathPerformance() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			// create 100 pages with 4 paths each!
+			for (int i=0; i<100; i++) {
+
+				final String pageNumber = StringUtils.leftPad(Integer.toString(i), 3, "0");
+				final String pageName   = "test" + pageNumber;
+				final Page page         = Page.createNewPage(securityContext, pageName);
+				final Template template = app.create(Template.class);
+
+				page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
+				page.appendChild(template);
+
+				template.setContent("${key1},${key2},${key3}");
+				template.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+
+				{
+					final PagePath path = app.create(PagePath.class,
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_1/prefix_{key1}/{key2}")
+					);
+
+					app.create(PagePathParameter.class,
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue1")
+					);
+
+					app.create(PagePathParameter.class,
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key2"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      1),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "Integer"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "1")
+					);
+				}
+
+				{
+					final PagePath path = app.create(PagePath.class,
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_2/{key1}_{key2}_{key3}")
+					);
+
+					app.create(PagePathParameter.class,
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"),          path),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"),          "key1"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"),      0),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"),     "String"),
+						new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "defaultValue"),  "defaultValue2")
+					);
+				}
+
+				{
+					app.create(PagePath.class,
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test" + pageNumber + "_3/{key1}/{key2}/{key3}")
+					);
+				}
+
+				{
+					app.create(PagePath.class,
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+						new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/{key1}/test" + pageNumber + "_4/{key2}/{key3}")
+					);
+				}
+			}
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		final int randomPageNumber = new Random().nextInt(100);
+		final String pageNumber    = StringUtils.leftPad(Integer.toString(randomPageNumber), 3, "0");
+
+		// /test1/prefix_{key1}/{key2} with both parameters defined, default values "defaultValue1" and 1
+		assertEquals("Invalid path resolution result", "one,5,",              getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/5/three"));
+		assertEquals("Invalid path resolution result", "one,1,",              getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1/"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1//"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1///"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1////"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1/////"));
+		assertEquals("Invalid path resolution result", "value1,1,",           getContent(200, "/structr/html/test" + pageNumber + "_1/prefix_value1"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1/value1"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1234,", getContent(200, "/structr/html/test" + pageNumber + "_1/value1/1234"));
+		assertEquals("Invalid path resolution result", "defaultValue1,1,",    getContent(200, "/structr/html/test" + pageNumber + "_1/value1/two"));
+
+		// /test2/{key1}_{key2}_{key3} with only one parameter defined, default value "defaultValue2"
+		assertEquals("Invalid path resolution result", "one,two,three",           getContent(200, "/structr/html/test" + pageNumber + "_2/one_two_three"));
+		assertEquals("Invalid path resolution result", "one_two_three,four,five", getContent(200, "/structr/html/test" + pageNumber + "_2/one_two_three_four_five"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2//"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2///"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2////"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/////"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/_"));
+		assertEquals("Invalid path resolution result", ",,",                       getContent(200, "/structr/html/test" + pageNumber + "_2/__"));
+		assertEquals("Invalid path resolution result", "_,,",                      getContent(200, "/structr/html/test" + pageNumber + "_2/___"));
+		assertEquals("Invalid path resolution result", "__,,",                     getContent(200, "/structr/html/test" + pageNumber + "_2/____"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/value1"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/value1/1234"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/value1/two"));
+
+		// /test3/{key1}/{key2}/{key3} with no parameters defined
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/test" + pageNumber + "_3/one/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3/"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3//"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3///"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3////"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html/test" + pageNumber + "_3/////"));
+		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/test" + pageNumber + "_3/value1"));
+		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/test" + pageNumber + "_3/value1/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/test" + pageNumber + "_3/value1/two"));
+
+		// /{key1}/test4/{key2}/{key3} with no parameters defined
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three"));
+		assertEquals("Invalid path resolution result", "one,two,three", getContent(200, "/structr/html/one/test" + pageNumber + "_4/two/three/four/five"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4//"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4///"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4////"));
+		assertEquals("Invalid path resolution result", ",,",            getContent(200, "/structr/html//test" + pageNumber + "_4/////"));
+		assertEquals("Invalid path resolution result", "value1,,",      getContent(200, "/structr/html/value1/test" + pageNumber + "_4"));
+		assertEquals("Invalid path resolution result", "value1,1234,",  getContent(200, "/structr/html/value1/test" + pageNumber + "_4/1234"));
+		assertEquals("Invalid path resolution result", "value1,two,",   getContent(200, "/structr/html/value1/test" + pageNumber + "_4/two"));
+
+		// status code check only!
+		getContent(404, "/structr/html/test4");
+		getContent(404, "/structr/html/test4/");
+
+
+		// check some nonexisting pages
+		getContent(404, "/structr/html/nonexisting");
+		getContent(404, "/structr/html/error");
+	}
+
+	@Test
+	public void test003NestedTemplates() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final Page page = Page.createNewPage(securityContext, "test001");
+
+			page.setProperty(StructrApp.key(Page.class, "contentType"), "text/plain");
+
+			final Template template1 = app.create(Template.class);
+			template1.setContent("${render(children)}");
+			template1.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			page.appendChild(template1);
+
+			final Template template2 = app.create(Template.class);
+			template2.setContent("${render(children)}");
+			template2.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template1.appendChild(template2);
+
+			final Template template3 = app.create(Template.class);
+			template3.setContent("${render(children)}");
+			template3.setProperty(StructrApp.key(Template.class, "contentType"), "text/plain");
+			template2.appendChild(template3);
+
+			template3.setContent("${key1},${key2}");
+
+			final PagePath path = app.create(PagePath.class,
+				new NodeAttribute<>(StructrApp.key(PagePath.class, "page"), page),
+				new NodeAttribute<>(StructrApp.key(PagePath.class, "name"), "/test1/{key1}/{key2}")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		// /test1/prefix_{key1}/{key2} with both parameters defined, default values "defaultValue1" and 1
+		assertEquals("Path parameters are not available through nested templates!", "one,5", getContent(200, "/structr/html/test1/one/5"));
 	}
 
 	// ----- private methods -----
 	private ResponseBody getBody(final int statusCode, final String url) {
 
-		return RestAssured
+		final ResponseBody body =  RestAssured
 			.given()
 				.contentType("application/json; charset=UTF-8")
 				.header("X-User",     "admin")
@@ -182,6 +391,8 @@ public class DynamicPathsTest extends FrontendTest {
 			.when()
 				.get(url)
 			.andReturn();
+
+		return body;
 	}
 
 	private String getContent(final int statusCode, final String url) {

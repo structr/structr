@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
@@ -82,23 +83,17 @@ public interface PagePath extends NodeInterface {
 		return map;
 	}
 
+	/**
+	 * Tries to match the given request parts (URL path components that
+	 * are already split) and returns the resolved arguments. Returns
+	 * null if the path doesn't match.
+	 *
+	 * @param requestParts the URL path components
+	 * @return the resolved arguments, or null if the path doesn't match
+	 */
 	default Map<String, Object> tryResolvePath(final String[] requestParts) {
 
-		/**
-		 * TODO:
-		 *  - split name attribute on /
-		 *  - walk over components of name attribute
-		 *  - match request parts (or use default value)
-		 *  - first part must be static
-		 *  - insert default values for missing parameters
-		 *  -
-		 *
-		 * Disadvantage of parameter-only: no prefixes possible, or things like /prefix_{key1}_{key2}_{key3}, so path might be better
-		 *
-		 */
-
 		final Map<String, Object> arguments = new LinkedHashMap<>();
-
 
 		String path = getName();
 		if (path != null) {
@@ -169,6 +164,10 @@ public interface PagePath extends NodeInterface {
 
 				index++;
 			}
+
+		} else {
+
+			LoggerFactory.getLogger(PagePath.class).warn("PagePath with ID {} has no name attribute, ignoring.", getUuid());
 		}
 
 		return arguments;
