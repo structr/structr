@@ -58,9 +58,9 @@ public class ActionContext {
 
 	// Regular members
 	private final Map<String, Context> scriptingContexts = new HashMap<>();
-	private ContextStore temporaryContextStore           = new ContextStore();
+	private final ContextStore temporaryContextStore     = new ContextStore();
+	private final StringBuilder outputBuffer             = new StringBuilder();
 	private ErrorBuffer errorBuffer                      = new ErrorBuffer();
-	private StringBuilder outputBuffer                   = new StringBuilder();
 	private Locale locale                                = Locale.getDefault();
 	private SecurityContext securityContext              = null;
 	private Predicate predicate                          = null;

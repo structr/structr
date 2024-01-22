@@ -594,6 +594,8 @@ public abstract class StructrUiTest {
 			buf.append(part);
 		}
 
+		RestAssured.basePath = "/structr/rest";
+
 		return getUuidFromLocation(
 			RestAssured
 			.given()
