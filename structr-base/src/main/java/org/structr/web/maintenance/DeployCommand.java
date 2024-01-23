@@ -70,7 +70,6 @@ import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
@@ -78,7 +77,6 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
-	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
@@ -210,21 +208,44 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static boolean isUuid(final String name) {
-		return pattern.matcher(name).matches();
+		return Settings.isValidUuid(name);
 	}
 
 	/**
-	 * Checks if the given string ends with a uuid.
+	 * returns UUID from end of string depending on the UUID configuration
+	 * does explicitly NOT work if the whole string is a UUID because that should have been checked before via isUuid(name)
 	 */
-	public static boolean endsWithUuid(final String name) {
-		if (name.length() > 32) {
+	public static String getUuidOrNullFromEndOfString(final String name) {
 
-			return pattern.matcher(name.substring(name.length() - 32)).matches();
+		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
 
-		} else {
+		if (configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.with_dashes.toString()) || configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
 
-			return false;
+			if (name.length() > 36) {
+
+				final String last36Characters = name.substring(name.length() - 36);
+
+				if (DeployCommand.isUuid(last36Characters)) {
+
+					return last36Characters;
+				}
+			}
 		}
+
+		if (configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.without_dashes.toString()) || configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+			if (name.length() > 32) {
+
+				final String last32Characters = name.substring(name.length() - 32);
+
+				if (DeployCommand.isUuid(last32Characters)) {
+
+					return last32Characters;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public static boolean isDeploymentActive() {

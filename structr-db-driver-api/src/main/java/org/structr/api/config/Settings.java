@@ -42,6 +42,12 @@ public class Settings {
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
 
+	public enum POSSIBLE_UUID_V4_FORMATS {
+		without_dashes,
+		with_dashes,
+		both
+	}
+
 	private static final Map<String, Setting> settings        = new TreeMap<>();
 	private static final Map<String, SettingsGroup> groups    = new TreeMap<>();
 
@@ -72,7 +78,7 @@ public class Settings {
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
 
-	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Map.of("without_dashes", "Without Dashes", "with_dashes", "With Dashes", "both", "Both"), "Which UUIDv4 types are allowed: With or without dashes, or both. <br><br><strong>WARNING</strong>: This could prevent access to data objects. Only change this setting with an empty database.<br><br><strong>WARNING</strong>: Requires a restart.");
+	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Settings.getAllowedUUIDv4FormatOptions(), "Which UUIDv4 types are allowed: With or without dashes, or both. <br><br><strong>WARNING</strong>: This could prevent access to data objects. Only change this setting with an empty database.<br><br><strong>WARNING</strong>: Requires a restart.");
 	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines how UUIDs are created, either with or without dashes.<br><br><strong>WARNING</strong>: If configured so that the created UUIDs do not comply with an allowed format, then structr will not start.<br><strong>WARNING</strong>: Requires a restart.");
 
 	// scripting related settings
@@ -937,6 +943,14 @@ public class Settings {
 		return options;
 	}
 
+	public static Map<String, String> getAllowedUUIDv4FormatOptions() {
+		return Map.of(
+			POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes",
+			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
+			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both"
+		);
+	}
+
 	public static boolean isNumeric(final String source) {
 
 		try {
@@ -965,19 +979,20 @@ public class Settings {
 			return;
 		}
 
-		switch (Settings.UUIDv4AllowedFormats.getValue()) {
-			case "with_dashes":
-				Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-				break;
+		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
 
-			case "both":
-				Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-				break;
+		if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString())) {
 
-			default:
-			case "without_dashes":
-				Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
-				break;
+			Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+
+		} else if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+			Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+
+		} else {
+
+			// default to "without_dashes":
+			Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
 		}
 
 		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());

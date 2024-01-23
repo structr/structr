@@ -169,16 +169,33 @@ public class ComponentImporter extends HtmlFileImporter {
 		final String componentName      = StringUtils.substringBeforeLast(fileName, ".html");
 
 		// either the template was exported with name + uuid or just the uuid
-		final boolean byNameAndId       = DeployCommand.endsWithUuid(componentName);
+		final boolean byNameAndId       = (DeployCommand.getUuidOrNullFromEndOfString(componentName) != null);
 		final boolean byId              = DeployCommand.isUuid(componentName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			tx.disableChangelog();
 
-			final DOMNode existingComponent = (byId ? app.get(DOMNode.class, componentName) : (byNameAndId ? app.get(DOMNode.class, componentName.substring(componentName.length() - 32)) : getExistingComponent(componentName)));
+			final DOMNode existingComponent;
 
-			final PropertyMap properties    = getPropertiesForComponent(componentName);
+			if (DeployCommand.isUuid(componentName)) {
+
+				existingComponent = app.get(DOMNode.class, componentName);
+
+			} else {
+
+				final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(componentName);
+				if (uuidAtEnd != null) {
+
+					existingComponent = app.get(DOMNode.class, uuidAtEnd);
+
+				} else {
+
+					existingComponent = getExistingComponent(componentName);
+				}
+			}
+
+			final PropertyMap properties = getPropertiesForComponent(componentName);
 
 			if (properties == null) {
 
@@ -254,8 +271,8 @@ public class ComponentImporter extends HtmlFileImporter {
 						} else if (byNameAndId) {
 
 							// the last characters in the name string are the uuid
-							final String uuid = componentName.substring(componentName.length() - 32);
-							final String name = componentName.substring(0, componentName.length() - 33);
+							final String uuid = DeployCommand.getUuidOrNullFromEndOfString(componentName);
+							final String name = componentName.substring(0, componentName.length() - uuid.length() - 1);
 
 							DeployCommand.updateDeferredPagelink(rootElement.getUuid(), uuid);
 
