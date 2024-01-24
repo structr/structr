@@ -1007,6 +1007,7 @@ img.disabled {
 .node b.name_, .page b.name_ {
 	font-weight: normal;
 	margin-top: 0;
+	min-width: 60%;
 }
 
 .abbr-ellipsis {
@@ -1227,6 +1228,7 @@ span.id {
 
 .icons-container {
 	margin-right: .5rem;
+	align-items: end;
 }
 
 .tile .icons-container {

@@ -816,30 +816,32 @@ public class Importer {
 						if (template == null) {
 
 							logger.warn("##################################### template with UUID {} not found, this is a known bug", src);
-
-						}
-
-					} else if (DeployCommand.endsWithUuid(src)) {
-
-						final String uuid = src.substring(src.length() - 32);
-						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
-
-						if (template == null) {
-
-							logger.warn("##################################### template with UUID not found, this is a known bug", uuid);
 						}
 
 					} else {
 
-						template = Importer.findSharedComponentByName(src);
-						if (template == null) {
+						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
+						if (uuidAtEnd != null) {
 
-							template = Importer.findTemplateByName(src);
+							template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuidAtEnd).getFirst();
 
 							if (template == null) {
 
-								template = createNewTemplateNode(parent, node.childNodes());
-								isNewTemplateOrComponent = true;
+								logger.warn("##################################### template with UUID not found, this is a known bug", uuidAtEnd);
+							}
+
+						} else {
+
+							template = Importer.findSharedComponentByName(src);
+							if (template == null) {
+
+								template = Importer.findTemplateByName(src);
+
+								if (template == null) {
+
+									template = createNewTemplateNode(parent, node.childNodes());
+									isNewTemplateOrComponent = true;
+								}
 							}
 						}
 					}
@@ -903,14 +905,18 @@ public class Importer {
 
 						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
 
-					} else if (DeployCommand.endsWithUuid(src)) {
-
-						final String uuid = src.substring(src.length() - 32);
-						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuid).getFirst();
-
 					} else {
 
-						component = Importer.findSharedComponentByName(src);
+						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
+
+						if (uuidAtEnd != null) {
+
+							component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuidAtEnd).getFirst();
+
+						} else {
+
+							component = Importer.findSharedComponentByName(src);
+						}
 					}
 
 					if (component == null) {

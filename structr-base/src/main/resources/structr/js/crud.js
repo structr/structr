@@ -26,7 +26,7 @@ let _Crud = {
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	defaultType: 'Page',
-	defaultView: 'all',
+	defaultView: 'custom',
 	defaultSort: 'createdDate',
 	defaultOrder: 'desc',
 	defaultPage: 1,
@@ -1184,7 +1184,7 @@ let _Crud = {
 		_Crud.activateList(type);
 	},
 	activateList: (type) => {
-		let url = Structr.rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		let url = Structr.rootUrl + type + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
 	clearList: () => {
@@ -2118,13 +2118,17 @@ let _Crud = {
 
 		} else {
 
-			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
+			simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
 
 			if (isRel && _Crud.relInfo[type]) {
 
 				if (key === 'sourceId') {
 					simpleType = _Crud.relInfo[type].source;
 				} else if (key === 'targetId') {
+					simpleType = _Crud.relInfo[type].target;
+				} else if (key === 'sourceNode') {
+					simpleType = _Crud.relInfo[type].source;
+				} else if (key === 'targetNode') {
 					simpleType = _Crud.relInfo[type].target;
 				}
 			}

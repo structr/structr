@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Files = {
 	_moduleName: 'files',
-	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount',
+	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
@@ -757,7 +757,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, 'id,name,type,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
@@ -901,7 +901,21 @@ let _Files = {
 
 		StructrModel.createOrUpdateFromData(d, null, false);
 
+		const dateOptions = {
+			//weekday: 'long',
+			year: 'numeric',
+			month: '2-digit',
+			day: '2-digit',
+			hour: 'numeric',
+			minute: 'numeric',
+			second: 'numeric'
+		};
+
+		const dateFormat          = new Intl.DateTimeFormat(navigator.language, dateOptions);
+
 		let size                  = d.isFolder ? (d.foldersCount + d.filesCount) : d.size;
+		let createdDate           = dateFormat.format(new Date(d.createdDate));
+		let modifiedDate          = dateFormat.format(new Date(d.lastModifiedDate));
 		let progressIndicatorHTML = _Files.templates.progressIndicator({ size });
 		let name                  = d.name || '[unnamed]';
 		let listModeActive        = _Files.isViewModeActive('list');
@@ -931,11 +945,13 @@ let _Files = {
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
 							<b class="name_ leading-8 truncate">${name}</b>
-							<div class="icons-container flex items-center"></div>
+							<div class="icons-container flex items-end"></div>
+							<span class="id_ leading-8 truncate">${d.id}</span>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
-					<td class="truncate id">${d.id}</td>
+					<td class="truncate date">${createdDate}</td>
+					<td class="truncate date">${modifiedDate}</td>
 					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
 					<td class="truncate">${d.type}${(d.isThumbnail ? ' thumbnail' : '')}${(d.isFile && d.contentType ? ` (${d.contentType})` : '')}</td>
 					<td>${(d.owner ? (d.owner.name ? d.owner.name : '[unnamed]') : '')}</td>
@@ -1797,7 +1813,8 @@ let _Files = {
 					<tr>
 						<th class="icon">&nbsp;</th>
 						<th>Name</th>
-						<th>ID</th>
+						<th>Created</th>
+						<th>Modified</th>
 						<th>Size</th>
 						<th>Type</th>
 						<th>Owner</th>
