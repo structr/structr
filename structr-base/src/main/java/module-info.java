@@ -36,6 +36,7 @@ module structr.base {
     requires com.google.zxing;
     requires com.twelvemonkeys.common.image;
     requires commons.collections;
+    requires commons.configuration;
     requires commons.email;
     requires commons.jxpath;
     requires commons.lang3;
