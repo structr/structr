@@ -85,14 +85,11 @@
 
 #dashboard-deployment h2 {
 	color: var(--heading-text);
-	margin-top: .5rem;
-	font-size: 1.5rem;
 }
 
 #dashboard-deployment h3 {
 	color: var(--heading-text);
-	margin-top: .5rem;
-	font-size: 1rem;
+	font-size: 1.1rem;
 }
 
 #dashboard-deployment table {
@@ -119,10 +116,6 @@
 
 #dashboard-deployment td > div {
 	margin-bottom: 36px;
-}
-
-#dashboard-deployment h3 {
-	margin-top: 0;
 }
 
 #dashboard-server-log textarea {

@@ -1312,43 +1312,36 @@ let _Dashboard = {
 		tabContentDeployment: config => `
 			<div class="tab-content" id="dashboard-deployment">
 
-				<div class="dashboard-grid-wrapper">
+				<div class="dashboard-grid-wrapper mt-2">
 
 					<div class="dashboard-grid-row">
-						<h2>Application Import and Export</h2>
+						<h2 class="m-0">Application Import and Export</h2>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Application import from server directory</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import' })}
-						</div>
+						<h3>Application import from server directory</h3>
 						<div>
 							<div class="flex">
 								<input class="mb-4 flex-grow" type="text" id="deployment-source-input" placeholder="Server directory path for app import">
 							</div>
 							<button class="action" id="do-app-import">Import app from server directory</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Application export to server directory</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export' })}
-						</div>
+						<h3>Application export to server directory</h3>
 						<div>
 							<div class="flex">
 								<input class="mb-4 flex-grow" type="text" id="app-export-target-input" placeholder="Server directory path for app export">
 							</div>
 							<button class="action" id="do-app-export">Export app to server directory</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Import application from URL or upload a ZIP file</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-url' })}
-						</div>
+						<h3>Import application from URL or upload a ZIP file</h3>
 						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
 						<div>
 							<div class="flex flex-col">
@@ -1357,14 +1350,12 @@ let _Dashboard = {
 								<input class="mt-1 mb-4 flex-grow" type="file" id="deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 							</div>
 							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-import-from-zip">Import app from ZIP file</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-url' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Export application and download as ZIP file</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-zip' })}
-						</div>
+						<h3>Export application and download as ZIP file</h3>
 
 						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 
@@ -1376,35 +1367,31 @@ let _Dashboard = {
 								</label>
 							</div>
 							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-zip' })}
 						</div>
 					</div>
 
 					<div class="dashboard-grid-row">
-						<hr>
+						<hr class="my-4">
 					</div>
 
 					<div class="dashboard-grid-row">
-						<h2>Data Import and Export</h2>
+						<h2 class="m-0">Data Import and Export</h2>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Data import from server directory</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data' })}
-						</div>
+						<h3>Data import from server directory</h3>
 						<div>
 							<div class="flex">
 								<input class="mt-1 mb-4 flex-grow" type="text" id="data-import-source-input" placeholder="Local directory path for data import">
 							</div>
 							<button class="action" id="do-data-import">Import data from server directory</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Data export to server directory</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data' })}
-						</div>
+						<h3>Data export to server directory</h3>
 						<div>
 							<div class="flex flex-col">
 								<input class="mt-1 mb-4" type="text" id="data-export-target-input" placeholder="Server directory path for data export">
@@ -1414,14 +1401,12 @@ let _Dashboard = {
 								</select>
 							</div>
 							<button class="action" id="do-data-export">Export data to server directory</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Import data from URL or upload a ZIP file</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data-url' })}
-						</div>
+						<h3>Import data from URL or upload a ZIP file</h3>
 						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Deployment via URL is not possible because <code>DeploymentServlet</code> is not active.'))}
 						<div>
 							<div class="flex flex-col">
@@ -1429,14 +1414,12 @@ let _Dashboard = {
 								<input class="mt-1 mb-4 flex-grow" type="file" id="data-deployment-file-input" placeholder="Upload ZIP file" ${(config.deploymentServletAvailable ? '' : 'disabled')}>
 							</div>
 							<button id="do-data-import-from-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Import data from ZIP file</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-import-data-url' })}
 						</div>
 					</div>
 
 					<div data-is-deployment-container>
-						<div class="flex items-center mb-4">
-							<h3 class="m-0">Export data and download as ZIP file</h3>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data-zip' })}
-						</div>
+						<h3>Export data and download as ZIP file</h3>
 						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 						<div>
 							<div class="flex flex-col">
@@ -1450,6 +1433,7 @@ let _Dashboard = {
 								</label>
 							</div>
 							<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data-zip' })}
 						</div>
 					</div>
 				</div>
@@ -1457,7 +1441,7 @@ let _Dashboard = {
 		`,
 		tabContentDeploymentHistoryDropdown: config => `
 			<div class="dropdown-menu dropdown-menu-large ml-2">
-				<button class="btn mr-0 border-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
+				<button class="mr-0 dropdown-select" data-preferred-position-x="${config.position ?? ''}">
 					${_Icons.getSvgIcon(_Icons.iconHistory)}
 				</button>
 
