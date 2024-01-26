@@ -68,8 +68,8 @@ public class TypedIdResource extends ExactMatchEndpoint {
 	@Override
 	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
 
-		final String typeName = call.get("type");
-		final String uuid     = call.get("uuid");
+		String typeName   = call.get("type");
+		final String uuid = call.get("uuid");
 
 		if (typeName != null && uuid != null) {
 

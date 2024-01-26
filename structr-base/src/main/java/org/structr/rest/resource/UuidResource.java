@@ -28,6 +28,8 @@ import org.structr.core.app.StructrApp;
 import org.structr.rest.exception.NotFoundException;
 
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.structr.api.config.Settings;
@@ -86,6 +88,27 @@ public class UuidResource extends ExactMatchEndpoint {
 		}
 
 		@Override
+		public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
+
+			GraphObject obj = getEntity(securityContext);
+			if (obj != null) {
+
+				final Map<String, Object> flattenedInputs = new HashMap<>();
+
+				for (final Map<String, Object> input : propertySets) {
+
+					flattenedInputs.putAll(input);
+				}
+
+				// PATCH on UUID resource redirects to PUT with flattened inputs
+				return genericPut(securityContext, flattenedInputs);
+
+			}
+
+			throw new NotFoundException("Entity with ID " + uuid + " not found");
+		}
+
+		@Override
 		public RestMethodResult doPut(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 			return genericPut(securityContext, propertySet);
 		}
@@ -106,7 +129,7 @@ public class UuidResource extends ExactMatchEndpoint {
 			}
 
 			if (entity == null) {
-				throw new NotFoundException("Entity with ID " + uuid + " not found");
+				throw new FrameworkException(404, "Entity with ID " + uuid + " not found.");
 			}
 
 			return entity;

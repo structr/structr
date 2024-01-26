@@ -72,7 +72,7 @@ public class FileTest extends StructrUiTest {
 		}
 
 		// wait for content to be extracted so we can use getSearchContext
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(5000); } catch (Throwable t) {}
 
 		// test REST call
 		RestAssured.basePath = "/structr/rest";
@@ -133,7 +133,7 @@ public class FileTest extends StructrUiTest {
 		}
 
 		// wait for content to be extracted so we can use getSearchContext
-		try { Thread.sleep(2000); } catch (Throwable t) {}
+		try { Thread.sleep(5000); } catch (Throwable t) {}
 
 		// test REST call (with incorrect arguments)
 		RestAssured.basePath = "/structr/rest";
