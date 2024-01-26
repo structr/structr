@@ -659,14 +659,14 @@ let _Dashboard = {
 				modes: {
 					import: {
 						containerId: '#dropdown-deployment-import',
-						rowTpl: entry => entry.source,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.source }),
 						apply: entry => {
 							document.querySelector('#deployment-source-input').value = entry.source;
 						}
 					},
 					deployFromZIPURL: {
 						containerId: '#dropdown-deployment-import-url',
-						rowTpl: entry => `URL = ${entry.downloadUrl} (Path in ZIP = ${entry.zipContentPath})`,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'URL': entry.downloadUrl, 'Path': entry.zipContentPath }),
 						apply: entry => {
 							document.querySelector('#deployment-url-input').value   = entry.downloadUrl;
 							document.querySelector('#deployment-zip-content').value = entry.zipContentPath;
@@ -674,28 +674,28 @@ let _Dashboard = {
 					},
 					importData: {
 						containerId: '#dropdown-deployment-import-data',
-						rowTpl: entry => entry.source,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.source }),
 						apply: entry => {
 							document.querySelector('#data-import-source-input').value = entry.source;
 						}
 					},
 					deployDataFromZIPURL: {
 						containerId: '#dropdown-deployment-import-data-url',
-						rowTpl: entry => `URL = ${entry.downloadUrl}`,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'URL': entry.downloadUrl }),
 						apply: entry => {
 							document.querySelector('#data-deployment-url-input').value = entry.downloadUrl;
 						}
 					},
 					export: {
 						containerId: '#dropdown-deployment-export',
-						rowTpl: entry => entry.target,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.target }),
 						apply: entry => {
 							document.querySelector('#app-export-target-input').value = entry.target;
 						}
 					},
 					exportAsZip: {
 						containerId: '#dropdown-deployment-export-zip',
-						rowTpl: entry => `"${entry.prefix}" with${entry.ts?'':'out'} timestamp`,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no') }),
 						apply: entry => {
 							document.querySelector('#zip-export-prefix').value             = entry.prefix;
 							document.querySelector('#zip-export-append-timestamp').checked = entry.ts;
@@ -703,7 +703,7 @@ let _Dashboard = {
 					},
 					exportData: {
 						containerId: '#dropdown-deployment-export-data',
-						rowTpl: entry => `"${entry.target}"<br>With${entry.ts?'':'out'} timestamp. ${entry.types.length} types`,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Path': entry.target, '# of types': entry.types.length }),
 						apply: entry => {
 							document.querySelector('#data-export-target-input').value = entry.target;
 
@@ -714,7 +714,7 @@ let _Dashboard = {
 					},
 					exportDataAsZip: {
 						containerId: '#dropdown-deployment-export-data-zip',
-						rowTpl: entry => `"${entry.prefix}" with${entry.ts?'':'out'} timestamp. ${entry.types.length} types`,
+						rowTpl: entry => _Dashboard.templates.tabContentDeploymentHistoryRowData({ 'Prefix': entry.prefix, 'Timestamp': (entry.ts ? 'yes' : 'no'), '# of types': entry.types.length }),
 						apply: entry => {
 							document.querySelector('#zip-data-export-prefix').value             = entry.prefix;
 							document.querySelector('#zip-data-export-append-timestamp').checked = entry.ts;
@@ -1336,7 +1336,7 @@ let _Dashboard = {
 								<input class="mb-4 flex-grow" type="text" id="app-export-target-input" placeholder="Server directory path for app export">
 							</div>
 							<button class="action" id="do-app-export">Export app to server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export' })}
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export', position: 'left' })}
 						</div>
 					</div>
 
@@ -1367,7 +1367,7 @@ let _Dashboard = {
 								</label>
 							</div>
 							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-zip' })}
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-zip', position: 'left' })}
 						</div>
 					</div>
 
@@ -1401,7 +1401,7 @@ let _Dashboard = {
 								</select>
 							</div>
 							<button class="action" id="do-data-export">Export data to server directory</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data' })}
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data', position: 'left' })}
 						</div>
 					</div>
 
@@ -1433,7 +1433,7 @@ let _Dashboard = {
 								</label>
 							</div>
 							<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
-							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data-zip' })}
+							${_Dashboard.templates.tabContentDeploymentHistoryDropdown({ id: 'dropdown-deployment-export-data-zip', position: 'left' })}
 						</div>
 					</div>
 				</div>
@@ -1453,9 +1453,17 @@ let _Dashboard = {
 				<div class="flex-grow cursor-pointer p-3">
 					${config.rowHTML}
 				</div>
-				<div class="actions p-3">
-					${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']), 'Remove from history')}
-				</div>
+				${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action', 'mr-3']), 'Remove from history')}
+			</div>
+		`,
+		tabContentDeploymentHistoryRowData: config => `
+			<div class="flex flex-col gap-1 max-w-120 min-w-80">
+				${Object.entries(config).map(([key, value]) => `
+					<div class="flex gap-1">
+						<div class="bold">${key}:</div>
+						<div class="truncate">${value}</div>
+					</div>
+				`).join('')}
 			</div>
 		`,
 		tabContentGlobalSchemaMethods: config => `
