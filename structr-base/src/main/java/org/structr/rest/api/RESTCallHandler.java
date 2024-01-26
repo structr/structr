@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -57,6 +58,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
+import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -555,6 +557,85 @@ public abstract class RESTCallHandler {
 		return new RestMethodResult(HttpServletResponse.SC_OK);
 	}
 
+	protected RestMethodResult genericPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets, final Class entityClass, final String typeName) throws FrameworkException {
+
+		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
+		final App app                                = StructrApp.getInstance(securityContext);
+		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
+		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
+		int overallCount                             = 0;
+
+		while (iterator.hasNext()) {
+
+			try (final Tx tx = app.tx()) {
+
+				int count = 0;
+
+				while (iterator.hasNext() && count++ < batchSize) {
+
+					final Map<String, Object> propertySet = iterator.next();
+					Class localType                       = entityClass;
+
+					overallCount++;
+
+					// determine type of object
+					final Object typeSource = propertySet.get("type");
+					if (typeSource != null && typeSource instanceof String) {
+
+						final String typeString = (String)typeSource;
+
+						Class type = SchemaHelper.getEntityClassForRawType(typeString);
+						if (type != null) {
+
+							localType = type;
+						}
+					}
+
+					// find object by id, apply PATCH
+					final Object idSource = propertySet.get("id");
+					if (idSource != null) {
+
+						if (idSource instanceof String) {
+
+							final String id       = (String)idSource;
+							final GraphObject obj = app.get(localType, id);
+
+							if (obj != null) {
+
+								// test
+								localType = obj.getClass();
+
+								propertySet.remove("id");
+
+								final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, localType, propertySet);
+
+								obj.setProperties(securityContext, data);
+
+							} else {
+
+								throw new FrameworkException(404, "Object with ID " + id + " not found.");
+							}
+
+						} else {
+
+							throw new FrameworkException(422, "Invalid PATCH input, object id must be of type string.");
+						}
+
+					} else {
+
+						createNode(securityContext, entityClass, typeName, propertySet);
+					}
+				}
+
+				logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
+
+				tx.success();
+			}
+		}
+
+		return result;
+	}
+
 	// ----- private methods -----
 	/**
 	 * Returns the first part of the given source string when it contains a "."
@@ -570,6 +651,21 @@ public abstract class RESTCallHandler {
 		}
 
 		return source;
+	}
+
+	private int intOrDefault(final String source, final int defaultValue) {
+
+		if (source != null) {
+
+			try {
+
+				return Integer.parseInt(source);
+
+			} catch (Throwable t) {}
+
+		}
+
+		return defaultValue;
 	}
 
 	// ----- nested classes -----

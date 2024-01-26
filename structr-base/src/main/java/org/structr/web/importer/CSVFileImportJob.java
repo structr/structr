@@ -244,7 +244,9 @@ public class CSVFileImportJob extends FileImportJob {
 			} finally {
 
 				try {
+
 					builder.removeMapping(app, targetType, importTypeName);
+
 				} catch (FrameworkException ex) {
 					logger.warn("Exception while cleaning up CSV Import Mapping '{}'", targetType);
 				}

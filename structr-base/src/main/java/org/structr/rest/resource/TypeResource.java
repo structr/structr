@@ -18,16 +18,11 @@
  */
 package org.structr.rest.resource;
 
-
-import org.structr.common.ResultTransformer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.AbstractRelationship;
-import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaHelper;
-
 import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.core.entity.SchemaNode;
@@ -52,52 +47,22 @@ public class TypeResource extends ExactMatchEndpoint {
 			// note: this check is carried out with SuperUser permissions!
 			final App app = StructrApp.getInstance();
 
-			// check if this resource representes a virtual type
-			final String rawType = checkVirtualType(app, typeName);
-
 			// test if resource class exists
-			final Class entityClass = SchemaHelper.getEntityClassForRawType(rawType);
+			final Class entityClass = SchemaHelper.getEntityClassForRawType(typeName);
 			if (entityClass != null) {
 
 				if (AbstractRelationship.class.isAssignableFrom(entityClass)) {
 
-					return new CollectionResourceHandler(call, entityClass, rawType, false);
+					return new CollectionResourceHandler(call, entityClass, typeName, false);
 
 				} else {
 
-					return new CollectionResourceHandler(call, entityClass, rawType, true);
+					return new CollectionResourceHandler(call, entityClass, typeName, true);
 				}
 			}
 		}
 
 		// only return a handler if there is actually a type with the requested name
 		return null;
-	}
-
-	private String checkVirtualType(final App app, final String typeName) throws FrameworkException {
-
-		final Class<? extends AbstractNode> virtualTypeClass = StructrApp.getConfiguration().getNodeEntityClass("VirtualType");
-		if (virtualTypeClass != null) {
-
-			final PropertyKey<Integer> positionProperty = StructrApp.key(virtualTypeClass, "position");
-			final ResultTransformer virtualType         = (ResultTransformer)app.nodeQuery(virtualTypeClass).andName(typeName).sort(positionProperty).getFirst();
-
-			if (virtualType != null) {
-
-				final String sourceType = virtualType.getSourceType();
-				if (sourceType != null) {
-
-					// return source type of virtual type
-					return sourceType;
-
-				} else {
-
-					throw new FrameworkException(500, "Invalid virtual type " + typeName + ", missing value for sourceType");
-				}
-			}
-		}
-
-		// just pass through
-		return typeName;
 	}
 }

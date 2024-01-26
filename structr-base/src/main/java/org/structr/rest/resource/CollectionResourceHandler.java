@@ -19,7 +19,6 @@
 package org.structr.rest.resource;
 
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -28,20 +27,16 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.search.SortOrder;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
-import org.structr.common.RequestKeywords;
-import org.structr.common.ResultTransformer;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.EmptyPropertyToken;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.app.App;
 import org.structr.core.app.Query;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.notion.Notion;
 import org.structr.core.property.Property;
 import org.structr.core.property.PropertyKey;
@@ -51,7 +46,6 @@ import org.structr.rest.api.RESTCall;
 import org.structr.rest.api.RESTCallHandler;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.schema.SchemaHelper;
 
 /**
  *
@@ -60,10 +54,9 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(TypeResource.class.getName());
 
-	private ResultTransformer virtualType   = null;
-	private Class entityClass               = null;
-	private String typeName                 = null;
-	private boolean isNode                  = true;
+	private Class entityClass = null;
+	private String typeName   = null;
+	private boolean isNode    = true;
 
 	public CollectionResourceHandler(final RESTCall call, final Class entityClass, final String typeName, final boolean isNode) {
 
@@ -90,26 +83,13 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 			collectSearchAttributes(securityContext, entityClass, query);
 
-			if (virtualType != null) {
-
-				final ResultStream untransformedResult = query
-					.includeHidden(includeHidden)
-					.publicOnly(publicOnly)
-					.sort(sortOrder)
-					.getResultStream();
-
-				return virtualType.transformOutput(securityContext, entityClass, untransformedResult);
-
-			} else {
-
-				return query
-					.includeHidden(includeHidden)
-					.publicOnly(publicOnly)
-					.sort(sortOrder)
-					.pageSize(pageSize)
-					.page(page)
-					.getResultStream();
-			}
+			return query
+				.includeHidden(includeHidden)
+				.publicOnly(publicOnly)
+				.sort(sortOrder)
+				.pageSize(pageSize)
+				.page(page)
+				.getResultStream();
 
 		} else {
 
@@ -121,11 +101,6 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	@Override
 	public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
-
-		// virtual type?
-		if (virtualType != null) {
-			virtualType.transformInput(securityContext, entityClass, propertySet);
-		}
 
 		if (isNode) {
 
@@ -188,87 +163,7 @@ public class CollectionResourceHandler extends RESTCallHandler {
 
 	@Override
 	public RestMethodResult doPatch(final SecurityContext securityContext, final List<Map<String, Object>> propertySets) throws FrameworkException {
-
-		final RestMethodResult result                = new RestMethodResult(HttpServletResponse.SC_OK);
-		final App app                                = StructrApp.getInstance(securityContext);
-		final Iterator<Map<String, Object>> iterator = propertySets.iterator();
-		final int batchSize                          = intOrDefault(RequestKeywords.BatchSize.keyword(), 1000);
-		int overallCount                             = 0;
-
-		while (iterator.hasNext()) {
-
-			try (final Tx tx = app.tx()) {
-
-				int count = 0;
-
-				while (iterator.hasNext() && count++ < batchSize) {
-
-					final Map<String, Object> propertySet = iterator.next();
-					Class localType                       = entityClass;
-
-					overallCount++;
-
-					// determine type of object
-					final Object typeSource = propertySet.get("type");
-					if (typeSource != null && typeSource instanceof String) {
-
-						final String typeString = (String)typeSource;
-
-						Class type = SchemaHelper.getEntityClassForRawType(typeString);
-						if (type != null) {
-
-							localType = type;
-						}
-					}
-
-					// virtual type?
-					if (virtualType != null) {
-						virtualType.transformInput(securityContext, localType, propertySet);
-					}
-
-					// find object by id, apply PATCH
-					final Object idSource = propertySet.get("id");
-					if (idSource != null) {
-
-						if (idSource instanceof String) {
-
-							final String id       = (String)idSource;
-							final GraphObject obj = app.get(localType, id);
-
-							if (obj != null) {
-
-								// test
-								localType = obj.getClass();
-
-								propertySet.remove("id");
-
-								final PropertyMap data = PropertyMap.inputTypeToJavaType(securityContext, localType, propertySet);
-
-								obj.setProperties(securityContext, data);
-
-							} else {
-
-								throw new NotFoundException("Object with ID " + id + " not found.");
-							}
-
-						} else {
-
-							throw new FrameworkException(422, "Invalid PATCH input, object id must be of type string.");
-						}
-
-					} else {
-
-						createNode(securityContext, entityClass, typeName, propertySet);
-					}
-				}
-
-				logger.info("Committing PATCH transaction batch, {} objects processed.", overallCount);
-
-				tx.success();
-			}
-		}
-
-		return result;
+		return genericPatch(securityContext, propertySets, entityClass, typeName);
 	}
 
 	@Override
