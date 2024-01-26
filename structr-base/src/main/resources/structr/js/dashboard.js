@@ -77,9 +77,6 @@ let _Dashboard = {
 			let deployResponse   = await fetch(Structr.deployRoot + '?mode=test');
 
 			dashboardUiConfig.deploymentServletAvailable   = (deployResponse.status == 200);
-			dashboardUiConfig.zipExportPrefix              = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportPrefixKey);
-			dashboardUiConfig.zipExportAppendTimestamp     = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipExportAppendTimestampKey, true);
-			dashboardUiConfig.zipDataExportAppendTimestamp = LSWrapper.getItem(_Dashboard.tabs['deployment'].zipDataExportAppendTimestamp, true);
 
 			Structr.setMainContainerHTML(_Dashboard.templates.main(dashboardUiConfig));
 			Structr.setFunctionBarHTML(_Dashboard.templates.functions());
@@ -307,10 +304,6 @@ let _Dashboard = {
 
 		},
 		'deployment': {
-			zipExportPrefixKey:              'zipExportPrefix' + location.port,
-			zipDataExportPrefixKey:          'zipDataExportPrefix' + location.port,
-			zipExportAppendTimestampKey:     'zipExportAppendTimestamp' + location.port,
-			zipDataExportAppendTimestampKey: 'zipDataExportAppendTimestamp' + location.port,
 			deploymentHistoryKey:            'deploymentHistory_' + location.port,
 
 			onShow: async () => {},
@@ -528,9 +521,6 @@ let _Dashboard = {
 				let prefix          = _Dashboard.tabs['deployment'].cleanFileNamePrefix(document.getElementById('zip-export-prefix').value);
 				let appendTimestamp = document.getElementById('zip-export-append-timestamp').checked;
 
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipExportPrefixKey,          prefix);
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipExportAppendTimestampKey, appendTimestamp);
-
 				let historyData = {
 					mode: 'exportAsZip',
 					prefix: prefix,
@@ -550,12 +540,8 @@ let _Dashboard = {
 			},
 			exportDataAsZip: () => {
 
-				let prefix          = _Dashboard.tabs['deployment'].cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
-				let appendTimestamp = document.getElementById('zip-data-export-append-timestamp').checked;
-
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipDataExportPrefixKey,          prefix);
-				LSWrapper.setItem(_Dashboard.tabs['deployment'].zipDataExportAppendTimestampKey, appendTimestamp);
-
+				let prefix                   = _Dashboard.tabs['deployment'].cleanFileNamePrefix(document.getElementById('zip-data-export-prefix').value);
+				let appendTimestamp          = document.getElementById('zip-data-export-append-timestamp').checked;
 				let zipDataExportTypesSelect = document.getElementById('zip-data-export-types-input');
 				let types                    = Array.from(zipDataExportTypesSelect.selectedOptions).map(o => o.value);
 
@@ -1384,8 +1370,10 @@ let _Dashboard = {
 
 						<div>
 							<div class="flex flex-col">
-								<input class="mb-4 flex-grow" type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipExportPrefix || 'webapp')}">
-								<label class="checkbox-label"><input type="checkbox" id="zip-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} ${(config.zipExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+								<input class="mb-4 flex-grow" type="text" id="zip-export-prefix" placeholder="ZIP File prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="webapp">
+								<label class="checkbox-label">
+									<input type="checkbox" id="zip-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
+								</label>
 							</div>
 							<button class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')} id="do-app-export-to-zip">Export and download app as ZIP file</button>
 						</div>
@@ -1452,12 +1440,14 @@ let _Dashboard = {
 						${(config.deploymentServletAvailable ? '' : _Dashboard.tabs.deployment.getDeploymentServletMessage('Export and download data as ZIP file is not possible because <code>DeploymentServlet</code> is not active.'))}
 						<div>
 							<div class="flex flex-col">
-								<input class="mt-1 mb-4 flex-grow" type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="${(config.zipDataExportPrefix || 'data')}">
+								<input class="mt-1 mb-4 flex-grow" type="text" id="zip-data-export-prefix" placeholder="ZIP file prefix" ${(config.deploymentServletAvailable ? '' : 'disabled')} value="data">
 								<select id="zip-data-export-types-input" class="hide-selected-options" data-placeholder="Please select data type(s) to export" multiple="multiple">
 									<optgroup label="Custom Types" class="custom-types"></optgroup>
 									<optgroup label="Builtin Types" class="builtin-types"></optgroup>
 								</select>
-								<label class="checkbox-label"><input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} ${(config.zipDataExportAppendTimestamp ? 'checked' : '')}> Append timestamp</label>
+								<label class="checkbox-label">
+									<input type="checkbox" id="zip-data-export-append-timestamp" ${(config.deploymentServletAvailable ? '' : 'disabled')} checked> Append timestamp
+								</label>
 							</div>
 							<button id="do-data-export-to-zip" class="action ${(config.deploymentServletAvailable ? '' : 'disabled')}" ${(config.deploymentServletAvailable ? '' : 'disabled')}>Export and download data as ZIP file</button>
 						</div>
