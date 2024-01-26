@@ -1052,7 +1052,7 @@ let _Graph = {
 
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconSliders)} Display Settings
+					${_Icons.getSvgIcon(_Icons.iconSliders, 16, 16, ['mr-2'])} Display Settings
 				</button>
 
 				<div class="dropdown-menu-container">

@@ -498,7 +498,7 @@ let _MailTemplates = {
 
 			<div class="dropdown-menu dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-					${_Icons.getSvgIcon(_Icons.iconMagicWand)}
+					${_Icons.getSvgIcon(_Icons.iconMagicWand, 16, 16, ['mr-2'])}
 				</button>
 				<div class="dropdown-menu-container">
 

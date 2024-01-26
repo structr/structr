@@ -111,13 +111,6 @@
 	display: inline-block;
 }
 
-#dashboard-deployment input[type=text],
-#dashboard-deployment input[type=file] {
-	width: calc(100% - 48px);
-	/*height: 15px;*/
-	margin: .25rem 0 1rem 0;
-}
-
 #dashboard-deployment label.checkbox-label {
 	display: flex;
 	align-items: center;
@@ -163,8 +156,8 @@
 
 .dashboard-grid-wrapper {
 	display: grid;
-	grid-template-columns: 50% 50%;
-	grid-gap: 2rem;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	grid-gap: 2rem 8rem;
 }
 
 .dashboard-grid-wrapper .dashboard-grid-row {
@@ -174,7 +167,7 @@
 @media screen and (max-width: 900px) {
 	.dashboard-grid-wrapper {
 		display: grid;
-		grid-template-columns: 100%;
+		grid-template-columns: minmax(0, 1fr);
 		grid-gap: 2rem;
 	}
 

@@ -138,7 +138,7 @@ let _Icons = {
 	iconMicrophone:          'microphone-icon',
 	iconNetwork:             'network-icon',
 	iconRefreshArrows:       'refresh-arrows',
-	iconClipboardPencil:     'registration-templates',
+	iconClipboardPencil:     'clipboard-pencil',
 	iconResetArrow:          'reset-arrow',
 	iconPasswordReset:       'reset-password-templates',
 	iconRunButton:           'run_button',
@@ -162,6 +162,7 @@ let _Icons = {
 	iconSuccessGreenFilled:  'success-sign-icon-filled',
 	iconInfoBlueFilled:      'info-sign-icon-filled',
 	iconWaitingSpinner:      'waiting-spinner',
+	iconHistory:             'history',
 
 	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
 		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);

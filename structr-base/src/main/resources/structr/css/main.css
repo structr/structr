@@ -376,7 +376,7 @@ input[type="checkbox"] {
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
-	z-index: 5; /* 1 greater than all slideouts, which are set to 4! */
+	z-index: 1001; /* 1 greater than all slideouts and slideout-activators, which are set to 4 and 1000! */
 	padding: 1rem 2rem 1rem 2rem;
 	white-space: nowrap;
 }
@@ -1843,7 +1843,6 @@ button.disabled, i.disabled {
 }
 
 .dropdown-select svg {
-	margin-right: .5rem;
 	vertical-align: bottom;
 }
 
@@ -4573,6 +4572,12 @@ ul.combined-input-select-field li:hover {
 }
 .border-0 {
 	border-width: 0px;
+}
+.border-r-0 {
+	border-right: 0px;
+}
+.border-l-0 {
+	border-left: 0px;
 }
 .border-t {
 	border-top-width: 1px;
