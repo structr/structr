@@ -798,6 +798,7 @@ let _Files = {
 							<td></td>
 							<td></td>
 							<td></td>
+							<td></td>
 						</tr>
 					`)
 				}));
@@ -951,10 +952,10 @@ let _Files = {
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
 							<b class="name_ leading-8 truncate">${name}</b>
 							<div class="icons-container flex items-end"></div>
-							<span class="id_ leading-8 truncate">${d.id}</span>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
+					<td class="truncate"><span class="id_ leading-8 truncate">${d.id}</span></td>
 					<td class="truncate date">${createdDate}</td>
 					<td class="truncate date">${modifiedDate}</td>
 					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
@@ -1818,6 +1819,7 @@ let _Files = {
 					<tr>
 						<th class="icon">&nbsp;</th>
 						<th>Name</th>
+						<th>ID</th>
 						<th>Created</th>
 						<th>Modified</th>
 						<th>Size</th>

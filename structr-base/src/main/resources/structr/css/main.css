@@ -1007,7 +1007,6 @@ img.disabled {
 .node b.name_, .page b.name_ {
 	font-weight: normal;
 	margin-top: 0;
-	min-width: 60%;
 }
 
 .abbr-ellipsis {
@@ -1891,15 +1890,14 @@ button.disabled, i.disabled {
 	display: none;
 	text-align: right;
 	position: absolute;
-	height: 14px;
-	border: 1px solid var(--light-gray-delete-b3);
+	height: 100%;
 	margin: 2px 0 0 0;
 	padding: 0;
-	background: var(--solid-white);
+	background: #ffffff85;
 }
 
 .progress .bar {
-	background-color: var(--structr-green);
+	background-color: #84ba3985;
 	width: 50%;
 	height: 100%;
 	padding: 0;
@@ -1908,15 +1906,14 @@ button.disabled, i.disabled {
 
 .progress .indicator {
 	position: absolute;
-	right: 2px;
-	top: -2px;
-	/*font-size: .8em;*/
+	right: 5px;
+	top: 5px;
 }
 
 .file .progress {
-	right: 36px;
-	top: 1px;
-	width: 120px;
+	right: 6px;
+	top: -2px;
+	width: 100%;
 }
 
 .tile .progress {
@@ -3999,6 +3996,22 @@ ul.combined-input-select-field li:hover {
 .right-3 {
 	right: .75rem;
 }
+.right-4 {
+	right: 1rem;
+}
+.right-5 {
+	right: 1.25rem;
+}
+.right-6 {
+	right: 1.5rem;
+}
+.right-7 {
+	right: 1.75rem;
+}
+.right-8 {
+	right: 2rem;
+}
+
 .top-0 {
 	top: 0;
 }

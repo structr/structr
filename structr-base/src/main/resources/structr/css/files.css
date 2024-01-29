@@ -133,11 +133,11 @@
 }
 
 #folder-contents table th:nth-child(2) {
-	width: 40%;
+	width: 30%;
 }
 
 #folder-contents table th:nth-child(3) {
-	width: 15%;
+	width: 10%;
 }
 
 #folder-contents table th:nth-child(4) {
@@ -145,18 +145,22 @@
 }
 
 #folder-contents table th:nth-child(5) {
-	width: 5%;
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(6) {
-	width: 10%;
+	width: 5%;
 }
 
 #folder-contents table th:nth-child(7) {
-	width: calc(20% - 24px);
+	width: 10%;
 }
 
 #folder-contents table th:nth-child(8) {
+	width: calc(20% - 24px);
+}
+
+#folder-contents table th:nth-child(9) {
 	width: 20%;
 }
 
