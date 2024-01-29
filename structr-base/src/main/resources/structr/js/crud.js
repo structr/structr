@@ -2909,17 +2909,23 @@ type: ${node.type}`;
 			return sortOrder.filter(prop => sourceArray.includes(prop));
 		}
 
+		let idPos = filteredKeys.indexOf('id');
+		if (idPos !== -1) {
+			filteredKeys.splice(idPos, 1);
+		}
+		filteredKeys.unshift('id');
+
 		let typePos = filteredKeys.indexOf('type');
 		if (typePos !== -1) {
 			filteredKeys.splice(typePos, 1);
 		}
 		filteredKeys.unshift('type');
 
-		let idPos = filteredKeys.indexOf('id');
-		if (idPos !== -1) {
-			filteredKeys.splice(idPos, 1);
+		let namePos = filteredKeys.indexOf('name');
+		if (namePos !== -1) {
+			filteredKeys.splice(namePos, 1);
 		}
-		filteredKeys.unshift('id');
+		filteredKeys.unshift('name');
 
 		return filteredKeys;
 	},
