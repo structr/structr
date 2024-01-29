@@ -337,11 +337,15 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployAppFile(file, fileName, directoryPath, zipContentPath, securityContext);
+						final int statusCode = deployAppFile(file, fileName, directoryPath, zipContentPath, securityContext);
+
+						response.setStatus(statusCode);
 
 					} else if ("data".equals(mode)) {
 
-						deployDataFile(file, fileName, directoryPath, securityContext);
+						final int statusCode = deployDataFile(file, fileName, directoryPath, securityContext);
+
+						response.setStatus(statusCode);
 
 					} else {
 
@@ -373,7 +377,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			// send redirect to allow form-based file upload without JavaScript...
-			if (StringUtils.isNotBlank(redirectUrl)) {
+			if (response.getStatus() == HttpServletResponse.SC_OK && StringUtils.isNotBlank(redirectUrl)) {
 
 				sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 			}
@@ -529,7 +533,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployAppFile(final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private int deployAppFile(final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -550,6 +554,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		file.delete();
 		final File dir = new File(directoryPath);
 		dir.delete();
+
+		return deployCommand.getCommandStatusCode();
 	}
 
 	/**
@@ -561,7 +567,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private int deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -577,6 +583,8 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		file.delete();
 		final File dir = new File(directoryPath);
 		dir.delete();
+
+		return deployDataCommand.getCommandStatusCode();
 	}
 
 	/**
