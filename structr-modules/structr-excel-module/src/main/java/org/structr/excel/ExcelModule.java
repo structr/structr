@@ -40,6 +40,7 @@ public class ExcelModule implements StructrModule {
 	public void registerModuleFunctions(final LicenseManager licenseManager) {
 
 		Functions.put(licenseManager, new ToExcelFunction());
+		Functions.put(licenseManager, new FromExcelFunction());
 	}
 
 	@Override
