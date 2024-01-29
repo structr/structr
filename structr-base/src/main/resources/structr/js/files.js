@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
@@ -728,7 +729,11 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(Structr.rootUrl + 'me/favorites').then(async response => {
+			fetch(Structr.rootUrl + 'me/favorites', {
+				headers: {
+					Accept: 'application/json; charset=utf-8; properties=' + _Files.defaultFileAttributes
+				}
+			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();
 					handleChildren(data.result);
@@ -757,7 +762,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, _Files.defaultFileAttributes, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
