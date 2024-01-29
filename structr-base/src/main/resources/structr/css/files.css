@@ -194,7 +194,7 @@
 	color: var(--inactive-tab-text);
 }
 
-#files-table tbody tr td span.id_ {
+#files-table tbody tr td.id_ {
 	color: var(--gray-ccc);
 }
 

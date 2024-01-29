@@ -955,7 +955,7 @@ let _Files = {
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
-					<td class="truncate"><span class="id_ leading-8 truncate">${d.id}</span></td>
+					<td class="truncate id_ leading-8">${d.id}</td>
 					<td class="truncate date">${createdDate}</td>
 					<td class="truncate date">${modifiedDate}</td>
 					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
