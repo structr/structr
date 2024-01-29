@@ -20,6 +20,7 @@ package org.structr.web.maintenance;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -77,6 +78,8 @@ import static java.nio.file.FileVisitResult.CONTINUE;
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
+
+	private int statusCode = HttpServletResponse.SC_OK;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
@@ -168,9 +171,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.warn("Prevented deployment '{}' while another deployment is active.", mode);
 			publishWarningMessage("Prevented deployment '" + mode + "'", "Another deployment is currently active. Please wait until it is finished.");
-
 		}
-
 	}
 
 	@Override
@@ -359,14 +360,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "Export version:  " + exportVersion;
 				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
-						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
-						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
+						+ "<tr><td class=\"bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
+						+ "<tr><td class=\"bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
 						+ "</table>";
 
-				logger.info(title + ": " + text);
-				publishWarningMessage(title, htmlText);
-
-				return;
+				throw new ImportPreconditionFailedException(title, text, htmlText);
 			}
 
 			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
@@ -467,12 +465,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (ImportPreconditionFailedException ipfe) {
 
-			logger.warn("Deployment Import not started: {}", ipfe.getMessage());
-			publishWarningMessage("Deployment Import not started", ipfe.getMessage());
+			logger.warn("{}: {}", ipfe.getTitle(), ipfe.getMessage());
+			publishWarningMessage(ipfe.getTitle(), ipfe.getMessageHtml());
+
+			statusCode = 422;
 
 		} catch (Throwable t) {
 
 			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+
+			statusCode = 422;
 
 			throw t;
 
@@ -2664,6 +2666,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		// no version info present => return 0
 		return 0;
+	}
+
+	@Override
+	public int getCommandStatusCode() {
+		return statusCode;
 	}
 
 	// ----- public static methods -----
