@@ -1822,46 +1822,49 @@ let Structr = {
 
 		if (menu) {
 
-			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+			let container = menu.querySelector('.dropdown-menu-container');
 
-			if (container) {
+			Structr.showDropdownContainer(container);
+		}
+	},
+	showDropdownContainer: (container) => {
 
-				let isVisible = (container.dataset['visible'] === 'true');
+		if (container) {
 
-				if (isVisible) {
+			let isVisible = (container.dataset['visible'] === 'true');
 
-					Structr.hideDropdownContainer(container);
+			if (isVisible) {
 
-				} else {
+				Structr.hideDropdownContainer(container);
 
-					Structr.hideOpenDropdownsExcept(container);
+			} else {
 
-					let btn           = e.target.closest('.dropdown-select');
-					let btnRect       = btn.getBoundingClientRect();
-					let containerRect = container.getBoundingClientRect();
+				Structr.hideOpenDropdownsExcept(container);
 
-					// apply "fixed" first to prevent container overflow
-					if (btn.dataset['wantsFixed'] === 'true') {
-						/*
-							this is important for the editor tools in a popup which need to break free from the popup dialog
-						*/
-						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
-					}
+				let btn           = container.closest('.dropdown-menu').querySelector('.dropdown-select');
+				let btnRect       = btn.getBoundingClientRect();
 
-					container.dataset['visible'] = 'true';
-					container.style.display      = 'block';
+				// apply "fixed" first to prevent container overflow
+				if (btn.dataset['wantsFixed'] === 'true') {
+					/*
+                        this is important for the editor tools in a popup which need to break free from the popup dialog
+                    */
+					container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+				}
 
-					if (btn.dataset['preferredPositionX'] === 'left') {
+				container.dataset['visible'] = 'true';
+				container.style.display      = 'block';
 
-						// position dropdown left of button
-						container.style.right    = `calc(${window.innerWidth - btnRect.right}px + 2.5rem)`;
-					}
+				if (btn.dataset['preferredPositionX'] === 'left') {
 
-					if (btn.dataset['preferredPositionY'] === 'top') {
+					// position dropdown left of button
+					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+				}
 
-						// position dropdown over activator button
-						container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
-					}
+				if (btn.dataset['preferredPositionY'] === 'top') {
+
+					// position dropdown over activator button
+					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
 				}
 			}
 		}
@@ -2521,7 +2524,7 @@ let UISettings = {
 
 		let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
+				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
 			</button>
 			<div class="dropdown-menu-container" style="display: none;"></div>
 		</div>`);

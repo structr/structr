@@ -5118,179 +5118,6 @@ let _Schema = {
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
 		`,
-		functions: config => `
-			<div class="flex-grow">
-				<div class="inline-flex">
-
-					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
-					</button>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
-							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, '')} Global Methods
-						</button>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconNetwork, 16, 16, '')} Display
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="row">
-								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconTypeVisibility, 16, 16, 'mr-2')} Type Visibility
-								</a>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Display Options</h3>
-							</div>
-							<div class="row">
-								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
-							</div>
-							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Edge Style</h3>
-							</div>
-
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Flowchart'    ? 'active' : ''}"> Flowchart</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Bezier'       ? 'active' : ''}"> Bezier</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'StateMachine' ? 'active' : ''}"> StateMachine</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Saved Layouts</h3>
-							</div>
-
-							<div class="row">
-								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
-								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
-								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
-								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-							</div>
-
-							<div class="row">
-								<input id="layout-name" placeholder="Enter name for layout">
-								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
-								</a>
-							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, '')} Snapshots</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Create snapshot</h3>
-							</div>
-							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
-
-							<div class="row">
-								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
-								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
-							</div>
-
-							<div class="heading-row">
-								<h3>Available Snapshots</h3>
-							</div>
-
-							<div class="props" id="snapshots"></div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
-							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, '')} Admin
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Indexing</h3>
-							</div>
-							<div class="row">
-								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Node Type --</option>
-									<option disabled>──────────</option>
-									<option value="allNodes">All Node Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
-							</div>
-							<div class="row">
-								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Relationship Type --</option>
-									<option disabled>──────────</option>
-									<option value="allRels">All Relationship Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-							</div>
-							<div class="row flex items-center">
-								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
-								</button>
-								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
-							</div>
-							<div class="separator"></div>
-							<div class="heading-row">
-								<h3>Maintenance</h3>
-							</div>
-							<div class="row flex items-center">
-								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
-								</button>
-								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
-							</div>
-
-							<div class="row flex items-center">
-								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
-								</button>
-								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div id="zoom-slider" class="mr-8"></div>
-		`,
 		typeBasicTab: config => `
 			<div class="schema-details pl-2">
 				<div class="flex items-center gap-x-2 pt-4">
@@ -5603,7 +5430,7 @@ let _Schema = {
 		addMethodsDropdown: config => `
 			<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 				</button>
 				<div class="dropdown-menu-container">
 					<div class="flex flex-col divide-x-0 divide-y">
@@ -5631,6 +5458,181 @@ let _Schema = {
 					</div>
 				</div>
 			</div>
+		`,
+		functions: config => `
+			<div class="flex-grow">
+				<div class="inline-flex">
+
+					<button id="create-type" class="action inline-flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
+					</button>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
+							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} Global Methods
+						</button>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconNetwork, 16, 16, ['mr-2'])} Display
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="row">
+								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconTypeVisibility, 16, 16, ['mr-2'])} Type Visibility
+								</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Display Options</h3>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Edge Style</h3>
+							</div>
+
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Flowchart'    ? 'active' : ''}"> Flowchart</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Bezier'       ? 'active' : ''}"> Bezier</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'StateMachine' ? 'active' : ''}"> StateMachine</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Saved Layouts</h3>
+							</div>
+
+							<div class="row">
+								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
+								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
+								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
+								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
+							</div>
+
+							<div class="row">
+								<input id="layout-name" placeholder="Enter name for layout">
+								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+								</a>
+							</div>
+						</div>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, ['mr-2'])} Snapshots
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="heading-row">
+								<h3>Create snapshot</h3>
+							</div>
+							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
+
+							<div class="row">
+								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
+								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
+							</div>
+
+							<div class="heading-row">
+								<h3>Available Snapshots</h3>
+							</div>
+
+							<div class="props" id="snapshots"></div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
+							</div>
+						</div>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="heading-row">
+								<h3>Indexing</h3>
+							</div>
+							<div class="row">
+								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option selected value="">-- Select Node Type --</option>
+									<option disabled>──────────</option>
+									<option value="allNodes">All Node Types</option>
+									<option disabled>──────────</option>
+								</select>
+								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
+								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+							</div>
+							<div class="row">
+								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option selected value="">-- Select Relationship Type --</option>
+									<option disabled>──────────</option>
+									<option value="allRels">All Relationship Types</option>
+									<option disabled>──────────</option>
+								</select>
+								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+							</div>
+							<div class="row flex items-center">
+								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
+								</button>
+								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
+							</div>
+							<div class="separator"></div>
+							<div class="heading-row">
+								<h3>Maintenance</h3>
+							</div>
+							<div class="row flex items-center">
+								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
+								</button>
+								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
+							</div>
+
+							<div class="row flex items-center">
+								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
+								</button>
+								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="zoom-slider" class="mr-8"></div>
 		`,
 		addMethodDropdown: config => `
 			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">

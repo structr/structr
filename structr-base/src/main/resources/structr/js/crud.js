@@ -2995,7 +2995,7 @@ type: ${node.type}`;
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon(_Icons.iconSettingsWrench)}
+									${_Icons.getSvgIcon(_Icons.iconSettingsWrench, 16, 16, ['mr-2'])}
 								</button>
 
 								<div class="dropdown-menu-container" style="width: 17rem;">
