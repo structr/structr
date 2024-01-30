@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+.file-icon svg {
+	color: var(--solid-black);
+}
+
 .folder-path {
 	font-size: 1.5rem;
 	line-height: 2rem;
@@ -75,6 +80,10 @@
 #folder-contents .tile img.tn {
 	max-width: 64px;
 	max-height: 48px;
+}
+
+#folder-contents .tile .abbr-ellipsis {
+	line-height: 1.5rem;
 }
 
 #folder-contents .img-tile img.tn {
@@ -224,6 +233,58 @@
 #files-table .file, #files-table .folder {
 	margin: 0;
 }
+
+
+/*
+ * Upload progress bar
+ */
+
+.progress {
+	display: none;
+	text-align: right;
+	position: absolute;
+	height: 100%;
+	margin: 2px 0 0 0;
+	padding: 0;
+	background: #ffffff85;
+}
+
+.progress .bar {
+	background-color: #84ba3985;
+	width: 50%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.progress .indicator {
+	position: absolute;
+	right: .6rem;
+	top: .6rem;
+}
+
+#files-table .node .name_ {
+	padding-left: 1rem;
+}
+
+.file .progress .indicator {
+	top: .4rem;
+}
+
+.file .progress {
+	right: 0;
+	top: -.15rem;
+	width: 100%;
+}
+
+.tile .progress {
+	top: calc(100% - 2.5rem);
+	left: 0;
+	height: 2.5rem;
+	width: 100%;
+	z-index: 2;
+}
+
 
 /**
  * CSV and XML importer

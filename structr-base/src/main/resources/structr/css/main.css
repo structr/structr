@@ -1882,51 +1882,6 @@ button.disabled, i.disabled {
 	margin: 	0;
 }
 
-/*
- * Upload progress bar
- */
-
-.progress {
-	display: none;
-	text-align: right;
-	position: absolute;
-	height: 100%;
-	margin: 2px 0 0 0;
-	padding: 0;
-	background: #ffffff85;
-}
-
-.progress .bar {
-	background-color: #84ba3985;
-	width: 50%;
-	height: 100%;
-	padding: 0;
-	margin: 0;
-}
-
-.progress .indicator {
-	position: absolute;
-	right: 5px;
-	top: 5px;
-}
-
-.file .progress {
-	right: 6px;
-	top: -2px;
-	width: 100%;
-}
-
-.tile .progress {
-	top: 82px;
-	left: 3px;
-	width: 100px;
-	z-index: 2;
-}
-
-button.add_property {
-	/*font-size: 2em;*/
-}
-
 
 .property-name,
 .property-dbname,
