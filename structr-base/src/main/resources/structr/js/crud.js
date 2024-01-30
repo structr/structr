@@ -2785,7 +2785,7 @@ type: ${node.type}`;
 		dialogSaveButton.addEventListener('click', () => {
 			_Helpers.disableElement(dialogSaveButton);
 			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
-			_Crud.crudCreate(type, json, undefined, () => { _Helpers.enableElement(dialogSaveButton); });
+			_Crud.crudCreate(type, json, () => { _Helpers.enableElement(dialogSaveButton); });
 		});
 
 		return dialog;
