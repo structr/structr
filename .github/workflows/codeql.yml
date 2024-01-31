@@ -45,9 +45,8 @@ jobs:
     - name: Install GraalVM
       uses: graalvm/setup-graalvm@v1
       with:
-        version: '22.3.1'
-        java-version: '17'
-        components: 'js,python'
+        java-version: '21'
+        distribution: 'graalvm-community'
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     # Initializes the CodeQL tools for scanning.
