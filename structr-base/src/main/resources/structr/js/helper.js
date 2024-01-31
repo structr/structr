@@ -369,6 +369,7 @@ let _Helpers = {
 		let offsetY            = config.offsetY || 0;
 		let width              = config.width || 12;
 		let height             = config.height || 12;
+		let skipClick          = config?.skipClick ?? false;
 
 		let createdElements = [];
 
@@ -414,21 +415,24 @@ let _Helpers = {
 				}
 			});
 
-		toggleElement[0].addEventListener('click', (e) => {
-			e.preventDefault();
+		if (skipClick === false) {
 
-			let wasPinned = toggleElement[0].dataset['pinned'] ?? false;
+			toggleElement[0].addEventListener('click', (e) => {
+				e.preventDefault();
 
-			if (wasPinned) {
-				delete toggleElement[0].dataset['pinned'];
-				helpElement.hide();
-				helpElement[0].querySelector('.pinned-info')?.remove();
-			} else {
-				helpElement.show();
-				toggleElement[0].dataset['pinned'] = true;
-				helpElement[0].insertAdjacentHTML('afterbegin', `<div class="pinned-info text-right">${_Icons.getSvgIcon('pin', 16, 16, [ '-mr-2', 'mb-1' ], 'Info Box is pinned, click info icon again to unpin.')}</div>`);
-			}
-		});
+				let wasPinned = toggleElement[0].dataset['pinned'] ?? false;
+
+				if (wasPinned) {
+					delete toggleElement[0].dataset['pinned'];
+					helpElement.hide();
+					helpElement[0].querySelector('.pinned-info')?.remove();
+				} else {
+					helpElement.show();
+					toggleElement[0].dataset['pinned'] = true;
+					helpElement[0].insertAdjacentHTML('afterbegin', `<div class="pinned-info text-right">${_Icons.getSvgIcon('pin', 16, 16, [ '-mr-2', 'mb-1' ], 'Info Box is pinned, click info icon again to unpin.')}</div>`);
+				}
+			});
+		}
 
 		if (insertAfter) {
 			if (!customToggleElement) {

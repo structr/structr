@@ -4311,6 +4311,9 @@ ul.combined-input-select-field li:hover {
 .pr-6 {
 	padding-right: 1.5rem;
 }
+.pr-12 {
+	padding-right: 3rem;
+}
 .pb-2 {
 	padding-bottom: .5rem;
 }
