@@ -2785,7 +2785,7 @@ type: ${node.type}`;
 		dialogSaveButton.addEventListener('click', () => {
 			_Helpers.disableElement(dialogSaveButton);
 			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
-			_Crud.crudCreate(type, json, undefined, () => { _Helpers.enableElement(dialogSaveButton); });
+			_Crud.crudCreate(type, json, () => { _Helpers.enableElement(dialogSaveButton); });
 		});
 
 		return dialog;
@@ -2909,17 +2909,23 @@ type: ${node.type}`;
 			return sortOrder.filter(prop => sourceArray.includes(prop));
 		}
 
+		let idPos = filteredKeys.indexOf('id');
+		if (idPos !== -1) {
+			filteredKeys.splice(idPos, 1);
+		}
+		filteredKeys.unshift('id');
+
 		let typePos = filteredKeys.indexOf('type');
 		if (typePos !== -1) {
 			filteredKeys.splice(typePos, 1);
 		}
 		filteredKeys.unshift('type');
 
-		let idPos = filteredKeys.indexOf('id');
-		if (idPos !== -1) {
-			filteredKeys.splice(idPos, 1);
+		let namePos = filteredKeys.indexOf('name');
+		if (namePos !== -1) {
+			filteredKeys.splice(namePos, 1);
 		}
-		filteredKeys.unshift('id');
+		filteredKeys.unshift('name');
 
 		return filteredKeys;
 	},
@@ -2995,7 +3001,7 @@ type: ${node.type}`;
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon(_Icons.iconSettingsWrench)}
+									${_Icons.getSvgIcon(_Icons.iconSettingsWrench, 16, 16, ['mr-2'])}
 								</button>
 
 								<div class="dropdown-menu-container" style="width: 17rem;">

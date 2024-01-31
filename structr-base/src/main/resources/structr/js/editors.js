@@ -858,7 +858,7 @@ let _Editors = {
 		let dropdown = _Helpers.createSingleDOMElementFromHTML(`
 			<div class="editor-settings-popup dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-y="top" data-wants-fixed="true">
-					${_Icons.getSvgIcon(_Icons.iconTextSettings)}
+					${_Icons.getSvgIcon(_Icons.iconTextSettings, 16, 16, ['mr-2'])}
 				</button>
 
 				<div class="dropdown-menu-container" style="display: none;">

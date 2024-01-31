@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
 let _Files = {
 	_moduleName: 'files',
 	defaultFolderAttributes: 'id,name,type,owner,isFolder,path,visibleToPublicUsers,visibleToAuthenticatedUsers,ownerId,isMounted,parentId,foldersCount,filesCount,createdDate,lastModifiedDate',
+	defaultFileAttributes: 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers',
 	searchField: undefined,
 	searchFieldClearIcon: undefined,
 	currentWorkingDir: undefined,
@@ -728,7 +729,11 @@ let _Files = {
 				${listModeActive ? _Files.templates.folderContentsTableSkeleton() : _Files.templates.folderContentsTileContainerSkeleton()}
 			`);
 
-			fetch(Structr.rootUrl + 'me/favorites').then(async response => {
+			fetch(Structr.rootUrl + 'me/favorites', {
+				headers: {
+					Accept: 'application/json; charset=utf-8; properties=' + _Files.defaultFileAttributes
+				}
+			}).then(async response => {
 				if (response.ok) {
 					let data = await response.json();
 					handleChildren(data.result);
@@ -757,7 +762,7 @@ let _Files = {
 
 			_Pager.initFilters(pagerId, 'File', filterOptions, ['parentId', 'hasParent', 'isThumbnail']);
 
-			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, 'id,name,type,createdDate,lastModifiedDate,contentType,isFile,isImage,isThumbnail,isFavoritable,isTemplate,tnSmall,tnMid,path,size,owner,visibleToPublicUsers,visibleToAuthenticatedUsers', true);
+			let filesPager = _Pager.addPager(pagerId, _Files.getFolderContentsElement(), false, 'File', 'public', handleChildren, null, _Files.defaultFileAttributes, true);
 
 			filesPager.cleanupFunction = () => {
 				let toRemove = filesPager.el.querySelectorAll('.node.file');
@@ -789,6 +794,7 @@ let _Files = {
 									<b class="name_ leading-8 truncate">..</b>
 								</div>
 							</td>
+							<td></td>
 							<td></td>
 							<td></td>
 							<td></td>
@@ -946,10 +952,10 @@ let _Files = {
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
 							<b class="name_ leading-8 truncate">${name}</b>
 							<div class="icons-container flex items-end"></div>
-							<span class="id_ leading-8 truncate">${d.id}</span>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
 					</td>
+					<td class="truncate id_ leading-8">${d.id}</td>
 					<td class="truncate date">${createdDate}</td>
 					<td class="truncate date">${modifiedDate}</td>
 					<td class="size whitespace-nowrap">${d.isFolder ? size : _Helpers.formatBytes(size, 0)}</td>
@@ -1813,6 +1819,7 @@ let _Files = {
 					<tr>
 						<th class="icon">&nbsp;</th>
 						<th>Name</th>
+						<th>ID</th>
 						<th>Created</th>
 						<th>Modified</th>
 						<th>Size</th>

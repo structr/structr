@@ -117,7 +117,7 @@ public class MaintenanceResource extends Resource {
 							cmd.execute(propertySet);
 						}
 
-						final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_OK);
+						final RestMethodResult result = new RestMethodResult(cmd.getCommandStatusCode());
 
 						result.setNonGraphObjectResult(cmd.getCommandResult());
 						cmd.getCustomHeaders().forEach(result::addHeader);

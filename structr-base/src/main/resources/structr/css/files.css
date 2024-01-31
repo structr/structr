@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+.file-icon svg {
+	color: var(--solid-black);
+}
+
 .folder-path {
 	font-size: 1.5rem;
 	line-height: 2rem;
@@ -77,6 +82,10 @@
 	max-height: 48px;
 }
 
+#folder-contents .tile .abbr-ellipsis {
+	line-height: 1.5rem;
+}
+
 #folder-contents .img-tile img.tn {
 	max-width: 220px;
 	max-height: 220px;
@@ -133,11 +142,11 @@
 }
 
 #folder-contents table th:nth-child(2) {
-	width: 40%;
+	width: 30%;
 }
 
 #folder-contents table th:nth-child(3) {
-	width: 15%;
+	width: 10%;
 }
 
 #folder-contents table th:nth-child(4) {
@@ -145,18 +154,22 @@
 }
 
 #folder-contents table th:nth-child(5) {
-	width: 5%;
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(6) {
-	width: 10%;
+	width: 5%;
 }
 
 #folder-contents table th:nth-child(7) {
-	width: calc(20% - 24px);
+	width: 10%;
 }
 
 #folder-contents table th:nth-child(8) {
+	width: calc(20% - 24px);
+}
+
+#folder-contents table th:nth-child(9) {
 	width: 20%;
 }
 
@@ -190,7 +203,7 @@
 	color: var(--inactive-tab-text);
 }
 
-#files-table tbody tr td span.id_ {
+#files-table tbody tr td.id_ {
 	color: var(--gray-ccc);
 }
 
@@ -220,6 +233,58 @@
 #files-table .file, #files-table .folder {
 	margin: 0;
 }
+
+
+/*
+ * Upload progress bar
+ */
+
+.progress {
+	display: none;
+	text-align: right;
+	position: absolute;
+	height: 100%;
+	margin: 2px 0 0 0;
+	padding: 0;
+	background: #ffffff85;
+}
+
+.progress .bar {
+	background-color: #84ba3985;
+	width: 50%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.progress .indicator {
+	position: absolute;
+	right: .6rem;
+	top: .6rem;
+}
+
+#files-table .node .name_ {
+	padding-left: 1rem;
+}
+
+.file .progress .indicator {
+	top: .4rem;
+}
+
+.file .progress {
+	right: 0;
+	top: -.15rem;
+	width: 100%;
+}
+
+.tile .progress {
+	top: calc(100% - 2.5rem);
+	left: 0;
+	height: 2.5rem;
+	width: 100%;
+	z-index: 2;
+}
+
 
 /**
  * CSV and XML importer

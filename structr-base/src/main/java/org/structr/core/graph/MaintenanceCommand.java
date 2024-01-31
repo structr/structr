@@ -18,6 +18,7 @@
  */
 package org.structr.core.graph;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.structr.api.Predicate;
 import org.structr.common.error.FrameworkException;
 
@@ -51,6 +52,10 @@ public interface MaintenanceCommand {
 
 	default Object getCommandResult() {
 		return Collections.EMPTY_LIST;
+	}
+
+	default int getCommandStatusCode() {
+		return HttpServletResponse.SC_OK;
 	}
 
 	default void publishBeginMessage (final String type, final Map additionalInfo) {

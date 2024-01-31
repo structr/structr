@@ -376,7 +376,7 @@ input[type="checkbox"] {
 	background-color: var(--solid-white);
 	box-shadow: 0 0 .625rem 0 rgba(0,0,0,0.1);
 	/*clip-path: polygon(-20% -20%, 120% -20%, 120% 100%, -20% 100%);*/
-	z-index: 5; /* 1 greater than all slideouts, which are set to 4! */
+	z-index: 1001; /* 1 greater than all slideouts and slideout-activators, which are set to 4 and 1000! */
 	padding: 1rem 2rem 1rem 2rem;
 	white-space: nowrap;
 }
@@ -1007,7 +1007,6 @@ img.disabled {
 .node b.name_, .page b.name_ {
 	font-weight: normal;
 	margin-top: 0;
-	min-width: 60%;
 }
 
 .abbr-ellipsis {
@@ -1843,7 +1842,6 @@ button.disabled, i.disabled {
 }
 
 .dropdown-select svg {
-	margin-right: .5rem;
 	vertical-align: bottom;
 }
 
@@ -1882,53 +1880,6 @@ button.disabled, i.disabled {
 	color: var(--body-text);
 	padding: 0;
 	margin: 	0;
-}
-
-/*
- * Upload progress bar
- */
-
-.progress {
-	display: none;
-	text-align: right;
-	position: absolute;
-	height: 14px;
-	border: 1px solid var(--light-gray-delete-b3);
-	margin: 2px 0 0 0;
-	padding: 0;
-	background: var(--solid-white);
-}
-
-.progress .bar {
-	background-color: var(--structr-green);
-	width: 50%;
-	height: 100%;
-	padding: 0;
-	margin: 0;
-}
-
-.progress .indicator {
-	position: absolute;
-	right: 2px;
-	top: -2px;
-	/*font-size: .8em;*/
-}
-
-.file .progress {
-	right: 36px;
-	top: 1px;
-	width: 120px;
-}
-
-.tile .progress {
-	top: 82px;
-	left: 3px;
-	width: 100px;
-	z-index: 2;
-}
-
-button.add_property {
-	/*font-size: 2em;*/
 }
 
 
@@ -4000,6 +3951,22 @@ ul.combined-input-select-field li:hover {
 .right-3 {
 	right: .75rem;
 }
+.right-4 {
+	right: 1rem;
+}
+.right-5 {
+	right: 1.25rem;
+}
+.right-6 {
+	right: 1.5rem;
+}
+.right-7 {
+	right: 1.75rem;
+}
+.right-8 {
+	right: 2rem;
+}
+
 .top-0 {
 	top: 0;
 }
@@ -4104,6 +4071,9 @@ ul.combined-input-select-field li:hover {
 }
 .mr-2 {
 	margin-right: .5rem;
+}
+.mr-3 {
+	margin-right: .75rem;
 }
 .mr-4 {
 	margin-right: 1rem;
@@ -4511,6 +4481,9 @@ ul.combined-input-select-field li:hover {
 .min-h-20 {
 	min-height: 5rem;
 }
+.max-w-120 {
+	max-width: 30rem;
+}
 .min-w-36 {
 	min-width: 9rem;
 }
@@ -4522,6 +4495,9 @@ ul.combined-input-select-field li:hover {
 }
 .min-w-64 {
 	min-width: 16rem;
+}
+.min-w-80 {
+	min-width: 20rem;
 }
 .opacity-0 {
 	opacity: 0;
@@ -4573,6 +4549,12 @@ ul.combined-input-select-field li:hover {
 }
 .border-0 {
 	border-width: 0px;
+}
+.border-r-0 {
+	border-right: 0px;
+}
+.border-l-0 {
+	border-left: 0px;
 }
 .border-t {
 	border-top-width: 1px;

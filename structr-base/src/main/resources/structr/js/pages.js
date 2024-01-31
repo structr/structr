@@ -3672,7 +3672,7 @@ let _Pages = {
 
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd)}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])}
 						</button>
 						<div class="dropdown-menu-container">
 
