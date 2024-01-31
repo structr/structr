@@ -79,7 +79,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
 
-	private int statusCode = HttpServletResponse.SC_OK;
+	private int statusCode      = HttpServletResponse.SC_OK;
+	private Object customResult = null;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
@@ -468,13 +469,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			logger.warn("{}: {}", ipfe.getTitle(), ipfe.getMessage());
 			publishWarningMessage(ipfe.getTitle(), ipfe.getMessageHtml());
 
-			statusCode = 422;
+			setCommandStatusCode(422);
+			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
 		} catch (Throwable t) {
 
-			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
 
-			statusCode = 422;
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
 
 			throw t;
 
@@ -2671,6 +2677,24 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	@Override
 	public int getCommandStatusCode() {
 		return statusCode;
+	}
+
+	public void setCommandStatusCode(final int status) {
+		statusCode = status;
+	}
+
+	@Override
+	public Object getCommandResult() {
+
+		if (customResult != null) {
+			return customResult;
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+	public void setCustomCommandResult(final Object result) {
+		customResult = result;
 	}
 
 	// ----- public static methods -----

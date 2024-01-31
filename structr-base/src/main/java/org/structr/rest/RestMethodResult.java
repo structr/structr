@@ -126,7 +126,7 @@ public class RestMethodResult {
 
 		if (message != null) {
 
-			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(StringUtils.replace(StringUtils.replace(message, "\n", "\\n"), "\"", "\\\"")).append("\"\n");
 
 		} else {
 

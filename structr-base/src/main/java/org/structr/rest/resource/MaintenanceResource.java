@@ -126,6 +126,7 @@ public class MaintenanceResource extends Resource {
 						return result;
 
 					} else {
+
 						return new RestMethodResult(HttpServletResponse.SC_NOT_FOUND);
 					}
 
@@ -133,8 +134,11 @@ public class MaintenanceResource extends Resource {
 					return new RestMethodResult(HttpServletResponse.SC_OK);
 
 				} catch (InstantiationException iex) {
+
 					throw new SystemException(iex.getMessage());
+
 				} catch (IllegalAccessException iaex) {
+
 					throw new SystemException(iaex.getMessage());
 				}
 
@@ -153,7 +157,6 @@ public class MaintenanceResource extends Resource {
 		} else {
 
 			throw new NotAllowedException("Use of the maintenance endpoint is restricted to admin users");
-
 		}
 	}
 
