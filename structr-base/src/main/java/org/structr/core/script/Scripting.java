@@ -383,8 +383,24 @@ public class Scripting {
 
 			try {
 
+<<<<<<< Updated upstream
 				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
 
+=======
+				Source source = sourceCache.get(snippet.getSource());
+
+				if (source == null) {
+
+					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
+
+					// store in cache
+					sourceCache.put(snippet.getSource(), source);
+				}
+
+				final Value value = context.eval(source);
+
+				result = PolyglotWrapper.unwrap(actionContext, value);
+>>>>>>> Stashed changes
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
