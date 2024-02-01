@@ -34,7 +34,6 @@ let _Code = {
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
 	additionalDirtyChecks: [],
-	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
 
@@ -1459,7 +1458,7 @@ let _Code = {
 			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
 			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
+			 if (_Code.shouldHideOpenAPITabForMethod(result)) {
 
 				$('li[data-name=api]').hide();
 
@@ -1652,6 +1651,20 @@ let _Code = {
 
 			_Editors.focusEditor(sourceEditor);
 		});
+	},
+	shouldHideOpenAPITabForMethod: (entity) => {
+
+		// do all lifecycle methods not have openAPI tab?
+		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
+		// and button generation for lifecycle methods
+		let methodPrefixesWithoutOpenAPITab = [
+			'onCreate',
+			'onSave',
+			'onDelete',
+			'afterCreate'
+		];
+
+		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 

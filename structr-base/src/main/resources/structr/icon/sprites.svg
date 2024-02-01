@@ -357,6 +357,10 @@
 		<use href="#circle-empty"></use>
 		<text x="12" y="13" fill="currentColor" dominant-baseline="middle" text-anchor="middle">S</text>
 	</symbol>
+	<symbol id="lifecycle-method" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+		<use href="#circle-empty"></use>
+		<text x="12" y="13" fill="currentColor" dominant-baseline="middle" text-anchor="middle">L</text>
+	</symbol>
 
 	<symbol id="magnifying-glass" viewBox="0 0 24 24" stroke-width="1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
 		<path d="M0.750 9.812 A9.063 9.063 0 1 0 18.876 9.812 A9.063 9.063 0 1 0 0.750 9.812 Z"></path>
