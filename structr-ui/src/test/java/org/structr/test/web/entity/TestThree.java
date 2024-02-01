@@ -27,7 +27,7 @@ import org.structr.core.entity.AbstractNode;
  */
 public class TestThree extends AbstractNode {
 
-	public static final View testView = new View(TestFour.class, "test",
+	public static final View testView = new View(TestFour.class, "testView",
 		id, type, name, owner
 	);
 }

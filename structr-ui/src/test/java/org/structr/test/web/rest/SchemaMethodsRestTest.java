@@ -30,6 +30,8 @@ import org.structr.test.web.StructrUiTest;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.common.error.ErrorToken;
+import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
 public class SchemaMethodsRestTest extends StructrUiTest {
@@ -196,7 +198,7 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 
 			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
 
-			// create private method that is not exported via REST
+			// create lifecycle method that is not exported via REST
 			app.create(SchemaMethod.class,
 				new NodeAttribute<>(SchemaMethod.name, "onCreate"),
 				new NodeAttribute<>(SchemaMethod.source, "{ $.log('hello world!'); }"),
@@ -223,5 +225,120 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 			.when()
 				.post("/TestType/" + uuid + "/onCreate");
 
+	}
+
+	@Test
+	public void test005PrivateMethodsNotAvailableViaRest() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+
+			// create private method that is not exported via REST
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
+				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
+				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String uuid = createEntityAsUser("admin", "admin", "/TestType", "{ name: 'teeest' }");
+
+		// test that resource access grant is required
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("x-user", "admin", "x-password", "admin")
+			.expect()
+				.statusCode(404)
+			.when()
+				.post("/TestType/" + uuid + "/testMethod");
+
+	}
+
+	@Test
+	public void test005PrivateStaticMethodsNotAvailableViaRest() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+
+			// create private method that is not exported via REST
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,       "testMethod"),
+				new NodeAttribute<>(SchemaMethod.isStatic,   true),
+				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
+				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		final String uuid = createEntityAsUser("admin", "admin", "/TestType", "{ name: 'teeest' }");
+
+		// test that resource access grant is required
+		RestAssured
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("x-user", "admin", "x-password", "admin")
+			.expect()
+				.statusCode(404)
+			.when()
+				.post("/TestType/testMethod");
+
+	}
+
+	@Test
+	public void test006MethodVersusViewNameValidation() {
+
+		createEntityAsSuperUser("/User", "{ name: admin, password: admin, isAdmin: true }");
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+
+			// create private method that is not exported via REST
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,       "test"),
+				new NodeAttribute<>(SchemaMethod.isStatic,   true),
+				new NodeAttribute<>(SchemaMethod.isPrivate,  true),
+				new NodeAttribute<>(SchemaMethod.source,     "{ $.log('hello world!'); }"),
+				new NodeAttribute<>(SchemaMethod.schemaNode, testType)
+			);
+
+			tx.success();
+
+			fail("Creating a method with the same name as a view should fail.");
+
+		} catch (FrameworkException fex) {
+
+			assertEquals("Wrong error code in response",    422,                                                                fex.getStatus());
+			assertEquals("Wrong error message in response", "Unable to commit transaction, transaction post processing failed", fex.getMessage());
+
+			final ErrorToken token = fex.getErrorBuffer().getErrorTokens().get(0);
+
+			assertEquals("Wrong property name in error response", "name",                                          token.getProperty());
+			assertEquals("Wrong type in error response", "SchemaMethod",                                           token.getType());
+			assertEquals("Wrong token in error response", "already_exists",                                        token.getToken());
+			assertEquals("Wrong detail message in error response", "A method cannot have the same name as a view", token.getDetail());
+		}
 	}
 }

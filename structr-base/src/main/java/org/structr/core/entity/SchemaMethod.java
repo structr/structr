@@ -39,7 +39,9 @@ import org.structr.schema.action.ActionEntry;
 
 import java.lang.reflect.*;
 import java.util.*;
+import org.structr.common.error.SemanticErrorToken;
 import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Services;
 
 /**
  *
@@ -47,7 +49,7 @@ import org.structr.common.helper.ValidationHelper;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
-	public static final String schemaMethodNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
+	public static final String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
 
 	public enum HttpVerb {
 		GET, PUT, POST, PATCH, DELETE
@@ -79,7 +81,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema
+		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
@@ -170,6 +172,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
+
+		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
+		final String methodname         = getProperty(AbstractNode.name);
+
+		if (methodname != null && propertyViews.contains(methodname)) {
+			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(methodname).withDetail("A method cannot have the same name as a view"));
+		}
 
 		return valid;
 	}
