@@ -66,7 +66,7 @@ public class StaticMethodResource extends WildcardMatchEndpoint {
 			if (entityClass != null) {
 
 				final AbstractMethod method = Methods.resolveMethod(entityClass, name);
-				if (method != null && method.isStatic()) {
+				if (method != null && method.isStatic() && !method.isPrivate()) {
 
 					return new StaticMethodResourceHandler(call, method);
 				}
