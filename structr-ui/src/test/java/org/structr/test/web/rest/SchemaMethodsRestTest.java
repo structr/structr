@@ -20,6 +20,7 @@ package org.structr.test.web.rest;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.ResourceAccess;
 import org.structr.core.entity.SchemaMethod;
@@ -31,6 +32,8 @@ import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
 import org.structr.common.error.ErrorToken;
+import org.structr.core.entity.SchemaProperty;
+import org.structr.core.entity.SchemaView;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -314,6 +317,28 @@ public class SchemaMethodsRestTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			final SchemaNode testType = app.create(SchemaNode.class, new NodeAttribute<>(SchemaNode.name, "TestType"));
+			final SchemaView testView = app.create(SchemaView.class,
+				new NodeAttribute<>(SchemaView.schemaNode, testType),
+				new NodeAttribute<>(SchemaView.name, "test")
+			);
+
+			final SchemaProperty p1   = app.create(SchemaProperty.class,
+				new NodeAttribute<>(SchemaProperty.schemaNode, testType),
+				new NodeAttribute<>(SchemaProperty.schemaViews, List.of(testView)),
+				new NodeAttribute<>(SchemaProperty.propertyType, "String"),
+				new NodeAttribute<>(SchemaProperty.name, "moep")
+			);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fex.printStackTrace();
+			fail("Unexpected exception.");
+		}
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testType = app.nodeQuery(SchemaNode.class).andName("TestType").getFirst();
 
 			// create private method that is not exported via REST
 			app.create(SchemaMethod.class,

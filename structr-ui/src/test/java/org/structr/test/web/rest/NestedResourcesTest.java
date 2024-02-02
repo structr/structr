@@ -47,10 +47,10 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnCreate() {
 
-		this.grant("User",            UiAuthenticator.NON_AUTH_USER_POST, true);
-		this.grant("TestThree",       UiAuthenticator.AUTH_USER_POST, false);
-		this.grant("TestFour",        UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_GET, false);
-		this.grant("TestFour/_Test",  UiAuthenticator.AUTH_USER_GET, false);
+		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
+		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_GET, false);
+		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
 
 		createEntity("/User", "{ name: user1, password: password1 }");
 		createEntity("/User", "{ name: user2, password: password2 }");
@@ -77,7 +77,7 @@ public class NestedResourcesTest extends StructrUiTest {
 					.body("result.id",                   equalTo(testFour))
 					.body("result.oneToOneTestThree.id", equalTo(testThree))
 				.when()
-					.get("/TestFour/" + testFour + "/test");
+					.get("/TestFour/" + testFour + "/testView");
 		}
 
 		// Associate related object upon CREATION using a JSON object
@@ -102,7 +102,7 @@ public class NestedResourcesTest extends StructrUiTest {
 					.body("result.id",                   equalTo(testFour))
 					.body("result.oneToOneTestThree.id", equalTo(testThree))
 				.when()
-					.get("/TestFour/" + testFour + "/test");
+					.get("/TestFour/" + testFour + "/testView");
 		}
 	}
 
@@ -112,10 +112,10 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testNodeAssociationOnUpdate() {
 
-		this.grant("User",            UiAuthenticator.NON_AUTH_USER_POST, true);
-		this.grant("TestThree",       UiAuthenticator.AUTH_USER_POST, false);
-		this.grant("TestFour",        UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
-		this.grant("TestFour/_Test",  UiAuthenticator.AUTH_USER_GET, false);
+		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
+		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
+		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
 
 		createEntity("/User", "{ name: user1, password: password1 }");
 		createEntity("/User", "{ name: user2, password: password2 }");
@@ -155,7 +155,7 @@ public class NestedResourcesTest extends StructrUiTest {
 					.body("result.id",                   equalTo(testFour))
 					.body("result.oneToOneTestThree.id", equalTo(testThree))
 				.when()
-					.get("/TestFour/" + testFour + "/test");
+					.get("/TestFour/" + testFour + "/testView");
 		}
 
 		// Associate related object upon UPDATE using a simple string
@@ -193,7 +193,7 @@ public class NestedResourcesTest extends StructrUiTest {
 					.body("result.id",                   equalTo(testFour))
 					.body("result.oneToOneTestThree.id", equalTo(testThree))
 				.when()
-					.get("/TestFour/" + testFour + "/test");
+					.get("/TestFour/" + testFour + "/testView");
 		}
 	}
 
@@ -205,10 +205,10 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testFailingNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",            UiAuthenticator.NON_AUTH_USER_POST, true);
-		this.grant("TestThree",       UiAuthenticator.AUTH_USER_POST, false);
-		this.grant("TestFour",        UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
-		this.grant("TestFour/_Test",  UiAuthenticator.AUTH_USER_GET, false);
+		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
+		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
+		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
 
 		createEntity("/User", "{ name: user1, password: password1 }");
 		createEntity("/User", "{ name: user2, password: password2 }");
@@ -243,10 +243,10 @@ public class NestedResourcesTest extends StructrUiTest {
 	@Test
 	public void testSuccessfulNodeAssociationOnUpdateWithProperties() {
 
-		this.grant("User",            UiAuthenticator.NON_AUTH_USER_POST, true);
-		this.grant("TestThree",       UiAuthenticator.AUTH_USER_POST, false);
-		this.grant("TestFour",        UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
-		this.grant("TestFour/_Test",  UiAuthenticator.AUTH_USER_GET, false);
+		this.grant("User",                UiAuthenticator.NON_AUTH_USER_POST, true);
+		this.grant("TestThree",           UiAuthenticator.AUTH_USER_POST, false);
+		this.grant("TestFour",            UiAuthenticator.AUTH_USER_POST | UiAuthenticator.AUTH_USER_PUT, false);
+		this.grant("TestFour/_TestView",  UiAuthenticator.AUTH_USER_GET, false);
 
 		createEntity("/User", "{ name: user1, password: password1 }");
 
@@ -286,7 +286,7 @@ public class NestedResourcesTest extends StructrUiTest {
 					.body("result.oneToOneTestThree.id",   equalTo(testThree))
 					.body("result.oneToOneTestThree.name", equalTo("test123"))
 				.when()
-					.get("/TestFour/" + testFour + "/test");
+					.get("/TestFour/" + testFour + "/testView");
 		}
 	}
 
