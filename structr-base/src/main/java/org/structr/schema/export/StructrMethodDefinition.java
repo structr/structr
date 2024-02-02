@@ -46,6 +46,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 /**
  *
@@ -630,25 +631,58 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 		if (!OpenAPIMethodNameBlacklist.contains(getName())) {
 
+			final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+
 			if (isStatic) {
 
-				operations.put("/" + getParent().getName() + "/" + getName() + "/{view}", Map.of("post", new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
+				operations.put(createPath(verb, true), Map.of(verb, new OpenAPIStaticMethodOperation(this, parentType, viewNames)));
 
 
 			} else {
 
 				if (parent != null) {
 
-					operations.put("/" + getParent().getName() + "/{uuid}/" + getName() + "/{view}", Map.of("post", new OpenAPIMethodOperation(this, parentType, viewNames)));
+					operations.put(createPath(verb, false), Map.of(verb, new OpenAPIMethodOperation(this, parentType, viewNames)));
 
 				} else {
 
-					operations.put("/" + getName(), Map.of("post", new OpenAPIUserDefinedFunctionOperation(this)));
+					final String path = "/" + getName();
+
+					operations.put(path, Map.of(verb, new OpenAPIUserDefinedFunctionOperation(this)));
 				}
 			}
 		}
 
 		return operations;
+	}
+
+	public String createPath(final String verb, final boolean isStatic) {
+
+		final StringBuilder pathBuilder = new StringBuilder("/");
+
+		pathBuilder.append(getParent().getName());
+
+		if (!isStatic) {
+			pathBuilder.append("/{uuid}");
+		}
+
+		pathBuilder.append("/");
+		pathBuilder.append(getName());
+
+		// GET calls take their arguments from the URL
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				pathBuilder.append("/{");
+				pathBuilder.append(param.getName());
+				pathBuilder.append("}");
+			}
+		}
+
+		pathBuilder.append("/{view}");
+
+		return pathBuilder.toString();
 	}
 
 	public boolean isSelected(final String tag) {
@@ -736,6 +770,26 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		}
 
 		return schema;
+	}
+
+	public List<Map<String, Object>> getOpenAPIRequestParameters(final Set<String> viewNames) {
+
+		final String verb                    = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+		final List<Map<String, Object>> list = new LinkedList<>();
+
+		list.add(new OpenAPIPathParameter("uuid", "The UUID of the target object", Map.of("type", "string"), true));
+
+		if ("get".equals(verb)) {
+
+			for (final JsonParameter param : this.getParameters()) {
+
+				list.add(new OpenAPIPathParameter(param.getName(), param.getDescription(), Map.of("type", param.getType()), true));
+			}
+		}
+
+		list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), true));
+
+		return list;
 	}
 
 	public Map<String, Object> getOpenAPIRequestBody() {

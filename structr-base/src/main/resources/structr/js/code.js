@@ -3062,7 +3062,6 @@ let _Code = {
 						</div>
 					</div>
 					<div>
-						<!-- hide this checkbox if isPrivate is checked! --
 						<div class="checkbox hidden entity-method">
 							<select id="http-verb-input" data-property="httpVerb">
 								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
@@ -3073,7 +3072,6 @@ let _Code = {
 							</select>
 							</label>
 						</div>
-						-->
 					</div>
 				</div>
 			</div>
