@@ -291,6 +291,8 @@ public abstract class StructrRestTestBase {
 	}
 
 	protected String createEntity(String resource, String... body) {
+		
+		RestAssured.basePath = "/structr/rest";
 
 		StringBuilder buf = new StringBuilder();
 
