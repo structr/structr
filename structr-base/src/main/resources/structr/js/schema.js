@@ -1560,7 +1560,10 @@ let _Schema = {
 
 			} else {
 
-				container.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
+				for (let underlinedSchemaLink of container.querySelectorAll('.edit-schema-object')) {
+					underlinedSchemaLink.classList.remove('edit-schema-object');
+					underlinedSchemaLink.classList.remove('cursor-pointer');
+				}
 			}
 
 			let initActions = () => {
@@ -5193,11 +5196,11 @@ let _Schema = {
 						</div>
 
 						<div></div>
-						<div class="flex items-center">
+						<div class="flex items-center justify-center">
 							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
 						</div>
 						<div></div>
-						<div class="flex items-center">
+						<div class="flex items-center justify-center">
 							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
 						</div>
 						<div></div>
