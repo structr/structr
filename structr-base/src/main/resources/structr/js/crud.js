@@ -306,11 +306,11 @@ let _Crud = {
 
 		_Crud.searchField          = document.getElementById('crud-search-box');
 		_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 
 		_Helpers.appendInfoTextToElement({
 			element: _Crud.searchField,
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+			text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
 			insertAfter: true,
 			css: {
 				left: '-18px',
@@ -326,7 +326,7 @@ let _Crud = {
 
 		_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
 			_Crud.clearMainSearch(crudMain);
-			_Crud.searchField.focus();
+			_Crud.focusSearchField();
 		});
 
 		_Crud.searchField.addEventListener('keyup', (e) => {
@@ -636,7 +636,7 @@ let _Crud = {
 			_Crud.updateResourceLink(type);
 		}
 
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 	},
 	loadSchema: async () => {
 
@@ -2317,7 +2317,13 @@ let _Crud = {
 			return true;
 		}
 		return false;
+	},
+	focusSearchField: () => {
 
+		// only auto-activate search field if no other input element is active
+		if ( !(document.activeElement instanceof HTMLInputElement) ) {
+			_Crud.searchField.focus();
+		}
 	},
 	/**
 	 * Conduct a search and append search results to 'el'.
