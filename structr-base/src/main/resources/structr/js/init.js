@@ -2303,7 +2303,7 @@ class MessageBuilder {
 				this.dismiss();
 			}, this.params.delayDuration);
 
-			document.querySelector(`#${this.params.msgId}`).addEventListener('click', () => {
+			buttonElement.closest(`#${this.params.msgId}`).addEventListener('click', () => {
 				this.dismiss();
 			});
 		}
