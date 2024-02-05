@@ -392,7 +392,9 @@ let _Entities = {
 	},
 	getSchemaProperties: (type, view, callback) => {
 
-		fetch(`${Structr.rootUrl}_schema/${type}/${view}`).then(async response => {
+		let url = `${Structr.rootUrl}_schema/${type}/${view}`;
+
+		fetch(url).then(async response => {
 
 			let data = await response.json();
 
