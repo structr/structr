@@ -787,14 +787,16 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			}
 		}
 
-		list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), true));
+		list.add(new OpenAPIPathParameter("view", "Changes the response schema to the selected views schema", Map.of("type", "string", "enum", viewNames), false));
 
 		return list;
 	}
 
 	public Map<String, Object> getOpenAPIRequestBody() {
 
-		if (!getParameters().isEmpty()) {
+		final String verb = StringUtils.defaultIfBlank(this.getHttpVerb(), "post").toLowerCase();
+
+		if (!"get".equals(verb) && !getParameters().isEmpty()) {
 			return new OpenAPIRequestResponse("Parameters", getOpenAPIRequestSchema(), getOpenAPIRequestBodyExample(), null, false);
 		}
 
