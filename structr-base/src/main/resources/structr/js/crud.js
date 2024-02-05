@@ -124,6 +124,28 @@ let _Crud = {
 		}
 
 	}),
+	crudListFetchAbortMechanism: {
+		abortController: undefined,
+		lastType: null,
+		init: (type) => {
+			_Crud.crudListFetchAbortMechanism.lastType        = type;
+			_Crud.crudListFetchAbortMechanism.abortController = new AbortController();
+		},
+		abortListFetch: (type) => {
+
+			if (_Crud.crudListFetchAbortMechanism.abortController) {
+
+				_Crud.crudListFetchAbortMechanism.abortController.signal.onabort = () => {
+					_Crud.crudListFetchAbortMechanism.init(type);
+				};
+				_Crud.crudListFetchAbortMechanism.abortController.abort(`Loading of "${type}" aborted loading of "${_Crud.crudListFetchAbortMechanism.lastType}"`);
+
+			} else {
+
+				_Crud.crudListFetchAbortMechanism.init(type);
+			}
+		}
+	},
 	getTypeInfo: (type, callback) => {
 
 		let url = `${Structr.rootUrl}_schema/${type}`;
@@ -1193,13 +1215,18 @@ let _Crud = {
 	},
 	list: (type, url, isRetry) => {
 
+		_Crud.crudListFetchAbortMechanism.abortListFetch(type);
+
 		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
 		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
 
+		let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
+
 		fetch (url, {
+			signal: signal,
 			headers: {
 				Range: _Crud.ranges(type),
 				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
@@ -1256,6 +1283,13 @@ let _Crud = {
 				}
 
 				_Crud.removeMessage();
+			}
+		}).catch(e => {
+
+			//console.log(signal)
+			if (signal.aborted !== true) {
+				// is we did not abort the request, we should log the output (or show a notification popup?)
+				console.log(e);
 			}
 		});
 
