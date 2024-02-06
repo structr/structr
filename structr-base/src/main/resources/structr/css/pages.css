@@ -213,7 +213,7 @@
 	display: none;
 }
 
-.repeater-container, .security-container, .events-container, .linkable-container {
+.repeater-container, .security-container, .events-container, .linkable-container, .routing-container {
 	padding: 0 1rem;
 }
 

@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.graph.NodeInterface;
 import org.structr.schema.SchemaService;
 import org.structr.schema.parser.DatePropertyParser;
@@ -39,7 +40,7 @@ public interface PagePathParameter extends NodeInterface {
 
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/PagePathParameter"));
 
-		type.addIntegerProperty("position",    PropertyView.Public, PropertyView.Ui);
+		type.addIntegerProperty("position",    PropertyView.Public, PropertyView.Ui).setIndexed(true);
 		type.addStringProperty("valueType",    PropertyView.Public, PropertyView.Ui);
 		type.addStringProperty("defaultValue", PropertyView.Public, PropertyView.Ui);
 		type.addBooleanProperty("isOptional",  PropertyView.Public, PropertyView.Ui);
@@ -48,9 +49,13 @@ public interface PagePathParameter extends NodeInterface {
 		type.addPropertyGetter("valueType",     String.class);
 		type.addPropertyGetter("defaultValue",  String.class);
 		type.addPropertyGetter("isOptional",    Boolean.TYPE);
+
+		type.addPropertySetter("position", Integer.class);
 	}}
 
 	Integer getPosition();
+	void setPosition(final Integer position) throws FrameworkException;
+
 	String getValueType();
 	String getDefaultValue();
 	boolean getIsOptional();

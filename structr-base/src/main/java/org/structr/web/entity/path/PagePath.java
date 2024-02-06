@@ -19,17 +19,29 @@
 package org.structr.web.entity.path;
 
 import java.net.URI;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
+import org.neo4j.driver.internal.util.Iterables;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.PropertyView;
+import org.structr.common.SecurityContext;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.Export;
+import org.structr.core.app.App;
+import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.NodeInterface;
+import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.schema.SchemaService;
 import org.structr.web.entity.dom.Page;
 
@@ -50,6 +62,7 @@ public interface PagePath extends NodeInterface {
 
 		// override name property in AbstractNode to make it required
 		type.addStringProperty("name", PropertyView.Public, PropertyView.Ui).setRequired(true);
+		type.addIntegerProperty("priority", PropertyView.Public, PropertyView.Ui);
 
 		type.relate(param, "HAS_PARAMETER", Cardinality.OneToMany, "path", "parameters");
 
@@ -71,9 +84,89 @@ public interface PagePath extends NodeInterface {
 	Iterable<PagePathParameter> getParameters();
 
 	// ----- default methods -----
+	@Export
+	default Object updatePathAndParameters(final SecurityContext securityContext, final Map<String, Object> arguments) throws FrameworkException {
+
+		final Object rawList = arguments.get("names");
+		final Object rawPath = arguments.get("path");
+
+		if (rawPath instanceof String path) {
+
+			if (rawList instanceof List rawNames) {
+
+				// update path
+				this.setProperty(AbstractNode.name, path);
+
+				// update parameters
+				final App app                                   = StructrApp.getInstance(securityContext);
+				final Map<String, PagePathParameter> parameters = getMappedParameters();
+				final List<String> names                        = (List<String>)rawNames;
+				final List<String> toRemove                     = new LinkedList<>(parameters.keySet());
+				int count                                       = 0;
+
+				for (final String parameterName : names) {
+
+					// parameter doesn't exist yet, create
+					if (!parameters.containsKey(parameterName)) {
+
+						app.create(PagePathParameter.class,
+							new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "name"), parameterName),
+							new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "valueType"), "String"),
+							new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "position"), count),
+							new NodeAttribute<>(StructrApp.key(PagePathParameter.class, "path"), this)
+						);
+
+					} else {
+
+						final PagePathParameter p = parameters.get(parameterName);
+						p.setPosition(count);
+					}
+
+					toRemove.remove(parameterName);
+
+					count++;
+				}
+
+				// remove parameters that are no longer present in the list
+				for (final String parameterName : toRemove) {
+					app.delete(parameters.get(parameterName));
+				}
+
+				// update positions
+				final Map<String, PagePathParameter> updatedParameters = getMappedParameters();
+				int index                                              = 0;
+
+				for (final String parameterName : names) {
+
+					final PagePathParameter param = updatedParameters.get(parameterName);
+					param.setPosition(index++);
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Missing or invalid argument: names");
+			}
+
+		} else {
+
+			throw new FrameworkException(422, "Missing or invalid argument: path");
+		}
+
+		final List<PagePathParameter> sortedParameters = new LinkedList<>(getMappedParameters().values());
+
+		Collections.sort(sortedParameters, new DefaultSortOrder(StructrApp.key(PagePathParameter.class, "position"), false));
+
+		return sortedParameters;
+	}
+
+
 	default Map<String, PagePathParameter> getMappedParameters() {
 
 		final Map<String, PagePathParameter> map = new LinkedHashMap<>();
+		final List<PagePathParameter> sorted     = Iterables.asList(getParameters());
+
+		// sort by position
+		Collections.sort(sorted, new DefaultSortOrder(StructrApp.key(PagePathParameter.class, "position"), false));
 
 		for (final PagePathParameter param : getParameters()) {
 
@@ -194,7 +287,14 @@ public interface PagePath extends NodeInterface {
 	default String getValueOrNull(final String[] array, final int index) {
 
 		if (array.length > index) {
-			return array[index];
+
+			final String value = array[index];
+
+			// return empty strings as null
+			if (StringUtils.isNotBlank(value)) {
+
+				return value;
+			}
 		}
 
 		return null;
