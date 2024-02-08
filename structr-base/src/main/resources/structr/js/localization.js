@@ -322,12 +322,16 @@ let _Localization = {
 			let keyField = _Localization.uiElements.getLocalizationDetailKey();
 			keyField.value = key;
 			delete keyField.dataset['oldValue'];
-			if (key) keyField.dataset['oldValue'] = key;
+			if (key) {
+				keyField.dataset['oldValue'] = key;
+			}
 
 			let domainField = _Localization.uiElements.getLocalizationDetailDomain();
 			domainField.value = domain;
 			delete domainField.dataset['oldValue'];
-			if (domain) domainField.dataset['oldValue'] = domain;
+			if (domain) {
+				domainField.dataset['oldValue'] = domain;
+			}
 
 			_Localization.clearLocalizationDetailsList();
 
@@ -370,9 +374,9 @@ let _Localization = {
 		let keyField    = _Localization.uiElements.getLocalizationDetailKey();
 		let domainField = _Localization.uiElements.getLocalizationDetailDomain();
 
-		let oldKey    = keyField.dataset['oldValue'] || null;
+		let oldKey    = keyField.dataset['oldValue'] ?? null;
 		let curKey    = keyField.value.trim();
-		let oldDomain = domainField.dataset['oldValue'] || null;
+		let oldDomain = domainField.dataset['oldValue'] ?? null;
 		let curDomain = domainField.value.trim();
 		if (curDomain === '') {
 			curDomain = null;
@@ -397,7 +401,9 @@ let _Localization = {
 
 					for (let loc of result) {
 
-						patchData.push(Object.assign({ id: loc.id }, newData));
+						if (oldKey === loc.name && oldDomain === loc.domain) {
+							patchData.push(Object.assign({ id: loc.id }, newData));
+						}
 					}
 
 					let putResponse = await fetch(Structr.rootUrl + 'Localization/', {
