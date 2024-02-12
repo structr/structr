@@ -34,6 +34,12 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.graph.search.SearchAttributeGroup;
 
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.nio.LongBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -148,7 +154,14 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 		public Object revert(Byte[] source) throws FrameworkException {
 
 			//return Base64.getEncoder().encodeToString(ArrayUtils.toPrimitive(source));
-			return new String(ArrayUtils.toPrimitive(source));
+			try {
+
+				return new String(ArrayUtils.toPrimitive(source), "UTF-8");
+
+			} catch (final UnsupportedEncodingException uee) {
+
+				return new String(ArrayUtils.toPrimitive(source));
+			}
 
 		}
 
@@ -163,6 +176,23 @@ public class ByteArrayProperty extends AbstractPrimitiveProperty<Byte[]> {
 
 				//return ArrayUtils.toObject(Base64.getDecoder().decode(source.toString()));
 				return ArrayUtils.toObject(((String) source).getBytes());
+			}
+
+			if (source instanceof List && !((List) source).isEmpty()) {
+
+				final Object firstElement = ((List) source).get(0);
+				List<Byte> byteList = new ArrayList<>();
+
+				if (firstElement instanceof Integer) {
+
+					((List<Integer>) source).forEach(i -> byteList.add(i.byteValue()));
+					return byteList.toArray(new Byte[byteList.size()]);
+
+				} else if (firstElement instanceof Long) {
+
+					((List<Long>) source).forEach(l -> byteList.add(l.byteValue()));
+					return byteList.toArray(new Byte[byteList.size()]);
+				}
 			}
 
 			return ArrayUtils.toObject(SerializationUtils.serialize((Serializable) source));
