@@ -684,7 +684,7 @@ public class Scripting {
 			endColumnNumber = location.getEndColumn();
 		}
 
-		boolean broadcastToAdminUI = !(ex.asHostException() instanceof  AssertException);
+		boolean broadcastToAdminUI =  !(ex.isHostException() && (ex.asHostException() instanceof AssertException));
 
 		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
 	}
