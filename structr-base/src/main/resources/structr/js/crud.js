@@ -717,27 +717,27 @@ let _Crud = {
 	 * and the given type is a collection
 	 */
 	isCollection: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
+		return (key && type && _Crud.keys[type]?.[key]?.isCollection === true);
 	},
 	isFunctionProperty: (key, type) => {
-		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	isCypherProperty: (key, type) => {
-		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
 	isEnum: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].className === 'org.structr.core.property.EnumProperty');
+		return (key && type && _Crud.keys[type]?.[key]?.className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
 	readOnly: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && (_Crud.keys[type][key].readOnly === true || _Crud.isCypherProperty(key, type)));
+		return (key && type && (_Crud.keys[type]?.[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
 	},
 	/**
 	 * Return the related type of the given property key
@@ -1976,7 +1976,7 @@ let _Crud = {
 		let relatedType      = _Crud.relatedType(key, type);
 		let readOnly         = _Crud.readOnly(key, type);
 		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-		let propertyType     = _Crud.keys[type][key].type;
+		let propertyType     = _Crud.keys[type]?.[key]?.type;
 		let simpleType;
 
 		if (readOnly) {
