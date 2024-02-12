@@ -49,8 +49,8 @@
 }
 
 #crud-left .crud-type {
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
+	border-bottom: 1px solid var(--light-gray-bg-f7);
+	border-top: 1px solid var(--light-gray-bg-f7);
 	margin-top: -1px;
 	padding: 6px 5px 6px 10px;
 	cursor: pointer;
@@ -58,15 +58,11 @@
 }
 
 #crud-left .crud-type.active {
-	background-color: #81ce25;
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
+	background-color: var(--config-structr-green);
 }
 
 #crud-left .crud-type:hover {
-	background-color: #81ce25;
-	border-bottom: 1px solid #f6f6f6;
-	border-top: 1px solid #f6f6f6;
+	background-color: var(--config-structr-green);
 	z-index: 99;
 }
 

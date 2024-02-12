@@ -45,11 +45,9 @@
 
 	--light-gray-delete-b3: #b3b3b3;
 	--medium-light-gray-c0: #c0c0c0;
-	--light-gray-delete-d3: #d3d3d3;
 	--medium-light-gray-e0: #e0e0e0;
 	--light-gray-bg-f3: #f3f3f3;
 	--light-gray-bg-f7: #f7f7f7;
-	--light-gray-bg-fa: #fafafa;
 
 	--gray-eee: #eee;
 	--gray-ddd: #ddd;
@@ -98,18 +96,20 @@
 	--warning-bg: #feefb3;
 	--input-invalid: #fee;
 
-	--structr-green: #84ba39;
-	--structr-light-green: #b5e27f;
-	--structr-light-green-2: #c5ff69;
+	--structr-green:                   #84ba39;
+	--config-structr-green:            #81ce25;
+	--cropper-outline:                 color-mix(in srgb, var(--config-structr-green), transparent 25%);
+	--structr-light-green:             #b5e27f;
+	--structr-light-green-2:           #c5ff69;
 	--structr-light-green-transparent: rgba(114,177,26,.15);
-	--very-light-structr-green: #a5e25a;
-	--very-light-structr-green-2: #eff8e3;
-	--success-green: #4f8a10;
-	--success-light-green-bg: #dff2bf;
-	--dark-structr-green: #72a132;
-	--dark-structr-green-2: #668f2c;
+	--very-light-structr-green:        #a5e25a;
+	--very-light-structr-green-2:      #eff8e3;
+	--success-green:                   #4f8a10;
+	--success-light-green-bg:          #dff2bf;
+	--dark-structr-green:              #72a132;
+	--dark-structr-green-2:            #668f2c;
 
-	--disabled-relationship-options: #7e7e7e;
+	--disabled-relationship-options:   #7e7e7e;
 
 	--cta-hover: #96f02b;
 	--input-disabled: #a0a0a0;
@@ -121,7 +121,6 @@
 	--gray-opacity-20:   rgba(127,127,127, .2);
 	--gray-opacity-25:   rgba(204,204,204,.25);
 	--gray-opacity-80:   rgba(244,244,244, .8);
-	--cropper-outline:   rgba(129,206,37, .75);
 	--light-blue-20:     rgba(15, 80, 255, 0.2);
 
 	--hover-highlight-color-inactive:        rgba(153, 153, 153, .66);
@@ -1281,7 +1280,7 @@ i.button {
 
 .node.nodeSelectedFromContextMenu {
 	color: var(--gray-333) ! important;
-	background-color: var(--light-gray-bg-fa) ! important;
+	background-color: var(--light-gray-bg-f7) ! important;
 	border: 1px dashed var(--gray-777);
 }
 
@@ -2107,7 +2106,7 @@ th.center {
 	width: 240px;
 	min-height: 240px;
 	border: 1px dashed var(--gray-ccc);
-	background-color: var(--light-gray-bg-fa);
+	background-color: var(--light-gray-bg-f7);
 	padding: 12px;
 	opacity: .9;
 }
@@ -2277,7 +2276,7 @@ td#cascading-options, td#propagation-options {
 
 .graphTooltip {
 	margin-top: 10pt;
-	background: var(--light-gray-bg-fa);
+	background: var(--light-gray-bg-f7);
 	z-index: 99999;
 	border: 2px solid var(--gray-ccc);
 	border-radius: 2px;
@@ -2304,12 +2303,12 @@ td#cascading-options, td#propagation-options {
 
 .tooltipBody {
 	padding: 2pt 4pt;
-	background: var(--light-gray-bg-fa);
+	background: var(--light-gray-bg-f7);
 }
 
 .tooltipFooter {
 	padding: 2pt 4pt;
-	background: var(--light-gray-bg-fa);
+	background: var(--light-gray-bg-f7);
 }
 
 .graphTooltipSelectable {
@@ -3147,7 +3146,7 @@ i.fa-sitemap {
 	margin-right: 2px;
 	padding: 8px;
 	color: var(--gray-333);
-	background-color: var(--light-gray-delete-d3);
+	background-color: var(--gray-ccc);
 }
 
 .image-editor-menubar i:hover, .image-editor-menubar svg:hover {

@@ -76,7 +76,7 @@ let _Config = {
 				$(el.attr('href')).show();
 			});
 
-			_Helpers.activateCommentsInElement(document);
+			_Helpers.activateCommentsInElement(document, { css: '' });
 
 			let anchor = (new URL(window.location.href)).hash.substring(1) || 'general';
 			document.querySelector(`a[href$=${anchor}]`)?.click();
