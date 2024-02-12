@@ -125,7 +125,7 @@
 	text-align: left;
 	vertical-align: top;
 	height: 1em;
-	background-color: var(--main-background);
+	background-color: var(--light-gray-bg-f3);
 }
 
 .resourceBox td {
@@ -133,11 +133,11 @@
 	position: relative;
 }
 
-.resourceBox tr:nth-child(odd) {
+.resourceBox tr:nth-child(2n) {
 	background: var(--light-gray-bg-f7);
 }
 
-.resourceBox tr:nth-child(even) {
+.resourceBox tr:nth-child(2n+1) {
 	background: var(--solid-white);
 }
 
