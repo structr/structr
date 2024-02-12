@@ -1117,7 +1117,7 @@ let _Entities = {
 			});
 
 			addCustomAttributeButton.on('click', () => {
-				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>');
+				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key" placeholder="data-..."></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 				propsTable[0].appendChild(newAttributeRow);
 
 				for (let input of newAttributeRow.querySelectorAll('input')) {
