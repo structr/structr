@@ -464,8 +464,7 @@ let _Helpers = {
 					text: el.dataset['comment'],
 					element: el,
 					css: {
-						'margin': '0 4px',
-						//'vertical-align': 'top'
+						'margin': '0 4px'
 					}
 				};
 
