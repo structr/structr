@@ -154,10 +154,10 @@ public class GraphQLServlet extends AbstractServletBase implements HttpServiceSe
 
 			if (securityContext != null) {
 
-				RuntimeEventLog.graphQL(query, securityContext.getUser(false));
-
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
+					RuntimeEventLog.graphQL(query, securityContext.getUser(false));
 
 					final Document doc = GraphQLRequest.parse(new Parser(), query);
 					if (doc != null) {

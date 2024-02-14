@@ -43,6 +43,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -814,6 +815,10 @@ public class BasicTest extends StructrTest {
 				new NodeAttribute<>(SchemaRelationshipNode.cascadingDeleteFlag, Long.valueOf(Relation.CONSTRAINT_BASED))
 			);
 
+			try {
+				System.out.println(t1.getGeneratedSourceCode(securityContext));
+			} catch (Throwable t) {}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1487,10 +1492,10 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			TestOne a = createTestNode(TestOne.class);
-			TestOne b = createTestNode(TestOne.class);
-
 			try (final Tx tx = app.tx()) {
+
+				final TestOne a = createTestNode(TestOne.class);
+				final TestOne b = createTestNode(TestOne.class);
 
 				Comparator comp = TestOne.anInt.sorted(false);
 
@@ -1557,9 +1562,7 @@ public class BasicTest extends StructrTest {
 
 			logger.error(ex.toString());
 			fail("Unexpected exception");
-
 		}
-
 	}
 
 	@Test
@@ -1660,12 +1663,18 @@ public class BasicTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
+			Settings.CypherDebugLogging.setValue(true);
+
 			final TestOne testOne    = createTestNode(TestOne.class);
 			final TestTwo testTwo1   = createTestNode(TestTwo.class, new NodeAttribute<>(TestTwo.testOne, testOne));
 			final OneTwoOneToOne rel = testOne.getOutgoingRelationship(OneTwoOneToOne.class);
 			final TestTwo testTwo2   = rel.getTargetNode();
 
+			logger.info("set property");
+
 			testTwo1.setProperty(AbstractNode.name, "test");
+
+			logger.info("get property");
 
 			assertEquals("Cache invalidation failure!", "test", testTwo2.getProperty(AbstractNode.name));
 
@@ -1674,6 +1683,10 @@ public class BasicTest extends StructrTest {
 		} catch (FrameworkException fex) {
 			logger.warn("", fex);
 			fail("Unexpected exception.");
+
+		} finally {
+
+			Settings.CypherDebugLogging.setValue(false);
 		}
 
 		// fill cache with other nodes

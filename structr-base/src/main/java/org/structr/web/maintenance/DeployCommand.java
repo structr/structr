@@ -2703,7 +2703,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
 
-		if (deferredPageLinks.containsKey(initialUUID)) {
+		if (deferredPageLinks.containsKey(initialUUID) && !initialUUID.equals(correctUUID)) {
 			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
 			deferredPageLinks.remove(initialUUID);
 		}

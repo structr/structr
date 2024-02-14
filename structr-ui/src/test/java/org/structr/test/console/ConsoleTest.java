@@ -65,6 +65,7 @@ public class ConsoleTest extends StructrUiTest {
 
 		final Console console = new Console(securityContext, ConsoleMode.JavaScript, Collections.emptyMap());
 		Principal admin       = null;
+		String uuid           = null;
 
 		try {
 
@@ -115,6 +116,8 @@ public class ConsoleTest extends StructrUiTest {
 
 				admin = app.nodeQuery(User.class).andName("admin").getFirst();
 
+				uuid = admin.getUuid();
+
 				assertNotNull("Invalid console execution result", admin);
 				assertEquals("Invalid console execution result", "admin",           admin.getProperty(User.name));
 				assertEquals("Invalid console execution result", "admin@localhost", admin.getEMail());
@@ -126,7 +129,7 @@ public class ConsoleTest extends StructrUiTest {
 				tx.success();
 			}
 
-			final String idHash = admin.getUuid().substring(7, 11);
+			final String idHash = uuid.substring(7, 11);
 
 			// delete user without confirmation
 			assertEquals("Invalid console execution result", "User 'admin' has owned nodes, please confirm deletion with 'user delete admin " + idHash + "'.\r\n", console.runForTest("user delete admin"));

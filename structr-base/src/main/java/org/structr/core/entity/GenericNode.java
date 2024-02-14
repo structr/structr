@@ -28,6 +28,7 @@ import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
+import org.structr.api.graph.Node;
 
 /**
  * A generic node entity that will be instantiated when a node with an unknown
@@ -37,10 +38,16 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 
 	@Override
 	public int hashCode() {
+
+		final Node dbNode = getNode();
 		final String uuid = getUuid();
+
 		if (uuid != null) {
+
 			return uuid.hashCode();
+
 		} else {
+
 			return dbNode.getId().hashCode();
 		}
 	}
@@ -69,7 +76,7 @@ public class GenericNode extends AbstractNode implements NonIndexed {
 		keys.addAll(Iterables.toList(super.getPropertyKeys(propertyView)));
 
 		// add properties that are physically present on the node
-		keys.addAll(Iterables.toList(Iterables.map(new GenericPropertyKeyMapper(), dbNode.getPropertyKeys())));
+		keys.addAll(Iterables.toList(Iterables.map(new GenericPropertyKeyMapper(), getNode().getPropertyKeys())));
 
 		return keys;
 	}

@@ -260,11 +260,15 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 
 		final Class testUserType              = createTestUserType();
 		final PropertyKey<String> passwordKey = StructrApp.key(testUserType, "password");
-		Principal tester = null;
+		Principal tester                      = null;
+		String uuid                           = null;
 
 		try (final Tx tx = app.tx()) {
 
 			tester = (Principal)app.create(testUserType, new Name("tester"), new NodeAttribute<>(passwordKey, "test"));
+
+			uuid = tester.getUuid();
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -299,7 +303,7 @@ public class PagingAndSortingTest extends StructrRestTestBase {
 				.body("result[0].type",     equalTo("PrincipalOwnsNode"))
 				.body("result[1].type",     equalTo("Security"))
 			.when()
-				.get("/TestUser/" + tester.getUuid() + "/out?_pageSize=2");
+				.get("/TestUser/" + uuid + "/out?_pageSize=2");
 
 
 	}

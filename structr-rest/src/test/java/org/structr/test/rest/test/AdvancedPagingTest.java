@@ -20,8 +20,6 @@ package org.structr.test.rest.test;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
 import org.structr.api.schema.JsonObjectType;
@@ -52,8 +50,6 @@ import static org.hamcrest.Matchers.*;
  *
  */
 public class AdvancedPagingTest extends StructrRestTestBase {
-
-	private static final Logger logger = LoggerFactory.getLogger(AdvancedPagingTest.class.getName());
 
 	@Test
 	public void test01Paging() {
@@ -282,11 +278,14 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 		TestThree t3_connected            = null;
 		TestThree t3_not_connected        = null;
 		TestFive  t5                      = null;
+		String uuid                       = null;
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
 			t3_connected     = app.create(TestThree.class, connectedNodeName);
 			t3_not_connected = app.create(TestThree.class, notConnectedNodeName);
+
+			uuid = t3_not_connected.getUuid();
 
 			final PropertyMap t5Map = new PropertyMap(TestFive.oneToOneTestThree, t3_connected);
 			t5 = app.create(TestFive.class, t5Map);
@@ -331,7 +330,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result",         hasSize(1))
 				.body("result[0].name", equalTo(notConnectedNodeName))
-				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
+				.body("result[0].id",   equalTo(uuid))
 			.when()
 				.get("/test_threes?oneToOneTestFive=null");
 
@@ -345,7 +344,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 				.statusCode(200)
 				.body("result",         hasSize(1))
 				.body("result[0].name", equalTo(notConnectedNodeName))
-				.body("result[0].id",   equalTo(t3_not_connected.getUuid()))
+				.body("result[0].id",   equalTo(uuid))
 			.when()
 				.get("/test_threes?oneToOneTestFive=null&_pageSize=1");
 

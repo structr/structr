@@ -402,20 +402,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				synchronized (tx) {
+				FileHelper.updateMetadata(thisFile, true);
+				File.increaseVersion(thisFile);
 
-					FileHelper.updateMetadata(thisFile, true);
-					File.increaseVersion(thisFile);
+				// indexing can be controlled for each file separately
+				if (File.doIndexing(thisFile)) {
 
-					tx.success();
+					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+					indexer.addToFulltextIndex(thisFile);
 				}
-			}
 
-			// indexing can be controlled for each file separately
-			if (File.doIndexing(thisFile)) {
-
-				final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-				indexer.addToFulltextIndex(thisFile);
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {

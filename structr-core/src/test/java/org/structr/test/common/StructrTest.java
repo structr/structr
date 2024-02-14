@@ -49,6 +49,7 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -161,8 +162,6 @@ public class StructrTest {
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
-
-		//Settings.CypherDebugLogging.setValue(true);
 
 		final Services services = Services.getInstance();
 

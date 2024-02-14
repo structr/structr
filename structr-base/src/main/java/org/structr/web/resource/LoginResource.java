@@ -40,7 +40,6 @@ import org.structr.rest.auth.AuthHelper;
 import org.structr.rest.exception.NotAllowedException;
 import org.structr.rest.resource.FilterableResource;
 import org.structr.schema.action.ActionContext;
-import org.structr.web.entity.html.P;
 import org.structr.web.function.BarcodeFunction;
 
 import java.io.UnsupportedEncodingException;
@@ -92,6 +91,7 @@ public class LoginResource extends FilterableResource {
 		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(ctx);
 		Principal user                        = null;
+		long userId                           = -1;
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
@@ -103,6 +103,8 @@ public class LoginResource extends FilterableResource {
 
 				user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
 				returnedMethodResult = doLogin(securityContext, user);
+
+				userId = user.getNode().getId().getId();
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -150,7 +152,7 @@ public class LoginResource extends FilterableResource {
 		}
 
 		// broadcast login to cluster for the user
-		Services.getInstance().broadcastLogin(user);
+		Services.getInstance().broadcastLogin(userId);
 
 		return returnedMethodResult;
 	}

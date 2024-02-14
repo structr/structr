@@ -113,11 +113,6 @@ public abstract class MemoryEntity implements PropertyContainer {
 	}
 
 	@Override
-	public boolean isStale() {
-		return false;
-	}
-
-	@Override
 	public boolean isDeleted() {
 		return false;
 	}

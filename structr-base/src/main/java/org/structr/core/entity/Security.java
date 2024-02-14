@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -56,6 +57,7 @@ public class Security extends ManyToMany<Principal, NodeInterface> {
 		keys.add(principalId);
 		keys.add(accessControllableId);
 
+		final Relationship dbRelationship = getRelationship();
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {

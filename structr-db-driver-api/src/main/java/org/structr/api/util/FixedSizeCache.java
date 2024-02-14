@@ -48,7 +48,7 @@ public class FixedSizeCache<K, V> {
 
 	public FixedSizeCache(final String name, final int maxSize) {
 
-		this.cache       = new InvalidatingLRUMap<>(maxSize);
+		this.cache       = new LRUMap<>(maxSize);
 		this.bean        = getOldGenerationMXBean();
 		this.name        = name;
 	}
@@ -143,28 +143,8 @@ public class FixedSizeCache<K, V> {
 				cache.clear();
 
 				// replace current cache instance with limited one (should be ok to do since all methods are synchronized)
-				cache = new InvalidatingLRUMap<>((int)size);
+				cache = new LRUMap<>((int)size);
 			}
-		}
-	}
-
-	// ----- nested classes -----
-	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
-
-		public InvalidatingLRUMap(final int maxSize) {
-			super(maxSize, true);
-		}
-
-		@Override
-		protected boolean removeLRU(final LinkEntry<K, V> entry) {
-
-			final V value = entry.getValue();
-			if (value != null && value instanceof Cachable) {
-
-				((Cachable)value).onRemoveFromCache();
-			}
-
-			return true;
 		}
 	}
 }

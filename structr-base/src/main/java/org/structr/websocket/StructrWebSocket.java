@@ -278,6 +278,8 @@ public class StructrWebSocket implements WebSocketListener {
 
 			} catch (FrameworkException | InstantiationException | IllegalAccessException t) {
 
+				t.printStackTrace();
+
 				try (final Tx tx = app.tx(true, true, true)) {
 
 					// send 400 Bad Request

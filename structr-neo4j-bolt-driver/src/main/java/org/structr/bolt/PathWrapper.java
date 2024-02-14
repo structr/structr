@@ -51,8 +51,10 @@ class PathWrapper implements Path {
 			return new SegmentIterator(path);
 		}
 
+		final SessionTransaction tx        = db.getCurrentTransaction();
 		final List<PropertyContainer> list = new LinkedList<>();
-		list.add(NodeWrapper.newInstance(db, path.start()));
+
+		list.add(tx.getNodeWrapper(path.start()));
 
 		return list.iterator();
 	}
@@ -60,12 +62,15 @@ class PathWrapper implements Path {
 	// ----- nested classes -----
 	private class SegmentIterator implements Iterator<PropertyContainer> {
 
-		private Iterator<Segment> it = null;
-		private Segment current      = null;
-		private int state            = 0;
+		private SessionTransaction tx = null;
+		private Iterator<Segment> it  = null;
+		private Segment current       = null;
+		private int state             = 0;
 
 		public SegmentIterator(final org.neo4j.driver.types.Path path) {
+
 			this.it = path.iterator();
+			this.tx = db.getCurrentTransaction();
 		}
 
 		@Override
@@ -85,7 +90,7 @@ class PathWrapper implements Path {
 
 				case 0:
 					state = 1;
-					return NodeWrapper.newInstance(db, current.start());
+					return tx.getNodeWrapper(current.start());
 
 				case 1:
 					final Relationship rel = current.relationship();
@@ -98,11 +103,12 @@ class PathWrapper implements Path {
 
 						state = 2;
 					}
-					return RelationshipWrapper.newInstance(db, rel);
+
+					return tx.getRelationshipWrapper(rel);
 
 				case 2:
 					state = 3;
-					return NodeWrapper.newInstance(db, current.end());
+					return tx.getNodeWrapper(current.end());
 			}
 
 			throw new NotFoundException("No such element.");

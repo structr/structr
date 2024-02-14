@@ -100,10 +100,14 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return sortOrder;
 	}
 
+	public boolean hasPredicates() {
+		return buffer.length() > 0;
+	}
+
 	@Override
 	public String getStatement(final boolean paged) {
 
-		final boolean hasPredicates = buffer.length() > 0;
+		final boolean hasPredicates = hasPredicates();
 		final StringBuilder buf     = new StringBuilder();
 		final int typeCount         = typeLabels.size();
 

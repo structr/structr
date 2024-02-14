@@ -34,6 +34,7 @@ import org.testng.annotations.Test;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.function.Function;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.testng.AssertJUnit.fail;
@@ -57,20 +58,17 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test02PUT() {
 
-		/*
-		{
-			"code": 400,
-			"message": "PUT not allowed on TestOne collection resource",
-			"errors": [
-    			]
-		}
-		*/
+		final List<String> nodeIds = createNodes(1, n -> n.getUuid());
+		
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/TestOne/" + nodeIds.get(0));
 
-		expectNotOk(400)
-			.body("code",    Matchers.equalTo(400))
-			.body("message", Matchers.equalTo("PUT not allowed on TestOne collection resource"))
-			.when().put("/TestOne");
-
+		// test type + UUID resource
+		expectOk(200)
+			.when()
+			.put("/" + nodeIds.get(0));
 	}
 
 	@Test
@@ -97,7 +95,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test04DELETE() {
 
-		final List<TestOne> nodes = createNodes(100);
+		final List<String> nodeIds = createNodes(100, n -> n.getUuid());
 
 		// delete exactly one element by name
 		expectOk(200).when().delete("/TestOne?name=node055");
@@ -112,7 +110,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 		expectNotOk(200).body("result_count", Matchers.equalTo(70)).when().get("/TestOne");
 
 		// delete 18 elements
-		expectOk(200).when().delete("/" + nodes.get(0).getUuid());
+		expectOk(200).when().delete("/" + nodeIds.get(0));
 		expectNotOk(200).body("result_count", Matchers.equalTo(69)).when().get("/TestOne");
 	}
 
@@ -404,11 +402,15 @@ public class RestVerbsTest extends StructrRestTestBase {
 	}
 
 	private List<TestOne> createNodes(final int count) {
+		return createNodes(count, null);
+	}
+
+	private <T> List<T> createNodes(final int count, final Function<TestOne, T> mapper) {
 
 		// create 100 test nodes and set names
 		try (final Tx tx = app.tx()) {
 
-			final List<TestOne> nodes = createTestNodes(TestOne.class, 100);
+			final List<TestOne> nodes = createTestNodes(TestOne.class, count);
 			int i                     = 0;
 
 			for (final TestOne node : nodes) {
@@ -416,9 +418,22 @@ public class RestVerbsTest extends StructrRestTestBase {
 				node.setProperty(AbstractNode.name, "node" + StringUtils.leftPad(Integer.toString(i++), 3, "0"));
 			}
 
+			if (mapper != null) {
+
+				final List mapped = new LinkedList<>();
+				for (final TestOne node : nodes) {
+
+					mapped.add(mapper.apply(node));
+				}
+
+				tx.success();
+
+				return mapped;
+			}
+
 			tx.success();
 
-			return nodes;
+			return (List)nodes;
 
 		} catch (FrameworkException fex) {
 
