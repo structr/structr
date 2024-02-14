@@ -49,6 +49,14 @@ public abstract class ContextFactory {
 				.option("js.ecmascript-version", "latest")
 				.option("js.temporal", "true");
 
+	// Python context builder
+	private static final Context.Builder pythonBuilder = Context.newBuilder("python")
+			.engine(engine)
+			.allowPolyglotAccess(AccessProvider.getPolyglotAccessConfig())
+			.allowHostAccess(AccessProvider.getHostAccessConfig())
+			.allowIO(AccessProvider.getIOAccessConfig())
+			.allowHostAccess(AccessProvider.getHostAccessConfig());
+
 	// other languages context builder
 	private static final Context.Builder genericBuilder = Context.newBuilder()
 				.engine(engine)
@@ -75,6 +83,7 @@ public abstract class ContextFactory {
 
 					genericBuilder.engine(engine);
 					jsBuilder.engine(engine);
+					pythonBuilder.engine(engine);
 				}
 			});
 		}
@@ -115,6 +124,7 @@ public abstract class ContextFactory {
 			case "js":
 				return getAndUpdateContext(language, actionContext, entity, ()->buildJSContext(actionContext, entity));
 			case "python":
+				return getAndUpdateContext(language, actionContext, entity, ()->buildPythonContext(actionContext, entity));
 			case "R":
 				return getAndUpdateContext(language, actionContext, entity, ()->buildGenericContext(language, actionContext, entity));
 			default:
@@ -149,6 +159,13 @@ public abstract class ContextFactory {
 
 	private static Context buildJSContext(final ActionContext actionContext, final GraphObject entity) {
 		return updateBindings(jsBuilder.build(), "js", actionContext, entity);
+	}
+
+	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
+		Context ctx = pythonBuilder.build();
+		//ctx.eval("python", "import site");
+
+		return updateBindings(ctx, "python", actionContext, entity);
 	}
 
 	private static Context buildGenericContext(final String language, final ActionContext actionContext, final GraphObject entity) {
