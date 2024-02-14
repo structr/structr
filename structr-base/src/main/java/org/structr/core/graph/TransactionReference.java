@@ -19,6 +19,9 @@
 package org.structr.core.graph;
 
 import org.structr.api.Transaction;
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
 
 /**
  *
@@ -89,5 +92,15 @@ public class TransactionReference implements Transaction {
 				tx.close();
 			}
 		}
+	}
+
+	@Override
+	public Node getNode(final Identity id) {
+		return tx.getNode(id);
+	}
+
+	@Override
+	public Relationship getRelationship(final Identity id) {
+		return tx.getRelationship(id);
 	}
 }

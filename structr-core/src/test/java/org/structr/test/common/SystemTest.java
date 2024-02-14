@@ -637,7 +637,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -713,7 +713,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -729,7 +729,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -779,7 +779,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -809,7 +809,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -825,7 +825,7 @@ public class SystemTest extends StructrTest {
 
 			tx.success();
 
-		} catch (Throwable t) {
+		} catch (FrameworkException t) {
 			t.printStackTrace();
 			fail("Unexpected exception");
 		}
@@ -952,15 +952,14 @@ public class SystemTest extends StructrTest {
 
 		final Class type = StructrApp.getConfiguration().getNodeEntityClass("GrantTest");
 
+		final long t0 = System.currentTimeMillis();
 		try (final Tx tx = app.tx()) {
 
-			final long t0 = System.currentTimeMillis();
-			for (int i=0; i<10000; i++) {
+			for (int i=0; i<1000; i++) {
 				app.create(type, "test" + i);
 			}
-			final long t1 = System.currentTimeMillis();
 
-			System.out.println((t1-t0) + " ms");
+			Settings.CypherDebugLogging.setValue(true);
 
 			tx.success();
 
@@ -968,6 +967,11 @@ public class SystemTest extends StructrTest {
 			fex.printStackTrace();
 			fail("Unexpected exception");
 		}
+
+		final long t1 = System.currentTimeMillis();
+		System.out.println((t1-t0) + " ms");
+
+		Settings.CypherDebugLogging.setValue(false);
 	}
 
 	@Test

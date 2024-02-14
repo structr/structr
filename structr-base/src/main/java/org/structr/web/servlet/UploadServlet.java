@@ -177,16 +177,21 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 			return;
 		}
 
-		final App app              = StructrApp.getInstance(securityContext);
+		final App app = StructrApp.getInstance(securityContext);
 
 		try {
 
-			if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
+			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-				response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-				response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+				if (securityContext.getUser(false) == null && !Settings.UploadAllowAnonymous.getValue()) {
 
-				return;
+					response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+					response.getOutputStream().write("ERROR (401): Anonymous uploads forbidden.\n".getBytes("UTF-8"));
+
+					return;
+				}
+
+				tx.success();
 			}
 
 			// Ensure access mode is frontend
@@ -357,13 +362,19 @@ public class UploadServlet extends AbstractServletBase implements HttpServiceSer
 					// only the actual existing file creates a UUID output
 					if (newFile != null) {
 
-						// upload trigger
-						newFile.notifyUploadCompletion();
+						// all property access must be wrapped in a transaction
+						try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-						newFile.callOnUploadHandler(securityContext);
+							// upload trigger
+							newFile.notifyUploadCompletion();
 
-						// store uuid
-						uuid = newFile.getUuid();
+							newFile.callOnUploadHandler(securityContext);
+
+							// store uuid
+							uuid = newFile.getUuid();
+
+							tx.success();
+						}
 					}
 				}
 			}

@@ -52,6 +52,7 @@ import org.structr.schema.action.Function;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.LinkedList;
 
 /**
  * Abstract base class for all node entities in Structr.
@@ -79,7 +80,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	protected SecurityContext securityContext       = null;
 	protected Principal cachedOwnerNode             = null;
 	protected Class entityType                      = null;
-	protected Node dbNode                           = null;
+	protected Identity nodeId                       = null;
 
 	public AbstractNode() {
 	}
@@ -105,9 +106,9 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	public final void init(final SecurityContext securityContext, final Node dbNode, final Class entityType, final long sourceTransactionId) {
 
 		this.sourceTransactionId = sourceTransactionId;
-		this.dbNode              = dbNode;
 		this.entityType          = entityType;
 		this.securityContext     = securityContext;
+		this.nodeId              = dbNode.getId();
 
 		// simple validity check
 		if (dbNode != null && !this.isGenericNode()) {
@@ -162,12 +163,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public int hashCode() {
 
-		if (this.dbNode == null) {
+		if (getNode() == null) {
 
 			return (super.hashCode());
 		}
 
-		return dbNode.getId().hashCode();
+		return getNode().getId().hashCode();
 
 	}
 
@@ -256,7 +257,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			throw new FrameworkException(403, "Modification of node " + this.getProperty(AbstractNode.id) + " with type " + this.getProperty(AbstractNode.type) + " by user " + user + " not permitted.");
 		}
 
-		if (this.dbNode != null) {
+		if (getNode() != null) {
 
 			if (key == null) {
 
@@ -298,7 +299,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 			}
 
-			dbNode.removeProperty(key.dbName());
+			getNode().removeProperty(key.dbName());
 		}
 
 	}
@@ -310,7 +311,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public final PropertyContainer getPropertyContainer() {
-		return dbNode;
+		return getNode();
 	}
 
 	/**
@@ -321,23 +322,18 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public final String getName() {
 
-		String name = getProperty(AbstractNode.name);
-		if (name == null) {
+		String _name = getProperty(AbstractNode.name);
+		if (_name == null) {
 
-			name = getUuid();
+			_name = getUuid();
 		}
 
-		return name;
+		return _name;
 	}
 
 	@Override
 	public final String getUuid() {
-
-		if (cachedUuid == null) {
-			cachedUuid = getProperty(GraphObject.id);
-		}
-
-		return cachedUuid;
+		return getProperty(GraphObject.id);
 	}
 
 	/**
@@ -508,14 +504,14 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	 */
 	@Override
 	public final Node getNode() {
-		return dbNode;
+		return TransactionCommand.getCurrentTransaction().getNode(nodeId);
 	}
 
 	@Override
 	public boolean hasRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
 
-		if (dbNode != null && type != null && targetNode != null) {
-			return dbNode.hasRelationshipTo(type, targetNode.getNode());
+		if (getNode() != null && type != null && targetNode != null) {
+			return getNode().hasRelationshipTo(type, targetNode.getNode());
 		}
 
 		return false;
@@ -524,10 +520,10 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	@Override
 	public <R extends AbstractRelationship> R getRelationshipTo(final RelationshipType type, final NodeInterface targetNode) {
 
-		if (dbNode != null && type != null && targetNode != null) {
+		if (getNode() != null && type != null && targetNode != null) {
 
 			final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
-			final Relationship rel               = dbNode.getRelationshipTo(type, targetNode.getNode());
+			final Relationship rel               = getNode().getRelationshipTo(type, targetNode.getNode());
 
 			if (rel != null) {
 
@@ -540,7 +536,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<R>(securityContext));
+		return new IterableAdapter<>(getNode().getRelationships(), new RelationshipFactory<>(securityContext));
 	}
 
 	@Override
@@ -551,7 +547,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final Direction direction            = template.getDirectionForType(entityType);
 		final RelationshipType relType       = template;
 
-		return new IterableAdapter<>(dbNode.getRelationships(direction, relType), factory);
+		return new IterableAdapter<>(getNode().getRelationships(direction, relType), factory);
 	}
 
 	@Override
@@ -559,7 +555,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawSource(securityContext, dbNode, null);
+		final Relationship relationship      = template.getSource().getRawSource(securityContext, getNode(), null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -574,7 +570,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getSource().getRawSource(suContext, dbNode, null);
+		final Relationship relationship      = template.getSource().getRawSource(suContext, getNode(), null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -589,8 +585,8 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 
-		//return new IterableAdapter<>(new IdSorter<>(template.getSource().getRawSource(securityContext, dbNode, null)), factory);
-		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, dbNode, null), factory);
+		//return new IterableAdapter<>(new IdSorter<>(template.getSource().getRawSource(securityContext, getNode(), null)), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(securityContext, getNode(), null), factory);
 	}
 
 	@Override
@@ -598,7 +594,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRawSource(securityContext, dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(securityContext, getNode(), null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -613,22 +609,22 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(securityContext);
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, dbNode, null), factory);
+		return new IterableAdapter<>(template.getTarget().getRawSource(securityContext, getNode(), null), factory);
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getIncomingRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.INCOMING), new RelationshipFactory<>(securityContext));
+		return new IterableAdapter<>(getNode().getRelationships(Direction.INCOMING), new RelationshipFactory<>(securityContext));
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getOutgoingRelationships() {
-		return new IterableAdapter<>(dbNode.getRelationships(Direction.OUTGOING), new RelationshipFactory<>(securityContext));
+		return new IterableAdapter<>(getNode().getRelationships(Direction.OUTGOING), new RelationshipFactory<>(securityContext));
 	}
 
 	@Override
 	public final <R extends AbstractRelationship> Iterable<R> getRelationshipsAsSuperUser() {
-		return new IterableAdapter<>(dbNode.getRelationships(), new RelationshipFactory<>(SecurityContext.getSuperUserInstance()));
+		return new IterableAdapter<>(getNode().getRelationships(), new RelationshipFactory<>(SecurityContext.getSuperUserInstance()));
 	}
 
 	protected final <A extends NodeInterface, B extends NodeInterface, T extends Target, R extends Relation<A, B, ManyStartpoint<A>, T>> Iterable<R> getIncomingRelationshipsAsSuperUser(final Class<R> type) {
@@ -641,7 +637,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
 
-		return new IterableAdapter<>(template.getSource().getRawSource(suContext, dbNode, predicate), factory);
+		return new IterableAdapter<>(template.getSource().getRawSource(suContext, getNode(), predicate), factory);
 	}
 
 	@Override
@@ -650,7 +646,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final SecurityContext suContext      = SecurityContext.getSuperUserInstance();
 		final RelationshipFactory<R> factory = new RelationshipFactory<>(suContext);
 		final R template                     = getRelationshipForType(type);
-		final Relationship relationship      = template.getTarget().getRawSource(suContext, dbNode, null);
+		final Relationship relationship      = template.getTarget().getRawSource(suContext, getNode(), null);
 
 		if (relationship != null) {
 			return factory.adapt(relationship);
@@ -666,7 +662,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 		final Direction direction            = template.getDirectionForType(entityType);
 		final RelationshipType relType       = template;
 
-		return new IterableAdapter<>(dbNode.getRelationships(direction, relType), factory);
+		return new IterableAdapter<>(getNode().getRelationships(direction, relType), factory);
 	}
 
 	/**
@@ -729,12 +725,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getSource().hasElements(securityContext, dbNode, null);
+		return getRelationshipForType(type).getSource().hasElements(securityContext, getNode(), null);
 	}
 
 	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getTarget().hasElements(securityContext, dbNode, null);
+		return getRelationshipForType(type).getTarget().hasElements(securityContext, getNode(), null);
 	}
 
 	// ----- interface AccessControllable -----

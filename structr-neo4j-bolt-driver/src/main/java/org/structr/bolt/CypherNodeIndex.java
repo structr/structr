@@ -28,6 +28,8 @@ import org.structr.api.util.Iterables;
  */
 class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
+	private boolean prefetch = false;
+
 	public CypherNodeIndex(final BoltDatabaseService db) {
 		super(db);
 	}
@@ -63,7 +65,12 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 			buf.append(typeLabel);
 		}
 
+
 		buf.append(")");
+
+		if (!hasPredicates) {
+			buf.append(" WITH n OPTIONAL MATCH (n)-[r]-(m)");
+		}
 
 		return buf.toString();
 	}
@@ -73,7 +80,14 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		final StringBuilder buf = new StringBuilder();
 
-		buf.append(" RETURN DISTINCT n");
+		if (query.hasPredicates()) {
+
+			buf.append(" RETURN DISTINCT n");
+
+		}  else {
+
+			buf.append(" RETURN DISTINCT n, collect(r) AS rels, collect(m) AS nodes");
+		}
 
 		final SortOrder sortOrder = query.getSortOrder();
 		if (sortOrder != null) {
@@ -100,6 +114,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 	@Override
 	public Iterable<Node> getResult(final AdvancedCypherQuery query) {
-		return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+		//return Iterables.map(new NodeNodeMapper(db), Iterables.map(new RecordNodeMapper(), new LazyRecordIterable(db, query)));
+		return Iterables.map(new PrefetchNodeMapper(db), new LazyRecordIterable(db, query));
 	}
 }

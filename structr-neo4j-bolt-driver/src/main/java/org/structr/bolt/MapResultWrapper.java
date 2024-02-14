@@ -18,7 +18,13 @@
  */
 package org.structr.bolt;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.LinkedList;
 
 /**
  *
@@ -34,6 +40,11 @@ class MapResultWrapper implements Map<String, Object> {
 		this.wrapper = new MixedResultWrapper<>(db);
 		this.source  = source;
 		this.db      = db;
+	}
+
+	@Override
+	public String toString() {
+		return source.toString();
 	}
 
 	@Override

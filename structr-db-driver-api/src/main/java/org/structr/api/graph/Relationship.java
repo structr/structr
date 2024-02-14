@@ -26,6 +26,7 @@ public interface Relationship extends PropertyContainer, Comparable<Relationship
 	Node getStartNode();
 	Node getEndNode();
 	Node getOtherNode(final Node node);
+	Direction getDirectionForNode(final Node otherNode);
 
 	RelationshipType getType();
 

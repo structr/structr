@@ -64,6 +64,7 @@ public class GenericRelationship extends ManyToMany<NodeInterface, NodeInterface
 		keys.add(startNodeId);
 		keys.add(endNodeId);
 
+		final Relationship dbRelationship = getRelationship();
 		if (dbRelationship != null) {
 
 			for (String key : dbRelationship.getPropertyKeys()) {

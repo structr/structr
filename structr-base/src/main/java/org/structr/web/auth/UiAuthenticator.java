@@ -445,7 +445,7 @@ public class UiAuthenticator implements Authenticator {
 			final Principal user = getUser(request, false);
 			if (user != null) {
 
-				Services.getInstance().broadcastLogout(user);
+				Services.getInstance().broadcastLogout(user.getNode().getId().getId());
 
 				AuthHelper.doLogout(request, user);
 			}

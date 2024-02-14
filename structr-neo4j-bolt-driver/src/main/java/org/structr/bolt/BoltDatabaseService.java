@@ -140,15 +140,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 			configureVersionDependentFeatures();
 
-			final int relCacheSize  = Settings.RelationshipCacheSize.getPrefixedValue(serviceName);
-			final int nodeCacheSize = Settings.NodeCacheSize.getPrefixedValue(serviceName);
-
-			NodeWrapper.initialize(nodeCacheSize);
-			logger.info("Node cache size set to {}", nodeCacheSize);
-
-			RelationshipWrapper.initialize(relCacheSize);
-			logger.info("Relationship cache size set to {}", relCacheSize);
-
 			// signal success
 			return true;
 
@@ -164,8 +155,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public void shutdown() {
-
-		clearCaches();
 		driver.close();
 	}
 
@@ -257,11 +246,10 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 		// set type
 		properties.put("type", type);
 
-		final NodeWrapper newNode = NodeWrapper.newInstance(this, getCurrentTransaction().getNode(buf.toString(), map));
+		final SessionTransaction tx            = getCurrentTransaction();
+		final org.neo4j.driver.types.Node node = tx.getNode(buf.toString(), map);
 
-		newNode.setModified();
-
-		return newNode;
+		return tx.getNodeWrapper(node);
 	}
 
 	@Override
@@ -314,16 +302,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 				final NodeWrapper newNode             = (NodeWrapper)         data.get("n");
 				final RelationshipWrapper securityRel = (RelationshipWrapper) data.get("s");
 				final RelationshipWrapper ownsRel     = (RelationshipWrapper) data.get("o");
-
-				newNode.setModified();
-
-				securityRel.setModified();
-				securityRel.stale();
-
-				ownsRel.setModified();
-				ownsRel.stale();
-
-				((NodeWrapper)ownsRel.getStartNode()).setModified();
 
 				return new NodeWithOwnerResult(newNode, securityRel, ownsRel);
 			}
@@ -512,23 +490,6 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	@Override
-	public void clearCaches() {
-
-		NodeWrapper.clearCache();
-		RelationshipWrapper.clearCache();
-	}
-
-	@Override
-	public void removeNodeFromCache(final Identity id) {
-		NodeWrapper.expunge(unwrap(id));
-	}
-
-	@Override
-	public void removeRelationshipFromCache(final Identity id) {
-		RelationshipWrapper.expunge(unwrap(id));
-	}
-
-	@Override
 	public void cleanDatabase() {
 
 		final String tenantId = getTenantIdentifier();
@@ -576,11 +537,11 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 	}
 
 	Node getNodeById(final long id) {
-		return NodeWrapper.newInstance(this, id);
+		return getCurrentTransaction().getNodeWrapper(id);
 	}
 
 	Relationship getRelationshipById(final long id) {
-		return RelationshipWrapper.newInstance(this, id);
+		return getCurrentTransaction().getRelationshipWrapper(id);
 	}
 
 	void consume(final String nativeQuery) {
@@ -699,10 +660,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 
 	@Override
 	public Map<String, Map<String, Integer>> getCachesInfo() {
-		return Map.of(
-			"nodes",         NodeWrapper.nodeCache.getCacheInfo(),
-			"relationships", RelationshipWrapper.relationshipCache.getCacheInfo()
-		);
+		return Map.of();
 	}
 
 	// ----- private methods -----

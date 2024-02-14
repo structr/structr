@@ -27,6 +27,7 @@ public class QueryContext {
 	private boolean deferred           = false;
 	private boolean isSuperuser        = false;
 	private boolean sliced             = false;
+	private boolean prefetch           = false;
 	private int overriddenFetchSize    = -1;
 	private int skip                   = -1;
 	private int limit                  = -1;
@@ -127,5 +128,9 @@ public class QueryContext {
 
 		this.overriddenFetchSize = newFetchSize;
 		this.overridesFetchSize  = true;
+	}
+
+	public void prefetch() {
+		this.prefetch = true;
 	}
 }

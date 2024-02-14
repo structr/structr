@@ -35,6 +35,6 @@ class RelationshipRelationshipMapper implements Function<org.neo4j.driver.types.
 
 	@Override
 	public Relationship apply(final org.neo4j.driver.types.Relationship t) {
-		return RelationshipWrapper.newInstance(db, t);
+		return db.getCurrentTransaction().getRelationshipWrapper(t);
 	}
 }
