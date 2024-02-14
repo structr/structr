@@ -215,6 +215,11 @@ public abstract class PolyglotWrapper {
 				return convertValueToMap(actionContext, value);
 			}
 
+			if (value.hasHashEntries()) {
+
+				return convertHashEntriestToMap(actionContext, value);
+			}
+
 			if (value.isNull()) {
 
 				return null;
@@ -292,6 +297,29 @@ public abstract class PolyglotWrapper {
 			for (String key : value.getMemberKeys()) {
 
 				resultMap.put(key, unwrap(actionContext, value.getMember(key)));
+			}
+		}
+
+		return resultMap;
+	}
+
+	protected static Map<String, Object> convertHashEntriestToMap(final ActionContext actionContext, final Value value) {
+
+		final Map<String, Object> resultMap = new HashMap<>();
+
+		if (value.hasHashEntries() && value.getHashSize() > 0) {
+
+			Value keyIterator = value.getHashKeysIterator();
+
+			while (keyIterator.isIterator() && keyIterator.hasIteratorNextElement()) {
+				Value hashKey = keyIterator.getIteratorNextElement();
+				Value hashValue = value.getHashValue(hashKey);
+
+				String unwrappedKey = (String)unwrap(actionContext, hashKey);
+				Object unwrappedValue = unwrap(actionContext, hashValue);
+				if (unwrappedKey != null) {
+					resultMap.put(unwrappedKey, unwrappedValue);
+				}
 			}
 		}
 
