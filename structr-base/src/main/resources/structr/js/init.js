@@ -236,8 +236,8 @@ let Structr = {
 	legacyRequestParameters: false,
 	diffMatchPatch: undefined,
 	abbreviations: {
-		visibleToPublicUsers: "Public",
-		visibleToAuthenticatedUsers: "Auth. Vis."
+		visibleToPublicUsers: "Publ. Users",
+		visibleToAuthenticatedUsers: "Auth. Users"
 	},
 	dialogTimeoutId: undefined,
 	instanceName: '',
@@ -2303,7 +2303,7 @@ class MessageBuilder {
 				this.dismiss();
 			}, this.params.delayDuration);
 
-			document.querySelector(`#${this.params.msgId}`).addEventListener('click', () => {
+			buttonElement.closest(`#${this.params.msgId}`).addEventListener('click', () => {
 				this.dismiss();
 			});
 		}
@@ -2649,6 +2649,18 @@ let UISettings = {
 				showVisibilityFlagsInGrantsTableKey: {
 					text: 'Show visibility flags in Resource Access Grants table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Security)) {
+							_ResourceAccessGrants.refreshResourceAccesses();
+						}
+					}
+				},
+				showBitmaskColumnInGrantsTableKey: {
+					text: 'Show bitmask column in Resource Access Grants table',
+					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
+					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {

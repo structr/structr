@@ -365,7 +365,7 @@
 	align-items: center;
 	width: 70px;
 	color: #333;
-	background-color: #fff;
+	background-color: var(--solid-white);
 	border: 1px solid transparent;
 	border-radius: 5px;
 	cursor: pointer;

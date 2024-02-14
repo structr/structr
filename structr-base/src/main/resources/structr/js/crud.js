@@ -124,6 +124,28 @@ let _Crud = {
 		}
 
 	}),
+	crudListFetchAbortMechanism: {
+		abortController: undefined,
+		lastType: null,
+		init: (type) => {
+			_Crud.crudListFetchAbortMechanism.lastType        = type;
+			_Crud.crudListFetchAbortMechanism.abortController = new AbortController();
+		},
+		abortListFetch: (type) => {
+
+			if (_Crud.crudListFetchAbortMechanism.abortController) {
+
+				_Crud.crudListFetchAbortMechanism.abortController.signal.onabort = () => {
+					_Crud.crudListFetchAbortMechanism.init(type);
+				};
+				_Crud.crudListFetchAbortMechanism.abortController.abort(`Loading of "${type}" aborted loading of "${_Crud.crudListFetchAbortMechanism.lastType}"`);
+
+			} else {
+
+				_Crud.crudListFetchAbortMechanism.init(type);
+			}
+		}
+	},
 	getTypeInfo: (type, callback) => {
 
 		let url = `${Structr.rootUrl}_schema/${type}`;
@@ -306,11 +328,11 @@ let _Crud = {
 
 		_Crud.searchField          = document.getElementById('crud-search-box');
 		_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 
 		_Helpers.appendInfoTextToElement({
 			element: _Crud.searchField,
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+			text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
 			insertAfter: true,
 			css: {
 				left: '-18px',
@@ -326,7 +348,7 @@ let _Crud = {
 
 		_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
 			_Crud.clearMainSearch(crudMain);
-			_Crud.searchField.focus();
+			_Crud.focusSearchField();
 		});
 
 		_Crud.searchField.addEventListener('keyup', (e) => {
@@ -636,7 +658,7 @@ let _Crud = {
 			_Crud.updateResourceLink(type);
 		}
 
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 	},
 	loadSchema: async () => {
 
@@ -695,27 +717,27 @@ let _Crud = {
 	 * and the given type is a collection
 	 */
 	isCollection: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
+		return (key && type && _Crud.keys[type]?.[key]?.isCollection === true);
 	},
 	isFunctionProperty: (key, type) => {
-		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	isCypherProperty: (key, type) => {
-		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
 	isEnum: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].className === 'org.structr.core.property.EnumProperty');
+		return (key && type && _Crud.keys[type]?.[key]?.className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
 	readOnly: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && (_Crud.keys[type][key].readOnly === true || _Crud.isCypherProperty(key, type)));
+		return (key && type && (_Crud.keys[type]?.[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
 	},
 	/**
 	 * Return the related type of the given property key
@@ -1193,13 +1215,18 @@ let _Crud = {
 	},
 	list: (type, url, isRetry) => {
 
+		_Crud.crudListFetchAbortMechanism.abortListFetch(type);
+
 		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
 		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
 
+		let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
+
 		fetch (url, {
+			signal: signal,
 			headers: {
 				Range: _Crud.ranges(type),
 				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
@@ -1256,6 +1283,13 @@ let _Crud = {
 				}
 
 				_Crud.removeMessage();
+			}
+		}).catch(e => {
+
+			//console.log(signal)
+			if (signal.aborted !== true) {
+				// is we did not abort the request, we should log the output (or show a notification popup?)
+				console.log(e);
 			}
 		});
 
@@ -1942,7 +1976,7 @@ let _Crud = {
 		let relatedType      = _Crud.relatedType(key, type);
 		let readOnly         = _Crud.readOnly(key, type);
 		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-		let propertyType     = _Crud.keys[type][key].type;
+		let propertyType     = _Crud.keys[type]?.[key]?.type;
 		let simpleType;
 
 		if (readOnly) {
@@ -2317,7 +2351,13 @@ let _Crud = {
 			return true;
 		}
 		return false;
+	},
+	focusSearchField: () => {
 
+		// only auto-activate search field if no other input element is active
+		if ( !(document.activeElement instanceof HTMLInputElement) ) {
+			_Crud.searchField.focus();
+		}
 	},
 	/**
 	 * Conduct a search and append search results to 'el'.

@@ -392,7 +392,9 @@ let _Entities = {
 	},
 	getSchemaProperties: (type, view, callback) => {
 
-		fetch(`${Structr.rootUrl}_schema/${type}/${view}`).then(async response => {
+		let url = `${Structr.rootUrl}_schema/${type}/${view}`;
+
+		fetch(url).then(async response => {
 
 			let data = await response.json();
 
@@ -1048,19 +1050,7 @@ let _Entities = {
 
 				propsTable.addClass('show-all');
 
-				$('tr:visible:odd').css({'background-color': '#f6f6f6'});
-				$('tr:visible:even').css({'background-color': '#fff'});
 				$(this).attr('disabled', 'disabled').addClass('disabled');
-			});
-
-			let addCustomAttributeButton = $('.add-custom-attribute', container);
-
-			_Helpers.appendInfoTextToElement({
-				element: addCustomAttributeButton,
-				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
-				insertAfter: true,
-				customToggleIconClasses: ['icon-blue'],
-				noSpan: true
 			});
 
 			let saveCustomHTMLAttribute = (row, exitedInput) => {
@@ -1116,8 +1106,18 @@ let _Entities = {
 				}
 			};
 
+			let addCustomAttributeButton = $('.add-custom-attribute', container);
+
+			_Helpers.appendInfoTextToElement({
+				element: addCustomAttributeButton,
+				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
+				insertAfter: true,
+				customToggleIconClasses: ['icon-blue'],
+				noSpan: true
+			});
+
 			addCustomAttributeButton.on('click', () => {
-				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>')
+				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key" placeholder="data-..."></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 				propsTable[0].appendChild(newAttributeRow);
 
 				for (let input of newAttributeRow.querySelectorAll('input')) {
@@ -1127,9 +1127,6 @@ let _Entities = {
 				}
 			});
 		}
-
-		$('tr:visible:odd', container).css({'background-color': '#f6f6f6'});
-		$('tr:visible:even', container).css({'background-color': '#fff'});
 	},
 	displaySearch: (id, key, type, el, isCollection) => {
 

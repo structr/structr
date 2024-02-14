@@ -86,6 +86,7 @@ let _Icons = {
 	iconSchemaMethods:           'code-icon',
 	iconSchemaNodeSchemaMethod:  'circle-empty',
 	iconSchemaNodeStaticMethod:  'static-method',
+	iconSchemaNodeLifecycleMethod: 'lifecycle-method',
 	iconSchemaNodeJavaMethod:    'circle-empty',
 	iconSchemaViews:             'tv-icon',
 	iconSchemaView:              'view-icon',
@@ -374,6 +375,22 @@ let _Icons = {
 			}
 		}
 	},
+	isSchemaMethodALifecycleMethod: (method) => {
+
+		let lifecycleMethodPrefixes = [
+			'onCreate',
+			'afterCreate',
+			'onSave',
+			'afterSave',
+			'onDelete',
+			//'afterDelete',  // this is actually "onDelete" currently, thus no access to $.this in that method
+			'onStructrLogin',
+			'onStructrLogout',
+			'onUpload'
+		];
+
+		return lifecycleMethodPrefixes.some(prefix => method.name.startsWith(prefix));
+	},
 	getIconForSchemaNodeType: (entity) => {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
@@ -384,17 +401,24 @@ let _Icons = {
 			case 'SchemaMethod':
 
 				switch (entity.codeType) {
+
 					case 'java':
 						icon = _Icons.iconSchemaNodeSchemaMethod;
 						additionalClasses.push('icon-red');
 						break;
+
 					default:
+						additionalClasses.push('icon-blue');
+
 						if (entity.isStatic) {
 							icon = _Icons.iconSchemaNodeStaticMethod;
-							additionalClasses.push('icon-blue');
 						} else {
-							icon = _Icons.iconSchemaNodeSchemaMethod;
-							additionalClasses.push('icon-blue');
+							let isLifeCycleMethod = _Icons.isSchemaMethodALifecycleMethod(entity);
+							if (isLifeCycleMethod) {
+								icon = _Icons.iconSchemaNodeLifecycleMethod;
+							} else {
+								icon = _Icons.iconSchemaNodeSchemaMethod;
+							}
 						}
 						break;
 				}

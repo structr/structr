@@ -684,16 +684,17 @@ public class Scripting {
 			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet);
+		boolean broadcastToAdminUI =  !(ex.isHostException() && (ex.asHostException() instanceof AssertException));
+
+		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
 	}
 
 	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet);
-
+		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, true);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean broadcastToAdminUI) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -784,7 +785,10 @@ public class Scripting {
 
 		RuntimeEventLog.scripting(errorName, eventData);
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
+		if (broadcastToAdminUI == true) {
+
+			TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
+		}
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 

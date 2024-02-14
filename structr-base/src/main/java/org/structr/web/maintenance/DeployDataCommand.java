@@ -259,23 +259,23 @@ public class DeployDataCommand extends DeployCommand {
 
 			if (StringUtils.isBlank(path)) {
 
-				throw new ImportPreconditionFailedException("Please provide 'source' attribute for deployment source directory path.");
+				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Please provide 'source' attribute for deployment source directory path.");
 			}
 
 			final Path source = Paths.get(path);
 			if (!Files.exists(source)) {
 
-				throw new ImportPreconditionFailedException("Source path " + path + " does not exist.");
+				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Source path " + path + " does not exist.");
 			}
 
 			if (!Files.isDirectory(source)) {
 
-				throw new ImportPreconditionFailedException("Source path " + path + " is not a directory.");
+				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Source path " + path + " is not a directory.");
 			}
 
 			if (source.isAbsolute() != true) {
 
-				throw new ImportPreconditionFailedException("Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
+				throw new ImportPreconditionFailedException("Data Deployment Import not started", "Source path '" + path + "' is not an absolute path - relative paths are not allowed.");
 			}
 
 			doInnerCallbacks  = parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME) == null  ? false : "true".equals(parameters.get(DO_INNER_CALLBACKS_PARAMETER_NAME).toString());
@@ -286,12 +286,21 @@ public class DeployDataCommand extends DeployCommand {
 
 		} catch (ImportPreconditionFailedException ipfe) {
 
-			logger.warn("Data Deployment Import not started: {}", ipfe.getMessage());
-			publishWarningMessage("Data Deployment Import not started", ipfe.getMessage());
+			logger.warn("{}: {}", ipfe.getTitle(), ipfe.getMessage());
+			publishWarningMessage(ipfe.getTitle(), ipfe.getMessageHtml());
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
 		} catch (Throwable t) {
 
-			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
+
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
 
 			throw t;
 

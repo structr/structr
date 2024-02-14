@@ -495,7 +495,7 @@ export class Frontend {
 			let data = container.dataset;
 			let id   = data.structrId;
 
-			if (!id || id.length !== 32) {
+			if (!id) {
 
 				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
 				let attrKey, attrVal;
@@ -768,7 +768,7 @@ export class Frontend {
 
 			this.handlePagination(event, target, options);
 
-		} else if (id && id.length === 32) {
+		} else if (id) {
 
 			this.fireEvent('start', { target: target, data: data, event: event });
 
