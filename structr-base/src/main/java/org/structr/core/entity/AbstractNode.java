@@ -1687,7 +1687,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 				// otherwise be set in separate calls later in the transaction.
 				properties.put(Security.principalId,                    principal.getUuid());
 				properties.put(Security.accessControllableId,           getUuid());
-				properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
+				properties.put(Security.allowed,                        new LinkedList<>(permissionSet));
 
 				StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
 
@@ -1766,7 +1766,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 					// otherwise be set in separate calls later in the transaction.
 					properties.put(Security.principalId,                    principal.getUuid());
 					properties.put(Security.accessControllableId,           getUuid());
-					properties.put(Security.allowed,                        permissionSet.toArray(new String[permissionSet.size()]));
+					properties.put(Security.allowed,                        new LinkedList<>(permissionSet));
 
 					StructrApp.getInstance(superUserContext).create(principal, (NodeInterface)this, Security.class, properties);
 

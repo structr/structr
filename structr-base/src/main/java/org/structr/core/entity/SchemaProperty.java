@@ -50,7 +50,6 @@ import org.structr.schema.parser.*;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
-import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {

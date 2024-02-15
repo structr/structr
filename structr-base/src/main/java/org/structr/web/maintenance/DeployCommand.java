@@ -75,8 +75,6 @@ import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
 import java.util.LinkedList;
-import org.structr.common.helper.VersionHelper;
-import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 

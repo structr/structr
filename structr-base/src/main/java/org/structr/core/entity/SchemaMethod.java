@@ -56,14 +56,14 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             returnType              = new StringProperty("returnType").indexed();
 	public static final Property<String>             openAPIReturnType       = new StringProperty("openAPIReturnType").indexed();
 	public static final Property<String>             source                  = new StringProperty("source");
-	public static final Property<String[]>           exceptions              = new ArrayProperty("exceptions", String.class).indexed();
+	public static final Property<List<String>>       exceptions              = new ArrayProperty<>("exceptions", String.class).indexed();
 	public static final Property<Boolean>            callSuper               = new BooleanProperty("callSuper").indexed();
 	public static final Property<Boolean>            overridesExisting       = new BooleanProperty("overridesExisting").indexed();
 	public static final Property<Boolean>            doExport                = new BooleanProperty("doExport").indexed();
 	public static final Property<String>             codeType                = new StringProperty("codeType").indexed();
 	public static final Property<Boolean>            isPartOfBuiltInSchema   = new BooleanProperty("isPartOfBuiltInSchema").indexed();
 	public static final Property<Boolean>            includeInOpenAPI        = new BooleanProperty("includeInOpenAPI").indexed();
-	public static final Property<String[]>           tags                    = new ArrayProperty("tags", String.class).indexed();
+	public static final Property<List<String>>       tags                    = new ArrayProperty<>("tags", String.class).indexed();
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
 	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
@@ -111,7 +111,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		entry.setReturnType(getProperty(returnType));
 		entry.setCallSuper(getProperty(callSuper));
 
-		final String[] _exceptions = getProperty(exceptions);
+		final List<String> _exceptions = getProperty(exceptions);
 		if (_exceptions != null) {
 
 			for (final String exception : _exceptions) {

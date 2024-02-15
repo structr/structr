@@ -29,7 +29,6 @@ import org.structr.api.graph.PropertyContainer;
 import org.structr.api.util.Cachable;
 import org.structr.api.util.ChangeAwareMap;
 
-import java.lang.reflect.Array;
 import java.util.*;
 import java.util.Map.Entry;
 
@@ -84,30 +83,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 
 		assertNotStale();
 
-		final Object value = accessData(false).get(name);
-		if (value instanceof List) {
-
-			try {
-
-				final List list = (List)value;
-				if (!list.isEmpty()) {
-
-					final Object firstElement = ((List)value).get(0);
-					final Object[] arr        = (Object[])Array.newInstance(firstElement.getClass(), 0);
-
-					// convert list to array
-					return ((List)value).toArray(arr);
-				}
-
-				// empty array => return null?
-				return null;
-
-			} catch (Throwable t) {
-				logger.warn("", t);
-			}
-		}
-
-		return value;
+		return accessData(false).get(name);
 	}
 
 	@Override
@@ -378,7 +354,7 @@ abstract class EntityWrapper<T extends Entity> implements PropertyContainer, Cac
 		if (existingValue instanceof List) {
 
 			final List list1 = (List)existingValue;
-			final List list2 = Arrays.asList((Object[])newValue);
+			final List list2 = (List)newValue;
 
 			return list1.equals(list2);
 		}

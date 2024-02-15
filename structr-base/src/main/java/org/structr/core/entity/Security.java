@@ -25,6 +25,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.*;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -32,9 +33,9 @@ import java.util.Set;
  */
 public class Security extends ManyToMany<Principal, NodeInterface> {
 
-	public static final SourceId           principalId          = new SourceId("principalId");
-	public static final TargetId           accessControllableId = new TargetId("accessControllableId");
-	public static final Property<String[]> allowed              = new ArrayProperty("allowed", String.class);
+	public static final SourceId principalId           = new SourceId("principalId");
+	public static final TargetId accessControllableId  = new TargetId("accessControllableId");
+	public static final Property<List<String>> allowed = new ArrayProperty<>("allowed", String.class);
 
 	public static final View uiView = new View(Security.class, PropertyView.Ui,
 		allowed

@@ -48,7 +48,6 @@ import org.structr.schema.SourceFile;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
-import org.structr.common.helper.ValidationHelper;
 
 /**
  *

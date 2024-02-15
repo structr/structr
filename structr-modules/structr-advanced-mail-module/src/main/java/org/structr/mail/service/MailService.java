@@ -71,8 +71,6 @@ import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.LinkedList;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode

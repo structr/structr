@@ -36,7 +36,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.LinkedList;
 import org.apache.commons.lang3.StringUtils;
-import org.structr.common.error.PropertyInputParsingException;
 
 /**
  * A property that stores and retrieves an array of the given type.
