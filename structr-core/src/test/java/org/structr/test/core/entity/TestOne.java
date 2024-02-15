@@ -24,6 +24,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple entity for the most basic tests.
@@ -64,7 +65,7 @@ public class TestOne extends AbstractNode {
 	public static final Property<String>            aCreateString      = new StringProperty("aCreateString").indexed();
 	public static final Property<Integer>           aCreateInt         = new IntProperty("aCreateInt").indexed();
 
-	public static final Property<String[]>          aStringArray       = new ArrayProperty("aStringArray", String.class).indexed();
+	public static final Property<List<String>>      aStringArray       = new ArrayProperty<>("aStringArray", String.class).indexed();
 
 	public static final Property<Boolean>           isValid            = new BooleanProperty("isValid");
 

@@ -65,6 +65,10 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.LinkedList;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 
 import static org.testng.AssertJUnit.*;
 
@@ -672,7 +676,7 @@ public class ScriptingTest extends StructrTest {
 			testSixs       = createTestNodes(TestSix.class, 20, 1);
 
 			// set string array on test four
-			testFour.setProperty(TestFour.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
+			testFour.setProperty(TestFour.stringArrayProperty, List.of("one", "two", "three", "four"));
 
 			final Calendar cal = GregorianCalendar.getInstance();
 
@@ -726,7 +730,7 @@ public class ScriptingTest extends StructrTest {
 			testOne.setProperty(TestOne.manyToManyTestSixs, testSixs);
 			testOne.setProperty(TestOne.cleanTestString, "a<b>c.d'e?f(g)h{i}j[k]l+m/n–o\\p\\q|r's!t,u-v_w`x-y-zöäüßABCDEFGH");
 			testOne.setProperty(TestOne.stringWithQuotes, "A'B\"C");
-			testOne.setProperty(TestOne.aStringArray, new String[] { "a", "b", "c" });
+			testOne.setProperty(TestOne.aStringArray, List.of("a", "b", "c"));
 
 			testTwo.setProperty(TestTwo.name, "testTwo_name");
 			testThree.setProperty(TestThree.name, "testThree_name");
@@ -5049,7 +5053,7 @@ public class ScriptingTest extends StructrTest {
 
 			app.create(type,
 				new NodeAttribute<>(AbstractNode.name, "source"),
-				new NodeAttribute<>(key, new String[] { "one", "two", "three" })
+				new NodeAttribute<>(key, List.of("one", "two", "three"))
 			);
 
 			app.create(type,
@@ -5107,9 +5111,9 @@ public class ScriptingTest extends StructrTest {
 
 			Scripting.evaluate(ac, node, "${{Structr.get('this').arr.push('test');}}", null);
 
-			String[] arr = (String[])node.getProperty(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(clazz, "arr"));
+			List<String> arr = (List)node.getProperty(StructrApp.getConfiguration().getPropertyKeyForDatabaseName(clazz, "arr"));
 
-			Assert.assertEquals(1, arr.length);
+			Assert.assertEquals(1, arr.size());
 
 		} catch (FrameworkException ex) {
 
@@ -5137,8 +5141,22 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+			ex.printStackTrace();
 			fail();
 		}
+
+
+		try (final Tx tx = app.tx()) {
+
+			final SchemaNode testNode = app.nodeQuery(SchemaNode.class).andName("ArrayPropertiesTest").getFirst();
+
+			System.out.println("###############################################");
+			System.out.println("###############################################");
+			System.out.println(testNode.getGeneratedSourceCode(securityContext));
+
+			tx.success();
+
+		} catch (Throwable t) {}
 
 
 		/**
@@ -5191,6 +5209,7 @@ public class ScriptingTest extends StructrTest {
 			tx.success();
 
 		} catch (FrameworkException ex) {
+			ex.printStackTrace();
 			fail();
 		}
 

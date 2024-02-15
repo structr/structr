@@ -36,6 +36,7 @@ import org.structr.schema.SchemaService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.LinkedList;
 
 /**
  *
@@ -282,8 +283,8 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(SchemaProperty.format, getFormat());
 			getOrCreateProperties.put(SchemaProperty.hint, getHint());
 			getOrCreateProperties.put(SchemaProperty.category, getCategory());
-			getOrCreateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
-			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
+			getOrCreateProperties.put(SchemaProperty.validators, new LinkedList<>(validators));
+			getOrCreateProperties.put(SchemaProperty.transformers, new LinkedList<>(transformers));
 			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
 
 			property = app.create(SchemaProperty.class, getOrCreateProperties);
@@ -375,7 +376,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 		setHint(property.getHint());
 		setCategory(property.getCategory());
 
-		final String[] _validators = property.getProperty(SchemaProperty.validators);
+		final List<String> _validators = property.getProperty(SchemaProperty.validators);
 		if (_validators != null) {
 
 			for (final String validator : _validators) {
@@ -383,7 +384,7 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			}
 		}
 
-		final String[] _transformators = property.getProperty(SchemaProperty.transformers);
+		final List<String> _transformators = property.getProperty(SchemaProperty.transformers);
 		if (_transformators != null) {
 
 			for (final String transformator : _transformators) {

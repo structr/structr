@@ -42,7 +42,7 @@ import java.util.*;
  *
  *
  */
-public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
+public class DateArrayProperty extends AbstractPrimitiveProperty<List<Date>> {
 
 	private static final Logger logger = LoggerFactory.getLogger(DateArrayProperty.class.getName());
 
@@ -74,17 +74,11 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 	@Override
 	public String typeName() {
-		return "Date[]";
+		return "List<Date>";
 	}
 
 	@Override
 	public Class valueType() {
-		// This trick results in returning the proper array class for array properties.
-		// Neccessary because of and since commit 1db80071543018a0766efa2dc895b7bc3e9a0e34
-		try {
-			return Class.forName("[L" + Date.class.getName() + ";");
-		} catch (ClassNotFoundException ex) {}
-
 		return Date.class;
 	}
 
@@ -94,28 +88,28 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	}
 
 	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext) {
+	public PropertyConverter<List<Date>, List<Long>> databaseConverter(SecurityContext securityContext) {
 		return databaseConverter(securityContext, null);
 	}
 
 	@Override
-	public PropertyConverter<Date[], Long[]> databaseConverter(SecurityContext securityContext, GraphObject entity) {
+	public PropertyConverter<List<Date>, List<Long>> databaseConverter(SecurityContext securityContext, GraphObject entity) {
 		return new ArrayDatabaseConverter(securityContext, entity);
 	}
 
 	@Override
-	public PropertyConverter<?, Date[]> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<?, List<Date>> inputConverter(SecurityContext securityContext) {
 		return new ArrayInputConverter(securityContext);
 	}
 
-	private class ArrayDatabaseConverter extends PropertyConverter<Date[], Long[]> {
+	private class ArrayDatabaseConverter extends PropertyConverter<List<Date>, List<Long>> {
 
 		public ArrayDatabaseConverter(SecurityContext securityContext, GraphObject entity) {
 			super(securityContext, entity);
 		}
 
 		@Override
-		public Long[] convert(Date[] source) throws FrameworkException {
+		public List<Long> convert(List<Date> source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -126,7 +120,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		}
 
 		@Override
-		public Date[] revert(Long[] source) throws FrameworkException {
+		public List<Date> revert(List<Long> source) throws FrameworkException {
 
 			if (source != null) {
 
@@ -138,14 +132,14 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		}
 	}
 
-	private class ArrayInputConverter extends PropertyConverter<Object, Date[]> {
+	private class ArrayInputConverter extends PropertyConverter<Object, List<Date>> {
 
 		public ArrayInputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
 		@Override
-		public Object revert(Date[] source) throws FrameworkException {
+		public Object revert(List<Date> source) throws FrameworkException {
 
 			final ArrayList<String> result = new ArrayList<>();
 			for (final Date o : source) {
@@ -156,7 +150,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 		}
 
 		@Override
-		public Date[] convert(Object source) throws FrameworkException {
+		public List<Date> convert(Object source) throws FrameworkException {
 
 			if (source == null) {
 				return null;
@@ -185,13 +179,13 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 
 			}
 
-			return (Date[])new Date[] { DatePropertyParser.parse(source.toString(), format) };
+			return List.of(DatePropertyParser.parse(source.toString(), format));
 		}
 
 	}
 
 	@Override
-	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, Date[] searchValue, boolean exactMatch, Query query) {
+	public SearchAttribute getSearchAttribute(SecurityContext securityContext, Occurrence occur, List<Date> searchValue, boolean exactMatch, Query query) {
 
 		// early exit, return empty search attribute
 		if (searchValue == null) {
@@ -214,7 +208,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 	}
 
 	// ----- private methods -----
-	private Date[] convertLongArrayToDateArray(final Long[] source) {
+	private List<Date> convertLongArrayToDateArray(final List<Long> source) {
 
 		final ArrayList<Date> result = new ArrayList<>();
 
@@ -223,10 +217,10 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 			result.add(new Date(o));
 		}
 
-		return (Date[])result.toArray(new Date[result.size()]);
+		return result;
 	}
 
-	private Long[] convertDateArrayToLongArray(final Date[] source) {
+	private List<Long> convertDateArrayToLongArray(final List<Date> source) {
 
 		final ArrayList<Long> result = new ArrayList<>();
 
@@ -235,10 +229,10 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 			result.add(o.getTime());
 		}
 
-		return (Long[])result.toArray(new Long[result.size()]);
+		return result;
 	}
 
-	private Date[] convert(final List source) {
+	private List<Date> convert(final List source) {
 
 		final ArrayList<Date> result = new ArrayList<>();
 
@@ -259,7 +253,7 @@ public class DateArrayProperty extends AbstractPrimitiveProperty<Date[]> {
 			}
 		}
 
-		return (Date[])result.toArray(new Date[0]);
+		return result;
 	}
 
 	// ----- OpenAPI -----

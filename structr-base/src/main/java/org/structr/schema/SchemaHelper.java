@@ -55,6 +55,9 @@ import java.util.*;
 import java.util.Map.Entry;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import java.util.LinkedList;
+import org.structr.common.helper.CaseHelper;
+import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaMethod.source;
 import static org.structr.core.entity.SchemaNode.defaultSortKey;
 import static org.structr.core.entity.SchemaNode.defaultSortOrder;
@@ -880,10 +883,10 @@ public class SchemaHelper {
 					}
 				}
 
-				final String[] propertyValidatorsArray = schemaProperty.getProperty(SchemaProperty.validators);
-				if (propertyValidatorsArray != null) {
+				final List<String> propertyValidatorsSource = schemaProperty.getProperty(SchemaProperty.validators);
+				if (propertyValidatorsSource != null) {
 
-					propertyValidators.addAll(Arrays.asList(propertyValidatorsArray));
+					propertyValidators.addAll(propertyValidatorsSource);
 				}
 			}
 		}

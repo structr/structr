@@ -48,6 +48,7 @@ import org.structr.test.core.entity.*;
 import org.testng.annotations.Test;
 
 import java.util.*;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -64,13 +65,13 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<String[]> instance = TestFour.stringArrayProperty;
-			final TestFour testEntity         = createTestNode(TestFour.class);
+			final Property<List<String>> instance = TestFour.stringArrayProperty;
+			final TestFour testEntity             = createTestNode(TestFour.class);
 
 			assertNotNull(testEntity);
 
 			// store a string array in the test entitiy
-			final String[] arr = new String[] { "one", "two", "three", "four", "five" };
+			final List<String> arr = List.of("one", "two", "three", "four", "five");
 
 			try (final Tx tx = app.tx()) {
 
@@ -80,7 +81,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				String[] newArr = instance.getProperty(securityContext, testEntity, true);
+				final List<String> newArr = instance.getProperty(securityContext, testEntity, true);
 
 				assertTrue(Objects.deepEquals(arr, newArr));
 			}
@@ -95,13 +96,13 @@ public class PropertyTest extends StructrTest {
 	public void testSimpleStringArraySearchOnNode() {
 
 		try {
-			final PropertyMap properties    = new PropertyMap();
-			final PropertyKey<String[]> key = TestFour.stringArrayProperty;
+			final PropertyMap properties        = new PropertyMap();
+			final PropertyKey<List<String>> key = TestFour.stringArrayProperty;
 
 			// store a string array in the test entitiy
 
-			final String[] arr1 = new String[] { "one" };
-			final String[] arr5 = new String[] { "one", "two", "three", "four", "five" };
+			final List<String> arr1 = List.of("one");
+			final List<String> arr5 = List.of("one", "two", "three", "four", "five");
 
 			properties.put(key, arr1);
 
@@ -117,7 +118,7 @@ public class PropertyTest extends StructrTest {
 			List<TestFour> result = null;
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one"}).getAsList();
+				result = app.nodeQuery(TestFour.class).and(key, List.of("one")).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
@@ -130,7 +131,7 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one"}).getAsList();
+				result = app.nodeQuery(TestFour.class).and(key, List.of("one")).getAsList();
 
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
@@ -138,20 +139,20 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "two"}).getAsList();
+				result = app.nodeQuery(TestFour.class).and(key, List.of("one", "two")).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "foo"}).getAsList();
+				result = app.nodeQuery(TestFour.class).and(key, List.of("one", "foo")).getAsList();
 				assertEquals(0, result.size());
 			}
 
 			try (final Tx tx = app.tx()) {
 
-				result = app.nodeQuery(TestFour.class).and(key, new String[]{"one", "foo"}, false).getAsList();
+				result = app.nodeQuery(TestFour.class).and(key, List.of("one", "foo"), false).getAsList();
 				assertEquals(1, result.size());
 				assertEquals(result.get(0), testEntity);
 			}
@@ -489,13 +490,13 @@ public class PropertyTest extends StructrTest {
 
 		try {
 
-			final Property<Date[]> instance = TestFour.dateArrayProperty;
-			final TestFour testEntity         = createTestNode(TestFour.class);
+			final Property<List<Date>> instance = TestFour.dateArrayProperty;
+			final TestFour testEntity           = createTestNode(TestFour.class);
 
 			assertNotNull(testEntity);
 
 			// store a date array in the test entitiy
-			final Date[] arr = new Date[] { new Date(123456789L), new Date(234567891L), new Date(345678912L) };
+			final List<Date> arr = List.of(new Date(123456789L), new Date(234567891L), new Date(345678912L));
 
 			try (final Tx tx = app.tx()) {
 
@@ -505,12 +506,15 @@ public class PropertyTest extends StructrTest {
 
 			try (final Tx tx = app.tx()) {
 
-				Date[] newArr = instance.getProperty(securityContext, testEntity, true);
+				List<Date> newArr = instance.getProperty(securityContext, testEntity, true);
 
 				assertTrue(Objects.deepEquals(arr, newArr));
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
+
+			fex.printStackTrace();
 
 			fail("Unable to store date array");
 		}

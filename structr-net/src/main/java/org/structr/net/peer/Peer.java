@@ -18,6 +18,14 @@
  */
 package org.structr.net.peer;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.nio.charset.Charset;
+import java.security.*;
+import java.util.*;
+import java.util.concurrent.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.net.PeerListener;
@@ -32,15 +40,6 @@ import org.structr.net.repository.DefaultRepositoryObject;
 import org.structr.net.repository.InternalChangeListener;
 import org.structr.net.repository.Repository;
 import org.structr.net.repository.RepositoryObject;
-
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.nio.charset.Charset;
-import java.security.*;
-import java.util.*;
-import java.util.concurrent.*;
 
 /**
  * The main class of this peer-to-peer implementation. This class will

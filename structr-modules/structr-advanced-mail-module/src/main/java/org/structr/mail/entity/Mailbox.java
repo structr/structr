@@ -60,7 +60,7 @@ public interface Mailbox extends NodeInterface {
 		type.addPropertyGetter("port",      		       Integer.class);
 
 		type.addMethod("getFolders")
-				.setReturnType("String[]")
+				.setReturnType("List<String>")
 				.setSource("return getProperty(foldersProperty);");
 
 		type.addMethod("getAvailableFoldersOnServer")
@@ -80,7 +80,7 @@ public interface Mailbox extends NodeInterface {
 	String getUser();
 	String getPassword();
 	String getOverrideMailEntityType();
-	String[] getFolders();
+	List<String> getFolders();
 	Object getMailProtocol();
 	Integer getPort();
 

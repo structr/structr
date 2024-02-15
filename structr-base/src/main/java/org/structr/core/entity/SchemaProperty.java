@@ -50,6 +50,7 @@ import org.structr.schema.parser.*;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.ValidationHelper;
 import static org.structr.core.entity.SchemaNode.GraphQLNodeReferenceName;
 
 public class SchemaProperty extends SchemaReloadingNode implements PropertyDefinition {
@@ -86,8 +87,8 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	public static final Property<String>             readFunction          = new StringProperty("readFunction");
 	public static final Property<String>             writeFunction         = new StringProperty("writeFunction");
 	public static final Property<String>             openAPIReturnType     = new StringProperty("openAPIReturnType");
-	public static final Property<String[]>           validators            = new ArrayProperty("validators", String.class);
-	public static final Property<String[]>           transformers          = new ArrayProperty("transformers", String.class);
+	public static final Property<List<String>>       validators            = new ArrayProperty<>("validators", String.class);
+	public static final Property<List<String>>       transformers          = new ArrayProperty<>("transformers", String.class);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
 		name, declaringUuid, declaringClass, defaultValue, propertyType, contentType, dbName, fqcn, format, typeHint, hint, category, notNull, compound, unique, indexed, readOnly,
@@ -543,12 +544,12 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
-	public String[] getTransformators() {
+	public List<String> getTransformators() {
 		return getProperty(SchemaProperty.transformers);
 	}
 
 	@Override
-	public String[] getValidators() {
+	public List<String> getValidators() {
 		return getProperty(SchemaProperty.validators);
 	}
 

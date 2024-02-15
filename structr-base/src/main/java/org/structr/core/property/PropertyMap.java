@@ -405,7 +405,8 @@ public class PropertyMap {
 
 						final PropertyConverter converter = propertyKey.inputConverter(securityContext);
 
-						if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
+						//if (converter != null && value != null && !propertyKey.valueType().isAssignableFrom(value.getClass())) {
+						if (converter != null) {
 
 							try {
 

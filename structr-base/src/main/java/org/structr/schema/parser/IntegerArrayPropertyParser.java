@@ -39,7 +39,7 @@ public class IntegerArrayPropertyParser extends IntPropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Integer[].class.getSimpleName();
+		return "List<Integer>";
 	}
 
 	@Override

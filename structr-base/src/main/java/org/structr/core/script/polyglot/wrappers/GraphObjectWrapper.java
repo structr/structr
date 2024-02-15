@@ -175,7 +175,7 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (propKey != null) {
 
-				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
+				if (propKey instanceof EndNodes || propKey instanceof StartNodes || propKey instanceof DateArrayProperty || propKey instanceof ArrayProperty || (propKey instanceof AbstractPrimitiveProperty && propKey.valueType().isArray())) {
 
 					// RelationshipProperty needs special binding
 					// ArrayProperty values need synchronized ProxyArrays as well

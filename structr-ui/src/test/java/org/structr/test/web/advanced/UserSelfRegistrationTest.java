@@ -22,6 +22,7 @@ import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
 
 import io.restassured.filter.session.SessionFilter;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.hamcrest.Matchers;
 import org.structr.api.config.Settings;
@@ -213,10 +214,10 @@ public class UserSelfRegistrationTest extends StructrUiTest {
 
 			assertNull("Confirmation key was set after confirmation", user.getProperty(StructrApp.key(User.class, "confirmationKey")));
 
-			final String[] sessionIds  = user.getProperty(StructrApp.key(User.class, "sessionIds"));
+			final List<String> sessionIds  = user.getProperty(StructrApp.key(User.class, "sessionIds"));
 
-			assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.length);
-			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds[0]);
+			assertEquals("Invalid number of sessions after user confirmation", 1, sessionIds.size());
+			assertEquals("Invalid session ID after user confirmation", StringUtils.substringBeforeLast(sessionFilter.getSessionId(), "."), sessionIds.get(0));
 
 			tx.success();
 

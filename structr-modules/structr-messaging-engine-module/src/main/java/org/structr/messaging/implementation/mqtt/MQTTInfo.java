@@ -18,19 +18,20 @@
  */
 package org.structr.messaging.implementation.mqtt;
 
+import java.util.List;
 import org.structr.common.error.FrameworkException;
 
 public interface MQTTInfo {
 
 	public String getMainBrokerURL();
-	public String[] getFallbackBrokerURLs();
+	public List<String> getFallbackBrokerURLs();
 	public int getQos();
 	public String getUuid();
 	public String getUsername();
 	public String getPassword();
 	boolean getIsEnabled();
 
-	public String[] getTopics();
+	public List<String> getTopics();
 
 	public void messageCallback(String topic, String message) throws FrameworkException;
 	public void connectionStatusCallback(boolean connected);

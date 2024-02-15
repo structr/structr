@@ -38,6 +38,7 @@ import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -46,7 +47,7 @@ import java.util.Set;
  *
  */
 public abstract class PropertySourceGenerator {
- 
+
 	private final Set<String> compoundIndexKeys   = new LinkedHashSet<>();
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
@@ -261,8 +262,8 @@ public abstract class PropertySourceGenerator {
 			line.append(".readOnly()");
 		}
 
-		final String[] transformators = source.getTransformators();
-		if (transformators != null && transformators.length > 0) {
+		final List<String> transformators = source.getTransformators();
+		if (transformators != null && !transformators.isEmpty()) {
 
 			line.append(".transformators(");
 			line.quoted(StringUtils.join(transformators, "\", \""));

@@ -79,12 +79,12 @@ public interface KafkaClient extends MessageClient {
 
 			type.addMethod("setServers")
 					.setReturnType("void")
-					.addParameter("servers", "String[]")
+					.addParameter("servers", "List<String>")
 					.setSource("setProperty(serversProperty, servers)")
 					.addException("FrameworkException");
 
 			type.addMethod("getServers")
-					.setReturnType("String[]")
+					.setReturnType("List<String>")
 					.setSource("return getProperty(serversProperty);");
 
 			type.overrideMethod("onCreation",     true, KafkaClient.class.getName() + ".onCreation(this, arg0, arg1);");
@@ -129,10 +129,9 @@ public interface KafkaClient extends MessageClient {
 	}
 
 	String getGroupId();
-	String[] getServers();
+	List<String> getServers();
 	Boolean getEnabled();
-	void setServers(String[] servers) throws FrameworkException;
-	Iterable<MessageSubscriber> getSubscribers();
+	void setServers(final List<String> servers) throws FrameworkException;
 
 	static void onCreation(final KafkaClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 		refreshConfiguration(thisClient);
@@ -155,9 +154,9 @@ public interface KafkaClient extends MessageClient {
 
 	static RestMethodResult sendMessage(KafkaClient thisClient, final String topic, final String message) throws FrameworkException {
 
-		if(getProducer(thisClient) == null && thisClient.getServers() != null && thisClient.getServers().length > 0) {
+		if(getProducer(thisClient) == null && thisClient.getServers() != null && !thisClient.getServers().isEmpty()) {
 			setProducer(thisClient,new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
-		} else if(thisClient.getServers() == null || thisClient.getServers().length == 0) {
+		} else if(thisClient.getServers() == null || thisClient.getServers().isEmpty()) {
 			final Logger logger = LoggerFactory.getLogger(KafkaClient.class);
 			logger.error("Could not initialize producer. No servers configured.");
 			return new RestMethodResult(422);
@@ -203,7 +202,7 @@ public interface KafkaClient extends MessageClient {
 
 	static void refreshConfiguration(KafkaClient thisClient) {
 		try {
-			if(thisClient.getServers() != null && thisClient.getServers().length > 0) {
+			if(thisClient.getServers() != null && !thisClient.getServers().isEmpty()) {
 				setProducer(thisClient, new KafkaProducer<>(getConfiguration(thisClient, KafkaProducer.class)));
 			}
 		} catch (JsonSyntaxException | KafkaException ex) {
@@ -216,8 +215,8 @@ public interface KafkaClient extends MessageClient {
 		Properties props = new Properties();
 
 		try {
-			String[] servers = thisClient.getServers();
-			if (servers != null) {
+			List<String> servers = thisClient.getServers();
+			if (servers != null && !servers.isEmpty()) {
 				props.setProperty("bootstrap.servers", String.join(",", servers));
 			} else {
 				props.setProperty("bootstrap.servers", "");
@@ -396,7 +395,7 @@ public interface KafkaClient extends MessageClient {
 						break;
 					}
 
-					if (this.client.getServers() != null && this.client.getServers().length > 0 && this.client.getEnabled()) {
+					if (this.client.getServers() != null && this.client.getServers().isEmpty() && this.client.getEnabled()) {
 
 						if (this.consumer == null || wasDisabled) {
 

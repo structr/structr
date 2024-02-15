@@ -48,6 +48,7 @@ import org.structr.schema.SourceFile;
 import java.util.*;
 
 import static graphql.schema.GraphQLTypeReference.typeRef;
+import org.structr.common.helper.ValidationHelper;
 
 /**
  *
@@ -79,10 +80,9 @@ public class SchemaNode extends AbstractSchemaNode {
 	public static final Property<Boolean>                          isInterface            = new BooleanProperty("isInterface").indexed();
 	public static final Property<Boolean>                          isAbstract             = new BooleanProperty("isAbstract").indexed();
 	public static final Property<String>                           category               = new StringProperty("category").indexed();
-	public static final Property<String[]>                         tags                   = new ArrayProperty("tags", String.class).indexed();
+	public static final Property<List<String>>                     tags                   = new ArrayProperty<>("tags", String.class).indexed();
 	public static final Property<Boolean>                          includeInOpenAPI       = new BooleanProperty("includeInOpenAPI").indexed();
 	public static final Property<String>                           summary                = new StringProperty("summary").indexed();
-	public static final Property<String>                           description            = new StringProperty("description").indexed();
 
 	private static final Set<PropertyKey> PropertiesThatDoNotRequireRebuild = new LinkedHashSet<>(Arrays.asList(tags, summary, description, includeInOpenAPI));
 

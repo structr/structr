@@ -24,6 +24,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * A simple entity for the most basic tests.
@@ -32,7 +33,7 @@ import java.util.Date;
  */
 public class CsvTestTwo extends AbstractNode {
 
-	public static final Property<String[]>      stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
+	public static final Property<List<String>>  stringArrayProperty = new ArrayProperty<>("stringArrayProperty", String.class).indexed();
 	public static final Property<Boolean>       booleanProperty     = new BooleanProperty("booleanProperty").indexed();
 	public static final Property<Double>        doubleProperty      = new DoubleProperty("doubleProperty").indexed();
 	public static final Property<Integer>       integerProperty     = new IntProperty("integerProperty").indexed();

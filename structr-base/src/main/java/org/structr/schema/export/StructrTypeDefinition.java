@@ -42,6 +42,7 @@ import org.structr.util.UrlUtils;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.LinkedList;
 
 /**
  * @param <T>
@@ -1089,10 +1090,10 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			}
 		}
 
-		final String[] tagArray = schemaNode.getProperty(SchemaNode.tags);
-		if (tagArray != null) {
+		final List<String> tagsSource = schemaNode.getProperty(SchemaNode.tags);
+		if (tagsSource != null) {
 
-			this.tags.addAll(Arrays.asList(tagArray));
+			this.tags.addAll(tagsSource);
 		}
 	}
 
@@ -1275,16 +1276,16 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 			nodeProperties.put(SchemaNode.implementsInterfaces, StringUtils.join(interfaces, ", "));
 		}
 
-		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = schemaNode.getProperty(SchemaNode.tags);
+		final Set<String> mergedTags          = new LinkedHashSet<>(this.tags);
+		final List<String> existingTagsSource = schemaNode.getProperty(SchemaNode.tags);
 
-		if (existingTagsArray != null) {
+		if (existingTagsSource != null) {
 
-			mergedTags.addAll(Arrays.asList(existingTagsArray));
+			mergedTags.addAll(existingTagsSource);
 		}
 
 		// merge tags, don't overwrite
-		nodeProperties.put(SchemaNode.tags,              mergedTags.toArray(new String[0]));
+		nodeProperties.put(SchemaNode.tags,              new LinkedList<>(mergedTags));
 		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
 		nodeProperties.put(SchemaNode.summary,           getSummary());
 		nodeProperties.put(SchemaNode.description,       getDescription());

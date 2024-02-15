@@ -22,27 +22,20 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
-import org.structr.api.util.Iterables;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
-import org.structr.core.function.LocalizeFunction;
-import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
-import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
-import org.structr.schema.parser.DatePropertyParser;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
+import java.util.LinkedList;
 
 public class FromExcelFunction extends Function<Object, Object> {
 

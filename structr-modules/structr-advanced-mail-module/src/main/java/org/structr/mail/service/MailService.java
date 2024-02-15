@@ -54,12 +54,25 @@ import javax.mail.*;
 import javax.mail.internet.MimeUtility;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.LinkedList;
+import org.structr.common.helper.AdvancedMailContainer;
+import org.structr.common.helper.DynamicMailAttachment;
 
 @ServiceDependency(SchemaService.class)
 @StopServiceForMaintenanceMode
@@ -476,16 +489,16 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 
 	private Store connectToStore(final Mailbox mailbox) {
 
-		final String host = mailbox.getHost();
-		final String mailProtocol = mailbox.getMailProtocol().toString();
-		final String user = mailbox.getUser();
-		final String password = mailbox.getPassword();
-		final Integer port = mailbox.getPort();
-		final String[] folders = mailbox.getFolders();
+		final String host          = mailbox.getHost();
+		final String mailProtocol  = mailbox.getMailProtocol().toString();
+		final String user          = mailbox.getUser();
+		final String password      = mailbox.getPassword();
+		final Integer port         = mailbox.getPort();
+		final List<String> folders = mailbox.getFolders();
 
 		try {
 
-			if (host == null || mailProtocol == null || user == null || password == null || folders == null) {
+			if (host == null || mailProtocol == null || user == null || password == null || folders == null || folders.isEmpty()) {
 
 				logger.warn("MailService::fetchMails: Could not retrieve mails from mailbox[" + mailbox.getUuid() + "], because not all required attributes were specified.");
 				processingMailboxes.remove(mailbox);
@@ -576,10 +589,10 @@ public class MailService extends Thread implements RunnableService, MailServiceI
 		public void run() {
 			try {
 
-				String[] folders = mailbox.getFolders();
-
+				List<String> folders = mailbox.getFolders();
 				if (folders == null) {
-					folders = new String[]{};
+
+					folders = new LinkedList<>();
 				}
 
 				final Store store = connectToStore(mailbox);

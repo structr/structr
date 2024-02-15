@@ -35,6 +35,7 @@ import org.structr.schema.Schema;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.LinkedList;
 
 /**
  *
@@ -49,7 +50,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 	public static final Property<Iterable<SchemaView>>     schemaViews           = new EndNodes<>("schemaViews", SchemaNodeView.class);
 	public static final Property<Boolean>                  changelogDisabled     = new BooleanProperty("changelogDisabled");
 	public static final Property<String>                   icon                  = new StringProperty("icon");
-	public static final Property<String>                   description           = new StringProperty("description");
+	public static final Property<String>                   description           = new StringProperty("description").indexed();
 	public static final Set<String>                        hiddenPropertyNames   = new LinkedHashSet<>();
 
 	public static final View defaultView = new View(AbstractSchemaNode.class, PropertyView.Public,

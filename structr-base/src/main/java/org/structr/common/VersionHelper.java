@@ -18,6 +18,7 @@
  */
 package org.structr.common;
 
+import java.util.Arrays;
 import org.structr.api.config.Settings;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
@@ -25,6 +26,7 @@ import org.structr.module.StructrModule;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -111,12 +113,12 @@ public class VersionHelper {
 		return Settings.InstanceStage.getValue();
 	}
 
-	public static String[] getMenuEntries() {
-		return Settings.MenuEntries.getValue().split(",");
+	public static List<String> getMenuEntries() {
+		return Arrays.asList(Settings.MenuEntries.getValue().split(","));
 	}
 
-	public static String[] getAvailableMenuItems() {
-		return Settings.AvailableMenuItems.getValue().split(",");
+	public static List<String> getAvailableMenuItems() {
+		return Arrays.asList(Settings.AvailableMenuItems.getValue().split(","));
 	}
 
 	public static void updateModuleList () {

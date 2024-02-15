@@ -34,7 +34,6 @@ import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
-import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
 import org.structr.core.graph.NodeAttribute;
@@ -64,6 +63,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.LinkedList;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.nullValue;
@@ -797,7 +797,6 @@ public class UiScriptingTest extends StructrUiTest {
 		final String script1              =  "${{ return Structr.find('User', 'name', 'admin'); }}\n";
 		final String script2              =  "${{ return Structr.doPrivileged(function() { return Structr.find('User', 'name', 'admin'); }); }}\n";
 		final SecurityContext userContext = SecurityContext.getInstance(tester, AccessMode.Backend);
-		final App app                     = StructrApp.getInstance(userContext);
 		final RenderContext renderContext = new RenderContext(userContext, new RequestMockUp(), new ResponseMockUp(), RenderContext.EditMode.NONE);
 
 		try (final Tx tx = app.tx()) {

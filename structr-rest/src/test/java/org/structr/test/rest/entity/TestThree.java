@@ -25,6 +25,7 @@ import org.structr.core.property.*;
 import org.structr.test.rest.common.TestEnum;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  *
@@ -33,23 +34,23 @@ import java.util.Date;
 public class TestThree extends AbstractNode {
 
 	public static final Property<String>        stringProperty              = new StringProperty("stringProperty").indexed();
-	public static final Property<String[]>      stringArrayProperty         = new ArrayProperty<>("stringArrayProperty", String.class).indexedWhenEmpty();
+	public static final Property<List<String>>  stringArrayProperty         = new ArrayProperty<>("stringArrayProperty", String.class).indexedWhenEmpty();
 
 	public static final Property<Boolean>       booleanProperty             = new BooleanProperty("booleanProperty").indexed();
-	public static final Property<Boolean[]>     booleanArrayProperty        = new BooleanArrayProperty("booleanArrayProperty").indexedWhenEmpty();
+	public static final Property<List<Boolean>> booleanArrayProperty        = new ArrayProperty("booleanArrayProperty", Boolean.class).indexedWhenEmpty();
 
 	public static final Property<Double>        doubleProperty              = new DoubleProperty("doubleProperty").indexed().indexedWhenEmpty();
-	public static final Property<Double[]>      doubleArrayProperty         = new ArrayProperty<>("doubleArrayProperty", Double.class).indexedWhenEmpty();
+	public static final Property<List<Double>>  doubleArrayProperty         = new ArrayProperty<>("doubleArrayProperty", Double.class).indexedWhenEmpty();
 
 	public static final Property<Integer>       integerProperty             = new IntProperty("integerProperty").indexed().indexedWhenEmpty();
-	public static final Property<Integer[]>     integerArrayProperty        = new ArrayProperty("integerArrayProperty", Integer.class).indexedWhenEmpty();
+	public static final Property<List<Integer>> integerArrayProperty        = new ArrayProperty("integerArrayProperty", Integer.class).indexedWhenEmpty();
 
 	public static final Property<Long>          longProperty                = new LongProperty("longProperty").indexed().indexedWhenEmpty();
-	public static final Property<Long[]>        longArrayProperty           = new ArrayProperty("longArrayProperty", Long.class).indexedWhenEmpty();
+	public static final Property<List<Long>>    longArrayProperty           = new ArrayProperty("longArrayProperty", Long.class).indexedWhenEmpty();
 
 	public static final Property<Date>          dateProperty                = new ISO8601DateProperty("dateProperty").indexed().indexedWhenEmpty();
-	public static final Property<Date[]>        dateArrayProperty           = new DateArrayProperty("dateArrayProperty").indexed().indexedWhenEmpty();
-	
+	public static final Property<List<Date>>    dateArrayProperty           = new DateArrayProperty("dateArrayProperty").indexed().indexedWhenEmpty();
+
 	public static final Property<TestEnum>      enumProperty                = new EnumProperty("enumProperty", TestEnum.class).indexed();
 	public static final Property<Boolean>       constantBooleanProperty     = new ConstantBooleanProperty("constantBooleanProperty", true);
 

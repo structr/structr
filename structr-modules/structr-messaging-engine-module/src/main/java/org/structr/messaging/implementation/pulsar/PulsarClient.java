@@ -45,301 +45,301 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface PulsarClient extends MessageClient {
-    class Impl {
 
-        static {
+	class Impl {
 
+		static {
 
-            final JsonSchema schema   = SchemaService.getDynamicSchema();
-            final JsonObjectType type = schema.addType("PulsarClient");
+			final JsonSchema schema = SchemaService.getDynamicSchema();
+			final JsonObjectType type = schema.addType("PulsarClient");
 
-            type.setImplements(URI.create("https://structr.org/v1.1/definitions/PulsarClient"));
+			type.setImplements(URI.create("https://structr.org/v1.1/definitions/PulsarClient"));
 
-            type.setExtends(URI.create("#/definitions/MessageClient"));
+			type.setExtends(URI.create("#/definitions/MessageClient"));
 
-            type.addStringArrayProperty("servers", PropertyView.Public, PropertyView.Ui);
-            type.addBooleanProperty("enabled", PropertyView.Public, PropertyView.Ui).setDefaultValue("false");
+			type.addStringArrayProperty("servers", PropertyView.Public, PropertyView.Ui);
+			type.addBooleanProperty("enabled", PropertyView.Public, PropertyView.Ui).setDefaultValue("false");
 
-            type.addPropertyGetter("subscribers", Iterable.class);
-            type.addPropertyGetter("enabled", Boolean.class);
+			type.addPropertyGetter("subscribers", Iterable.class);
+			type.addPropertyGetter("enabled", Boolean.class);
 
+			type.addMethod("setServers")
+				.setReturnType("void")
+				.addParameter("servers", "List<String>")
+				.setSource("setProperty(serversProperty, servers)")
+				.addException("FrameworkException");
 
-            type.addMethod("setServers")
-                    .setReturnType("void")
-                    .addParameter("servers", "String[]")
-                    .setSource("setProperty(serversProperty, servers)")
-                    .addException("FrameworkException");
+			type.addMethod("getServers")
+				.setReturnType("List<String>")
+				.setSource("return getProperty(serversProperty);");
 
-            type.addMethod("getServers")
-                    .setReturnType("String[]")
-                    .setSource("return getProperty(serversProperty);");
+			type.overrideMethod("onCreation", true, PulsarClient.class.getName() + ".onCreation(this, arg0, arg1);");
+			type.overrideMethod("onModification", true, PulsarClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
+			type.overrideMethod("onDeletion", true, PulsarClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
 
-            type.overrideMethod("onCreation",     true, PulsarClient.class.getName() + ".onCreation(this, arg0, arg1);");
-            type.overrideMethod("onModification", true, PulsarClient.class.getName() + ".onModification(this, arg0, arg1, arg2);");
-            type.overrideMethod("onDeletion",     true, PulsarClient.class.getName() + ".onDeletion(this, arg0, arg1, arg2);");
+			type.overrideMethod("sendMessage", false, "return " + PulsarClient.class.getName() + ".sendMessage(this,topic,message);");
+			type.overrideMethod("subscribeTopic", false, "return " + PulsarClient.class.getName() + ".subscribeTopic(this,topic);");
+			type.overrideMethod("unsubscribeTopic", false, "return " + PulsarClient.class.getName() + ".unsubscribeTopic(this,topic);");
 
-            type.overrideMethod("sendMessage", false, "return " + PulsarClient.class.getName() + ".sendMessage(this,topic,message);");
-            type.overrideMethod("subscribeTopic", false, "return " + PulsarClient.class.getName() + ".subscribeTopic(this,topic);");
-            type.overrideMethod("unsubscribeTopic", false, "return " + PulsarClient.class.getName() + ".unsubscribeTopic(this,topic);");
+			Services.getInstance().registerInitializationCallback(() -> {
 
-            Services.getInstance().registerInitializationCallback(() -> {
+				final App app = StructrApp.getInstance();
 
-                final App app = StructrApp.getInstance();
+				try (final Tx tx = app.tx()) {
 
-                try (final Tx tx = app.tx()) {
+					for (final PulsarClient client : app.nodeQuery(PulsarClient.class).getAsList()) {
+						setup(client);
+					}
 
-                    for (final PulsarClient client : app.nodeQuery(PulsarClient.class).getAsList()) {
-                        setup(client);
-                    }
+					tx.success();
 
-                    tx.success();
+				} catch (Throwable t) {
+					final Logger logger = LoggerFactory.getLogger(PulsarClient.class);
+					logger.error("Unable to initialize Pulsar clients. " + t);
+				}
+			});
 
-                } catch (Throwable t) {
-                    final Logger logger = LoggerFactory.getLogger(PulsarClient.class);
-                    logger.error("Unable to initialize Pulsar clients. " + t);
-                }
-            });
+		}
+	}
 
-        }
-    }
+	List<String> getServers();
 
-    String[] getServers();
-    Boolean getEnabled();
-    void setServers(String[] servers) throws FrameworkException;
-    Iterable<MessageSubscriber> getSubscribers();
+	Boolean getEnabled();
 
-    Map<String, PulsarClient.ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
+	void setServers(final List<String> servers) throws FrameworkException;
 
-    static void onCreation(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
-        setup(thisClient);
-    }
+	Map<String, PulsarClient.ConsumerWorker> consumerWorkerMap = new ConcurrentHashMap<>();
 
+	static void onCreation(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+		setup(thisClient);
+	}
 
-    static void onModification(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	static void onModification(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-        if(modificationQueue.isPropertyModified(thisClient,StructrApp.key(PulsarClient.class,"servers"))) {
-            ConsumerWorker cw = consumerWorkerMap.get(thisClient.getUuid());
-            if (cw != null) {
-                cw.invalidateConsumer();
-            }
-        }
+		if (modificationQueue.isPropertyModified(thisClient, StructrApp.key(PulsarClient.class, "servers"))) {
+			ConsumerWorker cw = consumerWorkerMap.get(thisClient.getUuid());
+			if (cw != null) {
+				cw.invalidateConsumer();
+			}
+		}
 
-    }
-    static void onDeletion(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
-        close(thisClient);
-    }
-    static RestMethodResult sendMessage(PulsarClient thisClient, final String topic, final String message) throws FrameworkException {
+	}
 
-        if (thisClient.getServers() == null || thisClient.getServers().length == 0) {
-            return new RestMethodResult(400, "PulsarClient " + thisClient.getUuid() + " has no servers specified");
-        }
+	static void onDeletion(final PulsarClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final PropertyMap properties) throws FrameworkException {
+		close(thisClient);
+	}
 
-        try (org.apache.pulsar.client.api.PulsarClient pulsarClient = org.apache.pulsar.client.api.PulsarClient.builder()
-                .serviceUrl(String.join(",", thisClient.getServers()))
-                .build()
-        ) {
+	static RestMethodResult sendMessage(PulsarClient thisClient, final String topic, final String message) throws FrameworkException {
 
-            try (Producer<byte[]> producer = pulsarClient.newProducer()
-                    .topic(topic)
-                    .messageRoutingMode(MessageRoutingMode.SinglePartition)
-                    .create()
-            ) {
+		if (thisClient.getServers() == null || thisClient.getServers().isEmpty()) {
+			return new RestMethodResult(400, "PulsarClient " + thisClient.getUuid() + " has no servers specified");
+		}
 
-                producer.send(message.getBytes());
+		try (org.apache.pulsar.client.api.PulsarClient pulsarClient = org.apache.pulsar.client.api.PulsarClient.builder()
+			.serviceUrl(String.join(",", thisClient.getServers()))
+			.build()) {
 
-                return new RestMethodResult(200);
-            }
+			try (Producer<byte[]> producer = pulsarClient.newProducer()
+				.topic(topic)
+				.messageRoutingMode(MessageRoutingMode.SinglePartition)
+				.create()) {
 
-        } catch (PulsarClientException ex) {
+				producer.send(message.getBytes());
 
-            LoggerFactory.getLogger(PulsarClient.class).error("Exception in PulsarClient.sendMessage.", ex);
-            return new RestMethodResult(500);
-        }
-    }
+				return new RestMethodResult(200);
+			}
 
-    static RestMethodResult subscribeTopic(PulsarClient thisClient, final String topic) throws FrameworkException {
+		} catch (PulsarClientException ex) {
 
-        return new RestMethodResult(200);
-    }
+			LoggerFactory.getLogger(PulsarClient.class).error("Exception in PulsarClient.sendMessage.", ex);
+			return new RestMethodResult(500);
+		}
+	}
 
+	static RestMethodResult subscribeTopic(PulsarClient thisClient, final String topic) throws FrameworkException {
 
-    static RestMethodResult unsubscribeTopic(PulsarClient thisClient, final String topic) throws FrameworkException {
+		return new RestMethodResult(200);
+	}
 
-        return new RestMethodResult(200);
-    }
+	static RestMethodResult unsubscribeTopic(PulsarClient thisClient, final String topic) throws FrameworkException {
 
-    static void setup(PulsarClient thisClient) {
-        PulsarClient.ConsumerWorker cw = new PulsarClient.ConsumerWorker(thisClient);
-        Thread t = new Thread(cw);
-        consumerWorkerMap.put(thisClient.getUuid(), cw);
-        t.start();
-    }
+		return new RestMethodResult(200);
+	}
 
-    static void close(PulsarClient thisClient) {
-        PulsarClient.ConsumerWorker cw = consumerWorkerMap.get(thisClient.getUuid());
+	static void setup(PulsarClient thisClient) {
+		PulsarClient.ConsumerWorker cw = new PulsarClient.ConsumerWorker(thisClient);
+		Thread t = new Thread(cw);
+		consumerWorkerMap.put(thisClient.getUuid(), cw);
+		t.start();
+	}
 
-        if (cw != null) {
-            cw.stop();
-        }
-    }
+	static void close(PulsarClient thisClient) {
+		PulsarClient.ConsumerWorker cw = consumerWorkerMap.get(thisClient.getUuid());
 
-    static void forwardReceivedMessage(PulsarClient thisClient, String topic, String message) throws FrameworkException {
-        MessageClient.sendMessage(thisClient, topic, message, thisClient.getSecurityContext());
-    }
+		if (cw != null) {
+			cw.stop();
+		}
+	}
 
-    class ConsumerWorker implements Runnable {
-        private final static Logger logger = LoggerFactory.getLogger(ConsumerWorker.class);
-        private final PulsarClient thisClient;
-        private org.apache.pulsar.client.api.PulsarClient pulsarClient = null;
-        private Consumer consumer = null;
-        private boolean running = true;
-        private List<String> subbedTopics = null;
-        public ConsumerWorker(PulsarClient thisClient) {
+	static void forwardReceivedMessage(PulsarClient thisClient, String topic, String message) throws FrameworkException {
+		MessageClient.sendMessage(thisClient, topic, message, thisClient.getSecurityContext());
+	}
 
-            this.thisClient = thisClient;
+	class ConsumerWorker implements Runnable {
 
-        }
-        @Override
-        public void run() {
+		private final static Logger logger = LoggerFactory.getLogger(ConsumerWorker.class);
+		private final PulsarClient thisClient;
+		private org.apache.pulsar.client.api.PulsarClient pulsarClient = null;
+		private Consumer consumer = null;
+		private boolean running = true;
+		private List<String> subbedTopics = null;
 
-            // wait for service layer to be initialized
-            while (!Services.getInstance().isInitialized()) {
-                try {
-                    Thread.sleep(1000);
-                } catch (InterruptedException iex) {
-                }
-            }
+		public ConsumerWorker(PulsarClient thisClient) {
 
-            while (running) {
+			this.thisClient = thisClient;
 
-                try (final Tx tx = StructrApp.getInstance().tx() ){
+		}
 
-                    if (this.thisClient == null || Thread.currentThread().isInterrupted()) {
-                        running = false;
-                        break;
-                    }
+		@Override
+		public void run() {
 
-                    if (thisClient.getServers() == null || thisClient.getServers().length == 0 || !thisClient.getEnabled()) {
-                        continue;
-                    }
+			// wait for service layer to be initialized
+			while (!Services.getInstance().isInitialized()) {
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException iex) {
+				}
+			}
 
-                    if (consumer == null) {
-                        consumer = createConsumer();
-                    }
+			while (running) {
 
-                    if (thisClient.getEnabled()) {
-                        updateConsumerIfTopicsHaveChanged();
-                    }
+				try (final Tx tx = StructrApp.getInstance().tx()) {
 
+					if (this.thisClient == null || Thread.currentThread().isInterrupted()) {
+						running = false;
+						break;
+					}
 
-                } catch (FrameworkException ex) {
+					if (thisClient.getServers() == null || thisClient.getServers().isEmpty() || !thisClient.getEnabled()) {
+						continue;
+					}
 
-                    logger.error("Exception in PulsarClient.ConsumerWorker. " + ex);
-                }
+					if (consumer == null) {
+						consumer = createConsumer();
+					}
 
-            }
+					if (thisClient.getEnabled()) {
+						updateConsumerIfTopicsHaveChanged();
+					}
 
-        }
+				} catch (FrameworkException ex) {
 
-        public void stop() {
+					logger.error("Exception in PulsarClient.ConsumerWorker. " + ex);
+				}
 
-                this.running = false;
-                this.invalidateConsumer();
-        }
+			}
 
-        public void invalidateConsumer() {
-            try {
+		}
 
-                if (this.consumer != null) {
-                    
-                    this.consumer.close();
-                    this.consumer = null;
-                }
-            } catch (PulsarClientException ex) {
+		public void stop() {
 
-                logger.error("Could not close pulsar consumer. " + ex);
-            }
-        }
-        private void updateConsumerIfTopicsHaveChanged() {
-            if (subbedTopics == null) {
-                return;
-            }
+			this.running = false;
+			this.invalidateConsumer();
+		}
 
-            if (!subbedTopics.equals(getSubTopics())) {
+		public void invalidateConsumer() {
+			try {
 
-                invalidateConsumer();
-                consumer = createConsumer();
-            }
-        }
+				if (this.consumer != null) {
 
-        private List<String> getSubTopics() {
-            List<String> aggregatedTopics = new ArrayList<>();
+					this.consumer.close();
+					this.consumer = null;
+				}
+			} catch (PulsarClientException ex) {
 
-            if (thisClient == null) {
+				logger.error("Could not close pulsar consumer. " + ex);
+			}
+		}
 
-                return aggregatedTopics;
-            }
+		private void updateConsumerIfTopicsHaveChanged() {
+			if (subbedTopics == null) {
+				return;
+			}
 
-            thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
-                String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
-                if (topic != null) {
-                    aggregatedTopics.add(topic);
-                }
-            });
+			if (!subbedTopics.equals(getSubTopics())) {
 
-            return aggregatedTopics;
-        }
+				invalidateConsumer();
+				consumer = createConsumer();
+			}
+		}
 
-        private Consumer createConsumer() {
-            List<String> aggregatedTopics = getSubTopics();
+		private List<String> getSubTopics() {
+			List<String> aggregatedTopics = new ArrayList<>();
 
-            try {
+			if (thisClient == null) {
 
-                if (pulsarClient != null) {
-                    invalidateConsumer();
-                    pulsarClient.close();
-                    pulsarClient = null;
-                }
+				return aggregatedTopics;
+			}
 
-                pulsarClient = org.apache.pulsar.client.api.PulsarClient.builder()
-                        .serviceUrl(String.join(",", thisClient.getServers()))
-                        .build();
+			thisClient.getSubscribers().forEach((MessageSubscriber sub) -> {
+				String topic = sub.getProperty(StructrApp.key(MessageSubscriber.class, "topic"));
+				if (topic != null) {
+					aggregatedTopics.add(topic);
+				}
+			});
 
+			return aggregatedTopics;
+		}
 
-                if (pulsarClient != null) {
+		private Consumer createConsumer() {
+			List<String> aggregatedTopics = getSubTopics();
 
-                    if (aggregatedTopics.size() > 0) {
+			try {
 
-                        MessageListener messageListener = ((Consumer consumer, Message msg) -> {
-                            try {
+				if (pulsarClient != null) {
+					invalidateConsumer();
+					pulsarClient.close();
+					pulsarClient = null;
+				}
 
-                                String[] topicFragments = msg.getTopicName().split("/");
-                                String topic = topicFragments[topicFragments.length-1];
-                                forwardReceivedMessage(thisClient, topic, new String(msg.getData()));
-                                consumer.acknowledge(msg);
-                            } catch (Exception e) {
+				pulsarClient = org.apache.pulsar.client.api.PulsarClient.builder()
+					.serviceUrl(String.join(",", thisClient.getServers()))
+					.build();
 
-                                consumer.negativeAcknowledge(msg);
-                            }
-                        });
+				if (pulsarClient != null) {
 
-                        subbedTopics = aggregatedTopics;
-                        return pulsarClient.newConsumer()
-                                .subscriptionName("structr-pulsar-subscription")
-                                .topics(aggregatedTopics)
-                                .messageListener(messageListener)
-                                .subscribe();
-                    }
+					if (aggregatedTopics.size() > 0) {
 
-                }
+						MessageListener messageListener = ((Consumer consumer, Message msg) -> {
+							try {
 
-            } catch (PulsarClientException ex) {
+								String[] topicFragments = msg.getTopicName().split("/");
+								String topic = topicFragments[topicFragments.length - 1];
+								forwardReceivedMessage(thisClient, topic, new String(msg.getData()));
+								consumer.acknowledge(msg);
+							} catch (Exception e) {
 
-                LoggerFactory.getLogger(PulsarClient.class).error("Could not update consumer subscriptions for PulsarClient " + thisClient.getUuid() + ". " + ex);
-            }
+								consumer.negativeAcknowledge(msg);
+							}
+						});
 
-            return null;
-        }
-    }
+						subbedTopics = aggregatedTopics;
+						return pulsarClient.newConsumer()
+							.subscriptionName("structr-pulsar-subscription")
+							.topics(aggregatedTopics)
+							.messageListener(messageListener)
+							.subscribe();
+					}
+
+				}
+
+			} catch (PulsarClientException ex) {
+
+				LoggerFactory.getLogger(PulsarClient.class).error("Could not update consumer subscriptions for PulsarClient " + thisClient.getUuid() + ". " + ex);
+			}
+
+			return null;
+		}
+	}
 
 }

@@ -19,7 +19,7 @@
 package org.structr.schema.parser;
 
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.BooleanArrayProperty;
+import org.structr.core.property.ArrayProperty;
 import org.structr.schema.SchemaHelper.Type;
 
 /**
@@ -34,12 +34,12 @@ public class BooleanArrayPropertyParser extends IntPropertyParser {
 
 	@Override
 	public String getPropertyType() {
-		return BooleanArrayProperty.class.getSimpleName();
+		return ArrayProperty.class.getSimpleName().concat("<Boolean>");
 	}
 
 	@Override
 	public String getValueType() {
-		return Boolean[].class.getSimpleName();
+		return "List<Boolean>";
 	}
 
 	@Override
@@ -49,7 +49,7 @@ public class BooleanArrayPropertyParser extends IntPropertyParser {
 
 	@Override
 	public String getPropertyParameters() {
-		return "";
+		return ", Boolean.class";
 	}
 
 	@Override

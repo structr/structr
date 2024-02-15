@@ -56,483 +56,471 @@ import java.util.*;
 
 public class JWTHelper {
 
-    public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
-    private static final Logger logger         = LoggerFactory.getLogger(JWTHelper.class.getName());
+	public static final String TOKEN_ERROR_MSG = "The given access_token or refresh_token is invalid";
+	private static final Logger logger = LoggerFactory.getLogger(JWTHelper.class.getName());
 
-    public static Principal getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
+	public static Principal getPrincipalForAccessToken(final String token, final PropertyKey<String> eMailKey) throws FrameworkException {
 
-        final String jwtSecretType = Settings.JWTSecretType.getValue();
-        Principal user = null;
+		final String jwtSecretType = Settings.JWTSecretType.getValue();
+		Principal user = null;
 
-        switch (jwtSecretType) {
-            default:
-            case "secret":
-                user = getUserForAccessTokenWithSecret(token, eMailKey);
-                break;
+		switch (jwtSecretType) {
+			default:
+			case "secret":
+				user = getUserForAccessTokenWithSecret(token, eMailKey);
+				break;
 
-            case "keypair":
-                user = getPrincipalForAccessTokenWithKeystore(token, eMailKey);
-                break;
+			case "keypair":
+				user = getPrincipalForAccessTokenWithKeystore(token, eMailKey);
+				break;
 
-            case "jwks":
+			case "jwks":
+				final String provider = Settings.JWTSProvider.getValue();
+				final String issuer = Settings.JWTIssuer.getValue();
 
-                final String provider = Settings.JWTSProvider.getValue();
-                final String issuer = Settings.JWTIssuer.getValue();
+				if (provider != null) {
 
-                if (provider != null) {
+					try {
+						DecodedJWT jwt = JWT.decode(token);
 
-                    try {
-                        DecodedJWT jwt = JWT.decode(token);
+						final String kid = jwt.getKeyId();
+						if (kid != null) {
 
-                        final String kid = jwt.getKeyId();
-                        if (kid != null) {
+							// if no issuer is specified, we can assume that issuer url = provider url.
+							JwkProvider jwkProvider;
+							if (!StringUtils.isEmpty(issuer) && !StringUtils.equals("structr", issuer)) {
+								jwkProvider = new UrlJwkProvider(new URL(provider));
+							} else {
+								// loads jwks from .well-known resource of provider
+								jwkProvider = new UrlJwkProvider(provider);
+							}
+							Jwk jwk = jwkProvider.get(kid);
 
-                            // if no issuer is specified, we can assume that issuer url = provider url.
-                            JwkProvider jwkProvider;
-                            if (!StringUtils.isEmpty(issuer) && !StringUtils.equals("structr", issuer)) {
-                                jwkProvider = new UrlJwkProvider(new URL(provider));
-                            } else {
-                                // loads jwks from .well-known resource of provider
-                                jwkProvider = new UrlJwkProvider(provider);
-                            }
-                            Jwk jwk = jwkProvider.get(kid);
+							Algorithm algorithm = Algorithm.RSA256((RSAPublicKey)jwk.getPublicKey(), null);
 
-                            Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
+							JWTVerifier verifier = JWT.require(algorithm)
+								.withIssuer(issuer)
+								.build();
 
-                            JWTVerifier verifier = JWT.require(algorithm)
-                                    .withIssuer(issuer)
-                                    .build();
+							jwt = verifier.verify(jwt);
 
-                            jwt = verifier.verify(jwt);
+							user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey);
+						}
 
-                            user = getPrincipalForTokenClaims(jwt.getClaims(), eMailKey);
-                        }
+					} catch (JWTVerificationException ex) {
 
-                    } catch (JWTVerificationException ex) {
+						throw new FrameworkException(422, ex.getMessage());
 
-                        throw new FrameworkException(422, ex.getMessage());
+					} catch (Exception ex) {
 
-                    } catch (Exception ex) {
+						logger.warn("Error while trying to process JWKS.\n {}", ex.getMessage());
+						throw new FrameworkException(422, "Error while trying to process JWKS.");
+					}
+				}
 
-                        logger.warn("Error while trying to process JWKS.\n {}", ex.getMessage());
-                        throw new FrameworkException(422, "Error while trying to process JWKS.");
-                    }
-                }
+				break;
+		}
 
-                break;
-        }
+		return user;
+	}
 
-        return user;
-    }
+	public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
 
-    public static Principal getPrincipalForRefreshToken(final String refreshToken) throws FrameworkException {
+		final String jwtSecretType = Settings.JWTSecretType.getValue();
+		Map<String, Claim> claims = null;
 
-        final String jwtSecretType = Settings.JWTSecretType.getValue();
-        Map<String, Claim> claims = null;
+		switch (jwtSecretType) {
+			default:
+			case "secret":
+				final String secret = Settings.JWTSecret.getValue();
+				claims = validateTokenWithSecret(refreshToken, secret);
+				break;
 
-        switch (jwtSecretType) {
-            default:
-            case "secret":
+			case "keypair":
+				final RSAPublicKey publicKey = getPublicKeyForToken();
+				final RSAPrivateKey privateKey = getPrivateKeyForToken();
 
-                final String secret = Settings.JWTSecret.getValue();
-                claims = validateTokenWithSecret(refreshToken, secret);
-                break;
+				if (publicKey == null || privateKey == null) {
 
-            case "keypair":
+					break;
+				}
 
-                final RSAPublicKey publicKey = getPublicKeyForToken();
-                final RSAPrivateKey privateKey = getPrivateKeyForToken();
+				claims = validateTokenWithKeystore(refreshToken, Algorithm.RSA256(publicKey, privateKey));
+				break;
 
-                if (publicKey == null || privateKey == null) {
+			case "jwks":
+				throw new FrameworkException(400, "will not validate refresh_token because authentication is not handled by this instance");
 
-                    break;
-                }
+		}
 
-                claims = validateTokenWithKeystore(refreshToken, Algorithm.RSA256(publicKey, privateKey));
-                break;
+		if (claims == null) {
+			return null;
+		}
 
-            case "jwks":
+		final String tokenId = claims.get("tokenId").asString();
+		final String tokenType = claims.get("tokenType").asString();
+		if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
+			return null;
 
-                throw new FrameworkException(400, "will not validate refresh_token because authentication is not handled by this instance");
+		}
 
-        }
+		Principal user = AuthHelper.getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), List.of(tokenId), false);
 
-        if (claims == null) {
-            return null;
-        }
+		if (user == null) {
+			return null;
+		}
 
-        final String tokenId = claims.get("tokenId").asString();
-        final String tokenType = claims.get("tokenType").asString();
-        if (tokenId == null || tokenType == null || !StringUtils.equals(tokenType, "refresh_token")) {
-            return null;
+		Principal.removeRefreshToken(user, tokenId);
+		return user;
+	}
 
-        }
+	public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
 
-        Principal user = AuthHelper.getPrincipalForCredential(StructrApp.key(Principal.class, "refreshTokens"), new String[]{ tokenId }, false);
+		if (user == null) {
+			throw new FrameworkException(500, "Can't create token if no user is given");
+		}
 
-        if (user == null) {
-            return null;
-        }
+		Calendar accessTokenExpirationDate = Calendar.getInstance();
+		accessTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTExpirationTimeout.getValue());
 
-        Principal.removeRefreshToken(user, tokenId);
-        return user;
-    }
+		Calendar refreshTokenExpirationDate = Calendar.getInstance();
+		refreshTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTRefreshTokenExpirationTimeout.getValue());
 
-    public static Map<String, String> createTokensForUser(final Principal user) throws FrameworkException {
+		return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
+	}
 
-        if (user == null) {
-            throw new FrameworkException(500, "Can't create token if no user is given");
-        }
+	public static Map<String, String> createTokensForUser(final Principal user, final Date accessTokenLifetime, final Date refreshTokenLifetime) throws FrameworkException {
 
-        Calendar accessTokenExpirationDate = Calendar.getInstance();
-        accessTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTExpirationTimeout.getValue());
+		final String jwtSecretType = Settings.JWTSecretType.getValue();
+		Map<String, String> tokens = null;
 
-        Calendar refreshTokenExpirationDate = Calendar.getInstance();
-        refreshTokenExpirationDate.add(Calendar.MINUTE, Settings.JWTRefreshTokenExpirationTimeout.getValue());
+		if (user == null) {
+			throw new FrameworkException(500, "Can't create token if no user is given");
+		}
 
-        return createTokensForUser(user, accessTokenExpirationDate.getTime(), refreshTokenExpirationDate.getTime());
-    }
+		final String instanceName = Settings.InstanceName.getValue();
 
-    public static Map<String, String> createTokensForUser(final Principal user, final Date accessTokenLifetime, final Date refreshTokenLifetime) throws FrameworkException {
+		switch (jwtSecretType) {
 
-        final String jwtSecretType = Settings.JWTSecretType.getValue();
-        Map<String, String> tokens = null;
+			default:
+			case "secret":
+				tokens = createTokensForUserWithSecret(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
+				break;
 
-        if (user == null) {
-            throw new FrameworkException(500, "Can't create token if no user is given");
-        }
+			case "keypair":
+				tokens = createTokensForUserWithKeystore(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
+				break;
+		}
 
-        final String instanceName = Settings.InstanceName.getValue();
+		clearTimedoutRefreshTokens(user);
+		return tokens;
+	}
 
-        switch (jwtSecretType) {
+	private static boolean validateTokenForUser(String tokenId, Principal user) {
 
-            default:
-            case "secret":
-                tokens = createTokensForUserWithSecret(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
-                break;
+		// if tokenId is empty, token was created without refresh_token
+		if (StringUtils.isEmpty(tokenId)) {
+			return true;
+		}
 
-            case "keypair":
-                tokens = createTokensForUserWithKeystore(user, accessTokenLifetime, refreshTokenLifetime, instanceName);
-                break;
-        }
+		final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "refreshTokens");
+		final List<String> refreshTokens = user.getProperty(key);
 
-        clearTimedoutRefreshTokens(user);
-        return tokens;
-    }
+		return refreshTokens.contains(tokenId);
+	}
 
-    private static boolean validateTokenForUser(String tokenId, Principal user) {
+	private static Principal getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
 
-        // if tokenId is empty, token was created without refresh_token
-        if (StringUtils.isEmpty(tokenId)) {
-            return true;
-        }
+		final String instanceName = Settings.InstanceName.getValue();
+		Principal user = null;
 
-        final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-        final String[] refreshTokens = user.getProperty(key);
+		String instance = claims.getOrDefault("instance", new NullClaim()).asString();
+		String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
+		String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
 
-        return Arrays.asList(refreshTokens).contains(tokenId);
-    }
+		if (StringUtils.isEmpty(eMail)) {
+			eMail = claims.getOrDefault("email", new NullClaim()).asString();
+		}
 
-    private static Principal getPrincipalForTokenClaims(Map<String, Claim> claims, PropertyKey<String> eMailKey) throws FrameworkException {
+		// if the instance is the same that issued the token, we can lookup the user with uuid claim
+		if (StringUtils.equals(instance, instanceName)) {
 
-        final String instanceName = Settings.InstanceName.getValue();
-        Principal user = null;
+			user = StructrApp.getInstance().nodeQuery(Principal.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
 
-        String instance = claims.getOrDefault("instance", new NullClaim()).asString();
-        String uuid = claims.getOrDefault("uuid", new NullClaim()).asString();
-        String eMail = claims.getOrDefault("eMail", new NullClaim()).asString();
+		} else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
 
-        if (StringUtils.isEmpty(eMail)) {
-            eMail = claims.getOrDefault("email", new NullClaim()).asString();
-        }
+			user = StructrApp.getInstance().nodeQuery(Principal.class).and().or(eMailKey, eMail).disableSorting().getFirst();
 
-        // if the instance is the same that issued the token, we can lookup the user with uuid claim
-        if (StringUtils.equals(instance, instanceName)) {
+		}
 
-            user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(NodeInterface.id, uuid).disableSorting().getFirst();
+		return user;
+	}
 
-        } else if (eMail != null && StringUtils.isNotEmpty(eMail)) {
+	private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException {
+		Key publicKey = getPublicKeyForToken();
 
-            user  = StructrApp.getInstance().nodeQuery(Principal.class).and().or(eMailKey, eMail).disableSorting().getFirst();
+		final Algorithm alg = parseAlgorithm(publicKey.getAlgorithm());
+		Map<String, Claim> claims = validateTokenWithKeystore(token, alg);
 
-        }
+		if (claims == null) {
+			return null;
+		}
 
-        return user;
-    }
+		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
 
-    private static Principal getPrincipalForAccessTokenWithKeystore(String token, PropertyKey<String> eMailKey) throws FrameworkException  {
-        Key publicKey = getPublicKeyForToken();
+		if (user == null) {
+			return null;
+		}
 
-        final Algorithm alg = parseAlgorithm(publicKey.getAlgorithm());
-        Map<String, Claim> claims = validateTokenWithKeystore(token, alg);
+		// Check if the access_token is still valid.
+		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
+		String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
+		if (validateTokenForUser(tokenReference, user)) {
 
-        if (claims == null) {
-            return null;
-        }
+			return user;
+		}
 
-        Principal user = getPrincipalForTokenClaims(claims, eMailKey);
+		return null;
+	}
 
-        if (user == null) {
-            return null;
-        }
+	private static Principal getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
 
-        // Check if the access_token is still valid.
-        // If access_token isn't valid anymore, then either it timed out, or the user logged out.
-        String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
-        if (validateTokenForUser(tokenReference, user)) {
+		final String secret = Settings.JWTSecret.getValue();
 
-            return user;
-        }
+		Map<String, Claim> claims = validateTokenWithSecret(token, secret);
 
-        return null;
-    }
+		if (claims == null) {
+			return null;
+		}
 
-    private static Principal getUserForAccessTokenWithSecret(String token, PropertyKey<String> eMailKey) throws FrameworkException {
+		Principal user = getPrincipalForTokenClaims(claims, eMailKey);
 
-        final String secret = Settings.JWTSecret.getValue();
+		if (user == null) {
+			return null;
+		}
 
-        Map<String, Claim> claims = validateTokenWithSecret(token, secret);
+		// Check if the access_token is still valid.
+		// If access_token isn't valid anymore, then either it timed out, or the user logged out.
+		String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
+		if (validateTokenForUser(tokenReference, user)) {
 
-        if (claims == null) {
-            return null;
-        }
+			return user;
+		}
 
-        Principal user =  getPrincipalForTokenClaims(claims, eMailKey);
+		return null;
+	}
 
-        if (user == null) {
-            return null;
-        }
+	private static void clearTimedoutRefreshTokens(Principal user) {
 
-        // Check if the access_token is still valid.
-        // If access_token isn't valid anymore, then either it timed out, or the user logged out.
-        String tokenReference = claims.getOrDefault("tokenId", new NullClaim()).asString();
-        if (validateTokenForUser(tokenReference, user)) {
+		final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "refreshTokens");
+		final List<String> refreshTokens    = user.getProperty(key);
 
-            return user;
-        }
+		if (refreshTokens != null) {
 
-        return null;
-    }
+			try {
 
-    private static void clearTimedoutRefreshTokens(Principal user) {
+				for (final String refreshToken : refreshTokens) {
 
-        final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-        final String[] refreshTokens    = user.getProperty(key);
+					if (refreshTokenTimedOut(refreshToken)) {
 
-        if (refreshTokens != null) {
+						logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
 
-            try {
+						user.removeRefreshToken(refreshToken);
+					}
+				}
 
-                for (final String refreshToken : refreshTokens) {
+			} catch (Exception fex) {
 
-                    if (refreshTokenTimedOut(refreshToken)) {
+				logger.warn("Error while removing refreshToken of user " + user.getUuid(), fex);
+			}
+		}
+	}
 
-                        logger.debug("RefreshToken {} timed out", new Object[]{refreshToken});
+	private static boolean refreshTokenTimedOut(String refreshToken) {
 
-                        user.removeRefreshToken(refreshToken);
-                    }
-                }
+		final String[] splittedToken = refreshToken.split("_");
 
-            } catch (Exception fex) {
+		if (splittedToken.length > 1 && splittedToken[1] != null) {
 
-                logger.warn("Error while removing refreshToken of user " + user.getUuid(), fex);
-            }
-        }
-    }
+			if (Calendar.getInstance().getTimeInMillis() > Long.parseLong(splittedToken[1])) {
+				return true;
+			}
+		}
 
-    private static boolean refreshTokenTimedOut(String refreshToken) {
+		return false;
+	}
 
-        final String[] splittedToken = refreshToken.split("_");
+	private static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
-        if (splittedToken.length > 1 && splittedToken[1] != null) {
+		final String secret = Settings.JWTSecret.getValue();
+		final String jwtIssuer = Settings.JWTIssuer.getValue();
 
-            if (Calendar.getInstance().getTimeInMillis() > Long.parseLong(splittedToken[1])) {
-                return true;
-            }
-        }
+		try {
 
-        return false;
-    }
+			final Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+			return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
 
-    private static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+		} catch (JWTCreationException ex) {
 
-        final String secret    = Settings.JWTSecret.getValue();
-        final String jwtIssuer = Settings.JWTIssuer.getValue();
+			throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters)");
+		}
+	}
 
-        if (secret.length() < 32) {
+	private static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
-            throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters) - see " + Settings.JWTSecret.getKey());
-        }
+		RSAPrivateKey privateKey = getPrivateKeyForToken();
+		RSAPublicKey publicKey = getPublicKeyForToken();
 
-        try {
+		if (privateKey == null) {
 
-            final Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
-            return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
+			throw new FrameworkException(500, "Cannot read private key file");
+		}
 
-        } catch (JWTCreationException ex) {
+		final String jwtIssuer = Settings.JWTIssuer.getValue();
 
-            throw new FrameworkException(500, ex.getMessage(), ex);
-        }
-    }
+		final Algorithm alg = Algorithm.RSA256(publicKey, privateKey);
 
-    private static Map<String, String> createTokensForUserWithKeystore(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
+		return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
+	}
 
-        RSAPrivateKey privateKey = getPrivateKeyForToken();
-        RSAPublicKey publicKey = getPublicKeyForToken();
+	private static Map<String, String> createTokens(Principal user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
+		final Map<String, String> tokens = new HashMap<>();
 
-        if (privateKey == null) {
+		String tokenId = null;
 
-            throw new FrameworkException(500, "Cannot read private key file");
-        }
+		if (refreshTokenExpirationDate != null) {
 
-        final String jwtIssuer = Settings.JWTIssuer.getValue();
+			// create a unique uuid for refresh_token with expiration
+			final String newTokenUUID = NodeServiceCommand.getNextUuid();
+			StringBuilder tokenStringBuilder = new StringBuilder();
+			tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
 
+			tokenId = tokenStringBuilder.toString();
 
-        final Algorithm alg = Algorithm.RSA256(publicKey, privateKey);
+			String refreshToken = JWT.create()
+				.withSubject(user.getName())
+				.withExpiresAt(refreshTokenExpirationDate)
+				.withIssuer(jwtIssuer)
+				.withClaim("tokenId", tokenId)
+				.withClaim("tokenType", "refresh_token")
+				.sign(alg);
 
-        return createTokens(user, alg, accessTokenExpirationDate, refreshTokenExpirationDate, instanceName, jwtIssuer);
-    }
+			Principal.addRefreshToken(user, tokenId);
+			tokens.put("refresh_token", refreshToken);
+		}
 
-    private static Map<String, String> createTokens (Principal user, Algorithm alg, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName, String jwtIssuer) throws FrameworkException {
-        final  Map<String, String> tokens = new HashMap<>();
+		String accessToken = JWT.create()
+			.withSubject(user.getName())
+			.withExpiresAt(accessTokenExpirationDate)
+			.withIssuer(jwtIssuer)
+			.withClaim("instance", instanceName)
+			.withClaim("uuid", user.getUuid())
+			.withClaim("eMail", user.getEMail())
+			.withClaim("tokenType", "access_token")
+			.withClaim("tokenId", tokenId)
+			.sign(alg);
 
-        String tokenId = null;
+		tokens.put("access_token", accessToken);
+		tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
 
-        if (refreshTokenExpirationDate != null) {
+		return tokens;
+	}
 
-            // create a unique uuid for refresh_token with expiration
-            final String newTokenUUID = NodeServiceCommand.getNextUuid();
-            StringBuilder tokenStringBuilder = new StringBuilder();
-            tokenStringBuilder.append(newTokenUUID).append("_").append(refreshTokenExpirationDate.getTime());
+	private static RSAPrivateKey getPrivateKeyForToken() {
 
-            tokenId = tokenStringBuilder.toString();
+		final String keyStorePath = Settings.JWTKeyStore.getValue();
+		final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
+		final String keyAlias = Settings.JWTKeyAlias.getValue();
 
-            String refreshToken = JWT.create()
-                    .withSubject(user.getName())
-                    .withExpiresAt(refreshTokenExpirationDate)
-                    .withIssuer(jwtIssuer)
-                    .withClaim("tokenId", tokenId)
-                    .withClaim("tokenType", "refresh_token")
-                    .sign(alg);
+		try {
 
+			File keyStoreFile = new File(keyStorePath);
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
-            Principal.addRefreshToken(user, tokenId);
-            tokens.put("refresh_token", refreshToken);
-        }
+			final RSAPrivateKey privateKey = (RSAPrivateKey)keystore.getKey(keyAlias, keyStorePassword.toCharArray());
 
-        String accessToken = JWT.create()
-                .withSubject(user.getName())
-                .withExpiresAt(accessTokenExpirationDate)
-                .withIssuer(jwtIssuer)
-                .withClaim("instance", instanceName)
-                .withClaim("uuid", user.getUuid())
-                .withClaim("eMail", user.getEMail())
-                .withClaim("tokenType", "access_token")
-                .withClaim("tokenId", tokenId)
-                .sign(alg);
+			return privateKey;
+		} catch (IOException e) {
 
-        tokens.put("access_token", accessToken);
-        tokens.put("expiration_date", Long.toString(accessTokenExpirationDate.getTime()));
+			logger.warn("Cannot read private key file", e);
 
-        return tokens;
-    }
+		} catch (CertificateException e) {
 
-    private static RSAPrivateKey getPrivateKeyForToken() {
+			logger.warn("Error while reading jwt keystore", e);
+		} catch (UnrecoverableKeyException e) {
 
-        final String keyStorePath = Settings.JWTKeyStore.getValue();
-        final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
-        final String keyAlias = Settings.JWTKeyAlias.getValue();
+			logger.warn("Error while reading jwt keystore, probably wrong password", e);
+		} catch (Exception e) {
 
-        try {
+			logger.warn("Error while reading jwt keystore", e);
+		}
 
-            File keyStoreFile = new File(keyStorePath);
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
+		return null;
+	}
 
-            final RSAPrivateKey privateKey = (RSAPrivateKey)keystore.getKey(keyAlias, keyStorePassword.toCharArray());
+	private static RSAPublicKey getPublicKeyForToken() {
 
-            return privateKey;
-        } catch (IOException e) {
+		final String keyStorePath = Settings.JWTKeyStore.getValue();
+		final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
+		final String keyAlias = Settings.JWTKeyAlias.getValue();
 
-            logger.warn("Cannot read private key file", e);
+		try {
+			File keyStoreFile = new File(keyStorePath);
+			KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
+			keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
 
-        } catch (CertificateException e) {
+			Certificate cert = keystore.getCertificate(keyAlias);
+			RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
 
-            logger.warn("Error while reading jwt keystore", e);
-        } catch (UnrecoverableKeyException e) {
+			return publicKey;
 
-            logger.warn("Error while reading jwt keystore, probably wrong password", e);
-        } catch (Exception e) {
+		} catch (Exception e) {
+			logger.warn("Error while reading jwt keystore", e);
+		}
 
-            logger.warn("Error while reading jwt keystore", e);
-        }
+		return null;
+	}
 
-        return null;
-    }
+	private static Map<String, Claim> validateTokenWithSecret(String token, String secret) {
+		try {
 
-    private static RSAPublicKey getPublicKeyForToken() {
+			Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
 
-        final String keyStorePath = Settings.JWTKeyStore.getValue();
-        final String keyStorePassword = Settings.JWTKeyStorePassword.getValue();
-        final String keyAlias = Settings.JWTKeyAlias.getValue();
+			JWTVerifier verifier = JWT.require(alg).build();
 
-        try {
-            File keyStoreFile = new File(keyStorePath);
-            KeyStore keystore = KeyStore.getInstance(KeyStore.getDefaultType());
-            keystore.load(new FileInputStream(keyStoreFile), keyStorePassword.toCharArray());
+			DecodedJWT decodedJWT = verifier.verify(token);
+			return decodedJWT.getClaims();
 
-            Certificate cert = keystore.getCertificate(keyAlias);
-            RSAPublicKey publicKey = (RSAPublicKey)cert.getPublicKey();
+		} catch (JWTVerificationException e) {
+			logger.debug("Invalid token", e);
+		}
 
-            return publicKey;
+		return null;
+	}
 
-        } catch (Exception e) {
-            logger.warn("Error while reading jwt keystore", e);
-        }
+	private static Map<String, Claim> validateTokenWithKeystore(String token, Algorithm alg) {
+		try {
 
-        return null;
-    }
+			JWTVerifier verifier = JWT.require(alg).build();
 
-    private static Map<String, Claim> validateTokenWithSecret(String token, String secret) {
-        try {
+			DecodedJWT decodedJWT = verifier.verify(token);
+			return decodedJWT.getClaims();
 
-            Algorithm alg = Algorithm.HMAC256(secret.getBytes(StandardCharsets.UTF_8));
+		} catch (JWTVerificationException e) {
+			logger.debug("Invalid token", e);
+		}
 
-            JWTVerifier verifier = JWT.require(alg).build();
+		return null;
+	}
 
-            DecodedJWT decodedJWT = verifier.verify(token);
-            return decodedJWT.getClaims();
+	private static Algorithm parseAlgorithm(final String algString) {
 
-        } catch (JWTVerificationException e) {
-            logger.debug("Invalid token", e);
-        }
+		switch (algString) {
+			case "RSA":
+				return Algorithm.RSA256(getPublicKeyForToken(), getPrivateKeyForToken());
+		}
 
-        return null;
-    }
-
-    private static Map<String, Claim> validateTokenWithKeystore(String token, Algorithm alg) {
-        try {
-
-            JWTVerifier verifier = JWT.require(alg).build();
-
-            DecodedJWT decodedJWT = verifier.verify(token);
-            return decodedJWT.getClaims();
-
-        } catch (JWTVerificationException  e) {
-            logger.debug("Invalid token", e);
-        }
-
-        return null;
-    }
-
-
-    private static Algorithm parseAlgorithm(final String algString) {
-
-        switch (algString) {
-            case "RSA":
-                return Algorithm.RSA256(getPublicKeyForToken(), getPrivateKeyForToken());
-        }
-
-        return null;
-    }
+		return null;
+	}
 }

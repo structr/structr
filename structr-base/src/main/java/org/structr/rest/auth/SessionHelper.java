@@ -39,6 +39,7 @@ import org.structr.rest.service.HttpService;
 
 import java.time.Instant;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Utility class for session handling
@@ -47,7 +48,7 @@ import java.util.Date;
  */
 public class SessionHelper {
 
-	public static final String SESSION_IS_NEW     = "SESSION_IS_NEW";
+	public static final String SESSION_IS_NEW = "SESSION_IS_NEW";
 
 	private static final Logger logger = LoggerFactory.getLogger(SessionHelper.class.getName());
 
@@ -115,9 +116,9 @@ public class SessionHelper {
 			return;
 		}
 
-		final App app                            = StructrApp.getInstance();
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final Query<Principal> query             = app.nodeQuery(Principal.class).and(sessionIdKey, new String[]{sessionId}).disableSorting();
+		final App app                                = StructrApp.getInstance();
+		final PropertyKey<List<String>> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+		final Query<Principal> query                 = app.nodeQuery(Principal.class).and(sessionIdKey, List.of(sessionId)).disableSorting();
 
 		try {
 
@@ -148,10 +149,10 @@ public class SessionHelper {
 
 		logger.info("Clearing invalid sessions for user {} ({})", user.getName(), user.getUuid());
 
-		final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-		final String[] sessionIds                = user.getProperty(sessionIdKey);
+		final PropertyKey<List<String>> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+		final List<String> sessionIds                = user.getProperty(sessionIdKey);
 
-		if (sessionIds != null && sessionIds.length > 0) {
+		if (sessionIds != null && !sessionIds.isEmpty()) {
 
 			final SessionCache sessionCache = getDefaultSessionCache();
 
@@ -180,10 +181,10 @@ public class SessionHelper {
 
 			logger.info("Clearing all sessions for user {} ({})", user.getName(), user.getUuid());
 
-			final PropertyKey<String[]> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
-			final String[] sessionIds                = user.getProperty(sessionIdKey);
+			final PropertyKey<List<String>> sessionIdKey = StructrApp.key(Principal.class, "sessionIds");
+			final List<String> sessionIds                = user.getProperty(sessionIdKey);
 
-			if (sessionIds != null && sessionIds.length > 0) {
+			if (sessionIds != null && !sessionIds.isEmpty()) {
 
 				for (final String sessionId : sessionIds) {
 

@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import java.util.List;
 import org.structr.schema.CodeSource;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -45,6 +46,6 @@ public interface PropertyDefinition extends CodeSource {
 	String getReadFunction();
 	String getWriteFunction();
 	String getOpenAPIReturnType();
-	String[] getTransformators();
-	String[] getValidators();
+	List<String> getTransformators();
+	List<String> getValidators();
 }

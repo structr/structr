@@ -37,6 +37,7 @@ import org.structr.core.property.PropertyMap;
 
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -45,8 +46,7 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class StructrSessionDataStore extends AbstractSessionDataStore {
 
-	private static final Logger logger       = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
-
+	private static final Logger logger                                  = LoggerFactory.getLogger(StructrSessionDataStore.class.getName());
 	private static final Map<String, SessionData> anonymousSessionCache = new ConcurrentHashMap<>();
 
 	@Override
@@ -65,9 +65,8 @@ public class StructrSessionDataStore extends AbstractSessionDataStore {
 
 		try (final Tx tx = app.tx()) {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] value            = new String[] { id };
-			final Principal user            = app.nodeQuery(Principal.class).and(key, value).disableSorting().getFirst();
+			final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "sessionIds");
+			final Principal user                = app.nodeQuery(Principal.class).and(key, List.of(id)).disableSorting().getFirst();
 
 			if (user != null) {
 

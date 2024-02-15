@@ -138,7 +138,13 @@ public abstract class AbstractPrimitiveProperty<T> extends Property<T> {
 
 		if (converter != null) {
 
-			convertedValue = converter.convert(value);
+			try {
+				convertedValue = converter.convert(value);
+
+			} catch (ClassCastException cce) {
+				logger.error("ClassCastException in {} with name {} for value {}", this.getClass(), this.jsonName, value);
+				cce.printStackTrace();
+			}
 		}
 
 		// use transformators from property

@@ -18,7 +18,6 @@
  */
 package org.structr.core.entity;
 
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +43,7 @@ import org.structr.schema.SchemaService;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
+import java.util.LinkedList;
 
 public interface Principal extends NodeInterface, AccessControllable {
 
@@ -233,14 +233,18 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] ids              = principal.getProperty(key);
+			final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "sessionIds");
+			final List<String> ids              = principal.getProperty(key);
 
-			if (ids != null) {
+			if (ids == null || ids.isEmpty()) {
 
-				if (!ArrayUtils.contains(ids, sessionId)) {
+				principal.setProperty(key, List.of(sessionId));
 
-					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.length >= Settings.MaxSessionsPerUser.getValue()) {
+			}  else {
+
+				if (!ids.contains(sessionId)) {
+
+					if (Settings.MaxSessionsPerUser.getValue() > 0 && ids.size() >= Settings.MaxSessionsPerUser.getValue()) {
 
 						final Logger logger = LoggerFactory.getLogger(Principal.class);
 
@@ -250,12 +254,12 @@ public interface Principal extends NodeInterface, AccessControllable {
 						return false;
 					}
 
-					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), sessionId));
+					final List<String> sessionIdsWithNewSession = new LinkedList<>(ids);
+
+					sessionIdsWithNewSession.add(sessionId);
+
+					principal.setProperty(key, sessionIdsWithNewSession);
 				}
-
-			} else {
-
-				principal.setProperty(key, new String[] {  sessionId } );
 			}
 
 			return true;
@@ -263,7 +267,7 @@ public interface Principal extends NodeInterface, AccessControllable {
 		} catch (FrameworkException ex) {
 
 			final Logger logger = LoggerFactory.getLogger(Principal.class);
-			logger.error("Could not add sessionId " + sessionId + " to array of sessionIds", ex);
+			logger.error("Could not add sessionId " + sessionId + " to list of sessionIds", ex);
 
 			return false;
 		}
@@ -272,14 +276,18 @@ public interface Principal extends NodeInterface, AccessControllable {
 	public static boolean addRefreshToken(final Principal principal, final String refreshToken) {
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-			final String[] refreshTokens    = principal.getProperty(key);
+			final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "refreshTokens");
+			final List<String> refreshTokens    = principal.getProperty(key);
 
-			if (refreshTokens != null) {
+			if (refreshTokens == null || refreshTokens.isEmpty()) {
 
-				if (!ArrayUtils.contains(refreshTokens, refreshToken)) {
+				principal.setProperty(key, List.of(refreshToken));
 
-					if (Settings.MaxSessionsPerUser.getValue() > 0 && refreshTokens.length >= Settings.MaxSessionsPerUser.getValue()) {
+			} else {
+
+				if (!refreshTokens.contains(refreshToken)) {
+
+					if (Settings.MaxSessionsPerUser.getValue() > 0 && refreshTokens.size() >= Settings.MaxSessionsPerUser.getValue()) {
 
 						final Logger logger = LoggerFactory.getLogger(Principal.class);
 
@@ -289,12 +297,13 @@ public interface Principal extends NodeInterface, AccessControllable {
 						return false;
 					}
 
-					principal.setProperty(key, (String[]) ArrayUtils.add(principal.getProperty(key), refreshToken));
+					final List<String> refreshTokensWithNewToken = new LinkedList<>(refreshTokens);
+
+					refreshTokensWithNewToken.add(refreshToken);
+
+					principal.setProperty(key, refreshTokensWithNewToken);
 				}
 
-			} else {
-
-				principal.setProperty(key, new String[] {  refreshToken } );
 			}
 
 			return true;
@@ -312,16 +321,17 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "sessionIds");
-			final String[] ids              = principal.getProperty(key);
+			final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "sessionIds");
+			final List<String> ids              = principal.getProperty(key);
 
 			if (ids != null) {
 
-				final Set<String> sessionIds = new HashSet<>(Arrays.asList(ids));
+				// list from getProperty is immutable
+				final List<String> sessionIdList = new LinkedList<>(ids);
 
-				sessionIds.remove(sessionId);
+				sessionIdList.remove(sessionId);
 
-				principal.setProperty(key, (String[]) sessionIds.toArray(new String[0]));
+				principal.setProperty(key, sessionIdList);
 			}
 
 		} catch (FrameworkException ex) {
@@ -335,16 +345,17 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			final PropertyKey<String[]> key = StructrApp.key(Principal.class, "refreshTokens");
-			final String[] refreshTokens    = principal.getProperty(key);
+			final PropertyKey<List<String>> key = StructrApp.key(Principal.class, "refreshTokens");
+			final List<String> refreshTokens    = principal.getProperty(key);
 
 			if (refreshTokens != null) {
 
-				final Set<String> refreshTokenSet = new HashSet<>(Arrays.asList(refreshTokens));
+				// list from getProperty is immutable
+				final List<String> refreshTokenList = new LinkedList<>(refreshTokens);
 
-				refreshTokenSet.remove(refreshToken);
+				refreshTokenList.remove(refreshToken);
 
-				principal.setProperty(key, (String[]) refreshTokenSet.toArray(new String[0]));
+				principal.setProperty(key, refreshTokenList);
 			}
 
 		} catch (FrameworkException ex) {
@@ -358,10 +369,10 @@ public interface Principal extends NodeInterface, AccessControllable {
 
 		try {
 
-			PropertyMap properties = new PropertyMap();
-			final PropertyKey<String[]> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyKey<List<String>> refreshTokensKey = StructrApp.key(Principal.class, "refreshTokens");
+			final PropertyMap properties                     = new PropertyMap();
 
-			properties.put(refreshTokensKey, new String[0]);
+			properties.put(refreshTokensKey, new LinkedList<>());
 
 			principal.setProperties(SecurityContext.getSuperUserInstance(), properties);
 

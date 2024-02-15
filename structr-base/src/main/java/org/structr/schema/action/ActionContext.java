@@ -138,8 +138,16 @@ public class ActionContext {
 		// walk through template parts
 		for (int i = 0; i < parts.length; i++) {
 
-			String key = parts[i];
-			_data      = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			final String key = parts[i];
+
+			if (_data instanceof GraphObject obj) {
+
+				_data = obj.evaluate(this, key, null, hints, row, column);
+
+			} else {
+
+				_data = evaluate(entity, key, _data, null, i+depth, hints, row, column);
+			}
 
 			// stop evaluation on null
 			if (_data == null) {
@@ -238,14 +246,25 @@ public class ActionContext {
 
 		Object value = getContextStore().getConstant(key);
 		if (this.temporaryContextStore.getConstant(key) != null) {
+
 			hints.reportExistingKey(key);
 			value = this.temporaryContextStore.getConstant(key);
+
 		} else if (this.temporaryContextStore.hasConstant(key)) {
+
 			hints.reportExistingKey(key);
 			value = null;
+
 		} else {
 
 			if (value == null) {
+
+				// shortcut for faster evaluation (because "this" is used often")
+				if (data == null && "this".equals(key)) {
+
+					hints.reportExistingKey(key);
+					return entity;
+				}
 
 				// special Request handling
 				if (data instanceof HttpServletRequest) {

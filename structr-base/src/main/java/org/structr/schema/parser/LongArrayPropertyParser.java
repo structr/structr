@@ -39,7 +39,7 @@ public class LongArrayPropertyParser extends LongPropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Long[].class.getSimpleName();
+		return "List<Long>";
 	}
 
 	@Override

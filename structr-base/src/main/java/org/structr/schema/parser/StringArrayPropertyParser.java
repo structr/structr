@@ -45,12 +45,12 @@ public class StringArrayPropertyParser extends PropertySourceGenerator {
 
 	@Override
 	public String getValueType() {
-		return String[].class.getSimpleName();
+		return "List<String>";
 	}
 
 	@Override
 	public String getUnqualifiedValueType() {
-		return "String[]";
+		return "StringArray";
 	}
 
 	@Override

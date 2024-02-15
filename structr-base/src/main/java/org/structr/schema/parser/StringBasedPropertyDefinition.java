@@ -18,6 +18,7 @@
  */
 package org.structr.schema.parser;
 
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.schema.SchemaHelper.Type;
 
@@ -49,8 +50,8 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	private String readFunction           = null;
 	private String writeFunction          = null;
 	private String openAPIReturnType      = null;
-	private String[] transformators       = null;
-	private String[] validators           = null;
+	private List<String> transformators   = null;
+	private List<String> validators       = null;
 
 	public StringBasedPropertyDefinition(final String propertyName, final String rawSource) {
 
@@ -211,12 +212,12 @@ public class StringBasedPropertyDefinition implements PropertyDefinition {
 	public String getOpenAPIReturnType() {	return openAPIReturnType; }
 
 	@Override
-	public String[] getTransformators() {
+	public List<String> getTransformators() {
 		return transformators;
 	}
 
 	@Override
-	public String[] getValidators() {
+	public List<String> getValidators() {
 		return validators;
 	}
 

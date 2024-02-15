@@ -60,8 +60,8 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 	protected final StructrHttpServiceConfig config                     = new StructrHttpServiceConfig();
 	protected StatsCallback stats                                       = null;
 
-	static PropertyKey<String[]> sessionIdsPropertyKey = null;
-	static PropertyKey<Iterable<Principal>> membersKey = null;
+	static PropertyKey<List<String>> sessionIdsPropertyKey = null;
+	static PropertyKey<Iterable<Principal>> membersKey     = null;
 
 	private SecurityContext securityContext;
 
@@ -294,9 +294,9 @@ public class EventSourceServlet extends org.eclipse.jetty.servlets.EventSourceSe
 			sessionIdsPropertyKey = StructrApp.key(Principal.class, "sessionIds");
 		}
 
-		final String[] ids = target.getProperty(sessionIdsPropertyKey);
+		final List<String> ids = target.getProperty(sessionIdsPropertyKey);
 
-		if (ids != null && Arrays.asList(ids).contains(es.getSessionId())) {
+		if (ids != null && ids.contains(es.getSessionId())) {
 			return true;
 		}
 

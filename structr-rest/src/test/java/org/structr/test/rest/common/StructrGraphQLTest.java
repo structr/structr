@@ -71,6 +71,8 @@ public abstract class StructrGraphQLTest extends StructrRestTestBase {
 		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue("/structr/rest");
 
+		//Settings.CypherDebugLogging.setValue(true);
+
 		final Services services = Services.getInstance();
 
 		// wait for service layer to be initialized

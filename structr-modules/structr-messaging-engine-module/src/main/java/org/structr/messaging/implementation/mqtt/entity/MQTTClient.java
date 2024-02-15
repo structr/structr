@@ -41,6 +41,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.schema.SchemaService;
 
 import java.net.URI;
+import java.util.LinkedList;
 import java.util.List;
 
 public interface MQTTClient extends MessageClient, MQTTInfo {
@@ -70,7 +71,7 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 			type.addPropertyGetter("username",            String.class);
 			type.addPropertyGetter("password",            String.class);
 			type.addPropertyGetter("mainBrokerURL",       String.class);
-			type.addPropertyGetter("fallbackBrokerURLs",  String[].class);
+			type.addPropertyGetter("fallbackBrokerURLs",  List.class);
 
 			type.addPropertySetter("isConnected", Boolean.TYPE);
 
@@ -91,13 +92,10 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 	}
 
 	boolean getIsConnected();
-	int getQos();
-	String getUsername();
-	String getPassword();
 
-	void setIsConnected(boolean connected) throws FrameworkException;
+	void setIsConnected(final boolean connected) throws FrameworkException;
 
-	static void onCreation(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
+	static void onCreation(final MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer) throws FrameworkException {
 
 		if (thisClient.getIsEnabled()) {
 
@@ -113,14 +111,14 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		}
 	}
 
-	static void onModification(MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
+	static void onModification(final MQTTClient thisClient, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
-		if (modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))) {
+		if (modificationQueue.isPropertyModified(thisClient, StructrApp.key(MQTTClient.class, "mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient, StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))) {
 
 			MQTTContext.disconnect(thisClient);
 		}
 
-		if (modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"isEnabled")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient,StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))){
+		if (modificationQueue.isPropertyModified(thisClient, StructrApp.key(MQTTClient.class, "isEnabled")) || modificationQueue.isPropertyModified(thisClient, StructrApp.key(MQTTClient.class,"mainBrokerURL")) || modificationQueue.isPropertyModified(thisClient, StructrApp.key(MQTTClient.class,"fallbackBrokerURLs"))){
 
 			MQTTClientConnection connection = MQTTContext.getClientForId(thisClient.getUuid());
 			boolean enabled                 = thisClient.getIsEnabled();
@@ -191,18 +189,20 @@ public interface MQTTClient extends MessageClient, MQTTInfo {
 		}
 	}
 
-	static String[] getTopics(MQTTClient thisClient) {
+	static List<String> getTopics(MQTTClient thisClient) {
 
 		final App app = StructrApp.getInstance();
 		try (final Tx tx = app.tx()) {
 
-			List<MessageSubscriber> subs = Iterables.toList(thisClient.getSubscribers());
-			String[] topics = new String[subs.size()];
+			final List<MessageSubscriber> subs = Iterables.toList(thisClient.getSubscribers());
+			final List<String> topics          = new LinkedList<>();
 
 			for (int i = 0; i < subs.size(); i++) {
 
-				topics[i] = subs.get(i).getTopic();
+				topics.add(subs.get(i).getTopic());
 			}
+
+			tx.success();
 
 			return topics;
 

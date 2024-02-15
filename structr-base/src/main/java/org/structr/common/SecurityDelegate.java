@@ -23,9 +23,10 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.property.PropertyKey;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -36,17 +37,15 @@ import java.util.Set;
  */
 public class SecurityDelegate {
 
-	public static boolean isAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	public static boolean isAllowed(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Permission permission) {
 		return getPermissions(graphObject, key).contains(permission.name());
 	}
 
-	public static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<String> allowed) {
-
-		String[] permissions = (String[]) allowed.toArray(new String[allowed.size()]);
-		setAllowed(graphObject, key, permissions);
+	public static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Set<String> allowed) {
+		setAllowed(graphObject, key, new LinkedList<>(allowed));
 	}
 
-	public static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission... permissions) {
+	public static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Permission... permissions) {
 
 		Set<String> permissionSet = new HashSet<>();
 
@@ -58,9 +57,9 @@ public class SecurityDelegate {
 		setAllowed(graphObject, key, permissionSet);
 	}
 
-	private static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final String[] allowed) {
+	private static void setAllowed(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final List<String> allowed) {
 
-		if (allowed.length == 0) {
+		if (allowed == null || allowed.isEmpty()) {
 
 			StructrApp.getInstance().delete((RelationshipInterface)graphObject);
 
@@ -72,18 +71,18 @@ public class SecurityDelegate {
 		}
 	}
 
-	public static Set<String> getPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key) {
+	public static Set<String> getPermissions(final RelationshipInterface graphObject, final PropertyKey<List<String>> key) {
 
 		final PropertyContainer propertyContainer = graphObject.getPropertyContainer();
 		return getPermissionSet(propertyContainer, key);
 	}
 
-	public static void addPermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	public static void addPermission(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Permission permission) {
 
 		addPermissions(graphObject, key, Collections.singleton(permission));
 	}
 
-	public static void addPermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
+	public static void addPermissions(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -103,7 +102,7 @@ public class SecurityDelegate {
 		}
 	}
 
-	public static void removePermission(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Permission permission) {
+	public static void removePermission(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Permission permission) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -116,7 +115,7 @@ public class SecurityDelegate {
 		setAllowed(graphObject, key, permissionSet);
 	}
 
-	public static void removePermissions(final RelationshipInterface graphObject, final PropertyKey<String[]> key, final Set<Permission> permissions) {
+	public static void removePermissions(final RelationshipInterface graphObject, final PropertyKey<List<String>> key, final Set<Permission> permissions) {
 
 		final Set<String> permissionSet = getPermissions(graphObject, key);
 
@@ -136,23 +135,19 @@ public class SecurityDelegate {
 		}
 	}
 
-	public static Set<String> getPermissionSet(final PropertyContainer propertyContainer, final PropertyKey<String[]> key) {
+	public static Set<String> getPermissionSet(final PropertyContainer propertyContainer, final PropertyKey<List<String>> key) {
 
 		final Set<String> permissionSet = new HashSet<>();
 
 		if (propertyContainer.hasProperty(key.dbName())) {
 
-			final String[] permissions = (String[])propertyContainer.getProperty(key.dbName());
+			final List<String> permissions = (List<String>)propertyContainer.getProperty(key.dbName());
 			if (permissions != null) {
 
-				permissionSet.addAll(Arrays.asList(permissions));
+				permissionSet.addAll(permissions);
 			}
 		}
 
 		return permissionSet;
 	}
-
-//	public static Set<String> permissionSetToStringSet() {}
-//	public static Set<Permission> stringSetToPermissionSet() {}
-
 }

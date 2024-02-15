@@ -26,7 +26,6 @@ import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.error.UnlicensedScriptException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.*;
@@ -46,6 +45,7 @@ import java.net.UnknownHostException;
 import java.security.GeneralSecurityException;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -242,7 +242,7 @@ public class AuthHelper {
 
 	public static Principal getPrincipalForSessionId(final String sessionId, final boolean isPing) {
 
-		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), new String[]{ sessionId }, isPing);
+		return getPrincipalForCredential(StructrApp.key(Principal.class, "sessionIds"), List.of(sessionId), isPing);
 
 	}
 

@@ -93,10 +93,10 @@ public class CsvFunctionsTest extends StructrUiTest {
 
 				if (index == 0) {
 					// set string array on test four
-					csvTestOne.setProperty(CsvTestOne.stringArrayProperty, new String[] { "one", "two", "three", "four" } );
+					csvTestOne.setProperty(CsvTestOne.stringArrayProperty, List.of("one", "two", "three", "four"));
 				}
 
-				csvTestOne.setProperty(CsvTestOne.intArrayProperty, new Integer[] { index, index+1, index+2, index+3 } );
+				csvTestOne.setProperty(CsvTestOne.intArrayProperty, List.of(index, index+1, index+2, index+3));
 
 				if (index == 2) {
 					// set string array on test four

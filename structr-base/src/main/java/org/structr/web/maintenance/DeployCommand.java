@@ -74,6 +74,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.nio.file.FileVisitResult.CONTINUE;
+import java.util.LinkedList;
+import org.structr.common.helper.VersionHelper;
+import org.structr.rest.resource.MaintenanceResource;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
@@ -2318,6 +2321,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 					((LinkSource)linkElement).setLinkable(linkedPage);
 
 				} catch (Throwable t) {
+					t.printStackTrace();
 				}
 
 			});
@@ -2704,7 +2708,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void updateDeferredPagelink (String initialUUID, String correctUUID) {
 
-		if (deferredPageLinks.containsKey(initialUUID)) {
+		if (deferredPageLinks.containsKey(initialUUID) && !initialUUID.equals(correctUUID)) {
 			deferredPageLinks.put(correctUUID, deferredPageLinks.get(initialUUID));
 			deferredPageLinks.remove(initialUUID);
 		}

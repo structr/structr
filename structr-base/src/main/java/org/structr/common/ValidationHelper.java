@@ -266,7 +266,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidIntegerArrayInRange(final GraphObject node, final PropertyKey<Integer[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidIntegerArrayInRange(final GraphObject node, final PropertyKey<List<Integer>> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -281,11 +281,11 @@ public class ValidationHelper {
 
 		if (parts.length == 2) {
 
-			final String leftPart   = parts[0].trim();
-			final String rightPart  = parts[1].trim();
-			final int left          = Integer.parseInt(leftPart);
-			final int right         = Integer.parseInt(rightPart);
-			final Integer[] values  = node.getProperty(key);
+			final String leftPart     = parts[0].trim();
+			final String rightPart    = parts[1].trim();
+			final int left            = Integer.parseInt(leftPart);
+			final int right           = Integer.parseInt(rightPart);
+			final List<Integer>values = node.getProperty(key);
 
 			// do not check for non-null values, ignore (silently succeed)
 			if (values != null) {
@@ -374,7 +374,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidLongArrayInRange(final GraphObject node, final PropertyKey<Long[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidLongArrayInRange(final GraphObject node, final PropertyKey<List<Long>> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -393,7 +393,7 @@ public class ValidationHelper {
 			final String rightPart  = parts[1].trim();
 			final long left         = Long.parseLong(leftPart);
 			final long right        = Long.parseLong(rightPart);
-			final Long[] values     = node.getProperty(key);
+			final List<Long> values = node.getProperty(key);
 
 			// do not check for non-null values, ignore (silently succeed)
 			if (values != null) {
@@ -483,7 +483,7 @@ public class ValidationHelper {
 		return true;
 	}
 
-	public static boolean isValidDoubleArrayInRange(final GraphObject node, final PropertyKey<Double[]> key, final String range, final ErrorBuffer errorBuffer) {
+	public static boolean isValidDoubleArrayInRange(final GraphObject node, final PropertyKey<List<Double>> key, final String range, final ErrorBuffer errorBuffer) {
 
 		// we expect expression to have the following format:
 		// - "[" or "]" followed by a number (including negative values
@@ -498,11 +498,11 @@ public class ValidationHelper {
 
 		if (parts.length == 2) {
 
-			final String leftPart  = parts[0].trim();
-			final String rightPart = parts[1].trim();
-			final double left      = Double.parseDouble(leftPart);
-			final double right     = Double.parseDouble(rightPart);
-			final Double[] values  = node.getProperty(key);
+			final String leftPart     = parts[0].trim();
+			final String rightPart    = parts[1].trim();
+			final double left         = Double.parseDouble(leftPart);
+			final double right        = Double.parseDouble(rightPart);
+			final List<Double> values = node.getProperty(key);
 
 			// do not check for non-null values, ignore (silently succeed)
 			if (values != null) {

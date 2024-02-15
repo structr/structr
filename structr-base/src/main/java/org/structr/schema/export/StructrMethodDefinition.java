@@ -46,6 +46,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.LinkedList;
+import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 /**
  *
@@ -324,7 +326,7 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
 		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
 		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
+		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions());
 		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
 		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
 		getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
@@ -343,14 +345,15 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		updateProperties.put(SchemaMethod.includeInOpenAPI,      includeInOpenAPI());
 		updateProperties.put(SchemaMethod.openAPIReturnType,     getOpenAPIReturnType());
 
-		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = method.getProperty(SchemaMethod.tags);
+		final Set<String> mergedTags          = new LinkedHashSet<>(this.tags);
+		final List<String> existingTagsSource = method.getProperty(SchemaMethod.tags);
 
-		if (existingTagsArray != null) {
+		if (existingTagsSource != null) {
 
-			mergedTags.addAll(Arrays.asList(existingTagsArray));
+			mergedTags.addAll(existingTagsSource);
 		}
-		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
+
+		updateProperties.put(SchemaMethod.tags, new LinkedList<>(mergedTags));
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 
@@ -498,10 +501,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		setIncludeInOpenAPI(method.getProperty(SchemaMethod.includeInOpenAPI));
 		setOpenAPIReturnType(method.getProperty(SchemaMethod.openAPIReturnType));
 
-		final String[] exceptionArray = method.getProperty(SchemaMethod.exceptions);
-		if (exceptionArray != null) {
+		final List<String> exceptionSource = method.getProperty(SchemaMethod.exceptions);
+		if (exceptionSource != null) {
 
-			for (final String fqcn : exceptionArray) {
+			for (final String fqcn : exceptionSource) {
 				addException(fqcn);
 			}
 		}
@@ -519,10 +522,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 			return Integer.valueOf(p1.getIndex()).compareTo(p2.getIndex());
 		});
 
-		final String[] tagArray = method.getProperty(SchemaMethod.tags);
-		if (tagArray != null) {
+		final List<String> tagsSource = method.getProperty(SchemaMethod.tags);
+		if (tagsSource != null) {
 
-			this.tags.addAll(Arrays.asList(tagArray));
+			this.tags.addAll(tagsSource);
 		}
 	}
 

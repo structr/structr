@@ -29,10 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended {
-	private MemoryPersistence persistence = new MemoryPersistence();
-	private MqttConnectOptions connOpts;
-	private MqttClient client;
-	private MQTTInfo info;
+	private final MemoryPersistence persistence = new MemoryPersistence();
+	private final MqttConnectOptions connOpts;
+	private final MqttClient client;
+	private final MQTTInfo info;
 
 	private static final Logger	logger = LoggerFactory.getLogger(MQTTClientConnection.class.getName());
 
@@ -46,20 +46,20 @@ public class MQTTClientConnection implements MqttCallback, MqttCallbackExtended 
 
 		if (info.getFallbackBrokerURLs() != null) {
 
-			String[] fallBackBrokers;
+			List<String> fallBackBrokers;
 			if (info.getMainBrokerURL() != null) {
 
 				List<String> mergedBrokers = new ArrayList<>();
 				mergedBrokers.add(info.getMainBrokerURL());
-				mergedBrokers.addAll(List.of(info.getFallbackBrokerURLs()));
-				fallBackBrokers = mergedBrokers.toArray(String[]::new);
+				mergedBrokers.addAll(info.getFallbackBrokerURLs());
+				fallBackBrokers = mergedBrokers;
 
 			} else {
 
 				fallBackBrokers = info.getFallbackBrokerURLs();
 			}
 
-			connOpts.setServerURIs(fallBackBrokers);
+			connOpts.setServerURIs(fallBackBrokers.toArray(new String[0]));
 		}
 
 		connOpts.setCleanSession(true);

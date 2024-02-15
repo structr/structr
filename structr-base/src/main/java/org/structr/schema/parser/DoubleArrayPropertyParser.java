@@ -39,7 +39,7 @@ public class DoubleArrayPropertyParser extends DoublePropertyParser {
 
 	@Override
 	public String getValueType() {
-		return Double[].class.getSimpleName();
+		return "List<Double>";
 	}
 
 	@Override

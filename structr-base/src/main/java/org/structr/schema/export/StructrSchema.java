@@ -166,6 +166,8 @@ public class StructrSchema {
 
 		} catch (Throwable ex) {
 
+			ex.printStackTrace();
+
 			if (ex instanceof FrameworkException) {
 
 				throw (FrameworkException)ex;

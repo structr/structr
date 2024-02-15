@@ -250,14 +250,14 @@ public class OpenAPITest extends StructrUiTest {
 					new NodeAttribute<>(AbstractNode.name, "globalTest"),
 					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
 					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" })
+					new NodeAttribute<>(SchemaMethod.tags, List.of("test", "customer"))
 			);
 
 			app.create(SchemaMethod.class,
 					new NodeAttribute<>(AbstractNode.name, "globalTestParams"),
 					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
 					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" }),
+					new NodeAttribute<>(SchemaMethod.tags, List.of("test", "customer")),
 					new NodeAttribute<>(SchemaMethod.parameters, List.of(
 							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "id"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "string")),
 							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "index"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "integer"))
@@ -268,7 +268,7 @@ public class OpenAPITest extends StructrUiTest {
 					new NodeAttribute<>(AbstractNode.name, "globalTestParamsReturn"),
 					new NodeAttribute<>(SchemaMethod.source, "log('GlobalTest')"),
 					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "customer" }),
+					new NodeAttribute<>(SchemaMethod.tags, List.of("test", "customer")),
 					new NodeAttribute<>(SchemaMethod.parameters, List.of(
 							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "id"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "string")),
 							app.create(SchemaMethodParameter.class, new NodeAttribute<>(SchemaMethodParameter.name, "index"), new NodeAttribute<>(SchemaMethodParameter.parameterType, "integer"))
@@ -280,7 +280,7 @@ public class OpenAPITest extends StructrUiTest {
 					new NodeAttribute<>(AbstractNode.name, "globalOther"),
 					new NodeAttribute<>(SchemaMethod.source, "log('GlobalOther')"),
 					new NodeAttribute<>(SchemaMethod.includeInOpenAPI, true),
-					new NodeAttribute<>(SchemaMethod.tags, new String[] { "test", "contact" })
+					new NodeAttribute<>(SchemaMethod.tags, List.of("test", "contact"))
 			);
 
 			StructrSchema.extendDatabaseSchema(app, schema);
