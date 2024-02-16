@@ -91,7 +91,9 @@ let _Schema = {
 			});
 
 			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				_Helpers.requestAnimationFrameWrapper('schema_resize_slideout_correctly', () => {
+					$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				});
 			}
 
 			_Schema.init(null,() => {
