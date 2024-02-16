@@ -117,8 +117,8 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 		final Set<RelationshipInfo> relationships           = new LinkedHashSet<>();
 		final Map<String, SchemaNode> schemaNodes           = new LinkedHashMap<>();
 		final Map<String, List<TypeInfo>> typeInfoTypeMap   = new LinkedHashMap<>();
-		final List<TypeInfo> reducedTypeInfos               = new LinkedList<>();
-		final List<TypeInfo> typeInfos                      = new LinkedList<>();
+		final List<TypeInfo> reducedTypeInfos               = new ArrayList<>();
+		final List<TypeInfo> typeInfos                      = new ArrayList<>();
 		Iterable<Relationship> relIterable                  = null;
 		Iterable<Node> nodeIterable                         = null;
 
@@ -323,7 +323,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 			if (infos == null) {
 
-				infos = new LinkedList<>();
+				infos = new ArrayList<>();
 				relTypeInfoMap.put(combinedType, infos);
 			}
 
@@ -540,7 +540,7 @@ public class SchemaAnalyzer extends NodeServiceCommand implements MaintenanceCom
 
 			if (typeInfo == null) {
 
-				typeInfo = new LinkedList<>();
+				typeInfo = new ArrayList<>();
 				typeInfoTypeMap.put(type, typeInfo);
 			}
 

@@ -35,7 +35,7 @@ import javax.media.jai.Histogram;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -86,8 +86,8 @@ public class GetWCSHistogramFunction extends AbstractGeoserverFunction {
 			final Map<String, Object> map  = new LinkedHashMap<>();
 
 
-			List<String> binNames    = new LinkedList<>();
-			List<Integer> binData    = new LinkedList<>();
+			List<String> binNames    = new ArrayList<>();
+			List<Integer> binData    = new ArrayList<>();
 
 			int lastIndex    = 0;
 			int restBin      = 0;

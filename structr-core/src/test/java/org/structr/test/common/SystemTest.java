@@ -53,7 +53,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -437,7 +437,7 @@ public class SystemTest extends StructrTest {
 		};
 
 		final ExecutorService service = Executors.newFixedThreadPool(10);
-		final List<Future> futures    = new LinkedList<>();
+		final List<Future> futures    = new ArrayList<>();
 
 		for (int i=0; i<10; i++) {
 
@@ -492,8 +492,8 @@ public class SystemTest extends StructrTest {
 
 			final TestOne test             = createTestNode(TestOne.class);
 			final ExecutorService executor = Executors.newCachedThreadPool();
-			final List<TestRunner> tests   = new LinkedList<>();
-			final List<Future> futures     = new LinkedList<>();
+			final List<TestRunner> tests   = new ArrayList<>();
+			final List<Future> futures     = new ArrayList<>();
 
 			// create and run test runners
 			for (int i=0; i<25; i++) {
@@ -537,8 +537,8 @@ public class SystemTest extends StructrTest {
 
 			final TestOne test                  = createTestNode(TestOne.class);
 			final ExecutorService executor      = Executors.newCachedThreadPool();
-			final List<FailingTestRunner> tests = new LinkedList<>();
-			final List<Future> futures          = new LinkedList<>();
+			final List<FailingTestRunner> tests = new ArrayList<>();
+			final List<Future> futures          = new ArrayList<>();
 
 			// create and run test runners
 			for (int i=0; i<25; i++) {
@@ -739,7 +739,7 @@ public class SystemTest extends StructrTest {
 
 			final AbstractNode item1                  = app.nodeQuery(itemType).andName("item1").getFirst();
 			final List<AbstractRelationship> rels     = Iterables.toList(item1.getIncomingRelationships());
-			final List<AbstractRelationship> filtered = new LinkedList<>();
+			final List<AbstractRelationship> filtered = new ArrayList<>();
 
 			for (final AbstractRelationship rel : rels) {
 
@@ -853,7 +853,7 @@ public class SystemTest extends StructrTest {
 	@Test
 	public void testEnsureCardinalityPerformance() {
 
-		final List<TestOne> list = new LinkedList<>();
+		final List<TestOne> list = new ArrayList<>();
 		final int num            = 1000;
 
 		// test setup, create a supernode with 10000 relationships
@@ -1565,7 +1565,7 @@ public class SystemTest extends StructrTest {
 	public void testConcurrentDeleteAndFetch() {
 
 		final AtomicBoolean error = new AtomicBoolean(false);
-		final List<String> msgs   = new LinkedList<>();
+		final List<String> msgs   = new ArrayList<>();
 		int num                   = 0;
 
 		for (int i=0; i<2; i++) {
@@ -1967,7 +1967,7 @@ public class SystemTest extends StructrTest {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final List<TestOne> list = new LinkedList<>();
+				final List<TestOne> list = new ArrayList<>();
 				list.add(target);
 
 				source.setProperty(TestSix.oneToManyTestOnes, list);

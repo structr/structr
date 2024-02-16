@@ -47,7 +47,7 @@ public abstract class Property<T> implements PropertyKey<T> {
 	private static final Logger logger             = LoggerFactory.getLogger(Property.class.getName());
 	private static final Pattern rangeQueryPattern = Pattern.compile("\\[(.*) TO (.*)\\]");
 
-	protected List<String> transformators                  = new LinkedList<>();
+	protected List<String> transformators                  = new ArrayList<>();
 	protected Class<? extends GraphObject> declaringClass  = null;
 	protected T defaultValue                               = null;
 	protected boolean readOnly                             = false;

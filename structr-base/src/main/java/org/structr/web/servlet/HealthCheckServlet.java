@@ -173,7 +173,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 								{
 									// html
-									final List<Map<String, Object>> measurements = new LinkedList<>();
+									final List<Map<String, Object>> measurements = new ArrayList<>();
 
 									details.put("html:responseTime", measurements);
 
@@ -194,7 +194,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 
 								{
 									// json
-									final List<Map<String, Object>> measurements = new LinkedList<>();
+									final List<Map<String, Object>> measurements = new ArrayList<>();
 
 									details.put("json:responseTime", measurements);
 
@@ -275,7 +275,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 	// ----- private methods -----
 	private void embedGroup(final Map<String, Object> dest, final String name, final Map<String, Object>... data) {
 
-		final List<Map<String, Object>> list = new LinkedList<>();
+		final List<Map<String, Object>> list = new ArrayList<>();
 
 		for (final Map<String, Object> entry : data) {
 

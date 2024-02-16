@@ -39,7 +39,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -65,7 +65,7 @@ public class GraphQLCommand extends AbstractCommand {
 		final StructrWebSocket socket          = getWebSocket();
 		
 		final SecurityContext securityContext  = socket.getSecurityContext();
-		final List<GraphObject> result         = new LinkedList<>();
+		final List<GraphObject> result         = new ArrayList<>();
 		final String query                     = webSocketData.getNodeDataStringValue("query");
 
 		if (query != null) {
@@ -124,7 +124,7 @@ public class GraphQLCommand extends AbstractCommand {
 
 	private List<GraphObject> createResult(final SecurityContext securityContext, final GraphQLRequest request) throws IOException, FrameworkException {
 	
-		final List<GraphObject> resultList = new LinkedList<>();
+		final List<GraphObject> resultList = new ArrayList<>();
 		
 		if (request.hasSchemaQuery()) {
 

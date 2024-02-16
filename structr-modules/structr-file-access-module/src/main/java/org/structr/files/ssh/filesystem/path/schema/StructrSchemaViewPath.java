@@ -72,7 +72,7 @@ public class StructrSchemaViewPath extends StructrPath {
 
 					if (!closed) {
 
-						final List<StructrPath> children = new LinkedList<>();
+						final List<StructrPath> children = new ArrayList<>();
 
 						return children.iterator();
 					}

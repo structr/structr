@@ -22,7 +22,7 @@ import org.structr.api.Predicate;
 import org.structr.core.entity.Principal;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingDeque;
@@ -150,7 +150,7 @@ public class RuntimeEventLog {
 
 	public static List<RuntimeEvent> getEvents(final Predicate<RuntimeEvent> filter) {
 
-		final List<RuntimeEvent> list = new LinkedList<>();
+		final List<RuntimeEvent> list = new ArrayList<>();
 
 		for (final RuntimeEvent event : events) {
 

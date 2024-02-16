@@ -22,7 +22,7 @@ import org.testng.annotations.Test;
 
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -82,7 +82,7 @@ public class IterablesTest {
 		final Iterable<Integer> source3 = Arrays.asList(null, 10, null, 12, null, 14, 15, 16);
 		final Iterable<Integer> source4 = Arrays.asList(  17, 18,   19, 20,   21, 22, 23, 24);
 
-		final List<Iterable<Integer>> sources = new LinkedList<>();
+		final List<Iterable<Integer>> sources = new ArrayList<>();
 
 		sources.add(Iterables.map(e -> { return e; }, source1));
 		sources.add(Iterables.filter(e -> { return true; }, source2));

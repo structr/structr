@@ -128,7 +128,7 @@ public class StructrApp implements App {
 	@Override
 	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException {
 
-		final List<NodeAttribute<?>> attrs = new LinkedList<>(Arrays.asList(attributes));
+		final List<NodeAttribute<?>> attrs = new ArrayList<>(Arrays.asList(attributes));
 		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
 
 		// add type information when creating a node

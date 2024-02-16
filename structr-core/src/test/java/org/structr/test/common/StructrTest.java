@@ -201,7 +201,7 @@ public class StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			final PropertyMap properties = new PropertyMap();
-			final List<T> nodes          = new LinkedList<>();
+			final List<T> nodes          = new ArrayList<>();
 
 			properties.put(NodeInterface.visibleToAuthenticatedUsers, false);
 			properties.put(NodeInterface.visibleToPublicUsers, false);
@@ -284,7 +284,7 @@ public class StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			List<T> rels = new LinkedList<>();
+			List<T> rels = new ArrayList<>();
 
 			for (int i = 0; i < number; i++) {
 

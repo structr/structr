@@ -67,7 +67,7 @@ public class SchemaService implements Service {
 
 	public static final URI DynamicSchemaRootURI                  = URI.create("https://structr.org/v2.0/#");
 	private static final Logger logger                            = LoggerFactory.getLogger(SchemaService.class.getName());
-	private static final List<MigrationHandler> migrationHandlers = new LinkedList<>();
+	private static final List<MigrationHandler> migrationHandlers = new ArrayList<>();
 	private static final JsonSchema dynamicSchema                 = StructrSchema.newInstance(DynamicSchemaRootURI);
 	private static final Semaphore IndexUpdateSemaphore           = new Semaphore(1, true);
 	private static final AtomicBoolean compiling                  = new AtomicBoolean(false);

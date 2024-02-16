@@ -1452,7 +1452,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private Set<Class<?>> getAllTypes(final Class<?> type) {
 
-		final List<Class<?>> types = new LinkedList<>();
+		final List<Class<?>> types = new ArrayList<>();
 		Class localType = type;
 
 		do {
@@ -1611,7 +1611,7 @@ public class JarConfigurationProvider implements ConfigurationProvider {
 
 	private void replaceKeyInSet(final Set<PropertyKey> set, final PropertyKey key) {
 
-		final List<PropertyKey> list = new LinkedList<>(set);
+		final List<PropertyKey> list = new ArrayList<>(set);
 
 		set.clear();
 

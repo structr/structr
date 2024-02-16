@@ -234,7 +234,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		final String periodicCommitIntervalHeader = request.getHeader(DEFAULT_PERIODIC_COMMIT_INTERVAL_HEADER_NAME);
 		final int periodicCommitInterval          = (periodicCommitIntervalHeader == null) ? DEFAULT_PERIODIC_COMMIT_INTERVAL : Integer.parseInt(periodicCommitIntervalHeader);
 		final String rangeHeader                  = request.getHeader(DEFAULT_RANGE_HEADER_NAME);
-		final List<RestMethodResult> results      = new LinkedList<>();
+		final List<RestMethodResult> results      = new ArrayList<>();
 
 		final Authenticator authenticator;
 		final Resource resource;

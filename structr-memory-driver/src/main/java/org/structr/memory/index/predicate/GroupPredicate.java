@@ -20,7 +20,7 @@ package org.structr.memory.index.predicate;
 
 import org.structr.api.Predicate;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.structr.memory.index.predicate.Conjunction.And;
@@ -29,7 +29,7 @@ import static org.structr.memory.index.predicate.Conjunction.And;
  */
 public class GroupPredicate<T> implements Predicate<T> {
 
-	private final List<Predicate<T>> predicates = new LinkedList<>();
+	private final List<Predicate<T>> predicates = new ArrayList<>();
 	private Conjunction conjunction             = Conjunction.And;
 	private GroupPredicate<T> parent            = null;
 

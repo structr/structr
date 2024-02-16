@@ -19,14 +19,14 @@
 package org.structr.api;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  */
 public class AndPredicate<T> implements Predicate<T> {
 
-	private List<Predicate<T>> predicates = new LinkedList<>();
+	private List<Predicate<T>> predicates = new ArrayList<>();
 
 	public AndPredicate(final Predicate<T>... predicates) {
 		this.predicates.addAll(Arrays.asList(predicates));

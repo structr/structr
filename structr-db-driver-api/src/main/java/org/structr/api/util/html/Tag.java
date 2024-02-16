@@ -26,7 +26,7 @@ import org.structr.api.util.html.attr.Id;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +35,8 @@ import java.util.List;
  */
 public abstract class Tag {
 
-	private final List<Attr> attrs   = new LinkedList<>();
-	private final List<Tag> children = new LinkedList<>();
+	private final List<Attr> attrs   = new ArrayList<>();
+	private final List<Tag> children = new ArrayList<>();
 	private boolean empty            = false;
 	private boolean newline          = false;
 	private String text              = null;

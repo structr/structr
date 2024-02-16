@@ -33,7 +33,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -125,7 +125,7 @@ public class OSMGeoCodingProvider extends AbstractGeoCodingProvider{
 
 	private static class OSMGeoCodingResult implements GeoCodingResult {
 
-		private List <AddressComponent> addressComponents = new LinkedList<>();
+		private List <AddressComponent> addressComponents = new ArrayList<>();
 		private String address = null;
 		private double latitude;
 		private double longitude;

@@ -71,7 +71,7 @@ public class StructrFilePath extends StructrPath {
 					if (!closed) {
 
 						final App app                 = StructrApp.getInstance(fs.getSecurityContext());
-						final List<StructrPath> files = new LinkedList<>();
+						final List<StructrPath> files = new ArrayList<>();
 
 						try (final Tx tx = app.tx()) {
 

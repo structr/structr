@@ -279,7 +279,7 @@ public abstract class StructrRestTestBase {
 	protected <T extends NodeInterface> List<T> createTestNodes(final Class<T> type, final int number) throws FrameworkException {
 
 		final App app       = StructrApp.getInstance(securityContext);
-		final List<T> nodes = new LinkedList<>();
+		final List<T> nodes = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 

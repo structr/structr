@@ -40,7 +40,7 @@ import org.structr.test.rest.entity.TestThree;
 import org.structr.test.rest.entity.TestTwo;
 import org.testng.annotations.Test;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -772,7 +772,7 @@ public class AdvancedSearchTest extends StructrRestTestBase {
 		try {
 
 			final List<Principal> users      = createTestNodes(testUserType, 3);
-			final List<TestThree> testThrees = new LinkedList<>();
+			final List<TestThree> testThrees = new ArrayList<>();
 			final Random random              = new Random();
 			String uuid                      = null;
 			int count                        = 0;

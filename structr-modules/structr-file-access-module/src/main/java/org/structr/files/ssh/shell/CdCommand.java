@@ -33,7 +33,7 @@ import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -194,7 +194,7 @@ public class CdCommand extends NonInteractiveShellCommand {
 				}
 
 				final List<Folder> allFolders = app.nodeQuery(Folder.class).and(parentKey, baseFolder).sort(AbstractNode.name).getAsList();
-				final List<Folder> folders    = new LinkedList<>();
+				final List<Folder> folders    = new ArrayList<>();
 
 				for (final Folder folder : allFolders) {
 

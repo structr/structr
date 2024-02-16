@@ -42,7 +42,7 @@ import org.w3c.dom.DOMException;
 import org.w3c.dom.Element;
 import org.w3c.dom.Text;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,7 +64,7 @@ public class HtmlServletObjectResolvingTest extends StructrUiTest {
 	@Test
 	public void testObjectResolvingInHtmlServlet() {
 
-		final List<String> testObjectIDs = new LinkedList<>();
+		final List<String> testObjectIDs = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 

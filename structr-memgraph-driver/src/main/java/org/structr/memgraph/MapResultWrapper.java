@@ -122,7 +122,7 @@ class MapResultWrapper implements Map<String, Object> {
 
 	private Collection<Object> wrap(final Collection<Object> source) {
 
-		final List<Object> values = new LinkedList<>();
+		final List<Object> values = new ArrayList<>();
 
 		for (final Object obj : source) {
 			values.add(wrap(obj));

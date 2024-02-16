@@ -472,7 +472,7 @@ public class SSHService implements SingletonService, PasswordAuthenticator, Publ
 	// ----- private methods -----
 	private List<SubsystemFactory> getSubsystems() {
 
-		final List<SubsystemFactory> list = new LinkedList<>();
+		final List<SubsystemFactory> list = new ArrayList<>();
 
 		// sftp
 		final SftpSubsystemFactory factory = new SftpSubsystemFactory();

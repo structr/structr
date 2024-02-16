@@ -34,7 +34,7 @@ import org.structr.web.entity.Image;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
@@ -76,7 +76,7 @@ public class ListFilesCommand extends AbstractCommand {
 		try {
 
 			// do search
-			List<NodeInterface> filteredResults    = new LinkedList();
+			List<NodeInterface> filteredResults    = new ArrayList();
 			List<? extends GraphObject> resultList = query.getAsList();
 
 			// add only root folders to the list

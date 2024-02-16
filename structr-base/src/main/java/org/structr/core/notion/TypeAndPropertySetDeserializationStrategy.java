@@ -32,7 +32,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -96,7 +96,7 @@ public class TypeAndPropertySetDeserializationStrategy<S, T extends NodeInterfac
 
 		if (attributes != null) {
 
-			final List<T> result = new LinkedList<>();
+			final List<T> result = new ArrayList<>();
 
 			// Check if properties contain the UUID attribute
 			if (attributes.containsKey(GraphObject.id)) {

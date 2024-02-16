@@ -337,7 +337,7 @@ public class SchemaNode extends AbstractSchemaNode {
 		final GraphQLObjectType.Builder builder = GraphQLObjectType.newObject();
 
 		builder.name(className);
-		builder.fields(new LinkedList<>(fields.values()));
+		builder.fields(new ArrayList<>(fields.values()));
 
 		graphQLTypes.put(className, builder.build());
 	}
@@ -511,7 +511,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	private String addToList(final String source, final String value) {
 
-		final List<String> list = new LinkedList<>();
+		final List<String> list = new ArrayList<>();
 
 		if (source != null) {
 
@@ -549,7 +549,7 @@ public class SchemaNode extends AbstractSchemaNode {
 
 	private List<SchemaNode> getInterfaceSchemaNodes(final Map<String, SchemaNode> schemaNodes) throws FrameworkException {
 
-		final List<SchemaNode> interfaces = new LinkedList<>();
+		final List<SchemaNode> interfaces = new ArrayList<>();
 		final String inheritsFrom         = getProperty(SchemaNode.implementsInterfaces);
 
 		if (inheritsFrom != null) {

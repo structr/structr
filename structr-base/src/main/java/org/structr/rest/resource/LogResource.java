@@ -796,7 +796,7 @@ public class LogResource extends Resource {
 
 	private List<GraphObjectMap> wrap(final List<Map<String, Object>> entries) {
 
-		final List<GraphObjectMap> result = new LinkedList<>();
+		final List<GraphObjectMap> result = new ArrayList<>();
 
 		for (final Map<String, Object> entry : entries) {
 
@@ -824,8 +824,8 @@ public class LogResource extends Resource {
 	private static class LogState {
 
 		private final Map<String, Pattern> aggregationPatterns       = new HashMap<>();
-		private final List<Map<String, Object>> entries              = new LinkedList<>();
-		private final Map<String, LinkedList<LogEvent>> correlations = new ConcurrentHashMap<>();
+		private final List<Map<String, Object>> entries              = new ArrayList<>();
+		private final Map<String, ArrayList<LogEvent>> correlations = new ConcurrentHashMap<>();
 		private final Map<String, Integer> actions                   = new HashMap<>();
 		private long beginTimestamp                                  = Long.MAX_VALUE;
 		private long endTimestamp                                    = 0L;
@@ -889,10 +889,10 @@ public class LogResource extends Resource {
 
 			logger.debug("No. of correllation entry lists: {}, adding action: {} {}", new Object[]{correlations.keySet().size(), key, event.getMessage()});
 
-			LinkedList<LogEvent> existingEventList = correlations.get(key);
+			ArrayList<LogEvent> existingEventList = correlations.get(key);
 
 			if (existingEventList == null) {
-				existingEventList = new LinkedList<>();
+				existingEventList = new ArrayList<>();
 			}
 
 			existingEventList.add(event);
@@ -900,7 +900,7 @@ public class LogResource extends Resource {
 			correlations.put(key, existingEventList);
 		}
 
-		public Map<String, LinkedList<LogEvent>> getCorrelations() {
+		public Map<String, ArrayList<LogEvent>> getCorrelations() {
 			return correlations;
 		}
 
@@ -1012,7 +1012,7 @@ public class LogResource extends Resource {
 				return true;
 			}
 
-			LinkedList<LogEvent> correlationEntries;
+			ArrayList<LogEvent> correlationEntries;
 
 			if (correlationOp != null && correlationPattern != null) {
 

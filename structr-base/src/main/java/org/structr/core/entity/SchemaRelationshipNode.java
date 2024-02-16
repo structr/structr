@@ -539,7 +539,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 		final String _className                             = getClassName();
 		final String _sourceNodeType                        = getSchemaNodeSourceType();
 		final String _targetNodeType                        = getSchemaNodeTargetType();
-		final List<String> propertyValidators               = new LinkedList<>();
+		final List<String> propertyValidators               = new ArrayList<>();
 		final Set<String> compoundIndexKeys                 = new LinkedHashSet<>();
 		final Set<String> propertyNames                     = new LinkedHashSet<>();
 		final Set<Validator> validators                     = new LinkedHashSet<>();
@@ -680,7 +680,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 
 	public void initializeGraphQL(final Map<String, GraphQLType> graphQLTypes) {
 
-		final List<GraphQLFieldDefinition> fields = new LinkedList<>();
+		final List<GraphQLFieldDefinition> fields = new ArrayList<>();
 		final String className                    = getClassName();
 
 		// add static fields (id, name etc.)

@@ -138,7 +138,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 
 		query.page(page);
 		query.pageSize(pageSize);
-		query.attributes(new LinkedList<>(attributes.values()));
+		query.attributes(new ArrayList<>(attributes.values()));
 
 		if (sortKey != null) {
 
@@ -190,7 +190,7 @@ public class QueryConfig implements GraphQLQueryConfiguration {
 		final ConfigurationProvider config   = StructrApp.getConfiguration();
 		final PropertyKey parentKey          = config.getPropertyKeyForJSONName(type, parentField.getName());
 		final PropertyKey key                = config.getPropertyKeyForJSONName(type, field.getName(), false);
-		final List<SearchTuple> searchTuples = new LinkedList<>();
+		final List<SearchTuple> searchTuples = new ArrayList<>();
 		Occurrence occurrence                = Occurrence.REQUIRED;
 
 		// parse arguments

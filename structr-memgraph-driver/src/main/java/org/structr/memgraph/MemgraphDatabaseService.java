@@ -573,7 +573,7 @@ public class MemgraphDatabaseService extends AbstractDatabaseService {
 		if (!createOnly) {
 
 			final AtomicInteger droppedIndexesOfRemovedTypes = new AtomicInteger(0);
-			final List removedTypes = new LinkedList();
+			final List removedTypes = new ArrayList();
 
 			// drop indices for all indexed properties of removed classes
 			for (final Map.Entry<String, Map<String, IndexConfig>> entry : removedClassesSource.entrySet()) {

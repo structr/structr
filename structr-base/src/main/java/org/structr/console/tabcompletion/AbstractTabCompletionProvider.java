@@ -29,7 +29,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 
 	protected List<TabCompletionResult> getCaseInsensitiveResultsForCollection(final Collection<String> words, final String token, final String suffix) {
 
-		final List<TabCompletionResult> result = new LinkedList<>();
+		final List<TabCompletionResult> result = new ArrayList<>();
 		final String lowerToken                = token.toLowerCase();
 		final boolean upperCase                = StringUtils.isAllUpperCase(token);
 
@@ -53,7 +53,7 @@ public abstract class AbstractTabCompletionProvider implements TabCompletionProv
 
 	protected List<TabCompletionResult> getExactResultsForCollection(final Collection<String> words, final String token, final String suffix) {
 
-		final List<TabCompletionResult> result = new LinkedList<>();
+		final List<TabCompletionResult> result = new ArrayList<>();
 
 		for (final String word : words) {
 

@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class StackDumpFunction extends CoreFunction {
@@ -47,7 +47,7 @@ public class StackDumpFunction extends CoreFunction {
 	@Override
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
-		final List<String> frames = new LinkedList<>();
+		final List<String> frames = new ArrayList<>();
 
 		StackWalker.getInstance().forEach(f -> frames.add("        " + f.toString()));
 

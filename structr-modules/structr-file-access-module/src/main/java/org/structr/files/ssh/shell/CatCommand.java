@@ -34,7 +34,7 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 
 import java.io.IOException;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -131,8 +131,8 @@ public class CatCommand extends NonInteractiveShellCommand {
 					}
 				}
 
-				final List<AbstractFile> allFiles = new LinkedList<>();
-				final List<AbstractFile> files    = new LinkedList<>();
+				final List<AbstractFile> allFiles = new ArrayList<>();
+				final List<AbstractFile> files    = new ArrayList<>();
 
 				if (baseFolder != null) {
 

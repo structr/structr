@@ -70,7 +70,7 @@ public class StructrSchemaNodePath extends StructrPath {
 
 					if (!closed) {
 
-						final List<StructrPath> children = new LinkedList<>();
+						final List<StructrPath> children = new ArrayList<>();
 
 						//children.add(new StructrSchemaPropertiesPath(fs, StructrSchemaNodePath.this, schemaNode));
 						//children.add(new StructrSchemaViewsPath(fs, StructrSchemaNodePath.this, schemaNode));

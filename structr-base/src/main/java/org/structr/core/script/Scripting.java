@@ -88,7 +88,7 @@ public class Scripting {
 			// this is a very important check here, the ActionContext can be set to "raw" mode
 			if (!actionContext.returnRawValue()) {
 
-				final List<Tuple> replacements = new LinkedList<>();
+				final List<Tuple> replacements = new ArrayList<>();
 
 				for (final String expression : extractScripts(value)) {
 
@@ -475,7 +475,7 @@ public class Scripting {
 	// this is only public to be testable :(
 	public static List<String> extractScripts(final String source) {
 
-		final List<String> expressions = new LinkedList<>();
+		final List<String> expressions = new ArrayList<>();
 		final StringBuilder buffer     = new StringBuilder();
 		final int length               = source.length();
 		boolean inComment              = false;

@@ -24,7 +24,7 @@ import org.structr.schema.SourceFile;
 import org.structr.schema.SourceLine;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class ActionEntry implements Comparable<ActionEntry> {
 
 	private final Map<String, String> parameters = new LinkedHashMap<>();
-	private final List<String> exceptions        = new LinkedList<>();
+	private final List<String> exceptions        = new ArrayList<>();
 	private Actions.Type type                    = null;
 	private boolean isStatic                     = false;
 	private boolean doExport                     = false;

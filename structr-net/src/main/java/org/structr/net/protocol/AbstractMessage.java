@@ -77,7 +77,7 @@ public abstract class AbstractMessage {
 		TypeMap.put(Boolean.class,      4);
 		TypeMap.put(Double.class,       5);
 		TypeMap.put(Float.class,        6);
-		TypeMap.put(LinkedList.class, 100);
+		TypeMap.put(ArrayList.class, 100);
 
 	}
 
@@ -336,7 +336,7 @@ public abstract class AbstractMessage {
 
 	private List deserializeList(final DataInputStream dis) throws IOException {
 
-		final LinkedList<Object> list = new LinkedList<>();
+		final ArrayList<Object> list = new ArrayList<>();
 		final int count               = dis.readInt();
 
 		for (int i=0; i<count; i++) {

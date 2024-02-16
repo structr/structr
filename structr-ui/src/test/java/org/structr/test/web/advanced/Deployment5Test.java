@@ -42,7 +42,7 @@ import org.structr.websocket.command.CreateComponentCommand;
 import org.testng.annotations.Test;
 
 import java.lang.Object;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import org.structr.api.schema.JsonSchema;
@@ -175,7 +175,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			);
 
 			final Group parent       = app.create(Group.class, "parent");
-			final List<Group> groups = new LinkedList<>();
+			final List<Group> groups = new ArrayList<>();
 
 			for (int i=0; i<8; i++) {
 				groups.add(app.create(Group.class, "group0" + i));
@@ -258,7 +258,7 @@ public class Deployment5Test extends DeploymentTestBase {
 			);
 
 			final Group parent       = app.create(Group.class, "parent");
-			final List<Group> groups = new LinkedList<>();
+			final List<Group> groups = new ArrayList<>();
 
 			for (int i=0; i<8; i++) {
 				groups.add(app.create(Group.class, "group0" + i));

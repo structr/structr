@@ -29,7 +29,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class CoordsFunction extends GeoFunction {
@@ -56,7 +56,7 @@ public class CoordsFunction extends GeoFunction {
 
 			if (sources[0] instanceof Geometry) {
 
-				final List<List<Double>> result = new LinkedList<>();
+				final List<List<Double>> result = new ArrayList<>();
 				final Geometry geometry         = (Geometry)sources[0];
 
 				for (final Coordinate c : geometry.getCoordinates()) {
@@ -69,7 +69,7 @@ public class CoordsFunction extends GeoFunction {
 
 			if (sources[0] instanceof CoordinateList) {
 
-				final List<List<Double>> result = new LinkedList<>();
+				final List<List<Double>> result = new ArrayList<>();
 				final CoordinateList list       = (CoordinateList)sources[0];
 
 				for (final Coordinate c : list.toCoordinateArray()) {
@@ -82,7 +82,7 @@ public class CoordsFunction extends GeoFunction {
 
 			if (sources[0] instanceof Coordinate[]) {
 
-				final List<List<Double>> result = new LinkedList<>();
+				final List<List<Double>> result = new ArrayList<>();
 				final Coordinate[] array        = (Coordinate[])sources[0];
 
 				for (final Coordinate c : array) {
@@ -95,7 +95,7 @@ public class CoordsFunction extends GeoFunction {
 
 			if (sources[0] instanceof Coordinate) {
 
-				final List<Double> result = new LinkedList<>();
+				final List<Double> result = new ArrayList<>();
 				final Coordinate c        = (Coordinate)sources[0];
 
 				result.add(c.x);

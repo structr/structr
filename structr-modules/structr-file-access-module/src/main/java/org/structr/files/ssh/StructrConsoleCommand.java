@@ -42,7 +42,7 @@ import org.structr.web.entity.User;
 
 import java.io.*;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +52,7 @@ public class StructrConsoleCommand implements Command, SignalListener, TerminalH
 
 	private static final Logger logger = LoggerFactory.getLogger(StructrConsoleCommand.class.getName());
 
-	private final List<String> commandHistory  = new LinkedList<>();
+	private final List<String> commandHistory  = new ArrayList<>();
 	private final StringBuilder lastBlockChars = new StringBuilder();
 	private final StringBuilder buf            = new StringBuilder();
 	private ConsoleMode consoleMode            = ConsoleMode.JavaScript;

@@ -65,7 +65,7 @@ public class PerformanceTest extends IndexingTest {
 	@Test
 	public void testPerformanceOfNodeCreation() {
 
-		final List<TestOne> nodes = new LinkedList<>();
+		final List<TestOne> nodes = new ArrayList<>();
 		final long number         = 1000;
 
 		// start measuring
@@ -133,7 +133,7 @@ public class PerformanceTest extends IndexingTest {
 			int expected                   = 1000;
 			final App app                  = StructrApp.getInstance(setupSecurityContext());
 			final List<GenericNode> nodes  = new ArrayList<>(createNodes(app, GenericNode.class, expected + 1));
-			List<GenericRelationship> rels = new LinkedList<>();
+			List<GenericRelationship> rels = new ArrayList<>();
 			long t0                        = System.nanoTime();
 
  			try (final Tx tx = app.tx()) {
@@ -319,7 +319,7 @@ public class PerformanceTest extends IndexingTest {
 	public void testPerformanceOfNodeDeletion() {
 
 		final App app                 = StructrApp.getInstance(setupSecurityContext());
-		final List<GraphObject> nodes = new LinkedList<>();
+		final List<GraphObject> nodes = new ArrayList<>();
 		final int number              = 1000;
 
 		try {
@@ -394,7 +394,7 @@ public class PerformanceTest extends IndexingTest {
 
 	private <T extends NodeInterface> List<T> createNodes(final App app, final Class<T> type, final int number) throws FrameworkException {
 
-		final List<T> nodes = new LinkedList<>();
+		final List<T> nodes = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 

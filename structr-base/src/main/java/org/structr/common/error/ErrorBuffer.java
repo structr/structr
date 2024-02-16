@@ -18,7 +18,7 @@
  */
 package org.structr.common.error;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,7 +29,7 @@ import java.util.List;
  */
 public class ErrorBuffer {
 
-	private final List<ErrorToken> tokens = new LinkedList<>();
+	private final List<ErrorToken> tokens = new ArrayList<>();
 	private int status                    = 0;
 
 	public void add(final ErrorToken token) {

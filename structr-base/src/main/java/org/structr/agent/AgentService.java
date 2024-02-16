@@ -292,7 +292,7 @@ public class AgentService extends Thread implements RunnableService {
 
 		if (agents == null) {
 
-			agents = Collections.synchronizedList(new LinkedList<>());
+			agents = Collections.synchronizedList(new ArrayList<>());
 
 			// Hashtable is synchronized
 			runningAgents.put(taskClass.getName(), agents);

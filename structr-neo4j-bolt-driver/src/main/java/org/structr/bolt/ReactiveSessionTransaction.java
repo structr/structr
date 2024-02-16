@@ -439,7 +439,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 
 			logSummary(Mono.from(result.consume()).block());
 
-			return new LinkedList<>(immutable);
+			return new ArrayList<>(immutable);
 
 		} catch (TransientException tex) {
 			closed = true;

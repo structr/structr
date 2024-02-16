@@ -40,7 +40,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.lang.reflect.Type;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -454,7 +454,7 @@ public class WebSocketDataGSONAdapter implements JsonSerializer<WebSocketMessage
 					} else if (obj instanceof JsonArray) {
 
 						final JsonArray array = obj.getAsJsonArray();
-						final List list       = new LinkedList();
+						final List list       = new ArrayList();
 
 						for (JsonElement element : array) {
 

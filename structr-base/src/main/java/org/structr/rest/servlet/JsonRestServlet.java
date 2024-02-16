@@ -259,7 +259,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 	@Override
 	protected void doPost(final HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 
-		final List<RestMethodResult> results = new LinkedList<>();
+		final List<RestMethodResult> results = new ArrayList<>();
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
 		final Resource resource;
@@ -623,7 +623,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				if (resource.isCollectionResource()) {
 
-					final List<Map<String, Object>> inputs = new LinkedList<>();
+					final List<Map<String, Object>> inputs = new ArrayList<>();
 
 					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 

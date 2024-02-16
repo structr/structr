@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.payment.api.*;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -113,7 +113,7 @@ public class StripePaymentProvider implements PaymentProvider {
 
 	private static class ConfirmResponse implements ConfirmCheckoutResponse {
 
-		private final List<APIError> errors = new LinkedList<>();
+		private final List<APIError> errors = new ArrayList<>();
 		private CheckoutState state         = null;
 
 		public ConfirmResponse(final CheckoutState state) {

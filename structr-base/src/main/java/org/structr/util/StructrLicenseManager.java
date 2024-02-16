@@ -625,7 +625,7 @@ public class StructrLicenseManager implements LicenseManager {
 
 	private Iterable<NetworkInterface> getNetworkInterfaces() {
 
-		final List<NetworkInterface> interfaces = new LinkedList<>();
+		final List<NetworkInterface> interfaces = new ArrayList<>();
 
 		try {
 			for (final Enumeration<NetworkInterface> enumeration = NetworkInterface.getNetworkInterfaces(); enumeration.hasMoreElements();) {

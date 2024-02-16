@@ -24,7 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,7 +72,7 @@ public class FilterExpression extends Expression {
 		}
 
 		final Object listSource = listExpression.evaluate(ctx, entity, hints);
-		final List target       = new LinkedList<>();
+		final List target       = new ArrayList<>();
 
 		if (listSource != null && listSource instanceof Iterable) {
 

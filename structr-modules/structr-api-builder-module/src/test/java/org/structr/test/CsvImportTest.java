@@ -46,7 +46,7 @@ import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -569,13 +569,13 @@ public class CsvImportTest extends StructrUiTest {
 
 			final SchemaNode customType = createTestNode(SchemaNode.class, new NodeAttribute(SchemaMethod.name, "DummyType"));
 
-			final List<SchemaProperty> properties = new LinkedList<>();
+			final List<SchemaProperty> properties = new ArrayList<>();
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDataString"),     new NodeAttribute(SchemaProperty.propertyType, "String")));
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedImportSourceFileName"), new NodeAttribute(SchemaProperty.propertyType, "String")));
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "retrievedCustomString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
 			customType.setProperty(SchemaNode.schemaProperties, properties);
 
-			final List<SchemaMethod> methods = new LinkedList<>();
+			final List<SchemaMethod> methods = new ArrayList<>();
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"),    new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedImportSourceFileName = Structr.retrieve('" + storeKey1 + "') }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "afterCreate"), new NodeAttribute(SchemaMethod.source, "{ var self = Structr.get('this'); self.retrievedCustomString = Structr.retrieve('" + storeKey2 + "') }")));
 			customType.setProperty(SchemaNode.schemaMethods, methods);

@@ -25,7 +25,7 @@ import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -59,7 +59,7 @@ public class HyperRelationProperty<S extends AbstractNode, T extends AbstractNod
 	public Iterable<T> getProperty(SecurityContext securityContext, GraphObject obj, boolean applyConverter, final Predicate<GraphObject> predicate) {
 
 		Iterable<S> connectors = obj.getProperty(step1);
-		List<T> endNodes       = new LinkedList<>();
+		List<T> endNodes       = new ArrayList<>();
 
 		if (connectors != null) {
 

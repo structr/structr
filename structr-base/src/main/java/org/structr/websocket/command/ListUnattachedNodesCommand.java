@@ -35,7 +35,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -119,7 +119,7 @@ public class ListUnattachedNodesCommand extends AbstractCommand {
 		query.orType(Template.class);
 
 		// do search
-		final List<NodeInterface> filteredResults = new LinkedList();
+		final List<NodeInterface> filteredResults = new ArrayList();
 		List<? extends GraphObject> resultList    = null;
 
 		try (final Tx tx = app.tx()) {

@@ -92,7 +92,7 @@ public class WebsocketController implements StructrTransactionListener {
 
 		final String pagePath                        = webSocketData.getNodeDataStringValue("pagePath");
 		final String encodedPath                     = URIUtil.encodePath(pagePath);
-		final List<StructrWebSocket> clientsToRemove = new LinkedList<>();
+		final List<StructrWebSocket> clientsToRemove = new ArrayList<>();
 		final Iterable<? extends GraphObject> result = webSocketData.getResult();
 		final String command                         = webSocketData.getCommand();
 		final GraphObject obj                        = webSocketData.getGraphObject();

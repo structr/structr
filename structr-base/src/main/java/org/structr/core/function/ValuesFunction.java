@@ -25,7 +25,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Set;
 
@@ -56,18 +56,18 @@ public class ValuesFunction extends CoreFunction {
 				values.add(source.getProperty(key));
 			}
 
-			return new LinkedList<>(values);
+			return new ArrayList<>(values);
 
 		//} else if (arrayHasMinLengthAndAllElementsNotNull(sources, 1) && sources[0] instanceof GraphObjectMap) {
 		} else if (sources.length >= 1) {
 
 			if (sources[0] instanceof GraphObjectMap) {
 
-				return new LinkedList<>(((GraphObjectMap)sources[0]).values());
+				return new ArrayList<>(((GraphObjectMap)sources[0]).values());
 
 			} else if (sources[0] instanceof Map) {
 
-				return new LinkedList<>(((Map)sources[0]).values());
+				return new ArrayList<>(((Map)sources[0]).values());
 			}
 
 		}

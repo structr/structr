@@ -69,7 +69,7 @@ public class StructrSchemaViewsPath extends StructrPath {
 				public Iterator iterator() {
 
 					final App app                 = StructrApp.getInstance(fs.getSecurityContext());
-					final List<StructrPath> nodes = new LinkedList<>();
+					final List<StructrPath> nodes = new ArrayList<>();
 
 					try (final Tx tx = app.tx()) {
 

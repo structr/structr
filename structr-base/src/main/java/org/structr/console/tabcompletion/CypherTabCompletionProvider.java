@@ -23,7 +23,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.app.StructrApp;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -36,7 +36,7 @@ public class CypherTabCompletionProvider extends AbstractTabCompletionProvider {
 
 	private static final Pattern nodePattern = Pattern.compile("\\([a-zA-Z]?[a-zA-Z0-9]+:[a-zA-Z]?[a-zA-Z0-9]+");
 	private static final Pattern relPattern  = Pattern.compile("\\[[a-zA-Z]?[a-zA-Z0-9]+:[a-zA-Z]?[a-zA-Z0-9]+");
-	private final List<String> words         = new LinkedList<>();
+	private final List<String> words         = new ArrayList<>();
 
 	public CypherTabCompletionProvider() {
 
@@ -82,7 +82,7 @@ public class CypherTabCompletionProvider extends AbstractTabCompletionProvider {
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> results = new LinkedList<>();
+		final List<TabCompletionResult> results = new ArrayList<>();
 		final String token                      = getToken(line, " ");
 
 		results.addAll(getCaseInsensitiveResultsForCollection(words, token, " "));

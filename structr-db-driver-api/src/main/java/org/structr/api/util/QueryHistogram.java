@@ -24,7 +24,7 @@ import java.util.*;
 
 public class QueryHistogram {
 
-	private static final List<QueryTimer> timers = new LinkedList<>();
+	private static final List<QueryTimer> timers = new ArrayList<>();
 	private static final int HISTOGRAM_SIZE      = 100_000;
 
 	private static final String COUNT      = "Count";
@@ -54,7 +54,7 @@ public class QueryHistogram {
 	public static synchronized List<Map<String, Object>> analyze(final String sortKey, final int topCount) {
 
 		final Map<String, Map<String, Object>> data = new LinkedHashMap<>();
-		final List<Map<String, Object>> sorted      = new LinkedList<>();
+		final List<Map<String, Object>> sorted      = new ArrayList<>();
 		String actualSortKey                        = TOTAL_TIME;
 
 		if (sortKey != null) {

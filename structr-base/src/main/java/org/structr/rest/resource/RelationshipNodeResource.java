@@ -33,7 +33,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,7 +66,7 @@ public class RelationshipNodeResource extends WrappingResource {
 		if(results != null && !results.isEmpty()) {
 
 			try {
-				List<GraphObject> resultList = new LinkedList<>();
+				List<GraphObject> resultList = new ArrayList<>();
 				for(GraphObject obj : results) {
 
 					if(obj instanceof AbstractRelationship) {

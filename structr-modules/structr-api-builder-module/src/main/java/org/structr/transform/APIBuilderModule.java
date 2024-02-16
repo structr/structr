@@ -107,7 +107,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 
 		final App app                                = StructrApp.getInstance();
 		final Path virtualTypesFile                  = target.resolve("virtual-types.json");
-		final List<Map<String, Object>> virtualTypes = new LinkedList();
+		final List<Map<String, Object>> virtualTypes = new ArrayList();
 
 		try (final Tx tx = app.tx()) {
 
@@ -123,7 +123,7 @@ public class APIBuilderModule implements StructrModule, APIBuilder {
 				entry.put("visibleToAuthenticatedUsers", virtualType.getProperty(VirtualType.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        virtualType.getProperty(VirtualType.visibleToPublicUsers));
 
-				final List<Map<String, Object>> properties = new LinkedList();
+				final List<Map<String, Object>> properties = new ArrayList();
 				entry.put("properties", properties);
 
 				for (final VirtualProperty virtualProperty : virtualType.getVirtualProperties()) {

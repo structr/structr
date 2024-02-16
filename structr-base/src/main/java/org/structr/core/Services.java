@@ -85,7 +85,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	private final Map<Class, Map<String, Service>> serviceCache = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Set<Permission> permissionsForOwnerlessNodes  = new LinkedHashSet<>();
 	private final Map<String, Class> registeredServiceClasses   = new LinkedHashMap<>();
-	private final List<InitializationCallback> callbacks        = new LinkedList<>();
+	private final List<InitializationCallback> callbacks        = new ArrayList<>();
 	private final Map<String, Object> cachedValues              = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final Map<String, Object> applicationStore          = new ConcurrentHashMap<>(10, 0.9f, 8);
 	private final ReentrantReadWriteLock reloading              = new ReentrantReadWriteLock(true);
@@ -599,7 +599,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 			logger.info("Shutting down..");
 
 			final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
-			final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+			final List<Class> reverseServiceClassNames = new ArrayList<>(configuredServiceClasses);
 			Collections.reverse(reverseServiceClassNames);
 
 			for (final Class serviceClass : reverseServiceClassNames) {
@@ -645,7 +645,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 						logger.info("Setting maintenace mode = {}", maintenanceEnabled);
 
 						final List<Class> configuredServiceClasses = getCongfiguredServiceClasses();
-						final List<Class> reverseServiceClassNames = new LinkedList<>(configuredServiceClasses);
+						final List<Class> reverseServiceClassNames = new ArrayList<>(configuredServiceClasses);
 						Collections.reverse(reverseServiceClassNames);
 
 						for (final Class serviceClass : reverseServiceClassNames) {
@@ -950,7 +950,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 	 * @return list of services
 	 */
 	public List<Class> getRegisteredServiceClasses() {
-		return new LinkedList<>(registeredServiceClasses.values());
+		return new ArrayList<>(registeredServiceClasses.values());
 	}
 
 	public <T extends Service> T getServiceImplementation(final Class<T> type) {
@@ -1045,7 +1045,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 		final String[] names                  = Settings.Services.getValue("").split("[ ,]+");
 		final Map<Class, Class> dependencyMap = new LinkedHashMap<>();
-		final List<Class> classes             = new LinkedList<>();
+		final List<Class> classes             = new ArrayList<>();
 
 		for (final String name : names) {
 

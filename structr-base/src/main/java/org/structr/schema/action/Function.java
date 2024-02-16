@@ -575,7 +575,7 @@ public abstract class Function<S, T> extends BuiltinFunctionHint {
 
 			} else if (value instanceof Iterable) {
 
-				final List list           = new LinkedList();
+				final List list           = new ArrayList();
 				final Iterable collection = (Iterable)value;
 
 				for (final Object obj : collection) {

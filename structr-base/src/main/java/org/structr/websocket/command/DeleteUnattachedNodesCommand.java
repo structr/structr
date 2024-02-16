@@ -31,7 +31,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -54,7 +54,7 @@ public class DeleteUnattachedNodesCommand extends AbstractCommand {
 
 		final SecurityContext securityContext     = getWebSocket().getSecurityContext();
 		final App app                             = StructrApp.getInstance(securityContext);
-		final List<NodeInterface> filteredResults = new LinkedList<>();
+		final List<NodeInterface> filteredResults = new ArrayList<>();
 
 		try (final Tx tx = app.tx(true, false, false)) {
 

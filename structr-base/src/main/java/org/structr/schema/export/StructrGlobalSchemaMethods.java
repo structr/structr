@@ -32,7 +32,7 @@ import java.util.*;
 
 public class StructrGlobalSchemaMethods {
 
-	private List<Map<String, Object>> globalMethods = new LinkedList<>();
+	private List<Map<String, Object>> globalMethods = new ArrayList<>();
 
 	public Map<String, Object> serializeOpenAPIOperations(final String tag) {
 

@@ -144,7 +144,7 @@ public class SchemaResource extends Resource {
 	// ----- public static methods -----
 	public static ResultStream getSchemaOverviewResult() throws FrameworkException {
 
-		final List<GraphObjectMap> resultList = new LinkedList<>();
+		final List<GraphObjectMap> resultList = new ArrayList<>();
 		final ConfigurationProvider config    = StructrApp.getConfiguration();
 
 		// extract types from ModuleService
@@ -181,8 +181,8 @@ public class SchemaResource extends Resource {
 
 				if (!isRel) {
 
-					final List<GraphObjectMap> relatedTo   = new LinkedList<>();
-					final List<GraphObjectMap> relatedFrom = new LinkedList<>();
+					final List<GraphObjectMap> relatedTo   = new ArrayList<>();
+					final List<GraphObjectMap> relatedFrom = new ArrayList<>();
 
 					for (final PropertyKey key : config.getPropertySet(type, PropertyView.All)) {
 

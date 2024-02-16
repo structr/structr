@@ -289,7 +289,7 @@ public class HttpService implements RunnableService, StatsCallback {
 
 		servletContext.insertHandler(gzipHandler);
 
-		final List<Connector> connectors = new LinkedList<>();
+		final List<Connector> connectors = new ArrayList<>();
 
 		// create resource collection from base path & source JAR
 		try {
@@ -642,7 +642,7 @@ public class HttpService implements RunnableService, StatsCallback {
 				maintenanceServer.setHandler(staticResourceHandler);
 			}
 
-			final List<Connector> connectors = new LinkedList<>();
+			final List<Connector> connectors = new ArrayList<>();
 
 			httpConfig = new HttpConfiguration();
 			httpConfig.setSendServerVersion(false);
@@ -807,7 +807,7 @@ public class HttpService implements RunnableService, StatsCallback {
 	// ----- private methods -----
 	private List<ContextHandler> collectResourceHandlers() throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
-		final List<ContextHandler> resourceHandlers = new LinkedList<>();
+		final List<ContextHandler> resourceHandlers = new ArrayList<>();
 		final String resourceHandlerList            = Settings.ResourceHandlers.getValue();
 
 		if (resourceHandlerList != null) {

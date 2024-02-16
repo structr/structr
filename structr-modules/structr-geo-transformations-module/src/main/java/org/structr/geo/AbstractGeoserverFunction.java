@@ -136,13 +136,13 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 		try {
 
-			final List<Geometry> result            = new LinkedList<>();
+			final List<Geometry> result            = new ArrayList<>();
 			final GridCoverage2D coverage          = getWCSCoverage(baseUrl, coverageId, boundingBox);
 			final CoordinateReferenceSystem crs    = coverage.getCoordinateReferenceSystem();
 			final CoordinateReferenceSystem wgs    = CRS.decode("EPSG:4326");
 			final PolygonExtractionProcess extr    = new PolygonExtractionProcess();
-			final Collection<Number> noDataValues  = new LinkedList<>();
-			final List<Range> classificationRanges = new LinkedList<>();
+			final Collection<Number> noDataValues  = new ArrayList<>();
+			final List<Range> classificationRanges = new ArrayList<>();
 			final MathTransform transform          = CRS.findMathTransform(crs, wgs);
 
 			classificationRanges.add(new Range(min, true, max, true));
@@ -175,7 +175,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 
 	protected List<Map<String, Object>> getWFSData(final String baseUrl, final String version, final String typeName, final String parameters) throws FrameworkException {
 
-		final List<Map<String, Object>> data = new LinkedList<>();
+		final List<Map<String, Object>> data = new ArrayList<>();
 
 		try {
 
@@ -190,7 +190,7 @@ public abstract class AbstractGeoserverFunction extends GeoFunction {
 				try (final InputStream is = connection.getInputStream()) {
 
 					final GMLConfiguration config  = new GMLConfiguration();
-					final List<Feature> features   = new LinkedList<>();
+					final List<Feature> features   = new ArrayList<>();
 					final Parser parser            = new Parser(config);
 					final Object result            = parser.parse(is);
 

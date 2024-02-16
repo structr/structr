@@ -31,7 +31,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -64,7 +64,7 @@ public class GetSuggestionsCommand extends AbstractCommand {
 
 			try {
 
-				final List<Widget> result    = new LinkedList<>();
+				final List<Widget> result    = new ArrayList<>();
 				final Element element        = new Element(tag);
 
 				for (final String css : classes) {

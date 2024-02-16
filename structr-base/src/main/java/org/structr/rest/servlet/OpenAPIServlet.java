@@ -165,7 +165,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private List<Map<String, Object>> createServersObject(final HttpServletRequest request) {
 
-		final List<Map<String, Object>> servers = new LinkedList<>();
+		final List<Map<String, Object>> servers = new ArrayList<>();
 		final Map<String, Object> server        = new LinkedHashMap<>();
 
 		server.put("url",         getStructrUrl(request));
@@ -224,7 +224,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private List<Map<String, Object>> createGlobalSecurityObject() {
 
-		final List<Map<String, Object>> security = new LinkedList<>();
+		final List<Map<String, Object>> security = new ArrayList<>();
 
 		security.add(Map.of("CookieAuth", List.of()));
 		security.add(Map.of("BearerAuth", List.of()));
@@ -237,7 +237,7 @@ public class OpenAPIServlet extends AbstractDataServlet {
 
 	private List<Map<String, Object>> createTagsObject(final StructrSchemaDefinition schema, final String tag) {
 
-		final List<Map<String, Object>> tags = new LinkedList<>();
+		final List<Map<String, Object>> tags = new ArrayList<>();
 
 		for (final StructrTypeDefinition type : schema.getTypeDefinitions()) {
 

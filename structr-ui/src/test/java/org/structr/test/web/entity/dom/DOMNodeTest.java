@@ -30,7 +30,7 @@ import org.structr.web.entity.dom.Page;
 import org.testng.annotations.Test;
 import org.w3c.dom.*;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
@@ -831,7 +831,7 @@ public class DOMNodeTest extends DOMTest {
 
 	private <T extends GraphObject> List<T> toList(final Iterable<T> it) {
 
-		List<T> list = new LinkedList();
+		List<T> list = new ArrayList();
 
 		for (T obj : it) {
 

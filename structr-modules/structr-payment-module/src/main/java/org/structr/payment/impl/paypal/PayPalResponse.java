@@ -25,13 +25,13 @@ import urn.ebay.apis.eBLBaseComponents.AbstractResponseType;
 import urn.ebay.apis.eBLBaseComponents.AckCodeType;
 import urn.ebay.apis.eBLBaseComponents.ErrorType;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
 public abstract class PayPalResponse implements APIResponse {
 
-	private final List<APIError> errors = new LinkedList<>();
+	private final List<APIError> errors = new ArrayList<>();
 	private CheckoutState checkoutState = null;
 
 	public PayPalResponse(final AbstractResponseType response) {

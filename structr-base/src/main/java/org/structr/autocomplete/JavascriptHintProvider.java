@@ -27,7 +27,7 @@ import org.structr.core.function.ParseResult;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,7 +94,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 		// The resulting token list needs to be reversed since we go backwards through the text.
 		Collections.reverse(tokens);
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<AbstractHint> hints = new ArrayList<>();
 		final int tokenCount           = tokens.size();
 		int startTokenIndex            = -1;
 

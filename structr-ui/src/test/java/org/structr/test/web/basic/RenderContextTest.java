@@ -50,7 +50,7 @@ import org.w3c.dom.NodeList;
 import java.net.HttpCookie;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.*;
@@ -105,7 +105,7 @@ public class RenderContextTest extends StructrUiTest {
 			child1 = app.create(itemClass);
 			child2 = app.create(itemClass);
 
-			final List<NodeInterface> children = new LinkedList<>();
+			final List<NodeInterface> children = new ArrayList<>();
 			children.add(child1);
 			children.add(child2);
 
@@ -287,7 +287,7 @@ public class RenderContextTest extends StructrUiTest {
 			task3    = app.create(taskClass, new NodeAttribute(SchemaNode.name, "Task3"));
 
 			// add task to project
-			final List tasks = new LinkedList<>();
+			final List tasks = new ArrayList<>();
 			tasks.add(task1);
 			tasks.add(task2);
 			tasks.add(task3);
@@ -597,7 +597,7 @@ public class RenderContextTest extends StructrUiTest {
 	@Test
 	public void testFiltering() {
 
-		final List<TestOne> testOnes = new LinkedList<>();
+		final List<TestOne> testOnes = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -666,7 +666,7 @@ public class RenderContextTest extends StructrUiTest {
 			final PropertyKey taskKey  = StructrApp.key(taskType, "task");
 			final PropertyKey tasksKey = StructrApp.key(projectType, "tasks");
 
-			final List<NodeInterface> tasks = new LinkedList<>();
+			final List<NodeInterface> tasks = new ArrayList<>();
 
 			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 1"), new NodeAttribute<>(taskKey, "Task 1")));
 			tasks.add(app.create(taskType, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Task 2"), new NodeAttribute<>(taskKey, "Task 2")));

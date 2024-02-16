@@ -18,7 +18,7 @@
  */
 package org.structr.text;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,7 +26,7 @@ import java.util.List;
 
 public class AnnotatedPage {
 
-	private final List<AnnotatedLine> lines = new LinkedList<>();
+	private final List<AnnotatedLine> lines = new ArrayList<>();
 
 	public List<AnnotatedLine> getLines() {
 		return lines;

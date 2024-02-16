@@ -32,7 +32,7 @@ import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.ToolProvider;
 import java.lang.reflect.Constructor;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -72,7 +72,7 @@ public class FunctionsCompiler {
 		if (!initialized) {
 
 			final String className             = "org.structr.core.script.FunctionsProxy";
-			final List<JavaFileObject> jfiles  = new LinkedList<>();
+			final List<JavaFileObject> jfiles  = new ArrayList<>();
 
 			jfiles.add(new CharSequenceJavaFileObject(className, getContent()));
 

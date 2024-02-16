@@ -28,7 +28,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class LineStringsToPolygonsFunction extends GeoFunction {
@@ -54,7 +54,7 @@ public class LineStringsToPolygonsFunction extends GeoFunction {
 			assertArrayHasLengthAndAllElementsNotNull(sources, 1);
 
 			final GeometryFactory factory = new GeometryFactory();
-			final List<Polygon> polygons  = new LinkedList<>();
+			final List<Polygon> polygons  = new ArrayList<>();
 			final LineMerger merger       = new LineMerger();
 
 			if (sources[0] instanceof Collection) {

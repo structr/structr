@@ -205,7 +205,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 							}
 
 							final List<String> topWords       = getFrequencySortedTopWords(indexedWords, indexable.maximumIndexedWords());
-							final List<IndexedWord> wordNodes = new LinkedList<>();
+							final List<IndexedWord> wordNodes = new ArrayList<>();
 
 							try {
 

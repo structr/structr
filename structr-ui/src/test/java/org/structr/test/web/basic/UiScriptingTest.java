@@ -352,7 +352,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create list of 100 folders
-			final List<Folder> folders = new LinkedList<>();
+			final List<Folder> folders = new ArrayList<>();
 			for (int i=0; i<100; i++) {
 
 				folders.add(createTestNode(Folder.class, new NodeAttribute<>(StructrApp.key(AbstractNode.class, "name"), "Folder" + i)));
@@ -417,7 +417,7 @@ public class UiScriptingTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 
 			// create list of 100 folders
-			final List<Folder> folders = new LinkedList<>();
+			final List<Folder> folders = new ArrayList<>();
 			for (int i=0; i<100; i++) {
 
 				folders.add(createTestNode(Folder.class,

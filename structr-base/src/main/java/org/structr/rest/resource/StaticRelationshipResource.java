@@ -98,7 +98,7 @@ public class StaticRelationshipResource extends WrappingResource {
 						// intersect partial result with result list
 						set.retainAll(partialResult);
 
-						final List<GraphObject> finalResult = new LinkedList<>(set);
+						final List<GraphObject> finalResult = new ArrayList<>(set);
 
 						// sort after merge
 						applyDefaultSorting(finalResult, sortOrder);
@@ -168,7 +168,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 						}
 
-						final List<GraphObject> finalResult = new LinkedList<>();
+						final List<GraphObject> finalResult = new ArrayList<>();
 
 						propertyResults.forEach(
 							v -> finalResult.add((GraphObject) v)
@@ -257,7 +257,7 @@ public class StaticRelationshipResource extends WrappingResource {
 
 					}
 
-					final List<GraphObject> nodes = new LinkedList<>();
+					final List<GraphObject> nodes = new ArrayList<>();
 
 					// Now add new relationships for any new id: This should be the rest of the property set
 					for (final Object obj : propertySet.values()) {

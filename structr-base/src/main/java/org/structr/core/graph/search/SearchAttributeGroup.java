@@ -24,7 +24,7 @@ import org.structr.api.search.QueryPredicate;
 import org.structr.core.GraphObject;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -34,7 +34,7 @@ import java.util.List;
  */
 public class SearchAttributeGroup extends SearchAttribute implements GroupQuery {
 
-	private List<SearchAttribute> searchItems = new LinkedList<>();
+	private List<SearchAttribute> searchItems = new ArrayList<>();
 	private SearchAttributeGroup parent       = null;
 
 	public SearchAttributeGroup(final Occurrence occur) {
@@ -150,7 +150,7 @@ public class SearchAttributeGroup extends SearchAttribute implements GroupQuery 
 	@Override
 	public List<QueryPredicate> getQueryPredicates() {
 
-		final List<QueryPredicate> predicates = new LinkedList<>();
+		final List<QueryPredicate> predicates = new ArrayList<>();
 		for (final SearchAttribute attr : searchItems) {
 
 			predicates.add(attr);

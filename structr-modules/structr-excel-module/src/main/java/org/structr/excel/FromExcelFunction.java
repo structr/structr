@@ -117,12 +117,12 @@ public class FromExcelFunction extends Function<Object, Object> {
 
 
 		final Gson gson = new GsonBuilder().create();
-		List<Map<String, Object>> objects = new LinkedList<>();
+		List<Map<String, Object>> objects = new ArrayList<>();
 
 		final Workbook workbook      = new XSSFWorkbook(is);
 		final XSSFSheet sheet        = (XSSFSheet) workbook.getSheetAt(sheetIndex);
 
-		final List<GraphObjectMap> elements = new LinkedList<>();
+		final List<GraphObjectMap> elements = new ArrayList<>();
 
 		final int firstRowNum = sheet.getFirstRowNum();
 		final int lastRowNum  = sheet.getLastRowNum();

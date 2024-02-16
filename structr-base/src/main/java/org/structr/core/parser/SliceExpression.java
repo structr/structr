@@ -32,7 +32,7 @@ import org.structr.schema.action.EvaluationHints;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -148,7 +148,7 @@ public class SliceExpression extends Expression {
 				// handle collection argument
 				} else if (src != null) {
 
-					list = new LinkedList((Collection)src);
+					list = new ArrayList((Collection)src);
 
 				} else {
 

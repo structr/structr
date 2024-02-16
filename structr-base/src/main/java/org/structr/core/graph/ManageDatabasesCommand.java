@@ -266,7 +266,7 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 	public List<DatabaseConnection> getConnections() {
 
-		final List<DatabaseConnection> connections = new LinkedList<>();
+		final List<DatabaseConnection> connections = new ArrayList<>();
 
 		for (final String connection : getConnectionNames()) {
 

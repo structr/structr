@@ -605,7 +605,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 				final Folder wellKnownFolder = (Folder) FileHelper.getFileByAbsolutePath(adminContext, "/.well-known");
 				if (wellKnownFolder != null) {
 
-					final List<NodeInterface> filteredResults = new LinkedList<>();
+					final List<NodeInterface> filteredResults = new ArrayList<>();
 					filteredResults.addAll(wellKnownFolder.getAllChildNodes());
 
 					for (NodeInterface node : filteredResults) {

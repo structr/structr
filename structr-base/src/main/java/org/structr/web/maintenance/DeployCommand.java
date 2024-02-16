@@ -830,7 +830,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting sites");
 
-		final List<Map<String, Object>> sites = new LinkedList<>();
+		final List<Map<String, Object>> sites = new ArrayList<>();
 		final App app                          = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -847,7 +847,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				entry.put("visibleToAuthenticatedUsers", site.getProperty(Site.visibleToAuthenticatedUsers));
 				entry.put("visibleToPublicUsers",        site.getProperty(Site.visibleToPublicUsers));
 
-				final List<String> pageNames = new LinkedList<>();
+				final List<String> pageNames = new ArrayList<>();
 				for (final Page page : (Iterable<Page>)site.getProperty(StructrApp.key(Site.class, "pages"))) {
 					pageNames.add(page.getName());
 				}
@@ -1011,10 +1011,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting resource access grants");
 
-		final List<Map<String, Object>> grants = new LinkedList<>();
+		final List<Map<String, Object>> grants = new ArrayList<>();
 		final App app                          = StructrApp.getInstance();
 
-		final List<String> unreachableGrants = new LinkedList<>();
+		final List<String> unreachableGrants = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1062,7 +1062,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting CORS Settings");
 
-		final List<Map<String, Object>> corsSettings = new LinkedList<>();
+		final List<Map<String, Object>> corsSettings = new ArrayList<>();
 		final App app                           = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -1134,7 +1134,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 					final String typeName = typeDef.getName();
 
-					final List<StructrFunctionProperty> functionProperties = new LinkedList();
+					final List<StructrFunctionProperty> functionProperties = new ArrayList();
 					for (final Object propDef : typeDef.getProperties()) {
 
 						if (propDef instanceof StructrFunctionProperty) {
@@ -1332,7 +1332,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected void exportSecurity(final NodeInterface node, final Map<String, Object> config) {
 
 		// export security grants
-		final List<Map<String, Object>> grantees = new LinkedList<>();
+		final List<Map<String, Object>> grantees = new ArrayList<>();
 		for (final Security security : node.getSecurityRelationships()) {
 
 			if (security != null) {
@@ -1381,7 +1381,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (entry.containsKey("grantees")) {
 
 			final List<Map<String, Object>> grantees        = (List) entry.get("grantees");
-			final List<Map<String, Object>> cleanedGrantees = new LinkedList();
+			final List<Map<String, Object>> cleanedGrantees = new ArrayList();
 
 			for (final Map<String, Object> grantee : grantees) {
 
@@ -1409,7 +1409,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final PropertyKey<String> textKey             = StructrApp.key(MailTemplate.class, "text");
 		final PropertyKey<String> localeKey           = StructrApp.key(MailTemplate.class, "locale");
-		final List<Map<String, Object>> mailTemplates = new LinkedList<>();
+		final List<Map<String, Object>> mailTemplates = new ArrayList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try {
@@ -1465,7 +1465,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting widgets");
 
-		final List<Map<String, Object>> widgets = new LinkedList<>();
+		final List<Map<String, Object>> widgets = new ArrayList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -1498,7 +1498,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting application configuration data");
 
-		final List<Map<String, Object>> applicationConfigurationDataNodes = new LinkedList<>();
+		final List<Map<String, Object>> applicationConfigurationDataNodes = new ArrayList<>();
 		final App app                                                     = StructrApp.getInstance();
 
 		final PropertyKey<String> configTypeKey = StructrApp.key(ApplicationConfigurationDataNode.class, "configType");
@@ -1543,7 +1543,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		final PropertyKey<String> domainKey           = StructrApp.key(Localization.class, "domain");
 		final PropertyKey<String> localeKey           = StructrApp.key(Localization.class, "locale");
 		final PropertyKey<String> importedKey         = StructrApp.key(Localization.class, "imported");
-		final List<Map<String, Object>> localizations = new LinkedList<>();
+		final List<Map<String, Object>> localizations = new ArrayList<>();
 		final App app                                 = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -1586,7 +1586,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting action mapping");
 
-		final List<Map<String, Object>> actionMappings    = new LinkedList<>();
+		final List<Map<String, Object>> actionMappings    = new ArrayList<>();
 
 		final App app                                     = StructrApp.getInstance();
 
@@ -1657,7 +1657,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		logger.info("Exporting parameter mapping");
 
-		final List<Map<String, Object>> parameterMappings = new LinkedList<>();
+		final List<Map<String, Object>> parameterMappings = new ArrayList<>();
 		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx()) {
@@ -2277,7 +2277,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			for (Map<String, Object> entry : data) {
 
-				final List<Page> pages = new LinkedList();
+				final List<Page> pages = new ArrayList();
 
 				for (final String pageName : (List<String>)entry.get("pages")) {
 					pages.add(app.nodeQuery(Page.class).andName(pageName).getFirst());
@@ -2619,7 +2619,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final StringBuilder sb = new StringBuilder("[");
 
-			List<String> jsonStrings = new LinkedList();
+			List<String> jsonStrings = new ArrayList();
 
 			for (Map<String, Object> obj : objects) {
 				jsonStrings.add("\t" + gson.toJson(obj));

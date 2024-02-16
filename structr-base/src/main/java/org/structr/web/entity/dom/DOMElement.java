@@ -1895,7 +1895,7 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 	public static List<GraphObject> resolveDataTargets(final ActionContext actionContext, final DOMElement thisElement, final String dataTarget) throws FrameworkException {
 
 		final App app                   = StructrApp.getInstance(thisElement.getSecurityContext());
-		final List<GraphObject> targets = new LinkedList<>();
+		final List<GraphObject> targets = new ArrayList<>();
 
 		if (dataTarget.length() >= 32) {
 
@@ -1954,8 +1954,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final PropertyKey<Iterable<DOMElement>> reloadSourcesKey     = StructrApp.key(DOMElement.class, "reloadSources");
 			final PropertyKey<Iterable<DOMElement>> reloadTargetsKey     = StructrApp.key(DOMElement.class, "reloadTargets");
 			final PropertyKey<String> reloadTargetKey                    = StructrApp.key(DOMElement.class, "data-structr-reload-target");
-			final List<DOMElement> actualReloadSources                   = new LinkedList<>();
-			final List<DOMElement> actualReloadTargets                   = new LinkedList<>();
+			final List<DOMElement> actualReloadSources                   = new ArrayList<>();
+			final List<DOMElement> actualReloadTargets                   = new ArrayList<>();
 			final org.jsoup.nodes.Element matchElement                   = thisElement.getMatchElement();
 			final String reloadTargets                                   = thisElement.getProperty(reloadTargetKey);
 			final Page page                                              = thisElement.getOwnerDocument();

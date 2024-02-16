@@ -788,7 +788,7 @@ public class CypherTest extends StructrTest {
 
 		if (src instanceof Iterable) {
 
-			final List list   = new LinkedList<>();
+			final List list   = new ArrayList<>();
 			final Iterable i  = (Iterable)src;
 			final Iterator it = i.iterator();
 

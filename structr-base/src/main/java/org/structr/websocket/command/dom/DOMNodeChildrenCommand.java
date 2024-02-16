@@ -25,7 +25,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.command.AbstractCommand;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
@@ -55,7 +55,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		final List<GraphObject> result = new LinkedList<>();
+		final List<GraphObject> result = new ArrayList<>();
 		DOMNode currentNode      = (DOMNode) node.getFirstChild();
 
 		while (currentNode != null) {

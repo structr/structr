@@ -22,7 +22,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.function.Functions;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ public class JavaScriptTabCompletionProvider extends AbstractTabCompletionProvid
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> results = new LinkedList<>();
+		final List<TabCompletionResult> results = new ArrayList<>();
 
 		if (line.startsWith("Structr.")) {
 			List<TabCompletionResult> intermediateList = getExactResultsForCollection(Functions.getNames(), line.substring(8), "(");

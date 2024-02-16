@@ -28,7 +28,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -53,7 +53,7 @@ public class MongoDBFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 3);
 
-			final List<Map<String, Object>> data = new LinkedList<>();
+			final List<Map<String, Object>> data = new ArrayList<>();
 			final String url                     = (String)sources[0];
 			final String db                      = (String)sources[1];
 			final String coll                    = (String)sources[2];

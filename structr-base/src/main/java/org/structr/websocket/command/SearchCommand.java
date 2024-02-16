@@ -38,7 +38,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -187,7 +187,7 @@ public class SearchCommand extends AbstractCommand {
 	// ----- private methods -----
 	private List<GraphObject> flatten(final List src) {
 
-		final List<GraphObject> list = new LinkedList<>();
+		final List<GraphObject> list = new ArrayList<>();
 
 		flatten(list, src);
 

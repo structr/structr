@@ -30,7 +30,7 @@ import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalMethodException;
 import org.structr.rest.exception.IllegalPathException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -55,7 +55,7 @@ public class EnvResource extends Resource {
 	@Override
 	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
 
-		final List<GraphObjectMap> resultList             = new LinkedList<>();
+		final List<GraphObjectMap> resultList             = new ArrayList<>();
 
 		resultList.add(StructrEnvFunction.getStructrEnv());
 

@@ -20,7 +20,7 @@ package org.structr.common.error;
 
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -45,7 +45,7 @@ public class ArgumentTypeException extends IllegalArgumentException {
 
 	private static <T> String join(final T[] objects, final int minimum, Function<T, String> mappingFunction) {
 
-		final List<String> mapped = new LinkedList<>();
+		final List<String> mapped = new ArrayList<>();
 		int count                 = 0;
 
 		for (final T o : objects) {

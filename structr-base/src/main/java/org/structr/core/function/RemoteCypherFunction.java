@@ -201,7 +201,7 @@ public class RemoteCypherFunction extends CoreFunction {
 
 		} else if (value instanceof Path) {
 
-			final List list = new LinkedList<>();
+			final List list = new ArrayList<>();
 			final Path path = (Path)value;
 
 			for (final Segment container : path) {
@@ -242,7 +242,7 @@ public class RemoteCypherFunction extends CoreFunction {
 		} else if (value instanceof Iterable) {
 
 			final Iterable<Object> valueCollection = (Iterable<Object>)value;
-			final List<Object> collection          = new LinkedList<>();
+			final List<Object> collection          = new ArrayList<>();
 
 			for (final Object valueEntry : valueCollection) {
 

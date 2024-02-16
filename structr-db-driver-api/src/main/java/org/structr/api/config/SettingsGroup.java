@@ -29,7 +29,7 @@ import java.util.Map.Entry;
  */
 public class SettingsGroup {
 
-	private final List<Setting> settings = new LinkedList<>();
+	private final List<Setting> settings = new ArrayList<>();
 	private String name                  = null;
 	private String key                   = null;
 
@@ -73,7 +73,7 @@ public class SettingsGroup {
 	public void render(final Tag parent) {
 
 		final Map<String, List<Setting>> mapped = new LinkedHashMap<>();
-		final List<Setting> otherSettings       = new LinkedList<>();
+		final List<Setting> otherSettings       = new ArrayList<>();
 		final Tag div                           = parent.block("div");
 
 		// sort / categorize settings
@@ -91,7 +91,7 @@ public class SettingsGroup {
 				List<Setting> list = mapped.get(group);
 				if (list == null) {
 
-					list = new LinkedList<>();
+					list = new ArrayList<>();
 					mapped.put(group, list);
 				}
 

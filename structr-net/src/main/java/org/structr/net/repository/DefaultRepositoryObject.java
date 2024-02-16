@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentSkipListMap;
 public class DefaultRepositoryObject implements RepositoryObject {
 
 	private final SortedMap<PseudoTime, PossibleValue> history = new ConcurrentSkipListMap<>();
-	private final List<ObjectListener> listeners               = new LinkedList<>();
+	private final List<ObjectListener> listeners               = new ArrayList<>();
 	private DefaultRepository parent                           = null;
 	private PseudoTime creationTime                            = null;
 	private PseudoTime deletionTime                            = null;
@@ -166,7 +166,7 @@ public class DefaultRepositoryObject implements RepositoryObject {
 		} else {
 
 			// do backwards search
-			final List<PseudoTime> times = new LinkedList<>(history.keySet());
+			final List<PseudoTime> times = new ArrayList<>(history.keySet());
 			Collections.reverse(times);
 
 			for (final PseudoTime time : times) {
@@ -201,7 +201,7 @@ public class DefaultRepositoryObject implements RepositoryObject {
 		final Map<String, Object> map = new HashMap<>();
 
 		// do backwards search
-		final List<PseudoTime> times = new LinkedList<>(history.keySet());
+		final List<PseudoTime> times = new ArrayList<>(history.keySet());
 		Collections.reverse(times);
 
 		for (final PseudoTime time : times) {
@@ -233,7 +233,7 @@ public class DefaultRepositoryObject implements RepositoryObject {
 	@Override
 	public void onCommit(final String transactionId) {
 
-		final List<PossibleValue> values = new LinkedList<>();
+		final List<PossibleValue> values = new ArrayList<>();
 
 		for (final PossibleValue val : history.values()) {
 

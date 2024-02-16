@@ -30,7 +30,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class WKTToPolygonsFunction extends GeoFunction {
@@ -62,7 +62,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 					try {
 
-						final List result      = new LinkedList<>();
+						final List result      = new ArrayList<>();
 						final WKTReader reader = new WKTReader();
 						final Geometry source  = reader.read(wkt);
 
@@ -115,7 +115,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 			for (int i=0; i<count; i++) {
 
 				final Geometry geometry = collection.getGeometryN(i);
-				final List nestedList   = new LinkedList<>();
+				final List nestedList   = new ArrayList<>();
 
 				// recurse
 				handleGeometry(geometry, nestedList);
@@ -137,7 +137,7 @@ public class WKTToPolygonsFunction extends GeoFunction {
 
 					for (final Polygon p : valid) {
 
-						final List nestedList = new LinkedList<>();
+						final List nestedList = new ArrayList<>();
 						handleGeometry(p, nestedList);
 						result.add(nestedList);
 					}

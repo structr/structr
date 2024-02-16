@@ -81,7 +81,7 @@ public class ManyEndpoint<T extends NodeInterface> extends AbstractEndpoint impl
 	public Object set(final SecurityContext securityContext, final NodeInterface sourceNode, final Iterable<T> collection) throws FrameworkException {
 
 		final App app                             = StructrApp.getInstance(securityContext);
-		final List<Relation> createdRelationships = new LinkedList<>();
+		final List<Relation> createdRelationships = new ArrayList<>();
 		final PropertyMap properties              = new PropertyMap();
 		final T actualSourceNode                  = (T)unwrap(securityContext, relation.getClass(), sourceNode, properties);
 		final Set<T> toBeDeleted                  = new LinkedHashSet<>(Iterables.toList(get(securityContext, actualSourceNode, null)));

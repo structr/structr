@@ -41,7 +41,7 @@ import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -176,7 +176,7 @@ public class AdvancedPagingTest extends StructrRestTestBase {
 
 		// create a root object
 
-		final List<String> testOneIDs = new LinkedList<>();
+		final List<String> testOneIDs = new ArrayList<>();
 		String resource               = "/test_twos";
 
 		String location = RestAssured.given().contentType("application/json; charset=UTF-8")

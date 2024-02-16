@@ -34,7 +34,7 @@ import org.structr.core.function.search.SearchParameter;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -47,7 +47,7 @@ public abstract class AbstractQueryFunction extends CoreFunction implements Quer
 	@Override
 	public List<AbstractHint> getContextHints(final String lastToken) {
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<AbstractHint> hints = new ArrayList<>();
 		final String quoteChar = lastToken.startsWith("'") ? "'" : lastToken.startsWith("\"") ? "\"" : "'";
 
 		for (final Entry<String, Class<? extends NodeInterface>> entry : StructrApp.getConfiguration().getNodeEntities().entrySet()) {

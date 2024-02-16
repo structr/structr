@@ -31,7 +31,7 @@ import org.structr.core.graph.NodeServiceCommand;
 import org.structr.core.graph.Tx;
 import org.structr.rest.resource.MaintenanceParameterResource;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +54,7 @@ public class DeleteSpatialIndexCommand extends NodeServiceCommand implements Mai
 
 
 		final DatabaseService graphDb = StructrApp.getInstance().getService(NodeService.class).getDatabaseService();
-		final List<Node> toDelete          = new LinkedList<>();
+		final List<Node> toDelete          = new ArrayList<>();
 
 		for (final Node node: graphDb.getAllNodes()) {
 

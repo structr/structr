@@ -35,7 +35,7 @@ import org.structr.schema.SchemaService;
 import org.structr.schema.action.Actions;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -55,7 +55,7 @@ public class CronService extends Thread implements RunnableService {
 	public static final long     GRANULARITY       = 1;
 	public static final int      NUM_FIELDS        = 6;
 
-	private LinkedList<CronEntry> cronEntries = new LinkedList<>();
+	private ArrayList<CronEntry> cronEntries = new ArrayList<>();
 	private boolean doRun = false;
 
 	public CronService() {

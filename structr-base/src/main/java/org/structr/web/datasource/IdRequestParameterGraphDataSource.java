@@ -28,7 +28,7 @@ import org.structr.core.graph.NodeInterface;
 import org.structr.schema.action.ActionContext;
 import org.structr.web.common.RenderContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -57,7 +57,7 @@ public class IdRequestParameterGraphDataSource implements GraphDataSource<Iterab
 				AbstractNode node = (AbstractNode) StructrApp.getInstance(securityContext).getNodeById(nodeId);
 				if (node != null) {
 
-					List<GraphObject> graphData = new LinkedList<>();
+					List<GraphObject> graphData = new ArrayList<>();
 					graphData.add(node);
 
 					return graphData;

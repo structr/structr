@@ -29,7 +29,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -46,7 +46,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 			return Collections.EMPTY_LIST;
 		}
 
-		final List<AbstractHint> hints = new LinkedList<>();
+		final List<AbstractHint> hints = new ArrayList<>();
 		final ActionContext ctx        = new ActionContext(securityContext);
 
 		try {

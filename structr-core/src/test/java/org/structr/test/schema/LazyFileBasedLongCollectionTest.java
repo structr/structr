@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.schema.importer.LazyFileBasedLongCollection;
 import org.testng.annotations.Test;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -229,7 +229,7 @@ public class LazyFileBasedLongCollectionTest {
 
 		try (final LazyFileBasedLongCollection coll = new LazyFileBasedLongCollection("/tmp/" + System.nanoTime() + ".lfc")) {
 
-			final List<Long> list = new LinkedList<>();
+			final List<Long> list = new ArrayList<>();
 			for (int i=0; i<10; i++) {
 				list.add((long)i);
 			}

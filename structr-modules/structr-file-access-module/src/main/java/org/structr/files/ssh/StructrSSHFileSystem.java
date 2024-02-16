@@ -188,7 +188,7 @@ public class StructrSSHFileSystem extends FileSystem {
 						if (!closed) {
 
 							final App app = StructrApp.getInstance(securityContext);
-							final List<StructrSSHFile> files = new LinkedList<>();
+							final List<StructrSSHFile> files = new ArrayList<>();
 
 							final StructrSSHFile thisDir = (StructrSSHFile) dir;
 
@@ -438,7 +438,7 @@ public class StructrSSHFileSystem extends FileSystem {
 
 				logger.info("x");
 
-		final List<Path> paths = new LinkedList<>();
+		final List<Path> paths = new ArrayList<>();
 
 		paths.add(rootFolder);
 

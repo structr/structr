@@ -33,7 +33,7 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -172,7 +172,7 @@ public class BingGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	private static class BingGeoCodingResult implements GeoCodingResult {
 
-		private List<AddressComponent> addressComponents = new LinkedList<>();
+		private List<AddressComponent> addressComponents = new ArrayList<>();
 		private Double latitude                          = null;
 		private Double longitude                         = null;
 		private String address                           = null;

@@ -40,7 +40,7 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -53,8 +53,8 @@ public class FlowLegacyDeploymentHandler extends FlowAbstractDeploymentHandler i
 	public void doExport(final Path target, final Gson gson) throws FrameworkException {
 		final App app                                		= StructrApp.getInstance();
 		final Path flowEngineFile							= target.resolve("flow-engine.json");
-		final List<Map<String, ?>> flowElements 			= new LinkedList<>();
-		final List<Map<String, String>> flowRelationships 	= new LinkedList<>();
+		final List<Map<String, ?>> flowElements 			= new ArrayList<>();
+		final List<Map<String, String>> flowRelationships 	= new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 

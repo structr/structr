@@ -30,7 +30,7 @@ import org.structr.core.property.PropertyKey;
 import org.structr.core.property.RelationProperty;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -138,7 +138,7 @@ public abstract class Notion<S extends NodeInterface, T> {
 
 				// do not use lazy evaluation here as it would move the creation of
 				// related nodes via notions to a different point in time
-				final List<S> list = new LinkedList<>();
+				final List<S> list = new ArrayList<>();
 				for (final T t : s) {
 
 					list.add(deserializationStrategy.deserialize(securityContext, type, t, context));

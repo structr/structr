@@ -25,7 +25,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.sql.*;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -50,7 +50,7 @@ public class JdbcFunction extends AdvancedScriptingFunction {
 
 			assertArrayHasMinLengthAndAllElementsNotNull(sources, 2);
 
-			final List<Map<String, Object>> data = new LinkedList<>();
+			final List<Map<String, Object>> data = new ArrayList<>();
 			final String url                     = (String)sources[0];
 			final String sql                     = (String)sources[1];
 

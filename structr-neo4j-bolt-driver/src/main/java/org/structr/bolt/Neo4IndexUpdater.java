@@ -27,7 +27,7 @@ import org.structr.api.Transaction;
 import org.structr.api.index.IndexConfig;
 
 import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
@@ -235,7 +235,7 @@ public class Neo4IndexUpdater {
 		if (!createOnly) {
 
 			final AtomicInteger droppedIndexesOfRemovedTypes = new AtomicInteger(0);
-			final List removedTypes = new LinkedList();
+			final List removedTypes = new ArrayList();
 
 			// drop indices for all indexed properties of removed classes
 			for (final Map.Entry<String, Map<String, IndexConfig>> entry : removedClassesSource.entrySet()) {

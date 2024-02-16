@@ -35,7 +35,7 @@ import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.RelationshipInterface;
 import org.structr.rest.exception.IllegalPathException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -77,7 +77,7 @@ public class RelationshipResource extends WrappingResource {
 
 			try {
 
-				final List<GraphObject> resultList = new LinkedList<>();
+				final List<GraphObject> resultList = new ArrayList<>();
 				for (GraphObject obj : results) {
 
 					if (obj instanceof AbstractNode) {

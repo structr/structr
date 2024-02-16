@@ -118,7 +118,7 @@ public class NodeExtender {
 	public synchronized Map<String, Class> compile(final ErrorBuffer errorBuffer) throws ClassNotFoundException {
 
 		final Writer errorWriter     = new StringWriter();
-		final List<Class> newClasses = new LinkedList<>();
+		final List<Class> newClasses = new ArrayList<>();
 
 		if (!sources.isEmpty()) {
 

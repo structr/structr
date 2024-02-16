@@ -126,7 +126,7 @@ public abstract class AbstractHintProvider {
 
 		final ParseResult parseResult     = new ParseResult();
 		final List<AbstractHint> allHints = getAllHints(actionContext, currentEntity, script, parseResult);
-		final List<GraphObject> hints     = new LinkedList<>();
+		final List<GraphObject> hints     = new ArrayList<>();
 		final String lastToken            = parseResult.getLastToken();
 		final boolean unrestricted        = lastToken.endsWith("(") || lastToken.endsWith(("."));
 
@@ -229,7 +229,7 @@ public abstract class AbstractHintProvider {
 
 	protected void addHintsForType(final ActionContext actionContext, final Class type, final List<AbstractHint> hints, final ParseResult result) {
 
-		final List<AbstractHint> methodHints = new LinkedList<>();
+		final List<AbstractHint> methodHints = new ArrayList<>();
 
 		try (final Tx tx = StructrApp.getInstance().tx()) {
 
@@ -291,7 +291,7 @@ public abstract class AbstractHintProvider {
 
 	protected boolean handleTokens(final ActionContext actionContext, final List<String> tokens, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
 
-		List<String> tokenTypes = new LinkedList<>();
+		List<String> tokenTypes = new ArrayList<>();
 		Class type              = null;
 
 		for (final String token : tokens) {

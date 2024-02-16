@@ -31,7 +31,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -89,7 +89,7 @@ public class EndpointTest extends StructrRestTestBase {
 		final ExecutorService service  = Executors.newCachedThreadPool();
 		final AtomicInteger numSuccess = new AtomicInteger();
 		final AtomicInteger numFailure = new AtomicInteger();
-		final List<Future> futures     = new LinkedList<>();
+		final List<Future> futures     = new ArrayList<>();
 		final String finalProjectUuid  = projectUuid;
 		final int num                  = 100;
 		final long t0                  = System.currentTimeMillis();

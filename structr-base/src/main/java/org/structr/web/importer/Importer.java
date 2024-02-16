@@ -416,7 +416,7 @@ public class Importer {
 
 	public void retainHullOnly() {
 
-		final List<Node> nodeList = new LinkedList<>();
+		final List<Node> nodeList = new ArrayList<>();
 
 		for (final Node node : parsedDocument.childNodes()) {
 
@@ -498,7 +498,7 @@ public class Importer {
 			return Collections.EMPTY_LIST;
 		}
 
-		final List<InvertibleModificationOperation> changeSet = new LinkedList<>();
+		final List<InvertibleModificationOperation> changeSet = new ArrayList<>();
 		final Map<String, DOMNode>                  indexMappedExistingNodes = new LinkedHashMap<>();
 		final Map<String, DOMNode>                  hashMappedExistingNodes  = new LinkedHashMap<>();
 		final Map<DOMNode, Integer>                 depthMappedExistingNodes = new LinkedHashMap<>();
@@ -610,7 +610,7 @@ public class Importer {
 
 	private static List<String> getSiblingHashes(final DOMNode node) {
 
-		final List<String> siblingHashes = new LinkedList<>();
+		final List<String> siblingHashes = new ArrayList<>();
 		DOMNode nextSibling = node.getNextSibling();
 
 		while (nextSibling != null) {

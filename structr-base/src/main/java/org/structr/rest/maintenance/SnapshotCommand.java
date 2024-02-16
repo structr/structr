@@ -36,7 +36,7 @@ import java.io.*;
 import java.net.URISyntaxException;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -231,7 +231,7 @@ public class SnapshotCommand extends NodeServiceCommand implements MaintenanceCo
 	public static List<String> listSnapshots() {
 
 		final File baseDir       = new File(getSnapshotsPath());
-		final List<String> fileNames = new LinkedList<>();
+		final List<String> fileNames = new ArrayList<>();
 
 		if (baseDir.exists()) {
 

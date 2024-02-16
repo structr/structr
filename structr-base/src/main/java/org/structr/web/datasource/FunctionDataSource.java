@@ -34,7 +34,7 @@ import org.structr.schema.action.Function;
 import org.structr.web.common.RenderContext;
 import org.structr.web.function.UiFunction;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -75,7 +75,7 @@ public class FunctionDataSource implements GraphDataSource<Iterable<GraphObject>
 			} else if (result instanceof GraphObject) {
 
 				// allow single-element results to be evaluated
-				final List<GraphObject> wrapped = new LinkedList<>();
+				final List<GraphObject> wrapped = new ArrayList<>();
 
 				wrapped.add((GraphObject)result);
 

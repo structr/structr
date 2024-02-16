@@ -22,7 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Set;
 
 public class MergeUniqueFunction extends CoreFunction {
@@ -62,7 +62,7 @@ public class MergeUniqueFunction extends CoreFunction {
 			}
 		}
 
-		return new LinkedList<>(result);
+		return new ArrayList<>(result);
 	}
 
 	@Override

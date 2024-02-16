@@ -1471,7 +1471,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		Set<PropertyKey> dataAttributes = thisNode.getDataPropertyKeys();
 
 		if (EditMode.DEPLOYMENT.equals(editMode)) {
-			List sortedAttributes = new LinkedList(dataAttributes);
+			List sortedAttributes = new ArrayList(dataAttributes);
 			Collections.sort(sortedAttributes);
 			dataAttributes = new LinkedHashSet<>(sortedAttributes);
 		}

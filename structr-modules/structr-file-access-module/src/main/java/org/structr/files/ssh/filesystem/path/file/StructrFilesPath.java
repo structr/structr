@@ -73,7 +73,7 @@ public class StructrFilesPath extends StructrPath {
 
 					final App app                           = StructrApp.getInstance(fs.getSecurityContext());
 					final PropertyKey<Boolean> hasParentKey = StructrApp.key(AbstractFile.class, "hasParent");
-					final List<StructrPath> files           = new LinkedList<>();
+					final List<StructrPath> files           = new ArrayList<>();
 
 					try (final Tx tx = app.tx()) {
 

@@ -50,7 +50,7 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -232,8 +232,8 @@ public interface DataFeed extends NodeInterface {
 								props.put(feedItemDescriptionKey, entry.getDescription().getValue());
 							}
 
-							final List<FeedItemContent> itemContents     = new LinkedList<>();
-							final List<FeedItemEnclosure> itemEnclosures = new LinkedList<>();
+							final List<FeedItemContent> itemContents     = new ArrayList<>();
+							final List<FeedItemEnclosure> itemEnclosures = new ArrayList<>();
 
 							// Get and add all contents
 							final List<SyndContent> contents = entry.getContents();

@@ -28,7 +28,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -87,7 +87,7 @@ public abstract class DeserializationStrategy<S, T extends NodeInterface> {
 			Iterables.addAll(merged, newCollection);
 			Iterables.addAll(merged, oldCollection);
 
-			return new LinkedList<>(merged);
+			return new ArrayList<>(merged);
 		};
 
 		return newValue;

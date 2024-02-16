@@ -35,7 +35,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -185,7 +185,7 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 
 	public static class GoogleGeoCodingResult implements GeoCodingResult {
 
-		private List<AddressComponent> addressComponents = new LinkedList<>();
+		private List<AddressComponent> addressComponents = new ArrayList<>();
 		private String address = null;
 		private double latitude;
 		private double longitude;

@@ -29,7 +29,7 @@ import org.structr.core.entity.AbstractRelationship;
 import org.structr.core.entity.Relation;
 
 import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -96,7 +96,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		try {
 
-			List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
+			List<NodeInterface> nodesToCheckAfterDeletion = new ArrayList<>();
 
 			// Delete all end nodes of outgoing relationships which are connected
 			// by relationships which are marked with DELETE_OUTGOING

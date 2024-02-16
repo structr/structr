@@ -228,7 +228,7 @@ public class StartNodes<S extends NodeInterface, T extends NodeInterface> extend
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
 
-			final List<String> sources = new LinkedList<>();
+			final List<String> sources = new ArrayList<>();
 			if (requestParameter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {

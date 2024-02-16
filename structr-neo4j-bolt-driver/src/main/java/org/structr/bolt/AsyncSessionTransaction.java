@@ -408,7 +408,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 
 			logSummary(resolveImmediately(cursor.consumeAsync()));
 
-			return new LinkedList<>(immutable);
+			return new ArrayList<>(immutable);
 
 		} catch (TransientException tex) {
 			closed = true;

@@ -26,12 +26,12 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.ConfigurationProvider;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class DefaultSortOrder implements SortOrder {
 
-	private final List<PropertySortSpec> specs = new LinkedList<>();
+	private final List<PropertySortSpec> specs = new ArrayList<>();
 
 	public DefaultSortOrder() {
 	}

@@ -26,7 +26,7 @@ import org.structr.core.JsonInput;
 import org.structr.core.JsonSingleInput;
 
 import java.lang.reflect.Type;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -116,7 +116,7 @@ public class JsonInputGSONAdapter implements InstanceCreator<IJsonInput>, JsonSe
 				} else if (elem.isJsonArray()) {
 
 					final JsonArray array = elem.getAsJsonArray();
-					final List list       = new LinkedList();
+					final List list       = new ArrayList();
 
 					for (final JsonElement element : array) {
 

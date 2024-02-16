@@ -344,7 +344,7 @@ public abstract class Resource {
 		if (type != null && request != null && !request.getParameterMap().isEmpty()) {
 
 			final boolean exactSearch          = !(parseInteger(request.getParameter(RequestKeywords.Inexact.keyword())) == 1);
-			final List<PropertyKey> searchKeys = new LinkedList<>();
+			final List<PropertyKey> searchKeys = new ArrayList<>();
 
 			for (final String name : request.getParameterMap().keySet()) {
 

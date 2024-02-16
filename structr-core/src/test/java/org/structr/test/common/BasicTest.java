@@ -944,9 +944,9 @@ public class BasicTest extends StructrTest {
 
 		try {
 
-			final List<TestTen> rootNodes        = new LinkedList<>();
-			final List<TestTen> allChildren      = new LinkedList<>();
-			final List<TestTen> allGrandChildren = new LinkedList<>();
+			final List<TestTen> rootNodes        = new ArrayList<>();
+			final List<TestTen> allChildren      = new ArrayList<>();
+			final List<TestTen> allGrandChildren = new ArrayList<>();
 
 			try (final Tx tx = app.tx()) {
 
@@ -1259,7 +1259,7 @@ public class BasicTest extends StructrTest {
 			final TestThree test2 = app.create(TestThree.class);
 
 			// test duplicate prevention
-			final List<TestThree> list = new LinkedList<>();
+			final List<TestThree> list = new ArrayList<>();
 
 			list.add(test2);
 			list.add(test2);
@@ -1301,7 +1301,7 @@ public class BasicTest extends StructrTest {
 			final TestOne test2 = app.create(TestOne.class);
 
 			// test duplicate prevention
-			final List<TestOne> list = new LinkedList<>();
+			final List<TestOne> list = new ArrayList<>();
 
 			list.add(test2);
 			list.add(test2);

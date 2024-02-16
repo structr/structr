@@ -35,7 +35,7 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -94,7 +94,7 @@ public class DeleteNodeCommand extends AbstractCommand {
 			// Remove all child nodes first
 			try {
 
-				final List<NodeInterface> filteredResults = new LinkedList<>();
+				final List<NodeInterface> filteredResults = new ArrayList<>();
 				if (obj instanceof DOMNode) {
 
 					DOMNode node = (DOMNode) obj;

@@ -27,7 +27,7 @@ import org.structr.api.graph.RelationshipType;
 import org.structr.common.error.FrameworkException;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -55,7 +55,7 @@ public class NodeRelationshipsCommand extends NodeServiceCommand {
 	public List<RelationshipInterface> execute(NodeInterface sourceNode, RelationshipType relType, Direction dir) throws FrameworkException {
 
 		RelationshipFactory factory        = new RelationshipFactory(securityContext);
-		List<RelationshipInterface> result = new LinkedList<>();
+		List<RelationshipInterface> result = new ArrayList<>();
 		Node node                          = sourceNode.getNode();
 		Iterable<Relationship> rels;
 

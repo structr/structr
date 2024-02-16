@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Calendar;
 import java.util.GregorianCalendar;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Delayed;
 import java.util.concurrent.TimeUnit;
@@ -208,7 +208,7 @@ public class CronEntry implements Delayed {
 		if (fieldValue.contains(",")) {
 
 			final String[] listValues  = fieldValue.split("[,]+");
-			final List<Integer> values = new LinkedList<>();
+			final List<Integer> values = new ArrayList<>();
 
 			for (final String value : listValues) {
 

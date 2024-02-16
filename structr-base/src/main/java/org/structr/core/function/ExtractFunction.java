@@ -25,7 +25,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -60,7 +60,7 @@ public class ExtractFunction extends CoreFunction {
 				// no property key given, maybe we should extract a list of lists?
 				if (sources[0] instanceof Iterable) {
 
-					final List extraction = new LinkedList();
+					final List extraction = new ArrayList();
 
 					for (final Object obj : (Iterable)sources[0]) {
 
@@ -84,7 +84,7 @@ public class ExtractFunction extends CoreFunction {
 
 				if (sources[0] instanceof Iterable && sources[1] instanceof String) {
 
-					final List extraction = new LinkedList();
+					final List extraction = new ArrayList();
 					final String keyName  = (String)sources[1];
 
 					for (final Object obj : (Iterable)sources[0]) {

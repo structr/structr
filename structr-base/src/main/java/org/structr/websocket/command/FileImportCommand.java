@@ -27,7 +27,7 @@ import org.structr.core.scheduler.JobQueueManager;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -53,7 +53,7 @@ public class FileImportCommand extends AbstractCommand {
 
 		final JobQueueManager mgr = JobQueueManager.getInstance();
 
-		final List<GraphObject> result = new LinkedList<>();
+		final List<GraphObject> result = new ArrayList<>();
 
 		switch (mode) {
 

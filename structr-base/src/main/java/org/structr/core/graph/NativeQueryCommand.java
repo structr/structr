@@ -34,7 +34,7 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.property.GenericProperty;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -159,7 +159,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 
 		} else if (value instanceof Path) {
 
-			final List list = new LinkedList<>();
+			final List list = new ArrayList<>();
 			final Path path = (Path)value;
 
 			for (final PropertyContainer container : path) {
@@ -200,7 +200,7 @@ public class NativeQueryCommand extends NodeServiceCommand {
 		} else if (value instanceof Iterable) {
 
 			final Iterable<Object> valueCollection = (Iterable<Object>)value;
-			final List<Object> collection          = new LinkedList<>();
+			final List<Object> collection          = new ArrayList<>();
 
 			for (final Object valueEntry : valueCollection) {
 

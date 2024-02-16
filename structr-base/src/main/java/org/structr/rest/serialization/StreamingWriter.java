@@ -618,7 +618,7 @@ public abstract class StreamingWriter {
 		final SecurityContext securityContext = parentWriter.getSecurityContext();
 		final int numberOfPartitions          = (int)Math.rint(Math.log(list.size())) + 1;
 		final List<List> partitions           = ListUtils.partition(list, numberOfPartitions);
-		final List<Future<String>> futures    = new LinkedList<>();
+		final List<Future<String>> futures    = new ArrayList<>();
 
 		for (final List partition : partitions) {
 

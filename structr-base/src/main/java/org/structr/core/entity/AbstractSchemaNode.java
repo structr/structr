@@ -211,7 +211,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 				}
 
 				final Set<String> viewPropertyNames   = new HashSet<>();
-				final List<SchemaProperty> properties = new LinkedList<>();
+				final List<SchemaProperty> properties = new ArrayList<>();
 
 				// collect names of properties in the given view
 				for (final PropertyKey key : config.getPropertySet(cls, view)) {

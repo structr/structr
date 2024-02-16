@@ -60,7 +60,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 		if(currentObject != null && currentObject instanceof AbstractNode) {
 
 			NodeInterface sourceNode  = (NodeInterface)currentObject;
-			List<NodeInterface> nodes = new LinkedList<>();
+			List<NodeInterface> nodes = new ArrayList<>();
 
 			// 1. step: add all nodes
 			for(Property property : aggregation.getAggregationProperties()) {
@@ -79,7 +79,7 @@ public class AggregatorProperty<T> extends AbstractReadOnlyCollectionProperty<T>
 			}
 
 			// 3. step: apply notions depending on type
-			List results = new LinkedList();
+			List results = new ArrayList();
 
 			try {
 				for(NodeInterface node : nodes) {

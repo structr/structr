@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +70,7 @@ public class RestMethodResult {
 	public void addContent(final Object graphObject) {
 
 		if (this.content == null) {
-			this.content = new LinkedList<>();
+			this.content = new ArrayList<>();
 		}
 
 		this.content.add(graphObject);

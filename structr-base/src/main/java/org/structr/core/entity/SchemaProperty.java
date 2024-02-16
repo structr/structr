@@ -322,7 +322,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 					properties.add(this);
 
-					view.setProperty(SchemaView.schemaProperties, new LinkedList<>(properties));
+					view.setProperty(SchemaView.schemaProperties, new ArrayList<>(properties));
 
 					break;
 				}
@@ -739,7 +739,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	// ----- public static methods -----
 	public static List<GraphQLArgument> getGraphQLArgumentsForType(final Type type) {
 
-		final List<GraphQLArgument> arguments = new LinkedList<>();
+		final List<GraphQLArgument> arguments = new ArrayList<>();
 
 		switch (type) {
 
@@ -765,7 +765,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 	public static List<GraphQLArgument> getGraphQLArgumentsForUUID() {
 
-		final List<GraphQLArgument> arguments = new LinkedList<>();
+		final List<GraphQLArgument> arguments = new ArrayList<>();
 
 		arguments.add(GraphQLArgument.newArgument().name("_equals").type(Scalars.GraphQLString).build());
 
@@ -776,7 +776,7 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 
 		// related type parameter is unused right now
 
-		final List<GraphQLArgument> arguments = new LinkedList<>();
+		final List<GraphQLArgument> arguments = new ArrayList<>();
 
 		arguments.add(GraphQLArgument.newArgument().name("_equals").type(typeRef(GraphQLNodeReferenceName)).build());
 		arguments.add(GraphQLArgument.newArgument().name("_sort").type(Scalars.GraphQLString).build());

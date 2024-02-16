@@ -35,7 +35,7 @@ import org.testng.annotations.Test;
 import org.w3c.dom.NodeList;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 
@@ -709,7 +709,7 @@ public class DiffTest extends StructrUiTest {
 
 	private <T> List<T> collectNodes(final NodeList source, final Class<T> type) {
 
-		final List<T> list = new LinkedList<>();
+		final List<T> list = new ArrayList<>();
 		final int len      = source.getLength();
 
 		for (int i=0; i<len; i++) {

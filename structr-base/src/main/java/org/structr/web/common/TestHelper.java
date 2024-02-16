@@ -101,7 +101,7 @@ public class TestHelper {
 					if (parts.length == 2) {
 
 						final String[] valueParts = parts[1].split(",");
-						final List<String> list   = new LinkedList<>(Arrays.asList(valueParts));
+						final List<String> list   = new ArrayList<>(Arrays.asList(valueParts));
 						final List<String> base   = baseMap.get(viewName);
 
 						// common properties

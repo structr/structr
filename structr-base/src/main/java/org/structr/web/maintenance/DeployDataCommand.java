@@ -528,7 +528,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (!removedTypes.isEmpty()) {
 
-			final List<String> messages = new LinkedList();
+			final List<String> messages = new ArrayList();
 
 			for (String childType : removedTypes.keySet()) {
 
@@ -800,7 +800,7 @@ public class DeployDataCommand extends DeployCommand {
 
 		if (relsOfType == null) {
 
-			relsOfType = new LinkedList();
+			relsOfType = new ArrayList();
 			relationshipMap.put(simpleRelType, relsOfType);
 		}
 

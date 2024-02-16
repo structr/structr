@@ -24,7 +24,7 @@ import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.structr.core.function.Functions.cleanString;
@@ -52,7 +52,7 @@ public class CleanFunction extends CoreFunction {
 
 			if (sources[0] instanceof Iterable) {
 
-				final List<String> cleanList = new LinkedList<>();
+				final List<String> cleanList = new ArrayList<>();
 
 				for (final Object obj : (Iterable)sources[0]) {
 

@@ -21,7 +21,7 @@ package org.structr.api.util;
 import org.testng.annotations.Test;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.assertEquals;
@@ -32,7 +32,7 @@ public class RangesTest {
 	@Test
 	public void testValidRanges() {
 
-		final List<Integer> list = new LinkedList<>();
+		final List<Integer> list = new ArrayList<>();
 
 		// fill list with numbers
 		for (int i=1; i<=10; i++) {
@@ -48,7 +48,7 @@ public class RangesTest {
 	@Test
 	public void testInvalidRanges() {
 
-		final List<Integer> list = new LinkedList<>();
+		final List<Integer> list = new ArrayList<>();
 
 		// fill list with numbers
 		for (int i=1; i<=10; i++) {

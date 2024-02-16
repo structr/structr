@@ -31,7 +31,7 @@ import java.util.concurrent.TimeUnit;
 public class AbstractTask<T> implements Task<T> {
 
 	private final Map<String, Object> statusProperties = new LinkedHashMap<>();
-	private final List<T> objects                      = new LinkedList<>();
+	private final List<T> objects                      = new ArrayList<>();
 	private Principal user                             = null;
 	private int priority                               = 0;
 	private Date scheduledTime                         = null;

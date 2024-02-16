@@ -18,15 +18,15 @@
  */
 package org.structr.core.function.search;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  */
 public abstract class AbstractPredicate implements SearchFunctionPredicate {
 
-	protected List<SearchFunctionPredicate> predicates = new LinkedList<>();
-	protected List<SearchParameter> parameters         = new LinkedList<>();
+	protected List<SearchFunctionPredicate> predicates = new ArrayList<>();
+	protected List<SearchParameter> parameters         = new ArrayList<>();
 
 	public void addPredicate(final SearchFunctionPredicate predicate) {
 		predicates.add(predicate);

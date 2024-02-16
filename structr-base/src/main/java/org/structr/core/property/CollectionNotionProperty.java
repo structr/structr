@@ -34,7 +34,7 @@ import org.structr.core.graph.search.SearchAttribute;
 import org.structr.core.notion.Notion;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -156,7 +156,7 @@ public class CollectionNotionProperty<S extends NodeInterface, T> extends Proper
 	public List<T> convertSearchValue(SecurityContext securityContext, String requestParameter) throws FrameworkException {
 
 		PropertyKey propertyKey = notion.getPrimaryPropertyKey();
-		List<T> list            = new LinkedList<>();
+		List<T> list            = new ArrayList<>();
 
 		if (propertyKey != null) {
 

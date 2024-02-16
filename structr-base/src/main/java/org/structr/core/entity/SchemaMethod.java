@@ -363,7 +363,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 				final Type[] parameterTypes = method.getGenericParameterTypes();
 				final Type returnType       = method.getGenericReturnType();
-				final List<Type> types      = new LinkedList<>();
+				final List<Type> types      = new ArrayList<>();
 
 				// compile list of types to check for generic type parameter
 				types.addAll(Arrays.asList(parameterTypes));
@@ -420,7 +420,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	private String getGenericMethodParameter(final List<Type> types, final Method method) {
 
-		final List<String> typeParameterNames = new LinkedList<>();
+		final List<String> typeParameterNames = new ArrayList<>();
 
 		for (final Type type : types) {
 

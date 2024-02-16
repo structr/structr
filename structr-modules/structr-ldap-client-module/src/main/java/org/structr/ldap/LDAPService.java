@@ -279,7 +279,7 @@ public class LDAPService extends Thread implements SingletonService {
 	private void updateWithGroupDn(final LDAPGroup group, final LdapConnection connection, final String groupDn, final String scope) throws IOException, LdapException, CursorException, FrameworkException {
 
 		final Map<String, String> possibleGroupNames = getGroupMapping();
-		final List<LDAPUser> members                 = new LinkedList<>();
+		final List<LDAPUser> members                 = new ArrayList<>();
 		final Set<String> memberDNs                  = new LinkedHashSet<>();
 
 		// fetch DNs of all group members
@@ -335,7 +335,7 @@ public class LDAPService extends Thread implements SingletonService {
 	private void updateWithFilterAndScope(final LDAPGroup group, final LdapConnection connection, final String path, final String groupFilter, final String groupScope) throws IOException, LdapException, CursorException, FrameworkException {
 
 		final Map<String, String> possibleGroupNames = getGroupMapping();
-		final List<LDAPUser> members                 = new LinkedList<>();
+		final List<LDAPUser> members                 = new ArrayList<>();
 		final Set<String> memberDNs                  = new LinkedHashSet<>();
 
 		// fetch DNs of all group members

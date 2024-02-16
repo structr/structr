@@ -398,7 +398,7 @@ public class SchemaHelper {
 					if (sig != null) {
 
 						// Try to find schema nodes for all parts of the grant signature
-						final List<String> parts = new LinkedList(List.of(StringUtils.split(sig, "/")));
+						final List<String> parts = new ArrayList(List.of(StringUtils.split(sig, "/")));
 
 						if (parts.size() == 1) {
 
@@ -480,7 +480,7 @@ public class SchemaHelper {
 
 	public static List<DynamicResourceAccess> createDynamicGrants(final String signature) {
 
-		final List<DynamicResourceAccess> grants = new LinkedList<>();
+		final List<DynamicResourceAccess> grants = new ArrayList<>();
 		final long initialFlagsValue = 0;
 
 		final App app = StructrApp.getInstance();
@@ -579,7 +579,7 @@ public class SchemaHelper {
 		final Collection<StructrModule> modules                = StructrApp.getConfiguration().getModules().values();
 		final Map<String, List<ActionEntry>> methods           = new LinkedHashMap<>();
 		final Map<String, CodeSourceViewSet> viewProperties    = new LinkedHashMap<>();
-		final List<String> propertyValidators                  = new LinkedList<>();
+		final List<String> propertyValidators                  = new ArrayList<>();
 		final Set<String> existingPropertyNames                = new LinkedHashSet<>();
 		final Set<String> compoundIndexKeys                    = new LinkedHashSet<>();
 		final Set<String> propertyNames                        = new LinkedHashSet<>();
@@ -916,8 +916,8 @@ public class SchemaHelper {
 
 				if (entity instanceof AbstractSchemaNode) {
 
-					final List<String> nonGraphProperties = new LinkedList<>();
-					final List<SchemaProperty> properties = new LinkedList<>();
+					final List<String> nonGraphProperties = new ArrayList<>();
+					final List<SchemaProperty> properties = new ArrayList<>();
 					final AbstractSchemaNode schemaNode   = (AbstractSchemaNode)entity;
 					final App app                         = StructrApp.getInstance();
 
@@ -1089,7 +1089,7 @@ public class SchemaHelper {
 
 				if (actionList == null) {
 
-					actionList = new LinkedList<>();
+					actionList = new ArrayList<>();
 					actions.put(name, actionList);
 				}
 
@@ -1114,7 +1114,7 @@ public class SchemaHelper {
 
 	public static Iterable<String> getProperties(final PropertyContainer propertyContainer) {
 
-		final List<String> keys = new LinkedList<>();
+		final List<String> keys = new ArrayList<>();
 
 		for (final String key : propertyContainer.getPropertyKeys()) {
 
@@ -1129,7 +1129,7 @@ public class SchemaHelper {
 
 	public static Iterable<String> getViews(final PropertyContainer propertyContainer) {
 
-		final List<String> keys = new LinkedList<>();
+		final List<String> keys = new ArrayList<>();
 
 		for (final String key : propertyContainer.getPropertyKeys()) {
 
@@ -1144,7 +1144,7 @@ public class SchemaHelper {
 
 	public static Iterable<String> getActions(final PropertyContainer propertyContainer) {
 
-		final List<String> keys = new LinkedList<>();
+		final List<String> keys = new ArrayList<>();
 
 		for (final String key : propertyContainer.getPropertyKeys()) {
 
@@ -1189,7 +1189,7 @@ public class SchemaHelper {
 		sourceFile.importLine(StringUtils.class.getName());
 		sourceFile.importLine(Collections.class.getName());
 		sourceFile.importLine(StructrApp.class.getName());
-		sourceFile.importLine(LinkedList.class.getName());
+		sourceFile.importLine(ArrayList.class.getName());
 		sourceFile.importLine(Collection.class.getName());
 		sourceFile.importLine(Permission.class.getName());
 		sourceFile.importLine(Direction.class.getName());
@@ -1637,7 +1637,7 @@ public class SchemaHelper {
 	// ----- public static methods -----
 	public static List<GraphObjectMap> getSchemaTypeInfo(final SecurityContext securityContext, final String rawType, final Class type, final String propertyView) throws FrameworkException {
 
-		List<GraphObjectMap> resultList = new LinkedList<>();
+		List<GraphObjectMap> resultList = new ArrayList<>();
 
 		// create & add schema information
 
@@ -1766,7 +1766,7 @@ public class SchemaHelper {
 
 	public static void applySortOrder(final Set<String> view, final String orderString) {
 
-		final List<String> list = new LinkedList<>();
+		final List<String> list = new ArrayList<>();
 
 		if ("alphabetic".equals(orderString)) {
 
@@ -1943,7 +1943,7 @@ public class SchemaHelper {
 
 	public static List<GraphQLArgument> getGraphQLQueryArgumentsForType(final Map<String, SchemaNode> schemaNodes, final Map<String, GraphQLInputObjectType> selectionTypes, final Set<String> queryTypeNames, final String type) throws FrameworkException {
 
-		final List<GraphQLArgument> arguments = new LinkedList<>();
+		final List<GraphQLArgument> arguments = new ArrayList<>();
 		final SchemaNode schemaNode           = schemaNodes.get(type);
 
 		if (schemaNode != null) {
@@ -2098,7 +2098,7 @@ public class SchemaHelper {
 			fields.put("name", GraphQLInputObjectField.newInputObjectField().name("name").type(selectionType).build());
 		}
 
-		return new LinkedList<>(fields.values());
+		return new ArrayList<>(fields.values());
 	}
 
 	// ----- private methods -----

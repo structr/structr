@@ -23,14 +23,14 @@ import org.apache.commons.lang3.StringUtils;
 import javax.tools.SimpleJavaFileObject;
 import java.io.IOException;
 import java.net.URI;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  */
 public class SourceFile extends SimpleJavaFileObject {
 
-	private List<SourceLine> lines            = new LinkedList<>();
+	private List<SourceLine> lines            = new ArrayList<>();
 	private String className                  = null;
 	private CharSequence content              = null;
 	private int indentLevel                   = 0;

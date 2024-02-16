@@ -29,8 +29,8 @@ import java.util.Map.Entry;
  */
 public class DefaultRepository implements Repository {
 
-	private final List<InternalChangeListener> internalChangeListeners = new LinkedList<>();
-	private final List<ExternalChangeListener> externalChangeListeners = new LinkedList<>();
+	private final List<InternalChangeListener> internalChangeListeners = new ArrayList<>();
+	private final List<ExternalChangeListener> externalChangeListeners = new ArrayList<>();
 	private final Map<String, DefaultPossibility> possibilities        = new LinkedHashMap<>();
 	private final Map<String, RepositoryObject> objects                = new LinkedHashMap<>();
 	private Peer peer                                                  = null;
@@ -215,7 +215,7 @@ public class DefaultRepository implements Repository {
 
 		notifyRepositoryQuery();
 
-		final List<RepositoryObject> list = new LinkedList<>();
+		final List<RepositoryObject> list = new ArrayList<>();
 		synchronized (objects) {
 
 			list.addAll(objects.values());

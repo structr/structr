@@ -42,7 +42,7 @@ public class StructrScriptTabCompletionProvider extends AbstractTabCompletionPro
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> results = new LinkedList<>();
+		final List<TabCompletionResult> results = new ArrayList<>();
 		final String token                      = getToken(line, " ()[]{}=+-,.*#/&$!");
 
 		results.addAll(getExactResultsForCollection(Functions.getNames(), token, "("));

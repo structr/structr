@@ -44,7 +44,7 @@ import org.structr.web.entity.html.Option;
 import org.testng.annotations.Test;
 import org.w3c.dom.Node;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.testng.AssertJUnit.fail;
@@ -88,7 +88,7 @@ public class RepeaterTest extends StructrUiTest {
 			logger.warn("", fex);
 		}
 
-		final List<String> taskIDs = new LinkedList<>();
+		final List<String> taskIDs = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 

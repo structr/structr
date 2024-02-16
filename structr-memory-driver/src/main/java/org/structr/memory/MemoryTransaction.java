@@ -116,7 +116,7 @@ public class MemoryTransaction implements Transaction {
 	// ----- package-private methods -----
 	Iterable<MemoryNode> getNodes(final Filter<MemoryNode> filter) {
 
-		final List<Iterable<MemoryNode>> sources = new LinkedList<>();
+		final List<Iterable<MemoryNode>> sources = new ArrayList<>();
 
 		// FIXME: this might return wrong data when newly created nodes match the filter but are not filtered
 		sources.add(createdNodes.values(filter));
@@ -128,7 +128,7 @@ public class MemoryTransaction implements Transaction {
 
 	Iterable<MemoryRelationship> getRelationships(final Filter<MemoryRelationship> filter) {
 
-		final List<Iterable<MemoryRelationship>> sources = new LinkedList<>();
+		final List<Iterable<MemoryRelationship>> sources = new ArrayList<>();
 
 		sources.add(createdRelationships.values(filter));
 		sources.add(db.getRelationships(filter));

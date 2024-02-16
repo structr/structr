@@ -58,8 +58,8 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 	private static final Logger logger = LoggerFactory.getLogger(StructrMethodDefinition.class.getName());
 
 	private final Set<String> OpenAPIMethodNameBlacklist      = Set.of("onCreate", "onSave", "onDelete", "afterCreate");
-	private final List<StructrParameterDefinition> parameters = new LinkedList<>();
-	private final List<String> exceptions                     = new LinkedList<>();
+	private final List<StructrParameterDefinition> parameters = new ArrayList<>();
+	private final List<String> exceptions                     = new ArrayList<>();
 	private final Set<String> tags                            = new TreeSet<>();
 	private SchemaMethod schemaMethod                         = null;
 	private boolean includeInOpenAPI                          = false;

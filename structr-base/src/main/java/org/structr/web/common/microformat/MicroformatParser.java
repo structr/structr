@@ -35,7 +35,7 @@ public class MicroformatParser {
 
 	public List<Map<String, Object>> parse(final String source, final String selector) {
 
-		final List<Map<String, Object>> objects = new LinkedList<>();
+		final List<Map<String, Object>> objects = new ArrayList<>();
 
 		for (final Element element : Jsoup.parse(source).select(selector)) {
 
@@ -156,7 +156,7 @@ public class MicroformatParser {
 
 	private Object extractChildContent(final Element element) {
 
-		final List<String> parts = new LinkedList<>();
+		final List<String> parts = new ArrayList<>();
 
 		element.traverse(new NodeVisitor() {
 

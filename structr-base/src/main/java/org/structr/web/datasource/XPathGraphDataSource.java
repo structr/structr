@@ -35,7 +35,7 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -65,7 +65,7 @@ public class XPathGraphDataSource implements GraphDataSource<Iterable<GraphObjec
 			//        the xpath parser implementation is stupid (comparing object
 			//        equality using ==).
 			Object result = xpath.evaluate(xpathQuery, document, XPathConstants.NODESET);
-			List<GraphObject> results = new LinkedList<>();
+			List<GraphObject> results = new ArrayList<>();
 
 			if (result instanceof NodeList) {
 

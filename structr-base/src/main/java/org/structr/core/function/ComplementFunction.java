@@ -22,7 +22,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ComplementFunction extends CoreFunction {
@@ -43,7 +43,7 @@ public class ComplementFunction extends CoreFunction {
 	public Object apply(final ActionContext ctx, final Object caller, final Object[] sources) throws FrameworkException {
 
 		// it should be a list so we can use it in a repeater!
-		final LinkedList resultingList = new LinkedList();
+		final ArrayList resultingList = new ArrayList();
 
 		if (sources[0] instanceof Iterable) {
 

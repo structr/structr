@@ -23,7 +23,7 @@ import org.structr.console.shell.AdminConsoleCommand;
 import org.structr.core.app.StructrApp;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -32,7 +32,7 @@ import java.util.Set;
  */
 public class AdminTabCompletionProvider extends AbstractTabCompletionProvider {
 
-	private final List<String> words = new LinkedList<>();
+	private final List<String> words = new ArrayList<>();
 
 	public AdminTabCompletionProvider() {
 
@@ -42,7 +42,7 @@ public class AdminTabCompletionProvider extends AbstractTabCompletionProvider {
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> results = new LinkedList<>();
+		final List<TabCompletionResult> results = new ArrayList<>();
 		final String token                      = getToken(line, " ");
 
 		results.addAll(getExactResultsForCollection(AdminConsoleCommand.commandNames(), token, " "));

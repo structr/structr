@@ -24,7 +24,7 @@ import org.structr.core.GraphObject;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.EvaluationHints;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -33,7 +33,7 @@ import java.util.List;
  */
 public abstract class Expression {
 
-	protected List<Expression> expressions = new LinkedList<>();
+	protected List<Expression> expressions = new ArrayList<>();
 	protected Expression parent            = null;
 	protected String name                  = null;
 	protected int level                    = 0;

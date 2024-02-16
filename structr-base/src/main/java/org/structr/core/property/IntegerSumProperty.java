@@ -24,7 +24,7 @@ import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class IntegerSumProperty extends AbstractReadOnlyProperty<Integer> {
 
-	private List<Property<Integer>> sumProperties = new LinkedList<>();
+	private List<Property<Integer>> sumProperties = new ArrayList<>();
 
 	public IntegerSumProperty(String name, Property<Integer>... properties) {
 

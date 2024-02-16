@@ -105,7 +105,7 @@ public class ScriptingTest extends StructrTest {
 			final SchemaNode sourceNode  = createTestNode(SchemaNode.class, "TestSource");
 			final SchemaNode targetNode  = createTestNode(SchemaNode.class, "TestTarget");
 
-			final List<SchemaProperty> properties = new LinkedList<>();
+			final List<SchemaProperty> properties = new ArrayList<>();
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testBoolean"), new NodeAttribute(SchemaProperty.propertyType, "Boolean")));
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testInteger"), new NodeAttribute(SchemaProperty.propertyType, "Integer")));
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testString"), new NodeAttribute(SchemaProperty.propertyType, "String")));
@@ -114,7 +114,7 @@ public class ScriptingTest extends StructrTest {
 			properties.add(createTestNode(SchemaProperty.class, new NodeAttribute(AbstractNode.name, "testDate"), new NodeAttribute(SchemaProperty.propertyType, "Date")));
 			sourceNode.setProperty(SchemaNode.schemaProperties, properties);
 
-			final List<SchemaMethod> methods = new LinkedList<>();
+			final List<SchemaMethod> methods = new ArrayList<>();
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "onCreate"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testtargets = Structr.find('TestTarget'); }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest01"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'OPEN'; }")));
 			methods.add(createTestNode(SchemaMethod.class, new NodeAttribute(AbstractNode.name, "doTest02"), new NodeAttribute(SchemaMethod.source, "{ var e = Structr.get('this'); e.testEnum = 'CLOSED'; }")));
@@ -654,7 +654,7 @@ public class ScriptingTest extends StructrTest {
 		final String numberString1        = numberFormat1.format(2.234);
 		final String numberString2        = numberFormat2.format(2.234);
 		final String numberString3        = numberFormat3.format(2.234);
-		final List<String> testSixNames   = new LinkedList<>();
+		final List<String> testSixNames   = new ArrayList<>();
 		NodeInterface template            = null;
 		NodeInterface template2           = null;
 		TestOne testOne                   = null;
@@ -2937,7 +2937,7 @@ public class ScriptingTest extends StructrTest {
 			assertMapPathValueIs(projectModifications, "removed",        new LinkedHashMap<>());
 
 			final List<GraphObject> tasks = app.nodeQuery(task).getAsList();
-			final List<String> taskIds = new LinkedList();
+			final List<String> taskIds = new ArrayList();
 			for (GraphObject oneTask : tasks) {
 				taskIds.add(oneTask.getUuid());
 			}
@@ -5274,7 +5274,7 @@ public class ScriptingTest extends StructrTest {
 	public void testStructrScriptArrayIndexingWithVariable() {
 
 		final ActionContext ctx  = new ActionContext(securityContext);
-		final List<Group> groups = new LinkedList<>();
+		final List<Group> groups = new ArrayList<>();
 
 		// setup
 		try (final Tx tx = app.tx()) {
@@ -5700,7 +5700,7 @@ public class ScriptingTest extends StructrTest {
 	public void testSlice() {
 
 		final ActionContext ctx           = new ActionContext(securityContext);
-		final List<String> testSixNames   = new LinkedList<>();
+		final List<String> testSixNames   = new ArrayList<>();
 		TestOne testOne                   = null;
 		List<TestSix> testSixs            = null;
 		int index                         = 0;
@@ -6111,7 +6111,7 @@ public class ScriptingTest extends StructrTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<Group> groups = new LinkedList<>();
+			final List<Group> groups = new ArrayList<>();
 
 			groups.add(app.create(Group.class, "Group1"));
 			groups.add(app.create(Group.class, "Group2"));

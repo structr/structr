@@ -682,7 +682,7 @@ public class GraphObjectModificationState implements ModificationEvent {
 			List list = (List)properties.get(key.jsonName());
 			if (list == null) {
 
-				list = new LinkedList<>();
+				list = new ArrayList<>();
 				properties.put(key.jsonName(), list);
 			}
 

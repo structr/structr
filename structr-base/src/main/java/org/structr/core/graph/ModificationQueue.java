@@ -558,8 +558,8 @@ public class ModificationQueue {
 			final Relation relation  = Relation.getInstance((Class)rel.getClass());
 			final PropertyKey source = relation.getSourceProperty();
 			final PropertyKey target = relation.getTargetProperty();
-			final Object sourceValue = source != null && source.isCollection() ? new LinkedList<>() : null;
-			final Object targetValue = target != null && target.isCollection() ? new LinkedList<>() : null;
+			final Object sourceValue = source != null && source.isCollection() ? new ArrayList<>() : null;
+			final Object targetValue = target != null && target.isCollection() ? new ArrayList<>() : null;
 
 			modify(user, startNode, target, null, targetValue);
 			modify(user, endNode, source, null, sourceValue);
@@ -636,7 +636,7 @@ public class ModificationQueue {
 
 	private List<GraphObjectModificationState> getSortedModifications() {
 
-		final List<GraphObjectModificationState> state = new LinkedList<>(modifications.values());
+		final List<GraphObjectModificationState> state = new ArrayList<>(modifications.values());
 
 		Collections.sort(state, (a, b) -> {
 

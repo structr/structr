@@ -27,7 +27,7 @@ import urn.ebay.api.PayPalAPI.GetExpressCheckoutDetailsResponseType;
 import urn.ebay.api.PayPalAPI.SetExpressCheckoutResponseType;
 import urn.ebay.apis.eBLBaseComponents.*;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -40,8 +40,8 @@ public class PayPalPaymentProvider implements PaymentProvider {
 	@Override
 	public BeginCheckoutResponse beginCheckout(final Payment payment, final String successUrl, final String cancelUrl) throws FrameworkException {
 
-		final List<PaymentDetailsType> paymentDetailList = new LinkedList<>();
-		final List<PaymentDetailsItemType> lineItems     = new LinkedList<>();
+		final List<PaymentDetailsType> paymentDetailList = new ArrayList<>();
+		final List<PaymentDetailsItemType> lineItems     = new ArrayList<>();
 		final PaymentDetailsType paymentDetails          = new PaymentDetailsType();
 
 		for (final PaymentItem item : payment.getItems()) {

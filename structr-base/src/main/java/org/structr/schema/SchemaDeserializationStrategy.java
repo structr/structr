@@ -87,7 +87,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 
 		if (attributes != null) {
 
-			final List<T> result = new LinkedList<>();
+			final List<T> result = new ArrayList<>();
 
 			// remove attributes that do not belong to the target node
 			final PropertyMap foreignProperties = new PropertyMap();

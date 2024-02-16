@@ -42,7 +42,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -66,7 +66,7 @@ public class StructrShellCommand implements Command, SignalListener, TerminalHan
 		commands.put("passwd",     PasswordCommand.class);
 	}
 
-	private final List<String> commandHistory = new LinkedList<>();
+	private final List<String> commandHistory = new ArrayList<>();
 	private Folder currentFolder              = null;
 	private TerminalEmulator term             = null;
 	private ExitCallback callback             = null;

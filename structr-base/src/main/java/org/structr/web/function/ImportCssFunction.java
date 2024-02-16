@@ -37,7 +37,7 @@ import org.w3c.dom.css.CSSRuleList;
 import org.w3c.dom.css.CSSStyleSheet;
 
 import java.io.InputStreamReader;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ImportCssFunction extends UiAdvancedFunction {
@@ -132,7 +132,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"ruleType"), Short.toUnsignedInt(rule.getType()));
 
 		// Extract and link selectors
-		final List<NodeInterface> cssSelectors = new LinkedList<>();
+		final List<NodeInterface> cssSelectors = new ArrayList<>();
 		final String[] selectors = StringUtils.split(selectorsString, ",");
 
 		for (final String selector : selectors) {
@@ -144,7 +144,7 @@ public class ImportCssFunction extends UiAdvancedFunction {
 		cssRuleNode.setProperty(StructrApp.key(CssRule.class,"selectors"), cssSelectors);
 
 		// Extract and link declarations
-		final List<NodeInterface> cssDeclarations = new LinkedList<>();
+		final List<NodeInterface> cssDeclarations = new ArrayList<>();
 		final String declarationsString           = StringUtils.stripEnd(StringUtils.substringAfter(cssText, "{"), "}");
 		final String[] declarations               = StringUtils.split(declarationsString, ";");
 

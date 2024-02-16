@@ -329,7 +329,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 				for (final String viewName : this.getViewNamesOfType(type, view)) {
 
-					final List<Map<String, Object>> allOf = new LinkedList<>();
+					final List<Map<String, Object>> allOf = new ArrayList<>();
 					final Map<String, Object> typeMap = new TreeMap<>();
 					final String typeName = type.getName() + (viewName == null || StringUtils.equals(PropertyView.Public, viewName) ? "" : "." + viewName);
 

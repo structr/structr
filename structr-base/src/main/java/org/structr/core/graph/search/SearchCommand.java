@@ -136,7 +136,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// use filters to filter sources otherwise
 		if (!config.hasSpatialSource && !sources.isEmpty()) {
 
-			indexHits = new LinkedList<>();
+			indexHits = new ArrayList<>();
 
 		} else {
 
@@ -228,7 +228,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 
 			if (!sortOrder.isEmpty()) {
 
-				final List<T> finalResult = new LinkedList<>(Iterables.toList(indexHits));
+				final List<T> finalResult = new ArrayList<>(Iterables.toList(indexHits));
 				Collections.sort(finalResult, sortOrder);
 				return new PagingIterable(description, finalResult, pageSize, page, queryContext.getSkipped());
 			}

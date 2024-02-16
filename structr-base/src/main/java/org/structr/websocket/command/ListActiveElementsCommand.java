@@ -77,7 +77,7 @@ public class ListActiveElementsCommand extends AbstractCommand {
 		try (final Tx tx = app.tx(true, true, true)) {
 
 			final Page page                = app.get(Page.class, id);
-			final List<GraphObject> result = new LinkedList<>();
+			final List<GraphObject> result = new ArrayList<>();
 
 			if (page != null) {
 

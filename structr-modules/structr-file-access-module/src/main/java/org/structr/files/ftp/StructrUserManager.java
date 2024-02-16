@@ -33,7 +33,7 @@ import org.structr.core.graph.Tx;
 import org.structr.rest.auth.AuthHelper;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -70,7 +70,7 @@ public class StructrUserManager implements UserManager {
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
 			final List<String> userNames = new ArrayList();
-			final List<Principal> result = new LinkedList<>();
+			final List<Principal> result = new ArrayList<>();
 
 			try {
 

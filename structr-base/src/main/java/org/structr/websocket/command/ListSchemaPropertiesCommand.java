@@ -36,7 +36,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -61,7 +61,7 @@ public class ListSchemaPropertiesCommand extends AbstractCommand {
 
 		final String view              = webSocketData.getNodeDataStringValue("view");
 		final String id                = webSocketData.getId();
-		final List<GraphObject> result = new LinkedList();
+		final List<GraphObject> result = new ArrayList();
 
 		if (view != null) {
 

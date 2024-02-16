@@ -37,7 +37,7 @@ public class GraphQLRequest {
 
 	private static final Logger logger = LoggerFactory.getLogger(GraphQLRequest.class);
 
-	private final List<GraphQLQuery> queries = new LinkedList<>();
+	private final List<GraphQLQuery> queries = new ArrayList<>();
 	private boolean hasSchemaQuery           = false;
 	private String originalQuery             = null;
 

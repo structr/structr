@@ -59,8 +59,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	protected final Set<StructrPropertyDefinition> properties     = new TreeSet<>();
 	protected final Map<String, Set<String>> views                = new TreeMap<>();
 	protected final Map<String, String> viewOrder                 = new TreeMap<>();
-	protected final List<StructrMethodDefinition> methods         = new LinkedList<>();
-	protected final List<StructrGrantDefinition> grants           = new LinkedList<>();
+	protected final List<StructrMethodDefinition> methods         = new ArrayList<>();
+	protected final List<StructrGrantDefinition> grants           = new ArrayList<>();
 	protected final Set<URI> implementedInterfaces                = new TreeSet<>();
 	protected final Set<String> tags                              = new TreeSet<>();
 	protected boolean visibleToAuthenticatedUsers                 = false;
@@ -761,7 +761,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					// map to collection
 					final Map<String, Object> otherMethod   = (Map<String, Object>)serializedMethods.get(name);
 					final Map<String, Object> currentMethod = method.serialize();
-					final List<Map<String, Object>> list    = new LinkedList<>();
+					final List<Map<String, Object>> list    = new ArrayList<>();
 
 					list.add(otherMethod);
 					list.add(currentMethod);
@@ -1128,8 +1128,8 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		// create views and associate the properties
 		for (final Entry<String, Set<String>> view : views.entrySet()) {
 
-			final List<SchemaProperty> viewProperties = new LinkedList<>();
-			final List<String> nonGraphProperties     = new LinkedList<>();
+			final List<SchemaProperty> viewProperties = new ArrayList<>();
+			final List<String> nonGraphProperties     = new ArrayList<>();
 
 			for (final String propertyName : view.getValue()) {
 
@@ -1677,7 +1677,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	private String getParameterizedType(final String type, final String queryString) {
 
 		final StringBuilder buf           = new StringBuilder();
-		final List<String> typeParameters = new LinkedList<>();
+		final List<String> typeParameters = new ArrayList<>();
 
 		buf.append(type);
 
@@ -1874,7 +1874,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 
 	public List<Map<String, Object>> getOpenAPIParameters(final String viewName, final int level, final Boolean isGetOperation) {
 
-		final List<Map<String, Object>> params = new LinkedList<>();
+		final List<Map<String, Object>> params = new ArrayList<>();
 
 		// add indexed properties
 		visitProperties(property -> {

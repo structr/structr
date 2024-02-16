@@ -59,7 +59,7 @@ public class RecurringDateHelper {
 	public static List<Appointment> generateAppointments(final Date startDate, final Date endDate, final String weekdays, final String startTimeString, final String endTimeString) {
 
 
-		List<Appointment> appointments = new LinkedList();
+		List<Appointment> appointments = new ArrayList();
 		//check if a Date is empty
 		if(	startDate == null || startDate.getTime() == 0 ||
 			endDate == null || endDate.getTime() == 0 ||

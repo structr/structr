@@ -34,7 +34,7 @@ import org.structr.core.property.PropertyMap;
 import org.structr.core.property.RelationProperty;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -70,7 +70,7 @@ public class TypeAndValueDeserializationStrategy<S, T extends NodeInterface> ext
 	public T deserialize(final SecurityContext securityContext, Class<T> type, S source, final Object context) throws FrameworkException {
 
 		final App app        = StructrApp.getInstance(securityContext);
-		final List<T> result = new LinkedList<>();
+		final List<T> result = new ArrayList<>();
 
 		// default to UUID
 		if (propertyKey == null) {

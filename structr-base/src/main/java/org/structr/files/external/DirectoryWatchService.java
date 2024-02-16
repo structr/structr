@@ -401,7 +401,7 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 		}
 
 		final SecurityContext securityContext = SecurityContext.getSuperUserInstance();
-		final List<File> directories          = new LinkedList<>();
+		final List<File> directories          = new ArrayList<>();
 		int count                             = 0;
 
 		// configure security context for maximum performance

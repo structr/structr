@@ -140,7 +140,7 @@ public class MixedCSVFileImportJob extends FileImportJob {
 
 						while (iterator.hasNext() && count++ < commitInterval) {
 
-							final List<StringTuple> tuples            = new LinkedList<>();
+							final List<StringTuple> tuples            = new ArrayList<>();
 							final Map<String, GraphObject> rowObjects = new LinkedHashMap<>();
 							final JsonInput row                       = iterator.next();
 

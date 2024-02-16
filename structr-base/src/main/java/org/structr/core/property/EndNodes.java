@@ -235,7 +235,7 @@ public class EndNodes<S extends NodeInterface, T extends NodeInterface> extends 
 		final PropertyConverter inputConverter = inputConverter(securityContext);
 		if (inputConverter != null) {
 
-			final List<String> sources = new LinkedList<>();
+			final List<String> sources = new ArrayList<>();
 			if (requestParameter != null) {
 
 				for (String part : requestParameter.split("[,;]+")) {

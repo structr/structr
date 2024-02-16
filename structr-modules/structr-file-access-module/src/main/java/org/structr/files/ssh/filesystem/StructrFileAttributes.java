@@ -88,7 +88,7 @@ public class  StructrFileAttributes implements PosixFileAttributes, DosFileAttri
 			return null;
 		}
 
-		final List<Group> groups = new LinkedList<>();
+		final List<Group> groups = new ArrayList<>();
 
 		try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
 

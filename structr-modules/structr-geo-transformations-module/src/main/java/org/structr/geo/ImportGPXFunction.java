@@ -31,7 +31,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -100,9 +100,9 @@ public class ImportGPXFunction extends GeoFunction {
 					final GraphObjectMap result          = new GraphObjectMap();
 					final XmlFunction xmlParser          = new XmlFunction();
 					final Document doc                   = (Document)xmlParser.apply(ctx, caller, sources);
-					final List<GraphObjectMap> waypoints = new LinkedList<>();
-					final List<GraphObjectMap> routes    = new LinkedList<>();
-					final List<GraphObjectMap> tracks    = new LinkedList<>();
+					final List<GraphObjectMap> waypoints = new ArrayList<>();
+					final List<GraphObjectMap> routes    = new ArrayList<>();
+					final List<GraphObjectMap> tracks    = new ArrayList<>();
 
 					if (doc != null) {
 
@@ -188,7 +188,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	private void readRoute(final Element route, final List<GraphObjectMap> resultList) {
 
-		final List<GraphObjectMap> points = new LinkedList<>();
+		final List<GraphObjectMap> points = new ArrayList<>();
 		final GraphObjectMap result       = new GraphObjectMap();
 
 		for (final Element elem : getChildren(route)) {
@@ -216,7 +216,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	private void readTrack(final Element track, final List<GraphObjectMap> resultList) {
 
-		final List<GraphObjectMap> segments = new LinkedList<>();
+		final List<GraphObjectMap> segments = new ArrayList<>();
 		final GraphObjectMap result         = new GraphObjectMap();
 
 		for (final Element elem : getChildren(track)) {
@@ -240,7 +240,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	private void readTrackSegment(final Element trackSegment, final List<GraphObjectMap> resultList) {
 
-		final List<GraphObjectMap> points = new LinkedList<>();
+		final List<GraphObjectMap> points = new ArrayList<>();
 		final GraphObjectMap result       = new GraphObjectMap();
 
 		for (final Element elem : getChildren(trackSegment)) {
@@ -334,7 +334,7 @@ public class ImportGPXFunction extends GeoFunction {
 
 	private List<Element> getChildren(final Element root) {
 
-		final List<Element> elements = new LinkedList<>();
+		final List<Element> elements = new ArrayList<>();
 		final NodeList nodes         = root.getChildNodes();
 		final int length             = nodes.getLength();
 

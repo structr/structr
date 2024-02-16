@@ -20,7 +20,7 @@ package org.structr.core.scheduler;
 
 import org.structr.common.error.FrameworkException;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
@@ -118,7 +118,7 @@ public class JobQueueManager {
 
 	public List<Map<String, Object>> listJobs () {
 
-		final List<Map<String, Object>> jobInfoList = new LinkedList<>();
+		final List<Map<String, Object>> jobInfoList = new ArrayList<>();
 
 		activeJobs.values().forEach((ScheduledJob job) -> {
 			addJobToList(jobInfoList, job);

@@ -25,7 +25,7 @@ import org.structr.api.graph.Path;
 import org.structr.api.graph.PropertyContainer;
 
 import java.util.Iterator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -51,7 +51,7 @@ class PathWrapper implements Path {
 			return new SegmentIterator(path);
 		}
 
-		final List<PropertyContainer> list = new LinkedList<>();
+		final List<PropertyContainer> list = new ArrayList<>();
 		list.add(NodeWrapper.newInstance(db, path.start()));
 
 		return list.iterator();

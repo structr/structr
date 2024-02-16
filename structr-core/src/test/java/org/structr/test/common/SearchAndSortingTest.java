@@ -1704,8 +1704,8 @@ public class SearchAndSortingTest extends StructrTest {
 			final Class type                         = TestOne.class;
 			final int number                         = 1000;
 			final List<NodeInterface> allNodes       = this.createTestNodes(type, number);
-			final List<NodeInterface> tester1Nodes   = new LinkedList<>();
-			final List<NodeInterface> tester2Nodes   = new LinkedList<>();
+			final List<NodeInterface> tester1Nodes   = new ArrayList<>();
+			final List<NodeInterface> tester2Nodes   = new ArrayList<>();
 			final int offset                         = 0;
 
 			try (final Tx tx = app.tx()) {
@@ -1857,7 +1857,7 @@ public class SearchAndSortingTest extends StructrTest {
 
 		final Class<Group> groupType                     = StructrApp.getConfiguration().getNodeEntityClass("Group");
 		final PropertyKey<Iterable<Principal>> groupsKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(groupType, "groups");
-		final List<Group> groups                         = new LinkedList<>();
+		final List<Group> groups                         = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -1886,7 +1886,7 @@ public class SearchAndSortingTest extends StructrTest {
 		try (final Tx tx = app.tx()) {
 
 			// search for a group with empty list of parents
-			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new LinkedList<>()).getAsList();
+			final List<Group> result1 = app.nodeQuery(Group.class).and(groupsKey, new ArrayList<>()).getAsList();
 			assertEquals("Invalid search result", 1, result1.size());
 
 			// search for a group with group2 as a parent

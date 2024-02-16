@@ -26,7 +26,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.core.GraphObjectMap;
 import org.structr.schema.action.ActionContext;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -82,7 +82,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 	public static Object parseJson(final String source) throws JsonSyntaxException {
 
 		final Gson gson = new GsonBuilder().create();
-		List<Map<String, Object>> objects = new LinkedList<>();
+		List<Map<String, Object>> objects = new ArrayList<>();
 
 		try {
 
@@ -90,7 +90,7 @@ public class FromJsonFunction extends UiCommunityFunction {
 
 				final List<Map<String, Object>> list = gson.fromJson(source, new TypeToken<List<Map<String, Object>>>() {
 				}.getType());
-				final List<GraphObjectMap> elements = new LinkedList<>();
+				final List<GraphObjectMap> elements = new ArrayList<>();
 
 				if (list != null) {
 

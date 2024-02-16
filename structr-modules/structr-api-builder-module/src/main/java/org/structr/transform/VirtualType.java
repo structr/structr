@@ -177,7 +177,7 @@ public interface VirtualType extends NodeInterface, ResultTransformer {
 
 	static class Mapper implements Function<GraphObject, GraphObject> {
 
-		private final List<Transformation> transformations = new LinkedList<>();
+		private final List<Transformation> transformations = new ArrayList<>();
 		private ActionContext actionContext                = null;
 
 		public Mapper(final SecurityContext securityContext, final List<VirtualProperty> properties, final Class type) throws FrameworkException {

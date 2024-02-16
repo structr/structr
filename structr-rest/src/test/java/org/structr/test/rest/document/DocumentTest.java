@@ -34,7 +34,7 @@ import org.structr.schema.export.StructrSchema;
 import org.structr.test.rest.common.StructrRestTestBase;
 import org.testng.annotations.Test;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -1931,7 +1931,7 @@ public class DocumentTest extends StructrRestTestBase {
 	private String createSchemaNode(final String name, Pair... properties) {
 
 		final StringBuilder buf = new StringBuilder();
-		final List<String> view = new LinkedList<>();
+		final List<String> view = new ArrayList<>();
 
 		// append name
 		buf.append("{ \"name\": \"");

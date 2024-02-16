@@ -32,7 +32,7 @@ import org.structr.web.entity.dom.Page;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,7 +59,7 @@ public class ChildrenCommand extends AbstractCommand {
 			return;
 		}
 
-		final List<GraphObject> result = new LinkedList();
+		final List<GraphObject> result = new ArrayList();
 
 		if (node instanceof Page) {
 

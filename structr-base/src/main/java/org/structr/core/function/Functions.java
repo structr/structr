@@ -94,7 +94,7 @@ public class Functions {
 	}
 
 	public static Collection<Function<Object, Object>> getFunctions() {
-		return new LinkedList<>(functions.values());
+		return new ArrayList<>(functions.values());
 	}
 
 	public static Expression parse(final ActionContext actionContext, final GraphObject entity, final Snippet snippet, final ParseResult result) throws FrameworkException, UnlicensedScriptException {
@@ -399,8 +399,8 @@ public class Functions {
 
 	private static class StructrScriptTokenizer {
 
-		private List<Tokenizer> candidates = new LinkedList<>();
-		private List<Token> tokens         = new LinkedList<>();
+		private List<Tokenizer> candidates = new ArrayList<>();
+		private List<Token> tokens         = new ArrayList<>();
 		private Tokenizer currentToken     = null;
 		private int column                 = 1;
 		private int row                    = 1;

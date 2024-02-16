@@ -32,7 +32,7 @@ import org.structr.test.rest.entity.TestOne;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -119,7 +119,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test05PATCHSuccess() {
 
-		final List<Object> ids = new LinkedList<>();
+		final List<Object> ids = new ArrayList<>();
 
 		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
 		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
@@ -169,7 +169,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void testPATCHBatchSize() {
 
-		final List<Object> ids = new LinkedList<>();
+		final List<Object> ids = new ArrayList<>();
 
 		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
 		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
@@ -219,7 +219,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test05PATCHFail404() {
 
-		final List<Object> ids = new LinkedList<>();
+		final List<Object> ids = new ArrayList<>();
 
 		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
 		ids.add(createEntity("/TestOne", "{ name: 'bbb', anInt: 2, aLong: 4 }"));
@@ -247,7 +247,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test05PATCHCreateObjectForMissingId() {
 
-		final List<Object> ids = new LinkedList<>();
+		final List<Object> ids = new ArrayList<>();
 
 		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
 
@@ -299,7 +299,7 @@ public class RestVerbsTest extends StructrRestTestBase {
 	@Test
 	public void test05PATCHFail422WrongId() {
 
-		final List<Object> ids = new LinkedList<>();
+		final List<Object> ids = new ArrayList<>();
 
 		ids.add(createEntity("/TestOne", "{ name: 'aaa', anInt: 1, aLong: 2 }"));
 

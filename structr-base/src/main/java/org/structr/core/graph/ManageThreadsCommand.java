@@ -101,7 +101,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 	// ----- private methods -----
 	private Object listThreads() {
 
-		final List<Map<String, Object>> threads = new LinkedList<>();
+		final List<Map<String, Object>> threads = new ArrayList<>();
 		final ThreadMXBean bean                 = ManagementFactory.getThreadMXBean();
 		final Set<Long> deadlockedSet           = new LinkedHashSet<>();
 		final long[] deadlocked                 = bean.findDeadlockedThreads();
@@ -177,7 +177,7 @@ public class ManageThreadsCommand extends NodeServiceCommand implements Maintena
 
 	private List<String> filterAndTransform(final StackTraceElement[] input) {
 
-		final List<String> list = new LinkedList<>();
+		final List<String> list = new ArrayList<>();
 
 		for (final StackTraceElement e : input) {
 

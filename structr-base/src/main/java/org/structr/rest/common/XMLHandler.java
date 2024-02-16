@@ -251,7 +251,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 						List<Map<String, Object>> elements = (List)entityData.get(propertyName);
 						if (elements == null) {
 
-							elements = new LinkedList<>();
+							elements = new ArrayList<>();
 							entityData.put(propertyName, elements);
 						}
 
@@ -314,7 +314,7 @@ public class XMLHandler implements Iterator<Map<String, Object>> {
 	private class Element {
 
 		private Map<String, Object> data = new LinkedHashMap<>();
-		private List<Element> children   = new LinkedList<>();
+		private List<Element> children   = new ArrayList<>();
 		private boolean isRoot           = false;
 		private Element parent           = null;
 		private String tagName           = null;

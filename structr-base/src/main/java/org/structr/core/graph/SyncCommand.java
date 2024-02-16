@@ -641,8 +641,8 @@ public class SyncCommand extends NodeServiceCommand implements MaintenanceComman
 
 			try (final Tx tx = app.tx(doValidation)) {
 
-				final List<RelationshipCreation> rels = new LinkedList<>();
-				final List<NodeCreation> nodes        = new LinkedList<>();
+				final List<RelationshipCreation> rels = new ArrayList<>();
+				final List<NodeCreation> nodes        = new ArrayList<>();
 				long nodeCount                        = 0;
 				long relCount                         = 0;
 

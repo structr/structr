@@ -158,7 +158,7 @@ public class RuntimeEventLogResource extends Resource {
 
 	private List<String> split(final String source) {
 
-		final List<String> parts = new LinkedList<>();
+		final List<String> parts = new ArrayList<>();
 
 		if (source != null) {
 

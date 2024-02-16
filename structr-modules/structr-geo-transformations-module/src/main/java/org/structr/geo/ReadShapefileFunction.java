@@ -89,7 +89,7 @@ public class ReadShapefileFunction extends GeoFunction {
 						final ShapefileReader reader          = new ShapefileReader(shpFiles, true, true, gf);
 						final CoordinateReferenceSystem wgs84 = CRS.decode("EPSG:4326");
 						final CoordinateReferenceSystem crs   = readCRS(shpFiles, reader);
-						final List<Map<String, Object>> data  = new LinkedList<>();
+						final List<Map<String, Object>> data  = new ArrayList<>();
 						final Map<String, Object> result      = new LinkedHashMap<>();
 						MathTransform transform               = null;
 
@@ -98,7 +98,7 @@ public class ReadShapefileFunction extends GeoFunction {
 							transform = CRS.findMathTransform(crs, wgs84, true);
 						}
 
-						final List<String> metadataFields        = new LinkedList<>();
+						final List<String> metadataFields        = new ArrayList<>();
 						final List<Map<String, Object>> metadata = readDBF(shpFiles, metadataFields);
 						Iterator<Map<String, Object>> iterator   = null;
 						int count                                = 0;
@@ -219,7 +219,7 @@ public class ReadShapefileFunction extends GeoFunction {
 		try {
 
 			final DbaseFileReader reader = new DbaseFileReader(shpFiles, true, Charset.forName("utf-8"));
-			final List<Map<String, Object>> data = new LinkedList<>();
+			final List<Map<String, Object>> data = new ArrayList<>();
 
 			try {
 

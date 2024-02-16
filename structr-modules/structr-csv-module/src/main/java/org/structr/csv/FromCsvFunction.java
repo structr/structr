@@ -26,7 +26,7 @@ import org.structr.schema.action.ActionContext;
 
 import java.io.StringReader;
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +54,7 @@ public class FromCsvFunction extends CsvFunction {
 
 			try {
 
-				final List<Map<String, String>> objects = new LinkedList<>();
+				final List<Map<String, String>> objects = new ArrayList<>();
 				final String source                     = sources[0].toString();
 				String delimiter                        = ";";
 				String quoteChar                        = "\"";

@@ -167,7 +167,7 @@ public class XMLStructureAnalyzer {
 	// ----- nested classes -----
 	private class Element {
 
-		private final List<Element> children = new LinkedList<>();
+		private final List<Element> children = new ArrayList<>();
 		private final Set<String> attributes = new LinkedHashSet<>();
 		private Element parent               = null;
 		private String tagName               = null;

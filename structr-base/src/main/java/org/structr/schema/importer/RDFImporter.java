@@ -128,7 +128,7 @@ public class RDFImporter extends SchemaAnalyzer {
 		final Map<String, RdfClass> classes           = new LinkedHashMap<>();
 		final Set<Triple> triples                     = new LinkedHashSet<>();
 		final StringBuilder cypher                    = new StringBuilder();
-		final List<String> cypherStatements           = new LinkedList<>();
+		final List<String> cypherStatements           = new ArrayList<>();
 
 		for (Node node = doc.getElementsByTagName("rdfs:Class").item(0); node != null; node = node.getNextSibling()) {
 

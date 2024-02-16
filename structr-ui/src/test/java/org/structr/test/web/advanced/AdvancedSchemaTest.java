@@ -50,7 +50,7 @@ import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.hamcrest.Matchers.*;
@@ -423,7 +423,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+		final List<PropertyKey> list = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("id",    list.get(0).dbName());
@@ -454,7 +454,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
+		final List<PropertyKey> list2 = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "public"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("id",    list2.get(0).dbName());
@@ -619,7 +619,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				new NodeAttribute<>(SchemaView.nonGraphProperties, "id, type, name")
 			);
 
-			final List<SchemaView> list = new LinkedList<>();
+			final List<SchemaView> list = new ArrayList<>();
 			list.add(testView1);
 			list.add(testView2);
 
@@ -659,7 +659,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("Invalid view order", "one",   list.get(0).dbName());
@@ -685,7 +685,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list2 = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("Invalid view order", "type",  list2.get(0).dbName());
@@ -847,7 +847,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				new NodeAttribute<>(SchemaView.nonGraphProperties, "id, type, name")
 			);
 
-			final List<SchemaView> list = new LinkedList<>();
+			final List<SchemaView> list = new ArrayList<>();
 			list.add(testView);
 
 			// create properties
@@ -887,7 +887,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list.size());
 		assertEquals("one",   list.get(0).dbName());
@@ -913,7 +913,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 			fex.printStackTrace();
 		}
 
-		final List<PropertyKey> list2 = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
+		final List<PropertyKey> list2 = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "test"));
 
 		assertEquals("Invalid number of properties in sorted view", 7, list2.size());
 		assertEquals("type",  list2.get(0).dbName());
@@ -1070,7 +1070,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 				new NodeAttribute<>(SchemaView.schemaNode, test)
 			);
 
-			final List<SchemaView> list = new LinkedList<>();
+			final List<SchemaView> list = new ArrayList<>();
 			list.add(testView);
 
 			// create a function property to overload the String property "name" defined in {@link NodeInterface}
@@ -1088,7 +1088,7 @@ public class AdvancedSchemaTest extends FrontendTest {
 		}
 
 		final Class type            = StructrApp.getConfiguration().getNodeEntityClass("Test");
-		final List<PropertyKey> list = new LinkedList<>(StructrApp.getConfiguration().getPropertySet(type, "testview"));
+		final List<PropertyKey> list = new ArrayList<>(StructrApp.getConfiguration().getPropertySet(type, "testview"));
 
 		assertEquals("Invalid number of properties in sorted view", 1, list.size());
 		assertEquals("name",  list.get(0).dbName());

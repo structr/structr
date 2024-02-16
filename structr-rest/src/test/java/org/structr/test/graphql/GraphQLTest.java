@@ -41,7 +41,7 @@ import org.structr.test.rest.common.StructrGraphQLTest;
 import org.testng.annotations.Test;
 
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -147,8 +147,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 	@Test
 	public void testAdvancedQueries() {
 
-		final List<MailTemplate> templates = new LinkedList<>();
-		final List<Principal> team         = new LinkedList<>();
+		final List<MailTemplate> templates = new ArrayList<>();
+		final List<Principal> team         = new ArrayList<>();
 		Group group                        = null;
 
 		try (final Tx tx = app.tx()) {
@@ -287,7 +287,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ Group(_sort: \"name\") { name, members(_pageSize: 2, _page: 2) { name }}}");
 			assertMapPathValueIs(result, "Group.#",                2);
 			assertMapPathValueIs(result, "Group.0.name",           "All teams");
-			assertMapPathValueIs(result, "Group.0.members",        new LinkedList<>());
+			assertMapPathValueIs(result, "Group.0.members",        new ArrayList<>());
 			assertMapPathValueIs(result, "Group.1.name",           "Structr Team");
 			assertMapPathValueIs(result, "Group.1.members.#",      2);
 			assertMapPathValueIs(result, "Group.1.members.0.name", "Christian");
@@ -334,7 +334,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ Group(_sort: \"name\") { members { name(_contains: \"k\", _contains: \"l\", _conj: \"and\") }}}");
 			assertMapPathValueIs(result, "Group.#",                2);
 			assertMapPathValueIs(result, "Group.0.name",           null);
-			assertMapPathValueIs(result, "Group.0.members",        new LinkedList<>());
+			assertMapPathValueIs(result, "Group.0.members",        new ArrayList<>());
 			assertMapPathValueIs(result, "Group.1.members.0.name", "Lukas");
 			assertMapPathValueIs(result, "Group.1.members.1",      null);
 		}
@@ -343,7 +343,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final Map<String, Object> result = fetchGraphQL("{ Group(_sort: \"name\") { members { name(_contains: \"k\", _contains: \"l\", _conj: \"or\") }}}");
 			assertMapPathValueIs(result, "Group.#",                2);
 			assertMapPathValueIs(result, "Group.0.name",           null);
-			assertMapPathValueIs(result, "Group.0.members",        new LinkedList<>());
+			assertMapPathValueIs(result, "Group.0.members",        new ArrayList<>());
 			assertMapPathValueIs(result, "Group.1.members.#",      4);
 			assertMapPathValueIs(result, "Group.1.members.0.name", "Axel");
 			assertMapPathValueIs(result, "Group.1.members.1.name", "Kai");
@@ -425,8 +425,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final List<NodeInterface> projects = new LinkedList<>();
-		final List<NodeInterface> tasks    = new LinkedList<>();
+		final List<NodeInterface> projects = new ArrayList<>();
+		final List<NodeInterface> tasks    = new ArrayList<>();
 		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
 		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
@@ -542,8 +542,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final List<NodeInterface> projects = new LinkedList<>();
-		final List<NodeInterface> tasks    = new LinkedList<>();
+		final List<NodeInterface> projects = new ArrayList<>();
+		final List<NodeInterface> tasks    = new ArrayList<>();
 		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
 		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
@@ -1091,8 +1091,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final List<NodeInterface> projects = new LinkedList<>();
-		final List<NodeInterface> tasks    = new LinkedList<>();
+		final List<NodeInterface> projects = new ArrayList<>();
+		final List<NodeInterface> tasks    = new ArrayList<>();
 		final Class extProject             = StructrApp.getConfiguration().getNodeEntityClass("ExtendedProject1");
 		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
 		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(extProject, "tasks");
@@ -1234,8 +1234,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final List<NodeInterface> projects = new LinkedList<>();
-		final List<NodeInterface> tasks    = new LinkedList<>();
+		final List<NodeInterface> projects = new ArrayList<>();
+		final List<NodeInterface> tasks    = new ArrayList<>();
 		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
 		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
@@ -1717,7 +1717,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			fex.printStackTrace();
 		}
 
-		final List<NodeInterface> identifiers = new LinkedList<>();
+		final List<NodeInterface> identifiers = new ArrayList<>();
 		final Class project                   = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final Class identifier                = StructrApp.getConfiguration().getNodeEntityClass("Identifier");
 		final PropertyKey projectNameKey      = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "name");
@@ -2123,8 +2123,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tasks1 = new LinkedList<>();
-			final List<NodeInterface> tasks2 = new LinkedList<>();
+			final List<NodeInterface> tasks1 = new ArrayList<>();
+			final List<NodeInterface> tasks2 = new ArrayList<>();
 
 			final NodeInterface project1     = app.create(project, "Project1");
 			final NodeInterface project2     = app.create(project, "Project2");
@@ -2298,8 +2298,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tasks1 = new LinkedList<>();
-			final List<NodeInterface> tasks2 = new LinkedList<>();
+			final List<NodeInterface> tasks1 = new ArrayList<>();
+			final List<NodeInterface> tasks2 = new ArrayList<>();
 
 			final NodeInterface project1     = app.create(project, "Project1");
 			final NodeInterface project2     = app.create(project, "Project2");
@@ -2467,7 +2467,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tasks = new LinkedList<>();
+			final List<NodeInterface> tasks = new ArrayList<>();
 			final NodeInterface project     = app.create(projectType, "Project1");
 
 			tasks.add(app.create(taskType, "Task1.1"));
@@ -2571,11 +2571,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		try (final Tx tx = app.tx()) {
 
-			final List<NodeInterface> tasks1 = new LinkedList<>();
-			final List<NodeInterface> tasks2 = new LinkedList<>();
-			final List<NodeInterface> tasks3 = new LinkedList<>();
-			final List<NodeInterface> tasks4 = new LinkedList<>();
-			final List<NodeInterface> tasks5 = new LinkedList<>();
+			final List<NodeInterface> tasks1 = new ArrayList<>();
+			final List<NodeInterface> tasks2 = new ArrayList<>();
+			final List<NodeInterface> tasks3 = new ArrayList<>();
+			final List<NodeInterface> tasks4 = new ArrayList<>();
+			final List<NodeInterface> tasks5 = new ArrayList<>();
 
 			final NodeInterface project1     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project1"), new NodeAttribute<>(checkedKey, true));
 			final NodeInterface project2     = app.create(projectType, new NodeAttribute<>(AbstractNode.name, "Project2"), new NodeAttribute<>(checkedKey, false));

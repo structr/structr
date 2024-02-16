@@ -110,7 +110,7 @@ public class MessageEngineModule implements StructrModule {
 		final Path messagingEngineFile = target.resolve("messaging-engine.json");
 
 
-		final List<Map<String, Object>> entities = new LinkedList();
+		final List<Map<String, Object>> entities = new ArrayList();
 		try (final Tx tx = app.tx()) {
 
 			for (final MessageSubscriber sub : app.nodeQuery(MessageSubscriber.class).sort(MessageSubscriber.name).getAsList()) {

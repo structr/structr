@@ -31,7 +31,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -59,7 +59,7 @@ public class ListComponentsCommand extends AbstractCommand {
 		try {
 
 			final ShadowDocument hiddenDoc     = CreateComponentCommand.getOrCreateHiddenDocument();
-			List<DOMNode> filteredResults      = new LinkedList();
+			List<DOMNode> filteredResults      = new ArrayList();
 			List<DOMNode> resultList           = Iterables.toList(hiddenDoc.getElements());
 
 			// Filter list and return only top level nodes

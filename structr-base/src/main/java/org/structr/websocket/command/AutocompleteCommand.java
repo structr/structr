@@ -33,7 +33,7 @@ import org.structr.schema.action.ActionContext;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -55,7 +55,7 @@ public class AutocompleteCommand extends AbstractCommand {
 		setDoTransactionNotifications(false);
 
 		final String id                       = webSocketData.getId();
-		final List<GraphObject> result        = new LinkedList<>();
+		final List<GraphObject> result        = new ArrayList<>();
 		final String contentType              = webSocketData.getNodeDataStringValueTrimmedOrDefault("contentType", "text/plain");
 		final SecurityContext securityContext = getWebSocket().getSecurityContext();
 

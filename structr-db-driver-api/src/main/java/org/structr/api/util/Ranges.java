@@ -22,7 +22,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -32,7 +32,7 @@ import java.util.List;
 public class Ranges {
 
 	private static final Logger logger = LoggerFactory.getLogger(Ranges.class);
-	private List<Range> ranges         = new LinkedList<>();
+	private List<Range> ranges         = new ArrayList<>();
 
 	public Ranges(final String spec) {
 

@@ -23,7 +23,7 @@ import org.structr.console.rest.RestCommand;
 import org.structr.core.app.StructrApp;
 
 import java.util.Collections;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -35,7 +35,7 @@ public class RestTabCompletionProvider extends AbstractTabCompletionProvider {
 	@Override
 	public List<TabCompletionResult> getTabCompletion(final SecurityContext securityContext, final String line) {
 
-		final List<TabCompletionResult> results = new LinkedList<>();
+		final List<TabCompletionResult> results = new ArrayList<>();
 		final String token                      = getToken(line, " /.");
 
 		results.addAll(getExactResultsForCollection(RestCommand.commandNames(), token, " "));

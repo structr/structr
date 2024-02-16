@@ -86,7 +86,7 @@ public class SecurityContext {
 	private final Map<String, QueryRange> ranges   = new ConcurrentHashMap<>();
 	private final Map<String, Object> attrs        = new ConcurrentHashMap<>();
 	private AccessMode accessMode                  = AccessMode.Frontend;
-	private final List<Object> creationDetails     = new LinkedList<>();
+	private final List<Object> creationDetails     = new ArrayList<>();
 	private Authenticator authenticator            = null;
 	private Principal cachedUser                   = null;
 	private HttpServletRequest request             = null;

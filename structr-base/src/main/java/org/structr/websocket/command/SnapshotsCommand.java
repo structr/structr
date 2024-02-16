@@ -38,7 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 
 //~--- classes ----------------------------------------------------------------
@@ -79,7 +79,7 @@ public class SnapshotsCommand extends AbstractCommand {
 
 		if (mode != null) {
 
-			final List<GraphObject> result = new LinkedList<>();
+			final List<GraphObject> result = new ArrayList<>();
 
 			switch (mode) {
 

@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.LinkedHashSet;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -45,7 +45,7 @@ public class FulltextTokenizer extends Writer {
 	private Integer wordMaxLength            = null;
 	private final StringBuilder rawText      = new StringBuilder();
 	private final StringBuilder wordBuffer   = new StringBuilder();
-	private final List<String> words         = new LinkedList<>();
+	private final List<String> words         = new ArrayList<>();
 	private String language                  = "en";
 	private char lastCharacter               = 0;
 	private int consecutiveCharCount         = 0;

@@ -58,7 +58,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 	private final Map<String, PeerInfo> peers         = new ConcurrentHashMap<>();
 	private final Map<String, Callback> callbacks     = new ConcurrentHashMap<>();
 	private final Charset utf8                        = Charset.forName("utf-8");
-	private final List<PeerListener> listeners        = new LinkedList<>();
+	private final List<PeerListener> listeners        = new ArrayList<>();
 	private Map<String, Object> data                  = new HashMap<>();
 	private KeyPair keyPair                           = null;
 	private PrivateKey privateKey                     = null;
@@ -478,7 +478,7 @@ public final class Peer implements Runnable, Clock, InternalChangeListener {
 
 			final long t0 = System.currentTimeMillis();
 
-			final List<RepositoryObject> objects = new LinkedList<>(repository.getObjects());
+			final List<RepositoryObject> objects = new ArrayList<>(repository.getObjects());
 			Collections.sort(objects, new UuidComparator());
 
 			for (final RepositoryObject node : objects) {

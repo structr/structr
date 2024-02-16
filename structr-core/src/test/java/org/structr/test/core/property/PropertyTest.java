@@ -276,8 +276,8 @@ public class PropertyTest extends StructrTest {
 		Iterable<TestSix> testSixs2       = null;
 		int index                         = 0;
 
-		List<Integer> index1              = new LinkedList<>();
-		List<Integer> index2              = new LinkedList<>();
+		List<Integer> index1              = new ArrayList<>();
+		List<Integer> index2              = new ArrayList<>();
 
 		try (final Tx tx = app.tx()) {
 
@@ -341,7 +341,7 @@ public class PropertyTest extends StructrTest {
 			assertNotNull(testOne2);
 
 			// set two TestOne entities on both TestSix entities
-			List<TestOne> twoTestOnesList = new LinkedList<>();
+			List<TestOne> twoTestOnesList = new ArrayList<>();
 			twoTestOnesList.add(testOne1);
 			twoTestOnesList.add(testOne2);
 
@@ -366,7 +366,7 @@ public class PropertyTest extends StructrTest {
 			}
 
 			// create new list with one TestOne entity
-			List<TestOne> oneTestOneList = new LinkedList<>();
+			List<TestOne> oneTestOneList = new ArrayList<>();
 			oneTestOneList.add(testOne1);
 
 			try (final Tx tx = app.tx()) {
