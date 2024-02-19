@@ -40,6 +40,7 @@ import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.FileAttribute;
+import java.nio.file.attribute.FileTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -137,8 +138,7 @@ public class PolyglotFilesystem implements FileSystem {
 
 	@Override
 	public DirectoryStream<Path> newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) throws IOException {
-		//return Files.newDirectoryStream(dir, filter);
-		throw new IOException("newDirectoryStream(Path dir, DirectoryStream.Filter<? super Path> filter) Not implemented!");
+		return new VirtualDirectoryStream(dir, filter);
 	}
 
 	@Override
@@ -152,7 +152,43 @@ public class PolyglotFilesystem implements FileSystem {
 	}
 
 	@Override
-	public Map<String, Object> readAttributes(Path path, String attributes, LinkOption... options) throws IOException {
-		throw new IOException("PolyglotFilesystem.readAttributes is not implemented!");
+	public Map<String, Object> readAttributes(Path path, String rawattributes, LinkOption... options) throws IOException {
+		final AbstractFile file = FileHelper.getFileByAbsolutePath(SecurityContext.getSuperUserInstance(), path.toString());
+
+		final int viewIndex = rawattributes.indexOf(':');
+		String view = "basic";
+		String attributes = rawattributes;
+
+		if (viewIndex != -1) {
+			view = rawattributes.substring(0, viewIndex);
+			attributes = rawattributes.substring(viewIndex + 1, rawattributes.length());
+		}
+
+		if (!view.equals("basic")) {
+			throw new UnsupportedOperationException("View \"%s\" is not supported by PolyglotFilesystem.".formatted(view));
+		}
+
+		Map<String, Object> attributeMap = new HashMap<>();
+		if (attributes.isEmpty()) {
+			return attributeMap;
+		}
+
+		if (file == null) {
+			throw new IOException("Requested file is null.");
+		}
+
+		for (String attr : attributes.split(",")) {
+			switch (attr) {
+				case "isDirectory" -> attributeMap.put("isDirectory", (file instanceof Folder));
+				case "creationTime" -> attributeMap.put("creationTime", FileTime.fromMillis(file.getCreatedDate().getTime()));
+				case "lastModifiedTime" -> attributeMap.put("lastModifiedTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
+				case "lastAccessTime" -> attributeMap.put("lastAccessTime", FileTime.fromMillis(file.getLastModifiedDate().getTime()));
+				case "isSymbolicLink" -> attributeMap.put("isSymbolicLink", false);
+				case "isRegularFile" -> attributeMap.put("isRegularFile", (file instanceof File));
+				case "size" -> attributeMap.put("size", (file instanceof File ? FileHelper.getSize((File)file) : 0));
+			}
+		}
+
+		return attributeMap;
 	}
 }
