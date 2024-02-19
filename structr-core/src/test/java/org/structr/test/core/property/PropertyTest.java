@@ -48,7 +48,6 @@ import org.structr.test.core.entity.*;
 import org.testng.annotations.Test;
 
 import java.util.*;
-import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
