@@ -91,7 +91,9 @@ let _Schema = {
 			});
 
 			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				_Helpers.requestAnimationFrameWrapper('schema_resize_slideout_correctly', () => {
+					$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				});
 			}
 
 			_Schema.init(null,() => {
@@ -4098,8 +4100,8 @@ let _Schema = {
 			let layoutSelector        = $('#saved-layout-selector');
 			let layoutNameInput       = $('#layout-name');
 			let createNewLayoutButton = $('#create-new-layout');
-			let updateLayoutButton    = $('#update-layout');
-			let restoreLayoutButton   = $('#restore-layout');
+			let saveLayoutButton      = $('#save-layout');
+			let loadLayoutButton      = $('#load-layout');
 			let deleteLayoutButton    = $('#delete-layout');
 
 			let layoutSelectorChangeHandler = () => {
@@ -4108,43 +4110,51 @@ let _Schema = {
 
 				if (selectedOption.length === 0) {
 
-					_Helpers.disableElements(true, updateLayoutButton[0], restoreLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(true, saveLayoutButton[0], loadLayoutButton[0], deleteLayoutButton[0]);
 
 				} else {
 
-					_Helpers.enableElement(restoreLayoutButton[0]);
+					_Helpers.enableElement(loadLayoutButton[0]);
 
 					let optGroup    = selectedOption.closest('optgroup');
 					let username    = optGroup.prop('label');
 					let isOwnerless = optGroup.data('ownerless') === true;
 
-					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton[0], deleteLayoutButton[0]);
 				}
 			};
 			layoutSelectorChangeHandler();
 
 			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
 
-			updateLayoutButton.click(() => {
+			saveLayoutButton.click(async () => {
 
 				let selectedLayout = layoutSelector.val();
+				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
-				Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, (data) => {
+				let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Overwrite stored schema layout "${selectedOption.text()}"?</h3>
+				`);
 
-					if (!data.error) {
+				if (confirm === true) {
 
-						new SuccessMessage().text("Layout saved").show();
+					Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, (data) => {
 
-						_Helpers.blinkGreen(layoutSelector);
+						if (!data.error) {
 
-					} else {
+							new SuccessMessage().text("Layout saved").show();
 
-						new ErrorMessage().title(data.error).text(data.message).show();
-					}
-				});
+							_Helpers.blinkGreen(layoutSelector);
+
+						} else {
+
+							new ErrorMessage().title(data.error).text(data.message).show();
+						}
+					});
+				}
 			});
 
-			restoreLayoutButton.click(() => {
+			loadLayoutButton.click(() => {
 				_Schema.restoreLayout(layoutSelector);
 			});
 
@@ -5114,7 +5124,7 @@ let _Schema = {
 						<span class="whitespace-nowrap">Show built-in types</span>
 					</label>
 				</div>
-				<div id="inheritance-tree-container" class="ver-scrollable hidden"></div>
+				<div id="inheritance-tree-container" class="ver-scrollable h-full hidden"></div>
 			</div>
 
 			<div id="schema-container">
@@ -5524,14 +5534,14 @@ let _Schema = {
 
 							<div class="row">
 								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
-								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
-								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
-								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
+								<button id="load-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Load</button>
+								<button id="save-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+								<button id="delete-layout" class="mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
 							</div>
 
 							<div class="row">
 								<input id="layout-name" placeholder="Enter name for layout">
-								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create</button>
 							</div>
 
 							<div class="separator"></div>
