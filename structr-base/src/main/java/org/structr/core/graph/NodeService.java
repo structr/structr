@@ -35,9 +35,10 @@ import org.structr.api.util.CountResult;
 import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
-import org.structr.core.property.PropertyKey;
 
 import java.io.File;
+import org.structr.common.SecurityContext;
+import org.structr.core.graph.search.SearchNodeCommand;
 
 /**
  * The graph/node service.
@@ -64,7 +65,6 @@ public class NodeService implements SingletonService {
 			command.setArgument("filesPath",         filesPath);
 		}
 	}
-
 	@Override
 	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
 
@@ -255,6 +255,61 @@ public class NodeService implements SingletonService {
 
 			logger.info("Not creating initial user, as per configuration");
 		}
+	}
+
+	public SearchNodeCommand<?> searchCommand(final SecurityContext securityContext) {
+
+		final SearchNodeCommand<?> cmd = new SearchNodeCommand<>();
+
+		cmd.setArgument("securityContext", securityContext);
+		injectArguments(cmd);
+		cmd.initialized();
+
+		return cmd;
+	}
+
+	public CreateNodeCommand createNodeCommand(final SecurityContext securityContext) {
+
+		final CreateNodeCommand<?> cmd = new CreateNodeCommand<>();
+
+		cmd.setArgument("securityContext", securityContext);
+		injectArguments(cmd);
+		cmd.initialized();
+
+		return cmd;
+	}
+
+	public CreateRelationshipCommand createRelationshipCommand(final SecurityContext securityContext) {
+
+		final CreateRelationshipCommand cmd = new CreateRelationshipCommand();
+
+		cmd.setArgument("securityContext", securityContext);
+		injectArguments(cmd);
+		cmd.initialized();
+
+		return cmd;
+	}
+
+	public DeleteNodeCommand deleteNodeCommand(final SecurityContext securityContext) {
+
+		final DeleteNodeCommand cmd = new DeleteNodeCommand();
+
+		cmd.setArgument("securityContext", securityContext);
+		injectArguments(cmd);
+		cmd.initialized();
+
+		return cmd;
+	}
+
+	public DeleteRelationshipCommand deleteRelationshipCommand(final SecurityContext securityContext) {
+
+		final DeleteRelationshipCommand cmd = new DeleteRelationshipCommand();
+
+		cmd.setArgument("securityContext", securityContext);
+		injectArguments(cmd);
+		cmd.initialized();
+
+		return cmd;
 	}
 
 	// ----- private methods -----

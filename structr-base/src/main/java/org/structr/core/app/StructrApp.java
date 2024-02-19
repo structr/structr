@@ -42,7 +42,6 @@ import org.structr.core.Services;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.graph.*;
-import org.structr.core.graph.search.SearchNodeCommand;
 import org.structr.core.graph.search.SearchRelationshipCommand;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
@@ -95,7 +94,8 @@ public class StructrApp implements App {
 			throw new FrameworkException(422, "Empty type (null). Please supply a valid class name in the type property.");
 		}
 
-		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
+		final NodeService nodeService      = Services.getInstance().getNodeService();
+		final CreateNodeCommand<T> command = nodeService.createNodeCommand(securityContext);
 		final PropertyMap properties       = new PropertyMap(source);
 		String finalType                   = type.getSimpleName();
 
@@ -129,7 +129,8 @@ public class StructrApp implements App {
 	public <T extends NodeInterface> T create(final Class<T> type, final NodeAttribute<?>... attributes) throws FrameworkException {
 
 		final List<NodeAttribute<?>> attrs = new ArrayList<>(Arrays.asList(attributes));
-		final CreateNodeCommand<T> command = command(CreateNodeCommand.class);
+		final NodeService nodeService      = Services.getInstance().getNodeService();
+		final CreateNodeCommand<T> command = nodeService.createNodeCommand(securityContext);
 
 		// add type information when creating a node
 		attrs.add(new NodeAttribute(AbstractNode.type, type.getSimpleName()));
@@ -140,8 +141,9 @@ public class StructrApp implements App {
 	@Override
 	public <T extends NodeInterface> void deleteAllNodesOfType(final Class<T> type) throws FrameworkException {
 
-		final DeleteNodeCommand cmd = command(DeleteNodeCommand.class);
-		boolean hasMore             = true;
+		final NodeService nodeService = Services.getInstance().getNodeService();
+		final DeleteNodeCommand cmd   = nodeService.deleteNodeCommand(securityContext);
+		boolean hasMore               = true;
 
 		while (hasMore) {
 
@@ -158,22 +160,38 @@ public class StructrApp implements App {
 
 	@Override
 	public void delete(final NodeInterface node) {
-		command(DeleteNodeCommand.class).execute(node);
+
+		final NodeService nodeService = Services.getInstance().getNodeService();
+		final DeleteNodeCommand cmd   = nodeService.deleteNodeCommand(securityContext);
+
+		cmd.execute(node);
 	}
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
-		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType);
+
+		final NodeService nodeService       = Services.getInstance().getNodeService();
+		final CreateRelationshipCommand cmd = nodeService.createRelationshipCommand(securityContext);
+
+		return cmd.execute(fromNode, toNode, relType);
 	}
 
 	@Override
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R create(final A fromNode, final B toNode, final Class<R> relType, final PropertyMap properties) throws FrameworkException {
-		return command(CreateRelationshipCommand.class).execute(fromNode, toNode, relType, properties);
+
+		final NodeService nodeService       = Services.getInstance().getNodeService();
+		final CreateRelationshipCommand cmd = nodeService.createRelationshipCommand(securityContext);
+
+		return cmd.execute(fromNode, toNode, relType, properties);
 	}
 
 	@Override
 	public void delete(final RelationshipInterface relationship) {
-		command(DeleteRelationshipCommand.class).execute(relationship);
+
+		final NodeService nodeService       = Services.getInstance().getNodeService();
+		final DeleteRelationshipCommand cmd = nodeService.deleteRelationshipCommand(securityContext);
+
+		cmd.execute(relationship);
 	}
 
 	@Override
@@ -292,12 +310,18 @@ public class StructrApp implements App {
 
 	@Override
 	public Query<NodeInterface> nodeQuery() {
-		return command(SearchNodeCommand.class);
+
+		final NodeService nodeService = Services.getInstance().getNodeService();
+
+		return (Query)nodeService.searchCommand(securityContext);
 	}
 
 	@Override
 	public <T extends NodeInterface> Query<T> nodeQuery(final Class<T> type) {
-		return command(SearchNodeCommand.class).andTypes(type);
+
+		final NodeService nodeService = Services.getInstance().getNodeService();
+
+		return (Query)nodeService.searchCommand(securityContext).andTypes(type);
 	}
 
 	@Override
@@ -378,7 +402,7 @@ public class StructrApp implements App {
 
 		// cache graphdb instance
 		if (graphDb == null) {
-			graphDb = Services.getInstance().command(securityContext, GraphDatabaseCommand.class).execute();
+			graphDb = Services.getInstance().getDatabaseService();
 		}
 
 		return graphDb;

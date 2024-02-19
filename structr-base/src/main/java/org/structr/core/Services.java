@@ -968,6 +968,18 @@ public class Services implements StructrServices, BroadcastReceiver {
 		return null;
 	}
 
+	public NodeService getNodeService() {
+
+		final String name             = getNameOfActiveService(NodeService.class);
+		final NodeService nodeService = getService(NodeService.class, name);
+		if (nodeService != null) {
+
+			return nodeService;
+		}
+
+		return null;
+	}
+
 	@Override
 	public DatabaseService getDatabaseService() {
 

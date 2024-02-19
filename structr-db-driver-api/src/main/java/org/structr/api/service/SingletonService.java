@@ -24,6 +24,5 @@ package org.structr.api.service;
  *
  *
  */
-public interface SingletonService extends Service
-{
+public interface SingletonService extends Service {
 }
