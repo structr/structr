@@ -47,7 +47,7 @@ let _Entities = {
 		let confirmationHtml = `
 			<p>Delete the following objects ${recursive ? '(all folders recursively) ' : ''}?</p>
 			<div>
-				${entities.map(entity => `<div><strong>${entity.name}</strong> [${entity.id}]</div>`).join('')}
+				${entities.map(entity => `<div><strong>${_Helpers.escapeTags(entity.name)}</strong> [${entity.id}]</div>`).join('')}
 			</div>
 			<br>
 		`;
@@ -65,7 +65,7 @@ let _Entities = {
 	},
 	deleteNode: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
 			if (confirm === true) {
 				Command.deleteNode(entity.id, recursive);
 
@@ -2197,7 +2197,7 @@ let _Entities = {
 		let restoreNonEditableTag = (el, text) => {
 
 			let newEl = $(attributeElementRawHTML);
-			newEl.html(text);
+			newEl.text(text);
 			newEl.attr('title', text);
 			el.replaceWith(newEl);
 

@@ -380,16 +380,20 @@ let _UsersAndGroups = {
 	},
 	createUserElement: (user) => {
 
-		let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
-
 		let userElement = $(`
 			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
 				<div class="node-container flex items-center">
-					${_Icons.getIconForPrincipal(user)}<b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
+					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="max-w-75"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
 		`);
+
+		let nameElement = userElement[0].querySelector('.name_');
+
+		let displayName         = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+		nameElement.textContent = displayName;
+		nameElement.title       = displayName;
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -411,9 +415,9 @@ let _UsersAndGroups = {
 
 				let userName = userEl.querySelector('.name_');
 				if (userName) {
-					let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
 
-					userName.setAttribute('title', displayName);
+					let displayName      = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+					userName.title       = displayName;
 					userName.textContent = displayName;
 				}
 			}
@@ -566,17 +570,21 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: (group) => {
 
-		let displayName = group?.name ?? '[unnamed]';
-
 		let groupElement = $(`
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
 					${_Icons.getIconForPrincipal(group)}
-					<b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					<b class="name_ flex-grow" data-input-class="max-w-75"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
 		`);
+
+		let nameElement = groupElement[0].querySelector('.name_');
+
+		let displayName         = group?.name ?? '[unnamed]';
+		nameElement.title       = displayName;
+		nameElement.textContent = displayName;
 
 		groupElement.droppable({
 			accept: '.user, .group',
