@@ -163,7 +163,7 @@ public abstract class ContextFactory {
 
 	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
-		//ctx.eval("python", "import site");
+		ctx.eval("python", "import site");
 
 		return updateBindings(ctx, "python", actionContext, entity);
 	}
