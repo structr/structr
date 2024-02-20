@@ -67,9 +67,6 @@ public class DeleteRelationshipCommand extends NodeServiceCommand {
 
 			TransactionCommand.relationshipDeleted(securityContext.getCachedUser(), finalRel, passiveDeletion);
 
-			// callback
-			finalRel.onRelationshipDeletion();
-
 			// delete node in database
 			relToDelete.delete(true);
 		}

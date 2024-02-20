@@ -136,9 +136,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 			// ensure indexing of newly created node
 			newRel.addToIndex();
 
-			// notify relationship of its creation
-			newRel.onRelationshipCreation();
-
 			// iterate post creation transformations
 			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {
 

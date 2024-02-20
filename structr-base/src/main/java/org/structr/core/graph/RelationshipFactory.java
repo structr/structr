@@ -102,7 +102,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}
