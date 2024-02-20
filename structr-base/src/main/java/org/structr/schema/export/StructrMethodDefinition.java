@@ -47,7 +47,6 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.LinkedList;
-import org.structr.schema.openapi.parameter.OpenAPIPathParameter;
 
 /**
  *
@@ -400,6 +399,12 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 		if (_returnType != null && _returnType instanceof String) {
 
 			this.returnType = (String)_returnType;
+
+			// migrate array properties to lists
+			if (this.returnType.endsWith("[]")) {
+
+				this.returnType = "List<" + this.returnType.substring(0, this.returnType.length() - 2) + ">";
+			}
 		}
 
 		final Object _openAPIReturnType = source.get(JsonSchema.KEY_OPENAPI_RETURN_TYPE);

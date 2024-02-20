@@ -201,6 +201,12 @@ public class StructrParameterDefinition implements JsonParameter, StructrDefinit
 		if (_type != null && _type instanceof String) {
 
 			this.type = (String)_type;
+
+			// migrate array properties to lists
+			if (this.type.endsWith("[]")) {
+
+				this.type = "List<" + this.type.substring(0, this.type.length() - 2) + ">";
+			}
 		}
 
 		final Object _index = source.get(JsonSchema.KEY_PARAMETER_INDEX);
