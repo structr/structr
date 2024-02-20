@@ -356,8 +356,13 @@ public class JWTHelper {
 
     private static Map<String, String> createTokensForUserWithSecret(Principal user, Date accessTokenExpirationDate, Date refreshTokenExpirationDate, String instanceName) throws FrameworkException {
 
-        final String secret = Settings.JWTSecret.getValue();
+        final String secret    = Settings.JWTSecret.getValue();
         final String jwtIssuer = Settings.JWTIssuer.getValue();
+
+        if (secret.length() < 32) {
+
+            throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters) - see " + Settings.JWTSecret.getKey());
+        }
 
         try {
 
@@ -366,7 +371,7 @@ public class JWTHelper {
 
         } catch (JWTCreationException ex) {
 
-            throw new FrameworkException(500, "The configured secret is too weak (must be at least 32 characters)");
+            throw new FrameworkException(500, ex.getMessage(), ex);
         }
     }
 
