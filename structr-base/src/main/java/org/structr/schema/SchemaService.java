@@ -80,6 +80,7 @@ public class SchemaService implements Service {
 		migrationHandlers.add(new RemoveMethodsWithUnusedSignature());
 		migrationHandlers.add(new ExtendNotionPropertyWithUuid());
 		migrationHandlers.add(new BlacklistUnlicensedTypes());
+		migrationHandlers.add(new MigrateArrayProperties());
 		migrationHandlers.add(new RemoveDuplicateClasses());
 		migrationHandlers.add(new RemoveClassesWithUnknownSymbols());
 		migrationHandlers.add(new RemoveExportedMethodsWithoutSecurityContext());
