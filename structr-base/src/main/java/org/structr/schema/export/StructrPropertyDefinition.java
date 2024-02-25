@@ -265,15 +265,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 	// ----- package methods -----
 	SchemaProperty createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
-
-		getOrCreateProperties.put(SchemaProperty.name, getName());
-		getOrCreateProperties.put(SchemaProperty.schemaNode, schemaNode);
-
-		SchemaProperty property = app.nodeQuery(SchemaProperty.class).and(getOrCreateProperties).getFirst();
+		SchemaProperty property = schemaNode.getSchemaProperty(getName());
 		if (property == null) {
 
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+
+			getOrCreateProperties.put(SchemaProperty.name, getName());
+			getOrCreateProperties.put(SchemaProperty.schemaNode, schemaNode);
 			getOrCreateProperties.put(SchemaProperty.compound, isCompoundUnique());
 			getOrCreateProperties.put(SchemaProperty.unique, isUnique());
 			getOrCreateProperties.put(SchemaProperty.indexed, isIndexed());
@@ -282,12 +280,14 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 			getOrCreateProperties.put(SchemaProperty.format, getFormat());
 			getOrCreateProperties.put(SchemaProperty.hint, getHint());
 			getOrCreateProperties.put(SchemaProperty.category, getCategory());
-			getOrCreateProperties.put(SchemaProperty.validators, validators.toArray(new String[0]));
-			getOrCreateProperties.put(SchemaProperty.transformers, transformers.toArray(new String[0]));
+			getOrCreateProperties.put(SchemaProperty.validators, listToArray(validators));
+			getOrCreateProperties.put(SchemaProperty.transformers, listToArray(transformers));
 			getOrCreateProperties.put(SchemaProperty.defaultValue, defaultValue);
 
 			property = app.create(SchemaProperty.class, getOrCreateProperties);
 		}
+
+		final PropertyMap updateProperties = new PropertyMap();
 
 		if (parent != null) {
 

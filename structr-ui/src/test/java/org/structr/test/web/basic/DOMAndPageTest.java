@@ -65,6 +65,8 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.api.config.Settings;
+import org.structr.web.importer.Importer;
 import static org.testng.AssertJUnit.*;
 
 
@@ -1151,6 +1153,52 @@ public class DOMAndPageTest extends StructrUiTest {
 		// test authenticated user
 		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(404).when().get("/html/pub");
 		RestAssured.given().header("X-User", "tester").header("X-Password", "test").expect().statusCode(200).when().get("/html/auth");
+
+	}
+
+	@Test
+	public void testPagePerformance() {
+
+		// setup
+		try (final Tx tx = app.tx()) {
+
+			final String address    = "http://structr.github.io/structr/getbootstrap.com/docs/3.3/examples/jumbotron/";
+			final Importer importer = new Importer(securityContext, null, address, "test", true, true, false, false);
+
+			importer.parse();
+
+			// create page from source
+			final Page test = importer.readPage();
+
+			setFlagsRecursively(test, true, false);
+
+			tx.success();
+
+		} catch (FrameworkException fex) {
+			fail("Unexpected exception.");
+		}
+
+		RestAssured.basePath = "/";
+
+		Settings.CypherDebugLogging.setValue(true);
+
+		long average = 0;
+		long count   = 0;
+
+		// test anonymous user
+		for (int i=0; i<100; i++) {
+
+			final long t0 = System.currentTimeMillis();
+
+			RestAssured.given().expect().statusCode(200).when().get("/html/test");
+
+			final long t1 = System.currentTimeMillis();
+
+			average += (t1 - t0);
+			count++;
+		}
+
+		logger.info("Rendering a test page {} times took {} ms on average", count, (average / count));
 
 	}
 

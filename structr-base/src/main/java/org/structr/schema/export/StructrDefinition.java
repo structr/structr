@@ -18,13 +18,17 @@
  */
 package org.structr.schema.export;
 
+import java.util.Collection;
+
 /**
  *
  *
  */
-
-
 public interface StructrDefinition {
 
 	public StructrDefinition resolveJsonPointerKey(final String key);
+
+	default String[] listToArray(final Collection<String> list) {
+		return list.toArray(new String[0]);
+	}
 }

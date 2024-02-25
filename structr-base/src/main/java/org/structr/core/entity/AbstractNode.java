@@ -725,12 +725,12 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 
 	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasIncomingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getSource().hasElements(securityContext, getNode(), null);
+		return AbstractNode.getRelationshipForType(type).getSource().hasElements(securityContext, getNode(), null);
 	}
 
 	@Override
 	public final <A extends NodeInterface, B extends NodeInterface, S extends Source, T extends Target, R extends Relation<A, B, S, T>> boolean hasOutgoingRelationships(final Class<R> type) {
-		return getRelationshipForType(type).getTarget().hasElements(securityContext, getNode(), null);
+		return AbstractNode.getRelationshipForType(type).getTarget().hasElements(securityContext, getNode(), null);
 	}
 
 	// ----- interface AccessControllable -----
@@ -1446,7 +1446,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 			final Object value    = properties.get(key);
 
 			// no old value exists  OR  old value exists and is NOT equal => set property
-			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!oldValue.equals(value)) || (key instanceof FunctionProperty)) ) {
+			if (isCreation || ((oldValue == null) && (value != null)) || ((oldValue != null) && (!Objects.deepEquals(oldValue, value)) || (key instanceof FunctionProperty)) ) {
 
 				if (!key.equals(GraphObject.id)) {
 

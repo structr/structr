@@ -103,4 +103,9 @@ public class TransactionReference implements Transaction {
 	public Relationship getRelationship(final Identity id) {
 		return tx.getRelationship(id);
 	}
+
+	@Override
+	public void prefetch(final String query) {
+		tx.prefetch(query);
+	}
 }

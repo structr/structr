@@ -36,6 +36,7 @@ import org.structr.api.util.Iterables;
 class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements Node {
 
 	private final TreeCache<Relationship> relationshipCache;
+	private boolean prefetched = false;
 
 	public NodeWrapper(final BoltDatabaseService db, final org.neo4j.driver.types.Node entity) {
 		super(db, entity);
@@ -255,6 +256,11 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public void invalidate() {
 		relationshipCache.clear();
+		prefetched = false;
+	}
+
+	public void prefetched() {
+		this.prefetched = true;
 	}
 
 	// ----- protected methods -----
@@ -313,6 +319,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 			Iterable<Relationship> relationships = relationshipCache.get(key);
 			if (relationships == null) {
+
+				if (prefetched) {
+					return List.of();
+				}
 
 				return valueSupplier.get();
 			}

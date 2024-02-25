@@ -18,6 +18,7 @@
  */
 package org.structr.bolt;
 
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import org.neo4j.driver.Record;
@@ -38,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.lang.StringUtils;
 import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Path.Segment;
 import org.neo4j.driver.types.Relationship;
 import org.structr.api.NotFoundException;
 import org.structr.api.graph.Identity;
@@ -72,7 +75,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected abstract Long getLong(final String statement, final Map<String, Object> map);
 	protected abstract Node getNode(final String statement, final Map<String, Object> map);
 	protected abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
-	protected abstract Object collectRecords(final String statement, final Map<String, Object> map, final Object consumer);
+	protected abstract Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object consumer);
 	protected abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
 	protected abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
 	protected abstract void set(final String statement, final Map<String, Object> map);
@@ -210,6 +213,64 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	@Override
 	public org.structr.api.graph.Relationship getRelationship(Identity id) {
 		return getRelationshipWrapper(id.getId());
+	}
+
+	@Override
+	public void prefetch(final String query) {
+
+		final StringBuilder buf     = new StringBuilder();
+		final Set<Long> visited     = new HashSet<>();
+
+		buf.append("MATCH p = ");
+		buf.append(query);
+		buf.append(" RETURN DISTINCT p");
+
+		final long t0 = System.currentTimeMillis();
+		int count = 0;
+
+		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
+
+			final Path p        = r.get("p").asPath();
+			NodeWrapper current = null;
+
+			for (final Segment s : p) {
+
+				final org.neo4j.driver.types.Relationship relationship = s.relationship();
+				final boolean alreadySeen                              = visited.contains(relationship.id());
+				RelationshipWrapper rel                                = null;
+
+				if (current == null) {
+					current = getNodeWrapper(s.start());
+				}
+
+				if (!alreadySeen) {
+
+					visited.add(relationship.id());
+
+					rel = getRelationshipWrapper(relationship);
+
+					// store outgoing rel
+					current.storeRelationship(rel);
+					current.prefetched();
+				}
+
+					// advance
+					current = getNodeWrapper(s.end());
+
+				if (!alreadySeen) {
+
+					// store incoming rel as well
+					current.storeRelationship(rel);
+					current.prefetched();
+				}
+
+				count++;
+			}
+		}
+
+		final long t1 = System.currentTimeMillis();
+
+		System.out.println("PREFETCHED " + count + " entities in " + (t1 - t0) + " ms");
 	}
 
 	// ----- public static methods -----

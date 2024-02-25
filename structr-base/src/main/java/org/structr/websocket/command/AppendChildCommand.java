@@ -40,6 +40,8 @@ public class AppendChildCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
+		TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)");
+
 		final String id       = webSocketData.getId();
 		final String parentId = webSocketData.getNodeDataStringValue("parentId");
 

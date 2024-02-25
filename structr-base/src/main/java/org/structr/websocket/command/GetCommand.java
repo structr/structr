@@ -25,6 +25,7 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
+import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to retrieve a single graph object by id.
@@ -60,6 +61,8 @@ public class GetCommand extends AbstractCommand {
 		if (graphObject != null) {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
+
+			TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)");
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

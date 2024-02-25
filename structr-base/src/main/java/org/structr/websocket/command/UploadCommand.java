@@ -30,14 +30,10 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Websocket command for uploading files.
  *
  * This command expects a file name and a base64-encoded string.
- *
- *
  */
 public class UploadCommand extends AbstractCommand {
 
@@ -48,8 +44,6 @@ public class UploadCommand extends AbstractCommand {
 		StructrWebSocket.addCommand(UploadCommand.class);
 
 	}
-
-	//~--- methods --------------------------------------------------------
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
@@ -76,8 +70,6 @@ public class UploadCommand extends AbstractCommand {
 
 		}
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
