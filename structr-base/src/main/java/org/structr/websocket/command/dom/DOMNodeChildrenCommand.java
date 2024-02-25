@@ -27,12 +27,10 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given DOM node
- *
  *
  */
 public class DOMNodeChildrenCommand extends AbstractCommand {
@@ -40,13 +38,14 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 	static {
 
 		StructrWebSocket.addCommand(DOMNodeChildrenCommand.class);
-
 	}
 
 	@Override
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(false);
+
+		TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)");
 
 		final DOMNode node = getDOMNode(webSocketData.getId());
 
@@ -74,13 +73,8 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 	}
 
-	//~--- get methods ----------------------------------------------------
-
 	@Override
 	public String getCommand() {
-
 		return "DOM_NODE_CHILDREN";
-
 	}
-
 }

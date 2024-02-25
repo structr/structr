@@ -218,6 +218,18 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return true;
 	}
 
+	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
+
+		for (final SchemaMethodParameter param : getProperty(SchemaMethod.parameters)) {
+
+			if (name.equals(param.getName())) {
+				return param;
+			}
+		}
+
+		return null;
+	}
+
 	// ----- private methods -----
 	private void clearMethodCacheOfExtendingNodes() throws FrameworkException {
 
@@ -276,12 +288,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
 				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
-					// try to identify overridden schema method from database
-					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
-						.and(SchemaMethod.schemaNode, typeNode)
-						.and(SchemaMethod.name, methodName)
-						.getFirst();
-
+					final SchemaMethod superMethod = typeNode.getSchemaMethod(methodName);
 					if (superMethod != null) {
 
 						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);

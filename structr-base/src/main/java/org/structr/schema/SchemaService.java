@@ -129,6 +129,8 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)");
+
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
 					// diff and merge
@@ -164,6 +166,9 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)");
+					tx.prefetch("(n:SchemaRelationshipNode)-[r]-(m:SchemaNode)");
+
 					while (retryCount-- > 0) {
 
 						final Map<String, Map<String, PropertyKey>> removedClasses = translateRelationshipClassesToRelTypes(config.getTypeAndPropertyMapping());
@@ -180,7 +185,9 @@ public class SchemaService implements Service {
 						}
 
 						// collect list of schema nodes
-						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> {
+							schemaNodes.put(n.getName(), n);
+						});
 
 						// check licenses prior to source code generation
 						for (final SchemaNode schemaInfo : schemaNodes.values()) {
@@ -532,7 +539,7 @@ public class SchemaService implements Service {
 						return;
 					}
 
-					final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
+					final Set<Class> whitelist    = new LinkedHashSet<>(Set.of(GraphObject.class, NodeInterface.class));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();

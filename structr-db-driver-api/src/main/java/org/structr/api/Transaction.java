@@ -36,4 +36,6 @@ public interface Transaction extends AutoCloseable {
 
 	Node getNode(final Identity id);
 	Relationship getRelationship(final Identity id);
+
+	void prefetch(final String query);
 }

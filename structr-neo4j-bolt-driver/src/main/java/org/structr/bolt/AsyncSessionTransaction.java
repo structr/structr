@@ -323,7 +323,7 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Object collectRecords(final String statement, final Map<String, Object> map, final Object input) {
+	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object input) {
 
 		logQuery(statement, map);
 

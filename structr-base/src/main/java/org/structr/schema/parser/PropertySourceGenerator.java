@@ -46,7 +46,7 @@ import java.util.Set;
  *
  */
 public abstract class PropertySourceGenerator {
- 
+
 	private final Set<String> compoundIndexKeys   = new LinkedHashSet<>();
 	private final Set<Validator> globalValidators = new LinkedHashSet<>();
 	private final Set<String> enumDefinitions     = new LinkedHashSet<>();
@@ -138,7 +138,7 @@ public abstract class PropertySourceGenerator {
 		final App app             = StructrApp.getInstance();
 		final String propertyName = getSourcePropertyName();
 
-		if (app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).and(AbstractNode.name, propertyName).getFirst() == null) {
+		if (schemaNode.getSchemaProperty(propertyName) == null) {
 
 			app.create(SchemaProperty.class,
 				new NodeAttribute<>(AbstractNode.name,                    propertyName),

@@ -71,6 +71,10 @@ public class Tx implements AutoCloseable {
 		success = true;
 	}
 
+	public void prefetch(final String query) {
+		TransactionCommand.getCurrentTransaction().prefetch(query);
+	}
+
 	@Override
 	public void close() throws FrameworkException {
 

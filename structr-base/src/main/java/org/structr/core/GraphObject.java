@@ -146,7 +146,7 @@ public interface GraphObject extends CodeSource {
 			if (value != null && key.isPropertyTypeIndexable() && key.relatedType() == null) {
 
 				final Object oldValue = getProperty(key);
-				if (!value.equals(oldValue)) {
+				if (!Objects.deepEquals(value, oldValue)) {
 
 					atLeastOnePropertyChanged = true;
 

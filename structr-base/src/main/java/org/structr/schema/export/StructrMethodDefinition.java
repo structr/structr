@@ -315,22 +315,31 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 	SchemaMethod createDatabaseSchema(final App app, final AbstractSchemaNode schemaNode) throws FrameworkException {
 
-		final PropertyMap getOrCreateProperties = new PropertyMap();
-		final PropertyMap updateProperties      = new PropertyMap();
-		int index                               = 0;
+		final PropertyMap updateProperties = new PropertyMap();
+		SchemaMethod method                = null;
+		int index                          = 0;
 
-		getOrCreateProperties.put(SchemaMethod.name,                  getName());
-		getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
-		getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
-		getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
-		getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
-		getOrCreateProperties.put(SchemaMethod.exceptions,            getExceptions().toArray(new String[0]));
-		getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
-		getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
-		getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
+		for (final SchemaMethod m : schemaNode.getSchemaMethodsByName(getName())) {
 
-		SchemaMethod method = app.nodeQuery(SchemaMethod.class).and(getOrCreateProperties).getFirst();
+			if (getSignature().equals(m.getProperty(SchemaMethod.signature))) {
+
+				method = m;
+				break;
+			}
+		}
+
 		if (method == null) {
+
+			final PropertyMap getOrCreateProperties = new PropertyMap();
+			getOrCreateProperties.put(SchemaMethod.name,                  getName());
+			getOrCreateProperties.put(SchemaMethod.signature,             getSignature());
+			getOrCreateProperties.put(SchemaMethod.codeType,              getCodeType());
+			getOrCreateProperties.put(SchemaMethod.returnType,            getReturnType());
+			getOrCreateProperties.put(SchemaMethod.schemaNode,            schemaNode);
+			getOrCreateProperties.put(SchemaMethod.exceptions,            listToArray(getExceptions()));
+			getOrCreateProperties.put(SchemaMethod.overridesExisting,     overridesExisting());
+			getOrCreateProperties.put(SchemaMethod.callSuper,             callSuper());
+			getOrCreateProperties.put(SchemaMethod.doExport,              doExport());
 
 			method = app.create(SchemaMethod.class, getOrCreateProperties);
 		}
@@ -350,7 +359,10 @@ public class StructrMethodDefinition implements JsonMethod, StructrDefinition {
 
 			mergedTags.addAll(Arrays.asList(existingTagsArray));
 		}
-		updateProperties.put(SchemaMethod.tags, mergedTags.toArray(new String[0]));
+
+		if (!mergedTags.isEmpty()) {
+			updateProperties.put(SchemaMethod.tags, listToArray(mergedTags));
+		}
 
 		method.setProperties(SecurityContext.getSuperUserInstance(), updateProperties);
 

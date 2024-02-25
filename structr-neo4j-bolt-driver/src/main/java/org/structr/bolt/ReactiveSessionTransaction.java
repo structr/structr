@@ -333,12 +333,12 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Object collectRecords(final String statement, final Map<String, Object> map, final Object flux) {
+	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object flux) {
 
 		try {
 
 			logQuery(statement, map);
-			return Flux.from(tx.run(statement, map).records());
+			return Flux.from(tx.run(statement, map).records()).toIterable();
 
 		} catch (TransientException tex) {
 			closed = true;
