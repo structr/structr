@@ -276,7 +276,7 @@ public class SchemaService implements Service {
 
 							if (errorBuffer.hasError()) {
 
-								if (Settings.SchemaAutoMigration.getValue()) {
+								if (Settings.SchemaAutoMigration.getValue() && !Services.getInstance().isInitialized()) {
 
 									logger.info("Attempting auto-migration of built-in schema..");
 
