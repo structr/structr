@@ -563,7 +563,18 @@ let _Schema = {
 
 						let data = await response.json();
 
-						Structr.errorFromResponse(data);
+						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll('org.structr.dynamic.', '')));
+
+						if (errors.size > 0) {
+
+							for (let error of errors) {
+								new ErrorMessage().title("Problem encountered compiling schema").text(error).requiresConfirmation().show();
+							}
+
+						} else {
+
+							Structr.errorFromResponse(data);
+						}
 					}
 
 					return response.ok;
