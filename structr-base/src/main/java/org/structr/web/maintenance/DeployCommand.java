@@ -143,7 +143,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String mode = (String) parameters.get("mode");
 
-		if (Boolean.FALSE.equals(deploymentActive.get())) {
+		if (Boolean.FALSE.equals(isDeploymentActive())) {
 
 			try {
 
