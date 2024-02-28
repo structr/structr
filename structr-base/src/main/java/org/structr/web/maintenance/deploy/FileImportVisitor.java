@@ -98,7 +98,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", file.toString(), exc.getMessage());
 		return FileVisitResult.CONTINUE;
 	}
 
@@ -187,7 +187,10 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (rawProperties == null) {
 
 				if (!fileName.startsWith(".")) {
+
 					logger.info("Ignoring {} (not in files.json)", fullPath);
+
+					DeployCommand.addMissingFileEntryInFilesJson(path.toString());
 				}
 
 			} else {

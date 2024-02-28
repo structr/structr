@@ -87,6 +87,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
+	protected static final Set<String> missingEntryInFilesJson = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
 
@@ -264,6 +265,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			missingPrincipals.clear();
 			missingSchemaFile.clear();
+			missingEntryInFilesJson.clear();
 			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
@@ -381,33 +383,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			importResourceAccessGrants(grantsMetadataFile);
-
 			importCorsSettings(corsSettingsMetadataFile);
-
 			importMailTemplates(mailTemplatesMetadataFile, source);
-
 			importWidgets(widgetsMetadataFile);
-
 			importLocalizations(localizationsMetadataFile);
-
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
-
 			importSchema(schemaFolder, extendExistingApp);
-
 			importFiles(filesMetadataFile, source, ctx);
-
 			importModuleData(source);
-
 			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
-
 			linkDeferredPages(app);
-
 			importParameterMapping(parameterMappingMetadataFile);
-
 			importActionMapping(actionMappingMetadataFile);
-
 			importEmbeddedApplicationData(source);
-
 
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
@@ -448,7 +436,23 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\n###############################################################################"
 				);
 				publishWarningMessage(title, text);
+			}
 
+			if (!missingEntryInFilesJson.isEmpty()) {
+
+				final String title = "Missing entries in files.json";
+				final String text = "The following file paths exist in the files folder, but have no corresponding entry in files.json. Because those entries do not exist, the files were <b>not imported</b>!<br><br>"
+						+ "The most common cause is that files.json was not correctly committed."
+						+ "<ul><li>" + String.join("</li><li>", missingEntryInFilesJson) + "</li></ul>";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ "\tThe following files paths exist in the files folder, but have no corresponding entry in files.json. Because those entries do not exist, the files were not imported!\n\n"
+						+ "\tThe most common cause is that files.json was not correctly committed.\n\n"
+						+ "\t" + String.join("\n\t", missingEntryInFilesJson)
+						+ "\n###############################################################################"
+				);
+				publishWarningMessage(title, text);
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -1322,7 +1326,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// export "null" owner as well
 			config.put("owner", null);
-
 		}
 
 		exportSecurity(node, config);
@@ -2716,6 +2719,10 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingSchemaFile (final String fileName) {
 		missingSchemaFile.add(fileName);
+	}
+
+	public static void addMissingFileEntryInFilesJson(final String filePath) {
+		missingEntryInFilesJson.add(filePath);
 	}
 
 	// ----- nested helper classes -----
