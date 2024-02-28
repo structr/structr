@@ -410,7 +410,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (configuredButNotEncountered.size() > 0) {
 
 				problems.add(
-						"The following entries were configured in files.json, but the <b>expected files were not found</b>. The most common cause is that files.json was not correctly committed."
+						"The following entries were configured in files.json, but the <b>expected files were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
 						+ "<ul><li>" + String.join("</li><li>", configuredButNotEncountered) + "</li></ul>"
 				);
 			}
@@ -418,7 +418,7 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			if (encounteredButNotConfigured.size() > 0) {
 
 				problems.add(
-						"The following files were found, but <b>are missing in files.json</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
+						"The following files were found, but <b>are missing in files.json</b>. The most common cause is that files.json was not correctly committed."
 						+ "<ul><li>" + String.join("</li><li>", encounteredButNotConfigured) + "</li></ul>"
 				);
 			}
@@ -432,12 +432,12 @@ public class FileImportVisitor implements FileVisitor<Path> {
 
 			if (configuredButNotEncountered.size() > 0) {
 
-				problems.add("\tThe following entries were configured in files.json, but the expected files were not found. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered));
+				problems.add("\tThe following entries were configured in files.json, but the expected files were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered));
 			}
 
 			if (encounteredButNotConfigured.size() > 0) {
 
-				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured));
+				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured));
 			}
 
 			return String.join("\n\n", problems);
