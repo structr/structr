@@ -87,9 +87,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
-	protected static final Set<String> missingEntryInFilesJson = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
-
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -265,7 +263,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			missingPrincipals.clear();
 			missingSchemaFile.clear();
-			missingEntryInFilesJson.clear();
 			deferredLogTexts.clear();
 
 			final long startTime = System.currentTimeMillis();
@@ -389,7 +386,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			importLocalizations(localizationsMetadataFile);
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
 			importSchema(schemaFolder, extendExistingApp);
-			importFiles(filesMetadataFile, source, ctx);
+			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 			importModuleData(source);
 			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
 			linkDeferredPages(app);
@@ -438,21 +435,16 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				publishWarningMessage(title, text);
 			}
 
-			if (!missingEntryInFilesJson.isEmpty()) {
+			if (fileImportProblems != null && fileImportProblems.hasAnyProblems()) {
 
-				final String title = "Missing entries in files.json";
-				final String text = "The following file paths exist in the files folder, but have no corresponding entry in files.json. Because those entries do not exist, the files were <b>not imported</b>!<br><br>"
-						+ "The most common cause is that files.json was not correctly committed."
-						+ "<ul><li>" + String.join("</li><li>", missingEntryInFilesJson) + "</li></ul>";
+				final String title = "Encountered problems during import of files";
 
 				logger.info("\n###############################################################################\n"
 						+ "\tWarning: " + title + "!\n"
-						+ "\tThe following files paths exist in the files folder, but have no corresponding entry in files.json. Because those entries do not exist, the files were not imported!\n\n"
-						+ "\tThe most common cause is that files.json was not correctly committed.\n\n"
-						+ "\t" + String.join("\n\t", missingEntryInFilesJson)
+						+ fileImportProblems.getProblemsText()
 						+ "\n###############################################################################"
 				);
-				publishWarningMessage(title, text);
+				publishWarningMessage(title, fileImportProblems.getProblemsHtml());
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -1978,7 +1970,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final PropertyMap additionalData = new PropertyMap();
 
-			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+			// Question: shouldn't this be true?
+			// No! 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
 			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
@@ -2001,33 +1994,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
+	private FileImportVisitor.FileImportProblems importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
 
 		if (Files.exists(filesMetadataFile)) {
 
-			final Map<String, Object> filesMetadata      = new HashMap<>();
-
 			logger.info("Reading {}", filesMetadataFile);
-			filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
+			final Map<String, Object> filesMetadata = new HashMap<>(readMetadataFileIntoMap(filesMetadataFile));
 
 			final Path files = source.resolve("files");
 			if (Files.exists(files)) {
+
+				final FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 
 				try {
 
 					logger.info("Importing files (unchanged files will be skipped)");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
-					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 					Files.walkFileTree(files, fiv);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing files", ioex);
 				}
+
+				return fiv.getFileImportProblems();
 			}
 		}
-	}
 
+		return null;
+	}
 
 	private void importModuleData(final Path source) throws FrameworkException {
 
@@ -2719,10 +2715,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 	public static void addMissingSchemaFile (final String fileName) {
 		missingSchemaFile.add(fileName);
-	}
-
-	public static void addMissingFileEntryInFilesJson(final String filePath) {
-		missingEntryInFilesJson.add(filePath);
 	}
 
 	// ----- nested helper classes -----
