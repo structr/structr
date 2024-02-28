@@ -2387,7 +2387,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
