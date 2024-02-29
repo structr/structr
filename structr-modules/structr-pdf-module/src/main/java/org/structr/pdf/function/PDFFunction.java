@@ -23,11 +23,13 @@ import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.WrapperConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.configurations.XvfbConfig;
 import com.github.jhonnymertz.wkhtmltopdf.wrapper.params.Param;
 import jakarta.servlet.http.HttpSession;
+import java.util.Calendar;
 import org.eclipse.jetty.server.session.Session;
 import org.structr.api.config.Settings;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Principal;
 import org.structr.core.entity.SuperUser;
+import org.structr.rest.auth.JWTHelper;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.Function;
 
@@ -105,6 +107,8 @@ public class PDFFunction extends Function<Object, Object> {
 
 		if (currentUser instanceof SuperUser) {
 
+			logger.warn("Deprecation Warning! Using the pdf() function in a superuser context (e.g. cron job or doPrivileged) is deprecated. In future versions this will result in an error. This can be easily remedied by using the $.doAs() function to create the pdf as a dedicated user.");
+
 			parameterList.add(new Param("--custom-header", "X-User", "superadmin"));
 			parameterList.add(new Param("--custom-header", "X-Password", Settings.SuperUserPassword.getValue()));
 			parameterList.add(new Param("--custom-header-propagation"));
@@ -112,9 +116,34 @@ public class PDFFunction extends Function<Object, Object> {
 		} else {
 
 			final HttpSession session = ctx.getSecurityContext().getSession();
-			final String sessionId    = (session instanceof Session) ? ((Session) session).getExtendedId() : session.getId();
 
-			parameterList.add(new Param("--cookie", "JSESSIONID", sessionId));
+			if (session != null) {
+
+				final String sessionId = (session instanceof Session) ? ((Session) session).getExtendedId() : session.getId();
+
+				parameterList.add(new Param("--cookie", "JSESSIONID", sessionId));
+
+			} else {
+
+				try {
+
+					// Fallback: Create token for user with minimal lifetime and no refresh token
+					final Calendar accessTokenExpirationDate = Calendar.getInstance();
+					accessTokenExpirationDate.add(Calendar.MINUTE, 1);
+
+					final Map<String, String> tokens = JWTHelper.createTokensForUser(currentUser, accessTokenExpirationDate.getTime(), null);
+
+					parameterList.add(new Param("--cookie", "access_token", tokens.get("access_token")));
+
+				} catch (Throwable t) {
+
+					// only log in error case to reduce verbosity
+					logger.info("pdf(): No session information available and fallback method of creating a JWT for user also failed. Please see log output.");
+
+					// simply re-throw
+					throw t;
+				}
+			}
 		}
 
 		if (userParameter != null) {

@@ -128,6 +128,12 @@ public class Tx implements AutoCloseable {
 				// send broadcast
 				Services.getInstance().broadcastDataChange(ids);
 			}
+
+			// clear function property cache to avoid caching of objects across transaction boundaries
+			if (securityContext != null) {
+				
+				securityContext.getContextStore().clearFunctionPropertyCache();
+			}
 		}
 	}
 

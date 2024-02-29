@@ -856,6 +856,14 @@ let Structr = {
 				}
 			}
 
+			let deploymentActive = (envInfo.isDeploymentActive ?? false);
+			if (deploymentActive === true) {
+				Structr.handleGenericMessage({
+					type: 'DEPLOYMENT_IMPORT_STATUS',
+					subtype: 'ALREADY_RUNNING'
+				});
+			}
+
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
 
@@ -1396,6 +1404,14 @@ let Structr = {
 
 					let text = `${type} started: ${new Date(data.start)}<br>
 						Importing from: <span class="deployment-source">${data.source}</span><br><br>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+					`;
+
+					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
+
+				} else if (data.subtype === 'ALREADY_RUNNING') {
+
+					let text = `${type} was already running before page was loaded<br><br>
 						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
 					`;
 
@@ -2387,7 +2403,7 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
 						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
