@@ -68,7 +68,6 @@
 		<module>structr-core</module>
 		<module>structr-rest</module>
 		<module>structr-ui</module>
-		<module>structr-net</module>
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
