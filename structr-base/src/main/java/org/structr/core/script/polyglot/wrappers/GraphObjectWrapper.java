@@ -201,15 +201,6 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 					return propValue;
 
-				} else {
-
-					Object prop = node.getProperty(propKey);
-					if (prop != null) {
-
-						return PolyglotWrapper.wrap(actionContext, prop);
-					}
-
-					return null;
 				}
 			}
 
@@ -320,5 +311,16 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString() {
+
+		if (node instanceof GraphObjectMap) {
+
+			return super.toString();
+		}
+
+		return node.getClass().getSimpleName() + "(" + node.getUuid() + ")";
 	}
 }
