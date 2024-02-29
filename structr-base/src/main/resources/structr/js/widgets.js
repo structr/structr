@@ -422,12 +422,19 @@ let _Widgets = {
 
 		if (!div) {
 
-			parent.append(`
+			let widgetElement = $(`
 				<div id="id_${widget.id}" class="widget p-2 hover:icon-active" draggable="true">
 					<img style="width: 24px;${!widget.svgIconPath ? 'opacity: 0.5;' : ''}" src="${widget.svgIconPath || '/structr/icon/streamlinehq-website-build-programing-apps-websites.svg'}" draggable="false">
-					<span title="${_Helpers.escapeForHtmlAttributes(widget.name)}" class="name_ flex-grow mt-4">${widget.name}</span>
+					<span class="name_ flex-grow mt-4"></span>
 				</div>
 			`);
+
+			let nameElement         = widgetElement[0].querySelector('.name_');
+			nameElement.textContent = widget.name;
+			nameElement.title       = widget.name;
+
+			parent.append(widgetElement);
+
 			div = Structr.node(widget.id);
 		}
 
