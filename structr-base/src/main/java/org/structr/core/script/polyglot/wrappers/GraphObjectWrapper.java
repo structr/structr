@@ -199,9 +199,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						return ((Enum)propValue).toString();
 					}
 
-					return propValue;
+					return PolyglotWrapper.wrap(actionContext, propValue);
 
 				}
+
+				return null;
 			}
 
 			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
@@ -235,7 +237,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 				final Class type = node.getClass();
 
-				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null;
+				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
+				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || (propKey != null && !(propKey instanceof GenericProperty<?>));
 
 			} else {
 
