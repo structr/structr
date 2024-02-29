@@ -18,6 +18,9 @@
  */
 package org.structr.web.maintenance.deploy;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,9 +54,6 @@ import java.util.Map;
 
 import static org.structr.core.graph.NodeInterface.name;
 
-/**
- *
- */
 public class FileImportVisitor implements FileVisitor<Path> {
 
 	private static final Logger logger      = LoggerFactory.getLogger(FileImportVisitor.class.getName());
@@ -63,6 +63,9 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	protected App app                         = null;
 	protected Map<String, Folder> folderCache = null;
 
+	private final ArrayList<String> encounteredPaths               = new ArrayList<>();
+	private final Set<String> encounteredButNotConfiguredFilePaths = new HashSet<>();
+
 	public FileImportVisitor(final SecurityContext securityContext, final Path basePath, final Map<String, Object> metadata) {
 
 		this.securityContext = securityContext;
@@ -70,7 +73,6 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		this.metadata        = metadata;
 		this.app             = StructrApp.getInstance(this.securityContext);
 		this.folderCache     = new HashMap<>();
-
 	}
 
 	@Override
@@ -98,13 +100,21 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	@Override
 	public FileVisitResult visitFileFailed(final Path file, final IOException exc) throws IOException {
 
-		logger.warn("Exception while importing file {}: {}", new Object[] { file.toString(), exc.getMessage() });
+		logger.warn("Exception while importing file {}: {}", file.toString(), exc.getMessage());
 		return FileVisitResult.CONTINUE;
 	}
 
 	@Override
 	public FileVisitResult postVisitDirectory(final Path dir, final IOException exc) throws IOException {
 		return FileVisitResult.CONTINUE;
+	}
+
+	public FileImportProblems getFileImportProblems() {
+
+		final Set configuredButNotEncounteredPaths = new HashSet(metadata.keySet());
+		configuredButNotEncounteredPaths.removeAll(encounteredPaths);
+
+		return new FileImportProblems(configuredButNotEncounteredPaths, encounteredButNotConfiguredFilePaths);
 	}
 
 	// ----- private methods -----
@@ -132,6 +142,8 @@ public class FileImportVisitor implements FileVisitor<Path> {
 	protected void createFolder(final Path folderObj) {
 
 		final String folderPath = harmonizeFileSeparators("/", basePath.relativize(folderObj).toString());
+
+		encounteredPaths.add(folderPath);
 
 		try (final Tx tx = app.tx(true, false, false)) {
 
@@ -184,11 +196,13 @@ public class FileImportVisitor implements FileVisitor<Path> {
 			final String fullPath                   = harmonizeFileSeparators("/", basePath.relativize(path).toString());
 			final Map<String, Object> rawProperties = getRawPropertiesForFileOrFolder(fullPath);
 
+			encounteredPaths.add(fullPath);
+
 			if (rawProperties == null) {
 
-				if (!fileName.startsWith(".")) {
-					logger.info("Ignoring {} (not in files.json)", fullPath);
-				}
+				logger.info("Ignoring {} (not in files.json)", fullPath);
+
+				encounteredButNotConfiguredFilePaths.add(path.toString());
 
 			} else {
 
@@ -371,5 +385,62 @@ public class FileImportVisitor implements FileVisitor<Path> {
 		}
 
 		return buf.toString();
+	}
+
+	public class FileImportProblems {
+
+		final Set configuredButNotEncountered;
+		final Set encounteredButNotConfigured;
+
+		public FileImportProblems(final Set configuredButNotEncountered, final Set encounteredButNotConfigured) {
+
+			this.configuredButNotEncountered = configuredButNotEncountered;
+			this.encounteredButNotConfigured = encounteredButNotConfigured;
+		}
+
+		public boolean hasAnyProblems() {
+
+			return configuredButNotEncountered.size() > 0 || encounteredButNotConfigured.size() > 0;
+		}
+
+		public String getProblemsHtml() {
+
+			final ArrayList<String> problems = new ArrayList();
+
+			if (configuredButNotEncountered.size() > 0) {
+
+				problems.add(
+						"The following entries were configured in files.json, but the <b>expected files were not found</b>. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository."
+						+ "<ul><li>" + String.join("</li><li>", configuredButNotEncountered) + "</li></ul>"
+				);
+			}
+
+			if (encounteredButNotConfigured.size() > 0) {
+
+				problems.add(
+						"The following files were found, but <b>are missing in files.json</b>. The most common cause is that files.json was not correctly committed."
+						+ "<ul><li>" + String.join("</li><li>", encounteredButNotConfigured) + "</li></ul>"
+				);
+			}
+
+			return String.join("<br>", problems);
+		}
+
+		public String getProblemsText() {
+
+			final ArrayList<String> problems = new ArrayList();
+
+			if (configuredButNotEncountered.size() > 0) {
+
+				problems.add("\tThe following entries were configured in files.json, but the expected files were not found. The most common cause is that files.json was correctly committed, but the file itself was not added to the repository.\n\t\t" + String.join("\n\t\t", configuredButNotEncountered));
+			}
+
+			if (encounteredButNotConfigured.size() > 0) {
+
+				problems.add("\tThe following files were found, but are missing in files.json. The most common cause is that files.json was not correctly committed.\n\t\t" + String.join("\n\t\t", encounteredButNotConfigured));
+			}
+
+			return String.join("\n\n", problems);
+		}
 	}
 }

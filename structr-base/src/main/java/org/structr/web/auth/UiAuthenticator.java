@@ -156,6 +156,9 @@ public class UiAuthenticator implements Authenticator {
 			} else {
 
 				securityContext = SecurityContext.getInstance(user, request, AccessMode.Backend);
+
+				// overwrite superuser context in user
+				user.setSecurityContext(securityContext);
 			}
 		}
 

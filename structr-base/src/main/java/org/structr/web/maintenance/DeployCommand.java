@@ -89,7 +89,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
 
-
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
 	private final static String DEPLOYMENT_DOM_NODE_VISIBILITY_RELATIVE_TO_KEY          = "visibility-flags-relative-to";
@@ -144,7 +143,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String mode = (String) parameters.get("mode");
 
-		if (Boolean.FALSE.equals(deploymentActive.get())) {
+		if (Boolean.FALSE.equals(isDeploymentActive())) {
 
 			try {
 
@@ -381,33 +380,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			importResourceAccessGrants(grantsMetadataFile);
-
 			importCorsSettings(corsSettingsMetadataFile);
-
 			importMailTemplates(mailTemplatesMetadataFile, source);
-
 			importWidgets(widgetsMetadataFile);
-
 			importLocalizations(localizationsMetadataFile);
-
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
-
 			importSchema(schemaFolder, extendExistingApp);
-
-			importFiles(filesMetadataFile, source, ctx);
-
+			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 			importModuleData(source);
-
 			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
-
 			linkDeferredPages(app);
-
 			importParameterMapping(parameterMappingMetadataFile);
-
 			importActionMapping(actionMappingMetadataFile);
-
 			importEmbeddedApplicationData(source);
-
 
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
@@ -448,7 +433,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\n###############################################################################"
 				);
 				publishWarningMessage(title, text);
+			}
 
+			if (fileImportProblems != null && fileImportProblems.hasAnyProblems()) {
+
+				final String title = "Encountered problems during import of files";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ fileImportProblems.getProblemsText()
+						+ "\n###############################################################################"
+				);
+				publishWarningMessage(title, fileImportProblems.getProblemsHtml());
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -1322,7 +1318,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// export "null" owner as well
 			config.put("owner", null);
-
 		}
 
 		exportSecurity(node, config);
@@ -1975,7 +1970,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final PropertyMap additionalData = new PropertyMap();
 
-			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+			// Question: shouldn't this be true?
+			// No! 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
 			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
@@ -1998,33 +1994,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
+	private FileImportVisitor.FileImportProblems importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
 
 		if (Files.exists(filesMetadataFile)) {
 
-			final Map<String, Object> filesMetadata      = new HashMap<>();
-
 			logger.info("Reading {}", filesMetadataFile);
-			filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
+			final Map<String, Object> filesMetadata = new HashMap<>(readMetadataFileIntoMap(filesMetadataFile));
 
 			final Path files = source.resolve("files");
 			if (Files.exists(files)) {
+
+				final FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 
 				try {
 
 					logger.info("Importing files (unchanged files will be skipped)");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
-					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 					Files.walkFileTree(files, fiv);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing files", ioex);
 				}
+
+				return fiv.getFileImportProblems();
 			}
 		}
-	}
 
+		return null;
+	}
 
 	private void importModuleData(final Path source) throws FrameworkException {
 
