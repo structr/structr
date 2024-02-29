@@ -141,7 +141,7 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test2/////"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test2/"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test2/_"));
-		assertEquals("Invalid path resolution result", ",,",                       getContent(200, "/structr/html/test2/__"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test2/__"));
 		assertEquals("Invalid path resolution result", "_,,",                      getContent(200, "/structr/html/test2/___"));
 		assertEquals("Invalid path resolution result", "__,,",                     getContent(200, "/structr/html/test2/____"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test2/value1"));
@@ -290,7 +290,7 @@ public class DynamicPathsTest extends FrontendTest {
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/////"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/_"));
-		assertEquals("Invalid path resolution result", ",,",                       getContent(200, "/structr/html/test" + pageNumber + "_2/__"));
+		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/__"));
 		assertEquals("Invalid path resolution result", "_,,",                      getContent(200, "/structr/html/test" + pageNumber + "_2/___"));
 		assertEquals("Invalid path resolution result", "__,,",                     getContent(200, "/structr/html/test" + pageNumber + "_2/____"));
 		assertEquals("Invalid path resolution result", "defaultValue2,,",          getContent(200, "/structr/html/test" + pageNumber + "_2/value1"));
