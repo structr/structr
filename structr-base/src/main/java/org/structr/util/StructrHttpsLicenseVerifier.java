@@ -20,6 +20,7 @@ package org.structr.util;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.mongodb.internal.HexUtils;
 import com.sun.net.httpserver.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.io.IOUtils;
@@ -119,6 +120,8 @@ public class StructrHttpsLicenseVerifier {
 
 						final String method = exchange.getRequestMethod();
 
+						logger.info("New connection from {}, method {}", exchange.getRemoteAddress().getAddress().getHostAddress(), method);
+
 						// support HEAD and GET requests to check health
 						if ("head".equalsIgnoreCase(method)) {
 
@@ -143,8 +146,14 @@ public class StructrHttpsLicenseVerifier {
 							final byte[] buf = new byte[bufSize];
 							int count = 0;
 
-							final byte[] sessionKey = blockCipher.doFinal(IOUtils.readFully(is, 256));
-							final byte[] ivSpec = blockCipher.doFinal(IOUtils.readFully(is, 256));
+							final byte[] sessionKeySource = IOUtils.readFully(is, 256);
+							final byte[] ivSpecSource     = IOUtils.readFully(is, 256);
+
+							logger.info("Session key source from request: length {}, data {}", sessionKeySource.length, new String(sessionKeySource));
+							logger.info("IV spec source from request: length {}, data {}", ivSpecSource.length, new String(ivSpecSource));
+
+							final byte[] sessionKey = blockCipher.doFinal(sessionKeySource);
+							final byte[] ivSpec = blockCipher.doFinal(ivSpecSource);
 
 							streamCipher.init(Cipher.DECRYPT_MODE, new SecretKeySpec(sessionKey, "AES"), new IvParameterSpec(ivSpec));
 
@@ -226,7 +235,7 @@ public class StructrHttpsLicenseVerifier {
 			server.start();
 
 		} catch (Throwable t) {
-			logger.warn("Unable to verify license: {}", t.getMessage());
+			logger.warn("Unable to start license server: {}", t.getMessage());
 		}
 	}
 
