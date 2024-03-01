@@ -40,22 +40,17 @@ import java.util.Map;
  */
 public class FixedSizeCache<K, V> {
 
-	private static final Logger logger  = LoggerFactory.getLogger(FixedSizeCache.class);
-	private long lastUpdate             = System.currentTimeMillis();
-	private MemoryPoolMXBean bean       = null;
 	private LRUMap<K, V> cache          = null;
 	private String name                 = null;
 
 	public FixedSizeCache(final String name, final int maxSize) {
 
-		this.cache       = new LRUMap<>(maxSize);
-		this.bean        = getOldGenerationMXBean();
+		this.cache       = new InvalidatingLRUMap<>(maxSize);
 		this.name        = name;
 	}
 
 	public synchronized void put(final K key, final V value) {
 		cache.put(key, value);
-		checkAvailableMemory();
 	}
 
 	public synchronized V get(final K key) {
@@ -90,61 +85,23 @@ public class FixedSizeCache<K, V> {
 		return cache.containsKey(key);
 	}
 
-	// ----- private methods -----
-	private MemoryPoolMXBean getOldGenerationMXBean() {
+	// ----- nested classes -----
+	private static class InvalidatingLRUMap<K, V> extends LRUMap<K, V> {
 
-		final List<MemoryPoolMXBean> beans = ManagementFactory.getMemoryPoolMXBeans();
-		for (final MemoryPoolMXBean bean : beans) {
-
-			if (bean.getName().endsWith(" Old Gen")) {
-				return bean;
-			}
+		public InvalidatingLRUMap(final int maxSize) {
+			super(maxSize, true);
 		}
 
-		logger.warn("Memory management info not available, automatic cache size limitation is DISABLED.");
+		@Override
+		protected boolean removeLRU(final LinkEntry<K, V> entry) {
 
-		return null;
-	}
+			final V value = entry.getValue();
+			if (value != null && value instanceof Cachable) {
 
-	private void checkAvailableMemory() {
-
-		final long now = System.currentTimeMillis();
-
-		if (bean != null && now > lastUpdate + 1000) {
-
-			final MemoryUsage usage = bean.getCollectionUsage();
-			final double maxMemory  = Math.max(1, usage.getMax());
-			final double usedMemory = Math.max(1, usage.getUsed());
-			final double percentage = (usedMemory / maxMemory) * 100.0;
-
-			lastUpdate = now;
-
-			if (percentage > 98.00) {
-
-				double size = cache.maxSize();
-
-				size *= 0.5;
-				size /= 10000;
-				size *= 10000;
-
-				// enforce lower bound for cache size
-				size = Math.max(1000, size);
-
-				if (size == 1000) {
-
-					logger.warn("JVM is running low on memory and {} size is at its minimum of {}. Please increase JVM heap size.", name, size);
-
-				} else {
-
-					logger.warn("JVM is running low on memory, limiting {} size to {}", name, size);
-					logger.warn("If this happens more than once, please increase JVM heap size or reduce cache sizes.");
-				}
-
-				cache.clear();
-
-				// replace current cache instance with limited one (should be ok to do since all methods are synchronized)
-				cache = new LRUMap<>((int)size);
+				((Cachable)value).onRemoveFromCache();
 			}
+
+			return true;
 		}
 	}
 }
