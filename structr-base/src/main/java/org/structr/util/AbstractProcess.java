@@ -63,7 +63,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 				String[] args = {"/bin/sh", "-c", cmd};
 
-				logger.info("Executing {}", cmd);
+				logger.debug("Executing {}", cmd);
 
 				Process proc = Runtime.getRuntime().exec(args);
 

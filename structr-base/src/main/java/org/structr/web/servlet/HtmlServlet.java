@@ -424,7 +424,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 					}
 				}
 
-				if (file != null) {
+				if (file != null && securityContext.isVisible(file)) {
 
 					streamFile(securityContext, file, request, response, edit, true);
 					tx.success();

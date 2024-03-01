@@ -139,18 +139,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						return ((Enum)propValue).toString();
 					}
 
-					return propValue;
+					return PolyglotWrapper.wrap(actionContext, propValue);
 
-				} else {
-
-					Object prop = node.getProperty(propKey);
-					if (prop != null) {
-
-						return PolyglotWrapper.wrap(actionContext, prop);
-					}
-
-					return null;
 				}
+
+				return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 			}
 
 			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
@@ -182,9 +175,15 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (node != null) {
 
-				final Class type = node.getClass();
+				// Special handling for grant-Function
+				if (key.equals("grant")) {
+					return true;
+				}
 
-				return StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null || Methods.resolveMethod(type, key) != null;
+				final Class type          = node.getClass();
+				final PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
+
+				return Methods.resolveMethod(type, key) != null || (propKey != null && !(propKey instanceof GenericProperty<?>));
 
 			} else {
 
@@ -260,5 +259,16 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString() {
+
+		if (node instanceof GraphObjectMap) {
+
+			return super.toString();
+		}
+
+		return node.getClass().getSimpleName() + "(" + node.getUuid() + ")";
 	}
 }
