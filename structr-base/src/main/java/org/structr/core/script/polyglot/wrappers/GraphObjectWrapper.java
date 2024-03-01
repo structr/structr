@@ -202,6 +202,8 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 					return PolyglotWrapper.wrap(actionContext, propValue);
 
 				}
+
+				return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 			}
 
 			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
