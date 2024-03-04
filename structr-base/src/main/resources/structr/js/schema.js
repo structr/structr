@@ -5709,6 +5709,7 @@ let _Schema = {
 				<option value="Enum">Enum</option>
 				<option value="Date">Date</option>
 				<option value="DateArray">Date[]</option>
+				<option value="ZonedDateTime">ZonedDateTime</option>
 				<option value="Count">Count</option>
 				<option value="Function" data-indexed="false">Function</option>
 				<option value="Notion">Notion</option>

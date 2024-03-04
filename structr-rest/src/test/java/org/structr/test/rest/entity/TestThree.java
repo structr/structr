@@ -24,6 +24,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.*;
 import org.structr.test.rest.common.TestEnum;
 
+import java.time.ZonedDateTime;
 import java.util.Date;
 
 /**
@@ -55,8 +56,10 @@ public class TestThree extends AbstractNode {
 
 	public static final Property<TestFive>      oneToOneTestFive            = new StartNode<>("oneToOneTestFive",  FiveThreeOneToOne.class);
 
+	public static final Property<ZonedDateTime> zonedDateTimeProperty       = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
+
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		name, stringProperty, stringArrayProperty, booleanProperty, booleanArrayProperty, doubleProperty, doubleArrayProperty,
-		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, enumProperty, constantBooleanProperty
+		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, zonedDateTimeProperty, enumProperty, constantBooleanProperty
 	);
 }
