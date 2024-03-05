@@ -91,7 +91,17 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 
         if (StringUtils.isBlank(pattern)) {
 
-            return parseISO8601DateString(source);
+            ZonedDateTime parsedDate = null;
+
+            try {
+                parsedDate = ZonedDateTime.parse(source);
+            } catch (DateTimeParseException ex) {}
+
+            if (parsedDate != null) {
+                return parsedDate;
+            }
+
+            return null;
 
         } else {
 
@@ -100,32 +110,8 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
         }
 
     }
-
-    /**
-     * Try to parse source string as a ISO8601 date.
-     *
-     * @param source
-     * @return null if unable to parse
-     */
-    public static ZonedDateTime parseISO8601DateString(String source) {
-
-        final String[] supportedFormats = new String[] { "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", "yyyy-MM-dd'T'HH:mm:ssXXX", "yyyy-MM-dd'T'HH:mm:ssZ", "yyyy-MM-dd'T'HH:mm:ss.SSSZ" };
-
-        ZonedDateTime parsedDate = null;
-
-        for (final String format : supportedFormats) {
-
-            try {
-                parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(format));
-            } catch (DateTimeParseException ex) {}
-
-            if (parsedDate != null) {
-                return parsedDate;
-            }
-        }
-
-        return null;
-
+    public static ZonedDateTime parse(String source) {
+        return parse(source, null);
     }
 
     /**
@@ -137,17 +123,17 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
      * @param format optional SimpleDateFormat pattern
      * @return
      */
-    public static String format(final Date date, String format) {
+    public static String format(final ZonedDateTime date, String format) {
 
         if (date != null) {
 
             if (StringUtils.isBlank(format)) {
 
-                format = DateProperty.getDefaultFormat();
+                format = ZonedDateTimeProperty.getDefaultFormat();
 
             }
 
-            return new SimpleDateFormat(format).format(date);
+            return DateTimeFormatter.ofPattern(format).format(date);
         }
 
         return null;

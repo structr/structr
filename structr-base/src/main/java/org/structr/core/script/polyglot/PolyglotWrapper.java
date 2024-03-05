@@ -29,7 +29,7 @@ import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
 import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
 import org.structr.schema.action.ActionContext;
 
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -172,20 +172,35 @@ public abstract class PolyglotWrapper {
 			}
 
 			if (value.isHostObject()) {
-
 				return unwrap(actionContext, value.asHostObject());
+			}
 
+			if (value.isDate() && value.isTime() && value.isTimeZone()) {
+				return ZonedDateTime.of(LocalDateTime.of(value.asDate(), value.asTime()), value.asTimeZone());
+			}
+
+			if (value.isDate() && value.isTime()) {
+				return LocalDateTime.of(value.asDate(), value.asTime());
 			}
 
 			if (value.isDate()) {
+				return value.asDate();
+			}
 
-				if (value.isTime()) {
+			if (value.isTime()) {
+				return value.asTime();
+			}
 
-					return Date.from(value.asDate().atTime(value.asTime()).atZone(ZoneId.systemDefault()).toInstant());
-				}
+			if (value.isInstant()) {
+				return value.asInstant();
+			}
 
-				return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+			if (value.isDuration()) {
+				return value.asDuration();
+			}
 
+			if (value.isTimeZone()) {
+				return value.asTimeZone();
 			}
 
 			if (value.isProxyObject() && value.hasMembers()) {

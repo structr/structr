@@ -19,6 +19,7 @@
 package org.structr.core.property;
 
 import org.apache.commons.lang3.StringUtils;
+import org.structr.api.config.Settings;
 import org.structr.api.search.SortType;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
@@ -75,7 +76,13 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
             try {
 
-                return DatePropertyParser.parse(value.toString(), format).getTime();
+                if (value instanceof  String) {
+
+                    return ZonedDateTimePropertyParser.parse(value.toString(), format);
+                } else if (value instanceof ZonedDateTime) {
+
+                    return value;
+                }
 
             } catch (Throwable t) {
             }
@@ -142,13 +149,13 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
 
                     if (StringUtils.isNotBlank(sourceString)) {
 
-                        return ZonedDateTimePropertyParser.parseISO8601DateString(sourceString);
+                        return ZonedDateTimePropertyParser.parse(sourceString);
 
                     }
 
                 } else {
 
-                    throw new FrameworkException(422, "Unnkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringClass.getSimpleName(), ZonedDateTimeProperty.this));
+                    throw new FrameworkException(422, "Incompatible input type for zoneddatetime property " + jsonName() + ": " + (source.getClass().getName()), new ZonedDateTimeFormatToken(declaringClass.getSimpleName(), ZonedDateTimeProperty.this));
 
                 }
             }
@@ -173,5 +180,9 @@ public class ZonedDateTimeProperty extends AbstractPrimitiveProperty<ZonedDateTi
     @Override
     public Map<String, Object> describeOpenAPIOutputSchema(String type, String viewName) {
         return null;
+    }
+
+    public static String getDefaultFormat() {
+        return Settings.DefaultZonedDateTimeFormat.getValue();
     }
 }

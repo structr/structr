@@ -26,9 +26,11 @@ import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.TemporalDateConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.text.SimpleDateFormat;
+import java.time.*;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
@@ -164,10 +166,11 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			if (source != null) {
 
-				if (source instanceof Date) {
+				final Date convertedDate = TemporalDateConverter.convert(source);
 
-					return (Date)source;
+				if (convertedDate != null) {
 
+					return convertedDate;
 				} else if (source instanceof String) {
 
 					if (StringUtils.isNotBlank((String)source)) {
