@@ -901,6 +901,32 @@ let _Files = {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},
+	fileOrFolderDeletionNotificationTimeout: undefined,
+	fileOrFolderDeletionNotification: (deletedFileOrFolder) => {
+
+		// this should only run for inactive windows (the active window should be the originator)
+		// it would be even better to only NOT run for the originator - an active window could be another user on another machine...
+		if (document.hasFocus() === false) {
+
+			// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
+			window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
+
+			_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
+
+				if (deletedFileOrFolder.isFile) {
+
+					// optimistically we should get away with only reloading the tree if a folder was deleted...
+					// ...but that would be a bit more bookkeeping because we are trying to only run once
+					_Files.refreshTree();
+
+				} else if (deletedFileOrFolder.isFolder) {
+
+					_Files.refreshTree();
+				}
+
+			}, 200);
+		}
+	},
 	appendFileOrFolder: (d) => {
 
 		if (!d.isFile && !d.isFolder) return;
