@@ -20,10 +20,10 @@ jobs:
             variableName: REST
           - module: structr-db-driver-api
             variableName: DB_DRIVER_API
-          - module: structr-memgraph-driver
-            variableName: MEMGRAPH_DRIVER
-          - module: structr-memory-driver
-            variableName: MEMORY_DRIVER
+#          - module: structr-memgraph-driver
+#            variableName: MEMGRAPH_DRIVER
+#          - module: structr-memory-driver
+#            variableName: MEMORY_DRIVER
           - module: structr-modules
             variableName: MODULES
           - module: structr-neo4j-bolt-driver
