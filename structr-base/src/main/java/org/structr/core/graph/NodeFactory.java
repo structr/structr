@@ -86,6 +86,7 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 			newNode = nodeClass.newInstance();
 
 		} catch (NoClassDefFoundError|InstantiationException|IllegalAccessException itex) {
+			itex.printStackTrace();
 			newNode = null;
 		}
 
