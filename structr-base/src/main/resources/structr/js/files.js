@@ -901,6 +901,32 @@ let _Files = {
 			_Files.appendFileOrFolder(newFileOrFolder);
 		}
 	},
+	fileOrFolderDeletionNotificationTimeout: undefined,
+	fileOrFolderDeletionNotification: (deletedFileOrFolder) => {
+
+		// this should only run for inactive windows (the active window should be the originator)
+		// it would be even better to only NOT run for the originator - an active window could be another user on another machine...
+		if (document.hasFocus() === false) {
+
+			// this can have been called after multi-deleting files/folders, schedule it to probably only run once.
+			window.clearTimeout(_Files.fileOrFolderDeletionNotificationTimeout);
+
+			_Files.fileOrFolderDeletionNotificationTimeout = window.setTimeout(() => {
+
+				if (deletedFileOrFolder.isFile) {
+
+					// optimistically we should get away with only reloading the tree if a folder was deleted...
+					// ...but that would be a bit more bookkeeping because we are trying to only run once
+					_Files.refreshTree();
+
+				} else if (deletedFileOrFolder.isFolder) {
+
+					_Files.refreshTree();
+				}
+
+			}, 200);
+		}
+	},
 	appendFileOrFolder: (d) => {
 
 		if (!d.isFile && !d.isFolder) return;
@@ -923,7 +949,7 @@ let _Files = {
 		let createdDate           = dateFormat.format(new Date(d.createdDate));
 		let modifiedDate          = dateFormat.format(new Date(d.lastModifiedDate));
 		let progressIndicatorHTML = _Files.templates.progressIndicator({ size });
-		let name                  = _Helpers.escapeTags(d.name || '[unnamed]');
+		let name                  = d.name || '[unnamed]';
 		let listModeActive        = _Files.isViewModeActive('list');
 		let tilesModeActive       = _Files.isViewModeActive('tiles');
 		let imageModeActive       = _Files.isViewModeActive('img');
@@ -950,7 +976,7 @@ let _Files = {
 					${getIconColumnHTML()}
 					<td>
 						<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} flex items-center justify-between relative" draggable="true">
-							<b class="name_ leading-8 truncate">${name}</b>
+							<b class="name_ leading-8 truncate"></b>
 							<div class="icons-container flex items-end"></div>
 							${d.isFolder ? '' : progressIndicatorHTML}
 						</div>
@@ -1000,7 +1026,7 @@ let _Files = {
 				<div id="${tileId}" class="tile${d.isThumbnail ? ' thumbnail' : ''}${imageModeActive ? ' img-tile' : ''}">
 					<div id="id_${d.id}" class="node ${d.isFolder ? 'folder' : 'file'} relative flex flex-col" draggable="true">
 					${getFileIcon()}
-					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center">${name}</b>
+					<b class="name_ abbr-ellipsis mx-2 mb-2 text-center"></b>
 					${d.isFolder ? '' : progressIndicatorHTML}
 					<div class="icons-container flex items-center"></div>
 				</div>
@@ -1023,7 +1049,8 @@ let _Files = {
 		}
 
 		let nameElement = div[0].querySelector('b.name_');
-		nameElement.title = name;
+		nameElement.textContent = name;
+		nameElement.title       = name;
 		nameElement.addEventListener('click', (e) => {
 			e.stopPropagation();
 			_Entities.makeNameEditable(div);
