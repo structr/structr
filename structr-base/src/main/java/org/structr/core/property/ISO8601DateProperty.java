@@ -24,6 +24,7 @@ import org.structr.common.error.DateFormatToken;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.converter.PropertyConverter;
+import org.structr.core.converter.TemporalDateConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.util.Date;
@@ -44,7 +45,7 @@ public class ISO8601DateProperty extends DateProperty {
 	}
 
 	@Override
-	public PropertyConverter<String, Date> inputConverter(SecurityContext securityContext) {
+	public PropertyConverter<Object, Date> inputConverter(SecurityContext securityContext) {
 		return new InputConverter(securityContext);
 	}
 
@@ -78,26 +79,36 @@ public class ISO8601DateProperty extends DateProperty {
 		}
 	}
 
-	private class InputConverter extends PropertyConverter<String, Date> {
+	private class InputConverter extends PropertyConverter<Object, Date> {
 
 		public InputConverter(SecurityContext securityContext) {
 			super(securityContext, null);
 		}
 
 		@Override
-		public Date convert(String source) throws FrameworkException {
+		public Date convert(Object source) throws FrameworkException {
 
-			if (StringUtils.isNotBlank(source)) {
+			if (source != null) {
 
-				Date result = DatePropertyParser.parseISO8601DateString(source);
-				if (result != null) {
+				final Date convertedDate = TemporalDateConverter.convert(source);
 
-					return result;
+				if (convertedDate != null) {
 
-				} else {
+					return convertedDate;
+				} else if (source instanceof String sourceString) {
+					if (StringUtils.isNotBlank(sourceString)) {
 
-					throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
+						Date result = DatePropertyParser.parseISO8601DateString(sourceString);
+						if (result != null) {
 
+							return result;
+
+						} else {
+
+							throw new FrameworkException(422, "Cannot parse input for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), ISO8601DateProperty.this));
+
+						}
+					}
 				}
 			}
 
