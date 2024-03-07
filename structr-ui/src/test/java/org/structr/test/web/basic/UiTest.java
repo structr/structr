@@ -85,13 +85,16 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = img;
+
 			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
-			assertEquals(new Integer(200), tn.getWidth());
-			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
+			assertEquals(200, (int)tn.getWidth());
+			assertEquals( 48, (int)tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.Format.jpeg, tn.getContentType());
 
 			tx.success();
@@ -130,8 +133,19 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = testImage;
-			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+
+			tryWithTimeout(
+				() -> {
+					// Thumbnail creation happens in the background, in a different thread,
+					// so we need to allow this thread to break the transaction isolation..
+					immutableImage.getNode().invalidate();
+
+					return immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
+				},
+				()->fail("Exceeded timeout while waiting for thumbnail creation."),
+				30000, 1000);
 			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 
@@ -638,8 +652,6 @@ public class UiTest extends StructrUiTest {
 	public void testAutoRenameFileWithIdenticalPathInSubFolder() {
 
 		Settings.UniquePaths.setValue(Boolean.TRUE);
-
-		Settings.CypherDebugLogging.setValue(true);
 
 		Folder folder = null;
 		File file1 = null;

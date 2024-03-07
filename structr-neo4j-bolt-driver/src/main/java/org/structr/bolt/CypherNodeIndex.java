@@ -86,7 +86,7 @@ class CypherNodeIndex extends AbstractCypherIndex<Node> {
 
 		}  else {
 
-			buf.append(" RETURN DISTINCT n, collect(r) AS rels, collect(m) AS nodes");
+			buf.append(" RETURN DISTINCT n, collect(distinct r) AS rels, collect(distinct m) AS nodes");
 		}
 
 		final SortOrder sortOrder = query.getSortOrder();

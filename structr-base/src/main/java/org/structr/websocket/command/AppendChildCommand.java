@@ -29,6 +29,8 @@ import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.DOMException;
 
+import java.util.Set;
+
 public class AppendChildCommand extends AbstractCommand {
 
 	static {
@@ -40,7 +42,7 @@ public class AppendChildCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)");
+		TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)", Set.of());
 
 		final String id       = webSocketData.getId();
 		final String parentId = webSocketData.getNodeDataStringValue("parentId");

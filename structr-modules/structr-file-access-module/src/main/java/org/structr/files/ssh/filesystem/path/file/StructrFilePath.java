@@ -277,11 +277,11 @@ public class StructrFilePath extends StructrPath {
 
 		if (target instanceof StructrFilePath) {
 
-			final App app                       = StructrApp.getInstance(fs.getSecurityContext());
-			final StructrFilePath other    = (StructrFilePath)target;
-			final AbstractFile otherFile        = other.getActualFile();
-			final AbstractFile thisFile         = getActualFile();
-			final String targetName             = target.getFileName().toString();
+			final App app                = StructrApp.getInstance(fs.getSecurityContext());
+			final StructrFilePath other  = (StructrFilePath)target;
+			final AbstractFile otherFile = other.getActualFile();
+			final AbstractFile thisFile  = getActualFile();
+			final String targetName      = target.getFileName().toString();
 
 			try (final Tx tx = app.tx()) {
 

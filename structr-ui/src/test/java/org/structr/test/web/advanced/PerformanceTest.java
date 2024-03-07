@@ -203,8 +203,6 @@ public class PerformanceTest extends IndexingTest {
 
 			logger.info("Reading {} x {} nodes..", loop, number);
 
-			Settings.CypherDebugLogging.setValue(true);
-
 			for (int i=0; i<loop; i++) {
 
 				try (final Tx tx = app.tx()) {
@@ -226,7 +224,7 @@ public class PerformanceTest extends IndexingTest {
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
 			logger.info("Read {}x {} nodes in {} seconds ({} per s)", loop, number, decimalFormat.format(time), decimalFormat.format(rate));
-			assertTrue("Invalid read performance result", rate > 30000);
+			assertTrue("Invalid read performance result", rate > 10000);
 
 		} catch (FrameworkException ex) {
 

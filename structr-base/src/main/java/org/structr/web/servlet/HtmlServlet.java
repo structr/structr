@@ -852,7 +852,23 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 				try (final Tx tx = app.tx()) {
 
 					// prefetching
-					tx.prefetch("(n:DOMElement)-[r]->(m:DOMElement)");
+					tx.prefetch("(n:DOMNode)-[r]-(m)", Set.of(
+
+						"all/OUTGOING/SYNC",
+						"all/OUTGOING/CONTAINS",
+						"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+
+						"all/INCOMING/SYNC",
+						"all/INCOMING/OWNS",
+						"all/INCOMING/CONTAINS",
+						"all/INCOMING/INPUT_ELEMENT",
+						"all/INCOMING/SUCCESS_TARGET",
+						"all/INCOMING/FAILURE_TARGET",
+						"all/INCOMING/RELOADS",
+						"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+						"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+						"all/INCOMING/TRIGGERED_BY"
+					));
 
 					// render
 					rootNode.render(renderContext, 0);

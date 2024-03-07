@@ -27,6 +27,7 @@ import org.structr.core.StructrTransactionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -71,8 +72,8 @@ public class Tx implements AutoCloseable {
 		success = true;
 	}
 
-	public void prefetch(final String query) {
-		TransactionCommand.getCurrentTransaction().prefetch(query);
+	public void prefetch(final String query, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
 	}
 
 	@Override

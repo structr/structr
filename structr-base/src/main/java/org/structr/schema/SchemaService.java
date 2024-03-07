@@ -130,7 +130,7 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
-					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)");
+					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)", Set.of());
 
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
@@ -167,8 +167,8 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
-					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)");
-					tx.prefetch("(n:SchemaRelationshipNode)-[r]-(m:SchemaNode)");
+					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)", Set.of());
+					tx.prefetch("(n:SchemaRelationshipNode)-[r]-(m:SchemaNode)", Set.of());
 
 					while (retryCount-- > 0) {
 

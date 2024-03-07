@@ -25,6 +25,8 @@ import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.Arrays;
+import java.util.Set;
+
 import org.structr.core.graph.TransactionCommand;
 
 /**
@@ -62,7 +64,7 @@ public class GetCommand extends AbstractCommand {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
 
-			TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)");
+			TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)", Set.of());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

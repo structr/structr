@@ -216,7 +216,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
-	public void prefetch(final String query) {
+	public void prefetch(final String query, final Set<String> keys) {
 
 		final StringBuilder buf     = new StringBuilder();
 		final Set<Long> visited     = new HashSet<>();
@@ -224,9 +224,6 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 		buf.append("MATCH p = ");
 		buf.append(query);
 		buf.append(" RETURN DISTINCT p");
-
-		final long t0 = System.currentTimeMillis();
-		int count = 0;
 
 		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
 
@@ -241,6 +238,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				if (current == null) {
 					current = getNodeWrapper(s.start());
+					current.storePrefetchInfo(keys);
 				}
 
 				if (!alreadySeen) {
@@ -250,27 +248,20 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					rel = getRelationshipWrapper(relationship);
 
 					// store outgoing rel
-					current.storeRelationship(rel);
-					current.prefetched();
+					current.storeRelationship(rel, true);
 				}
 
 					// advance
 					current = getNodeWrapper(s.end());
+					current.storePrefetchInfo(keys);
 
 				if (!alreadySeen) {
 
 					// store incoming rel as well
-					current.storeRelationship(rel);
-					current.prefetched();
+					current.storeRelationship(rel, true);
 				}
-
-				count++;
 			}
 		}
-
-		final long t1 = System.currentTimeMillis();
-
-		System.out.println("PREFETCHED " + count + " entities in " + (t1 - t0) + " ms");
 	}
 
 	// ----- public static methods -----

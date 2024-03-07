@@ -23,6 +23,8 @@ import org.structr.api.graph.Identity;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 
+import java.util.Set;
+
 /**
  *
  *
@@ -105,7 +107,7 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
-	public void prefetch(final String query) {
-		tx.prefetch(query);
+	public void prefetch(final String query, final Set<String> keys) {
+		tx.prefetch(query, keys);
 	}
 }
