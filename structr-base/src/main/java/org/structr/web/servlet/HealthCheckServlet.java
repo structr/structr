@@ -79,18 +79,12 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/health+json; charset=utf-8");
 
-			final boolean servicesInitialized = Services.getInstance().isInitialized();
-
 			final String remoteAddress = request.getRemoteAddr();
 			if (remoteAddress != null) {
 
-				if (request.getPathInfo() != null && request.getPathInfo().equals("/ready")) {
+				if ("/ready".equals(request.getPathInfo())) {
 
-					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
-
-						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
-
-					} else if (!servicesInitialized) {
+					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling() || !Services.getInstance().isInitialized()) {
 
 						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 
@@ -105,7 +99,7 @@ public class HealthCheckServlet extends AbstractDataServlet {
 				final Set<String> wl = getWhitelistAddresses();
 				if (!wl.contains(remoteAddress)) {
 
-					if (!servicesInitialized) {
+					if (!Services.getInstance().isInitialized()) {
 
 						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
 
