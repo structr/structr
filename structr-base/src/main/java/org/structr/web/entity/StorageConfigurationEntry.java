@@ -46,10 +46,11 @@ public interface StorageConfigurationEntry extends NodeInterface {
 		type.addEncryptedProperty("value", PropertyView.Ui);
 
 		type.addPropertyGetter("configuration", StorageConfiguration.class);
+		type.addViewProperty(PropertyView.Ui, "configuration");
 
 		type.addPropertySetter("name", String.class);
 
-		type.addPropertyGetter("value",  String.class);
+		type.addPropertyGetter("value", String.class);
 		type.addPropertySetter("value", String.class);
 
 	}}

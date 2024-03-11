@@ -1736,47 +1736,90 @@ let _Files = {
 
 		_Schema.getTypeInfo('Folder', (typeInfo) => {
 
-			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder');
+			let { dialogText } = _Dialogs.custom.openDialog('Mount Folder', null, ['show-dialog-title']);
 
 			dialogText.insertAdjacentHTML('beforeend', _Files.templates.mountDialog({typeInfo: typeInfo}));
 			_Helpers.activateCommentsInElement(dialogText);
 
 			let mountButton = _Dialogs.custom.prependCustomDialogButton('<button id="mount-folder" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Mount</button>');
 
-			mountButton.addEventListener('click', () => {
+			let getDataFromElements = (elements) => {
 
-				let mountConfig = {};
-				for (let input of dialogText.querySelectorAll('[data-attribute-name]')) {
+				let data = {};
 
-					let attrName = input.dataset['attributeName'];
-					if (input.type === 'text') {
-						if (input.value != '') {
-							mountConfig[attrName] = input.value;
+				for (let element of elements) {
+
+					let attrName = element.dataset['attributeName'];
+					if (element.type === 'number') {
+						if (element.value != '') {
+							data[attrName] = parseInt(element.value);
 						}
-					} else if (input.type === 'number') {
-						if (input.value != '') {
-							mountConfig[attrName] = parseInt(input.value);
+					} else if (element.type === 'checkbox') {
+						data[attrName] = element.checked;
+					} else {
+						if (element.value != '') {
+							data[attrName] = element.value;
 						}
-					} else if (input.type === 'checkbox') {
-						mountConfig[attrName] = input.checked;
 					}
 				}
+
+				return data;
+			};
+
+			mountButton.addEventListener('click', async () => {
+
+				let mountConfig = Object.assign({
+					type: 'Folder',
+					parentId: (_Files.currentWorkingDir ? _Files.currentWorkingDir.id : null)
+				}, getDataFromElements(dialogText.querySelectorAll('.mount-folder-option[data-attribute-name]')));
+
+				let storageConfigurationData      = getDataFromElements(dialogText.querySelectorAll('.mount-storageconfiguration-option[data-attribute-name]'));
+				let storageConfigurationEntryData = getDataFromElements(dialogText.querySelectorAll('.mount-storageconfigurationentry-option[data-attribute-name]'))
 
 				if (!mountConfig.name) {
 
 					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply name', 'warning', 2000);
 
-				} else if (!mountConfig.mountTarget) {
+				} else if (!storageConfigurationEntryData.mountTarget) {
 
 					_Dialogs.custom.showAndHideInfoBoxMessage('Must supply mount target', 'warning', 2000);
 
 				} else {
 
-					mountConfig.type = 'Folder';
-					mountConfig.parentId = _Files.currentWorkingDir ? _Files.currentWorkingDir.id : null;
-					Command.create(mountConfig);
+					mountConfig.storageConfiguration         = storageConfigurationData;
+					mountConfig.storageConfiguration.name    = 'Configuration for ' + mountConfig.name;
+					mountConfig.storageConfiguration.entries = [ Object.fromEntries(Object.entries(storageConfigurationEntryData).map(entry => [ ['name', entry[0]], ['value', entry[1]] ]).flat()) ];
 
-					_Dialogs.custom.clickDialogCancelButton();
+					let response = await fetch ('/structr/rest/Folder', {
+						method: 'POST',
+						body: JSON.stringify(mountConfig)
+					});
+
+					if (response.ok) {
+
+						_Dialogs.custom.clickDialogCancelButton();
+
+						_Files.refreshTree();
+
+					} else {
+
+						let json = await response.json();
+
+						if (json.code === 422 && json.message === 'Unable to encrypt data, no secret key set.') {
+
+							let warningMessage = `
+								The mount configuration may contain sensitive information (credentials etc) and thus is an encrypted field.</br><br>
+								For this, the configuration key <code>application.encryption.secret</code> in structr.conf has to be set.<br><br>
+								Please update your configuration settings via the config editor (to have the key permanently set) or set it via the builtin function <code>set_encryption_key(key)</code>.<br><br>
+								Please keep in mind that a changed encryption key will have the effect that previously encrypted fields will not be readable anymore with the changed key.
+							`;
+
+							new WarningMessage().title("Encryption Secret Configuration Required").text(warningMessage).requiresConfirmation().show();
+
+						} else {
+							Structr.errorFromResponse(json);
+						}
+					}
 				}
 			});
 		});
@@ -1876,36 +1919,44 @@ let _Files = {
 		mountDialog: config => `
 			<table id="mount-dialog" class="props">
 				<tr>
-					<td data-comment="The name of the folder which will mount the target directory">Name</td>
-					<td><input type="text" class="mount-option" data-attribute-name="name"></td>
+					<td data-comment="Different storage providers have different capabilities. Currently the only existing storage provider is for mounting directories from a filesystem local to the server. In future versions storage providers for cloud storage are planned.">Storage Provider</td>
+					<td>
+						<select class="mount-storageconfiguration-option" data-attribute-name="provider" disabled>
+							<option value="org.structr.storage.providers.local.LocalFSStorageProvider">Local Filesystem</option>
+						</select>
+					</td>
+				</tr>
+				<tr>
+					<td data-comment="The name of the folder that will be created in the current folder.">Name</td>
+					<td><input type="text" class="mount-folder-option" data-attribute-name="name"></td>
 				</tr>
 				<tr>
 					<td data-comment="The absolute path of the local directory to mount">Mount Target</td>
-					<td><input type="text" class="mount-option" data-attribute-name="mountTarget"></td>
+					<td><input type="text" class="mount-storageconfigurationentry-option" data-attribute-name="mountTarget"></td>
 				</tr>
 				<tr>
 					<td>Do Fulltext Indexing</td>
-					<td><input type="checkbox" class="mount-option" data-attribute-name="mountDoFulltextIndexing"></td>
+					<td><input type="checkbox" class="mount-folder-option" data-attribute-name="mountDoFulltextIndexing"></td>
 				</tr>
 				<tr>
 					<td data-comment="The scan interval for repeated scans of this mount target">Scan Interval (s)</td>
-					<td><input type="number" class="mount-option" data-attribute-name="mountScanInterval"></td>
+					<td><input type="number" class="mount-folder-option" data-attribute-name="mountScanInterval"></td>
 				</tr>
 				<tr>
 					<td data-comment="Folders encountered underneath this mounted folder are created with this type">Mount Target Folder Type</td>
-					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFolderType"></td>
+					<td><input type="text" class="mount-folder-option" data-attribute-name="mountTargetFolderType"></td>
 				</tr>
 				<tr>
 					<td data-comment="Files encountered underneath this mounted folder are created with this type">Mount Target File Type</td>
-					<td><input type="text" class="mount-option" data-attribute-name="mountTargetFileType"></td>
+					<td><input type="text" class="mount-folder-option" data-attribute-name="mountTargetFileType"></td>
 				</tr>
 				<tr>
 					<td data-comment="List of checksum types which are being automatically calculated on file creation.<br>Supported values are: crc32, md5, sha1, sha512">Enabled Checksums</td>
-					<td><input type="text" class="mount-option" data-attribute-name="enabledChecksums"></td>
+					<td><input type="text" class="mount-folder-option" data-attribute-name="enabledChecksums"></td>
 				</tr>
 				<tr>
 					<td data-comment="Registers this path with a watch service (if supported by operating/file system)">Watch Folder Contents</td>
-					<td><input type="checkbox" class="mount-option" data-attribute-name="mountWatchContents"></td>
+					<td><input type="checkbox" class="mount-folder-option" data-attribute-name="mountWatchContents"></td>
 				</tr>
 			</table>
 		`,
