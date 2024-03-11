@@ -134,7 +134,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 		final int firstRowNum = sheet.getFirstRowNum();
 		final int lastRowNum  = sheet.getLastRowNum();
 
-		logger.info("First row: {}, last row: {}", firstRowNum, lastRowNum);
+		logger.debug("First row: {}, last row: {}", firstRowNum, lastRowNum);
 
 		// First row = header
 		final XSSFRow headerRow = sheet.getRow(firstRowNum);
@@ -166,7 +166,7 @@ public class FromExcelFunction extends Function<Object, Object> {
 			final Short firstCellNum = row.getFirstCellNum();
 			final Short lastCellNum  = row.getLastCellNum();
 
-			logger.info("First cell: {}, last cell: {}", firstCellNum, lastCellNum);
+			logger.debug("First cell: {}, last cell: {}", firstCellNum, lastCellNum);
 
 			for (int c = firstCellNum; c < lastCellNum; c++) {
 
