@@ -171,6 +171,9 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 				if (convertedDate != null) {
 
 					return convertedDate;
+				} else if (source instanceof Long l) {
+
+					return Date.from(Instant.ofEpochMilli(l));
 				} else if (source instanceof String) {
 
 					if (StringUtils.isNotBlank((String)source)) {
