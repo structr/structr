@@ -31,6 +31,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.SchemaService;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.Folder;
 
 import java.io.File;
@@ -271,13 +272,13 @@ public class DirectoryWatchService extends Thread implements RunnableService {
 			logger.error(ExceptionUtils.getStackTrace(ioex));
 		}
 
-		final PropertyKey<String> mountTargetKey = StructrApp.key(Folder.class, "mountTarget");
-		final App app                            = StructrApp.getInstance();
+		final PropertyKey<String> storageConfigurationKey = StructrApp.key(AbstractFile.class, "storageConfiguration");
+		final App app                                     = StructrApp.getInstance();
 
 		try (final Tx tx = app.tx(false, false, false)) {
 
-			// find all folders with mount targets and mount them
-			for (final Folder folder : app.nodeQuery(Folder.class).notBlank(mountTargetKey).getAsList()) {
+			// find all folders with storageConfigurations and try to mount them
+			for (final Folder folder : app.nodeQuery(Folder.class).not().blank(storageConfigurationKey).getAsList()) {
 
 				mountFolder(folder);
 			}
