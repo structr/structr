@@ -112,7 +112,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
 		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
-		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add);
+		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());

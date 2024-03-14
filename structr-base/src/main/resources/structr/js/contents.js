@@ -550,15 +550,15 @@ let _Contents = {
 		let rowId = `row${d.id}`;
 		tableBody.append(`<tr id="${rowId}"${d.isThumbnail ? ' class="thumbnail"' : ''}></tr>`);
 
-		let row   = $(`#${rowId}`);
-		let title = (d?.name ?? '[unnamed]');
-		let icon  = (d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty);
+		let row  = $(`#${rowId}`);
+		let name = (d?.name ?? '[unnamed]');
+		let icon = (d.isContentContainer ? _Icons.iconFolderClosed : _Icons.iconFileTypeEmpty);
 
 		row.append(`
 			<td class="${d.isContentContainer ? 'is-folder' : ''} file-icon" data-target-id="${d.id}">${_Icons.getSvgIcon(icon, 16, 16)}</td>
 			<td>
 				<div id="id_${d.id}" data-structr_type="${(d.isContentContainer ? 'folder' : 'item')}" class="node ${(d.isContentContainer ? 'container' : 'item')} flex items-center justify-between" draggable="true">
-					<b title="${_Helpers.escapeForHtmlAttributes(title)}" class="name_ leading-8 truncate">${title}</b>
+					<b class="name_ leading-8 truncate"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</td>
@@ -599,7 +599,10 @@ let _Contents = {
 		if (!div || !div.length)
 			return;
 
-		div.children('b.name_').off('click').on('click', function(e) {
+		let nameElement = $('b.name_', row);
+		nameElement[0].textContent = name;
+		nameElement[0].title       = name;
+		nameElement.off('click').on('click', function(e) {
 			e.stopPropagation();
 			_Entities.makeNameEditable(div);
 		});

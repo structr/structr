@@ -287,13 +287,30 @@ public class Scripting {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					// Only report error, if exception is not an already logged AssertException
+					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					}
+
+					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+						throw new AlreadyLoggedAssertException(ae);
+					}
+
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
 						throw ex.asHostException().getCause();
 					} else {
 						throw ex.asHostException();
 					}
+				}
+
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+				if (ex.asHostException().getCause() instanceof FrameworkException) {
+					throw ex.asHostException().getCause();
+				} else {
+					throw ex.asHostException();
 				}
 
 				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
@@ -378,6 +395,17 @@ public class Scripting {
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
 					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+
+					// Only report error, if exception is not an already logged AssertException
+					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					}
+
+					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+						throw new AlreadyLoggedAssertException(ae);
+					}
+
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
 						throw ex.asHostException().getCause();

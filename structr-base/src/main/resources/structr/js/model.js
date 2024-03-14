@@ -515,6 +515,9 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrFolder.prototype.append = function() {
@@ -546,6 +549,9 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrFile.prototype.append = function() {
