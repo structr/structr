@@ -306,14 +306,6 @@ public class Scripting {
 				}
 
 				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-				// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-				if (ex.asHostException().getCause() instanceof FrameworkException) {
-					throw ex.asHostException().getCause();
-				} else {
-					throw ex.asHostException();
-				}
-
-				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
 				throw new FrameworkException(422, "Server-side scripting error", ex);
 			}
 
