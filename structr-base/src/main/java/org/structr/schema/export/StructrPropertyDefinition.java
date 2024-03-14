@@ -766,6 +766,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				dateArrayProperty.setDefaultValue(property.getDefaultValue());
 				return dateArrayProperty;
 
+			case ByteArray:
+				final StructrByteArrayProperty byteArrayProperty = new StructrByteArrayProperty(parent, name);
+				byteArrayProperty.deserialize(schemaNodes, property);
+				byteArrayProperty.setDefaultValue(property.getDefaultValue());
+				return byteArrayProperty;
+
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);
 				enumProperty.deserialize(schemaNodes, property);

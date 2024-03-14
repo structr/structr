@@ -59,9 +59,11 @@ public interface StorageConfiguration extends NodeInterface {
 		// fully-qualified class name of the storage provider to use
 		type.addStringProperty("provider", PropertyView.Ui).setIndexed(true).setRequired(true);
 
-		type.relate(entry, "CONFIG_ENTRY", Cardinality.OneToMany, "configuration", "entries").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add);
+		type.relate(entry, "CONFIG_ENTRY", Cardinality.OneToMany, "configuration", "entries").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget).setCascadingDelete(JsonSchema.Cascade.sourceToTarget);
 
 		type.addPropertyGetter("entries", Iterable.class);
+
+		type.addViewProperty(PropertyView.Ui, "entries");
 
 		// implement method
 		type.overrideMethod("getConfiguration", false, "return " + StorageConfiguration.class.getName() + ".getConfiguration(this);");

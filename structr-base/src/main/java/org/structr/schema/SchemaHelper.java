@@ -70,7 +70,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, DateArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
+		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Byte, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -93,6 +93,7 @@ public class SchemaHelper {
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.Encrypted, EncryptedStringPropertySourceGenerator.class);
 		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
+		parserMap.put(Type.ByteArray, ByteArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
@@ -119,21 +120,22 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.Encrypted,    4);
 		sortIndexMap.put(Type.DateArray,    5);
 		sortIndexMap.put(Type.LongArray,    6);
-		sortIndexMap.put(Type.Password,     7);
-		sortIndexMap.put(Type.Boolean,      8);
-		sortIndexMap.put(Type.Integer,      9);
-		sortIndexMap.put(Type.String,      10);
-		sortIndexMap.put(Type.Double,      11);
-		sortIndexMap.put(Type.Long,        12);
-		sortIndexMap.put(Type.Enum,        13);
-		sortIndexMap.put(Type.Date,        14);
-		sortIndexMap.put(Type.Function,    15);
-		sortIndexMap.put(Type.Cypher,      16);
-		sortIndexMap.put(Type.Count,       17);
-		sortIndexMap.put(Type.Custom,      18);
-		sortIndexMap.put(Type.Join,        19);
-		sortIndexMap.put(Type.IdNotion,    20);
-		sortIndexMap.put(Type.Notion,      21);
+		sortIndexMap.put(Type.ByteArray,    7);
+		sortIndexMap.put(Type.Password,     8);
+		sortIndexMap.put(Type.Boolean,      9);
+		sortIndexMap.put(Type.Integer,     10);
+		sortIndexMap.put(Type.String,      11);
+		sortIndexMap.put(Type.Double,      12);
+		sortIndexMap.put(Type.Long,        13);
+		sortIndexMap.put(Type.Enum,        14);
+		sortIndexMap.put(Type.Date,        15);
+		sortIndexMap.put(Type.Function,    16);
+		sortIndexMap.put(Type.Cypher,      17);
+		sortIndexMap.put(Type.Count,       18);
+		sortIndexMap.put(Type.Custom,      19);
+		sortIndexMap.put(Type.Join,        20);
+		sortIndexMap.put(Type.IdNotion,    21);
+		sortIndexMap.put(Type.Notion,      22);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);

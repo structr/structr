@@ -82,11 +82,12 @@ public class HealthCheckServlet extends AbstractDataServlet {
 			final String remoteAddress = request.getRemoteAddr();
 			if (remoteAddress != null) {
 
-				if (request.getPathInfo() != null && request.getPathInfo().equals("/ready")) {
+				if ("/ready".equals(request.getPathInfo())) {
 
-					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling()) {
+					if (DeployCommand.isDeploymentActive() || SchemaService.isCompiling() || !Services.getInstance().isInitialized()) {
 
 						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
 					} else {
 
 						response.setStatus(HttpServletResponse.SC_OK);
@@ -98,7 +99,15 @@ public class HealthCheckServlet extends AbstractDataServlet {
 				final Set<String> wl = getWhitelistAddresses();
 				if (!wl.contains(remoteAddress)) {
 
-					response.setStatus(HttpServletResponse.SC_OK);
+					if (!Services.getInstance().isInitialized()) {
+
+						response.setStatus(HttpServletResponse.SC_SERVICE_UNAVAILABLE);
+
+					} else {
+
+						response.setStatus(HttpServletResponse.SC_OK);
+					}
+
 					return;
 				}
 			}

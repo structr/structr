@@ -35,6 +35,7 @@ let _Entities = {
 
 	},
 	reloadChildren: (id) => {
+
 		let el = Structr.node(id);
 
 		$(el).children('.node').remove();
@@ -66,7 +67,9 @@ let _Entities = {
 	deleteNode: (entity, recursive, callback) => {
 
 		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+
 			if (confirm === true) {
+
 				Command.deleteNode(entity.id, recursive);
 
 				callback?.(entity);
@@ -77,7 +80,9 @@ let _Entities = {
 	deleteEdge: (entity, recursive, callback) => {
 
 		_Dialogs.confirmation.showPromise(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+
 			if (confirm === true) {
+
 				Command.deleteRelationship(entity.id, recursive);
 
 				callback?.(entity);
