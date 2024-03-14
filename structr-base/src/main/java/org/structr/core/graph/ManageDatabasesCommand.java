@@ -75,9 +75,10 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 			try {
 
-				Settings.storeConfiguration("structr.conf");
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 			} catch (IOException ex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 
