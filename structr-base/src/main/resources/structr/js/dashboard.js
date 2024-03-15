@@ -1665,8 +1665,7 @@ let _Dashboard = {
 		`,
 		tabContentAboutStructrSecurity: config => `
 			<div>
-				<div class="text-lg font-bold">Warning</div>
-				<p>The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.</p>
+				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.</div>
 				<div class="grid grid-cols-2 max-w-120">
 					<span>Expected Permissions</span>
 					${config?.expectedPermissions}
