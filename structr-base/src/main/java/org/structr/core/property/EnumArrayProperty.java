@@ -172,9 +172,7 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
                 try {
                     BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {l.add(e); return l;};
                     BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {acc.addAll(cur); return acc;};
-                    ArrayList<T> res = Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner);
-                    return (T[]) res.toArray(Enum[]::new);
-
+                    return (T[]) Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
                 } catch (Throwable t) {
 
                     logger.warn("Cannot convert database value '{}' on object {} to enum of type '{}', ignoring.", new Object[] { source, this.currentObject.getUuid(), enumType.getSimpleName() } );
@@ -223,8 +221,7 @@ public class EnumArrayProperty<T extends Enum> extends AbstractPrimitiveProperty
                 try {
                     BiFunction<ArrayList<T>, T, ArrayList<T>> accumulator = (l, e) -> {l.add(e); return l;};
                     BinaryOperator<ArrayList<T>> combiner = (acc, cur) -> {acc.addAll(cur); return acc;};
-                    ArrayList<T> res = Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner);
-                    return (T[]) res.toArray(Enum[]::new);
+                    return (T[]) Arrays.stream(source.split(",")).map(s -> (T)Enum.valueOf(enumType, s)).reduce(new ArrayList<T>(), accumulator, combiner).toArray(Enum[]::new);
 
                 } catch (Throwable t) {
 

@@ -61,8 +61,10 @@ public class TestThree extends AbstractNode {
 
 	public static final Property<ZonedDateTime> zonedDateTimeProperty       = new ZonedDateTimeProperty("zonedDateTime").indexed().indexedWhenEmpty();
 
+	public static final Property<TestEnum[]> testEnumArrayProperty          = new EnumArrayProperty<TestEnum>("testEnumArray", TestEnum.class).indexed().indexedWhenEmpty();
+
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		name, stringProperty, stringArrayProperty, booleanProperty, booleanArrayProperty, doubleProperty, doubleArrayProperty,
-		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, zonedDateTimeProperty, enumProperty, constantBooleanProperty, byteArrayProperty
+		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, zonedDateTimeProperty, enumProperty, constantBooleanProperty, byteArrayProperty, testEnumArrayProperty
 	);
 }
