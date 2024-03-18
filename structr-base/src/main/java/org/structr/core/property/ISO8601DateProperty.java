@@ -27,6 +27,7 @@ import org.structr.core.converter.PropertyConverter;
 import org.structr.core.converter.TemporalDateConverter;
 import org.structr.schema.parser.DatePropertyParser;
 
+import java.time.Instant;
 import java.util.Date;
 
 /**
@@ -95,6 +96,9 @@ public class ISO8601DateProperty extends DateProperty {
 				if (convertedDate != null) {
 
 					return convertedDate;
+				} else if (source instanceof Long l) {
+
+					return DatePropertyParser.parseISO8601DateString(Date.from(Instant.ofEpochMilli(l)).toString());
 				} else if (source instanceof String sourceString) {
 					if (StringUtils.isNotBlank(sourceString)) {
 

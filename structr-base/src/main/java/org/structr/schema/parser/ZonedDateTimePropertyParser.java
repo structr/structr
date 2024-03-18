@@ -19,6 +19,7 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
@@ -94,7 +95,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
             ZonedDateTime parsedDate = null;
 
             try {
-                parsedDate = ZonedDateTime.parse(source);
+                parsedDate = ZonedDateTime.parse(source, DateTimeFormatter.ofPattern(ZonedDateTimeProperty.getDefaultFormat()));
             } catch (DateTimeParseException ex) {}
 
             if (parsedDate != null) {
@@ -127,7 +128,7 @@ public class ZonedDateTimePropertyParser extends PropertySourceGenerator {
 
         if (date != null) {
 
-            if (StringUtils.isBlank(format)) {
+            if (format == null || StringUtils.isBlank(format)) {
 
                 format = ZonedDateTimeProperty.getDefaultFormat();
 
