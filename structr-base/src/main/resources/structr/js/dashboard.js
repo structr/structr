@@ -85,7 +85,7 @@ let _Dashboard = {
 
 			// Update GraalVM Scripting Debugger Info
 			let graalVMScriptingDebuggerCell = document.querySelector('#graal-vm-chrome-scripting-debugger');
-			if (dashboardUiConfig.envInfo.debuggerActive) {
+			if (dashboardUiConfig.envInfo.debuggerEnabled === true) {
 
 				graalVMScriptingDebuggerCell.insertAdjacentHTML('beforeend', _Dashboard.templates.graalVMChromeScriptingDebugger({ path: dashboardUiConfig.envInfo.debuggerPath }));
 
@@ -98,6 +98,19 @@ let _Dashboard = {
 					element: inactive,
 					text: 'The GraalVM Chrome Scripting Debugger can be used after enabling the setting <b>application.scripting.debugger</b> in structr.conf'
 				});
+			}
+
+			// Display security warnings if there are any
+			let securityWarningsCell = document.querySelector('#security-warnings');
+			if (dashboardUiConfig.envInfo.dashboardInfo?.configFileInfo?.permissionsOk === false) {
+
+				let warningEl = _Helpers.createSingleDOMElementFromHTML(_Dashboard.templates.tabContentAboutStructrSecurity( dashboardUiConfig.envInfo.dashboardInfo.configFileInfo ));
+
+				securityWarningsCell.appendChild(warningEl);
+
+			} else {
+
+				securityWarningsCell.textContent = 'No warnings';
 			}
 
 			// UISettings.showSettingsForCurrentModule();
@@ -1306,6 +1319,10 @@ let _Dashboard = {
 						<td class="key">Scripting Debugger</td>
 						<td id="graal-vm-chrome-scripting-debugger"></td>
 					</tr>
+					<tr>
+						<td class="key">Security Warnings</td>
+						<td id="security-warnings"></td>
+					</tr>
 				</table>
 			</div>
 		`,
@@ -1634,15 +1651,29 @@ let _Dashboard = {
 			</div>
 		`,
 		graalVMChromeScriptingDebugger: config => `
-			<p>To access the GraalVM Chrome Scripting Debugger, open a new tab with the following URL in Chrome:</p>
+			<div class="mb-4">To access the GraalVM Chrome Scripting Debugger, open a new tab with the following URL in Chrome:</div>
 
-			<code>devtools://devtools/bundled/js_app.html?ws=127.0.0.1:4242${config.path}</code>
+			<div class="mb-4">
+				<code class="mb-4">devtools://devtools/bundled/js_app.html?ws=127.0.0.1:4242${config.path}</code>
+			</div>
 
-			<p>
+			<div class="mb-4">
 				Using the <code>debugger;</code> statement in any of your custom scripts, you can then inspect the source code and debug from there.
-			</p>
+			</div>
 
-			<p>For more information, please refer to the <a href="https://www.graalvm.org/tools/chrome-debugger">GraalVM documentation regarding the Chrome Debugger</a></p>
+			<div>For more information, please refer to the <a href="https://www.graalvm.org/tools/chrome-debugger">GraalVM documentation regarding the Chrome Debugger</a></div>
+		`,
+		tabContentAboutStructrSecurity: config => `
+			<div>
+				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.</div>
+				<div class="grid grid-cols-2 max-w-120">
+					<span>Expected Permissions</span>
+					${config?.expectedPermissions}
+					<span>Actual Permissions</span>
+					${config?.actualPermissions}
+				</div>
+				<p>It is strongly recommended to change these permissions to the expected permissions.</p>
+			</div>
 		`
 	}
 };
