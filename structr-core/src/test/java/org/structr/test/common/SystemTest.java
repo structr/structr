@@ -1257,7 +1257,6 @@ public class SystemTest extends StructrTest {
 		// check configuration
 
 		assertEquals("Invalid configuration setting result", "Structr Test Title", Settings.ApplicationTitle.getValue());
-		assertEquals("Invalid configuration setting result", "Pages,Code,Schema,Flows,Data", Settings.MenuEntries.getValue());
 		assertEquals("Invalid configuration setting result", "NodeService AgentService CronService SchemaService LogService HttpService FtpService SSHService MailService", Settings.Services.getValue());
 		assertEquals("Invalid configuration setting result", "JsonRestServlet HtmlServlet WebSocketServlet CsvServlet UploadServlet ProxyServlet GraphQLServlet FlowServlet", Settings.Servlets.getValue());
 		assertEquals("Invalid configuration setting result", Integer.valueOf(0), Settings.TwoFactorLevel.getValue());

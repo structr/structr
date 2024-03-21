@@ -223,7 +223,6 @@ let Structr = {
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
-	availableMenuItems: [],
 	moduleAvailabilityCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
@@ -909,18 +908,11 @@ let Structr = {
 				}
 			}
 
-			Structr.activeModules      = envInfo.modules;
-			Structr.availableMenuItems = envInfo.availableMenuItems;
+			Structr.activeModules = envInfo.modules;
 
 			Structr.adaptUiToAvailableFeatures();
 
-			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-			if (!userConfigMenu) {
-				userConfigMenu = {
-					main: envInfo.mainMenu,
-					sub: []
-				};
-			}
+			let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
 			Structr.mainMenu.update(userConfigMenu);
 
@@ -949,6 +941,14 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
+		defaultMainMenuItems: ['Dashboard', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
+		getSavedMenuConfig: () => {
+
+			return LSWrapper.getItem(Structr.keyMenuConfig, {
+				main: Structr.mainMenu.defaultMainMenuItems,
+				sub: []
+			});
+		},
 		update: (menuConfig, updateLS = true) => {
 
 			if (updateLS === true) {
@@ -961,14 +961,6 @@ let Structr = {
 
 			// first move all elements from main menu to submenu
 			submenu.append(...menu.querySelectorAll('li[data-name]'));
-
-			// then filter the items by availability in edition
-			for (let menuItem of submenu.querySelectorAll('li[data-name]')) {
-				let name = menuItem.dataset.name;
-				if (!Structr.availableMenuItems.includes(name)) {
-					menuItem.classList.add('hidden');
-				}
-			}
 
 			if (menuConfig) {
 
