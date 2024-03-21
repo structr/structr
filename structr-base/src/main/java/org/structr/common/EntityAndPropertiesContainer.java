@@ -91,7 +91,7 @@ public class EntityAndPropertiesContainer implements NodeInterface {
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported by this container.");
 	}
 

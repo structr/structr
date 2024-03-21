@@ -1283,7 +1283,7 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-        /*
+	        /*
 		Methods are collected and grouped by name. There can be multiple methods with the same
 		name, which must be combined into a single method.
 		*/
@@ -1311,8 +1311,12 @@ public class SchemaHelper {
 					formatAfterModificationCallback(src, schemaNode, name, actionList);
 					break;
 
-				case "afterDeletion":
+				case "onNodeDeletion":
 					formatDeletionCallback(src, schemaNode, name, actionList);
+					break;
+
+				case "afterDeletion":
+					formatAfterDeletionCallback(src, schemaNode, name, actionList);
 					break;
 
 				default:
@@ -1335,10 +1339,8 @@ public class SchemaHelper {
 		call.append(name);
 		call.append("(arg0, arg1);");
 
-
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1359,7 +1361,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1380,7 +1381,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 			action.getSource(src, "this", "arg0", true);
 		}
 
@@ -1401,7 +1401,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1414,19 +1413,39 @@ public class SchemaHelper {
 
 		final SourceLine line = src.begin(schemaNode, "public void ");
 		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
+
+		for (final ActionEntry action : actionList) {
+
+			action.getSource(src, "this", "arg0", false);
+		}
+
+		src.end();
+	}
+
+	public static void formatAfterDeletionCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
 		line.append("(final SecurityContext arg0, final PropertyMap arg1) {");
 
 		final SourceLine call = src.line(schemaNode, "super.");
 		call.append(name);
 		call.append("(arg0, arg1);");
 
+		src.line(schemaNode, "arg0.getContextStore().setConstant(\"data\", arg1.getAsMap());");
+
 		src.begin(schemaNode, "try {");
 
 		for (final ActionEntry action : actionList) {
 
-
-			//src.append("\t\t\t").append(action.getSource(src, "this", "arg0", false)).append(";\n");
-			action.getSource(src, "this", "arg0", false);
+			action.getSource(src, "null", "arg0", false);
 		}
 
 		src.endBegin(schemaNode, "} catch (FrameworkException fex) {");

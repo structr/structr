@@ -49,7 +49,7 @@ public interface NodeInterface extends GraphObject, Comparable, AccessControllab
 
 	void onNodeCreation();
 	void onNodeInstantiation(final boolean isCreation);
-	void onNodeDeletion();
+	void onNodeDeletion(SecurityContext securityContext) throws FrameworkException;
 
 	Node getNode();
 
