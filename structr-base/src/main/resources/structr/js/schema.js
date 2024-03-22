@@ -977,7 +977,7 @@ let _Schema = {
 					select.classList.add('disabled');
 				}
 
-				if (!entity.extendsClass) {
+				if (!entity.extendsClass || !Structr.isModuleActive(_Schema)) {
 					_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 				}
 
