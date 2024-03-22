@@ -194,7 +194,7 @@ public class FlowContainer extends AbstractNode implements DeployableEntity {
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 		deleteChildren();
 	}
 

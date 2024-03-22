@@ -21,6 +21,7 @@ package org.structr.core.graph;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 
@@ -44,7 +45,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	public void execute(final NodeInterface node) {
+	public void execute(final NodeInterface node) throws FrameworkException {
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -61,7 +62,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} else {
 
-			node.onNodeDeletion();
+			node.onNodeDeletion(securityContext);
 			node.getNode().delete(true);
 		}
 
@@ -69,7 +70,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		deletedNodes.clear();
 	}
 
-	private void doDeleteNode(final NodeInterface node) {
+	private void doDeleteNode(final NodeInterface node) throws FrameworkException {
 
 		if (node == null || TransactionCommand.isDeleted(node.getNode())) {
 			return;
@@ -148,7 +149,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 			}
 
 			// deletion callback, must not prevent node deletion!
-			node.onNodeDeletion();
+			node.onNodeDeletion(securityContext);
 
 			// Delete any relationship (this is PASSIVE DELETION)
 			if (!allRelationships.isEmpty()) {

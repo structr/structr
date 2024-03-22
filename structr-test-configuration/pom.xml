@@ -28,7 +28,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<argLine>-Duser.timezone=UTC</argLine>
 							<excludes>
@@ -39,7 +39,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>
@@ -67,7 +67,7 @@
 					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
-						<version>0.36.0</version>
+						<version>0.40.2</version>
 						<executions>
 							<execution>
 								<id>prepare-database</id>
@@ -128,7 +128,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>

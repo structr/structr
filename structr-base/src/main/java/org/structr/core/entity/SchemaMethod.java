@@ -185,8 +185,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	@Override
-	public void onNodeDeletion() {
-		super.onNodeDeletion();
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
+		super.onNodeDeletion(securityContext);
 		AbstractSchemaNode.clearCachedSchemaMethods();
 	}
 
