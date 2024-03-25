@@ -88,7 +88,16 @@ public class UiTest extends StructrUiTest {
 
 			final Image immutableImage = img;
 
-			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+			tryWithTimeout(
+				() -> {
+					// Thumbnail creation happens in the background, in a different thread,
+					// so we need to allow this thread to break the transaction isolation..
+					immutableImage.getNode().invalidate();
+
+					return immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null;
+				},
+				()->fail("Exceeded timeout while waiting for thumbnail creation."),
+				30000, 1000);
 
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
@@ -926,9 +935,14 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = image;
 			tryWithTimeout(
 					() -> {
+						// Thumbnail creation happens in the background, in a different thread,
+						// so we need to allow this thread to break the transaction isolation..
+						immutableImage.getNode().invalidate();
+
 						immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
 						immutableImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 						return (Iterables.count(immutableImage.getThumbnails()) == 2);

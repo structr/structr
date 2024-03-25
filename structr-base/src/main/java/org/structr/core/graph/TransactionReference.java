@@ -107,7 +107,17 @@ public class TransactionReference implements Transaction {
 	}
 
 	@Override
+	public void prefetch(final String type1, String type2, final Set<String> keys) {
+		tx.prefetch(type1, type2, keys);
+	}
+
+	@Override
 	public void prefetch(final String query, final Set<String> keys) {
 		tx.prefetch(query, keys);
+	}
+
+	@Override
+	public void setIsPing(boolean isPing) {
+		tx.setIsPing(isPing);
 	}
 }

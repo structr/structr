@@ -39,5 +39,8 @@ public interface Transaction extends AutoCloseable {
 	Node getNode(final Identity id);
 	Relationship getRelationship(final Identity id);
 
+	void prefetch(final String type1, final String type2, final Set<String> keys);
 	void prefetch(final String query, final Set<String> keys);
+
+	void setIsPing(final boolean isPing);
 }

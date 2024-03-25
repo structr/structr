@@ -75,7 +75,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	protected abstract Long getLong(final String statement, final Map<String, Object> map);
 	protected abstract Node getNode(final String statement, final Map<String, Object> map);
 	protected abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
-	protected abstract Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object consumer);
+	protected abstract Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer);
 	protected abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
 	protected abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
 	protected abstract void set(final String statement, final Map<String, Object> map);
@@ -216,10 +216,51 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	@Override
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+
+		final StringBuilder buf  = new StringBuilder();
+		final String tenantId    = db.getTenantIdentifier();
+
+		buf.append("(n");
+
+		if (!StringUtils.isBlank(tenantId)) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		if (!StringUtils.isBlank(type1)) {
+
+			buf.append(":");
+			buf.append(type1);
+		}
+
+		buf.append(")-[r]-(m");
+
+		if (!StringUtils.isBlank(tenantId)) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		if (!StringUtils.isBlank(type2)) {
+
+			buf.append(":");
+			buf.append(type2);
+		}
+
+		buf.append(")");
+
+		prefetch(buf.toString(), keys);
+	}
+
+	@Override
 	public void prefetch(final String query, final Set<String> keys) {
 
-		final StringBuilder buf     = new StringBuilder();
-		final Set<Long> visited     = new HashSet<>();
+		final long t0             = System.currentTimeMillis();
+		final StringBuilder buf   = new StringBuilder();
+		final Set<Long> relsSeen  = new HashSet<>();
+		long count                = 0L;
 
 		buf.append("MATCH p = ");
 		buf.append(query);
@@ -233,35 +274,41 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			for (final Segment s : p) {
 
 				final org.neo4j.driver.types.Relationship relationship = s.relationship();
-				final boolean alreadySeen                              = visited.contains(relationship.id());
+				final boolean alreadySeen                              = relsSeen.contains(relationship.id());
 				RelationshipWrapper rel                                = null;
 
 				if (current == null) {
+
 					current = getNodeWrapper(s.start());
 					current.storePrefetchInfo(keys);
+					count++;
 				}
 
 				if (!alreadySeen) {
 
-					visited.add(relationship.id());
+					relsSeen.add(relationship.id());
 
 					rel = getRelationshipWrapper(relationship);
 
 					// store outgoing rel
 					current.storeRelationship(rel, true);
+					count++;
 				}
 
-					// advance
-					current = getNodeWrapper(s.end());
-					current.storePrefetchInfo(keys);
+				// advance
+				current = getNodeWrapper(s.end());
+				current.storePrefetchInfo(keys);
 
 				if (!alreadySeen) {
 
 					// store incoming rel as well
 					current.storeRelationship(rel, true);
+					count++;
 				}
 			}
 		}
+
+		logger.info("Prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
 	}
 
 	// ----- public static methods -----

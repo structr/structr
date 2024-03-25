@@ -333,7 +333,7 @@ class ReactiveSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object flux) {
+	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer unused) {
 
 		try {
 

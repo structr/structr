@@ -45,6 +45,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.scheduler.JobQueueManager;
@@ -339,6 +340,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	static void onModification(final File thisFile, final SecurityContext securityContext, final ErrorBuffer errorBuffer, final ModificationQueue modificationQueue) throws FrameworkException {
 
 		synchronized (thisFile) {
+
+			SearchCommand.prefetch(File.class, thisFile.getUuid());
 
 			// save current security context
 			final SecurityContext previousSecurityContext = securityContext;

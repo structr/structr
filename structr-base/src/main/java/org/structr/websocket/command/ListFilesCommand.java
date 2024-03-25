@@ -37,10 +37,7 @@ import org.structr.websocket.message.WebSocketMessage;
 import java.util.LinkedList;
 import java.util.List;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
- *
  *
  */
 public class ListFilesCommand extends AbstractCommand {
@@ -90,9 +87,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 						filteredResults.add(node);
 					}
-
 				}
-
 			}
 
 			// save raw result count
@@ -108,18 +103,11 @@ public class ListFilesCommand extends AbstractCommand {
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-
 		return "LIST_FILES";
-
 	}
-
 }

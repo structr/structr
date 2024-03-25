@@ -181,10 +181,14 @@ public class StructrWebSocket implements WebSocketListener {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				final boolean isPing = "PING".equals(command);
+
+				tx.setIsPing(isPing);
+
 				if (sessionIdFromMessage != null) {
 
 					// try to authenticated this connection by sessionId
-					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), command.equals("PING"));
+					authenticate(SessionHelper.getShortSessionId(sessionIdFromMessage), isPing);
 				}
 
 				// we only permit LOGIN commands if authentication based on sessionId was not successful
@@ -248,6 +252,10 @@ public class StructrWebSocket implements WebSocketListener {
 				if (abstractCommand.requiresEnclosingTransaction()) {
 
 					try (final Tx tx = app.tx(true, true, true)) {
+
+						if (abstractCommand instanceof PingCommand) {
+							tx.setIsPing(true);
+						}
 
 						// store authenticated-Flag in webSocketData
 						// so the command can access it

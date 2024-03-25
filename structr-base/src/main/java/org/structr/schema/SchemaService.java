@@ -42,10 +42,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.*;
@@ -127,10 +124,9 @@ public class SchemaService implements Service {
 
 			try {
 
-
 				try (final Tx tx = app.tx()) {
 
-					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)", Set.of());
+					SchemaService.prefetchSchemaNodes(tx);
 
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
@@ -167,8 +163,7 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
-					tx.prefetch("(n:SchemaReloadingNode)-[r]->(m:SchemaReloadingNode)", Set.of());
-					tx.prefetch("(n:SchemaRelationshipNode)-[r]-(m:SchemaNode)", Set.of());
+					SchemaService.prefetchSchemaNodes(tx);
 
 					while (retryCount-- > 0) {
 
@@ -499,6 +494,51 @@ public class SchemaService implements Service {
 
 	public static boolean isCompiling() {
 		return compiling.get();
+	}
+
+	public static void prefetchSchemaNodes(final Tx tx) {
+
+		tx.prefetch("SchemaReloadingNode", "SchemaReloadingNode", Set.of(
+
+			"all/INCOMING/EXTENDS",
+			"all/INCOMING/HAS_METHOD",
+			"all/INCOMING/HAS_PARAMETER",
+			"all/INCOMING/HAS_PROPERTY",
+			"all/INCOMING/HAS_VIEW",
+			"all/INCOMING/HAS_VIEW_PROPERTY",
+			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
+			"all/INCOMING/IS_RELATED_TO",
+			"all/INCOMING/SCHEMA_GRANT",
+
+			"all/OUTGOING/EXTENDS",
+			"all/OUTGOING/HAS_PROPERTY",
+			"all/OUTGOING/HAS_VIEW_PROPERTY",
+			"all/OUTGOING/HAS_METHOD",
+			"all/OUTGOING/HAS_PARAMETER",
+			"all/OUTGOING/HAS_VIEW",
+			"all/OUTGOING/IS_RELATED_TO"
+		));
+
+		tx.prefetch("SchemaRelationshipNode", "SchemaNode", Set.of(
+
+			"all/INCOMING/EXTENDS",
+			"all/INCOMING/HAS_METHOD",
+			"all/INCOMING/HAS_PARAMETER",
+			"all/INCOMING/HAS_PROPERTY",
+			"all/INCOMING/HAS_VIEW",
+			"all/INCOMING/HAS_VIEW_PROPERTY",
+			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
+			"all/INCOMING/IS_RELATED_TO",
+			"all/INCOMING/SCHEMA_GRANT",
+
+			"all/OUTGOING/EXTENDS",
+			"all/OUTGOING/HAS_PROPERTY",
+			"all/OUTGOING/HAS_VIEW_PROPERTY",
+			"all/OUTGOING/HAS_METHOD",
+			"all/OUTGOING/HAS_PARAMETER",
+			"all/OUTGOING/HAS_VIEW",
+			"all/OUTGOING/IS_RELATED_TO"
+		));
 	}
 
 	// ----- interface Feature -----

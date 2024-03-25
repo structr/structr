@@ -305,6 +305,8 @@ public class SchemaHelper {
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
+				SchemaService.prefetchSchemaNodes(tx);
+
 				final App app                              = StructrApp.getInstance();
 				final List<SchemaNode> existingSchemaNodes = app.nodeQuery(SchemaNode.class).getAsList();
 				final Map<String, ResourceAccess> grants   = new LinkedHashMap<>();

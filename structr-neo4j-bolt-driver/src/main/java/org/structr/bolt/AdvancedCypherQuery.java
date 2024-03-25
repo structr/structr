@@ -104,6 +104,18 @@ public class AdvancedCypherQuery implements CypherQuery {
 		return buffer.length() > 0;
 	}
 
+	public boolean hasRelationshipPredicates() {
+		return !currentGraphPartIdentifier.equals("n");
+	}
+
+	public String getTypeLabel() {
+		return getTypeQueryLabel(null);
+	}
+
+	public boolean getHasOptionalParts() {
+		return hasOptionalParts;
+	}
+
 	@Override
 	public String getStatement(final boolean paged) {
 
@@ -115,7 +127,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 0:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(null), this));
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
@@ -128,7 +140,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 
 			case 1:
 
-				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+				buf.append(index.getQueryPrefix(getTypeQueryLabel(Iterables.first(typeLabels)), this));
 				buf.append(getGraphPartForMatch());
 
 				if (hasPredicates) {
@@ -144,7 +156,7 @@ public class AdvancedCypherQuery implements CypherQuery {
 				// create UNION query
 				for (final Iterator<String> it = typeLabels.iterator(); it.hasNext();) {
 
-					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), sourceTypeLabel, targetTypeLabel, hasPredicates, hasOptionalParts));
+					buf.append(index.getQueryPrefix(getTypeQueryLabel(it.next()), this));
 
 					if (hasPredicates) {
 						buf.append(" WHERE ");

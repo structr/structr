@@ -21,6 +21,7 @@ package org.structr.websocket.command;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.WebSocketMessage;
 
@@ -58,13 +59,12 @@ public class GetCommand extends AbstractCommand {
 		}
 
 		final GraphObject graphObject = getGraphObject(webSocketData.getId(), nodeId);
-
-
 		if (graphObject != null) {
 
 			webSocketData.setResult(Arrays.asList(graphObject));
 
-			TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)", Set.of());
+			// prefetching test
+			SearchCommand.prefetch(graphObject.getClass(), webSocketData.getId());
 
 			// send only over local connection (no broadcast)
 			getWebSocket().send(webSocketData, true);

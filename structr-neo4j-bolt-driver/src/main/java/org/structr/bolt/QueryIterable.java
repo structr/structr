@@ -36,6 +36,11 @@ public class QueryIterable implements Iterable<Record> {
 
 	@Override
 	public Iterator<Record> iterator() {
-		return db.getCurrentTransaction().collectRecords(query.getStatement(true), query.getParameters(), null).iterator();
+
+		final SessionTransaction tx = db.getCurrentTransaction();
+
+		tx.setIsPing(query.getQueryContext().isPing());
+
+		return tx.collectRecords(query.getStatement(true), query.getParameters(), null).iterator();
 	}
 }

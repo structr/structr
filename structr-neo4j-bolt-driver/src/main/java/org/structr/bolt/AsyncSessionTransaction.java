@@ -323,11 +323,9 @@ class AsyncSessionTransaction extends SessionTransaction {
 	}
 
 	@Override
-	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final Object input) {
+	protected Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer) {
 
 		logQuery(statement, map);
-
-		final IterableQueueingRecordConsumer consumer = (IterableQueueingRecordConsumer)input;
 
 		tx.runAsync(statement, map)
 			.thenCompose(cursor -> consumer.start(cursor))

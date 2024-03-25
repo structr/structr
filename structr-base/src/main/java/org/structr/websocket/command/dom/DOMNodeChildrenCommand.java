@@ -47,7 +47,7 @@ public class DOMNodeChildrenCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(false);
 
-		TransactionCommand.getCurrentTransaction().prefetch("(n:DOMElement)-[r]-(m)", Set.of());
+		DOMNode.prefetchDOMNodes();
 
 		final DOMNode node = getDOMNode(webSocketData.getId());
 

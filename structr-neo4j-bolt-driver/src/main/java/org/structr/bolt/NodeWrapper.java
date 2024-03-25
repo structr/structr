@@ -23,6 +23,7 @@ import org.structr.api.graph.Direction;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
+import org.structr.api.schema.JsonSchema;
 import org.structr.api.search.QueryContext;
 
 import java.util.*;
@@ -172,13 +173,14 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	@Override
 	public Iterable<Relationship> getRelationships() {
-		return getRelationshipsFromCache("all", () -> fetchAndCacheRelationships(db, id, concat("(n", getTenantIdentifer(db), ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp"));
+		return getRelationshipsFromCache("all", () -> fetchAndCacheRelationships(db, id, concat("(n", getTenantIdentifer(db), ")-[r]-(o)"), "RETURN r, o ORDER BY r.internalTimestamp", "all"));
 	}
 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction) {
 
-		final String tenantIdentifier  = getTenantIdentifer(db);
+		final String tenantIdentifier = getTenantIdentifer(db);
+		final String key              = createKey(direction, null);
 
 		switch (direction) {
 
@@ -186,10 +188,10 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 				return getRelationships();
 
 			case OUTGOING:
-				return getRelationshipsFromCache(createKey(direction, null), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp"));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r]->(t)"), "RETURN r, t ORDER BY r.internalTimestamp", key));
 
 			case INCOMING:
-				return getRelationshipsFromCache(createKey(direction, null), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp"));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier , ")<-[r]-(s)"), "RETURN r, s ORDER BY r.internalTimestamp", key));
 		}
 
 		return null;
@@ -198,24 +200,27 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	@Override
 	public Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType) {
 
-		final String tenantIdentifier  = getTenantIdentifer(db);
-		final String rel               = relationshipType.name();
+		final String tenantIdentifier = getTenantIdentifer(db);
+		final String rel              = relationshipType.name();
+		final String key              = createKey(direction, relationshipType);
 
 		switch (direction) {
 
 			case BOTH:
+				final String key1 = createKey(Direction.OUTGOING, relationshipType);
+				final String key2 = createKey(Direction.INCOMING, relationshipType);
 				return Iterables.flatten(
 					List.of(
-						getRelationshipsFromCache(createKey(direction, relationshipType), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp")),
-						getRelationshipsFromCache(createKey(direction, relationshipType), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp"))
+						getRelationshipsFromCache(key1, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key1)),
+						getRelationshipsFromCache(key2, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key2))
 					)
 				);
 
 			case OUTGOING:
-				return getRelationshipsFromCache(createKey(direction, relationshipType), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp"));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")-[r:", rel, "]->(t", tenantIdentifier, ")"), "RETURN r, t ORDER BY r.internalTimestamp", key));
 
 			case INCOMING:
-				return getRelationshipsFromCache(createKey(direction, relationshipType), () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp"));
+				return getRelationshipsFromCache(key, () -> fetchAndCacheRelationships(db, id, concat("(n", tenantIdentifier, ")<-[r:", rel, "]-(s", tenantIdentifier, ")"), "RETURN r, s ORDER BY r.internalTimestamp", key));
 		}
 
 		return null;
@@ -284,12 +289,15 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 	}
 
 	// ----- private methods -----
-	private Iterable<Relationship> fetchAndCacheRelationships(final BoltDatabaseService db, final long id, final String match, final String returnStatement) {
+	private Iterable<Relationship> fetchAndCacheRelationships(final BoltDatabaseService db, final long id, final String match, final String returnStatement, final String key) {
 
 		final String whereStatement         = " WHERE ID(n) = $id ";
 		final String statement              = concat("MATCH ", match, whereStatement, returnStatement);
 		final CypherRelationshipIndex index = (CypherRelationshipIndex)db.relationshipIndex();
 		final AdvancedCypherQuery query     = new RelationshipQuery(new QueryContext(), index, statement);
+		final Set<String> keys              = new LinkedHashSet<>();
+
+		keys.add(key);
 
 		query.getParameters().put("id", id);
 
@@ -298,9 +306,17 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 		// store rels in cache
 		for (final Relationship rel : rels) {
-			relationshipCache.insert(createKey(rel), rel);
+
+			final String relKey = createKey(rel);
+
+			relationshipCache.insert(relKey, rel);
 			list.add(rel);
+			keys.add(relKey);
+
+			prefetched.add(relKey);
 		}
+
+		prefetched.add(key);
 
 		return list;
 	}
@@ -328,26 +344,18 @@ class NodeWrapper extends EntityWrapper<org.neo4j.driver.types.Node> implements 
 
 	private Iterable<Relationship> getRelationshipsFromCache(final String key, final Supplier<Iterable<Relationship>> valueSupplier) {
 
-		final boolean cacheEnabled = true;
-		if (cacheEnabled) {
+		final Iterable<Relationship> relationships = relationshipCache.get(key);
+		if (relationships == null) {
 
-			Iterable<Relationship> relationships = relationshipCache.get(key);
-			if (relationships == null) {
+			if (prefetched.contains(key)) {
 
-				if (prefetched.contains(key)) {
-
-					return List.of();
-				}
-
-				return valueSupplier.get();
+				return List.of();
 			}
-
-			return relationships;
-
-		} else {
 
 			return valueSupplier.get();
 		}
+
+		return relationships;
 	}
 
 	// ----- private static methods -----

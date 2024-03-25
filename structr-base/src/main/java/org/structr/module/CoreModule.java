@@ -149,6 +149,9 @@ public class CoreModule implements StructrModule {
 		Functions.put(licenseManager, new HMACFunction());
 		Functions.put(licenseManager, new OneFunction());
 		Functions.put(licenseManager, new HashFunction());
+		Functions.put(licenseManager, new PrefetchFunction());
+		Functions.put(licenseManager, new AddLabelsFunction());
+		Functions.put(licenseManager, new RemoveLabelsFunction());
 
 		Functions.put(licenseManager, new HasCacheValueFunction());
 		Functions.put(licenseManager, new GetCacheValueFunction());
