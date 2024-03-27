@@ -49,7 +49,9 @@ import org.structr.schema.SchemaHelper.Type;
 import org.structr.schema.action.ActionEntry;
 import org.structr.schema.parser.Validator;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 import java.util.regex.Pattern;
 
 public class SchemaRelationshipNode extends AbstractSchemaNode {
@@ -202,7 +204,7 @@ public class SchemaRelationshipNode extends AbstractSchemaNode {
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 
 		try {
 
