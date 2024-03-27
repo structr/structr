@@ -354,9 +354,9 @@ public class SchemaProperty extends SchemaReloadingNode implements PropertyDefin
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 
-		super.onNodeDeletion();
+		super.onNodeDeletion(securityContext);
 
 		final String thisName = getName();
 

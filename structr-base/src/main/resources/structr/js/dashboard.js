@@ -85,7 +85,7 @@ let _Dashboard = {
 
 			// Update GraalVM Scripting Debugger Info
 			let graalVMScriptingDebuggerCell = document.querySelector('#graal-vm-chrome-scripting-debugger');
-			if (dashboardUiConfig.envInfo.debuggerActive) {
+			if (dashboardUiConfig.envInfo.debuggerEnabled === true) {
 
 				graalVMScriptingDebuggerCell.insertAdjacentHTML('beforeend', _Dashboard.templates.graalVMChromeScriptingDebugger({ path: dashboardUiConfig.envInfo.debuggerPath }));
 
@@ -98,6 +98,19 @@ let _Dashboard = {
 					element: inactive,
 					text: 'The GraalVM Chrome Scripting Debugger can be used after enabling the setting <b>application.scripting.debugger</b> in structr.conf'
 				});
+			}
+
+			// Display security warnings if there are any
+			let securityWarningsCell = document.querySelector('#security-warnings');
+			if (dashboardUiConfig.envInfo.dashboardInfo?.configFileInfo?.permissionsOk === false) {
+
+				let warningEl = _Helpers.createSingleDOMElementFromHTML(_Dashboard.templates.tabContentAboutStructrSecurity( dashboardUiConfig.envInfo.dashboardInfo.configFileInfo ));
+
+				securityWarningsCell.appendChild(warningEl);
+
+			} else {
+
+				securityWarningsCell.textContent = 'No warnings';
 			}
 
 			// UISettings.showSettingsForCurrentModule();
@@ -1104,46 +1117,34 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (templateConfig) => {
-				_Dashboard.tabs['ui-config'].showMainMenuConfiguration(templateConfig.envInfo.mainMenu);
+				_Dashboard.tabs['ui-config'].showMainMenuConfiguration();
 				_Dashboard.tabs['ui-config'].showConfigurableSettings();
 				_Dashboard.tabs['ui-config'].handleResetConfiguration(templateConfig.meObj.id);
 			},
 
-			showMainMenuConfiguration: (defaultMainMenu) => {
+			showMainMenuConfiguration: () => {
 
-				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-				if (!userConfigMenu) {
-					userConfigMenu = {
-						main: defaultMainMenu,
-						sub: []
-					};
-				}
+				let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
 				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
 				let subMenuConfigContainer  = document.querySelector('#sub-menu-entries-config');
 
 				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
 
-					// only show menu items that are allowed in the current configuration
-					if (Structr.availableMenuItems.includes(menuitem.dataset.name)) {
-
-						// account for missing modules because of license
-						if (menuitem.style.display !== 'none') {
-							let n = document.createElement('div');
-							n.classList.add('menu-item');
-							n.textContent = menuitem.dataset.name;
-							n.dataset.name = menuitem.dataset.name;
-							subMenuConfigContainer.appendChild(n);
-						}
+					// account for missing modules because of license
+					if (menuitem.style.display !== 'none') {
+						let n = document.createElement('div');
+						n.classList.add('menu-item');
+						n.textContent = menuitem.dataset.name;
+						n.dataset.name = menuitem.dataset.name;
+						subMenuConfigContainer.appendChild(n);
 					}
 				}
 
 				for (let mainMenuItem of userConfigMenu.main) {
-					if (Structr.availableMenuItems.includes(mainMenuItem)) {
-						let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
-						if (child) {
-							mainMenuConfigContainer.appendChild(child);
-						}
+					let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
+					if (child) {
+						mainMenuConfigContainer.appendChild(child);
 					}
 				}
 
@@ -1305,6 +1306,10 @@ let _Dashboard = {
 					<tr>
 						<td class="key">Scripting Debugger</td>
 						<td id="graal-vm-chrome-scripting-debugger"></td>
+					</tr>
+					<tr>
+						<td class="key">Security Warnings</td>
+						<td id="security-warnings"></td>
 					</tr>
 				</table>
 			</div>
@@ -1634,15 +1639,29 @@ let _Dashboard = {
 			</div>
 		`,
 		graalVMChromeScriptingDebugger: config => `
-			<p>To access the GraalVM Chrome Scripting Debugger, open a new tab with the following URL in Chrome:</p>
+			<div class="mb-4">To access the GraalVM Chrome Scripting Debugger, open a new tab with the following URL in Chrome:</div>
 
-			<code>devtools://devtools/bundled/js_app.html?ws=127.0.0.1:4242${config.path}</code>
+			<div class="mb-4">
+				<code class="mb-4">devtools://devtools/bundled/js_app.html?ws=127.0.0.1:4242${config.path}</code>
+			</div>
 
-			<p>
+			<div class="mb-4">
 				Using the <code>debugger;</code> statement in any of your custom scripts, you can then inspect the source code and debug from there.
-			</p>
+			</div>
 
-			<p>For more information, please refer to the <a href="https://www.graalvm.org/tools/chrome-debugger">GraalVM documentation regarding the Chrome Debugger</a></p>
+			<div>For more information, please refer to the <a href="https://www.graalvm.org/tools/chrome-debugger">GraalVM documentation regarding the Chrome Debugger</a></div>
+		`,
+		tabContentAboutStructrSecurity: config => `
+			<div>
+				<div class="flex items-center mb-4 font-bold">${_Icons.getSvgIcon(_Icons.iconWarningYellowFilled, 16, 16, 'mr-2')} Warning: The permissions for structr.conf configuration file do not match the expected permissions and pose a security risk in multi-user environments.</div>
+				<div class="grid grid-cols-2 max-w-120">
+					<span>Expected Permissions</span>
+					${config?.expectedPermissions}
+					<span>Actual Permissions</span>
+					${config?.actualPermissions}
+				</div>
+				<p>It is strongly recommended to change these permissions to the expected permissions.</p>
+			</div>
 		`
 	}
 };

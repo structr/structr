@@ -130,6 +130,18 @@ public class PropertyMap {
 		return properties;
 	}
 
+	public Map<String, Object> getAsMap() {
+
+		final Map<String, Object> result = new LinkedHashMap<>();
+
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			result.put(entry.getKey().jsonName(), entry.getValue());
+		}
+
+		return result;
+	}
+
 	/**
 	 * Calculates a hash code for the contents of this PropertyMap.
 	 *

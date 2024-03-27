@@ -1124,7 +1124,7 @@ public class SchemaTest extends StructrTest {
 				System.out.println(app.nodeQuery(SchemaNode.class).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
 
 			} catch (UnlicensedTypeException ex) {
-				java.util.logging.Logger.getLogger(SchemaTest.class.getName()).log(Level.SEVERE, null, ex);
+				logger.error("Caught UnlicensedTypeException: ", ex);
 			}
 
 			assertNotNull("Base type schema node not found", base);

@@ -271,7 +271,7 @@ public abstract class AbstractHintProvider {
 			tx.success();
 
 		} catch (FrameworkException ex) {
-			java.util.logging.Logger.getLogger(JavascriptHintProvider.class.getName()).log(Level.SEVERE, null, ex);
+			JavascriptHintProvider.logger.error(ExceptionUtils.getStackTrace(ex));
 		}
 
 		Collections.sort(hints, comparator);

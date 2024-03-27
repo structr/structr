@@ -242,7 +242,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 		throw new UnsupportedOperationException("Not supported.");
 	}
 

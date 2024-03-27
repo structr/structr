@@ -18,6 +18,10 @@
  */
 package org.structr.api.config;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -26,6 +30,8 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Structr configuration settings.
@@ -34,6 +40,9 @@ public class Settings {
 
 	private static String uuidOnlyRegex;
 	private static String uuidPartRegex;
+	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
+
+	private static String uuidRegex;
 	private static Pattern uuidPattern;
 
 	public static final String ConfigFileName                 = "structr.conf";
@@ -42,6 +51,8 @@ public class Settings {
 	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
+
+	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
 
 	public enum POSSIBLE_UUID_V4_FORMATS {
 		without_dashes,
@@ -788,27 +799,106 @@ public class Settings {
 
 	public static void storeConfiguration(final String fileName) throws IOException {
 
+		storeConfiguration(fileName, true);
+	}
+
+	public static void storeConfiguration(final String fileName, final boolean warnForNotRecommendedPermissions) throws IOException {
+
 		try {
 
 			PropertiesConfiguration.setDefaultListDelimiter('\0');
 
 			final PropertiesConfiguration config = new PropertiesConfiguration();
+			config.setFileName(fileName);
 
-			// store settings
 			for (final Setting setting : settings.values()) {
 
-				// story only modified settings and the super user password
+				// store only modified settings and the superuser password
 				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
 				}
 			}
 
-			config.save(fileName);
+			final boolean isFileCreation = !config.getFile().exists();
+
+			config.save();
+
+			if (isFileCreation) {
+
+				try {
+
+					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+
+			} else {
+
+				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+			}
 
 		} catch (ConfigurationException ex) {
-			System.err.println("Unable to store configuration: " + ex.getMessage());
+
+			logger.error("Unable to store configuration: " + ex.getMessage());
 		}
+	}
+
+	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+
+		final PropertiesConfiguration config = new PropertiesConfiguration();
+		config.setFileName(Settings.ConfigFileName);
+
+		return config;
+	}
+
+	public static String getExpectedConfigurationFilePermissionsAsString () {
+
+		return PosixFilePermissions.toString(expectedConfigFilePermissions);
+	}
+
+	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+
+		try {
+
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+
+			return PosixFilePermissions.toString(actualPermissions);
+
+		} catch (UnsupportedOperationException | IOException e) {
+			// happens on non-POSIX filesystems, ignore
+		}
+
+		return "";
+	}
+
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+
+		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+	}
+
+	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+
+		// default to true for non-POSIX filesystems
+		boolean isOk = true;
+
+		try {
+
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+
+			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+
+			if (!isOk && warn) {
+
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+			}
+
+		} catch (UnsupportedOperationException | IOException e) {
+			// happens on non-POSIX filesystems, ignore
+		}
+
+		return isOk;
 	}
 
 	public static void loadConfiguration(final String fileName) {
@@ -819,6 +909,8 @@ public class Settings {
 
 			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
 			final Iterator<String> keys          = config.getKeys();
+
+			Settings.checkConfigurationFilePermissions(config, true);
 
 			while (keys.hasNext()) {
 
@@ -857,7 +949,8 @@ public class Settings {
 			Settings.initializeValidUUIDPatternOnce();
 
 		} catch (ConfigurationException ex) {
-			System.err.println("Unable to load configuration: " + ex.getMessage());
+
+			logger.error("Unable to load configuration: " + ex.getMessage());
 		}
 	}
 
@@ -928,7 +1021,6 @@ public class Settings {
 	static void unregisterSetting(final Setting setting) {
 		settings.remove(setting.getKey());
 	}
-
 
 	public static Set<String> getStringsAsSet(final String... choices) {
 		return new LinkedHashSet<>(Arrays.asList(choices));

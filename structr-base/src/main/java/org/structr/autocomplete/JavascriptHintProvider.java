@@ -36,7 +36,7 @@ import org.structr.common.helper.CaseHelper;
  */
 public class JavascriptHintProvider extends AbstractHintProvider {
 
-	private static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
+	protected static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
 
 	@Override
 	protected List<AbstractHint> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {

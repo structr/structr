@@ -18,6 +18,7 @@
  */
 package org.structr.core.function;
 
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.structr.api.config.Settings;
 import org.structr.api.service.LicenseManager;
 import org.structr.common.error.FrameworkException;
@@ -25,6 +26,7 @@ import org.structr.common.helper.VersionHelper;
 import org.structr.core.GraphObjectMap;
 import org.structr.core.Services;
 import org.structr.core.property.ArrayProperty;
+import org.structr.core.property.BooleanProperty;
 import org.structr.core.property.DateProperty;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.StringProperty;
@@ -63,15 +65,15 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 	}
 
 	public static GraphObjectMap getStructrEnv() throws FrameworkException {
+
 		final GraphObjectMap info = new GraphObjectMap();
 
 		info.setProperty(new GenericProperty("modules"),                        VersionHelper.getModules());
 		info.setProperty(new GenericProperty("components"),                     VersionHelper.getComponents());
 		info.setProperty(new StringProperty("classPath"),                       VersionHelper.getClassPath());
+
 		info.setProperty(new StringProperty("instanceName"),                    VersionHelper.getInstanceName());
 		info.setProperty(new StringProperty("instanceStage"),                   VersionHelper.getInstanceStage());
-		info.setProperty(new ArrayProperty("mainMenu", String.class),           VersionHelper.getMenuEntries());
-		info.setProperty(new ArrayProperty("availableMenuItems", String.class), VersionHelper.getAvailableMenuItems());
 
 		final LicenseManager licenseManager = Services.getInstance().getLicenseManager();
 		if (licenseManager != null) {
@@ -88,22 +90,41 @@ public class StructrEnvFunction extends AdvancedScriptingFunction {
 			info.setProperty(new StringProperty("licensee"), "Unlicensed");
 		}
 
-		info.setProperty(new GenericProperty("databaseService"), Services.getInstance().getDatabaseService().getClass().getSimpleName());
-		info.setProperty(new GenericProperty("resultCountSoftLimit"), Settings.ResultCountSoftLimit.getValue());
-		info.setProperty(new StringProperty("availableReleasesUrl"), Settings.ReleasesIndexUrl.getValue());
-		info.setProperty(new StringProperty("availableSnapshotsUrl"), Settings.SnapshotsIndexUrl.getValue());
+		info.setProperty(new GenericProperty("databaseService"),        Services.getInstance().getDatabaseService().getClass().getSimpleName());
+		info.setProperty(new GenericProperty("resultCountSoftLimit"),   Settings.ResultCountSoftLimit.getValue());
 
-		info.setProperty(new StringProperty("maintenanceModeActive"), Settings.MaintenanceModeEnabled.getValue());
-		info.setProperty(new StringProperty("validUUIDv4Regex"), Settings.getValidUUIDRegexString());
+		info.setProperty(new StringProperty("maintenanceModeActive"),   Settings.MaintenanceModeEnabled.getValue());
+		info.setProperty(new StringProperty("validUUIDv4Regex"),        Settings.getValidUUIDRegexString());
 		info.setProperty(new StringProperty("legacyRequestParameters"), Settings.RequestParameterLegacyMode.getValue());
-		info.setProperty(new StringProperty("isDeploymentActive"), DeployCommand.isDeploymentActive());
+		info.setProperty(new StringProperty("isDeploymentActive"),      DeployCommand.isDeploymentActive());
 
-		info.setProperty(new StringProperty("debuggerActive"), Settings.ScriptingDebugger.getValue());
+		info.setProperty(new StringProperty("debuggerEnabled"),          Settings.ScriptingDebugger.getValue());
 
 		if (Settings.ScriptingDebugger.getValue()) {
+
 			info.setProperty(new StringProperty("debuggerPath"), ContextFactory.getDebuggerPath());
 		}
 
+		info.setProperty(new StringProperty("availableReleasesUrl"),    Settings.ReleasesIndexUrl.getValue());
+		info.setProperty(new StringProperty("availableSnapshotsUrl"),   Settings.SnapshotsIndexUrl.getValue());
+
+		info.setProperty(new GenericProperty("dashboardInfo"),   getStructrDashboardInfo());
+
 		return info;
+	}
+
+	public static GraphObjectMap getStructrDashboardInfo() throws FrameworkException {
+
+		final GraphObjectMap dashboardInfo  = new GraphObjectMap();
+		final GraphObjectMap configFileInfo = new GraphObjectMap();
+
+		final PropertiesConfiguration conf = Settings.getDefaultPropertiesConfiguration();
+		configFileInfo.setProperty(new StringProperty("actualPermissions"),    Settings.getActualConfigurationFilePermissionsAsString(conf));
+		configFileInfo.setProperty(new StringProperty("expectedPermissions"),  Settings.getExpectedConfigurationFilePermissionsAsString());
+		configFileInfo.setProperty(new BooleanProperty("permissionsOk"), Settings.checkConfigurationFilePermissions(conf, false));
+
+		dashboardInfo.setProperty(new GenericProperty("configFileInfo"), configFileInfo);
+
+		return dashboardInfo;
 	}
 }

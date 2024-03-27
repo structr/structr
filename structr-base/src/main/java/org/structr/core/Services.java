@@ -276,7 +276,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			try {
 
-				Settings.storeConfiguration(Settings.ConfigFileName);
+				Settings.storeConfiguration(Settings.ConfigFileName, false);
 
 			} catch (IOException ioex) {
 				logger.warn("Unable to store migrated config: {}", ioex.getMessage());
@@ -633,7 +633,7 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 			try {
 
-				Settings.storeConfiguration(Settings.ConfigFileName);
+				Settings.storeConfiguration(Settings.ConfigFileName, false);
 
 				new Thread(new Runnable() {
 

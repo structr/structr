@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
+import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
@@ -37,6 +38,8 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
+import org.structr.core.entity.AbstractNode;
+import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -145,7 +148,7 @@ public class ActionContext {
 				_data = obj.evaluate(this, key, null, hints, row, column);
 
 			} else {
-				
+
 				_data = evaluate(entity, key, _data, null, i+depth, hints, row, column);
 			}
 
