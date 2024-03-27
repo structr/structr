@@ -45,6 +45,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.scheduler.JobQueueManager;
@@ -342,6 +343,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		synchronized (thisFile) {
 
+			SearchCommand.prefetch(File.class, thisFile.getUuid());
+
 			// save current security context
 			final SecurityContext previousSecurityContext = securityContext;
 
@@ -404,20 +407,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				synchronized (tx) {
+				FileHelper.updateMetadata(thisFile, true);
+				File.increaseVersion(thisFile);
 
-					FileHelper.updateMetadata(thisFile, true);
-					File.increaseVersion(thisFile);
+				// indexing can be controlled for each file separately
+				if (File.doIndexing(thisFile)) {
 
-					tx.success();
+					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+					indexer.addToFulltextIndex(thisFile);
 				}
-			}
 
-			// indexing can be controlled for each file separately
-			if (File.doIndexing(thisFile)) {
-
-				final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-				indexer.addToFulltextIndex(thisFile);
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {

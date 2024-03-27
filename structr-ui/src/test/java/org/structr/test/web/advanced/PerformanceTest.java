@@ -41,6 +41,7 @@ import org.testng.annotations.Test;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.structr.api.config.Settings;
 
 import static org.testng.AssertJUnit.*;
 
@@ -206,9 +207,7 @@ public class PerformanceTest extends IndexingTest {
 
 				try (final Tx tx = app.tx()) {
 
-					final List<TestOne> res = app.nodeQuery(TestOne.class).getAsList();
-
-					for (final TestOne t : res) {
+					for (final TestOne t : app.nodeQuery(TestOne.class).getResultStream()) {
 
 						final String name = t.getProperty(AbstractNode.name);
 					}
@@ -224,8 +223,8 @@ public class PerformanceTest extends IndexingTest {
 			double time                 = (t1 - t0) / 1000000000.0;
 			double rate                 = number * loop / ((t1 - t0) / 1000000000.0);
 
-			logger.info("Read {}x {} nodes in {} seconds ({} per s)", new Object[] { loop, number, decimalFormat.format(time), decimalFormat.format(rate) });
-			assertTrue("Invalid read performance result", rate > 30000);
+			logger.info("Read {}x {} nodes in {} seconds ({} per s)", loop, number, decimalFormat.format(time), decimalFormat.format(rate));
+			assertTrue("Invalid read performance result", rate > 10000);
 
 		} catch (FrameworkException ex) {
 

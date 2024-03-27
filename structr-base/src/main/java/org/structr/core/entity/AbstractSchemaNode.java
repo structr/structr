@@ -112,7 +112,7 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		return getProperty(AbstractSchemaNode.schemaMethods);
 	}
 
-    @Override
+    	@Override
 	public Iterable<SchemaMethod> getSchemaMethodsIncludingInheritance() {
 
 		if (cachedSchemaMethods.containsKey(getUuid())) {
@@ -137,6 +137,56 @@ public abstract class AbstractSchemaNode extends SchemaReloadingNode implements 
 		cachedSchemaMethods.put(getUuid(), methods);
 
 		return methods;
+	}
+
+	public SchemaMethod getSchemaMethod(final String name) {
+
+		for (final SchemaMethod method : getSchemaMethods()) {
+
+			if (name.equals(method.getName())) {
+				return method;
+			}
+		}
+
+		return null;
+	}
+
+	public List<SchemaMethod> getSchemaMethodsByName(final String name) {
+
+		final List<SchemaMethod> result = new ArrayList<>();
+
+		for (final SchemaMethod method : getSchemaMethods()) {
+
+			if (name.equals(method.getName())) {
+				result.add(method);
+			}
+		}
+
+		return result;
+	}
+
+	public SchemaProperty getSchemaProperty(final String name) {
+
+		for (final SchemaProperty property : getSchemaProperties()) {
+
+			if (name.equals(property.getName())) {
+				return property;
+			}
+		}
+
+		return null;
+	}
+
+	public SchemaView getSchemaView(final String name) {
+
+		for (final SchemaView view : getSchemaViews()) {
+
+			if (name.equals(view.getName())) {
+				return view;
+			}
+		}
+
+		return null;
 	}
 
 	public void createBuiltInSchemaEntities(final ErrorBuffer errorBuffer) throws FrameworkException {

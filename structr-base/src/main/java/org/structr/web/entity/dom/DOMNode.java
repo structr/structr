@@ -50,6 +50,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
 import org.structr.schema.SchemaService;
@@ -2139,6 +2140,32 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 		return "tree-item-" + target + "-is-open";
 	}
 
+	public static void prefetchDOMNodes() {
+
+		TransactionCommand.getCurrentTransaction().prefetch("DOMNode", null, Set.of(
+			"all/INCOMING/SYNC",
+			"all/INCOMING/LINK",
+			"all/INCOMING/OWNS",
+			"all/INCOMING/CONTAINS",
+			"all/INCOMING/CONTAINS_NEXT_SIBLING",
+			"all/INCOMING/FAVORITE",
+			"all/INCOMING/INPUT_ELEMENT",
+			"all/INCOMING/SUCCESS_TARGET",
+			"all/INCOMING/FAILURE_TARGET",
+			"all/INCOMING/RELOADS",
+			"all/INCOMING/SUCCESS_NOTIFICATION_ELEMENT",
+			"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
+			"all/INCOMING/TRIGGERED_BY",
+
+			"all/OUTGOING/CONTAINS",
+			"all/OUTGOING/CONTAINS_NEXT_SIBLING",
+			"all/OUTGOING/FLOW",
+			"all/OUTGOING/FAVORITE",
+			"all/OUTGOING/PARAMETER",
+			"all/OUTGOING/RELOADS",
+			"all/OUTGOING/SYNC"
+		));
+	}
 
 	// ----- nested classes -----
 	static class TextCollector implements Predicate<Node> {

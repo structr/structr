@@ -39,6 +39,8 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.List;
 import org.structr.common.helper.VersionHelper;
+import org.structr.core.app.StructrApp;
+import org.structr.core.graph.Tx;
 
 /**
  * Command to interact with a multi-mode server console.
@@ -81,7 +83,7 @@ public class ConsoleCommand extends AbstractCommand {
 		ByteArrayOutputStream out = new ByteArrayOutputStream();
 		OutputStreamWritable writeable = new OutputStreamWritable(out);
 
-		try {
+		try (final Tx tx = StructrApp.getInstance().tx()) {
 			if (Boolean.TRUE.equals(completion)) {
 
 				final List<TabCompletionResult> tabCompletionResult = console.getTabCompletion(line);
@@ -113,6 +115,8 @@ public class ConsoleCommand extends AbstractCommand {
 						.message(out.toString("UTF-8"))
 						.build(), true);
 			}
+
+			tx.success();
 
 		} catch (final FrameworkException ex) {
 

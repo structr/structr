@@ -65,6 +65,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		Group group      = null;
 		Principal tester = null;
+		String groupId   = null;
+		String testerId  = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -76,6 +78,9 @@ public class GraphQLTest extends StructrGraphQLTest {
 				new NodeAttribute<>(membersKey, Arrays.asList(tester))
 			);
 
+			groupId  = group.getUuid();
+			testerId = tester.getUuid();
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -84,7 +89,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		final String query1 = "{ Group { id, type, name, members { id, type, name } }, Principal(_pageSize: 1, _sort: \"name\") { id, type name }}";
 		final String query2 = "{ Group { id, type, name, members { } }}";
-		final String query3 = "{ Group(id: \"" + group.getUuid() + "\") { id, type, name }}";
+		final String query3 = "{ Group(id: \"" + groupId + "\") { id, type, name }}";
 
 		RestAssured
 
@@ -97,13 +102,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 				.statusCode(200)
 				.body("Group",                    hasSize(1))
 				.body("Principal",                hasSize(1))
-				.body("Group[0].id",              equalTo(group.getUuid()))
+				.body("Group[0].id",              equalTo(groupId))
 				.body("Group[0].type",            equalTo("Group"))
 				.body("Group[0].name",            equalTo("TestGroup"))
-				.body("Group[0].members[0].id",   equalTo(tester.getUuid()))
+				.body("Group[0].members[0].id",   equalTo(testerId))
 				.body("Group[0].members[0].type", equalTo("Principal"))
 				.body("Group[0].members[0].name", equalTo("tester"))
-				.body("Principal[0].id",          equalTo(group.getUuid()))
+				.body("Principal[0].id",          equalTo(groupId))
 				.body("Principal[0].type",        equalTo("Group"))
 				.body("Principal[0].name",        equalTo("TestGroup"))
 
@@ -136,7 +141,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 			.expect()
 				.statusCode(200)
 				.body("Group",                    hasSize(1))
-				.body("Group[0].id",              equalTo(group.getUuid()))
+				.body("Group[0].id",              equalTo(groupId))
 				.body("Group[0].type",            equalTo("Group"))
 				.body("Group[0].name",            equalTo("TestGroup"))
 
@@ -148,7 +153,9 @@ public class GraphQLTest extends StructrGraphQLTest {
 	public void testAdvancedQueries() {
 
 		final List<MailTemplate> templates = new LinkedList<>();
+		final List<String> templateIds     = new LinkedList<>();
 		final List<Principal> team         = new LinkedList<>();
+		final List<String> teamIds         = new LinkedList<>();
 		Group group                        = null;
 
 		try (final Tx tx = app.tx()) {
@@ -227,6 +234,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 				new NodeAttribute<>(AbstractNode.owner, team.get(0))
 			));
 
+			for (final MailTemplate t : templates) {
+				templateIds.add(t.getUuid());
+			}
+
+			for (final Principal t : team) {
+				teamIds.add(t.getUuid());
+			}
 
 			tx.success();
 
@@ -242,9 +256,9 @@ public class GraphQLTest extends StructrGraphQLTest {
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Principal(id: \"" + team.get(0).getUuid() + "\") { id, type, name } }");
+			final Map<String, Object> result = fetchGraphQL("{ Principal(id: \"" + teamIds.get(0) + "\") { id, type, name } }");
 			assertMapPathValueIs(result, "Principal.#",      1);
-			assertMapPathValueIs(result, "Principal.0.id",   team.get(0).getUuid());
+			assertMapPathValueIs(result, "Principal.0.id",   teamIds.get(0));
 			assertMapPathValueIs(result, "Principal.0.type", "Principal");
 			assertMapPathValueIs(result, "Principal.0.name", "Axel");
 		}
@@ -354,7 +368,7 @@ public class GraphQLTest extends StructrGraphQLTest {
 		{
 			final Map<String, Object> result = fetchGraphQL("{ MailTemplate { id, type, text(_contains: \"2\"), owner(_equals: { name: \"Axel\"}) { name } }}");
 			assertMapPathValueIs(result, "MailTemplate.#",             1);
-			assertMapPathValueIs(result, "MailTemplate.0.id",          templates.get(1).getUuid());
+			assertMapPathValueIs(result, "MailTemplate.0.id",          templateIds.get(1));
 			assertMapPathValueIs(result, "MailTemplate.0.type",        "MailTemplate");
 			assertMapPathValueIs(result, "MailTemplate.0.text",        "MailTemplate2");
 			assertMapPathValueIs(result, "MailTemplate.0.name",        null);
@@ -393,11 +407,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 		{
 			final Map<String, Object> result = fetchGraphQL("{ MailTemplate(_pageSize: 2, _sort: \"name\", owner: { name: { _contains: \"x\" }} ) { id, type, name, owner { name }}}");
 			assertMapPathValueIs(result, "MailTemplate.#",            2);
-			assertMapPathValueIs(result, "MailTemplate.0.id",         templates.get(5).getUuid());
+			assertMapPathValueIs(result, "MailTemplate.0.id",         templateIds.get(5));
 			assertMapPathValueIs(result, "MailTemplate.0.type",       "MailTemplate");
 			assertMapPathValueIs(result, "MailTemplate.0.name",       "abcdef");
 			assertMapPathValueIs(result, "MailTemplate.0.owner.name", "Axel");
-			assertMapPathValueIs(result, "MailTemplate.1.id",         templates.get(1).getUuid());
+			assertMapPathValueIs(result, "MailTemplate.1.id",         templateIds.get(1));
 			assertMapPathValueIs(result, "MailTemplate.1.type",       "MailTemplate");
 			assertMapPathValueIs(result, "MailTemplate.1.name",       "lertdf");
 			assertMapPathValueIs(result, "MailTemplate.1.owner.name", "Axel");
@@ -970,8 +984,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		RestAssured.basePath = "/structr/graphql";
 
+		List<String> childrenIds     = new LinkedList<>();
 		List<NodeInterface> children = null;
 		Principal user               = null;
+		String userId                = null;
 
 		try (final Tx tx = app.tx()) {
 
@@ -993,8 +1009,11 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 			tx.success();
 
-		} catch (FrameworkException fex) {
-			fex.printStackTrace();
+
+		} catch (Throwable t) {
+
+			t.printStackTrace();
+
 			fail("Unexpected exception.");
 		}
 
@@ -1002,6 +1021,8 @@ public class GraphQLTest extends StructrGraphQLTest {
 		try (final Tx tx = app.tx()) {
 
 			user = app.create(Principal.class, "tester");
+
+			userId = user.getUuid();
 
 			final Class tmpType  = StructrApp.getConfiguration().getNodeEntityClass("Tmp");
 			final Class testType = StructrApp.getConfiguration().getNodeEntityClass("Test");
@@ -1011,6 +1032,10 @@ public class GraphQLTest extends StructrGraphQLTest {
 			final PropertyKey childrenKey = StructrApp.getConfiguration().getPropertyKeyForJSONName(testType, "children");
 
 			children = createTestNodes(tmpType, 10);
+
+			for (final NodeInterface c : children) {
+				childrenIds.add(c.getUuid());
+			}
 
 			app.create(testType,
 				new NodeAttribute<>(nameKey, "Test"),
@@ -1031,13 +1056,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 		assertMapPathValueIs(result, "Test.0.test3",        42.0);
 		assertMapPathValueIs(result, "Test.0.test4",        12.34);
 		assertMapPathValueIs(result, "Test.0.test5",        7.465423674522E12);
-		assertMapPathValueIs(result, "Test.0.test6.id",     user.getUuid());
+		assertMapPathValueIs(result, "Test.0.test6.id",     userId);
 		assertMapPathValueIs(result, "Test.0.test6.type",   "Principal");
 		assertMapPathValueIs(result, "Test.0.test6.name",   "tester");
 		assertMapPathValueIs(result, "Test.0.test7.#",      10);
 
 		for (int i=0; i<10; i++) {
-			assertMapPathValueIs(result, "Test.0.test7." + i + ".id",   children.get(i).getUuid());
+			assertMapPathValueIs(result, "Test.0.test7." + i + ".id",   childrenIds.get(i));
 			assertMapPathValueIs(result, "Test.0.test7." + i + ".type", "Tmp");
 		}
 
@@ -1236,13 +1261,13 @@ public class GraphQLTest extends StructrGraphQLTest {
 
 		final List<NodeInterface> projects = new LinkedList<>();
 		final List<NodeInterface> tasks    = new LinkedList<>();
+		final List<String> projectIds      = new LinkedList<>();
+		final List<String> taskIds         = new LinkedList<>();
 		final Class project                = StructrApp.getConfiguration().getNodeEntityClass("Project");
 		final Class task                   = StructrApp.getConfiguration().getNodeEntityClass("Task");
 		final PropertyKey tasksKey         = StructrApp.getConfiguration().getPropertyKeyForJSONName(project, "tasks");
 		final EnumProperty statusKey       = (EnumProperty)StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "status");
 		final PropertyKey nameKey          = StructrApp.getConfiguration().getPropertyKeyForJSONName(task, "name");
-
-		;
 
 		try (final Tx tx = app.tx()) {
 
@@ -1275,6 +1300,14 @@ public class GraphQLTest extends StructrGraphQLTest {
 			projects.get(3).setProperty(tasksKey, tasks.subList(6,  8));
 			projects.get(4).setProperty(tasksKey, tasks.subList(8, 10));
 
+			for (final NodeInterface p : projects) {
+				projectIds.add(p.getUuid());
+			}
+
+			for (final NodeInterface t : tasks) {
+				taskIds.add(t.getUuid());
+			}
+
 			tx.success();
 
 		} catch (FrameworkException fex) {
@@ -1291,96 +1324,96 @@ public class GraphQLTest extends StructrGraphQLTest {
 			assertMapPathValueIs(result, "Project.0.tasks.#",           2);
 			assertMapPathValueIs(result, "Project.0.tasks.0.name",      "task0");
 			assertMapPathValueIs(result, "Project.0.tasks.0.status",    "open");
-			assertMapPathValueIs(result, "Project.0.tasks.0.projectId", projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Project.0.tasks.0.projectId", projectIds.get(0));
 			assertMapPathValueIs(result, "Project.0.tasks.1.name",      "task1");
 			assertMapPathValueIs(result, "Project.0.tasks.1.status",    "closed");
-			assertMapPathValueIs(result, "Project.0.tasks.1.projectId", projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Project.0.tasks.1.projectId", projectIds.get(0));
 
 			assertMapPathValueIs(result, "Project.1.name",              "project2");
 			assertMapPathValueIs(result, "Project.1.taskCount",         2.0);
 			assertMapPathValueIs(result, "Project.1.tasks.#",           2);
 			assertMapPathValueIs(result, "Project.1.tasks.0.name",      "task2");
 			assertMapPathValueIs(result, "Project.1.tasks.0.status",    "cancelled");
-			assertMapPathValueIs(result, "Project.1.tasks.0.projectId", projects.get(1).getUuid());
+			assertMapPathValueIs(result, "Project.1.tasks.0.projectId", projectIds.get(1));
 			assertMapPathValueIs(result, "Project.1.tasks.1.name",      "task3");
 			assertMapPathValueIs(result, "Project.1.tasks.1.status",    "open");
-			assertMapPathValueIs(result, "Project.1.tasks.1.projectId", projects.get(1).getUuid());
+			assertMapPathValueIs(result, "Project.1.tasks.1.projectId", projectIds.get(1));
 
 			assertMapPathValueIs(result, "Project.2.name",              "project3");
 			assertMapPathValueIs(result, "Project.2.taskCount",         2.0);
 			assertMapPathValueIs(result, "Project.2.tasks.#",           2);
 			assertMapPathValueIs(result, "Project.2.tasks.0.name",      "task4");
 			assertMapPathValueIs(result, "Project.2.tasks.0.status",    "closed");
-			assertMapPathValueIs(result, "Project.2.tasks.0.projectId", projects.get(2).getUuid());
+			assertMapPathValueIs(result, "Project.2.tasks.0.projectId", projectIds.get(2));
 			assertMapPathValueIs(result, "Project.2.tasks.1.name",      "task5");
 			assertMapPathValueIs(result, "Project.2.tasks.1.status",    "cancelled");
-			assertMapPathValueIs(result, "Project.2.tasks.1.projectId", projects.get(2).getUuid());
+			assertMapPathValueIs(result, "Project.2.tasks.1.projectId", projectIds.get(2));
 
 			assertMapPathValueIs(result, "Project.3.name",              "project4");
 			assertMapPathValueIs(result, "Project.3.taskCount",         2.0);
 			assertMapPathValueIs(result, "Project.3.tasks.#",           2);
 			assertMapPathValueIs(result, "Project.3.tasks.0.name",      "task6");
 			assertMapPathValueIs(result, "Project.3.tasks.0.status",    "open");
-			assertMapPathValueIs(result, "Project.3.tasks.0.projectId", projects.get(3).getUuid());
+			assertMapPathValueIs(result, "Project.3.tasks.0.projectId", projectIds.get(3));
 			assertMapPathValueIs(result, "Project.3.tasks.1.name",      "task7");
 			assertMapPathValueIs(result, "Project.3.tasks.1.status",    "closed");
-			assertMapPathValueIs(result, "Project.3.tasks.1.projectId", projects.get(3).getUuid());
+			assertMapPathValueIs(result, "Project.3.tasks.1.projectId", projectIds.get(3));
 
 			assertMapPathValueIs(result, "Project.4.name",              "project5");
 			assertMapPathValueIs(result, "Project.4.taskCount",         2.0);
 			assertMapPathValueIs(result, "Project.4.tasks.#",           2);
 			assertMapPathValueIs(result, "Project.4.tasks.0.name",      "task8");
 			assertMapPathValueIs(result, "Project.4.tasks.0.status",    "cancelled");
-			assertMapPathValueIs(result, "Project.4.tasks.0.projectId", projects.get(4).getUuid());
+			assertMapPathValueIs(result, "Project.4.tasks.0.projectId", projectIds.get(4));
 			assertMapPathValueIs(result, "Project.4.tasks.1.name",      "task9");
 			assertMapPathValueIs(result, "Project.4.tasks.1.status",    "open");
-			assertMapPathValueIs(result, "Project.4.tasks.1.projectId", projects.get(4).getUuid());
+			assertMapPathValueIs(result, "Project.4.tasks.1.projectId", projectIds.get(4));
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\") { name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + taskIds.get(0) + "\") { name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              1);
 			assertMapPathValueIs(result, "Task.0.name",         "task0");
 			assertMapPathValueIs(result, "Task.0.status",       "open");
-			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Task.0.projectId",    projectIds.get(0));
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task { id(_equals: \"" + tasks.get(0).getUuid() + "\"), name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task { id(_equals: \"" + taskIds.get(0) + "\"), name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              1);
 			assertMapPathValueIs(result, "Task.0.name",         "task0");
 			assertMapPathValueIs(result, "Task.0.status",       "open");
-			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Task.0.projectId",    projectIds.get(0));
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"open\" }) { name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + taskIds.get(0) + "\", status: { _equals: \"open\" }) { name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              1);
 			assertMapPathValueIs(result, "Task.0.name",         "task0");
 			assertMapPathValueIs(result, "Task.0.status",       "open");
-			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Task.0.projectId",    projectIds.get(0));
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", status: { _equals: \"closed\" }) { name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + taskIds.get(0) + "\", status: { _equals: \"closed\" }) { name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              0);
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(0).getUuid() + "\" }) { name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + taskIds.get(0) + "\", projectId: { _equals: \"" + projectIds.get(0) + "\" }) { name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              1);
 			assertMapPathValueIs(result, "Task.0.name",         "task0");
 			assertMapPathValueIs(result, "Task.0.status",       "open");
-			assertMapPathValueIs(result, "Task.0.projectId",    projects.get(0).getUuid());
+			assertMapPathValueIs(result, "Task.0.projectId",    projectIds.get(0));
 		}
 
 		{
-			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + tasks.get(0).getUuid() + "\", projectId: { _equals: \"" + projects.get(1).getUuid() + "\" }) { name, status, projectId }}");
+			final Map<String, Object> result = fetchGraphQL("{ Task(id: \"" + taskIds.get(0) + "\", projectId: { _equals: \"" + projectIds.get(1) + "\" }) { name, status, projectId }}");
 
 			assertMapPathValueIs(result, "Task.#",              0);
 		}

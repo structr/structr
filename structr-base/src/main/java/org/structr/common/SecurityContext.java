@@ -706,13 +706,19 @@ public class SecurityContext {
 
 		if (cachedUser != null) {
 
-			// Priority 2: User locale
-			final String userLocaleString = cachedUser.getLocale();
-			if (userLocaleString != null) {
+			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				userHasLocaleString = true;
-				locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
-			}
+				// Priority 2: User locale
+				final String userLocaleString = cachedUser.getLocale();
+				if (userLocaleString != null) {
+
+					userHasLocaleString = true;
+					locale = Locale.forLanguageTag(userLocaleString.replaceAll("_", "-"));
+				}
+
+				tx.success();
+
+			} catch (FrameworkException fex) {}
 		}
 
 		if (request != null) {

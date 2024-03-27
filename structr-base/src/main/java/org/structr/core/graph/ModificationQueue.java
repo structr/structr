@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Node;
-import org.structr.api.graph.PropertyContainer;
 import org.structr.api.graph.Relationship;
 import org.structr.api.graph.RelationshipType;
 import org.structr.common.RelType;
@@ -43,6 +42,7 @@ import org.structr.core.property.RelationProperty;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.LinkedList;
 
 /**
  *
@@ -124,11 +124,6 @@ public class ModificationQueue {
 
 		// do validation and indexing
 		for (final GraphObjectModificationState state : getSortedModifications()) {
-
-			PropertyContainer container = state.getGraphObject().getPropertyContainer();
-			if (container.isStale()) {
-				continue;
-			}
 
 			// do callback according to entry state
 			boolean res = state.doValidationAndIndexing(this, securityContext, errorBuffer, doValidation, counter);

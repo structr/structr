@@ -200,8 +200,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-		if (!TransactionCommand.isDeleted(this.dbNode)) {
-			AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+		if (!TransactionCommand.isDeleted(getNode())) {
+
+			final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
 			if (schemaNode != null) {
 
 				schemaNode.clearCachedSchemaMethodsForInstance();
@@ -243,6 +244,18 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
+
+		for (final SchemaMethodParameter param : getProperty(SchemaMethod.parameters)) {
+
+			if (name.equals(param.getName())) {
+				return param;
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
@@ -303,12 +316,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
 				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
-					// try to identify overridden schema method from database
-					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
-						.and(SchemaMethod.schemaNode, typeNode)
-						.and(SchemaMethod.name, methodName)
-						.getFirst();
-
+					final SchemaMethod superMethod = typeNode.getSchemaMethod(methodName);
 					if (superMethod != null) {
 
 						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);

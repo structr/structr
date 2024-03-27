@@ -29,26 +29,23 @@ import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
 import org.structr.api.config.Settings;
 import org.structr.api.util.Iterables;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.ContextStore;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.ErrorToken;
 import org.structr.common.error.FrameworkException;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.GraphObject;
 import org.structr.core.Services;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 import org.structr.core.app.StructrApp;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.property.PropertyMap;
 import org.structr.core.script.Scripting;
 import org.structr.schema.parser.DatePropertyParser;
 
 import java.io.IOException;
 import java.util.*;
-import org.structr.common.helper.AdvancedMailContainer;
-import org.structr.core.api.AbstractMethod;
-import org.structr.core.api.Arguments;
-import org.structr.core.api.Methods;
 
 /**
  *

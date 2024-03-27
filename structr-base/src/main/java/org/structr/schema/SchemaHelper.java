@@ -646,7 +646,7 @@ public class SchemaHelper {
 					final AbstractSchemaNode schemaNode   = (AbstractSchemaNode)entity;
 					final App app                         = StructrApp.getInstance();
 
-					if (app.nodeQuery(SchemaView.class).and(SchemaView.schemaNode, schemaNode).and(AbstractNode.name, viewName).getFirst() == null) {
+					if (schemaNode.getSchemaView(viewName) == null) {
 
 						// add parts to view, overrides defaults (because of clear() above)
 						for (int i = 0; i < parts.length; i++) {
@@ -663,7 +663,7 @@ public class SchemaHelper {
 								propertyName = propertyName.substring(0, propertyName.length() - "Property".length());
 							}
 
-							final SchemaProperty propertyNode = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+							final SchemaProperty propertyNode = schemaNode.getSchemaProperty(propertyName);
 							if (propertyNode != null) {
 
 								properties.add(propertyNode);
@@ -791,7 +791,7 @@ public class SchemaHelper {
 					final AbstractSchemaNode schemaNode = (AbstractSchemaNode)entity;
 					final String methodName             = rawActionName.substring(3);
 
-					if (app.nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, schemaNode).and(AbstractNode.name, methodName).getFirst() == null) {
+					if (schemaNode.getSchemaMethod(methodName) == null) {
 
 						app.create(SchemaMethod.class,
 							new NodeAttribute<>(SchemaMethod.schemaNode, schemaNode),
@@ -1922,26 +1922,26 @@ public class SchemaHelper {
 
 	private static boolean hasRelationshipNode(final SchemaNode schemaNode, final String propertyName) throws FrameworkException {
 
-		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
-			.and(SchemaRelationshipNode.sourceNode, schemaNode)
-			.and()
-				.or(SchemaRelationshipNode.targetJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousTargetJsonName, propertyName)
+		for (final SchemaRelationshipNode out : schemaNode.getProperty(SchemaNode.relatedTo)) {
 
-			.getFirst() != null) {
+			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.targetJsonName))) {
+				return true;
+			}
 
-			return true;
+			if (propertyName.equals(out.getProperty(SchemaRelationshipNode.previousTargetJsonName))) {
+				return true;
+			}
 		}
 
-		if (StructrApp.getInstance().nodeQuery(SchemaRelationshipNode.class)
-			.and(SchemaRelationshipNode.targetNode, schemaNode)
-			.and()
-				.or(SchemaRelationshipNode.sourceJsonName, propertyName)
-				.or(SchemaRelationshipNode.previousSourceJsonName, propertyName)
+		for (final SchemaRelationshipNode in : schemaNode.getProperty(SchemaNode.relatedFrom)) {
 
-			.getFirst() != null) {
+			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.sourceJsonName))) {
+				return true;
+			}
 
-			return true;
+			if (propertyName.equals(in.getProperty(SchemaRelationshipNode.previousSourceJsonName))) {
+				return true;
+			}
 		}
 
 		return false;
@@ -1951,7 +1951,6 @@ public class SchemaHelper {
 
 		final Set<String> visited = new LinkedHashSet<>();
 		final Queue<String> types = new LinkedList<>();
-		final App app             = StructrApp.getInstance();
 
 		types.add(typeName);
 
@@ -1966,7 +1965,7 @@ public class SchemaHelper {
 				final SchemaNode schemaNode = schemaNodes.get(type);
 				if (schemaNode != null) {
 
-					final SchemaProperty schemaProperty = app.nodeQuery(SchemaProperty.class).and(SchemaProperty.schemaNode, schemaNode).andName(propertyName).getFirst();
+					final SchemaProperty schemaProperty = schemaNode.getSchemaProperty(propertyName);
 					if (schemaProperty != null || hasRelationshipNode(schemaNode, propertyName)) {
 
 						return true;

@@ -34,6 +34,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
+
+import org.structr.core.graph.TransactionCommand;
 
 /**
  * Websocket command to return the children of the given node.
@@ -50,6 +53,8 @@ public class ChildrenCommand extends AbstractCommand {
 	public void processMessage(final WebSocketMessage webSocketData) {
 
 		setDoTransactionNotifications(false);
+
+		TransactionCommand.getCurrentTransaction().prefetch("DOMElement", null, Set.of());
 
 		final RelationshipFactory factory = new RelationshipFactory(getWebSocket().getSecurityContext());
 		final AbstractNode node           = getNode(webSocketData.getId());

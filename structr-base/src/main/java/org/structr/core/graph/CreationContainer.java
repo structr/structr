@@ -312,11 +312,6 @@ public class CreationContainer<T extends Comparable> implements GraphObject, Pro
 	}
 
 	@Override
-	public boolean isStale() {
-		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
-	}
-
-	@Override
 	public boolean isDeleted() {
 		throw new UnsupportedOperationException("Not supported."); //To change body of generated methods, choose Tools | Templates.
 	}

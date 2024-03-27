@@ -187,6 +187,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 			try (final Tx tx = app.tx()) {
 
+				DOMNode.prefetchDOMNodes();
+
 				// Ensure access mode is frontend
 				securityContext.setAccessMode(AccessMode.Frontend);
 
@@ -855,6 +857,8 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 
 				try (final Tx tx = app.tx()) {
 
+					DOMNode.prefetchDOMNodes();
+
 					// render
 					rootNode.render(renderContext, 0);
 					finished.set(true);
@@ -1217,6 +1221,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (!results.isEmpty()) {
 
 				final Principal user = results.get(0);
+				long userId;
 
 				try (final Tx tx = app.tx()) {
 
@@ -1239,11 +1244,13 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
+					userId = user.getNode().getId().getId();
+
 					tx.success();
 				}
 
 				// broadcast login to cluster for the user
-				Services.getInstance().broadcastLogin(user);
+				Services.getInstance().broadcastLogin(userId);
 
 				// Redirect to target path
 				final String targetPath = filterMaliciousRedirects(request.getParameter(TARGET_PATH_KEY));
@@ -1308,6 +1315,7 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 			if (!results.isEmpty()) {
 
 				final Principal user = results.get(0);
+				long userId;
 
 				try (final Tx tx = app.tx()) {
 
@@ -1335,10 +1343,12 @@ public class HtmlServlet extends AbstractServletBase implements HttpServiceServl
 						logger.warn("Confirmation key for user {} is not valid anymore - refusing login.", user.getName());
 					}
 
+					userId = user.getNode().getId().getId();
+
 					tx.success();
 				}
 
-				Services.getInstance().broadcastLogin(user);
+				Services.getInstance().broadcastLogin(userId);
 			}
 
 			// Redirect to target path

@@ -120,21 +120,21 @@ public class InstanceMethodResourceHandler extends RESTMethodCallHandler {
 	@Override
 	public RestMethodResult doDelete(final SecurityContext securityContext) throws FrameworkException {
 
-		if (HttpVerb.DELETE.equals(method.getHttpVerb())) {
+		try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
 
-			try (final Tx tx = StructrApp.getInstance(securityContext).tx()) {
+			if (!HttpVerb.DELETE.equals(method.getHttpVerb())) {
+
+				throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
+
+			} else {
 
 				final GraphObject entity      = getEntity(securityContext, entityClass, typeName, uuid);
-				final RestMethodResult result =  executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
+				final RestMethodResult result = executeMethod(securityContext, entity, Arguments.fromPath(call.getPathParameters()));
 
 				tx.success();
 
 				return result;
 			}
-
-		} else {
-
-			throw new IllegalMethodException("DELETE not allowed on " + getURL(), getAllowedHttpMethodsForOptionsCall());
 		}
 	}
 

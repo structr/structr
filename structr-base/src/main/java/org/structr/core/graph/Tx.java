@@ -27,6 +27,7 @@ import org.structr.core.StructrTransactionListener;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -69,6 +70,18 @@ public class Tx implements AutoCloseable {
 
 		TransactionCommand.commitTx(securityContext, doValidation);
 		success = true;
+	}
+
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(type1, type2, keys);
+	}
+
+	public void prefetch(final String query, final Set<String> keys) {
+		TransactionCommand.getCurrentTransaction().prefetch(query, keys);
+	}
+
+	public void setIsPing(final boolean isPing) {
+		TransactionCommand.getCurrentTransaction().setIsPing(isPing);
 	}
 
 	@Override

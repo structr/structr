@@ -41,7 +41,6 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.cluster.BroadcastReceiver;
 import org.structr.core.cluster.ClusterManager;
 import org.structr.core.cluster.StructrMessage;
-import org.structr.core.entity.Principal;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.ManageDatabasesCommand;
 import org.structr.core.graph.NodeService;
@@ -1391,17 +1390,17 @@ public class Services implements StructrServices, BroadcastReceiver {
 		Services.getInstance().broadcastMessageToCluster("data-changed", ids);
 	}
 
-	public void broadcastLogin(final Principal user) {
+	public void broadcastLogin(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
 	}
 
-	public void broadcastLogout(final Principal user) {
+	public void broadcastLogout(final long userId) {
 		try {
-			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(user.getNode().getId().getId()), true);
+			Services.getInstance().broadcastMessageToCluster("data-changed", List.of(userId), true);
 		} catch (Throwable t) {
 			t.printStackTrace();
 		}
@@ -1438,10 +1437,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 				break;
 
 			case "data-changed":
-
-				if (this.isClusterStarted) {
-					this.removeFromCache(message.getPayloadAsList());
-				}
 				break;
 
 			case "startup-complete":
@@ -1458,18 +1453,6 @@ public class Services implements StructrServices, BroadcastReceiver {
 
 				break;
 		}
-	}
-
-	public void removeFromCache(final List<Long> ids) {
-
-		final DatabaseService db = getDatabaseService();
-
-		// db.identity() converts a long ID into an Identity object
-		ids.stream().map(db::identify).forEach(id -> {
-			db.removeNodeFromCache(id);
-			db.removeRelationshipFromCache(id);
-		});
-
 	}
 
 	@Override

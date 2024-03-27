@@ -30,6 +30,7 @@ import org.structr.core.Services;
 import org.structr.core.app.App;
 import org.structr.core.entity.*;
 import org.structr.core.graph.Tx;
+import org.structr.schema.SchemaService;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -193,6 +194,8 @@ public class StructrSchema {
 	public static void extendDatabaseSchema(final App app, final JsonSchema newSchema) throws FrameworkException {
 
 		try (final Tx tx = app.tx()) {
+
+			SchemaService.prefetchSchemaNodes(tx);
 
 			newSchema.createDatabaseSchema(JsonSchema.ImportMode.extend);
 

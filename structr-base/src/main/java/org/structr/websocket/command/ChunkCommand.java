@@ -28,6 +28,7 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.common.FileHelper;
+import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
@@ -78,6 +79,8 @@ public class ChunkCommand extends AbstractCommand {
 				}
 
 			}
+
+			org.structr.core.graph.search.SearchCommand.prefetch(AbstractFile.class, uuid);
 
 			final File file = (File) getNode(uuid);
 			if (file.isTemplate()) {

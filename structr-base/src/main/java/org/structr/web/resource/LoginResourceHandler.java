@@ -86,6 +86,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		final SecurityContext ctx             = SecurityContext.getSuperUserInstance();
 		final App app                         = StructrApp.getInstance(ctx);
 		Principal user                        = null;
+		long userId                           = -1;
 
 		if (Settings.CallbacksOnLogin.getValue() == false) {
 			ctx.disableInnerCallbacks();
@@ -97,6 +98,8 @@ public class LoginResourceHandler extends RESTCallHandler {
 
 				user = getUserForCredentials(securityContext, emailOrUsername, password, twoFactorToken, twoFactorCode, propertySet);
 				returnedMethodResult = doLogin(securityContext, user);
+
+				userId = user.getNode().getId().getId();
 
 			} catch (PasswordChangeRequiredException | TooManyFailedLoginAttemptsException | TwoFactorAuthenticationFailedException | TwoFactorAuthenticationTokenInvalidException ex) {
 
@@ -144,7 +147,7 @@ public class LoginResourceHandler extends RESTCallHandler {
 		}
 
 		// broadcast login to cluster for the user
-		Services.getInstance().broadcastLogin(user);
+		Services.getInstance().broadcastLogin(userId);
 
 		return returnedMethodResult;
 	}

@@ -20,6 +20,7 @@ package org.structr.test.rest.resource;
 
 import io.restassured.RestAssured;
 import io.restassured.filter.log.ResponseLoggingFilter;
+import java.util.LinkedList;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.Person;
 import org.structr.test.rest.common.StructrRestTestBase;
@@ -28,6 +29,7 @@ import org.testng.annotations.Test;
 import java.util.List;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.core.graph.Tx;
 import static org.testng.AssertJUnit.fail;
 
 /**
@@ -39,22 +41,31 @@ public class EntityResolverTest extends StructrRestTestBase {
 
 		try {
 
-			// create list of persons to test the resolver resource
-			final List<Person> persons = createTestNodes(Person.class, 10);
+			final List<String> personIds = new LinkedList<>();
+
+			try (final Tx tx = app.tx()) {
+
+				// create list of persons to test the resolver resource
+				for (final Person person : createTestNodes(Person.class, 10)) {
+					personIds.add(person.getUuid());
+				}
+
+				tx.success();
+			}
 
 			RestAssured
 
 				.given()
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
-					.body(" { ids: [\"" + persons.get(2) + "\", \"" + persons.get(5) + "\", \"" + persons.get(7) + "\", \"" + persons.get(8) + "\"] } ")
+					.body(" { ids: [\"" + personIds.get(2) + "\", \"" + personIds.get(5) + "\", \"" + personIds.get(7) + "\", \"" + personIds.get(8) + "\"] } ")
 				.expect()
 					.statusCode(200)
 					.body("result_count", equalTo(4))
-					.body("result[0].id", equalTo(persons.get(2).getUuid()))
-					.body("result[1].id", equalTo(persons.get(5).getUuid()))
-					.body("result[2].id", equalTo(persons.get(7).getUuid()))
-					.body("result[3].id", equalTo(persons.get(8).getUuid()))
+					.body("result[0].id", equalTo(personIds.get(2)))
+					.body("result[1].id", equalTo(personIds.get(5)))
+					.body("result[2].id", equalTo(personIds.get(7)))
+					.body("result[3].id", equalTo(personIds.get(8)))
 				.when()
 					.post("/resolver");
 
@@ -63,12 +74,12 @@ public class EntityResolverTest extends StructrRestTestBase {
 				.given()
 					.filter(ResponseLoggingFilter.logResponseTo(System.out))
 					.contentType("application/json; charset=UTF-8")
-					.body(" { ids: [\"" + persons.get(2) + "\", \"" + persons.get(5) + "\"] } ")
+					.body(" { ids: [\"" + personIds.get(2) + "\", \"" + personIds.get(5) + "\"] } ")
 				.expect()
 					.statusCode(200)
 					.body("result_count", equalTo(2))
-					.body("result[0].id", equalTo(persons.get(2).getUuid()))
-					.body("result[1].id", equalTo(persons.get(5).getUuid()))
+					.body("result[0].id", equalTo(personIds.get(2)))
+					.body("result[1].id", equalTo(personIds.get(5)))
 				.when()
 					.post("/resolver/ui");
 

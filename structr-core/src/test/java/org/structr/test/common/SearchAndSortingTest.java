@@ -63,6 +63,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -1147,6 +1148,8 @@ public class SearchAndSortingTest extends StructrTest {
 
 				assertEquals(1, result.size());
 				assertEquals(rel, result.get(0));
+
+				tx.success();
 			}
 
 			final String val2 = "ölllldjöoa8w4rasf";
@@ -1154,11 +1157,12 @@ public class SearchAndSortingTest extends StructrTest {
 			try (final Tx tx = app.tx()) {
 
 				rel.setProperty(key1, val2);
+
+				assertEquals(1, result.size());
+				assertEquals(rel, result.get(0));
+
 				tx.success();
 			}
-
-			assertEquals(1, result.size());
-			assertEquals(rel, result.get(0));
 
 		} catch (FrameworkException ex) {
 
