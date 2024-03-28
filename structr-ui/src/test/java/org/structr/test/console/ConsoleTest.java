@@ -159,7 +159,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String fullIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n" +
@@ -173,7 +172,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String nodeIndexRebuildOutput =
 			"Node type not set or no entity class found. Starting (re-)indexing all nodes\r\n" +
 			"RebuildNodeIndex: 1000 objects processed\r\n" +
-			"RebuildNodeIndex: 2000 objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"RebuildNodeIndex: " + nodeCount + " objects processed\r\n" +
 			"Done with (re-)indexing " + nodeCount + " nodes\r\n";
