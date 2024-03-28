@@ -127,8 +127,8 @@ public class StructrHttpsLicenseVerifier {
 							final byte[] sessionKeySource = IOUtils.readFully(is, 256);
 							final byte[] ivSpecSource     = IOUtils.readFully(is, 256);
 
-							logger.info("Session key source from request: length {}, data {}", sessionKeySource.length, new String(sessionKeySource));
-							logger.info("IV spec source from request: length {}, data {}", ivSpecSource.length, new String(ivSpecSource));
+							logger.debug("Session key source from request: length {}, data {}", sessionKeySource.length, new String(sessionKeySource));
+							logger.debug("IV spec source from request: length {}, data {}", ivSpecSource.length, new String(ivSpecSource));
 
 							final byte[] sessionKey = ciphers.blockCipher.doFinal(sessionKeySource);
 							final byte[] ivSpec = ciphers.blockCipher.doFinal(ivSpecSource);
@@ -143,12 +143,12 @@ public class StructrHttpsLicenseVerifier {
 								count = is.read(buf, 0, bufSize);
 
 							} catch (IOException exception) {
-								logger.info("Exception reading request input stream {}", exception.getMessage());
+								logger.warn("Exception reading request input stream {}", exception.getMessage());
 							}
 
 							if (count == 0) {
 
-								logger.info("received empty or malformed request body from {}", exchange.getRemoteAddress());
+								logger.warn("Received empty or malformed request body from {}", exchange.getRemoteAddress());
 								exchange.sendResponseHeaders(400, 0);
 							}
 
@@ -177,7 +177,7 @@ public class StructrHttpsLicenseVerifier {
 
 								} else {
 
-									logger.info("License verification failed.");
+									logger.warn("License verification failed.");
 
 									// in case license isn't valid, we send a false response
 									out.write(sign(ciphers, "invalid".getBytes("utf-8")));
@@ -186,7 +186,7 @@ public class StructrHttpsLicenseVerifier {
 
 							} catch (Throwable t) {
 
-								logger.info("License verification failed, can't get response body.");
+								logger.warn("License verification failed, can't get response body.");
 								exchange.sendResponseHeaders(400, 0);
 							}
 
