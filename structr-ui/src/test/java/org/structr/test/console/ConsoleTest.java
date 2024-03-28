@@ -197,7 +197,6 @@ public class ConsoleTest extends StructrUiTest {
 		final String createNodeUuidsOutput =
 			"Start setting UUID on all nodes\r\n" +
 			"SetNodeUuid: 1000 objects processed\r\n" +
-			"SetNodeUuid: 2000 objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"SetNodeUuid: " + nodeCount + " objects processed\r\n" +
 			"Done with setting UUID on " + nodeCount + " nodes\r\n";
