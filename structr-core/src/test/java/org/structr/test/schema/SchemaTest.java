@@ -84,6 +84,7 @@ public class SchemaTest extends StructrTest {
 			customer.addLongArrayProperty("longArray", "public", "ui").setMinimum(1, true).setMaximum(101, true);
 			customer.addDoubleArrayProperty("doubleArray", "public", "ui").setMinimum(2.0, true).setMaximum(102.0, true);
 			customer.addBooleanArrayProperty("booleanArray", "public", "ui");
+			customer.addByteArrayProperty("byteArray", "public", "ui");
 
 			final String schema = sourceSchema.toString();
 
