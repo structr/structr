@@ -2583,7 +2583,7 @@ let _Pages = {
 
 								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
 
-								Command.get(structrId, null, (data) => {
+								Command.get(structrId, null, (data) => { console.log('#', data);
 									const entity = StructrModel.createFromData(data);
 									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
@@ -2754,15 +2754,13 @@ let _Pages = {
 
 			let text = _Helpers.unescapeTags(_Helpers.cleanText(self.html()));
 
-			self.attr('contenteditable', false);
-			self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-
 			Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
 				if (_Pages.contentSourceId === obj.id) {
 					callback?.();
-					_Pages.contentSourceId = null;
 				}
 			});
+			_Pages.previews.reloadPreviewInIframe();
+			_Pages.contentSourceId = null;
 		},
 		isPreviewActive: () => {
 
