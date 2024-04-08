@@ -101,14 +101,11 @@ public abstract class ContextFactory {
 
 			currentDebuggerUUID = java.util.UUID.randomUUID().toString();
 
-			/*
 			engineBuilder
-					// TODO: Add configurable chrome debug
 					.option("inspect", "4242")
 					.option("inspect.Path", getDebuggerPath())
 					.option("inspect.Suspend", "false");
 
-			 */
 		}
 
 		return engineBuilder.build();
