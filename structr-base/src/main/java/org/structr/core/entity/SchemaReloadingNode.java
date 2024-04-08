@@ -26,6 +26,8 @@ import org.structr.core.graph.TransactionCommand;
 import org.structr.schema.ReloadSchema;
 import org.structr.schema.action.Actions;
 
+import java.awt.*;
+
 /**
  *
  *
@@ -65,11 +67,11 @@ public abstract class SchemaReloadingNode extends AbstractNode {
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 
 		Actions.clearCache();
 
-		super.onNodeDeletion();
+		super.onNodeDeletion(securityContext);
 
 		if (reloadSchemaOnDelete()) {
 

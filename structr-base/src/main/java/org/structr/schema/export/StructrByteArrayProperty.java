@@ -18,7 +18,7 @@
  */
 package org.structr.schema.export;
 
-import org.structr.api.schema.JsonDateArrayProperty;
+import org.structr.api.schema.JsonByteArrayProperty;
 import org.structr.api.schema.JsonSchema;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
@@ -33,7 +33,7 @@ import java.util.TreeMap;
  *
  *
  */
-public class StructrByteArrayProperty extends StructrPropertyDefinition implements JsonDateArrayProperty {
+public class StructrByteArrayProperty extends StructrPropertyDefinition implements JsonByteArrayProperty {
 
 	public StructrByteArrayProperty(final StructrTypeDefinition parent, final String name) {
 		super(parent, name);

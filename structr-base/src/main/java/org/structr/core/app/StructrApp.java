@@ -157,7 +157,7 @@ public class StructrApp implements App {
 	}
 
 	@Override
-	public void delete(final NodeInterface node) {
+	public void delete(final NodeInterface node) throws FrameworkException {
 		command(DeleteNodeCommand.class).execute(node);
 	}
 
