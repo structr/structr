@@ -32,7 +32,7 @@ import java.util.function.Predicate;
 
 public abstract class ContextFactory {
 
-	private static String debuggerPath        = "/structr/scripting/remotedebugger/";
+	private static final String debuggerPath        = "/structr/scripting/remotedebugger/";
 	private static String currentDebuggerUUID = "";
 	private static Engine engine              = buildEngine();
 
@@ -160,7 +160,7 @@ public abstract class ContextFactory {
 
 	private static Context buildPythonContext(final ActionContext actionContext, final GraphObject entity) {
 		Context ctx = pythonBuilder.build();
-		ctx.eval("python", "import site");
+		//ctx.eval("python", "import site");
 
 		return updateBindings(ctx, "python", actionContext, entity);
 	}
