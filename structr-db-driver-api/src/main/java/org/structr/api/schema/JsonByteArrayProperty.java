@@ -16,29 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.net.common;
-
-import org.structr.net.PeerListener;
-import org.structr.net.peer.PeerInfo;
-import org.structr.net.protocol.AbstractMessage;
+package org.structr.api.schema;
 
 /**
- * A simple Listener implementation that prints to the standard output.
+ *
+ *
  */
-public class PrintListener implements PeerListener {
-
-	@Override
-	public void onMessage(AbstractMessage message) {
-		System.out.println(message);
-	}
-
-	@Override
-	public void onAddPeer(PeerInfo peer) {
-		System.out.println("ADD:    " + peer);
-	}
-
-	@Override
-	public void onRemovePeer(PeerInfo peer) {
-		System.out.println("REMOVE: " + peer);
-	}
+public interface JsonByteArrayProperty extends JsonProperty {
 }

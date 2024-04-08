@@ -16,12 +16,16 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.structr.net.protocol;
+package org.structr.core.script;
 
-/**
- *
- */
-public interface Callback {
+import org.structr.common.error.AssertException;
 
-	public void callback(final AbstractMessage message);
+public class AlreadyLoggedAssertException extends AssertException {
+    public AlreadyLoggedAssertException(final String message, final int statusCode) {
+        super(message, statusCode);
+    }
+
+    public AlreadyLoggedAssertException(final AssertException ex) {
+        super(ex.getMessage(), ex.getStatus());
+    }
 }

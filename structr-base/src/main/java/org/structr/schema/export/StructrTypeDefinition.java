@@ -602,6 +602,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	}
 
 	@Override
+	public JsonByteArrayProperty addByteArrayProperty(final String name, final String... views) {
+
+		final StructrByteArrayProperty byteArrayProperty = new StructrByteArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(byteArrayProperty);
+
+		return byteArrayProperty;
+	}
+
+	@Override
 	public JsonScriptProperty addScriptProperty(final String name, final String... views) {
 
 		final StructrScriptProperty scriptProperty = new StructrScriptProperty(this, name);

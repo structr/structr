@@ -2611,7 +2611,8 @@ input.tree-search-input {
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
 
-/* BEGIN: Show title of dialog box in schema edit dialogs */
+/* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
+.show-dialog-title .dialogTitle,
 .schema-edit-dialog:not(.global-methods-dialog) .dialogTitle {
 	color: black;
 	font-size: 1rem;
@@ -2620,7 +2621,6 @@ input.tree-search-input {
 }
 /* END: Show title of dialog box in schema edit dialogs */
 
-/**/
 .dialog.run-global-schema-method-dialog .dialogText {
 	display: flex;
 	flex-direction: column;

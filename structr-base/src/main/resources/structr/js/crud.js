@@ -322,7 +322,7 @@ let _Crud = {
 				_Crud.updateRecentTypeList(_Crud.type);
 
 				Structr.resize();
-				Structr.mainMenu.unblock();
+				Structr.mainMenu.unblock(100);
 			});
 		});
 

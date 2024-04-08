@@ -84,6 +84,7 @@ public class SchemaTest extends StructrTest {
 			customer.addLongArrayProperty("longArray", "public", "ui").setMinimum(1, true).setMaximum(101, true);
 			customer.addDoubleArrayProperty("doubleArray", "public", "ui").setMinimum(2.0, true).setMaximum(102.0, true);
 			customer.addBooleanArrayProperty("booleanArray", "public", "ui");
+			customer.addByteArrayProperty("byteArray", "public", "ui");
 
 			final String schema = sourceSchema.toString();
 
@@ -142,34 +143,36 @@ public class SchemaTest extends StructrTest {
 			mapPathValue(map, "definitions.Customer.properties.stringArray.items.type",             "string");
 			mapPathValue(map, "definitions.Customer.views.public.0",                                "birthday");
 			mapPathValue(map, "definitions.Customer.views.public.1",                                "booleanArray");
-			mapPathValue(map, "definitions.Customer.views.public.2",                                "city");
-			mapPathValue(map, "definitions.Customer.views.public.3",                                "count");
-			mapPathValue(map, "definitions.Customer.views.public.4",                                "description");
-			mapPathValue(map, "definitions.Customer.views.public.5",                                "displayName");
-			mapPathValue(map, "definitions.Customer.views.public.6",                                "doubleArray");
-			mapPathValue(map, "definitions.Customer.views.public.7",                                "intArray");
-			mapPathValue(map, "definitions.Customer.views.public.8",                                "isCustomer");
-			mapPathValue(map, "definitions.Customer.views.public.9",                                "longArray");
-			mapPathValue(map, "definitions.Customer.views.public.10",                               "loong");
-			mapPathValue(map, "definitions.Customer.views.public.11",                               "name");
-			mapPathValue(map, "definitions.Customer.views.public.12",                               "number");
-			mapPathValue(map, "definitions.Customer.views.public.13",                               "status");
-			mapPathValue(map, "definitions.Customer.views.public.14",                               "street");
+			mapPathValue(map, "definitions.Customer.views.public.2",                                "byteArray");
+			mapPathValue(map, "definitions.Customer.views.public.3",                                "city");
+			mapPathValue(map, "definitions.Customer.views.public.4",                                "count");
+			mapPathValue(map, "definitions.Customer.views.public.5",                                "description");
+			mapPathValue(map, "definitions.Customer.views.public.6",                                "displayName");
+			mapPathValue(map, "definitions.Customer.views.public.7",                                "doubleArray");
+			mapPathValue(map, "definitions.Customer.views.public.8",                                "intArray");
+			mapPathValue(map, "definitions.Customer.views.public.9",                                "isCustomer");
+			mapPathValue(map, "definitions.Customer.views.public.10",                                "longArray");
+			mapPathValue(map, "definitions.Customer.views.public.11",                               "loong");
+			mapPathValue(map, "definitions.Customer.views.public.12",                               "name");
+			mapPathValue(map, "definitions.Customer.views.public.13",                               "number");
+			mapPathValue(map, "definitions.Customer.views.public.14",                               "status");
+			mapPathValue(map, "definitions.Customer.views.public.15",                               "street");
 			mapPathValue(map, "definitions.Customer.views.ui.0",                                    "birthday");
 			mapPathValue(map, "definitions.Customer.views.ui.1",                                    "booleanArray");
-			mapPathValue(map, "definitions.Customer.views.ui.2",                                    "city");
-			mapPathValue(map, "definitions.Customer.views.ui.3",                                    "count");
-			mapPathValue(map, "definitions.Customer.views.ui.4",                                    "description");
-			mapPathValue(map, "definitions.Customer.views.ui.5",                                    "displayName");
-			mapPathValue(map, "definitions.Customer.views.ui.6",                                    "doubleArray");
-			mapPathValue(map, "definitions.Customer.views.ui.7",                                    "intArray");
-			mapPathValue(map, "definitions.Customer.views.ui.8",                                    "isCustomer");
-			mapPathValue(map, "definitions.Customer.views.ui.9",                                    "longArray");
-			mapPathValue(map, "definitions.Customer.views.ui.10",                                   "loong");
-			mapPathValue(map, "definitions.Customer.views.ui.11",                                   "name");
-			mapPathValue(map, "definitions.Customer.views.ui.12",                                   "number");
-			mapPathValue(map, "definitions.Customer.views.ui.13",                                   "status");
-			mapPathValue(map, "definitions.Customer.views.ui.14",                                   "street");
+			mapPathValue(map, "definitions.Customer.views.ui.2",                                    "byteArray");
+			mapPathValue(map, "definitions.Customer.views.ui.3",                                    "city");
+			mapPathValue(map, "definitions.Customer.views.ui.4",                                    "count");
+			mapPathValue(map, "definitions.Customer.views.ui.5",                                    "description");
+			mapPathValue(map, "definitions.Customer.views.ui.6",                                    "displayName");
+			mapPathValue(map, "definitions.Customer.views.ui.7",                                    "doubleArray");
+			mapPathValue(map, "definitions.Customer.views.ui.8",                                    "intArray");
+			mapPathValue(map, "definitions.Customer.views.ui.9",                                    "isCustomer");
+			mapPathValue(map, "definitions.Customer.views.ui.10",                                    "longArray");
+			mapPathValue(map, "definitions.Customer.views.ui.11",                                   "loong");
+			mapPathValue(map, "definitions.Customer.views.ui.12",                                   "name");
+			mapPathValue(map, "definitions.Customer.views.ui.13",                                   "number");
+			mapPathValue(map, "definitions.Customer.views.ui.14",                                   "status");
+			mapPathValue(map, "definitions.Customer.views.ui.15",                                   "street");
 
 			// advanced: test schema roundtrip
 			compareSchemaRoundtrip(sourceSchema);
@@ -1124,7 +1127,7 @@ public class SchemaTest extends StructrTest {
 				System.out.println(app.nodeQuery(SchemaNode.class).andName("Extended1").getFirst().getGeneratedSourceCode(securityContext));
 
 			} catch (UnlicensedTypeException ex) {
-				java.util.logging.Logger.getLogger(SchemaTest.class.getName()).log(Level.SEVERE, null, ex);
+				logger.error("Caught UnlicensedTypeException: ", ex);
 			}
 
 			assertNotNull("Base type schema node not found", base);

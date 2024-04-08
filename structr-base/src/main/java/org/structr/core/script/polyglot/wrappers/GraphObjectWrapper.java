@@ -235,6 +235,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (node != null) {
 
+				// Special handling for grant-Function
+				if (key.equals("grant")) {
+					return true;
+				}
+
 				final Class type = node.getClass();
 
 				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);

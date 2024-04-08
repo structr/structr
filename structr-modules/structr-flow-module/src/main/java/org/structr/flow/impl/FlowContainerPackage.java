@@ -93,7 +93,7 @@ public class FlowContainerPackage extends AbstractNode implements DeployableEnti
 
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) {
 		deleteChildren();
 	}
 
