@@ -98,7 +98,7 @@ public abstract class AbstractNode implements NodeInterface, AccessControllable 
 	}
 
 	@Override
-	public void onNodeDeletion() {
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
 	}
 
 	@Override

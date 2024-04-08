@@ -597,6 +597,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 										case "date":
 											newProperty = new StructrDateArrayProperty(parent, name);
 											break;
+
+										case "Byte[]":
+											newProperty = new StructrByteArrayProperty(parent, name);
+											break;
+
 									}
 								}
 							}

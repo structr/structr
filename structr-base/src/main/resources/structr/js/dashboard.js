@@ -1117,46 +1117,34 @@ let _Dashboard = {
 			onShow: async () => {},
 			onHide: async () => {},
 			init: (templateConfig) => {
-				_Dashboard.tabs['ui-config'].showMainMenuConfiguration(templateConfig.envInfo.mainMenu);
+				_Dashboard.tabs['ui-config'].showMainMenuConfiguration();
 				_Dashboard.tabs['ui-config'].showConfigurableSettings();
 				_Dashboard.tabs['ui-config'].handleResetConfiguration(templateConfig.meObj.id);
 			},
 
-			showMainMenuConfiguration: (defaultMainMenu) => {
+			showMainMenuConfiguration: () => {
 
-				let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-				if (!userConfigMenu) {
-					userConfigMenu = {
-						main: defaultMainMenu,
-						sub: []
-					};
-				}
+				let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
 				let mainMenuConfigContainer = document.querySelector('#main-menu-entries-config');
 				let subMenuConfigContainer  = document.querySelector('#sub-menu-entries-config');
 
 				for (let menuitem of document.querySelectorAll('#menu li[data-name]')) {
 
-					// only show menu items that are allowed in the current configuration
-					if (Structr.availableMenuItems.includes(menuitem.dataset.name)) {
-
-						// account for missing modules because of license
-						if (menuitem.style.display !== 'none') {
-							let n = document.createElement('div');
-							n.classList.add('menu-item');
-							n.textContent = menuitem.dataset.name;
-							n.dataset.name = menuitem.dataset.name;
-							subMenuConfigContainer.appendChild(n);
-						}
+					// account for missing modules because of license
+					if (menuitem.style.display !== 'none') {
+						let n = document.createElement('div');
+						n.classList.add('menu-item');
+						n.textContent = menuitem.dataset.name;
+						n.dataset.name = menuitem.dataset.name;
+						subMenuConfigContainer.appendChild(n);
 					}
 				}
 
 				for (let mainMenuItem of userConfigMenu.main) {
-					if (Structr.availableMenuItems.includes(mainMenuItem)) {
-						let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
-						if (child) {
-							mainMenuConfigContainer.appendChild(child);
-						}
+					let child = subMenuConfigContainer.querySelector('div[data-name="' + mainMenuItem + '"]');
+					if (child) {
+						mainMenuConfigContainer.appendChild(child);
 					}
 				}
 
