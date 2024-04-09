@@ -107,58 +107,36 @@
 	border-collapse: collapse;
 }
 
-#methods-container {
-	display: flex;
-}
-
 #methods-container-left {
-	flex-basis: 28%;
+	flex-basis: 26%;
 	flex-shrink: 0;
 	margin-right: 6px;
 	overflow-y: auto;
 }
 
-#methods-container-right {
-	flex-grow: 1;
-}
-
-#methods-container.global .add-onCreate-button,
-#methods-container.global .add-afterCreate-button,
-#methods-container.global .add-onSave-button {
-	display: none;
-}
-
-.actions.schema-props th:last-of-type {
-	width: 40px;
-}
-
-.actions.schema-props .fake-tr.editing {
+.actions.schema-props .schema-grid-row.editing > div {
 	background: var(--very-light-structr-green);
 }
 
-.related-attrs.schema-props th:first-of-type {
-	min-width: 30%;
+.related-attrs .no-rels {
+	text-align: center;
+	color: grey;
+	font-style: italic;
+	padding-top: 5px;
+	padding-bottom: 6px;
 }
 
-.related-attrs.schema-props th:last-of-type {
-	width: 8%;
-}
-
-.related-attrs.schema-props th {
-	min-width: 30%;
-}
-
-.schema-props.related-attrs td {
-	padding: 3px 4px 1px 4px;
+.related-attrs .relationship-arrow {
+	margin: 1px -1px 0 -1px;
 }
 
 .related-attrs .cardinality {
 	font-style: initial;
 	font-weight: bold;
 	position: relative;
-	right: 3px;
-	margin-right: -7px;
-	vertical-align: sub;
+	right: -0.75ch;
+	width: 0;
+	top: -1ch;
 }
 
 .related-attrs .cardinality.one::before {
@@ -173,16 +151,30 @@
 	content: '*';
 }
 
-.related-attrs .cardinality.many {
-	top: -8px;
+.related-attrs .truncate.break-on-hover:hover {
+	/* undo truncate and add line break */
+	overflow: initial;
+	text-overflow: initial;
+	white-space: normal;
+	line-break: anywhere;
 }
 
-.related-attrs td.no-rels {
-	text-align: center;
-	color: grey;
-	font-style: italic;
-	padding-top: 5px;
-	padding-bottom: 6px;
+.squarebrackets:after,
+.squarebrackets:before {
+	position: absolute;
+	content: '';
+	border: .125rem solid;
+	top: 0;
+	bottom: 0;
+	width: .25rem;
+}
+.squarebrackets:after {
+	border-left: none;
+	right: 0;
+}
+.squarebrackets:before {
+	border-right: none;
+	left: 0;
 }
 
 #schema-graph .label {
@@ -225,10 +217,7 @@
 .schema-props .property-dbname:hover,
 .schema-props .property-format:hover,
 .schema-props .property-default:hover,
-.schema-details .property-code:hover,
-.schema-details .property-comment:hover,
-.schema-details .localization-locale:hover,
-.schema-details .localization-name:hover {
+.schema-details .property-code:hover {
 	cursor: text;
 	color: var(--gray-222);
 	background-color: var(--very-very-light-yellow);
@@ -241,7 +230,7 @@
 	background-color: var(--very-very-light-yellow);
 }
 
-.schema-edit-dialog .edit-schema-object, #code-main .edit-schema-object {
+.schema-details .edit-schema-object span {
 	border-bottom: .1rem dashed var(--gray-999);
 }
 
@@ -261,10 +250,6 @@
 
 .sliderLabel {
 	padding-top: 10px;
-}
-
-.schema-details th {
-	padding: 2px 4px;
 }
 
 .schema b {
