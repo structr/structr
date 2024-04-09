@@ -3284,15 +3284,6 @@ let _Code = {
 			<div id="all-types" style="position: relative; width: 100%; height: 98%;">
 			</div>
 		`,
-		schemaGrantsRow: config => `
-			<tr data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
-				<td>${config.name}</td>
-				<td class="centered"><input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')}/></td>
-				<td class="centered"><input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')}/></td>
-			</tr>
-		`,
 		stringProperty: config => `
 			<h2>StringProperty ${config.property.schemaNode.name}.${config.property.name}</h2>
 			<div id="property-buttons"></div>
