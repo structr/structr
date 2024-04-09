@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,11 +19,7 @@
 package org.structr.core.script;
 
 import org.apache.commons.lang3.StringUtils;
-import org.graalvm.polyglot.Context;
-import org.graalvm.polyglot.PolyglotException;
-import org.graalvm.polyglot.Source;
-import org.graalvm.polyglot.SourceSection;
-import org.graalvm.polyglot.Value;
+import org.graalvm.polyglot.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
@@ -292,7 +288,16 @@ public class Scripting {
 
 					if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
-						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+						// Only report error, if exception is not an already logged AssertException
+						if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+							reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+						}
+
+						// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+						if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+							throw new AlreadyLoggedAssertException(ae);
+						}
+
 						// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 						if (ex.asHostException().getCause() instanceof FrameworkException) {
 							throw ex.asHostException().getCause();
@@ -356,8 +361,6 @@ public class Scripting {
 
 			context.enter();
 
-			final StringBuilder wrappedScript = new StringBuilder();
-
 			// Clear output buffer
 			actionContext.clear();
 
@@ -367,33 +370,40 @@ public class Scripting {
 				actionContext.getErrorBuffer().setStatus(0);
 			}
 
-			switch (engineName) {
-				case "R":
-					wrappedScript.append("main <- function() {");
-					wrappedScript.append(snippet.getSource());
-					wrappedScript.append("}\n");
-					break;
-				case "python":
-					// Prepend tabs
-					final String tabPrependedScript = Arrays.stream(snippet.getSource().trim().split("\n")).map(line -> "	" + line).collect(Collectors.joining("\n"));
-					wrappedScript.append("def main():\n");
-					wrappedScript.append(tabPrependedScript);
-					wrappedScript.append("\n");
-					break;
-			}
-
-			context.eval(engineName, wrappedScript.toString());
 			Object result = null;
 
 			try {
 
-				result = PolyglotWrapper.unwrap(actionContext, context.getBindings(engineName).getMember("main").execute());
+				Source source = sourceCache.get(snippet.getSource());
+
+				if (source == null) {
+
+					source = Source.newBuilder(engineName, snippet.getSource(), snippet.getName()).build();
+
+					// store in cache
+					sourceCache.put(snippet.getSource(), source);
+				}
+
+				final Value value = context.eval(source);
+
+				result = PolyglotWrapper.unwrap(actionContext, value);
 
 			} catch (PolyglotException ex) {
 
 				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
 
 					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+
+					// Only report error, if exception is not an already logged AssertException
+					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+					}
+
+					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+						throw new AlreadyLoggedAssertException(ae);
+					}
+
 					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
 					if (ex.asHostException().getCause() instanceof FrameworkException) {
 						throw ex.asHostException().getCause();
@@ -694,16 +704,17 @@ public class Scripting {
 			endColumnNumber = location.getEndColumn();
 		}
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet);
+		boolean broadcastToAdminUI =  !(ex.isHostException() && (ex.asHostException() instanceof AssertException));
+
+		reportError(securityContext, entity, message, lineNumber, columnNumber, endLineNumber, endColumnNumber, snippet, broadcastToAdminUI);
 	}
 
 	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final Snippet snippet) throws FrameworkException {
 
-		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet);
-
+		reportError(securityContext, entity, message, lineNumber, columnNumber, lineNumber, columnNumber, snippet, true);
 	}
 
-	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet) throws FrameworkException {
+	private static void reportError(final SecurityContext securityContext, final GraphObject entity, final String message, final int lineNumber, final int columnNumber, final int endLineNumber, final int endColumnNumber, final Snippet snippet, final boolean broadcastToAdminUI) throws FrameworkException {
 
 		final String entityName               = snippet.getName();
 		final String entityDescription        = (StringUtils.isNotBlank(entityName) ? "\"" + entityName + "\":" : "" ) + snippet.getCodeSource();
@@ -794,7 +805,10 @@ public class Scripting {
 
 		RuntimeEventLog.scripting(errorName, eventData);
 
-		TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
+		if (broadcastToAdminUI == true) {
+
+			TransactionCommand.simpleBroadcastGenericMessage(messageData, Predicate.only(securityContext.getSessionId()));
+		}
 
 		exceptionPrefix.append(snippet.getName()).append(":").append(lineNumber).append(":").append(columnNumber);
 

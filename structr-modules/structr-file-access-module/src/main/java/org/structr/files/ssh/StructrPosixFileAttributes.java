@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Group;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -172,7 +172,7 @@ public class StructrPosixFileAttributes implements PosixFileAttributes {
 		long size = 0;
 
 		try (Tx tx = StructrApp.getInstance().tx()) {
-			size = FileUtils.getSize(((File)file).getFileOnDisk());
+			size = StorageProviderFactory.getStorageProvider(file).size();
 			tx.success();
 		} catch (FrameworkException fex) {
 			logger.error("", fex);

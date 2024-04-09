@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -43,7 +43,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.Person;
 import org.structr.core.entity.Principal;
 import org.structr.core.graph.Tx;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
 import java.io.BufferedInputStream;
@@ -187,12 +187,6 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 									tokenizer.write(eMail);
 								}
-
-								final String twitterName = _owner.getProperty(StructrApp.key(Person.class, "twitterName"));
-								if (twitterName != null) {
-
-									tokenizer.write(twitterName);
-								}
 							}
 
 							// index document excluding stop words
@@ -249,7 +243,7 @@ public class FulltextIndexingAgent extends Agent<String> {
 
 		} catch (final Throwable t) {
 
-			logger.warn("Indexing of {} failed: {}", fileName, t.getMessage());
+			logger.warn("Indexing of {} failed: {}", indexable.getProperty(StructrApp.key(File.class, "path")), t.getMessage());
 
 			return false;
 		}
@@ -314,18 +308,13 @@ public class FulltextIndexingAgent extends Agent<String> {
 		if (indexable instanceof File) {
 
 			final File file     = (File)indexable;
-			final Long fileSize = FileUtils.getSize(file.getFileOnDisk());
+			final Long fileSize = StorageProviderFactory.getStorageProvider(file).size();
 
 			if (fileSize != null) {
 
 				return fileSize;
 			}
 
-			final java.io.File fileOnDisk = file.getFileOnDisk(false);
-			if (fileOnDisk != null) {
-
-				return fileOnDisk.length();
-			}
 		}
 
 		return -1L;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -109,6 +109,7 @@ public interface JsonType extends Comparable<JsonType> {
 	JsonLongArrayProperty addLongArrayProperty(final String name, final String... views);
 	JsonNumberArrayProperty addDoubleArrayProperty(final String name, final String... views);
 	JsonBooleanArrayProperty addBooleanArrayProperty(final String name, final String... views);
+	JsonByteArrayProperty addByteArrayProperty(final String name, final String... views);
 
 	JsonReferenceProperty addReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);
 	JsonReferenceProperty addIdReferenceProperty(final String name, final JsonReferenceProperty referencedProperty, final String... views);

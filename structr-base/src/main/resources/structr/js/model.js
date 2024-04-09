@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -19,9 +19,7 @@
 let StructrModel = {
 	objects: {},
 	callbacks: {},
-	obj: function(id) {
-		return StructrModel.objects[id];
-	},
+	obj: (id) => StructrModel.objects[id],
 
 	ensureObject: function(entity) {
 		if (!entity || entity.id === undefined) {
@@ -245,15 +243,11 @@ let StructrModel = {
 
 		if (obj && data.modifiedProperties && data.modifiedProperties.length) {
 
-			let refreshObj = function(obj, newProperties) {
-				Object.keys(newProperties).forEach(k => {
-					obj[k] = newProperties[k];
-				});
-				StructrModel.refresh(obj.id);
-			};
+			let callback = (newProperties) => {
 
-			let callback = function(newProperties) {
-				refreshObj(obj, newProperties);
+				Object.assign(obj, newProperties);
+				StructrModel.refresh(obj.id);
+
 				StructrModel.callCallback(data.callback, obj);
 			};
 
@@ -341,21 +335,6 @@ let StructrModel = {
 						attrElement.html('&nbsp;');
 					}
 				}
-
-				if (key === 'position') {
-
-					attrElement.text(newValue);
-				}
-			}
-		}
-
-		if (key === 'name') {
-
-			if (Structr.getClass(element) === 'folder') {
-
-				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshNode(id, newValue);
-				}
 			}
 		}
 	},
@@ -368,6 +347,9 @@ let StructrModel = {
 		let obj = StructrModel.obj(id);
 
 		if (obj) {
+
+			// let current module handle update (if it wants to)
+			Structr.getActiveModule().handleNodeRefresh?.(obj);
 
 			let element = Structr.node(id);
 
@@ -431,12 +413,6 @@ let StructrModel = {
 					if (row.length) {
 						$('td.size', row).text(_Helpers.formatBytes(obj.size, 0));
 					}
-				}
-
-			} else if (element.hasClass('folder')) {
-
-				if (Structr.isModuleActive(_Files)) {
-					_Files.refreshNode(id, obj.name);
 				}
 			}
 
@@ -539,6 +515,9 @@ StructrFolder.prototype.setProperty = function(key, value, recursive, callback) 
 };
 
 StructrFolder.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrFolder.prototype.append = function() {
@@ -570,6 +549,9 @@ StructrFile.prototype.setProperty = function(key, value, recursive, callback) {
 };
 
 StructrFile.prototype.remove = function() {
+	if (Structr.isModuleActive(_Files)) {
+		_Files.fileOrFolderDeletionNotification(this);
+	}
 };
 
 StructrFile.prototype.append = function() {
@@ -880,13 +862,10 @@ StructrElement.prototype.remove = function() {
 		}
 
 		if (element) {
-			// If element is removed from page tree, reload elements area
-			if (element.closest('#pages').length) {
-				_Pages.unattachedNodes.reload();
-			} else {
-				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
-				_Pages.previews.modelForPageUpdated(pageId);
-			}
+
+			// reload the unused elements (if open)
+			_Pages.unattachedNodes.reload();
+
 			_Helpers.fastRemoveElement(element[0]);
 		}
 
@@ -916,12 +895,10 @@ StructrElement.prototype.append = function(refId) {
 
 StructrElement.prototype.exists = function() {
 
-	var obj = this;
-
-	var hasChildren = obj.childrenIds && obj.childrenIds.length;
-	var isComponent = obj.syncedNodesIds && obj.syncedNodesIds.length;
-
-	var isMasterComponent = (isComponent && hasChildren);
+	let obj               = this;
+	let hasChildren       = obj.childrenIds && obj.childrenIds.length;
+	let isComponent       = obj.syncedNodesIds && obj.syncedNodesIds.length;
+	let isMasterComponent = (isComponent && hasChildren);
 
 	return !isMasterComponent && Structr.node(obj.id);
 };
@@ -987,13 +964,10 @@ StructrContent.prototype.remove = function() {
 		}
 
 		if (element) {
-			// If element is removed from page tree, reload elements area
-			if (element.closest('#pages').length) {
-				_Pages.unattachedNodes.reload();
-			} else {
-				let pageId = Structr.getIdFromPrefixIdString(element.closest('.page').id, 'id_');
-				_Pages.previews.modelForPageUpdated(pageId);
-			}
+
+			// reload the unused elements (if open)
+			_Pages.unattachedNodes.reload();
+
 			_Helpers.fastRemoveElement(element[0]);
 		}
 

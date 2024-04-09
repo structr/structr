@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -142,7 +142,7 @@ public class TemplateImporter extends HtmlFileImporter {
 		final String templateName = StringUtils.substringBeforeLast(fileName, ".html");
 
 		// either the template was exported with name + uuid or just the uuid
-		final boolean byNameAndId = DeployCommand.endsWithUuid(templateName);
+		final boolean byNameAndId = (DeployCommand.getUuidOrNullFromEndOfString(templateName) != null);
 		final boolean byId        = DeployCommand.isUuid(templateName);
 
 		try (final Tx tx = app.tx(true, false, false)) {
@@ -176,8 +176,8 @@ public class TemplateImporter extends HtmlFileImporter {
 				} else if (byNameAndId) {
 
 					// the last characters in the name string are the uuid
-					final String uuid = templateName.substring(templateName.length() - 32);
-					final String name = templateName.substring(0, templateName.length() - 33);
+					final String uuid = DeployCommand.getUuidOrNullFromEndOfString(templateName);
+					final String name = templateName.substring(0, templateName.length() - uuid.length() - 1);	// cut off uuid plus the dash
 
 					logger.info("Importing template {} from {}..", new Object[] { name, fileName } );
 

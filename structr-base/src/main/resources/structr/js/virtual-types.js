@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -208,7 +208,7 @@ let _VirtualTypes = {
 		});
 
 		_Elements.contextMenu.enableContextMenuOnElement(row[0], virtualType);
-		_Entities.appendContextMenuIcon($('.icons-container', row), virtualType, true);
+		_Entities.appendContextMenuIcon(row[0].querySelector('.icons-container'), virtualType, true);
 
 		let previouslySelectedElement = LSWrapper.getItem(_VirtualTypes.virtualTypeSelectedElementKey);
 		if (previouslySelectedElement && previouslySelectedElement === virtualType.id) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,7 +35,6 @@ let _Flows = {
 	flowsResizerLeftKey: 'structrFlowsResizerLeftKey_' + location.port,
 	init: () => {
 
-		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
 	resize: () => {
@@ -243,12 +242,16 @@ let _Flows = {
 								newFlow.name = 'NewFlow-' + newFlow.id;
 
 								newFlow = (await persistence.getNodesById(newFlow.id, {type: "FlowContainer"}))[0];
-								_Flows.refreshTree(() => {
-									$(flowsTree).jstree("deselect_all");
-									$(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
-									_Flows.initFlow(newFlow.id);
-								});
 
+								// wait a tiny amount of time - otherwise "effectiveName" will be null upon refreshing the objects
+								window.setTimeout(() => {
+
+									_Flows.refreshTree(() => {
+										$(flowsTree).jstree("deselect_all");
+										$(flowsTree).jstree(true).select_node('li[id=\"' + newFlow.id + '\"]');
+										_Flows.initFlow(newFlow.id);
+									});
+								}, 50);
 							}
 						};
 						menuItems.addPackage = {
@@ -505,6 +508,12 @@ let _Flows = {
 
 	},
 	unload: () => {
+
+		if (flowEditor !== undefined && flowEditor !== null && flowEditor.cleanup !== undefined) {
+			flowEditor.cleanup();
+			flowEditor = undefined;
+		}
+
 		_Helpers.fastRemoveAllChildren(document.querySelector('#main .searchBox'));
 		_Helpers.fastRemoveAllChildren(document.querySelector('#main #flows-main'));
 	},
@@ -556,9 +565,7 @@ let _Flows = {
 			}
 
 			return listRoot;
-
 		};
-
 
 		let displayFunctionPackage = function(result) {
 

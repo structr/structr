@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.DatabaseService;
 import org.structr.api.config.Settings;
 import org.structr.common.AccessMode;
 import org.structr.common.SecurityContext;
@@ -41,14 +42,13 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.schema.SchemaService;
-import org.testng.annotations.*;
 import org.testng.annotations.Optional;
+import org.testng.annotations.*;
 
 import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
-import org.structr.api.DatabaseService;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -391,7 +391,7 @@ public class StructrTest {
 		// use database driver from system property, default to MemoryDatabaseService
 		Settings.DatabaseDriver.setValue(System.getProperty("testDatabaseDriver", Settings.DEFAULT_REMOTE_DATABASE_DRIVER));
 		Settings.ConnectionUser.setValue("neo4j");
-		Settings.ConnectionPassword.setValue("admin");
+		Settings.ConnectionPassword.setValue("admin123");
 		if (StringUtils.isBlank(testDatabaseConnection)) {
 			Settings.ConnectionUrl.setValue(Settings.TestingConnectionUrl.getValue());
 		} else {

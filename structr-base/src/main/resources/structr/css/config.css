@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -72,6 +72,15 @@
 	top: 4rem;
 }
 
+#main.no-search-results::before {
+	content: "- No search results -";
+	font-style: italic;
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	z-index: 1;
+}
+
 body {
 	min-width: initial ! important;
 }
@@ -109,18 +118,14 @@ form.config-form div.buttons input[type=reset] {
 }
 
 .default-action {
-	background-color: #81ce25;
+	background-color: var(--config-structr-green);
 }
 
 .config-group h1 {
 	margin: .5em 0 0 0;
 }
 
-.form-group {
-}
-
 .form-group span {
-	display: inline-block;
 	margin: 0 1rem 0 .25rem;
 }
 
@@ -188,7 +193,7 @@ button.toggle-option.active::after {
 }
 
 li.search-matches.active {
-	background: #81ce25;
+	background: var(--config-structr-green);
 }
 
 li.search-matches {
@@ -196,35 +201,33 @@ li.search-matches {
 }
 
 label.search-matches {
-    color: #81ce25;
+    color: var(--config-structr-green);
 }
 
-label span.search-matches {
-    background: #81ce25;
-    border-radius: 12px;
-    padding-right: 3px;
-    padding-bottom: 1px;
+label span.search-matches > svg {
+    background: var(--config-structr-green);
+    border-radius: 1rem;
 }
 
 input.search-matches {
-    border: 2px solid #81ce25;
+    border: 2px solid var(--config-structr-green);
 }
 
 button.search-matches {
-    border: 1px solid #81ce25 !important;
-    color: #81ce25;
+    border: 1px solid var(--config-structr-green) !important;
+    color: var(--config-structr-green);
 }
 
 select.search-matches {
-    border: 2px solid #81ce25;
+    border: 2px solid var(--config-structr-green);
 }
 
 select option.search-matches {
-	color: #81ce25;
+	color: var(--config-structr-green);
 }
 
 td.search-matches {
-	color: #81ce25;
+	color: var(--config-structr-green);
 	font-weight: bold;
 }
 
@@ -246,7 +249,7 @@ h2 {
 div.connection {
 	float: left;
 	margin: 1em 2em 2em 0;
-	background-color: #fff;
+	background-color: var(--solid-white);
 	min-width: 24rem;
 	min-height: 24rem;
 	padding: 1em 1.5em;
@@ -254,7 +257,7 @@ div.connection {
 }
 
 div.connection.active {
-	border: 1px solid #81ce25;
+	border: 1px solid var(--config-structr-green);
 }
 
 div.connection.new-connection {

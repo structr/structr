@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,8 @@ public class GetMetadataProcess extends AbstractProcess<Map<String, String>> {
 		StringBuilder commandLine = new StringBuilder("avconv -y -loglevel quiet -i ");
 
 		// build command line from builder options
-		commandLine.append(inputVideo.getDiskFilePath(securityContext));
+		// Todo: Fix for fs abstraction
+		//commandLine.append(inputVideo.getDiskFilePath(securityContext));
 		commandLine.append(" -f ffmetadata -");
 
 		return commandLine;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,6 +33,8 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.testng.annotations.Test;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
@@ -280,7 +282,8 @@ public class SSHFilesTest extends SSHTest {
 
 			try (final OutputStream os = sftp.put("/files/dir1/" + name1)) {
 
-				IOUtils.write(testContent1, os);
+				ByteArrayInputStream is = new ByteArrayInputStream(testContent1.getBytes());
+				IOUtils.copy(is, os);
 				os.flush();
 
 			} catch (IOException ioex) {

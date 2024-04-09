@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -153,6 +153,11 @@ public class StructrFilesystem extends FileSystem {
 		// (should increase performance of repeated evaulations of the same path)
 		lastFullPath = fullPath;
 		last = path;
+
+		if (path == null) {
+			
+			path = root;
+		}
 
 		return path;
 	}

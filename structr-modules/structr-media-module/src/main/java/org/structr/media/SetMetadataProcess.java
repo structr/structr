@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,7 +59,8 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 
 		super(securityContext);
 
-		this.outputFileName = inputVideo.getDiskFilePath(securityContext);
+		// Todo: Fix for fs abstraction
+		//this.outputFileName = inputVideo.getDiskFilePath(securityContext);
 		this.inputVideo     = inputVideo;
 
 		this.metadata.putAll(values);
@@ -85,10 +86,10 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 		}
 
 		final StringBuilder commandLine = new StringBuilder("avconv -y -i ");
-		final String diskFilePath       = inputVideo.getDiskFilePath(securityContext);
+		//final String diskFilePath       = inputVideo.getDiskFilePath(securityContext);
 
 		// build command line from builder options
-		commandLine.append(diskFilePath);
+		//commandLine.append(diskFilePath);
 
 		for (final Entry<String, String> meta : metadata.entrySet()) {
 
@@ -105,7 +106,7 @@ public class SetMetadataProcess extends AbstractProcess<Void> {
 		}
 
 		commandLine.append(" -codec copy ");
-		commandLine.append(diskFilePath);
+		//commandLine.append(diskFilePath);
 
 		if (!fileExtension.isEmpty()) {
 			commandLine.append(".");

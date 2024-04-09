@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -86,6 +86,7 @@ let _Icons = {
 	iconSchemaMethods:           'code-icon',
 	iconSchemaNodeSchemaMethod:  'circle-empty',
 	iconSchemaNodeStaticMethod:  'static-method',
+	iconSchemaNodeLifecycleMethod: 'lifecycle-method',
 	iconSchemaNodeJavaMethod:    'circle-empty',
 	iconSchemaViews:             'tv-icon',
 	iconSchemaView:              'view-icon',
@@ -138,7 +139,7 @@ let _Icons = {
 	iconMicrophone:          'microphone-icon',
 	iconNetwork:             'network-icon',
 	iconRefreshArrows:       'refresh-arrows',
-	iconClipboardPencil:     'registration-templates',
+	iconClipboardPencil:     'clipboard-pencil',
 	iconResetArrow:          'reset-arrow',
 	iconPasswordReset:       'reset-password-templates',
 	iconRunButton:           'run_button',
@@ -162,6 +163,7 @@ let _Icons = {
 	iconSuccessGreenFilled:  'success-sign-icon-filled',
 	iconInfoBlueFilled:      'info-sign-icon-filled',
 	iconWaitingSpinner:      'waiting-spinner',
+	iconHistory:             'history',
 
 	getSvgIcon: (href, width = 16, height = 16, optionalClasses, title = '') => {
 		return _Icons.getSvgIconWithID(null, href, width, height, optionalClasses, title);
@@ -373,6 +375,22 @@ let _Icons = {
 			}
 		}
 	},
+	isSchemaMethodALifecycleMethod: (method) => {
+
+		let lifecycleMethodPrefixes = [
+			'onCreate',
+			'afterCreate',
+			'onSave',
+			'afterSave',
+			'onDelete',
+			//'afterDelete',  // this is actually "onDelete" currently, thus no access to $.this in that method
+			'onStructrLogin',
+			'onStructrLogout',
+			'onUpload'
+		];
+
+		return lifecycleMethodPrefixes.some(prefix => method.name.startsWith(prefix));
+	},
 	getIconForSchemaNodeType: (entity) => {
 
 		let icon              = _Icons.iconSchemaNodeDefault;
@@ -383,17 +401,24 @@ let _Icons = {
 			case 'SchemaMethod':
 
 				switch (entity.codeType) {
+
 					case 'java':
 						icon = _Icons.iconSchemaNodeSchemaMethod;
 						additionalClasses.push('icon-red');
 						break;
+
 					default:
+						additionalClasses.push('icon-blue');
+
 						if (entity.isStatic) {
 							icon = _Icons.iconSchemaNodeStaticMethod;
-							additionalClasses.push('icon-blue');
 						} else {
-							icon = _Icons.iconSchemaNodeSchemaMethod;
-							additionalClasses.push('icon-blue');
+							let isLifeCycleMethod = _Icons.isSchemaMethodALifecycleMethod(entity);
+							if (isLifeCycleMethod) {
+								icon = _Icons.iconSchemaNodeLifecycleMethod;
+							} else {
+								icon = _Icons.iconSchemaNodeSchemaMethod;
+							}
 						}
 						break;
 				}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,9 @@ import org.structr.files.ssh.filesystem.path.file.StructrFilePath;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.channels.Channel;
 import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -65,7 +67,7 @@ public abstract class StructrPath implements Path {
 
 	// ----- public abstract methods -----
 	public abstract DirectoryStream<Path> getDirectoryStream(final DirectoryStream.Filter<? super Path> filter);
-	public abstract FileChannel newFileChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException;
+	public abstract SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException;
 	public abstract <T extends BasicFileAttributes> T getAttributes(final Class<T> type, final LinkOption... options) throws IOException;
 	public abstract <V extends FileAttributeView> V getFileAttributeView(final Class<V> type, final LinkOption... options) throws IOException;
 	public abstract Map<String, Object> getAttributes(final String attributes, final LinkOption... options) throws IOException;

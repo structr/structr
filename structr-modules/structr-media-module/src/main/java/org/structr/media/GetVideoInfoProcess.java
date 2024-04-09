@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -33,13 +33,13 @@ import java.util.Map;
 
 public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 
-	private String path = null;
+	private VideoFile videoFile = null;
 
-	public GetVideoInfoProcess(final SecurityContext securityContext, final String path) {
+	public GetVideoInfoProcess(final SecurityContext securityContext, final VideoFile videoFile) {
 
 		super(securityContext);
 
-		this.path = path;
+		this.videoFile = videoFile;
 	}
 
 	@Override
@@ -50,7 +50,8 @@ public class GetVideoInfoProcess extends AbstractProcess<Map<String, Object>> {
 	public StringBuilder getCommandLine() {
 
 		StringBuilder commandLine = new StringBuilder("if [ -x \"$(which avprobe)\" ]; then avprobe -v verbose -show_format -show_streams -of json ");
-		commandLine.append(path);
+		// ToDo: Fix for fs abstraction
+		//commandLine.append(path);
 		commandLine.append("; fi;");
 
 		return commandLine;

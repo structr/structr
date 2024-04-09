@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,6 +26,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.files.ssh.filesystem.StructrFileAttributes;
 import org.structr.files.ssh.filesystem.StructrFilesystem;
 import org.structr.files.ssh.filesystem.StructrPath;
@@ -36,7 +37,7 @@ import org.structr.web.entity.Folder;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.nio.channels.SeekableByteChannel;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.FileAttribute;
@@ -110,10 +111,10 @@ public class StructrFilePath extends StructrPath {
 	}
 
 	@Override
-	public FileChannel newFileChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
+	public SeekableByteChannel newChannel(final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
 
 		AbstractFile actualFile   = getActualFile();
-		FileChannel channel       = null;
+		SeekableByteChannel channel       = null;
 
 		final boolean create      = options.contains(StandardOpenOption.CREATE);
 		final boolean createNew   = options.contains(StandardOpenOption.CREATE_NEW);
@@ -151,8 +152,7 @@ public class StructrFilePath extends StructrPath {
 
 					final File file = (File)actualFile;
 
-					//channel = new StructrFileChannel(file.getOutputStream(true, !truncate || append));
-					channel = file.getOutputStream(true, !truncate || append).getChannel();
+					channel = StorageProviderFactory.getStorageProvider(file).getSeekableByteChannel(options);
 				}
 
 				tx.success();
@@ -168,7 +168,7 @@ public class StructrFilePath extends StructrPath {
 
 				try (final Tx tx = StructrApp.getInstance(fs.getSecurityContext()).tx()) {
 
-					channel = FileChannel.open(((File)actualFile).getFileOnDisk().toPath(), options);
+					channel = StorageProviderFactory.getStorageProvider(actualFile).getSeekableByteChannel(options);
 
 					tx.success();
 
@@ -292,12 +292,6 @@ public class StructrFilePath extends StructrPath {
 					// rename & move (parent is null: root path)
 					thisFile.setParent(null);
 					thisFile.setProperty(AbstractNode.name, targetName);
-
-					// this is a move operation, delete existing file
-					if (otherFile != null) {
-						app.delete(otherFile);
-					}
-
 				} else {
 
 					final StructrFilePath parent  = (StructrFilePath)other.getParent();
@@ -306,11 +300,6 @@ public class StructrFilePath extends StructrPath {
 					// rename & move
 					thisFile.setParent(newParentFolder);
 					thisFile.setProperty(AbstractNode.name, targetName);
-
-					// this is a move operation, delete existing file
-					if (otherFile != null) {
-						app.delete(otherFile);
-					}
 				}
 
 				tx.success();

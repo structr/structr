@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -940,7 +940,7 @@ public class BoltDatabaseService extends AbstractDatabaseService {
 			try {
 
 				final int value = Integer.valueOf(part.trim());
-				versionNumber += value * Math.pow(10, exponent);
+				versionNumber += (long)(value * Math.pow(10, exponent));
 
 			} catch (Throwable t) {}
 

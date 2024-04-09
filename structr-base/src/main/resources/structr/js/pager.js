@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -266,6 +266,8 @@ let Pager = function(id, el, rootOnly, type, view, callback, startPaused = false
 
 		this.pageNo.addEventListener('keypress', (e) => {
 			if (e.keyCode === 13) {
+				// prevent change event from reloading same content
+				this.pageNo.classList.add('disabled');
 				limitPager(this.pageNo);
 			}
 		});

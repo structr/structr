@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.util.Iterables;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.error.FrameworkException;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractRelationship;
@@ -44,7 +45,8 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 	private final Set<NodeInterface> deletedNodes = new HashSet<>();
 
-	public void execute(final NodeInterface node) {
+	public void execute(final NodeInterface node) throws FrameworkException {
+
 
 		if (securityContext.doCascadingDelete()) {
 
@@ -61,7 +63,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		} else {
 
-			node.onNodeDeletion();
+			node.onNodeDeletion(securityContext);
 			node.getNode().delete(true);
 		}
 
@@ -69,7 +71,7 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 		deletedNodes.clear();
 	}
 
-	private void doDeleteNode(final NodeInterface node) {
+	private void doDeleteNode(final NodeInterface node) throws FrameworkException {
 
 		if (node == null || TransactionCommand.isDeleted(node.getNode())) {
 			return;
@@ -92,91 +94,80 @@ public class DeleteNodeCommand extends NodeServiceCommand {
 
 		deletedNodes.add(node);
 
-		App app = StructrApp.getInstance(securityContext);
+		final App app  = StructrApp.getInstance(securityContext);
+		final List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
 
-		try {
+		// Delete all end nodes of outgoing relationships which are connected
+		// by relationships which are marked with DELETE_OUTGOING
+		for (AbstractRelationship rel : node.getOutgoingRelationships()) {
 
-			List<NodeInterface> nodesToCheckAfterDeletion = new LinkedList<>();
+			// deleted rels can be null..
+			if (rel != null) {
 
-			// Delete all end nodes of outgoing relationships which are connected
-			// by relationships which are marked with DELETE_OUTGOING
-			for (AbstractRelationship rel : node.getOutgoingRelationships()) {
+				int cascadeDelete = rel.getCascadingDeleteFlag();
+				NodeInterface endNode = rel.getTargetNode();
 
-				// deleted rels can be null..
-				if (rel != null) {
+				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
 
-					int cascadeDelete = rel.getCascadingDeleteFlag();
-					NodeInterface endNode = rel.getTargetNode();
-
-					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
-
-						nodesToCheckAfterDeletion.add(endNode);
-					}
-
-					if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
-
-						// remove end node from index
-						doDeleteNode(endNode);
-					}
+					nodesToCheckAfterDeletion.add(endNode);
 				}
-			}
 
-			// Delete all start nodes of incoming relationships which are connected
-			// by relationships which are marked with DELETE_INCOMING
-			for (AbstractRelationship rel : node.getIncomingRelationships()) {
-
-				// deleted rels can be null
-				if (rel != null) {
-
-					final int cascadeDelete       = rel.getCascadingDeleteFlag();
-					final NodeInterface startNode = rel.getSourceNode();
-
-					if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
-
-						nodesToCheckAfterDeletion.add(startNode);
-					}
-
-					if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
-
-						// remove start node from index
-						doDeleteNode(startNode);
-					}
-				}
-			}
-
-			// deletion callback, must not prevent node deletion!
-			node.onNodeDeletion();
-
-			// Delete any relationship (this is PASSIVE DELETION)
-			final List<AbstractRelationship> list = Iterables.toList(node.getRelationships());
-			for (AbstractRelationship r : list) {
-
-				if (r != null) {
-
-					app.delete(r);
-				}
-			}
-
-			// now check again the deletion cascade for violated constraints
-			// Check all end nodes of outgoing relationships which are connected if they are
-			// still valid after node deletion
-			for (NodeInterface nodeToCheck : nodesToCheckAfterDeletion) {
-
-				ErrorBuffer errorBuffer = new ErrorBuffer();
-
-				if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
+				if (!deletedNodes.contains(endNode) && ((cascadeDelete & Relation.SOURCE_TO_TARGET) == Relation.SOURCE_TO_TARGET)) {
 
 					// remove end node from index
-					doDeleteNode(nodeToCheck);
+					doDeleteNode(endNode);
 				}
 			}
-
-		} catch (Throwable t) {
-
-			logger.warn("Exception while deleting node {}: {}", node, t.getMessage());
-			logger.warn(ExceptionUtils.getStackTrace(t));
 		}
 
-		return;
+		// Delete all start nodes of incoming relationships which are connected
+		// by relationships which are marked with DELETE_INCOMING
+		for (AbstractRelationship rel : node.getIncomingRelationships()) {
+
+			// deleted rels can be null
+			if (rel != null) {
+
+				final int cascadeDelete       = rel.getCascadingDeleteFlag();
+				final NodeInterface startNode = rel.getSourceNode();
+
+				if ((cascadeDelete & Relation.CONSTRAINT_BASED) == Relation.CONSTRAINT_BASED) {
+
+					nodesToCheckAfterDeletion.add(startNode);
+				}
+
+				if (!deletedNodes.contains(startNode) && ((cascadeDelete & Relation.TARGET_TO_SOURCE) == Relation.TARGET_TO_SOURCE)) {
+
+					// remove start node from index
+					doDeleteNode(startNode);
+				}
+			}
+		}
+
+		// deletion callback, must not prevent node deletion!
+		node.onNodeDeletion(securityContext);
+
+		// Delete any relationship (this is PASSIVE DELETION)
+		final List<AbstractRelationship> list = Iterables.toList(node.getRelationships());
+		for (AbstractRelationship r : list) {
+
+			if (r != null) {
+
+				app.delete(r);
+			}
+		}
+
+		// now check again the deletion cascade for violated constraints
+		// Check all end nodes of outgoing relationships which are connected if they are
+		// still valid after node deletion
+		for (NodeInterface nodeToCheck : nodesToCheckAfterDeletion) {
+
+			ErrorBuffer errorBuffer = new ErrorBuffer();
+
+			if (!deletedNodes.contains(nodeToCheck) && !nodeToCheck.isValid(errorBuffer)) {
+
+				// remove end node from index
+				doDeleteNode(nodeToCheck);
+			}
+		}
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -126,7 +126,7 @@ public class RestMethodResult {
 
 		if (message != null) {
 
-			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(StringUtils.replace(message, "\"", "\\\"")).append("\"\n");
+			buf.append(",\n  \"").append(messageKey).append("\" : \"").append(StringUtils.replace(StringUtils.replace(message, "\n", "\\n"), "\"", "\\\"")).append("\"\n");
 
 		} else {
 

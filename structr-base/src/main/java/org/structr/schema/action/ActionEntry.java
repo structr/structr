@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -103,9 +103,15 @@ public class ActionEntry implements Comparable<ActionEntry> {
 
 		} else if (sourceName.startsWith("___onDelete")) {
 
-			this.name = "afterDeletion";
+			this.name = "onNodeDeletion";
 			this.type = Actions.Type.Delete;
 			positionOffset = 11;
+
+		} else if (sourceName.startsWith("___afterDelete")) {
+
+			this.name = "afterDeletion";
+			this.type = Actions.Type.AfterDelete;
+			positionOffset = 14;
 
 		} else {
 

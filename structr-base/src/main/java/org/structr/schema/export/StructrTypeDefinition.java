@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -599,6 +599,18 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		properties.add(booleanArrayProperty);
 
 		return booleanArrayProperty;
+	}
+
+	@Override
+	public JsonByteArrayProperty addByteArrayProperty(final String name, final String... views) {
+
+		final StructrByteArrayProperty byteArrayProperty = new StructrByteArrayProperty(this, name);
+
+		addPropertyNameToViews(name, views);
+
+		properties.add(byteArrayProperty);
+
+		return byteArrayProperty;
 	}
 
 	@Override

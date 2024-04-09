@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,7 +75,7 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 			newFile = FileHelper.createFile(securityContext, new byte[0], null, VideoFile.class, outputFileName, false);
 
 			// obtain destination path of new file
-			outputFileName = newFile.getFileOnDisk().getAbsolutePath();
+			//outputFileName = newFile.getFileOnDisk().getAbsolutePath();
 
 			tx.success();
 
@@ -96,7 +96,8 @@ public class ConverterProcess extends AbstractProcess<VideoFile> {
 
 				// build command line from builder options
 				commandLine.append(" ");
-				commandLine.append(inputFile.getDiskFilePath(securityContext));
+				//Todo: Fix for new fs abstraction
+				//commandLine.append(inputFile.getDiskFilePath(securityContext));
 				commandLine.append(" ");
 				commandLine.append(outputFileName);
 				commandLine.append(fileExtension);

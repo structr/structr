@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>5.1.0</version>
+		<version>5.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-geo-transformations-module</artifactId>
 	<packaging>jar</packaging>
@@ -73,6 +73,12 @@
 			<groupId>org.geotools</groupId>
 			<artifactId>gt-geotiff</artifactId>
 			<version>${geotools.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>it.geosolutions.imageio-ext</groupId>
+					<artifactId>imageio-ext-tiff</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.geotools</groupId>

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -199,18 +199,11 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 						return ((Enum)propValue).toString();
 					}
 
-					return propValue;
+					return PolyglotWrapper.wrap(actionContext, propValue);
 
-				} else {
-
-					Object prop = node.getProperty(propKey);
-					if (prop != null) {
-
-						return PolyglotWrapper.wrap(actionContext, prop);
-					}
-
-					return null;
 				}
+
+				return PolyglotWrapper.wrap(actionContext, node.getProperty(propKey));
 			}
 
 			return PolyglotWrapper.wrap(actionContext, node.getProperty(key));
@@ -242,9 +235,15 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 
 			if (node != null) {
 
+				// Special handling for grant-Function
+				if (key.equals("grant")) {
+					return true;
+				}
+
 				final Class type = node.getClass();
 
-				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key) != null;
+				PropertyKey propKey = StructrApp.getConfiguration().getPropertyKeyForDatabaseName(type, key);
+				return StructrApp.getConfiguration().getExportedMethodsForType(type).containsKey(key) || (propKey != null && !(propKey instanceof GenericProperty<?>));
 
 			} else {
 
@@ -320,5 +319,16 @@ public class GraphObjectWrapper<T extends GraphObject> implements ProxyObject {
 		}
 
 		return false;
+	}
+
+	@Override
+	public String toString() {
+
+		if (node instanceof GraphObjectMap) {
+
+			return super.toString();
+		}
+
+		return node.getClass().getSimpleName() + "(" + node.getUuid() + ")";
 	}
 }

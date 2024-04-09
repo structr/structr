@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -75,9 +75,10 @@ public class ManageDatabasesCommand extends NodeServiceCommand implements Mainte
 
 			try {
 
-				Settings.storeConfiguration("structr.conf");
+				Settings.storeConfiguration(Settings.ConfigFileName);
 
 			} catch (IOException ex) {
+
 				logger.error(ExceptionUtils.getStackTrace(ex));
 			}
 

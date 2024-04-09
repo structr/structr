@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,11 +18,11 @@
  */
 package org.structr.core.function;
 
+import org.structr.autocomplete.AbstractHint;
 import org.structr.common.error.ArgumentCountException;
 import org.structr.common.error.ArgumentNullException;
 import org.structr.common.error.FrameworkException;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Hint;
 
 import java.util.List;
 
@@ -77,7 +77,7 @@ public class RetrieveFunction extends CoreFunction {
 	}
 
 	@Override
-	public List<Hint> getContextHints(final String lastToken) {
+	public List<AbstractHint> getContextHints(final String lastToken) {
 
 		// this might be the place where information about the execution context
 		// of a function etc. can be used, but not yet.

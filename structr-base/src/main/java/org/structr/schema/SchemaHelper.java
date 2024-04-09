@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -70,7 +70,7 @@ public class SchemaHelper {
 
 	public enum Type {
 
-		String, StringArray, DateArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
+		String, StringArray, DateArray, ByteArray, LongArray, DoubleArray, IntegerArray, BooleanArray, Integer, Long, Double, Boolean, Enum, Date, Byte, Count, Function, Notion, IdNotion, Cypher, Join, Thumbnail, Password, Custom, Encrypted;
 	}
 
 	public static final Map<Type, Class<? extends PropertySourceGenerator>> parserMap = new TreeMap<>(new ReverseTypeComparator());
@@ -93,6 +93,7 @@ public class SchemaHelper {
 		parserMap.put(Type.StringArray, StringArrayPropertyParser.class);
 		parserMap.put(Type.Encrypted, EncryptedStringPropertySourceGenerator.class);
 		parserMap.put(Type.DateArray, DateArrayPropertyParser.class);
+		parserMap.put(Type.ByteArray, ByteArrayPropertyParser.class);
 		parserMap.put(Type.LongArray, LongArrayPropertyParser.class);
 		parserMap.put(Type.Function, FunctionPropertyParser.class);
 		parserMap.put(Type.Password, PasswordPropertySourceGenerator.class);
@@ -119,21 +120,22 @@ public class SchemaHelper {
 		sortIndexMap.put(Type.Encrypted,    4);
 		sortIndexMap.put(Type.DateArray,    5);
 		sortIndexMap.put(Type.LongArray,    6);
-		sortIndexMap.put(Type.Password,     7);
-		sortIndexMap.put(Type.Boolean,      8);
-		sortIndexMap.put(Type.Integer,      9);
-		sortIndexMap.put(Type.String,      10);
-		sortIndexMap.put(Type.Double,      11);
-		sortIndexMap.put(Type.Long,        12);
-		sortIndexMap.put(Type.Enum,        13);
-		sortIndexMap.put(Type.Date,        14);
-		sortIndexMap.put(Type.Function,    15);
-		sortIndexMap.put(Type.Cypher,      16);
-		sortIndexMap.put(Type.Count,       17);
-		sortIndexMap.put(Type.Custom,      18);
-		sortIndexMap.put(Type.Join,        19);
-		sortIndexMap.put(Type.IdNotion,    20);
-		sortIndexMap.put(Type.Notion,      21);
+		sortIndexMap.put(Type.ByteArray,    7);
+		sortIndexMap.put(Type.Password,     8);
+		sortIndexMap.put(Type.Boolean,      9);
+		sortIndexMap.put(Type.Integer,     10);
+		sortIndexMap.put(Type.String,      11);
+		sortIndexMap.put(Type.Double,      12);
+		sortIndexMap.put(Type.Long,        13);
+		sortIndexMap.put(Type.Enum,        14);
+		sortIndexMap.put(Type.Date,        15);
+		sortIndexMap.put(Type.Function,    16);
+		sortIndexMap.put(Type.Cypher,      17);
+		sortIndexMap.put(Type.Count,       18);
+		sortIndexMap.put(Type.Custom,      19);
+		sortIndexMap.put(Type.Join,        20);
+		sortIndexMap.put(Type.IdNotion,    21);
+		sortIndexMap.put(Type.Notion,      22);
 
 		graphQLTypeMap.put(Type.Password, Scalars.GraphQLString);
 		graphQLTypeMap.put(Type.Boolean, Scalars.GraphQLBoolean);
@@ -1281,7 +1283,7 @@ public class SchemaHelper {
 
 	public static void formatMethods(final SourceFile src, final AbstractSchemaNode schemaNode, final Map<String, List<ActionEntry>> saveActions, final Set<String> implementedInterfaces) {
 
-        /*
+	        /*
 		Methods are collected and grouped by name. There can be multiple methods with the same
 		name, which must be combined into a single method.
 		*/
@@ -1309,8 +1311,12 @@ public class SchemaHelper {
 					formatAfterModificationCallback(src, schemaNode, name, actionList);
 					break;
 
-				case "afterDeletion":
+				case "onNodeDeletion":
 					formatDeletionCallback(src, schemaNode, name, actionList);
+					break;
+
+				case "afterDeletion":
+					formatAfterDeletionCallback(src, schemaNode, name, actionList);
 					break;
 
 				default:
@@ -1333,10 +1339,8 @@ public class SchemaHelper {
 		call.append(name);
 		call.append("(arg0, arg1);");
 
-
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1357,7 +1361,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1378,7 +1381,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", true)).append(";\n");
 			action.getSource(src, "this", "arg0", true);
 		}
 
@@ -1399,7 +1401,6 @@ public class SchemaHelper {
 
 		for (final ActionEntry action : actionList) {
 
-			//src.append("\t\t").append(action.getSource("this", "arg0", false)).append(";\n");
 			action.getSource(src, "this", "arg0", false);
 		}
 
@@ -1412,19 +1413,39 @@ public class SchemaHelper {
 
 		final SourceLine line = src.begin(schemaNode, "public void ");
 		line.append(name);
+		line.append("(final SecurityContext arg0) throws FrameworkException {");
+
+		final SourceLine call = src.line(schemaNode, "super.");
+		call.append(name);
+		call.append("(arg0);");
+
+		for (final ActionEntry action : actionList) {
+
+			action.getSource(src, "this", "arg0", false);
+		}
+
+		src.end();
+	}
+
+	public static void formatAfterDeletionCallback(final SourceFile src, final AbstractSchemaNode schemaNode, final String name, final List<ActionEntry> actionList) {
+
+		src.line(schemaNode, "@Override");
+
+		final SourceLine line = src.begin(schemaNode, "public void ");
+		line.append(name);
 		line.append("(final SecurityContext arg0, final PropertyMap arg1) {");
 
 		final SourceLine call = src.line(schemaNode, "super.");
 		call.append(name);
 		call.append("(arg0, arg1);");
 
+		src.line(schemaNode, "arg0.getContextStore().setConstant(\"data\", arg1.getAsMap());");
+
 		src.begin(schemaNode, "try {");
 
 		for (final ActionEntry action : actionList) {
 
-
-			//src.append("\t\t\t").append(action.getSource(src, "this", "arg0", false)).append(";\n");
-			action.getSource(src, "this", "arg0", false);
+			action.getSource(src, "null", "arg0", false);
 		}
 
 		src.endBegin(schemaNode, "} catch (FrameworkException fex) {");

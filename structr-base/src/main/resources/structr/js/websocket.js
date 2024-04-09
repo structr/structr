@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -59,16 +59,14 @@ let StructrWS = {
 	},
 	getWSConnectionInfo: () => {
 
-		let isEnc   = (window.location.protocol === 'https:');
-		let host    = document.location.host;
 		let message = {
-			wsUrl: `ws${isEnc ? 's' : ''}://${host}${Structr.wsRoot}`,
+			wsPath:  Structr.wsRoot,
 			wsClass: (('WebSocket' in window) === true) ? 'WebSocket' : (('MozWebSocket' in window) ? 'MozWebSocket' : false)
 		};
 
 		if (message.wsClass === false) {
 
-			alert('Your browser doesn\'t support WebSocket.');
+			alert('Your browser does not support WebSocket.');
 			return false;
 		}
 
@@ -516,7 +514,8 @@ let StructrWS = {
 					if (!entity.parent && _Pages.shadowPage && entity.pageId === _Pages.shadowPage.id) {
 
 						entity = StructrModel.create(entity, null, false);
-						let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, _Pages.components, true) : _Pages.appendElementElement(entity, _Pages.components, true);
+						let sharedComponentsArea = $('#componentsArea');
+						let el = (entity.isContent || entity.type === 'Template') ? _Elements.appendContentElement(entity, sharedComponentsArea, true) : _Pages.appendElementElement(entity, sharedComponentsArea, true);
 
 						if (Structr.isExpanded(entity.id)) {
 							_Entities.ensureExpanded(el);

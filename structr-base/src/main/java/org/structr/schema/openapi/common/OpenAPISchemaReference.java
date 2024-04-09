@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -21,7 +21,6 @@ package org.structr.schema.openapi.common;
 import org.apache.commons.lang3.StringUtils;
 import org.structr.core.app.StructrApp;
 import org.structr.schema.ConfigurationProvider;
-import org.structr.schema.export.StructrSchema;
 import org.structr.schema.export.StructrTypeDefinition;
 import org.structr.schema.export.StructrTypeDefinitions;
 

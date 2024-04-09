@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,7 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 document.addEventListener("DOMContentLoaded", () => {
 	Structr.registerModule(_Schema);
 	Structr.classes.push('schema');
@@ -92,7 +91,9 @@ let _Schema = {
 			});
 
 			if (LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)) {
-				$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				_Helpers.requestAnimationFrameWrapper('schema_resize_slideout_correctly', () => {
+					$('#' + LSWrapper.getItem(_Schema.schemaActiveTabLeftKey)).click();
+				});
 			}
 
 			_Schema.init(null,() => {
@@ -562,7 +563,18 @@ let _Schema = {
 
 						let data = await response.json();
 
-						Structr.errorFromResponse(data);
+						let errors = new Set(data.errors.map(e => e.detail.replaceAll('\n', '<br>').replaceAll('org.structr.dynamic.', '')));
+
+						if (errors.size > 0) {
+
+							for (let error of errors) {
+								new ErrorMessage().title("Problem encountered compiling schema").text(error).requiresConfirmation().show();
+							}
+
+						} else {
+
+							Structr.errorFromResponse(data);
+						}
 					}
 
 					return response.ok;
@@ -965,7 +977,7 @@ let _Schema = {
 					select.classList.add('disabled');
 				}
 
-				if (!entity.extendsClass) {
+				if (!entity.extendsClass || !Structr.isModuleActive(_Schema)) {
 					_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 				}
 
@@ -1561,7 +1573,10 @@ let _Schema = {
 
 			} else {
 
-				container.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
+				for (let underlinedSchemaLink of container.querySelectorAll('.edit-schema-object')) {
+					underlinedSchemaLink.classList.remove('edit-schema-object');
+					underlinedSchemaLink.classList.remove('cursor-pointer');
+				}
 			}
 
 			let initActions = () => {
@@ -2860,7 +2875,7 @@ let _Schema = {
 			],
 			addButtonText: 'Add view'
 		},
-		protectedViewsList: ['all', 'ui', 'custom'],
+		protectedViewsList: ['all', 'ui', 'custom'],	// not allowed to add/remove properties, but allowed to sort
 		isViewEditable: (view) => {
 			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
 		},
@@ -3026,12 +3041,9 @@ let _Schema = {
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
-				if (_Schema.views.isViewPropertiesChangeForbidden(view) !== true) {
-
-					selectElement.select2Sortable(() => {
-						_Schema.views.rowChanged(tr, entity, initialViewConfig);
-					});
-				}
+				selectElement.select2Sortable(() => {
+					_Schema.views.rowChanged(tr, entity, initialViewConfig);
+				});
 
 				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
 			});
@@ -3087,7 +3099,9 @@ let _Schema = {
 				removeAction.disabled = false;
 			}
 		},
-		appendPropertyForViewSelect:(viewSelectElem, view, prop) => {
+		appendPropertyForViewSelect: (viewSelectElem, view, prop) => {
+
+			let viewIsEditable = _Schema.views.isViewEditable(view);
 
 			// never show internalEntityContextPath
 			if (prop.name !== 'internalEntityContextPath') {
@@ -3095,14 +3109,15 @@ let _Schema = {
 				let isSelected = prop.isSelected ? ' selected="selected"' : '';
 				let isDisabled = prop.isDisabled ? ' disabled="disabled"' : '';
 
-				viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				if (viewIsEditable || prop.isSelected) {
+					viewSelectElem.insertAdjacentHTML('beforeend', `<option value="${prop.name}"${isSelected}${isDisabled}>${prop.name}</option>`);
+				}
 			}
 		},
 		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
 
 			let viewIsEditable = _Schema.views.isViewEditable(view);
 			let viewSelectElem = row.querySelector('.property-attrs');
-			viewSelectElem.disabled = !viewIsEditable;
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
@@ -3131,11 +3146,18 @@ let _Schema = {
 					search_contains: true,
 					width: '100%',
 					dropdownCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
-					closeOnSelect: false,
+					containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options' + (viewIsEditable ? '' : ' not-editable'),
+					closeOnSelect: true,
 					scrollAfterSelect: false,
 					dropdownParent: dropdownParent
 				});
+
+				if (!viewIsEditable) {
+					// prevent removal of elements for views that we consider "not editable"...
+					selectElement.on("select2:unselecting", function (e) {
+						e.preventDefault();
+					});
+				}
 
 				callback(selectElement);
 			});
@@ -4089,8 +4111,8 @@ let _Schema = {
 			let layoutSelector        = $('#saved-layout-selector');
 			let layoutNameInput       = $('#layout-name');
 			let createNewLayoutButton = $('#create-new-layout');
-			let updateLayoutButton    = $('#update-layout');
-			let restoreLayoutButton   = $('#restore-layout');
+			let saveLayoutButton      = $('#save-layout');
+			let loadLayoutButton      = $('#load-layout');
 			let deleteLayoutButton    = $('#delete-layout');
 
 			let layoutSelectorChangeHandler = () => {
@@ -4099,43 +4121,51 @@ let _Schema = {
 
 				if (selectedOption.length === 0) {
 
-					_Helpers.disableElements(true, updateLayoutButton[0], restoreLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(true, saveLayoutButton[0], loadLayoutButton[0], deleteLayoutButton[0]);
 
 				} else {
 
-					_Helpers.enableElement(restoreLayoutButton[0]);
+					_Helpers.enableElement(loadLayoutButton[0]);
 
 					let optGroup    = selectedOption.closest('optgroup');
 					let username    = optGroup.prop('label');
 					let isOwnerless = optGroup.data('ownerless') === true;
 
-					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), updateLayoutButton[0], deleteLayoutButton[0]);
+					_Helpers.disableElements(!(isOwnerless || username === StructrWS.me.username), saveLayoutButton[0], deleteLayoutButton[0]);
 				}
 			};
 			layoutSelectorChangeHandler();
 
 			layoutSelector[0].addEventListener('change', layoutSelectorChangeHandler);
 
-			updateLayoutButton.click(() => {
+			saveLayoutButton.click(async () => {
 
 				let selectedLayout = layoutSelector.val();
+				let selectedOption = $(':selected:not(:disabled)', layoutSelector);
 
-				Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, (data) => {
+				let confirm = await _Dialogs.confirmation.showPromise(`
+					<h3>Overwrite stored schema layout "${selectedOption.text()}"?</h3>
+				`);
 
-					if (!data.error) {
+				if (confirm === true) {
 
-						new SuccessMessage().text("Layout saved").show();
+					Command.setProperty(selectedLayout, 'content', JSON.stringify(_Schema.getSchemaLayoutConfiguration()), false, (data) => {
 
-						_Helpers.blinkGreen(layoutSelector);
+						if (!data.error) {
 
-					} else {
+							new SuccessMessage().text("Layout saved").show();
 
-						new ErrorMessage().title(data.error).text(data.message).show();
-					}
-				});
+							_Helpers.blinkGreen(layoutSelector);
+
+						} else {
+
+							new ErrorMessage().title(data.error).text(data.message).show();
+						}
+					});
+				}
 			});
 
-			restoreLayoutButton.click(() => {
+			loadLayoutButton.click(() => {
 				_Schema.restoreLayout(layoutSelector);
 			});
 
@@ -5105,185 +5135,12 @@ let _Schema = {
 						<span class="whitespace-nowrap">Show built-in types</span>
 					</label>
 				</div>
-				<div id="inheritance-tree-container" class="ver-scrollable hidden"></div>
+				<div id="inheritance-tree-container" class="ver-scrollable h-full hidden"></div>
 			</div>
 
 			<div id="schema-container">
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
-		`,
-		functions: config => `
-			<div class="flex-grow">
-				<div class="inline-flex">
-
-					<button id="create-type" class="action inline-flex items-center">
-						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
-					</button>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
-							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, '')} Global Methods
-						</button>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconNetwork, 16, 16, '')} Display
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="row">
-								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconTypeVisibility, 16, 16, 'mr-2')} Type Visibility
-								</a>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Display Options</h3>
-							</div>
-							<div class="row">
-								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
-							</div>
-							<div class="row">
-								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Edge Style</h3>
-							</div>
-
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Flowchart'    ? 'active' : ''}"> Flowchart</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Bezier'       ? 'active' : ''}"> Bezier</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'StateMachine' ? 'active' : ''}"> StateMachine</a>
-							</div>
-							<div class="row">
-								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="heading-row">
-								<h3>Saved Layouts</h3>
-							</div>
-
-							<div class="row">
-								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
-								<button id="restore-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Apply</button>
-								<button id="update-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Update</button>
-								<button id="delete-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
-							</div>
-
-							<div class="row">
-								<input id="layout-name" placeholder="Enter name for layout">
-								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
-							</div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
-									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
-								</a>
-							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, '')} Snapshots</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Create snapshot</h3>
-							</div>
-							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
-
-							<div class="row">
-								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
-								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
-							</div>
-
-							<div class="heading-row">
-								<h3>Available Snapshots</h3>
-							</div>
-
-							<div class="props" id="snapshots"></div>
-
-							<div class="separator"></div>
-
-							<div class="row">
-								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
-							</div>
-						</div>
-					</div>
-
-					<div class="dropdown-menu dropdown-menu-large">
-						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, '')} Admin
-						</button>
-
-						<div class="dropdown-menu-container">
-							<div class="heading-row">
-								<h3>Indexing</h3>
-							</div>
-							<div class="row">
-								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Node Type --</option>
-									<option disabled>──────────</option>
-									<option value="allNodes">All Node Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
-								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
-							</div>
-							<div class="row">
-								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option selected value="">-- Select Relationship Type --</option>
-									<option disabled>──────────</option>
-									<option value="allRels">All Relationship Types</option>
-									<option disabled>──────────</option>
-								</select>
-								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
-								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
-							</div>
-							<div class="row flex items-center">
-								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
-								</button>
-								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
-							</div>
-							<div class="separator"></div>
-							<div class="heading-row">
-								<h3>Maintenance</h3>
-							</div>
-							<div class="row flex items-center">
-								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
-								</button>
-								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
-							</div>
-
-							<div class="row flex items-center">
-								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
-								</button>
-								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-
-			<div id="zoom-slider" class="mr-8"></div>
 		`,
 		typeBasicTab: config => `
 			<div class="schema-details pl-2">
@@ -5360,11 +5217,11 @@ let _Schema = {
 						</div>
 
 						<div></div>
-						<div class="flex items-center">
+						<div class="flex items-center justify-center">
 							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
 						</div>
 						<div></div>
-						<div class="flex items-center">
+						<div class="flex items-center justify-center">
 							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
 						</div>
 						<div></div>
@@ -5597,28 +5454,209 @@ let _Schema = {
 		addMethodsDropdown: config => `
 			<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
 				</button>
 				<div class="dropdown-menu-container">
 					<div class="flex flex-col divide-x-0 divide-y">
 						<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
 						</a>
-						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
 						</a>
-						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
+						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
 						</a>
-						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid">
+						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
 						</a>
 						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
 						</a>
+						<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
+						</a>
+						<a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.">
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
+						</a>
 					</div>
 				</div>
 			</div>
+		`,
+		functions: config => `
+			<div class="flex-grow">
+				<div class="inline-flex">
+
+					<button id="create-type" class="action inline-flex items-center">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])} New Type
+					</button>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
+							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} Global Methods
+						</button>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconNetwork, 16, 16, ['mr-2'])} Display
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="row">
+								<a title="Open dialog to show/hide the data types" id="schema-tools" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconTypeVisibility, 16, 16, ['mr-2'])} Type Visibility
+								</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Display Options</h3>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Schema.ui.showSchemaOverlays ? 'checked' : ''} type="checkbox" id="schema-show-overlays" name="schema-show-overlays"> Relationship labels</label>
+							</div>
+							<div class="row">
+								<label class="block"><input ${_Schema.ui.showInheritance    ? 'checked' : ''} type="checkbox" id="schema-show-inheritance" name="schema-show-inheritance"> Inheritance arrows</label>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Edge Style</h3>
+							</div>
+
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Flowchart'    ? 'active' : ''}"> Flowchart</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Bezier'       ? 'active' : ''}"> Bezier</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'StateMachine' ? 'active' : ''}"> StateMachine</a>
+							</div>
+							<div class="row">
+								<a class="block edge-style ${_Schema.ui.connectorStyle === 'Straight'     ? 'active' : ''}"> Straight</a>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="heading-row">
+								<h3>Saved Layouts</h3>
+							</div>
+
+							<div class="row">
+								<select id="saved-layout-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green"></select>
+								<button id="load-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Load</button>
+								<button id="save-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Save</button>
+								<button id="delete-layout" class="mr-0 hover:bg-gray-100 focus:border-gray-666 active:border-green">Delete</button>
+							</div>
+
+							<div class="row">
+								<input id="layout-name" placeholder="Enter name for layout">
+								<button id="create-new-layout" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create</button>
+							</div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a title="Reset the stored node positions and apply an automatic layouting algorithm." id="reset-schema-positions" class="flex items-center">
+									${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, 'mr-2')} Reset Layout (apply Auto-Layouting)
+								</a>
+							</div>
+						</div>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconSnapshots, 16, 16, ['mr-2'])} Snapshots
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="heading-row">
+								<h3>Create snapshot</h3>
+							</div>
+							<div class="row">Creates a new snapshot of the current schema configuration that can be restored later.<br>You can enter an (optional) suffix for the snapshot.</div>
+
+							<div class="row">
+								<input type="text" name="suffix" id="snapshot-suffix" placeholder="Enter a suffix" length="20">
+								<button id="create-snapshot" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">Create snapshot</button>
+							</div>
+
+							<div class="heading-row">
+								<h3>Available Snapshots</h3>
+							</div>
+
+							<div class="props" id="snapshots"></div>
+
+							<div class="separator"></div>
+
+							<div class="row">
+								<a id="refresh-snapshots" class="block">Reload stored snapshots</a>
+							</div>
+						</div>
+					</div>
+
+					<div class="dropdown-menu dropdown-menu-large">
+						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
+							${_Icons.getSvgIcon(_Icons.iconSettingsCog, 16, 16, ['mr-2'])} Admin
+						</button>
+
+						<div class="dropdown-menu-container">
+							<div class="heading-row">
+								<h3>Indexing</h3>
+							</div>
+							<div class="row">
+								<select id="node-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option selected value="">-- Select Node Type --</option>
+									<option disabled>──────────</option>
+									<option value="allNodes">All Node Types</option>
+									<option disabled>──────────</option>
+								</select>
+								<button id="reindex-nodes" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild node index</button>
+								<button id="add-node-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+								<button id="create-labels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Create Labels</button>
+							</div>
+							<div class="row">
+								<select id="rel-type-selector" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option selected value="">-- Select Relationship Type --</option>
+									<option disabled>──────────</option>
+									<option value="allRels">All Relationship Types</option>
+									<option disabled>──────────</option>
+								</select>
+								<button id="reindex-rels" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Rebuild relationship index</button>
+								<button id="add-rel-uuids" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">Add UUIDs</button>
+							</div>
+							<div class="row flex items-center">
+								<button id="rebuild-index" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Rebuild all indexes
+								</button>
+								<label for="rebuild-index">Rebuild indexes for entire database (all node and relationship indexes)</label>
+							</div>
+							<div class="separator"></div>
+							<div class="heading-row">
+								<h3>Maintenance</h3>
+							</div>
+							<div class="row flex items-center">
+								<button id="flush-caches" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconRefreshArrows, 16, 16, 'mr-2')} Flush Caches
+								</button>
+								<label for="flush-caches">Flushes internal caches to refresh schema information</label>
+							</div>
+
+							<div class="row flex items-center">
+								<button id="clear-schema" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, 'mr-2 icon-red')} Clear Schema
+								</button>
+								<label for="clear-schema">Delete all schema nodes and relationships in custom schema</label>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+
+			<div id="zoom-slider" class="mr-8"></div>
 		`,
 		addMethodDropdown: config => `
 			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
@@ -5671,6 +5709,7 @@ let _Schema = {
 				<option value="DoubleArray">Double[]</option>
 				<option value="Boolean">Boolean</option>
 				<option value="BooleanArray">Boolean[]</option>
+				<option value="ByteArray">Byte[]</option>
 				<option value="Enum">Enum</option>
 				<option value="Date">Date</option>
 				<option value="DateArray">Date[]</option>
@@ -5694,7 +5733,7 @@ let _Schema = {
 					<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
 				</td>
 				<td class="centered actions-col">
-					${(_Schema.views.isViewEditable(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes'])) : ''}
+					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
 					${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
 
 					<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">

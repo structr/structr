@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import org.graalvm.polyglot.Value;
 import org.graalvm.polyglot.proxy.ProxyExecutable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.autocomplete.BuiltinFunctionHint;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
@@ -34,7 +35,7 @@ import org.structr.schema.action.Function;
 
 import java.util.Arrays;
 
-public class DoInNewTransactionFunction implements ProxyExecutable {
+public class DoInNewTransactionFunction extends BuiltinFunctionHint implements ProxyExecutable {
 
 	private static final Logger logger = LoggerFactory.getLogger(DoInNewTransactionFunction.class.getName());
 	private final ActionContext actionContext;
@@ -154,5 +155,52 @@ public class DoInNewTransactionFunction implements ProxyExecutable {
 		}
 
 		return null;
+	}
+
+	@Override
+	public String getName() {
+		return "doInNewTransaction";
+	}
+
+	@Override
+	public String shortDescription() {
+		return """
+**JavaScript-only**
+
+Removes the given function form the current transaction context and allows batching of a given expression, i.e. if the expression contains a long-running function (for example the deletion of all nodes of a given type).
+Useful in situations where large numbers of nodes are created, modified or deleted.
+
+The paging/batching must be done manually.
+
+Example:
+```
+${{
+    /* Iterate over all users in packets of 10 and do stuff */
+    let pageSize = 10;
+    let pageNo    = 1;
+
+    $.doInNewTransaction(() => {
+        let nodes = $.find('User', $.predicate.page(pageNo, pageSize));
+
+        // compute-heavy stuff
+        // ...
+
+        pageNo++;
+
+        return (nodes.length > 0);
+
+    }, (exception) => {
+
+        $.log('Error occurred in batch function. Stopping.');
+        return false;
+    });
+}}
+```
+""";
+	}
+
+	@Override
+	public String getSignature() {
+		return "workerFunction [, errorHandlerFunction]";
 	}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -255,31 +255,31 @@ let _Security = {
 				<thead>
 					<tr>
 						<th><div id="resourceAccessesPager"></div></th>
-						<th colspan="7" class="center br-1 bl-1" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is not able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read mutliple grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
-						<th colspan="7" class="center br-1" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
-						<th></th>
-						<th colspan="2" class="bl-1 br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
+						<th colspan="7" class="center" data-comment="These flags determine the access rights for authenticated users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).<br><br>If a user is <b>not</b> able to read the grant, access to the resource (described by the signature) is denied. If the user is able to read <b>mutliple</b> grants for the same signature, the flags for those grants are combined.">Authenticated users</th>
+						<th colspan="7" class="center" data-comment="These flags determine the access rights for public (non-authenticated) users to the <b>resource</b> described by the signature (<b>not the data</b> behind that resource).">Non-authenticated (public) users</th>
+						<th class="${config.showBitmask ? '' : 'hidden'}"></th>
+						<th colspan="2" class="${config.showVisibilityFlags ? '' : 'hidden'}">Visibility</th>
 						<th></th>
 					</tr>
 					<tr>
 						<th class="title-cell">Signature</th>
-						<th class="bl-1">GET</th>
-						<th>PUT</th>
-						<th>POST</th>
-						<th>DELETE</th>
-						<th>OPTIONS</th>
-						<th>HEAD</th>
-						<th class="br-1">PATCH</th>
 						<th>GET</th>
 						<th>PUT</th>
 						<th>POST</th>
 						<th>DELETE</th>
 						<th>OPTIONS</th>
 						<th>HEAD</th>
-						<th class="br-1">PATCH</th>
-						<th>Bitmask</th>
-						<th class="bl-1 ${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
-						<th class="br-1 ${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToPublicUsers']}</th>
+						<th class="pr-12">PATCH</th>
+						<th>GET</th>
+						<th>PUT</th>
+						<th>POST</th>
+						<th>DELETE</th>
+						<th>OPTIONS</th>
+						<th>HEAD</th>
+						<th class="pr-12">PATCH</th>
+						<th class="pr-12 ${config.showBitmask ? '' : 'hidden'}">Bitmask</th>
+						<th class="${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToAuthenticatedUsers']}</th>
+						<th class="${config.showVisibilityFlags ? '' : 'hidden'}">${Structr.abbreviations['visibleToPublicUsers']}</th>
 						<th></th>
 					</tr>
 				</thead>
@@ -380,16 +380,20 @@ let _UsersAndGroups = {
 	},
 	createUserElement: (user) => {
 
-		let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
-
 		let userElement = $(`
 			<div class="node user ${_UsersAndGroups.userNodeClassPrefix}${user.id}" data-user-id="${user.id}">
 				<div class="node-container flex items-center">
-					${_Icons.getIconForPrincipal(user)}<b title="${displayName}" class="name_ flex-grow truncate" data-input-class="max-w-75">${displayName}</b>
+					${_Icons.getIconForPrincipal(user)}<b class="name_ flex-grow truncate" data-input-class="max-w-75"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
 		`);
+
+		let nameElement = userElement[0].querySelector('.name_');
+
+		let displayName         = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+		nameElement.textContent = displayName;
+		nameElement.title       = displayName;
 
 		_UsersAndGroups.makeDraggable(userElement);
 
@@ -411,9 +415,9 @@ let _UsersAndGroups = {
 
 				let userName = userEl.querySelector('.name_');
 				if (userName) {
-					let displayName = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
 
-					userName.setAttribute('title', displayName);
+					let displayName      = ((user.name) ? user.name : ((user.eMail) ? `[${user.eMail}]` : '[unnamed]'));
+					userName.title       = displayName;
 					userName.textContent = displayName;
 				}
 			}
@@ -425,7 +429,7 @@ let _UsersAndGroups = {
 
 		targetElement.appendChild(userDiv[0]);
 
-		_Entities.appendContextMenuIcon($('.icons-container', userDiv), user);
+		_Entities.appendContextMenuIcon(userDiv[0].querySelector('.icons-container'), user);
 		_Elements.contextMenu.enableContextMenuOnElement(userDiv[0], user);
 		_UsersAndGroups.setMouseOver(userDiv, user.id, '.' + _UsersAndGroups.userNodeClassPrefix);
 
@@ -566,17 +570,21 @@ let _UsersAndGroups = {
 	},
 	createGroupElement: (group) => {
 
-		let displayName = group?.name ?? '[unnamed]';
-
 		let groupElement = $(`
 			<div class="node group ${_UsersAndGroups.groupNodeClassPrefix}${group.id}" data-group-id="${group.id}">
 				<div class="node-container flex items-center">
 					${_Icons.getIconForPrincipal(group)}
-					<b title="${displayName}" class="name_ flex-grow" data-input-class="max-w-75">${displayName}</b>
+					<b class="name_ flex-grow" data-input-class="max-w-75"></b>
 					<div class="icons-container flex items-center"></div>
 				</div>
 			</div>
 		`);
+
+		let nameElement = groupElement[0].querySelector('.name_');
+
+		let displayName         = group?.name ?? '[unnamed]';
+		nameElement.title       = displayName;
+		nameElement.textContent = displayName;
 
 		groupElement.droppable({
 			accept: '.user, .group',
@@ -658,7 +666,7 @@ let _UsersAndGroups = {
 
 		_Entities.appendExpandIcon(groupDiv.children('.node-container'), group, hasChildren, Structr.isExpanded(group.id), appendMembersFn);
 
-		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container'), group);
+		_Entities.appendContextMenuIcon(groupDiv.children('.node-container').children('.icons-container')[0], group);
 		_Elements.contextMenu.enableContextMenuOnElement(groupDiv[0], group);
 		_UsersAndGroups.setMouseOver(groupDiv, group.id, '.' + _UsersAndGroups.groupNodeClassPrefix);
 
@@ -721,6 +729,7 @@ let _UsersAndGroups = {
 
 let _ResourceAccessGrants = {
 
+	defaultResourceAccessGrantAttributes: 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees,isResourceAccess,name',
 	getResourceAccessesElement: () => document.querySelector('#resourceAccesses'),
 
 	refreshResourceAccesses: () => {
@@ -738,7 +747,10 @@ let _ResourceAccessGrants = {
 
 		_Helpers.fastRemoveAllChildren(_ResourceAccessGrants.getResourceAccessesElement());
 
-		let resourceAccessHtml = _Security.templates.resourceAccess({ showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey) });
+		let resourceAccessHtml = _Security.templates.resourceAccess({
+			showVisibilityFlags: UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey),
+			showBitmask:         UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInGrantsTableKey)
+		});
 		_ResourceAccessGrants.getResourceAccessesElement().insertAdjacentHTML('beforeend', resourceAccessHtml);
 
 		_Helpers.activateCommentsInElement(_ResourceAccessGrants.getResourceAccessesElement());
@@ -774,15 +786,15 @@ let _ResourceAccessGrants = {
 			}).join(' AND ');
 		}
 
-		let fetchAllGranteesCallback = (result, count) => {
+		let fetchCompleteGrantData = (result, count) => {
 
 			let fetchPromises = [];
 
 			for (let r of result) {
 
 				fetchPromises.push(new Promise((resolve, reject) => {
-					Command.get(r.id, 'grantees', (grant) => {
-						r.grantees = grant.grantees;
+					Command.get(r.id, _ResourceAccessGrants.defaultResourceAccessGrantAttributes, (grant) => {
+						Object.assign(r, grant);
 						resolve();
 					})
 				}));
@@ -793,7 +805,9 @@ let _ResourceAccessGrants = {
 			});
 		}
 
-		Command.cypher(`MATCH (n:ResourceAccess) ${filterString} RETURN DISTINCT n ORDER BY n.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]}`, undefined, fetchAllGranteesCallback, pageSize, page);
+		// only fetch the ids at first because we have to re-fetch everything later to get the grantees
+		let query = `MATCH (n:ResourceAccess) ${filterString} WITH n ORDER BY n.${_Pager.sortKey[type]} ${_Pager.sortOrder[type]} RETURN DISTINCT { id: n.id }`;
+		Command.cypher(query, undefined, fetchCompleteGrantData, pageSize, page);
 	},
 	addResourceGrant: () => {
 
@@ -823,17 +837,16 @@ let _ResourceAccessGrants = {
 		let grantData = {
 			type: 'ResourceAccess',
 			signature: signature,
-			flags: flags
+			flags: flags,
+			// no grantees because otherwise admin is a grantee and this messes with the error messages
+			grantees: []
 		};
 
 		if (additionalData) {
 			grantData = Object.assign(grantData, additionalData);
 		}
 
-		Command.create(grantData, (node) => {
-			// delete grantees because otherwise admin is a grantee and this messes with the error messages
-			Command.setProperty(node.id, 'grantees', null, false, callback);
-		});
+		Command.create(grantData, callback);
 	},
 	getVerbFromKey: (key = '') => {
 		return key.substring(key.lastIndexOf('_')+1, key.length);
@@ -855,14 +868,13 @@ let _ResourceAccessGrants = {
 		NON_AUTH_USER_HEAD          : 2048,
 		NON_AUTH_USER_PATCH         : 8192
 	},
-	appendResourceAccessElement: function(resourceAccess, blinkAfterUpdate = true) {
+	appendResourceAccessElement: (resourceAccess, blinkAfterUpdate = true) => {
 
 		if (!_ResourceAccessGrants.getResourceAccessesElement() || !$(_ResourceAccessGrants.getResourceAccessesElement()).is(':visible')) {
 			return;
 		}
 
-		let flags = parseInt(resourceAccess.flags);
-
+		let flags  = parseInt(resourceAccess.flags);
 		let trHtml = `<tr id="id_${resourceAccess.id}" class="resourceAccess"><td class="title-cell"><b>${resourceAccess.signature}</b></td>`;
 
 		let noAuthAccessPossible = resourceAccess.visibleToAuthenticatedUsers === false && (!resourceAccess.grantees || resourceAccess.grantees.length === 0);
@@ -906,27 +918,32 @@ let _ResourceAccessGrants = {
 			let isDisabled = false && (disabledBecauseNotPublic || disabledBecauseNoAuthAccess);
 
 			let additionalClasses = [];
-			if (key === 'AUTH_USER_GET') { additionalClasses.push('bl-1'); }
-			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
-			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('br-1'); }
+			if (key === 'AUTH_USER_PATCH') { additionalClasses.push('pr-12'); }
+			if (key === 'NON_AUTH_USER_PATCH') { additionalClasses.push('pr-12'); }
 
 			trHtml += `<td class="${additionalClasses.join(' ')}"><input type="checkbox" ${(flagIsSet ? 'checked="checked"' : '')}${(isDisabled ? ' disabled' : '')} data-flag="${_ResourceAccessGrants.mask[key]}" class="resource-access-flag" data-key="${key}"></td>`;
 		}
 
-		trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
+		let showBitmaskColumn   = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showBitmaskColumnInGrantsTableKey);
+		let showVisibilityFlags = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey);
 
-		let showVisibilityFlagsInGrantsTable = UISettings.getValueForSetting(UISettings.settingGroups.security.settings.showVisibilityFlagsInGrantsTableKey);
+		if (showBitmaskColumn) {
+			trHtml += `<td><input type="text" class="bitmask" size="4" value="${flags}"></td>`;
+		}
 
-		if (showVisibilityFlagsInGrantsTable) {
+		if (showVisibilityFlags) {
+
 			trHtml += `
-				<td class="bl-1"><input type="checkbox" ${(resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '')} name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>
-				<td class="br-1"><input type="checkbox" ${(resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '')} name="visibleToPublicUsers" class="resource-access-visibility"></td>
+				<td><input type="checkbox" ${(resourceAccess.visibleToAuthenticatedUsers ? 'checked="checked"' : '')} name="visibleToAuthenticatedUsers" class="resource-access-visibility"></td>
+				<td><input type="checkbox" ${(resourceAccess.visibleToPublicUsers ? 'checked="checked"' : '')} name="visibleToPublicUsers" class="resource-access-visibility"></td>
 			`;
 		}
+
 		trHtml += '<td class="actions"></td></tr>';
 
 		let tr         = $(trHtml);
 		let actionsCol = $('td.actions', tr);
+		_ResourceAccessGrants.appendPrincipalIconOrMargin(actionsCol, resourceAccess);
 		_Entities.appendNewAccessControlIcon(actionsCol, resourceAccess, false);
 
 		actionsCol.append(_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'ml-2', 'delete-resource-access'])));
@@ -988,16 +1005,19 @@ let _ResourceAccessGrants = {
 			$('#resourceAccessesTable').append(tr);
 		}
 
-		let bitmaskInput = $('.bitmask', tr);
-		bitmaskInput.on('blur', function() {
-			_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
-		});
+		if (showBitmaskColumn) {
 
-		bitmaskInput.keypress(function(e) {
-			if (e.keyCode === 13) {
-				$(this).blur();
-			}
-		});
+			let bitmaskInput = $('.bitmask', tr);
+			bitmaskInput.on('blur', function() {
+				_ResourceAccessGrants.updateResourceAccessFlags(resourceAccess.id, $(this).val());
+			});
+
+			bitmaskInput.keypress(function(e) {
+				if (e.keyCode === 13) {
+					$(this).blur();
+				}
+			});
+		}
 
 		let div = Structr.node(resourceAccess.id);
 
@@ -1028,13 +1048,37 @@ let _ResourceAccessGrants = {
 		});
 	},
 	updateResourcesAccessRow: (id, blinkGreen = true) => {
-		Command.get(id, 'id,flags,type,signature,visibleToPublicUsers,visibleToAuthenticatedUsers,grantees', (obj) => {
+		Command.get(id, _ResourceAccessGrants.defaultResourceAccessGrantAttributes, (obj) => {
 			_ResourceAccessGrants.appendResourceAccessElement(obj, blinkGreen);
 		});
+	},
+	appendPrincipalIconOrMargin: (actionsCol, resourceAccess) => {
+
+		let principalCount = resourceAccess.grantees?.length ?? 0;
+
+		if (principalCount === 0) {
+
+			let html = _Icons.getSvgIcon(_Icons.nonExistentEmptyIcon, 16, 16, ['mr-1']);
+			actionsCol.append(html);
+
+		} else {
+
+			let x = _Helpers.appendInfoTextToElement({
+				text: 'This grant has access rights configured for the following users/groups. Click to open the ACL dialog.<br><br>' + resourceAccess.grantees.map(p => p.name).join('<br>'),
+				element: actionsCol,
+				customToggleIcon: _Icons.iconSecurityRegularUser,
+				customToggleIconClasses: [''],
+				width: 16,
+				height: 16,
+				skipClick: true
+			});
+
+			_Entities.bindAccessControl(x[0], resourceAccess);
+		}
 	}
 };
 
-_CorsSettings = {
+let _CorsSettings = {
 
 	getCorsSettingsElement: () => document.querySelector('#corsSettings'),
 

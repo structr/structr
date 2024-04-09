@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,9 +20,38 @@ package org.structr.web.maintenance.deploy;
 
 public class ImportPreconditionFailedException extends RuntimeException {
 
+	private String title = "Deployment Import not started";
+	private String html  = null;
+
 	public ImportPreconditionFailedException(final String message) {
 
 		super(message);
 	}
 
+	public ImportPreconditionFailedException(final String title, final String message) {
+
+		this(message);
+
+		this.title = title;
+	}
+
+	public ImportPreconditionFailedException(final String title, final String message, final String html) {
+
+		this(title, message);
+
+		this.html = html;
+	}
+
+	public String getTitle () {
+		return title;
+	}
+
+	public String getMessageHtml () {
+
+		if (html != null) {
+			return html;
+		}
+
+		return getMessage();
+	}
 }

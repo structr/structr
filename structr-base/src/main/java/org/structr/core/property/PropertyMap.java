@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -128,6 +128,18 @@ public class PropertyMap {
 
 	public Map<PropertyKey, Object> getRawMap() {
 		return properties;
+	}
+
+	public Map<String, Object> getAsMap() {
+
+		final Map<String, Object> result = new LinkedHashMap<>();
+
+		for (final Entry<PropertyKey, Object> entry : properties.entrySet()) {
+
+			result.put(entry.getKey().jsonName(), entry.getValue());
+		}
+
+		return result;
 	}
 
 	/**

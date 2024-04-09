@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,13 +34,11 @@ let _Code = {
 	codeResizerLeftKey: 'structrCodeResizerLeftKey_' + location.port,
 	codeResizerRightKey: 'structrCodeResizerRightKey_' + location.port,
 	additionalDirtyChecks: [],
-	methodNamesWithoutOpenAPITab: ['onCreate', 'onSave', 'onDelete', 'afterCreate'],
 	defaultPageSize: 10000,
 	defaultPage: 1,
 
 	init: () => {
 
-		Structr.makePagesMenuDroppable();
 		Structr.adaptUiToAvailableFeatures();
 	},
 	beforeunloadHandler: () => {
@@ -1460,7 +1458,7 @@ let _Code = {
 			let sourceEditor = _Editors.getMonacoEditor(result, 'source', _Code.codeContents[0].querySelector('#tabView-source .editor'), sourceMonacoConfig);
 			_Editors.appendEditorOptionsElement(_Code.codeContents[0].querySelector('.editor-info'));
 
-			if (result.codeType === 'java' || _Code.methodNamesWithoutOpenAPITab.includes(result.name)) {
+			 if (_Code.shouldHideOpenAPITabForMethod(result)) {
 
 				$('li[data-name=api]').hide();
 
@@ -1653,6 +1651,20 @@ let _Code = {
 
 			_Editors.focusEditor(sourceEditor);
 		});
+	},
+	shouldHideOpenAPITabForMethod: (entity) => {
+
+		// do all lifecycle methods not have openAPI tab?
+		// could unify code (or at least list of lifecycle methods) with icons code for lifecycle methods
+		// and button generation for lifecycle methods
+		let methodPrefixesWithoutOpenAPITab = [
+			'onCreate',
+			'onSave',
+			'onDelete',
+			'afterCreate'
+		];
+
+		return entity.codeType === 'java' || methodPrefixesWithoutOpenAPITab.some(prefix => entity.name.startsWith(prefix));
 	},
 	populateOpenAPIBaseConfig: (container, entity = {}, availableTags) => {
 
@@ -2340,7 +2352,7 @@ let _Code = {
 				containerCssClass: 'select2-sortable hide-selected-options hide-disabled-options',
 				closeOnSelect: false,
 				scrollAfterSelect: false
-			})
+			});
 
 			if (viewIsEditable) {
 
@@ -3242,7 +3254,7 @@ let _Code = {
 			</div>
 		`,
 		recentlyUsedButton: config => `
-			<div class="code-favorite items-center" id="recently-used-${config.id}">
+			<div class="code-favorite items-center px-2 py-1" id="recently-used-${config.id}">
 				${config.iconSvg ? config.iconSvg : ''}
 				${config.iconClass ? `<i class="${config.iconClass} flex-none"></i>` : ''}
 				<div class="truncate flex-grow">${config.name}</div>

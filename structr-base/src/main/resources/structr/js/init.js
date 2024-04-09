@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+const globalFinalizationRegistry = new FinalizationRegistry(message => console.log('finalized: ' + message));
 
 document.addEventListener("DOMContentLoaded", () => {
 
@@ -222,7 +223,6 @@ let Structr = {
 	isInMemoryDatabase: undefined,
 	modules: {},
 	activeModules: {},
-	availableMenuItems: [],
 	moduleAvailabilityCallbacks: [],
 	keyMenuConfig: 'structrMenuConfig_' + location.port,
 	mainModule: undefined,
@@ -235,10 +235,12 @@ let Structr = {
 	legacyRequestParameters: false,
 	diffMatchPatch: undefined,
 	abbreviations: {
-		visibleToPublicUsers: "Public",
-		visibleToAuthenticatedUsers: "Auth. Vis."
+		visibleToPublicUsers: "Publ. Users",
+		visibleToAuthenticatedUsers: "Auth. Users"
 	},
 	dialogTimeoutId: undefined,
+	instanceName: '',
+	instanceStage: '',
 	getDiffMatchPatch: () => {
 		if (!Structr.diffMatchPatch) {
 			Structr.diffMatchPatch = new diff_match_patch();
@@ -246,12 +248,8 @@ let Structr = {
 		return Structr.diffMatchPatch;
 	},
 	getRequestParameterName: (key) => (Structr.legacyRequestParameters === true) ? key : `_${key}`,
-	setFunctionBarHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.functionBar, html);
-	},
-	setMainContainerHTML: (html) => {
-		_Helpers.setContainerHTML(Structr.mainContainer, html);
-	},
+	setFunctionBarHTML: (html) => _Helpers.setContainerHTML(Structr.functionBar, html),
+	setMainContainerHTML: (html) => _Helpers.setContainerHTML(Structr.mainContainer, html),
 
 	moveUIOffscreen: () => {
 
@@ -368,6 +366,14 @@ let Structr = {
 			StructrWS.user = name;
 			$('#logout_').html(`Logout <span class="username">${name}</span>`);
 		}
+	},
+	updateDocumentTitle: () => {
+
+		let activeMenuEntry = Structr.mainMenu.getActiveEntry()?.dataset['name'] ?? '';
+
+		let instance = (Structr.instanceName === '' && Structr.instanceStage === '') ? '' : ` - ${Structr.instanceName} (${Structr.instanceStage})`;
+
+		document.title = `Structr ${activeMenuEntry}${instance}`;
 	},
 	getSessionId: () => {
 		return Cookies.get('JSESSIONID');
@@ -704,41 +710,6 @@ let Structr = {
 
 		return entity;
 	},
-	makePagesMenuDroppable: () => {
-
-		try {
-			$('#pages_').droppable('destroy');
-		} catch (err) {
-			// console.log(err);
-		}
-
-		$('#pages_').droppable({
-			accept: '.element, .content, .component, .file, .image, .widget',
-			greedy: true,
-			hoverClass: 'nodeHover',
-			tolerance: 'pointer',
-			over: function(e, ui) {
-
-				e.stopPropagation();
-				$('a#pages_').droppable('disable');
-
-				Structr.mainMenu.activateEntry('pages');
-				window.location.href = '/structr/#pages';
-
-				if (_Files.filesMain && _Files.filesMain.length) {
-					_Files.filesMain.hide();
-				}
-				if (_Widgets.widgets && _Widgets.widgets.length) {
-					_Widgets.widgets.hide();
-				}
-
-				Structr.modules['pages'].onload();
-				Structr.adaptUiToAvailableFeatures();
-				Structr.resize();
-				$('a#pages_').removeClass('nodeHover').droppable('enable');
-			}
-		});
-	},
 	slideouts: {
 		leftSlideoutTrigger: (triggerEl, slideoutElement, otherSlideouts, openCallback, closeCallback) => {
 
@@ -841,8 +812,6 @@ let Structr = {
 			}
 
 			document.querySelector('.slideout-activator.right.active')?.classList.remove('active');
-
-			LSWrapper.removeItem(_Pages.activeTabRightKey);
 		},
 	},
 	updateVersionInfo: (retryCount = 0, isLogin = false) => {
@@ -886,8 +855,20 @@ let Structr = {
 				}
 			}
 
+			let deploymentActive = (envInfo.isDeploymentActive ?? false);
+			if (deploymentActive === true) {
+				Structr.handleGenericMessage({
+					type: 'DEPLOYMENT_IMPORT_STATUS',
+					subtype: 'ALREADY_RUNNING'
+				});
+			}
+
 			$('#header .structr-instance-name').text(envInfo.instanceName);
 			$('#header .structr-instance-stage').text(envInfo.instanceStage);
+
+			Structr.instanceName  = envInfo.instanceName;
+			Structr.instanceStage = envInfo.instanceStage;
+			Structr.updateDocumentTitle();
 
 			Structr.legacyRequestParameters = envInfo.legacyRequestParameters;
 
@@ -927,18 +908,11 @@ let Structr = {
 				}
 			}
 
-			Structr.activeModules      = envInfo.modules;
-			Structr.availableMenuItems = envInfo.availableMenuItems;
+			Structr.activeModules = envInfo.modules;
 
 			Structr.adaptUiToAvailableFeatures();
 
-			let userConfigMenu = LSWrapper.getItem(Structr.keyMenuConfig);
-			if (!userConfigMenu) {
-				userConfigMenu = {
-					main: envInfo.mainMenu,
-					sub: []
-				};
-			}
+			let userConfigMenu = Structr.mainMenu.getSavedMenuConfig();
 
 			Structr.mainMenu.update(userConfigMenu);
 
@@ -967,6 +941,14 @@ let Structr = {
 		lastMenuEntry: undefined,
 		lastMenuEntryKey: 'structrLastMenuEntry_' + location.port,
 		isBlocked: false,
+		defaultMainMenuItems: ['Dashboard', 'Pages', 'Files', 'Security', 'Schema', 'Code', 'Data'],
+		getSavedMenuConfig: () => {
+
+			return LSWrapper.getItem(Structr.keyMenuConfig, {
+				main: Structr.mainMenu.defaultMainMenuItems,
+				sub: []
+			});
+		},
 		update: (menuConfig, updateLS = true) => {
 
 			if (updateLS === true) {
@@ -979,14 +961,6 @@ let Structr = {
 
 			// first move all elements from main menu to submenu
 			submenu.append(...menu.querySelectorAll('li[data-name]'));
-
-			// then filter the items by availability in edition
-			for (let menuItem of submenu.querySelectorAll('li[data-name]')) {
-				let name = menuItem.dataset.name;
-				if (!Structr.availableMenuItems.includes(name)) {
-					menuItem.classList.add('hidden');
-				}
-			}
 
 			if (menuConfig) {
 
@@ -1042,19 +1016,22 @@ let Structr = {
 
 			Structr.mainMenu.lastMenuEntry = name;
 
-			for (let menuEntry of document.querySelectorAll('.menu li')) {
-				menuEntry.classList.remove('active');
+			for (let entry of document.querySelectorAll('.menu li')) {
+				entry.classList.remove('active');
 			}
 
 			li.classList.add('active');
 
-			document.title       = `Structr ${menuEntry.textContent.trim()}`;
+			Structr.updateDocumentTitle();
 			window.location.hash = Structr.mainMenu.lastMenuEntry;
 
 			if (Structr.mainMenu.lastMenuEntry && Structr.mainMenu.lastMenuEntry !== 'logout') {
 				LSWrapper.setItem(Structr.mainMenu.lastMenuEntryKey, Structr.mainMenu.lastMenuEntry);
 			}
 		},
+		getActiveEntry: () => {
+			return document.querySelector('#menu .active');
+		}
 	},
 	inMemoryWarningText: "Please note that the system is currently running on an in-memory database implementation. Data is not persisted and will be lost after restarting the instance! You can use the configuration tool to configure a database connection.",
 	appendInMemoryInfoToElement: (el) => {
@@ -1424,6 +1401,14 @@ let Structr = {
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
 
+				} else if (data.subtype === 'ALREADY_RUNNING') {
+
+					let text = `${type} was already running before page was loaded<br><br>
+						Please wait until the import process is finished. Any changes made during a deployment might get lost or conflict with the deployment! This message will be updated during the deployment process.<br><ol class="message-steps"></ol>
+					`;
+
+					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(text).requiresConfirmation().updatesText().show();
+
 				} else if (data.subtype === 'PROGRESS') {
 
 					new InfoMessage().title(`${type} Progress`).uniqueClass(messageCssClass).text(`<li>${data.message}</li>`).requiresConfirmation().appendsText('.message-steps').show();
@@ -1551,25 +1536,18 @@ let Structr = {
 
 					let builder = new WarningMessage().title(`REST Access to '${data.uri}' denied`).text(data.message).requiresConfirmation().allowConfirmAll();
 
-					builder.specialInteractionButton('Go to Security and create Grant', function (btn) {
+					let createGrant = (grantData) => {
 
 						let maskIndex = (data.validUser ? 'AUTH_USER_' : 'NON_AUTH_USER_') + data.method.toUpperCase();
 						let flags     = _ResourceAccessGrants.mask[maskIndex] || 0;
 
-						let additionalData = {};
-
-						if (data.validUser === true) {
-							additionalData.visibleToAuthenticatedUsers = true;
-						} else {
-							additionalData.visibleToPublicUsers = true;
-						}
-
-						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, additionalData);
+						_ResourceAccessGrants.createResourceAccessGrant(data.signature, flags, null, grantData);
 
 						let resourceAccessKey = 'resource-access';
 
 						let grantPagerConfig = LSWrapper.getItem(_Pager.pagerDataKey + resourceAccessKey);
 						if (!grantPagerConfig) {
+
 							grantPagerConfig = {
 								id: resourceAccessKey,
 								type: resourceAccessKey,
@@ -1578,9 +1556,12 @@ let Structr = {
 								sort: "signature",
 								order: "asc"
 							};
+
 						} else {
+
 							grantPagerConfig = JSON.parse(grantPagerConfig);
 						}
+
 						grantPagerConfig.filters = {
 							flags: false,
 							signature: data.signature
@@ -1588,13 +1569,26 @@ let Structr = {
 
 						LSWrapper.setItem(_Pager.pagerDataKey + resourceAccessKey, JSON.stringify(grantPagerConfig));
 
-						if (Structr.getActiveModule()._moduleName === _Security._moduleName) {
+						if (Structr.isModuleActive(_Security)) {
+
 							_Security.selectTab(resourceAccessKey);
+
 						} else {
+
 							LSWrapper.setItem(_Security.securityTabKey, resourceAccessKey);
 							window.location.href = '#security';
 						}
-					}, 'Dismiss');
+					};
+
+					if (data.validUser === false) {
+
+						builder.specialInteractionButton('Create and show grant for <b>public</b> users', () => { createGrant({ visibleToPublicUsers: true, grantees: [] }) }, 'Dismiss');
+
+					} else {
+
+						builder.specialInteractionButton(`Create and show grant for user <b>${data.username}</b>`, () => { createGrant({ grantees: [{ id: data.userid }] }) }, 'Dismiss');
+						builder.specialInteractionButton('Create and show grant for <b>authenticated</b> users', () => { createGrant({ visibleToAuthenticatedUsers: true, grantees: [] }) }, 'Dismiss');
+					}
 
 					builder.show();
 				}
@@ -1680,7 +1674,7 @@ let Structr = {
 
 							} else {
 
-								builder.specialInteractionButton('Open in editor', function(btn) {
+								builder.specialInteractionButton('Open in editor', () => {
 
 									switch (data.nodeType) {
 										case 'Content':
@@ -1743,7 +1737,7 @@ let Structr = {
 									builder.text(`${data.message}<br><br>Source: ${title}`);
 								}
 
-								builder.specialInteractionButton('Go to element in page tree', function (btn) {
+								builder.specialInteractionButton('Go to element in page tree', () => {
 
 									_Pages.openAndSelectTreeObjectById(obj.id);
 
@@ -1836,46 +1830,49 @@ let Structr = {
 
 		if (menu) {
 
-			let container = e.target.closest('.dropdown-menu').querySelector('.dropdown-menu-container');
+			let container = menu.querySelector('.dropdown-menu-container');
 
-			if (container) {
+			Structr.showDropdownContainer(container);
+		}
+	},
+	showDropdownContainer: (container) => {
 
-				let isVisible = (container.dataset['visible'] === 'true');
+		if (container) {
 
-				if (isVisible) {
+			let isVisible = (container.dataset['visible'] === 'true');
 
-					Structr.hideDropdownContainer(container);
+			if (isVisible) {
 
-				} else {
+				Structr.hideDropdownContainer(container);
 
-					Structr.hideOpenDropdownsExcept(container);
+			} else {
 
-					let btn           = e.target.closest('.dropdown-select');
-					let btnRect       = btn.getBoundingClientRect();
-					let containerRect = container.getBoundingClientRect();
+				Structr.hideOpenDropdownsExcept(container);
 
-					// apply "fixed" first to prevent container overflow
-					if (btn.dataset['wantsFixed'] === 'true') {
-						/*
-							this is important for the editor tools in a popup which need to break free from the popup dialog
-						*/
-						container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
-					}
+				let btn           = container.closest('.dropdown-menu').querySelector('.dropdown-select');
+				let btnRect       = btn.getBoundingClientRect();
 
-					container.dataset['visible'] = 'true';
-					container.style.display      = 'block';
+				// apply "fixed" first to prevent container overflow
+				if (btn.dataset['wantsFixed'] === 'true') {
+					/*
+                        this is important for the editor tools in a popup which need to break free from the popup dialog
+                    */
+					container.style.position = 'fixed';  // no top, no bottom, just fixed so that it is positioned automatically but taken out of the document flow
+				}
 
-					if (btn.dataset['preferredPositionX'] === 'left') {
+				container.dataset['visible'] = 'true';
+				container.style.display      = 'block';
 
-						// position dropdown left of button
-						container.style.right    = `calc(${window.innerWidth - btnRect.right}px + 2.5rem)`;
-					}
+				if (btn.dataset['preferredPositionX'] === 'left') {
 
-					if (btn.dataset['preferredPositionY'] === 'top') {
+					// position dropdown left of button
+					container.style.right    = `${window.innerWidth - btnRect.right}px`;
+				}
 
-						// position dropdown over activator button
-						container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
-					}
+				if (btn.dataset['preferredPositionY'] === 'top') {
+
+					// position dropdown over activator button
+					container.style.bottom    = `calc(${window.innerHeight - btnRect.top}px + 0.25rem)`;
 				}
 			}
 		}
@@ -2024,7 +2021,7 @@ let _TreeHelper = {
 	initTree: (tree, initFunction, stateKey) => {
 
 		let initializedTree = $(tree).jstree({
-			plugins: ["themes", "dnd", "search", "state", "types", "wholerow"],
+			plugins: ["themes", "search", "state", "types", "wholerow"],
 			core: {
 				animation: 0,
 				async: true,
@@ -2201,20 +2198,23 @@ let _TreeHelper = {
 
 		return n?.state.opened;
 	},
-	makeDroppable: function(tree, list) {
-		window.setTimeout(() => {
-			list.forEach((obj) => {
-				// only load data necessary for dnd. prevent from loading the complete folder (with its files)
-				Command.get(obj.id, 'id,type,isFolder', (data) => {
-					StructrModel.createOrUpdateFromData(data, null, false);
-					_TreeHelper.makeTreeElementDroppable(tree, obj.id);
-				});
-			});
-		}, 500);
-	},
-	makeTreeElementDroppable: function(tree, id) {
-		let el = $('#' + id + ' > .jstree-wholerow', tree);
-		_Dragndrop.makeDroppable(el);
+	makeAllTreeElementsDroppable: (tree, dragndropFunction) => {
+
+		for (let node of tree[0].querySelectorAll('.jstree-node:not(.has-drop-behavior)')) {
+
+			// TODO: ids starting with digits are not allowed, rewriting this to vanilla will hurt (for every tree)
+			let el = $('#' + node.id, tree);
+
+			let modelObj = StructrModel.obj(node.id);
+
+			if (modelObj) {
+				dragndropFunction?.(modelObj, el[0]);
+			} else {
+				dragndropFunction?.({ id: node.id, type: 'fake' }, el[0]);
+			}
+
+			el[0].classList.add('has-drop-behavior');
+		}
 	}
 };
 
@@ -2248,7 +2248,8 @@ class MessageBuilder {
 			updatesButtons: false,
 			appendsText: false,
 			appendSelector: '',
-			incrementsUniqueCount: false
+			incrementsUniqueCount: false,
+			specialInteractionButtons: []
 		};
 	}
 
@@ -2280,27 +2281,24 @@ class MessageBuilder {
 		return this;
 	};
 
-	getButtonHtml() {
-
-		return `
-			${(this.params.requiresConfirmation ? `<button class="confirm inline-flex items-center hover:border-gray-666">${this.params.confirmButtonText}</button>` : '')}
-			${(this.params.requiresConfirmation && this.params.allowConfirmAll ? `<button class="confirmAll inline-flex items-center hover:border-gray-666">${this.params.confirmAllButtonText}</button>` : '')}
-			${(this.params.specialInteractionButton ? `<button class="special inline-flex items-center hover:border-gray-666">${this.params.specialInteractionButton.text}</button>` : '')}
-		`;
-	};
-
-	activateButtons() {
+	appendButtons(buttonElement) {
 
 		if (this.params.requiresConfirmation === true) {
 
-			document.querySelector(`#${this.params.msgId} button.confirm`).addEventListener('click', (e) => {
+			let confirmationButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirm hover:border-gray-666 mb-2">${this.params.confirmButtonText}</button>`);
+			buttonElement.appendChild(confirmationButton);
+
+			confirmationButton.addEventListener('click', (e) => {
 				e.target.closest('button').remove();
 				this.dismiss();
 			});
 
 			if (this.params.allowConfirmAll === true) {
 
-				document.querySelector(`#${this.params.msgId} button.confirmAll`).addEventListener('click', () => {
+				let confirmAllButton = _Helpers.createSingleDOMElementFromHTML(`<button class="confirmAll hover:border-gray-666 mb-2">${this.params.confirmAllButtonText}</button>`);
+				buttonElement.appendChild(confirmAllButton);
+
+				confirmAllButton.addEventListener('click', () => {
 					for (let confirmButton of document.querySelectorAll(`#info-area button.confirm`)) {
 						confirmButton.click();
 					}
@@ -2313,15 +2311,19 @@ class MessageBuilder {
 				this.dismiss();
 			}, this.params.delayDuration);
 
-			document.querySelector(`#${this.params.msgId}`).addEventListener('click', () => {
+			buttonElement.closest(`#${this.params.msgId}`).addEventListener('click', () => {
 				this.dismiss();
 			});
 		}
 
-		if (this.params.specialInteractionButton) {
+		for (let btn of this.params.specialInteractionButtons) {
 
-			document.querySelector(`#${this.params.msgId} button.special`).addEventListener('click', () => {
-				this.params.specialInteractionButton.action();
+			let specialBtn = _Helpers.createSingleDOMElementFromHTML(`<button class="special hover:border-gray-666 mb-2">${btn.text}</button>`);
+			buttonElement.appendChild(specialBtn);
+
+			specialBtn.addEventListener('click', () => {
+
+				btn.action?.();
 
 				this.dismiss();
 			});
@@ -2378,8 +2380,7 @@ class MessageBuilder {
 					let buttonsContainer = existingMessage.querySelector('.message-buttons');
 					_Helpers.fastRemoveAllChildren(buttonsContainer);
 
-					buttonsContainer.insertAdjacentHTML('beforeend', this.getButtonHtml());
-					this.activateButtons();
+					this.appendButtons(buttonsContainer);
 				}
 			}
 		}
@@ -2394,20 +2395,18 @@ class MessageBuilder {
 						${_Icons.getSvgIcon(_Icons.getSvgIconForMessageClass(this.typeClass))}
 					</div>
 					<div class="flex-grow">
-						${(this.params.title ? `<div class="mb-1 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
-						<div class="message-text">
+						${(this.params.title ? `<div class="mb-2 -mt-1 font-bold text-lg">${this.params.title}${this.getUniqueCountElement()}</div>` : this.getUniqueCountElement())}
+						<div class="message-text overflow-y-auto">
 							${this.params.text}
 						</div>
-						<div class="message-buttons text-right mb-1">
-							${this.getButtonHtml()}
-						</div>
+						<div class="message-buttons text-right mt-2"></div>
 					</div>
 				</div>
 			`);
 
-			document.querySelector('#info-area').appendChild(message);
+			this.appendButtons(message.querySelector('.message-buttons'));
 
-			this.activateButtons();
+			document.querySelector('#info-area').appendChild(message);
 		}
 	};
 
@@ -2426,10 +2425,10 @@ class MessageBuilder {
 
 	specialInteractionButton(buttonText, callback, confirmButtonText) {
 
-		this.params.specialInteractionButton = {
+		this.params.specialInteractionButtons.push({
 			text: buttonText,
 			action: callback
-		};
+		});
 
 		return this.requiresConfirmation(confirmButtonText);
 	};
@@ -2466,31 +2465,31 @@ class MessageBuilder {
 	getUniqueCountElement() {
 		return `<span class="uniqueCount ml-1 empty:hidden">${(this.params.uniqueCount > 1) ? `(${this.params.uniqueCount})` : ''}</span>`;
 	};
-};
+}
 
 class SuccessMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.success);
 	}
-};
+}
 
 class WarningMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.warning);
 	}
-};
+}
 
 class InfoMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.info);
 	}
-};
+}
 
 class ErrorMessage extends MessageBuilder {
 	constructor() {
 		super(MessageBuilder.types.error);
 	}
-};
+}
 
 let UISettings = {
 	getValueForSetting: (setting) => {
@@ -2533,7 +2532,7 @@ let UISettings = {
 
 		let dropdown = _Helpers.createSingleDOMElementFromHTML(`<div id="ui-settings-popup" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 			<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-preferred-position-x="left">
-				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings)}
+				${_Icons.getSvgIcon(_Icons.iconUIConfigSettings, 16, 16, ['mr-2'])}
 			</button>
 			<div class="dropdown-menu-container" style="display: none;"></div>
 		</div>`);
@@ -2658,6 +2657,18 @@ let UISettings = {
 				showVisibilityFlagsInGrantsTableKey: {
 					text: 'Show visibility flags in Resource Access Grants table',
 					storageKey: 'showVisibilityFlagsInResourceAccessGrantsTable' + location.port,
+					defaultValue: false,
+					type: 'checkbox',
+					onUpdate: () => {
+						if (Structr.isModuleActive(_Security)) {
+							_ResourceAccessGrants.refreshResourceAccesses();
+						}
+					}
+				},
+				showBitmaskColumnInGrantsTableKey: {
+					text: 'Show bitmask column in Resource Access Grants table',
+					infoText: 'This is an advanced editing feature to quickly set the grant configuration',
+					storageKey: 'showBitmaskColumnInResourceAccessGrantsTable' + location.port,
 					defaultValue: false,
 					type: 'checkbox',
 					onUpdate: () => {

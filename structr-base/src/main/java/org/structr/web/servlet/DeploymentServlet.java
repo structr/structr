@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,6 +25,7 @@ import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
+import java.nio.charset.StandardCharsets;
 import net.lingala.zip4j.ZipFile;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -39,6 +40,7 @@ import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.exception.AuthenticationException;
 import org.structr.core.graph.Tx;
+import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.HttpHelper;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.rest.service.StructrHttpServiceConfig;
@@ -337,11 +339,11 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 
 					if ("app".equals(mode)) {
 
-						deployAppFile(file, fileName, directoryPath, zipContentPath, securityContext);
+						deployAppFile(response, file, fileName, directoryPath, zipContentPath, securityContext);
 
 					} else if ("data".equals(mode)) {
 
-						deployDataFile(file, fileName, directoryPath, securityContext);
+						deployDataFile(response, file, fileName, directoryPath, securityContext);
 
 					} else {
 
@@ -373,7 +375,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 			}
 
 			// send redirect to allow form-based file upload without JavaScript...
-			if (StringUtils.isNotBlank(redirectUrl)) {
+			if (response.getStatus() == HttpServletResponse.SC_OK && StringUtils.isNotBlank(redirectUrl)) {
 
 				sendRedirectHeader(response, redirectUrl, false);	// user-provided, should be already prefixed
 			}
@@ -529,7 +531,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployAppFile(final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployAppFile(final HttpServletResponse response, final File file, final String fileName, final String directoryPath, final String zipContentPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -550,6 +552,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		file.delete();
 		final File dir = new File(directoryPath);
 		dir.delete();
+
+		response.setStatus(deployCommand.getCommandStatusCode());
+
+		if (deployCommand.getCommandStatusCode() == 422) {
+			response.getOutputStream().write(RestMethodResult.jsonError(422, deployCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
+		}
 	}
 
 	/**
@@ -561,7 +569,7 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 	 * @throws FrameworkException
 	 * @throws IOException
 	 */
-	private void deployDataFile(final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
+	private void deployDataFile(final HttpServletResponse response, final File file, final String fileName, final String directoryPath, final SecurityContext securityContext) throws FrameworkException, IOException {
 
 		unzip(file, directoryPath);
 
@@ -577,6 +585,12 @@ public class DeploymentServlet extends AbstractServletBase implements HttpServic
 		file.delete();
 		final File dir = new File(directoryPath);
 		dir.delete();
+
+		response.setStatus(deployDataCommand.getCommandStatusCode());
+
+		if (deployDataCommand.getCommandStatusCode() == 422) {
+			response.getOutputStream().write(RestMethodResult.jsonError(422, deployDataCommand.getCommandResult().toString()).getBytes(StandardCharsets.UTF_8));
+		}
 	}
 
 	/**

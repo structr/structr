@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -20,6 +20,7 @@ package org.structr.files.ssh.filesystem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.storage.util.VirtualFileChannel;
 
 import java.io.IOException;
 import java.net.URI;
@@ -66,12 +67,12 @@ public class StructrFilesystemProvider extends FileSystemProvider {
 
 	@Override
 	public synchronized FileChannel newFileChannel(final Path path, final Set<? extends OpenOption> options, final FileAttribute<?>... attrs) throws IOException {
-		return checkPath(path).newFileChannel(options, attrs);
+		return new VirtualFileChannel(newByteChannel(path, options, attrs));
 	}
 
 	@Override
 	public synchronized SeekableByteChannel newByteChannel(Path path, Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
-		return newFileChannel(path, options, attrs);
+		return checkPath(path).newChannel(options, attrs);
 	}
 
 	@Override

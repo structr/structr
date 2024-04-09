@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,37 +23,42 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.StructrApp;
-import org.structr.util.FileUtils;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.File;
 
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
+import java.nio.channels.Channel;
+import java.nio.channels.SeekableByteChannel;
+import java.nio.file.OpenOption;
+import java.nio.file.StandardOpenOption;
+import java.util.Set;
+
+import static java.nio.file.StandardOpenOption.*;
 
 public class FileUploadHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(FileUploadHandler.class.getName());
 
 	private File file                       = null;
-	private FileChannel privateFileChannel  = null;
+	private SeekableByteChannel privateChannel = null;
 	private Long size                       = 0L;
 	private boolean isCreation              = false;
 	private SecurityContext securityContext = null;
 
 	public FileUploadHandler(final File file, final SecurityContext securityContext, final boolean isCreation) {
 
-		this.size            = FileUtils.getSize(file.getFileOnDisk());
+		this.size            = StorageProviderFactory.getStorageProvider(file).size();
 		this.file            = file;
 		this.isCreation      = isCreation;
 		this.securityContext = securityContext;
 
 		if (this.size == null) {
 
-			FileChannel channel;
+			SeekableByteChannel channel;
 			try {
 
-				channel = getChannel(false);
+				channel = getChannel();
 				this.size = channel.size();
 				updateSize(this.size);
 
@@ -65,9 +70,14 @@ public class FileUploadHandler {
 
 	public void handleChunk(int sequenceNumber, int chunkSize, byte[] data, int chunks) throws IOException {
 
-		FileChannel channel = getChannel(sequenceNumber > 0);
+		final Set<StandardOpenOption> options = new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC));
+		if (sequenceNumber == 0) {
+			options.add(TRUNCATE_EXISTING);
+		}
 
-		if (channel != null) {
+		SeekableByteChannel channel = getChannel(options);
+
+		if (channel != null && channel.isOpen()) {
 
 			channel.position(sequenceNumber * chunkSize);
 			channel.write(ByteBuffer.wrap(data));
@@ -111,14 +121,13 @@ public class FileUploadHandler {
 
 		try {
 
-			FileChannel channel = getChannel(false);
+			Channel channel = getChannel();
 
 			if (channel != null && channel.isOpen()) {
 
-				channel.force(true);
 				channel.close();
 
-				this.privateFileChannel = null;
+				this.privateChannel = null;
 
 				//file.increaseVersion();
 				file.notifyUploadCompletion();
@@ -136,17 +145,16 @@ public class FileUploadHandler {
 	}
 
 	// ----- private methods -----
-	private FileChannel getChannel(final boolean append) throws IOException {
+	private SeekableByteChannel getChannel() throws IOException {
+		return getChannel(new java.util.HashSet<>(Set.of(CREATE, READ, WRITE, SYNC)));
+	}
 
-		if (this.privateFileChannel == null) {
+	private SeekableByteChannel getChannel(final Set<? extends OpenOption> options) throws IOException {
 
-			java.io.File fileOnDisk = file.getFileOnDisk();
-
-			fileOnDisk.getParentFile().mkdirs();
-
-			this.privateFileChannel = new FileOutputStream(fileOnDisk, append).getChannel();
+		if (this.privateChannel == null) {
+			this.privateChannel = StorageProviderFactory.getStorageProvider(this.file).getSeekableByteChannel(options);
 		}
 
-		return this.privateFileChannel;
+		return this.privateChannel;
 	}
 }

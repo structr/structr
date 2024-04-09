@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -104,7 +104,10 @@ export class Frontend {
 		let values = [];
 
 		elements.forEach(element => {
-			values.push(this.resolveElementValue(element));
+			let value = this.resolveElementValue(element);
+			if (value !== undefined) {
+				values.push(value);
+			}
 		});
 
 		// reduce array of length 1 to single value
@@ -258,16 +261,16 @@ export class Frontend {
 
 		if (success) {
 			mode = element.dataset.structrSuccessNotifications;
-			statusText = '✅ Operation successful with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
-			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:green">' + statusText + '</div>';
+			statusText = '✅ Operation successful (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:green">' + statusText + '</div>';
 			for (let elementWithError of document.querySelectorAll('[data-error]')) {
 				elementWithError.style.borderColor = inputElementBorderColor || '';
 				elementWithError.style.borderWidth = inputElementBorderWidth || '';
 			}
 		} else {
 			mode = element.dataset.structrFailureNotifications;
-			statusText = '❌ Operation failed with status ' + status + (parameter?.message ? ': ' + parameter.message : '');
-			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:inline-block;margin-left:1rem;color:red">' + statusText + '<br>';
+			statusText = '❌ Operation failed (' + status + (parameter?.message ? ': ' + parameter.message : ')');
+			statusHTML = '<div class="structr-event-action-notification" id="notification-for-' + id + '" style="font-size:small;display:block;background-color:white;border:1px solid #ccc;border-radius:.25rem;box-shadow:0 0 .625rem 0 rgba(0,0,0,0.1);position:absolute;z-index:9999;padding:.25rem .5rem;margin-top:.25rem;color:red">' + statusText + '<br>';
 
 			if (parameter?.errors?.length) {
 				for (const error of parameter.errors) {
@@ -492,7 +495,7 @@ export class Frontend {
 			let data = container.dataset;
 			let id   = data.structrId;
 
-			if (!id || id.length !== 32) {
+			if (!id) {
 
 				let match = selector.match(/^(.*?)(?:#(.*?))?(?:\\.(.*))?$/gm);
 				let attrKey, attrVal;
@@ -722,6 +725,9 @@ export class Frontend {
 		let options    = this.parseOptions(target);
 		let delay      = 0;
 
+		// check browser validation
+		if (target.reportValidity && !target.reportValidity()) return;
+
 		// handle options
 		if (options.delay) { delay = options.delay; }
 		if (options.preventDefault !== undefined) { preventDefault = options.preventDefault; }
@@ -762,7 +768,7 @@ export class Frontend {
 
 			this.handlePagination(event, target, options);
 
-		} else if (id && id.length === 32) {
+		} else if (id) {
 
 			this.fireEvent('start', { target: target, data: data, event: event });
 

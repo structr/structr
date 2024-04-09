@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.rest.serialization;
 
+import java.util.ArrayList;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -401,8 +402,26 @@ public class StructrJsonHtmlWriter implements RestWriter {
 
 	private String getPagingParameters() {
 
-		return "?"
-				+ RequestKeywords.PageSize.keyword()   + "=" + getPageSize() + "&"
-				+ RequestKeywords.PageNumber.keyword() + "=" + getPage();
+		final ArrayList<String> paramList = new ArrayList<>();
+
+		final String pageSizeKeyword = RequestKeywords.PageSize.keyword();
+		final String requestPageSize = securityContext.getRequest().getParameter(pageSizeKeyword);
+
+		if (requestPageSize != null) {
+			paramList.add(pageSizeKeyword + "=" + requestPageSize);
+		}
+
+		final String pageNumberKeyword = RequestKeywords.PageNumber.keyword();
+		final String requestPageNumber = securityContext.getRequest().getParameter(pageNumberKeyword);
+
+		if (requestPageNumber != null) {
+			paramList.add(pageNumberKeyword + "=" + requestPageNumber);
+		}
+
+		if (paramList.size() == 0) {
+			return "";
+		}
+
+		return "?" + String.join("&", paramList);
 	}
 }

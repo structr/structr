@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -917,9 +917,20 @@ public class StructrLicenseManager implements LicenseManager {
 		for (int i=0; i<retries; i++) {
 
 			try {
+				final URL url = URI.create(address).toURL();
+				URLConnection connection;
 
-				final URL url                  = URI.create(address).toURL();
-				final URLConnection connection = url.openConnection();
+				final String proxyUrl = Settings.HttpProxyUrl.getValue();
+				final int proxyPort = Settings.HttpProxyPort.getValue(80);
+
+				if (StringUtils.isNotBlank(proxyUrl)) {
+					logger.info("Using configured Proxy {}:{} for license check request", proxyUrl, proxyPort);
+					Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUrl, proxyPort));
+					connection = url.openConnection(proxy);
+ 				} else {
+					connection = url.openConnection();
+				}
+
 				final HttpURLConnection http   = (HttpURLConnection)connection;
 
 				http.setDoInput(true);

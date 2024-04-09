@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -73,7 +73,6 @@ public interface VideoFile extends File {
 
 		type.overrideMethod("onCreation",      true,  "updateVideoInfo(arg0);");
 		type.overrideMethod("onModification",  true,  "updateVideoInfo(arg0);");
-		type.overrideMethod("getDiskFilePath", false, "return " + VideoFile.class.getName() + ".getDiskFilePath(this, arg0);");
 
 		type.addMethod("updateVideoInfo")
 			.addParameter("ctx", SecurityContext.class.getName())
@@ -134,19 +133,6 @@ public interface VideoFile extends File {
 		type.addViewProperty(PropertyView.Ui, "convertedVideos");
 		type.addViewProperty(PropertyView.Ui, "posterImage");
 	}}
-
-	String getDiskFilePath(final SecurityContext securityContext);
-
-	static String getDiskFilePath(final VideoFile thisVideo, final SecurityContext securityContext) {
-
-		final java.io.File fileOnDisk = thisVideo.getFileOnDisk();
-		if (fileOnDisk != null) {
-
-			return fileOnDisk.getAbsolutePath();
-		}
-
-		return null;
-	}
 
 	static RestMethodResult getMetadata(final VideoFile thisVideo, final SecurityContext ctx) throws FrameworkException {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -45,6 +45,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.util.Base64;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Image;
@@ -335,8 +336,11 @@ public abstract class ImageHelper extends FileHelper {
 
 				} else {
 
-					// Thumbnail is source image
-					ImageIO.write(source, format.name(), baos);
+					Thumbnails.of(source)
+							.scale(1.0d)
+							.outputFormat(format.name())
+							.toOutputStream(baos);
+
 					tn.setWidth(sourceWidth);
 					tn.setHeight(sourceHeight);
 				}
@@ -352,7 +356,7 @@ public abstract class ImageHelper extends FileHelper {
 			final long end  = System.nanoTime();
 			final long time = (end - start) / 1000000;
 
-			logger.info("Thumbnail created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { originalImage.getName(), originalImage.getUuid(), time });
+			logger.info("Thumbnail ({}, {}, {}) created for image {} ({}). Reading, scaling and writing took {} ms", new Object[] { maxWidth, maxHeight, crop, originalImage.getName(), originalImage.getUuid(), time });
 
 			tn.setBytes(baos.toByteArray());
 
@@ -466,7 +470,7 @@ public abstract class ImageHelper extends FileHelper {
 
 		try {
 
-			final PDDocument pdfDocument  = PDDocument.load(originalFile.getFileOnDisk());
+			final PDDocument pdfDocument  = PDDocument.load(StorageProviderFactory.getStorageProvider(originalFile).getInputStream());
 			final PDFRenderer pdfRenderer = new PDFRenderer(pdfDocument);
 
 			// Create thumbnail of page
@@ -534,7 +538,7 @@ public abstract class ImageHelper extends FileHelper {
 				}
 
 				final AffineTransformOp op = new AffineTransformOp(affineTransform, AffineTransformOp.TYPE_BICUBIC);
-				BufferedImage destinationImage = op.createCompatibleDestImage(source, ColorModel.getRGBdefault());
+				BufferedImage destinationImage = op.createCompatibleDestImage(source, source.getColorModel());
 
 				final Graphics2D g = destinationImage.createGraphics();
 				g.setBackground(Color.WHITE);
@@ -545,8 +549,8 @@ public abstract class ImageHelper extends FileHelper {
 				return destinationImage;
 			}
 
-		} catch (IOException ex) {
-			logger.debug("Unable to rotate image", ex);
+		} catch (Throwable t) {
+			logger.debug("Unable to transform image", t);
 		}
 
 		return null;
@@ -966,7 +970,7 @@ public abstract class ImageHelper extends FileHelper {
 
 
 		public static enum Format {
-			png, jpg, jpeg, gif, tiff;
+			png, jpg, jpeg, gif;
 		}
 
 		public static Format defaultFormat = Format.jpeg;

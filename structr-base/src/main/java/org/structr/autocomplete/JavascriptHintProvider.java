@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -25,7 +25,6 @@ import org.structr.common.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.function.ParseResult;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Hint;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -37,10 +36,10 @@ import java.util.List;
  */
 public class JavascriptHintProvider extends AbstractHintProvider {
 
-	private static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
+	protected static final Logger logger = LoggerFactory.getLogger(JavascriptHintProvider.class);
 
 	@Override
-	protected List<Hint> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<AbstractHint> getAllHints(final ActionContext actionContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		final List<String> tokens = result.getTokens();
 		final String[] lines      = editorText.split("\n");
@@ -95,9 +94,9 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 		// The resulting token list needs to be reversed since we go backwards through the text.
 		Collections.reverse(tokens);
 
-		final List<Hint> hints  = new LinkedList<>();
-		final int tokenCount    = tokens.size();
-		int startTokenIndex     = -1;
+		final List<AbstractHint> hints = new LinkedList<>();
+		final int tokenCount           = tokens.size();
+		int startTokenIndex            = -1;
 
 		// try to find a starting point ($. or Structr.) for the expression
 		for (int i=tokenCount-1; i>=0; i--) {
@@ -123,6 +122,7 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 		return hints;
 	}
 
+	// TODO: move to appropriate place (BuiltinFunctionHint !?)
 	@Override
 	protected String getFunctionName(final String source) {
 
@@ -131,10 +131,5 @@ public class JavascriptHintProvider extends AbstractHintProvider {
 		}
 
 		return source;
-	}
-
-	@Override
-	protected String visitReplacement(final String replacement) {
-		return replacement;
 	}
 }

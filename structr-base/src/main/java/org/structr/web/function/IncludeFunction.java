@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -29,8 +29,8 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.PropertyKey;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.action.ActionContext;
-import org.structr.util.FileUtils;
 import org.structr.web.common.RenderContext;
 import org.structr.web.datasource.FunctionDataSource;
 import org.structr.web.entity.File;
@@ -203,7 +203,7 @@ public class IncludeFunction extends UiCommunityFunction {
 
 					try (final InputStream is = file.getInputStream()) {
 
-						final byte[] buffer = new byte[FileUtils.getSize(file.getFileOnDisk()).intValue()];
+						final byte[] buffer = new byte[Long.valueOf(StorageProviderFactory.getStorageProvider(file).size()).intValue()];
 						IOUtils.read(is, buffer);
 						return StringUtils.toEncodedString(buffer, Charset.forName(charset));
 

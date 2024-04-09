@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,16 +18,16 @@
  */
 package org.structr.core.graph;
 
-import java.util.ArrayList;
 import org.structr.api.RetryException;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
+import org.structr.core.Services;
 import org.structr.core.StructrTransactionListener;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.core.Services;
 
 /**
  *
@@ -127,6 +127,12 @@ public class Tx implements AutoCloseable {
 
 				// send broadcast
 				Services.getInstance().broadcastDataChange(ids);
+			}
+
+			// clear function property cache to avoid caching of objects across transaction boundaries
+			if (securityContext != null) {
+				
+				securityContext.getContextStore().clearFunctionPropertyCache();
 			}
 		}
 	}

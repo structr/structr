@@ -12,7 +12,7 @@
 	<groupId>org.structr</groupId>
 	<artifactId>structr</artifactId>
 	<packaging>pom</packaging>
-	<version>5.1.0</version>
+	<version>5.2-SNAPSHOT</version>
 
 	<url>https://structr.com</url>
 
@@ -56,6 +56,7 @@
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
 		<test.forkCount>4</test.forkCount>
 		<slf4j.version>2.0.0</slf4j.version>
+		<tika.version>2.9.1</tika.version>
 	</properties>
 
 	<modules>
@@ -67,7 +68,6 @@
 		<module>structr-core</module>
 		<module>structr-rest</module>
 		<module>structr-ui</module>
-		<module>structr-net</module>
 		<module>structr-modules</module>
 		<module>structr-binaries</module>
 		<module>structr-test-configuration</module>
@@ -187,39 +187,39 @@
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-core</artifactId>
-				<version>2.5.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parsers</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<type>pom</type>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parsers-standard-package</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-parser-scientific-package</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<type>pom</type>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.tika</groupId>
 				<artifactId>tika-langdetect-optimaize</artifactId>
-				<version>2.3.0</version>
+				<version>${tika.version}</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -439,7 +439,7 @@
 						<exclude>src/test/resources/**/*</exclude>
 					</excludes>
 					<properties>
-						<year>2023</year>
+						<year>2024</year>
 						<owner>Structr GmbH</owner>
 					</properties>
 				</configuration>

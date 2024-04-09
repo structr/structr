@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,6 +44,7 @@ let _Helpers = {
 			}
 
 			// clean up droppables
+			// TODO: can be removed after migrating to HTML5 dragndrop completely
 			if ($().droppable) {
 				try {
 					$('.ui-droppable', $(el)).droppable("destroy");
@@ -368,6 +369,7 @@ let _Helpers = {
 		let offsetY            = config.offsetY || 0;
 		let width              = config.width || 12;
 		let height             = config.height || 12;
+		let skipClick          = config?.skipClick ?? false;
 
 		let createdElements = [];
 
@@ -395,14 +397,42 @@ let _Helpers = {
 
 		toggleElement
 			.on("mousemove", function(e) {
+				let isPinned = toggleElement[0].dataset['pinned'] ?? false;
+
 				helpElement.show();
-				helpElement.css({
-					left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
-					top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
-				});
+
+				if (!isPinned) {
+					helpElement.css({
+						left: Math.min(e.clientX + 20 + offsetX, window.innerWidth - helpElement.width() - 50),
+						top: Math.min(e.clientY + 10 + offsetY, window.innerHeight - helpElement.height() - 10)
+					});
+				}
 			}).on("mouseout", function(e) {
-				helpElement.hide();
+				let isPinned = toggleElement[0].dataset['pinned'] ?? false;
+
+				if (!isPinned) {
+					helpElement.hide();
+				}
 			});
+
+		if (skipClick === false) {
+
+			toggleElement[0].addEventListener('click', (e) => {
+				e.preventDefault();
+
+				let wasPinned = toggleElement[0].dataset['pinned'] ?? false;
+
+				if (wasPinned) {
+					delete toggleElement[0].dataset['pinned'];
+					helpElement.hide();
+					helpElement[0].querySelector('.pinned-info')?.remove();
+				} else {
+					helpElement.show();
+					toggleElement[0].dataset['pinned'] = true;
+					helpElement[0].insertAdjacentHTML('afterbegin', `<div class="pinned-info text-right">${_Icons.getSvgIcon('pin', 16, 16, [ '-mr-2', 'mb-1' ], 'Info Box is pinned, click info icon again to unpin.')}</div>`);
+				}
+			});
+		}
 
 		if (insertAfter) {
 			if (!customToggleElement) {
@@ -434,8 +464,7 @@ let _Helpers = {
 					text: el.dataset['comment'],
 					element: el,
 					css: {
-						'margin': '0 4px',
-						//'vertical-align': 'top'
+						'margin': '0 4px'
 					}
 				};
 

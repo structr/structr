@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -184,8 +184,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	}
 
 	@Override
-	public void onNodeDeletion() {
-		super.onNodeDeletion();
+	public void onNodeDeletion(SecurityContext securityContext) throws FrameworkException {
+		super.onNodeDeletion(securityContext);
 		AbstractSchemaNode.clearCachedSchemaMethods();
 	}
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -109,14 +109,6 @@ public class VersionHelper {
 
 	public static String getInstanceStage() {
 		return Settings.InstanceStage.getValue();
-	}
-
-	public static String[] getMenuEntries() {
-		return Settings.MenuEntries.getValue().split(",");
-	}
-
-	public static String[] getAvailableMenuItems() {
-		return Settings.AvailableMenuItems.getValue().split(",");
 	}
 
 	public static void updateModuleList () {

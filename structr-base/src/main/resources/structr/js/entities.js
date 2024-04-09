@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -35,6 +35,7 @@ let _Entities = {
 
 	},
 	reloadChildren: (id) => {
+
 		let el = Structr.node(id);
 
 		$(el).children('.node').remove();
@@ -47,7 +48,7 @@ let _Entities = {
 		let confirmationHtml = `
 			<p>Delete the following objects ${recursive ? '(all folders recursively) ' : ''}?</p>
 			<div>
-				${entities.map(entity => `<div><strong>${entity.name}</strong> [${entity.id}]</div>`).join('')}
+				${entities.map(entity => `<div><strong>${_Helpers.escapeTags(entity.name)}</strong> [${entity.id}]</div>`).join('')}
 			</div>
 			<br>
 		`;
@@ -65,8 +66,10 @@ let _Entities = {
 	},
 	deleteNode: (entity, recursive, callback) => {
 
-		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${entity.name || ''}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+		_Dialogs.confirmation.showPromise(`<p>Delete ${entity.type} <strong>${_Helpers.escapeTags(entity?.name ?? '')}</strong> [${entity.id}] ${recursive ? 'recursively ' : ''}?</p>`).then(confirm => {
+
 			if (confirm === true) {
+
 				Command.deleteNode(entity.id, recursive);
 
 				callback?.(entity);
@@ -77,7 +80,9 @@ let _Entities = {
 	deleteEdge: (entity, recursive, callback) => {
 
 		_Dialogs.confirmation.showPromise(`<p>Delete Relationship</p><p>(${entity.sourceId})-[${entity.type}]->(${entity.targetId})${recursive ? ' recursively' : ''}?</p>`).then(confirm => {
+
 			if (confirm === true) {
+
 				Command.deleteRelationship(entity.id, recursive);
 
 				callback?.(entity);
@@ -392,7 +397,9 @@ let _Entities = {
 	},
 	getSchemaProperties: (type, view, callback) => {
 
-		fetch(`${Structr.rootUrl}_schema/${type}/${view}`).then(async response => {
+		let url = `${Structr.rootUrl}_schema/${type}/${view}`;
+
+		fetch(url).then(async response => {
 
 			let data = await response.json();
 
@@ -1048,19 +1055,7 @@ let _Entities = {
 
 				propsTable.addClass('show-all');
 
-				$('tr:visible:odd').css({'background-color': '#f6f6f6'});
-				$('tr:visible:even').css({'background-color': '#fff'});
 				$(this).attr('disabled', 'disabled').addClass('disabled');
-			});
-
-			let addCustomAttributeButton = $('.add-custom-attribute', container);
-
-			_Helpers.appendInfoTextToElement({
-				element: addCustomAttributeButton,
-				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
-				insertAfter: true,
-				customToggleIconClasses: ['icon-blue'],
-				noSpan: true
 			});
 
 			let saveCustomHTMLAttribute = (row, exitedInput) => {
@@ -1116,8 +1111,18 @@ let _Entities = {
 				}
 			};
 
+			let addCustomAttributeButton = $('.add-custom-attribute', container);
+
+			_Helpers.appendInfoTextToElement({
+				element: addCustomAttributeButton,
+				text: "Any property name is allowed but the 'data-' prefix is recommended. Please note that 'data-structr-' is reserved for internal use.",
+				insertAfter: true,
+				customToggleIconClasses: ['icon-blue'],
+				noSpan: true
+			});
+
 			addCustomAttributeButton.on('click', () => {
-				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key"></td><td class="value"><input type="text" value=""></td><td></td></tr>')
+				let newAttributeRow = _Helpers.createSingleDOMElementFromHTML('<tr><td class="key"><input type="text" class="newKey" name="key" placeholder="data-..."></td><td class="value"><input type="text" value=""></td><td></td></tr>');
 				propsTable[0].appendChild(newAttributeRow);
 
 				for (let input of newAttributeRow.querySelectorAll('input')) {
@@ -1127,9 +1132,6 @@ let _Entities = {
 				}
 			});
 		}
-
-		$('tr:visible:odd', container).css({'background-color': '#f6f6f6'});
-		$('tr:visible:even', container).css({'background-color': '#fff'});
 	},
 	displaySearch: (id, key, type, el, isCollection) => {
 
@@ -1303,13 +1305,15 @@ let _Entities = {
 			separator: dateTimePickerFormat.separator
 		});
 	},
-	insertRelatedNode: (cell, node, onDelete, position) => {
+	insertRelatedNode: (cell, node, onDelete, position, displayName) => {
 		/** Alternative function to appendRelatedNode
 		    - no jQuery
 		    - uses insertAdjacentHTML
 		    - default position: beforeend
 		*/
-		let displayName = _Crud.displayName(node);
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
 		cell = (cell instanceof jQuery ? cell[0] : cell);
 		cell.insertAdjacentHTML(position || 'beforeend', `
 			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
@@ -1330,10 +1334,12 @@ let _Entities = {
 			return onDelete(nodeEl);
 		}
 	},
-	appendRelatedNode: (cell, node, onDelete) => {
-		let displayName = _Crud.displayName(node);
+	appendRelatedNode: (cell, node, onDelete, displayName) => {
+		if (!displayName) {
+			displayName = _Crud.displayName(node);
+		}
 		cell.append(`
-			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_">
+			<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" class="_${node.id} node ${node.type ? node.type.toLowerCase() : (node?.tag ?? 'element')} ${node.id}_ relative">
 				<span class="abbr-ellipsis abbr-80">${displayName}</span>
 				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer']))}
 			</div>
@@ -1833,26 +1839,22 @@ let _Entities = {
 	appendContextMenuIcon: (parent, entity, visible) => {
 
 		let contextMenuIconClass = 'context_menu_icon';
-		let icon = $('.' + contextMenuIconClass, parent);
+		let icon                 = parent.querySelector('.' + contextMenuIconClass);
 
-		if (!(icon && icon.length)) {
-			icon = $(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
-			parent.append(icon);
+		if (!icon) {
+			icon = _Helpers.createSingleDOMElementFromHTML(_Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon([contextMenuIconClass, 'node-action-icon'])));
+			parent.appendChild(icon);
 		}
 
-		icon.on('click', function(e) {
+		icon.addEventListener('click', (e) => {
 			e.stopPropagation();
-			_Elements.contextMenu.activateContextMenu(e, parent[0], entity);
+			_Elements.contextMenu.activateContextMenu(e, parent, entity);
 		});
 
 		if (visible) {
-			icon.css({
-				visibility: 'visible',
-				display: 'inline-block'
-			});
+			icon.style.visibility = 'visible';
+			icon.style.display    = 'inline-block';
 		}
-
-		return icon;
 	},
 	appendExpandIcon: (nodeContainer, entity, hasChildren, expanded, callback) => {
 
@@ -1866,20 +1868,15 @@ let _Entities = {
 			let typeIcon    = $(nodeContainer.children('.typeIcon').first());
 			let icon        = expanded ? _Icons.expandedClass : _Icons.collapsedClass;
 
-			typeIcon.removeClass(_Icons.typeIconClassNoChildren).before(`<i class="expand_icon_svg ${icon}"></i>`);
+			typeIcon.removeClass(_Icons.typeIconClassNoChildren).before(`<i class="expand_icon_svg ${icon}" draggable="false"></i>`);
 
 			button = $(nodeContainer.children('.expand_icon_svg').first());
 
 			if (button) {
 
-				button.on('click', (e) => {
+				button[0].addEventListener('click', (e) => {
 					e.stopPropagation();
 					_Entities.toggleElement(entity.id, nodeContainer, undefined, callback);
-				});
-
-				// Prevent expand icon from being draggable
-				button.on('mousedown', (e) => {
-					e.stopPropagation();
 				});
 
 				if (expanded) {
@@ -1943,8 +1940,17 @@ let _Entities = {
 			}
 		}
 
+		_Entities.setMouseOverHandlers(nodeId, el, node, isComponent, syncedNodesIds);
+	},
+	setMouseOverHandlers: (nodeId, el, node, isComponent = false, syncedNodesIds = []) => {
+
 		node.on({
 			mouseover: function(e) {
+
+				if (_Dragndrop.dragActive === true) {
+					return;
+				}
+
 				e.stopPropagation();
 				var self = $(this);
 				$('#componentId_' + nodeId).addClass('nodeHover');
@@ -1952,12 +1958,10 @@ let _Entities = {
 					$('#id_' + nodeId).addClass('nodeHover');
 				}
 
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).addClass('nodeHover');
-						$('#componentId_' + s).addClass('nodeHover');
-					});
-				}
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).addClass('nodeHover');
+					$('#componentId_' + s).addClass('nodeHover');
+				});
 
 				let page = $(el).closest('.page');
 				if (page.length) {
@@ -1969,23 +1973,28 @@ let _Entities = {
 				self.children('i.button').css('display', 'inline-block');
 			},
 			mouseout: function(e) {
+
+				if (_Dragndrop.dragActive === true) {
+					return;
+				}
+
 				e.stopPropagation();
 				$('#componentId_' + nodeId).removeClass('nodeHover');
 				if (isComponent) {
 					$('#id_' + nodeId).removeClass('nodeHover');
 				}
-				if (syncedNodesIds && syncedNodesIds.length) {
-					syncedNodesIds.forEach(function(s) {
-						$('#id_' + s).removeClass('nodeHover');
-						$('#componentId_' + s).removeClass('nodeHover');
-					});
-				}
+
+				syncedNodesIds.forEach(function(s) {
+					$('#id_' + s).removeClass('nodeHover');
+					$('#componentId_' + s).removeClass('nodeHover');
+				});
+
 				_Entities.resetMouseOverState(this);
 			}
 		});
 	},
 	resetMouseOverState: (element) => {
-		let el = $(element);
+		let el   = $(element);
 		let node = el.closest('.node');
 		if (node) {
 			node.removeClass('nodeHover');
@@ -2024,8 +2033,11 @@ let _Entities = {
 		Structr.addExpandedNode(id);
 
 		if (force === false && _Entities.isExpanded(element)) {
+
 			return;
+
 		} else {
+
 			Command.children(id, callback);
 
 			let icon = _Entities.getIconFromElement(el);
@@ -2121,24 +2133,23 @@ let _Entities = {
 
 		// on slideout open the elements are not (always) refreshed --> highlight the currently active element (if there is one)
 		let selectedElementId = LSWrapper.getItem(_Entities.selectedObjectIdKey);
-		let element = document.querySelector('#id_' + selectedElementId);
+		let node = document.querySelector('#id_' + selectedElementId);
 
-		element?.querySelector('.node-selector')?.classList.add('active');
+		node?.querySelector('.node-container')?.classList.add('node-selected');
 	},
 	selectElement: (element, entity) => {
 
-		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
-			activeSelector.classList.remove('active');
-		}
-		element.querySelector('.node-selector').classList.add('active');
+		_Entities.removeSelectedNodeClassFromAllNodes();
+
+		element.querySelector('.node-container').classList.add('node-selected');
 
 		_Entities.selectedObject = entity;
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, entity.id);
 	},
-	removeActiveNodeClassFromAllNodes: () => {
+	removeSelectedNodeClassFromAllNodes: () => {
 
-		for (let activeSelector of document.querySelectorAll('.node-selector.active')) {
-			activeSelector.classList.remove('active');
+		for (let activeSelector of document.querySelectorAll('.node-selected')) {
+			activeSelector.classList.remove('node-selected');
 		}
 	},
 	toggleElement: (id, el, isExpanded, callback) => {
@@ -2153,9 +2164,7 @@ let _Entities = {
 
 		if (_Entities.isExpanded(nodeContainer)) {
 
-			$(nodeContainer.closest('.node')).children('.node').each((i, el) => {
-				_Helpers.fastRemoveElement(el);
-			});
+			_Entities.removeChildNodesFromUI(nodeContainer.closest('.node'));
 
 			toggleIcon.removeClass(_Icons.expandedClass).addClass(_Icons.collapsedClass);
 
@@ -2170,6 +2179,12 @@ let _Entities = {
 			toggleIcon.removeClass(_Icons.collapsedClass).addClass(_Icons.expandedClass);
 
 			Structr.addExpandedNode(id);
+		}
+	},
+	removeChildNodesFromUI: (node) => {
+
+		for (let childNode of node[0].querySelectorAll(':scope > .node')) {
+			_Helpers.fastRemoveElement(childNode);
 		}
 	},
 	makeAttributeEditable: (parentElement, id, attributeSelector, attributeName, callback) => {
@@ -2187,7 +2202,7 @@ let _Entities = {
 		let restoreNonEditableTag = (el, text) => {
 
 			let newEl = $(attributeElementRawHTML);
-			newEl.html(text);
+			newEl.text(text);
 			newEl.attr('title', text);
 			el.replaceWith(newEl);
 
@@ -3120,7 +3135,7 @@ let _Entities = {
 						</div>
 
 						<div>
-							<label  class="mb-2"for="category-input">Category</label>
+							<label class="block mb-2" for="category-input">Category</label>
 							<input type="text" id="category-input" name="category">
 						</div>
 

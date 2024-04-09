@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.config.Settings;
 import org.structr.api.graph.Cardinality;
+import org.structr.api.graph.PropagationDirection;
+import org.structr.api.graph.PropagationMode;
 import org.structr.api.schema.JsonObjectType;
 import org.structr.api.schema.JsonReferenceType;
 import org.structr.api.schema.JsonSchema;
@@ -39,6 +41,7 @@ import org.structr.core.entity.LinkedTreeNode;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.property.GenericProperty;
 import org.structr.core.property.PropertyKey;
+import org.structr.files.external.DirectoryWatchService;
 import org.structr.schema.SchemaService;
 import org.structr.web.common.FileHelper;
 import org.structr.web.property.MethodProperty;
@@ -49,6 +52,8 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import org.structr.storage.StorageProvider;
+import org.structr.storage.StorageProviderFactory;
 
 /**
  * Base class for filesystem objects in structr.
@@ -60,6 +65,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		final JsonSchema schema     = SchemaService.getDynamicSchema();
 		final JsonObjectType folder = (JsonObjectType)schema.addType("Folder");
 		final JsonObjectType type   = schema.addType("AbstractFile");
+		final JsonObjectType conf   = schema.addType("StorageConfiguration");
 
 		type.setIsAbstract();
 		type.setImplements(URI.create("https://structr.org/v1.1/definitions/AbstractFile"));
@@ -80,6 +86,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addPropertyGetter("hasParent", Boolean.TYPE);
 		type.addPropertyGetter("parent", Folder.class);
 		type.addPropertyGetter("path", String.class);
+
+		type.addPropertyGetter("storageConfiguration", StorageConfiguration.class);
 
 		type.addPropertySetter("hasParent", Boolean.TYPE);
 
@@ -104,6 +112,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 		final JsonReferenceType parentRel  = folder.relate(type, "CONTAINS", Cardinality.OneToMany, "parent", "children");
 		final JsonReferenceType siblingRel = type.relate(type, "CONTAINS_NEXT_SIBLING", Cardinality.OneToOne,  "previousSibling", "nextSibling");
+		final JsonReferenceType configRel  = type.relate(conf, "CONFIGURED_BY", Cardinality.ManyToOne, "folders", "storageConfiguration").setPermissionPropagation(PropagationDirection.Both).setReadPermissionPropagation(PropagationMode.Add).setCascadingCreate(JsonSchema.Cascade.sourceToTarget);
 
 		type.addIdReferenceProperty("parentId",      parentRel.getSourceProperty());
 		type.addIdReferenceProperty("nextSiblingId", siblingRel.getTargetProperty());
@@ -116,6 +125,7 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		type.addViewProperty(PropertyView.Public, "visibleToPublicUsers");
 
 		type.addViewProperty(PropertyView.Ui, "parent");
+		type.addViewProperty(PropertyView.Ui, "storageConfiguration");
 	}}
 
 	void setParent(final Folder parent) throws FrameworkException;
@@ -124,6 +134,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	String getPath();
 	String getFolderPath();
+
+	StorageConfiguration getStorageConfiguration();
 
 	boolean isMounted();
 	boolean isExternal();
@@ -250,6 +262,9 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean renameMountedAbstractFile (final Folder thisFolder, final AbstractFile file, final String path, final String previousName) {
 
+		// ToDo: Implement renameMountedAbstractFile for new fs layer
+		throw new UnsupportedOperationException("Not implemented for new fs abstraction layer");
+		/*
 		final String _mountTarget = thisFolder.getMountTarget();
 		final Folder parentFolder = thisFolder.getParent();
 
@@ -298,6 +313,8 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 		}
 
 		return false;
+
+		 */
 	}
 
 	static String getFolderPath(final AbstractFile thisFile) {
@@ -337,14 +354,18 @@ public interface AbstractFile extends LinkedTreeNode<AbstractFile> {
 
 	static boolean isMounted(final AbstractFile thisFile) {
 
-		if (thisFile.getProperty(StructrApp.key(Folder.class, "mountTarget")) != null) {
+		final StorageProvider provider             = StorageProviderFactory.getStorageProvider(thisFile);
+		final boolean hasMountTarget               = provider.getConfig() != null && provider.getConfig().getConfiguration().get("mountTarget") != null;
+		final boolean watchServiceHasMountedFolder = Settings.Services.getValue("").contains("DirectoryWatchService") && StructrApp.getInstance().getService(DirectoryWatchService.class) != null && StructrApp.getInstance().getService(DirectoryWatchService.class).isMounted(thisFile.getUuid());
+
+		if (hasMountTarget && watchServiceHasMountedFolder) {
 			return true;
 		}
 
 		final Folder parent = thisFile.getParent();
 		if (parent != null) {
 
-			return parent.isMounted();
+			return AbstractFile.isMounted(parent);
 		}
 
 		return false;

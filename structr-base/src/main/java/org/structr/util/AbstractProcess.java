@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -63,7 +63,7 @@ public abstract class AbstractProcess<T> implements Callable<T> {
 
 				String[] args = {"/bin/sh", "-c", cmd};
 
-				logger.info("Executing {}", cmd);
+				logger.debug("Executing {}", cmd);
 
 				Process proc = Runtime.getRuntime().exec(args);
 

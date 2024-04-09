@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -252,7 +252,6 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 
 			final RenderContextContentHandler handler = new RenderContextContentHandler(thisNode, renderContext);
 			final String id                           = thisNode.getUuid();
-			final boolean inBody                      = renderContext.inBody();
 			final AsyncBuffer out                     = renderContext.getBuffer();
 			final String _contentType                 = thisNode.getContentType();
 
@@ -269,7 +268,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				handler.setEscapeForHtml(true);
 			}
 
-			if (EditMode.CONTENT.equals(edit) && inBody && thisNode.isGranted(Permission.write, securityContext)) {
+			if (EditMode.CONTENT.equals(edit) && thisNode.isGranted(Permission.write, securityContext)) {
 
 				if ("text/javascript".equals(_contentType)) {
 
@@ -284,7 +283,8 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 				} else {
 
 					// In edit mode, add an artificial comment tag around content nodes within body to make them editable
-					final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n"), "<!--"), "-->");
+					//final String cleanedContent = StringUtils.remove(StringUtils.remove(org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n"), "<!--"), "-->");
+					final String cleanedContent = org.apache.commons.lang3.StringUtils.replace(thisNode.getContent(), "\n", "\\\\n");
 					out.append("<!--data-structr-id=\"".concat(id).concat("\" data-structr-raw-value=\"").concat(escapeForHtmlAttributes(cleanedContent)).concat("\"-->"));
 				}
 			}
@@ -315,7 +315,7 @@ public interface Content extends DOMNode, Text, NonIndexed, Favoritable {
 					//out.append("--- empty ---");
 				}
 
-				if (inBody && !("text/javascript".equals(_contentType) && !("text/css".equals(_contentType)))) {
+				if (!("text/javascript".equals(_contentType) && !("text/css".equals(_contentType)))) {
 
 					out.append("<!---->");
 				}

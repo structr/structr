@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -16,6 +16,11 @@
  * You should have received a copy of the GNU General Public License
  * along with Structr.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+.file-icon svg {
+	color: var(--solid-black);
+}
+
 .folder-path {
 	font-size: 1.5rem;
 	line-height: 2rem;
@@ -30,12 +35,6 @@
 	min-width: 100px;
 }
 
-#folder-contents .tile {
-	display: inline-block;
-	text-align: center;
-	position: relative;
-}
-
 #folder-contents .tile .node {
 	width: 100px;
 	height: 100px;
@@ -47,9 +46,8 @@
 }
 
 #folder-contents .tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
 	height: 48px;
+	margin-top: .25rem;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -57,8 +55,6 @@
 }
 
 #folder-contents .img-tile .file-icon {
-	margin-top: 6px;
-	margin-bottom: 2px;
 	height: 296px;
 	display: flex;
 	align-items: center;
@@ -86,9 +82,13 @@
 	max-height: 48px;
 }
 
+#folder-contents .tile .abbr-ellipsis {
+	line-height: 1.5rem;
+}
+
 #folder-contents .img-tile img.tn {
-	max-width: 296px;
-	max-height: 296px;
+	max-width: 220px;
+	max-height: 220px;
 }
 
 #folder-contents table th, #contents-contents table th {
@@ -108,8 +108,20 @@
 	display: none;
 }
 
-#folder-contents tr[id]:hover {
+#folder-contents tr[id]:hover,
+#folder-contents .tile:hover {
 	background-color: var(--light-gray-bg-f3) ! important;
+}
+
+#folder-contents tr[id] .node-action-icon,
+#folder-contents .tile .node-action-icon {
+	display: inline-block;
+	opacity: 0%;
+}
+
+#folder-contents tr[id]:hover .node-action-icon,
+#folder-contents .tile:hover .node-action-icon {
+	opacity: 100%;
 }
 
 #folder-contents .nodeActive {
@@ -130,7 +142,7 @@
 }
 
 #folder-contents table th:nth-child(2) {
-	width: 40%;
+	width: 30%;
 }
 
 #folder-contents table th:nth-child(3) {
@@ -138,14 +150,26 @@
 }
 
 #folder-contents table th:nth-child(4) {
-	width: 10%;
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(5) {
-	width: calc(20% - 24px);
+	width: 15%;
 }
 
 #folder-contents table th:nth-child(6) {
+	width: 5%;
+}
+
+#folder-contents table th:nth-child(7) {
+	width: 10%;
+}
+
+#folder-contents table th:nth-child(8) {
+	width: calc(20% - 24px);
+}
+
+#folder-contents table th:nth-child(9) {
 	width: 20%;
 }
 
@@ -179,8 +203,8 @@
 	color: var(--inactive-tab-text);
 }
 
-#files-table tbody tr td.id {
-	color: var(--gray-ddd);
+#files-table tbody tr td.id_ {
+	color: var(--gray-ccc);
 }
 
 #files-table tbody tr td .node {
@@ -198,10 +222,6 @@
 	height: 2rem;
 }
 
-#files-table tr#parent-file-link {
-	cursor: pointer;
-}
-
 #files-table td a {
 	text-decoration: none;
 }
@@ -213,6 +233,58 @@
 #files-table .file, #files-table .folder {
 	margin: 0;
 }
+
+
+/*
+ * Upload progress bar
+ */
+
+.progress {
+	display: none;
+	text-align: right;
+	position: absolute;
+	height: 100%;
+	margin: 2px 0 0 0;
+	padding: 0;
+	background: #ffffff85;
+}
+
+.progress .bar {
+	background-color: #84ba3985;
+	width: 50%;
+	height: 100%;
+	padding: 0;
+	margin: 0;
+}
+
+.progress .indicator {
+	position: absolute;
+	right: .6rem;
+	top: .6rem;
+}
+
+#files-table .node .name_ {
+	padding-left: 1rem;
+}
+
+.file .progress .indicator {
+	top: .4rem;
+}
+
+.file .progress {
+	right: 0;
+	top: -.15rem;
+	width: 100%;
+}
+
+.tile .progress {
+	top: calc(100% - 2.5rem);
+	left: 0;
+	height: 2.5rem;
+	width: 100%;
+	z-index: 2;
+}
+
 
 /**
  * CSV and XML importer
@@ -375,3 +447,30 @@ div#xml-configurations button {
 	padding-left: 8px;
 	margin: 0 0 0 12px;
 }
+
+
+/* start dragndrop classes in files */
+.node:hover {
+	cursor: pointer;
+}
+
+.node.drag-over:not(.drop-not-possible) {
+}
+.node.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active);
+}
+
+.node.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+
+.jstree-default .jstree-wholerow.drag-background-node-highlight {
+	background: var(--hover-highlight-color-active) ! important;
+}
+
+.jstree-default .jstree-wholerow.drag-background-drop-forbidden {
+	background-image: var(--striped-background);
+	background-size: 20px 20px;
+}
+/* end dragndrop classes in files */

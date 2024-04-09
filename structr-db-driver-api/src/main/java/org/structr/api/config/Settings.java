@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,10 @@
  */
 package org.structr.api.config;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.attribute.PosixFilePermission;
+import java.nio.file.attribute.PosixFilePermissions;
 import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.lang3.StringUtils;
@@ -26,11 +30,15 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * The Structr configuration settings.
  */
 public class Settings {
+
+	private static final Logger logger         = LoggerFactory.getLogger(Settings.class);
 
 	private static String uuidRegex;
 	private static Pattern uuidPattern;
@@ -41,6 +49,14 @@ public class Settings {
 	public static final String DEFAULT_REMOTE_DATABASE_DRIVER = "org.structr.bolt.BoltDatabaseService";
 
 	public static final String MAINTENANCE_PREFIX             = "maintenance";
+
+	private static final Set<PosixFilePermission> expectedConfigFilePermissions = Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_WRITE);
+
+	public enum POSSIBLE_UUID_V4_FORMATS {
+		without_dashes,
+		with_dashes,
+		both
+	}
 
 	private static final Map<String, Setting> settings        = new TreeMap<>();
 	private static final Map<String, SettingsGroup> groups    = new TreeMap<>();
@@ -65,14 +81,17 @@ public class Settings {
 	public static final Setting<String> ApplicationTitle            = new StringSetting(generalGroup,          "Application", "application.title",                            "Structr", "The title of the application as shown in the log file. This entry exists for historical reasons and has no functional impact other than appearing in the log file.");
 	public static final Setting<String> InstanceName                = new StringSetting(generalGroup,          "Application", "application.instance.name",                    "", "The name of the Structr instance (displayed in the top right corner of structr-ui)");
 	public static final Setting<String> InstanceStage               = new StringSetting(generalGroup,          "Application", "application.instance.stage",                   "", "The stage of the Structr instance (displayed in the top right corner of structr-ui)");
-	public static final Setting<String> MenuEntries                 = new StringSetting(generalGroup,          "Application", "application.menu.main",                        "Dashboard,Pages,Files,Security,Schema,Data", "Comma-separated list of main menu entries in structr-ui. Everything not in this list will be moved into a sub-menu.");
-	public static final Setting<String> AvailableMenuItems          = new StringSetting(generalGroup,          "hidden",      "application.menu.items",                       "Dashboard,Graph,Contents,Pages,Files,Security,Schema,Code,Flows,Data,Importer,Localization,Virtual Types,Mail Templates,Login", "Comma-separated list of available menu items in structr-ui. Only items from this list will be available in the menu.");
 	public static final Setting<Integer> CypherConsoleMaxResults    = new IntegerSetting(generalGroup,         "Application", "application.console.cypher.maxresults",        10, "The maximum number of results returned by a cypher query in the admin console. If a query yields more results, an error message is shown.");
 	public static final Setting<Boolean> EnforceRuntime             = new BooleanSetting(generalGroup,         "Application", "application.runtime.enforce.recommended",      false, "Enforces version check for Java runtime.");
 	public static final Setting<Boolean> DisableSendSystemInfo      = new BooleanSetting(generalGroup,         "Application", "application.systeminfo.disabled",              false, "Disables transmission of telemetry information. This information is used to improve the software and to better adapt to different hardware configurations.");
 	public static final Setting<Boolean> RequestParameterLegacyMode = new BooleanSetting(generalGroup,         "Application", "application.legacy.requestparameters.enabled", false, "Enables pre-4.0 request parameter names (sort, page, pageSize, etc. instead of _sort, _page, _pageSize, ...)");
 
-	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Map.of("without_dashes", "Without Dashes", "with_dashes", "With Dashes", "both", "Both"), "Which UUIDv4 types are allowed: With or without dashes, or both. <br><br><strong>WARNING</strong>: This could prevent access to data objects. Only change this setting with an empty database.<br><br><strong>WARNING</strong>: Requires a restart.");
+	public static final Setting<String> UUIDv4AllowedFormats        = new ChoiceSetting(generalGroup,          "Application", "application.uuid.allowedformats",             "without_dashes", Settings.getAllowedUUIDv4FormatOptions(), """
+  		Configures which UUIDv4 types are allowed: With dashes, without dashes or both.<br>
+  		<br><strong>WARNING</strong>: Allowing both UUIDv4 formats to be accepted is dangerous strongly recommended against! This should be a last resort for temporary migration scenarios!<br> 
+  		<br><strong>WARNING</strong>: If changed after some data was already created, this could prevent access to data objects. Only change configure setting with an empty database.<br>
+  		<br><strong>INFO</strong>: Requires a restart.
+	""");
 	public static final Setting<Boolean> UUIDv4CreateCompact        = new BooleanSetting(generalGroup,         "Application", "application.uuid.createcompact",              true, "Determines how UUIDs are created, either with or without dashes.<br><br><strong>WARNING</strong>: If configured so that the created UUIDs do not comply with an allowed format, then structr will not start.<br><strong>WARNING</strong>: Requires a restart.");
 
 	// scripting related settings
@@ -249,6 +268,7 @@ public class Settings {
 	public static final Setting<Integer> RemoteDocumentIndexingMaxLength    = new IntegerSetting(applicationGroup, "Indexing",   "application.remotedocument.indexing.maxlength",    30,    "Maximum length of words to be indexed for RemoteDocument");
 
 	public static final Setting<String> HttpProxyUrl              = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.url",                  "");
+	public static final Setting<Integer> HttpProxyPort            = new IntegerSetting(applicationGroup,  "Proxy",        "application.proxy.http.port", null);
 	public static final Setting<String> HttpProxyUser             = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.username",             "");
 	public static final Setting<String> HttpProxyPassword         = new StringSetting(applicationGroup,  "Proxy",        "application.proxy.http.password",             "");
 	public static final ChoiceSetting   ProxyServletMode          = new ChoiceSetting(applicationGroup,  "Proxy",        "application.proxy.mode",                      "disabled", Set.of("disabled", "protected", "public"), "Sets the mode of the proxy servlet. Possible values are 'disabled' (off, servlet responds with 503 error code), 'protected' (only authenticated requests allowed) and 'public' (anonymous requests allowed). Default is disabled.");
@@ -775,27 +795,106 @@ public class Settings {
 
 	public static void storeConfiguration(final String fileName) throws IOException {
 
+		storeConfiguration(fileName, true);
+	}
+
+	public static void storeConfiguration(final String fileName, final boolean warnForNotRecommendedPermissions) throws IOException {
+
 		try {
 
 			PropertiesConfiguration.setDefaultListDelimiter('\0');
 
 			final PropertiesConfiguration config = new PropertiesConfiguration();
+			config.setFileName(fileName);
 
-			// store settings
 			for (final Setting setting : settings.values()) {
 
-				// story only modified settings and the super user password
+				// store only modified settings and the superuser password
 				if (setting.isModified() || "superuser.password".equals(setting.getKey())) {
 
 					config.setProperty(setting.getKey(), setting.getValue());
 				}
 			}
 
-			config.save(fileName);
+			final boolean isFileCreation = !config.getFile().exists();
+
+			config.save();
+
+			if (isFileCreation) {
+
+				try {
+
+					Files.setPosixFilePermissions(Paths.get(config.getFile().toURI()), Settings.expectedConfigFilePermissions);
+
+				} catch (UnsupportedOperationException | IOException e) {
+					// happens on non-POSIX filesystems, ignore
+				}
+
+			} else {
+
+				checkConfigurationFilePermissions(config, warnForNotRecommendedPermissions);
+			}
 
 		} catch (ConfigurationException ex) {
-			System.err.println("Unable to store configuration: " + ex.getMessage());
+
+			logger.error("Unable to store configuration: " + ex.getMessage());
 		}
+	}
+
+	public static PropertiesConfiguration getDefaultPropertiesConfiguration() {
+
+		final PropertiesConfiguration config = new PropertiesConfiguration();
+		config.setFileName(Settings.ConfigFileName);
+
+		return config;
+	}
+
+	public static String getExpectedConfigurationFilePermissionsAsString () {
+
+		return PosixFilePermissions.toString(expectedConfigFilePermissions);
+	}
+
+	public static String getActualConfigurationFilePermissionsAsString (final PropertiesConfiguration config) {
+
+		try {
+
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+
+			return PosixFilePermissions.toString(actualPermissions);
+
+		} catch (UnsupportedOperationException | IOException e) {
+			// happens on non-POSIX filesystems, ignore
+		}
+
+		return "";
+	}
+
+	private static Set<PosixFilePermission> getActualConfigurationFilePermissions (final PropertiesConfiguration config) throws UnsupportedOperationException, IOException{
+
+		return Files.getPosixFilePermissions(Paths.get(config.getFile().toURI()));
+	}
+
+	public static boolean checkConfigurationFilePermissions(final PropertiesConfiguration config, final boolean warn) {
+
+		// default to true for non-POSIX filesystems
+		boolean isOk = true;
+
+		try {
+
+			final Set<PosixFilePermission> actualPermissions = getActualConfigurationFilePermissions(config);
+
+			isOk = actualPermissions.equals(Settings.expectedConfigFilePermissions);
+
+			if (!isOk && warn) {
+
+				logger.warn("Permissions for configuration file '{}' do not match the expected permissions (Actual: {}, Expected: {}). Please check if this should be the case and otherwise fix the permissions", config.getFileName(), PosixFilePermissions.toString(actualPermissions), PosixFilePermissions.toString(expectedConfigFilePermissions));
+			}
+
+		} catch (UnsupportedOperationException | IOException e) {
+			// happens on non-POSIX filesystems, ignore
+		}
+
+		return isOk;
 	}
 
 	public static void loadConfiguration(final String fileName) {
@@ -806,6 +905,8 @@ public class Settings {
 
 			final PropertiesConfiguration config = new PropertiesConfiguration(fileName);
 			final Iterator<String> keys          = config.getKeys();
+
+			Settings.checkConfigurationFilePermissions(config, true);
 
 			while (keys.hasNext()) {
 
@@ -844,7 +945,8 @@ public class Settings {
 			Settings.initializeValidUUIDPatternOnce();
 
 		} catch (ConfigurationException ex) {
-			System.err.println("Unable to load configuration: " + ex.getMessage());
+
+			logger.error("Unable to load configuration: " + ex.getMessage());
 		}
 	}
 
@@ -871,7 +973,6 @@ public class Settings {
 	public static String getFullSettingPath(Setting<String> pathSetting) {
 
 		return getBasePath() + checkPath(pathSetting.getValue());
-
 	}
 
 	private static String checkPath(final String path) {
@@ -916,7 +1017,6 @@ public class Settings {
 		settings.remove(setting.getKey());
 	}
 
-
 	public static Set<String> getStringsAsSet(final String... choices) {
 		return new LinkedHashSet<>(Arrays.asList(choices));
 	}
@@ -934,6 +1034,14 @@ public class Settings {
 		options.put(6, "6 Digits");
 		options.put(8, "8 Digits");
 		return options;
+	}
+
+	public static Map<String, String> getAllowedUUIDv4FormatOptions() {
+		return Map.of(
+			POSSIBLE_UUID_V4_FORMATS.without_dashes.toString(), "Without Dashes",
+			POSSIBLE_UUID_V4_FORMATS.with_dashes.toString(), "With Dashes",
+			POSSIBLE_UUID_V4_FORMATS.both.toString(), "Both (Read warning!)"
+		);
 	}
 
 	public static boolean isNumeric(final String source) {
@@ -964,19 +1072,20 @@ public class Settings {
 			return;
 		}
 
-		switch (Settings.UUIDv4AllowedFormats.getValue()) {
-			case "with_dashes":
-				Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-				break;
+		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
 
-			case "both":
-				Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
-				break;
+		if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.with_dashes.toString())) {
 
-			default:
-			case "without_dashes":
-				Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
-				break;
+			Settings.uuidRegex = "^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+
+		} else if (configuredUUIDv4Format.equals(POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+			Settings.uuidRegex = "^[a-fA-F0-9]{32}$|^[0-9a-fA-F]{8}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{4}\\b-[0-9a-fA-F]{12}$";
+
+		} else {
+
+			// default to "without_dashes":
+			Settings.uuidRegex = "^[a-fA-F0-9]{32}$";
 		}
 
 		Settings.uuidPattern = Pattern.compile(Settings.getValidUUIDRegexString());

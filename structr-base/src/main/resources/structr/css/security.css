@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 #security {
 	height: 100%;
+	margin-bottom: 0;
 }
 
 #securityTabs {
@@ -82,12 +83,8 @@ input.max-w-75 {
 	height: 1rem;
 }
 
-.security-module-table th.br-1, .security-module-table td.br-1 {
-	/*border-right: 1px solid var(--light-gray-bg-f3);*/
-}
-
-.security-module-table th.bl-1, .security-module-table td.bl-1 {
-	/*border-left: 1px solid var(--light-gray-bg-f3);*/
+.security-module-table th.pr-12, .security-module-table td.pr-12 {
+	padding-right: 3rem;
 }
 
 .security-module-table .title-cell {

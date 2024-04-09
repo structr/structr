@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,58 +18,16 @@
  */
 package org.structr.web.maintenance;
 
-import org.structr.api.config.Settings;
-import com.drew.lang.Iterables;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.Charset;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.FileSystems;
-import java.nio.file.FileVisitResult;
-import static java.nio.file.FileVisitResult.CONTINUE;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.StandardCopyOption;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.nio.file.attribute.GroupPrincipal;
-import java.nio.file.attribute.PosixFileAttributeView;
-import java.nio.file.attribute.PosixFilePermission;
-import java.nio.file.attribute.UserPrincipalLookupService;
-import java.nio.file.attribute.UserPrincipalNotFoundException;
-import java.text.DecimalFormat;
-import java.text.DecimalFormatSymbols;
-import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
+import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.VersionHelper;
@@ -79,18 +37,8 @@ import org.structr.core.StaticValue;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.converter.PropertyConverter;
-import org.structr.core.entity.AbstractNode;
-import org.structr.core.entity.CorsSetting;
-import org.structr.core.entity.Localization;
-import org.structr.core.entity.MailTemplate;
-import org.structr.core.entity.Principal;
-import org.structr.core.entity.ResourceAccess;
-import org.structr.core.entity.Security;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.MaintenanceCommand;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.Tx;
+import org.structr.core.entity.*;
+import org.structr.core.graph.*;
 import org.structr.core.property.CypherProperty;
 import org.structr.core.property.FunctionProperty;
 import org.structr.core.property.PropertyKey;
@@ -101,46 +49,38 @@ import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 import org.structr.schema.action.JavaScriptSource;
-import org.structr.schema.export.StructrFunctionProperty;
-import org.structr.schema.export.StructrMethodDefinition;
-import org.structr.schema.export.StructrSchema;
-import org.structr.schema.export.StructrSchemaDefinition;
-import org.structr.schema.export.StructrTypeDefinition;
+import org.structr.schema.export.*;
 import org.structr.web.auth.UiAuthenticator;
 import org.structr.web.common.AbstractMapComparator;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.RenderContext;
-import org.structr.web.entity.AbstractFile;
-import org.structr.web.entity.ApplicationConfigurationDataNode;
 import org.structr.web.entity.File;
-import org.structr.web.entity.Folder;
-import org.structr.web.entity.Image;
-import org.structr.web.entity.LinkSource;
-import org.structr.web.entity.Linkable;
-import org.structr.web.entity.Site;
-import org.structr.web.entity.Widget;
-import org.structr.web.entity.dom.Content;
-import org.structr.web.entity.dom.DOMElement;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.web.entity.dom.Page;
-import org.structr.web.entity.dom.ShadowDocument;
-import org.structr.web.entity.dom.Template;
+import org.structr.web.entity.*;
+import org.structr.web.entity.dom.*;
 import org.structr.web.entity.event.ActionMapping;
 import org.structr.web.entity.event.ParameterMapping;
-import org.structr.web.maintenance.deploy.ComponentImporter;
-import org.structr.web.maintenance.deploy.FileCleanupVisitor;
-import org.structr.web.maintenance.deploy.FileImportVisitor;
-import org.structr.web.maintenance.deploy.ImportFailureException;
-import org.structr.web.maintenance.deploy.ImportPreconditionFailedException;
-import org.structr.web.maintenance.deploy.PageImporter;
-import org.structr.web.maintenance.deploy.TemplateImporter;
+import org.structr.web.maintenance.deploy.*;
 import org.structr.websocket.command.CreateComponentCommand;
 
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
+import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.SimpleDateFormat;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
+
+import static java.nio.file.FileVisitResult.CONTINUE;
 
 public class DeployCommand extends NodeServiceCommand implements MaintenanceCommand {
 
 	private static final Logger logger                     = LoggerFactory.getLogger(DeployCommand.class.getName());
-	private static final Pattern pattern                   = Pattern.compile("[a-f0-9]{32}");
+
+	private int statusCode      = HttpServletResponse.SC_OK;
+	private Object customResult = null;
 
 	private static final Map<String, String> deferredPageLinks        = new LinkedHashMap<>();
 	private Map<DOMNode, PropertyMap> deferredNodesAndTheirProperties = new LinkedHashMap<>();
@@ -148,7 +88,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	protected static final Set<String> missingPrincipals       = new HashSet<>();
 	protected static final Set<String> missingSchemaFile       = new HashSet<>();
 	protected static final Set<String> deferredLogTexts        = new HashSet<>();
-
 
 	protected static final AtomicBoolean deploymentActive      = new AtomicBoolean(false);
 
@@ -204,7 +143,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final String mode = (String) parameters.get("mode");
 
-		if (Boolean.FALSE.equals(deploymentActive.get())) {
+		if (Boolean.FALSE.equals(isDeploymentActive())) {
 
 			try {
 
@@ -232,9 +171,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			logger.warn("Prevented deployment '{}' while another deployment is active.", mode);
 			publishWarningMessage("Prevented deployment '" + mode + "'", "Another deployment is currently active. Please wait until it is finished.");
-
 		}
-
 	}
 
 	@Override
@@ -272,21 +209,44 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	}
 
 	public static boolean isUuid(final String name) {
-		return pattern.matcher(name).matches();
+		return Settings.isValidUuid(name);
 	}
 
 	/**
-	 * Checks if the given string ends with a uuid.
+	 * returns UUID from end of string depending on the UUID configuration
+	 * does explicitly NOT work if the whole string is a UUID because that should have been checked before via isUuid(name)
 	 */
-	public static boolean endsWithUuid(final String name) {
-		if (name.length() > 32) {
+	public static String getUuidOrNullFromEndOfString(final String name) {
 
-			return pattern.matcher(name.substring(name.length() - 32)).matches();
+		final String configuredUUIDv4Format = Settings.UUIDv4AllowedFormats.getValue();
 
-		} else {
+		if (configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.with_dashes.toString()) || configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
 
-			return false;
+			if (name.length() > 36) {
+
+				final String last36Characters = name.substring(name.length() - 36);
+
+				if (DeployCommand.isUuid(last36Characters)) {
+
+					return last36Characters;
+				}
+			}
 		}
+
+		if (configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.without_dashes.toString()) || configuredUUIDv4Format.equals(Settings.POSSIBLE_UUID_V4_FORMATS.both.toString())) {
+
+			if (name.length() > 32) {
+
+				final String last32Characters = name.substring(name.length() - 32);
+
+				if (DeployCommand.isUuid(last32Characters)) {
+
+					return last32Characters;
+				}
+			}
+		}
+
+		return null;
 	}
 
 	public static boolean isDeploymentActive() {
@@ -400,14 +360,11 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "Export version:  " + exportVersion;
 				final String htmlText = "The deployment export data currently being imported has been created with a newer version of Structr "
 						+ "which is not supported because of incompatible changes in the deployment format.<br><br><table>"
-						+ "<tr><th>Current version: </th><td>" + currentVersion + "</td></tr>"
-						+ "<tr><th>Export version: </th><td>" + exportVersion + "</td></tr>"
+						+ "<tr><td class=\"bold pr-2\">Current version:</td><td>" + currentVersion + "</td></tr>"
+						+ "<tr><td class=\"bold pr-2\">Export version:</td><td>" + exportVersion + "</td></tr>"
 						+ "</table>";
 
-				logger.info(title + ": " + text);
-				publishWarningMessage(title, htmlText);
-
-				return;
+				throw new ImportPreconditionFailedException(title, text, htmlText);
 			}
 
 			final String message = "Read deployment config file '" + deploymentConfFile + "': " + deploymentConf.size() + " entries.";
@@ -423,33 +380,19 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 			applyConfigurationFileIfExists(ctx, preDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
 
 			importResourceAccessGrants(grantsMetadataFile);
-
 			importCorsSettings(corsSettingsMetadataFile);
-
 			importMailTemplates(mailTemplatesMetadataFile, source);
-
 			importWidgets(widgetsMetadataFile);
-
 			importLocalizations(localizationsMetadataFile);
-
 			importApplicationConfigurationNodes(applicationConfigurationDataMetadataFile);
-
 			importSchema(schemaFolder, extendExistingApp);
-
-			importFiles(filesMetadataFile, source, ctx);
-
+			final FileImportVisitor.FileImportProblems fileImportProblems = importFiles(filesMetadataFile, source, ctx);
 			importModuleData(source);
-
 			importHTMLContent(app, source, pagesMetadataFile, componentsMetadataFile, templatesMetadataFile, sitesConfFile, extendExistingApp, relativeVisibility, deferredNodesAndTheirProperties);
-
 			linkDeferredPages(app);
-
 			importParameterMapping(parameterMappingMetadataFile);
-
 			importActionMapping(actionMappingMetadataFile);
-
 			importEmbeddedApplicationData(source);
-
 
 			// apply post-deploy.conf
 			applyConfigurationFileIfExists(ctx, postDeployConfFile, DEPLOYMENT_IMPORT_STATUS);
@@ -490,7 +433,18 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 						+ "\n###############################################################################"
 				);
 				publishWarningMessage(title, text);
+			}
 
+			if (fileImportProblems != null && fileImportProblems.hasAnyProblems()) {
+
+				final String title = "Encountered problems during import of files";
+
+				logger.info("\n###############################################################################\n"
+						+ "\tWarning: " + title + "!\n"
+						+ fileImportProblems.getProblemsText()
+						+ "\n###############################################################################"
+				);
+				publishWarningMessage(title, fileImportProblems.getProblemsHtml());
 			}
 
 			final long endTime = System.currentTimeMillis();
@@ -508,12 +462,21 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		} catch (ImportPreconditionFailedException ipfe) {
 
-			logger.warn("Deployment Import not started: {}", ipfe.getMessage());
-			publishWarningMessage("Deployment Import not started", ipfe.getMessage());
+			logger.warn("{}: {}", ipfe.getTitle(), ipfe.getMessage());
+			publishWarningMessage(ipfe.getTitle(), ipfe.getMessageHtml());
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(ipfe.getTitle() + ": " + ipfe.getMessage());
 
 		} catch (Throwable t) {
 
-			publishWarningMessage("Fatal Error", "Something went wrong - the deployment import has stopped. Please see the log for more information");
+			final String title          = "Fatal Error";
+			final String warningMessage = "Something went wrong - the deployment import has stopped. Please see the log for more information";
+
+			publishWarningMessage(title, warningMessage);
+
+			setCommandStatusCode(422);
+			setCustomCommandResult(title + ": " + warningMessage);
 
 			throw t;
 
@@ -828,7 +791,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 		final Map<String, Object> properties = new TreeMap<>();
 		final String name                    = file.getName();
-		final Path src                       = file.getFileOnDisk().toPath();
 		Path targetPath                      = target.resolve(name);
 		boolean doExport                     = true;
 
@@ -844,8 +806,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		if (doExport) {
 
 			try {
-				Files.copy(src, targetPath, StandardCopyOption.REPLACE_EXISTING);
 
+				IOUtils.copy(file.getInputStream(), new FileOutputStream(targetPath.toFile()));
 			} catch (IOException ioex) {
 				logger.warn("Unable to write file {}: {}", targetPath.toString(), ioex.getMessage());
 			}
@@ -1356,7 +1318,6 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			// export "null" owner as well
 			config.put("owner", null);
-
 		}
 
 		exportSecurity(node, config);
@@ -1659,7 +1620,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 				final PropertyKey<Iterable<ParameterMapping>> parameterMappingsKey = StructrApp.key(ActionMapping.class, "parameterMappings");
 				List<ParameterMapping> parameterMappings = Iterables.toList(actionMapping.getProperty(parameterMappingsKey));
 
-				if (!failureTargets.isEmpty()) {
+				if (!parameterMappings.isEmpty()) {
 					putData(entry, "parameterMappings", parameterMappings.stream().map(parameterMapping -> parameterMapping.getUuid() ).collect(Collectors.toList()));
 				}
 
@@ -2009,7 +1970,8 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 
 			final PropertyMap additionalData = new PropertyMap();
 
-			// Question: shouldn't this be true? No, 'imported' is a flag for legacy-localization which
+			// Question: shouldn't this be true?
+			// No! 'imported' is a flag for legacy-localization which
 			// have been imported from a legacy-system which was replaced by structr.
 			// it is a way to differentiate between new and old localization strings
 			additionalData.put(StructrApp.key(Localization.class, "imported"), false);
@@ -2032,33 +1994,36 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		}
 	}
 
-	private void importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
+	private FileImportVisitor.FileImportProblems importFiles(final Path filesMetadataFile, final Path source, final SecurityContext ctx) throws FrameworkException {
 
 		if (Files.exists(filesMetadataFile)) {
 
-			final Map<String, Object> filesMetadata      = new HashMap<>();
-
 			logger.info("Reading {}", filesMetadataFile);
-			filesMetadata.putAll(readMetadataFileIntoMap(filesMetadataFile));
+			final Map<String, Object> filesMetadata = new HashMap<>(readMetadataFileIntoMap(filesMetadataFile));
 
 			final Path files = source.resolve("files");
 			if (Files.exists(files)) {
+
+				final FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 
 				try {
 
 					logger.info("Importing files (unchanged files will be skipped)");
 					publishProgressMessage(DEPLOYMENT_IMPORT_STATUS, "Importing files");
 
-					FileImportVisitor fiv = new FileImportVisitor(ctx, files, filesMetadata);
 					Files.walkFileTree(files, fiv);
 
 				} catch (IOException ioex) {
+
 					logger.warn("Exception while importing files", ioex);
 				}
+
+				return fiv.getFileImportProblems();
 			}
 		}
-	}
 
+		return null;
+	}
 
 	private void importModuleData(final Path source) throws FrameworkException {
 
@@ -2708,6 +2673,29 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 		return 0;
 	}
 
+	@Override
+	public int getCommandStatusCode() {
+		return statusCode;
+	}
+
+	public void setCommandStatusCode(final int status) {
+		statusCode = status;
+	}
+
+	@Override
+	public Object getCommandResult() {
+
+		if (customResult != null) {
+			return customResult;
+		}
+
+		return Collections.EMPTY_LIST;
+	}
+
+	public void setCustomCommandResult(final Object result) {
+		customResult = result;
+	}
+
 	// ----- public static methods -----
 	public static void addDeferredPagelink (String linkableUUID, String pagePath) {
 		deferredPageLinks.put(linkableUUID, pagePath);
@@ -2751,6 +2739,7 @@ public class DeployCommand extends NodeServiceCommand implements MaintenanceComm
 	public static class GroupAddFileVisitor extends SimpleFileVisitor<Path> {
 
 		GroupPrincipal group;
+
 		GroupAddFileVisitor(GroupPrincipal group) {
 			super();
 			this.group = group;

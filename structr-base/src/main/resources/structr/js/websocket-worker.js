@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -54,8 +54,10 @@ self.onmessage = (e) => {
 
 let connect = (data) => {
 
+	let isEnc   = (self.location.protocol === 'https:');
+	let wsHost  = `ws${isEnc ? 's' : ''}://${self.location.host}`;
+	let wsUrl   = wsHost + data.wsPath;
 	let wsClass = data.wsClass;
-	let wsUrl   = data.wsUrl;
 
 	try {
 

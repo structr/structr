@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -28,6 +28,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.web.entity.AbstractFile;
 import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
@@ -158,9 +159,8 @@ public class StructrSSHFileSystem extends FileSystem {
 				if (fileNode != null) {
 
 					try (Tx tx = StructrApp.getInstance(securityContext).tx()) {
-
-						final Path filePath = fileNode.getFileOnDisk().toPath();
-						channel             = Files.newByteChannel(filePath);
+						
+						channel             = StorageProviderFactory.getStorageProvider(fileNode).getSeekableByteChannel();
 
 						tx.success();
 

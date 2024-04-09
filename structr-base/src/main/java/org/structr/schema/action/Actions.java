@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -58,7 +58,8 @@ public class Actions {
 		AfterCreate("afterCreation","SecurityContext securityContext", "securityContext", "afterCreate", SecurityContext.class),
 		Save("onModification", "SecurityContext securityContext, ErrorBuffer errorBuffer, ModificationQueue modificationQueue", "securityContext, errorBuffer, modificationQueue", "onSave", SecurityContext.class, ErrorBuffer.class, ModificationQueue.class),
 		AfterSave("afterModification", "SecurityContext securityContext", "securityContext", "afterSave", SecurityContext.class),
-		Delete("onDeletion", "SecurityContext securityContext, ErrorBuffer errorBuffer, PropertyMap properties", "securityContext, errorBuffer, properties", "onDelete", SecurityContext.class, ErrorBuffer.class, PropertyMap.class),
+		Delete("onNodeDeletion", "SecurityContext securityContext", "securityContext", "onDelete", SecurityContext.class),
+		AfterDelete("afterDeletion", "SecurityContext securityContext, PropertyMap properties", "securityContext, properties", "afterDelete", SecurityContext.class, PropertyMap.class),
 		Custom("", "", "", "custom"),
 		Java("", "", "", "java");
 

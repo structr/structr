@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -22,7 +22,6 @@ import org.structr.common.CaseHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.function.ParseResult;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Hint;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -33,7 +32,7 @@ import java.util.List;
 public class JavaHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<Hint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
+	protected List<AbstractHint> getAllHints(final ActionContext ionContext, final GraphObject currentNode, final String editorText, final ParseResult parseResult) {
 		return new LinkedList<>();
 	}
 
@@ -45,10 +44,5 @@ public class JavaHintProvider extends AbstractHintProvider {
 		}
 
 		return source;
-	}
-
-	@Override
-	protected String visitReplacement(final String replacement) {
-		return replacement;
 	}
 }

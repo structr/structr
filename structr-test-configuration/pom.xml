@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr</artifactId>
-		<version>5.1.0</version>
+		<version>5.2-SNAPSHOT</version>
 	</parent>
 
 	<artifactId>structr-test-configuration</artifactId>
@@ -28,7 +28,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<argLine>-Duser.timezone=UTC</argLine>
 							<excludes>
@@ -39,7 +39,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-failsafe-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>
@@ -67,7 +67,7 @@
 					<plugin>
 						<groupId>io.fabric8</groupId>
 						<artifactId>docker-maven-plugin</artifactId>
-						<version>0.36.0</version>
+						<version>0.40.2</version>
 						<executions>
 							<execution>
 								<id>prepare-database</id>
@@ -89,7 +89,7 @@
 													<time>20000</time>
 												</wait>
 												<env>
-													<NEO4J_AUTH>neo4j/admin</NEO4J_AUTH>
+													<NEO4J_AUTH>neo4j/admin123</NEO4J_AUTH>
 													<NEO4J_ACCEPT_LICENSE_AGREEMENT>yes</NEO4J_ACCEPT_LICENSE_AGREEMENT>
 													<NEO4J_dbms_memory_heap_max__size>8G</NEO4J_dbms_memory_heap_max__size>
 													<NEO4J_dbms_security_auth__minimum__password__length>5</NEO4J_dbms_security_auth__minimum__password__length>
@@ -128,7 +128,7 @@
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
 						<artifactId>maven-surefire-plugin</artifactId>
-						<version>3.0.0</version>
+						<version>3.2.1</version>
 						<configuration>
 							<includes>
 								<include>**/*Test.java</include>

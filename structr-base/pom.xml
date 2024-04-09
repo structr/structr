@@ -7,20 +7,21 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-test-configuration</artifactId>
-		<version>5.1.0</version>
+		<version>5.2-SNAPSHOT</version>
 		<relativePath>../structr-test-configuration</relativePath>
 	</parent>
 
 	<artifactId>structr-base</artifactId>
 	<packaging>jar</packaging>
-	<version>5.1.0</version>
+	<version>5.2-SNAPSHOT</version>
 
 	<properties>
 		<jetty.version>11.0.15</jetty.version>
 		<jaxb.version>2.3.3</jaxb.version>
-		<imageio.version>3.8.0</imageio.version>
-		<batik.version>1.16</batik.version>
+		<imageio.version>3.10.1</imageio.version>
+		<batik.version>[1.17,)</batik.version>
 		<graal.version>22.3.2</graal.version>
+		<apache.sshd.version>2.7.0</apache.sshd.version>
 	</properties>
 
 	<dependencies>
@@ -238,6 +239,24 @@
 		<dependency>
 			<groupId>org.apache.tika</groupId>
 			<artifactId>tika-parsers-standard-package</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcmail-jdk18on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcutil-jdk18on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk18on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk18on</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>com.drewnoakes</groupId>
@@ -458,7 +477,7 @@
 		<dependency>
 			<groupId>org.apache.sshd</groupId>
 			<artifactId>sshd-core</artifactId>
-			<version>1.2.0</version>
+			<version>2.7.0</version>
 		</dependency>
 		<dependency>
 			<groupId>net.openhft</groupId>
@@ -512,7 +531,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>21.0</version>
+			<version>[32.0.0,)</version>
 			<scope>compile</scope>
 		</dependency>
 	 <dependency>

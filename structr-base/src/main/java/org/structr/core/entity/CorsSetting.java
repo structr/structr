@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -24,7 +24,10 @@ import org.structr.common.PropertyView;
 import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
-import org.structr.core.property.*;
+import org.structr.core.property.ConstantBooleanProperty;
+import org.structr.core.property.IntProperty;
+import org.structr.core.property.Property;
+import org.structr.core.property.StringProperty;
 
 /**
  * Controls CORS settings

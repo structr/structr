@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -633,14 +633,14 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	private Challenge httpChallenge(final Authorization auth) throws FrameworkException {
 
-		final Http01Challenge challenge = auth.findChallenge(Http01Challenge.class);
+		final Optional<Http01Challenge> challenge = auth.findChallenge(Http01Challenge.class);
 
-		if (challenge == null) {
+		if (challenge.isEmpty()) {
 			error("No " + Http01Challenge.TYPE + " challenge found, aborting.");
 		}
 
-		final String uriPath = "/.well-known/acme-challenge/" + challenge.getToken();
-		final String content = challenge.getAuthorization();
+		final String uriPath = "/.well-known/acme-challenge/" + challenge.get().getToken();
+		final String content = challenge.get().getAuthorization();
 
 		try {
 
@@ -696,7 +696,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 					parentFolder.setProperties(adminContext, props);
 					parentFolder.getParent().setProperties(adminContext, props);
 
-					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.getToken(), parentFolder);
+					org.structr.web.entity.File challengeFile = FileHelper.createFile(adminContext, new ByteArrayInputStream(content.getBytes()), "text/plain", SchemaHelper.getEntityClassForRawType("File"), challenge.get().getToken(), parentFolder);
 
 					props = new PropertyMap();
 					props.put(StructrApp.key(org.structr.web.entity.File.class, "visibleToPublicUsers"), true);
@@ -733,7 +733,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			}
 		}
 
-		return challenge;
+		return challenge.get();
 	}
 
 	private Challenge dnsChallenge(final Authorization auth) throws FrameworkException {
@@ -743,14 +743,14 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 
 	private Challenge dnsChallenge(final Authorization auth, final Integer wait) throws FrameworkException {
 
-		final Dns01Challenge challenge = auth.findChallenge(Dns01Challenge.TYPE);
-		if (challenge == null) {
+		final Optional<Dns01Challenge> challenge = auth.findChallenge(Dns01Challenge.TYPE);
+		if (challenge.isEmpty()) {
 			error("No " + Dns01Challenge.TYPE + " challenge found, aborting.");
 		}
 
 		final String domain = auth.getIdentifier().getDomain();
 		final String record = ACME_DNS_CHALLENGE_PREFIX + domain + ACME_DNS_CHALLENGE_SUFFIX;
-		final String digest = challenge.getDigest();
+		final String digest = challenge.get().getDigest();
 
 		final Object result = Actions.callWithSecurityContext("onAcmeChallenge", SecurityContext.getSuperUserInstance(), Map.of("type", "dns", "domain", domain, "record", record, "digest", digest));
 		if (result == null) {
@@ -769,7 +769,7 @@ public class RetrieveCertificateCommand extends Command implements MaintenanceCo
 			logger.info("{} IN TXT {}", record, digest);
 		}
 
-		return challenge;
+		return challenge.get();
 	}
 
 	private KeyPair getOrCreateUserKey() throws IOException {

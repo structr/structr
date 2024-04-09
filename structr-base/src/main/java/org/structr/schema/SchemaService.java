@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -30,6 +30,7 @@ import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
 import org.structr.api.index.RelationshipIndexConfig;
 import org.structr.api.schema.JsonSchema;
+import org.structr.api.schema.JsonType;
 import org.structr.api.service.*;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.*;
@@ -57,7 +58,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import org.structr.api.schema.JsonType;
+import org.structr.web.maintenance.DeployCommand;
 
 /**
  * Structr Schema Service for dynamic class support at runtime.
@@ -276,7 +277,7 @@ public class SchemaService implements Service {
 
 							if (errorBuffer.hasError()) {
 
-								if (Settings.SchemaAutoMigration.getValue()) {
+								if (Settings.SchemaAutoMigration.getValue() && (Boolean.FALSE.equals(Services.getInstance().isInitialized()) || DeployCommand.isDeploymentActive())) {
 
 									logger.info("Attempting auto-migration of built-in schema..");
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -597,6 +597,11 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 										case "date":
 											newProperty = new StructrDateArrayProperty(parent, name);
 											break;
+
+										case "Byte[]":
+											newProperty = new StructrByteArrayProperty(parent, name);
+											break;
+
 									}
 								}
 							}
@@ -765,6 +770,12 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				dateArrayProperty.deserialize(schemaNodes, property);
 				dateArrayProperty.setDefaultValue(property.getDefaultValue());
 				return dateArrayProperty;
+
+			case ByteArray:
+				final StructrByteArrayProperty byteArrayProperty = new StructrByteArrayProperty(parent, name);
+				byteArrayProperty.deserialize(schemaNodes, property);
+				byteArrayProperty.setDefaultValue(property.getDefaultValue());
+				return byteArrayProperty;
 
 			case Enum:
 				final StructrEnumProperty enumProperty = new StructrEnumProperty(parent, name);

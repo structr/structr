@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -663,8 +663,8 @@ public class ConfigServlet extends AbstractServletBase {
 		final ManageDatabasesCommand cmd   = Services.getInstance().command(null, ManageDatabasesCommand.class);
 		final boolean databaseIsConfigured = !cmd.getConnections().isEmpty();
 		final boolean passwordIsSet        = StringUtils.isNotBlank(Settings.SuperUserPassword.getValue());
-		final Style fgGreen                = new Style("color: #81ce25;");
-		final Style bgGreen                = new Style("background-color: #81ce25; color: #fff; border: 1px solid rgba(0,0,0,.125);");
+		final Style fgGreen                = new Style("color: var(--config-structr-green);");
+		final Style bgGreen                = new Style("background-color: var(--config-structr-green); color: #fff; border: 1px solid rgba(0,0,0,.125);");
 		final String id                    = "welcome";
 
 		menu.block("li").css("active").block("a").id(id + "Menu").attr(new Attr("href", "#" + id)).block("span").text("Start").css("active");

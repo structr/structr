@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -34,6 +34,7 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.property.StringProperty;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.schema.SchemaService;
 import org.structr.transform.VirtualType;
 import org.structr.web.common.FileHelper;
@@ -149,7 +150,7 @@ public interface ODFExporter extends NodeInterface {
 				thisNode.setResultDocument(output);
 			}
 
-			templateOdt = OdfDocument.loadDocument(template.getFileOnDisk().getAbsolutePath());
+			templateOdt = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(template).getInputStream());
 			templateOdt.save(output.getOutputStream());
 			templateOdt.close();
 
@@ -175,7 +176,7 @@ public interface ODFExporter extends NodeInterface {
 
 			String templateImagePath = null;
 
-			OdfDocument doc = OdfDocument.loadDocument(output.getFileOnDisk().getAbsolutePath());
+			OdfDocument doc = OdfDocument.loadDocument(StorageProviderFactory.getStorageProvider(output).getInputStream());
 
 			NodeList nodes = doc.getContentRoot().getElementsByTagName(ODF_IMAGE_PARENT_NAME);
 			for (int i = 0; i < nodes.getLength(); i++) {
@@ -200,8 +201,9 @@ public interface ODFExporter extends NodeInterface {
 				pkg.remove(templateImagePath);
 
 			}
-			pkg.insert(new URI(result.getFileOnDisk().getAbsolutePath()), ODF_IMAGE_DIRECTORY + imageName, contentType);
-			pkg.save(output.getFileOnDisk().getAbsolutePath());
+
+			pkg.insert(StorageProviderFactory.getStorageProvider(result).getInputStream(), ODF_IMAGE_DIRECTORY + imageName, contentType);
+			pkg.save(StorageProviderFactory.getStorageProvider(result).getOutputStream());
 			pkg.close();
 			doc.close();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -98,6 +98,10 @@ public class GoogleGeoCodingProvider extends AbstractGeoCodingProvider {
 			connection.connect();
 
 			SAXReader reader  = new SAXReader();
+
+			// Protect against external entity expansion
+			reader.setIncludeExternalDTDDeclarations(false);
+
 			BufferedReader rd = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 
 			xmlDoc = reader.read(rd);

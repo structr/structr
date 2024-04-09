@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,7 +23,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 let _Pages = {
 	_moduleName: 'pages',
-	autoRefresh: [],
 	urlHashKey: 'structrUrlHashKey_' + location.port,
 	activeTabRightKey: 'structrActiveTabRight_' + location.port,
 	activeTabLeftKey: 'structrActiveTabLeft_' + location.port,
@@ -36,6 +35,8 @@ let _Pages = {
 	pagesResizerLeftKey: 'structrPagesResizerLeftKey_' + location.port,
 	pagesResizerRightKey: 'structrPagesResizerRightKey_' + location.port,
 	functionBarSwitchKey: 'structrFunctionBarSwitchKey_' + location.port,
+
+	dropzoneDropAllowedClass: 'allow-drop',
 
 	shadowPage: undefined,
 
@@ -66,6 +67,26 @@ let _Pages = {
 		_Pager.initPager('images',  'Image', 1, 25, 'name', 'asc');
 
 		Structr.ensureShadowPageExists();
+	},
+	handleNodeRefresh: (node) => {
+
+		if (node.isPage) {
+			//console.log(node);
+
+			// find and update node in pages tree
+
+			let pageNode = _Pages.pagesTree[0].querySelector('#id_' + node.id);
+
+			let pathElement = pageNode?.querySelector('.path_');
+			if (pathElement) {
+				pathElement.textContent = node.path;
+			}
+
+			let positionElement = pageNode?.querySelector('.position_');
+			if (positionElement) {
+				positionElement.textContent = node.position;
+			}
+		}
 	},
 	resize: () => {
 		_Pages.resizeColumns();
@@ -479,7 +500,6 @@ let _Pages = {
 						_Elements.unselectEntity();
 					}
 				});
-
 			}
 
 			if (!isPage || (isPage && !hasChildren && (_Elements.selectedEntity.tag === 'html' || _Elements.selectedEntity.type === 'Template'))) {
@@ -825,7 +845,7 @@ let _Pages = {
 				for (let widget of pageTemplates) {
 
 					let id = 'create-from-' + widget.id;
-					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><img src="${widget.thumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div>`);
+					let tile = _Helpers.createSingleDOMElementFromHTML(`<div id="${id}" class="app-tile"><div class="app-thumbnail-frame"><img src="${widget.newThumbnailPath}"/><h4>${widget.name}</h4><p>${(widget.description || '')}</p></div></div>`);
 					container.append(tile);
 
 					tile.addEventListener('click', () => {
@@ -839,7 +859,7 @@ let _Pages = {
 				}
 
 				// default page
-				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><img src="https://apps.structr.com/assets/images/simple.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div>');
+				let defaultTile = _Helpers.createSingleDOMElementFromHTML('<div id="create-simple-page" class="app-tile"><div class="app-thumbnail-frame"><img src="https://apps.structr.com/assets/images/simple-new.png"/><h4>Simple Page</h4><p>Creates a simple page with a minimal set of HTML elements.</p></div></div>');
 				container.append(defaultTile);
 
 				let createSimplePageButton = container.querySelector('#create-simple-page');
@@ -1191,10 +1211,10 @@ let _Pages = {
 		_Pages.pagesTree.append(`
 			<div id="id_${entity.id}" class="node page${entity.hidden ? ' is-hidden' : ''}">
 				<div class="node-container flex items-center">
-					<div class="node-selector"></div>
 					${_Icons.getSvgIcon(_Icons.iconDOMTreePage, 16, 16, ['typeIcon', 'icon-grey'])}
 					<span class="abbr-ellipsis abbr-pages-tree-page">
 						<b title="${_Helpers.escapeForHtmlAttributes(entity.name)}" class="name_">${pageName}</b>
+						<span class="path_ font-semibold italic text-sm">${entity.path ?? ''}</span>
 						<span class="position_">${(entity.position ? entity.position : '')}</span>
 					</span>
 					<div class="icons-container flex items-center"></div>
@@ -1206,18 +1226,16 @@ let _Pages = {
 		let nodeContainer  = $('.node-container', div);
 		let iconsContainer = $('.icons-container', div);
 
-		_Dragndrop.makeSortable(div);
+		_Dragndrop.pages.enableDroppable(entity, div[0], nodeContainer[0]);
 
 		_Entities.appendExpandIcon(nodeContainer, entity, hasChildren);
 
-		_Entities.appendContextMenuIcon(iconsContainer, entity);
+		_Entities.appendContextMenuIcon(iconsContainer[0], entity);
 		_Pages.appendPagePreviewIcon(iconsContainer, entity);
 		_Entities.appendNewAccessControlIcon(iconsContainer, entity);
 
 		_Elements.contextMenu.enableContextMenuOnElement(div[0], entity);
 		_Entities.setMouseOver(div);
-
-		_Dragndrop.makeDroppable(div);
 
 		_Elements.clickOrSelectElementIfLastSelected(div, entity);
 
@@ -1276,9 +1294,6 @@ let _Pages = {
 			return false;
 		}
 
-		_Dragndrop.makeDroppable(div);
-		_Dragndrop.makeSortable(div);
-
 		return div;
 	},
 	expandTreeNode: (id, stack, lastId) => {
@@ -1333,7 +1348,7 @@ let _Pages = {
 	},
 	leftSlideoutClosedCallback: () => {
 
-		LSWrapper.removeItem(_Pages.activeTabLeftKey);
+		LSWrapper.setItem(_Pages.activeTabLeftKey, 'NONE');
 		Structr.resize();
 	},
 	rightSlideoutClosedCallback: () => {
@@ -1356,6 +1371,15 @@ let _Pages = {
 		}
 
 		LSWrapper.setItem(_Entities.selectedObjectIdKey, id);
+	},
+	highlightDropZone: (dropzone) => {
+		dropzone?.classList.add(_Pages.dropzoneDropAllowedClass);
+	},
+	unhighlightDropZone: (dropzone) => {
+		dropzone?.classList.remove(_Pages.dropzoneDropAllowedClass);
+	},
+	isDropAllowed: (dropzone) => {
+		return (dropzone?.classList.contains(_Pages.dropzoneDropAllowedClass) ?? false);
 	},
 	eventActionMappingDialog: (entity, container, typeInfo) => {
 
@@ -1717,7 +1741,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#success-partial-refresh-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'reloadingActions', 'successTargets');
 
 				Command.get(actionMapping.id, 'id,successTargets', actionMapping => {
 					for (const successTarget of actionMapping.successTargets) {
@@ -1736,7 +1760,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#failure-partial-refresh-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureActions', 'failureTargets');
 
 				Command.get(actionMapping.id, 'id,failureTargets', actionMapping => {
 					for (const failureTarget of actionMapping.failureTargets) {
@@ -1755,7 +1779,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#success-notifications-custom-dialog-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'successNotificationActions', 'successNotificationElements');
 
 				Command.get(actionMapping.id, 'id,successNotificationElements', actionMapping => {
 					for (const successNotificationElement of actionMapping.successNotificationElements) {
@@ -1774,7 +1798,7 @@ let _Pages = {
 				const inputElement    = parentElement.querySelector('#failure-notifications-custom-dialog-linked-input');
 
 				dropzoneElement.querySelectorAll('.node').forEach(n => n.remove());
-				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions');
+				activateElementDropzone(parentElement, dropzoneElement, inputElement, 'failureNotificationActions', 'failureNotificationElements');
 
 				Command.get(actionMapping.id, 'id,failureNotificationElements', actionMapping => {
 					for (const failureNotificationElement of actionMapping.failureNotificationElements) {
@@ -1786,64 +1810,54 @@ let _Pages = {
 			}
 		};
 
-		const activateElementDropzone = (parentElement, dropzoneElement, inputElement, propertyKey) => {
+		const activateElementDropzone = (parentElement, dropzoneElement, inputElement, actionsPropertyKey, elementsPropertyKey) => {
 
 			if (dropzoneElement) {
 
-				$(dropzoneElement).droppable({
+				_Dragndrop.pages.enableEventMappingDroppable(entity, dropzoneElement, ({ draggedEntity }) => {
 
-					drop: (e, el) => {
+					let obj = StructrModel.obj(draggedEntity.id);
 
-						e.preventDefault();
-						e.stopPropagation();
-
-						let sourceEl = $(el.draggable);
-						let sourceId = Structr.getId(sourceEl);
-
-						if (!sourceId) {
-							return false;
-						}
-
-						let obj = StructrModel.obj(sourceId);
-
-						// Ignore shared components
-						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-							return false;
-						}
-
-						// Ignore already linked elements
-						if (dropzoneElement.querySelector('.node._' + obj.id)) {
-							return false;
-						}
-
-						inputElement.value = sourceId;
-						_Elements.dropBlocked = false;
-
-						const newCollection = [...obj[propertyKey]];
-						newCollection.push({ id: actionMapping.id });
-
-						Command.setProperty(obj.id, propertyKey, newCollection);
-
-						addLinkedElementToDropzone(parentElement, dropzoneElement, obj, propertyKey);
-
+					// Ignore already linked elements
+					if (dropzoneElement.querySelector('.node._' + obj.id)) {
+						return false;
 					}
+
+					inputElement.value = draggedEntity.id;
+
+					const newCollection = [...obj[actionsPropertyKey]];
+					newCollection.push({ id: actionMapping.id });
+
+					Command.setProperty(obj.id, actionsPropertyKey, newCollection);
+
+					addLinkedElementToDropzone(parentElement, dropzoneElement, obj, elementsPropertyKey);
 				});
 			}
 		};
 
 		const addLinkedElementToDropzone = (parentElement, dropzoneElement, obj, propertyKey) => {
+
 			_Entities.insertRelatedNode(dropzoneElement, obj, (nodeEl) => {
-				$('.remove', nodeEl).on('click', function(e) {
+
+				_Entities.setMouseOverHandlers(obj.id, $(nodeEl), $(nodeEl), false, [obj.id]);
+
+				nodeEl.querySelector('.remove')?.addEventListener('click' , (e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					parentElement.querySelector('._' + obj.id).remove();
-					dropzoneElement.classList.remove('hidden');
-					Command.get(actionMapping.id, 'id,' + propertyKey, actionMapping => {
-						Command.setProperty(actionMapping.id, propertyKey, actionMapping[propertyKey] = actionMapping[propertyKey].filter(t => t.id !== obj.id));
-					});
 
+					Command.get(actionMapping.id, 'id,' + propertyKey, data => {
+						Command.setProperty(actionMapping.id, propertyKey, data[propertyKey] = data[propertyKey].filter(t => t.id !== obj.id), null, () => {
+
+							// trigger mouseout event so the node highlighted in tree is unhighlighted
+							nodeEl.dispatchEvent(new Event('mouseout'));
+
+							_Helpers.fastRemoveElement(parentElement.querySelector('._' + obj.id));
+							dropzoneElement.classList.remove('hidden');
+						});
+					});
 				});
-			}, 'afterbegin');
+
+			}, 'afterbegin', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
 		};
 
 		const getAndAppendParameterMapping = (id) => {
@@ -1897,17 +1911,30 @@ let _Pages = {
 		};
 
 		const replaceDropzoneByUserInputElement = (rowElement, obj) => {
-			const userInputArea = rowElement.querySelector('.parameter-user-input');
-			_Entities.appendRelatedNode($(userInputArea), obj, (nodeEl) => {
-				$('.remove', nodeEl).on('click', function(e) {
+
+			const userInputArea        = rowElement.querySelector('.parameter-user-input');
+			const hiddenUserInputInput = rowElement.querySelector('.parameter-user-input-input');
+			hiddenUserInputInput.value = obj.id;
+			const dropzoneElement      = userInputArea.querySelector('.link-existing-element-dropzone');
+
+			_Entities.insertRelatedNode(userInputArea, obj, (nodeEl) => {
+
+				_Entities.setMouseOverHandlers(obj.id, $(nodeEl), $(nodeEl), false, [obj.id]);
+
+				nodeEl.querySelector('.remove')?.addEventListener('click', (e) => {
 					e.preventDefault();
 					e.stopPropagation();
-					userInputArea.querySelector('.node').remove();
+
+					// trigger mouseout event so the node highlighted in tree is unhighlighted
+					nodeEl.dispatchEvent(new Event('mouseout'));
+
+					_Helpers.fastRemoveElement(userInputArea.querySelector('.node'));
 					dropzoneElement.classList.remove('hidden');
+					hiddenUserInputInput.value = '';
 					saveParameterMappings(dropzoneElement);
-				});
-			});
-			const dropzoneElement = userInputArea.querySelector('.link-existing-element-dropzone');
+				})
+			}, 'beforeend', _Helpers.getElementDisplayName(StructrModel.obj(obj.id)));
+
 			dropzoneElement.classList.add('hidden');
 			saveParameterMappings(dropzoneElement);
 		};
@@ -1926,43 +1953,26 @@ let _Pages = {
 
 			const dropzoneElement = parentElement.querySelector('.link-existing-element-dropzone');
 
-			if (dropzoneElement) {
+			if (dropzoneElement && dropzoneElement.dataset['hasDropHandler'] !== 'true') {
 
-				$(dropzoneElement).droppable({
+				dropzoneElement.dataset['hasDropHandler'] = true;
 
-					drop: (e, el) => {
+				_Dragndrop.pages.enableEventMappingDroppable(entity, dropzoneElement, ({ draggedEntity }) => {
 
-						e.preventDefault();
-						e.stopPropagation();
+					let obj = StructrModel.obj(draggedEntity.id);
 
-						let sourceEl = $(el.draggable);
-						let sourceId = Structr.getId(sourceEl);
+					parentElement.querySelector('.parameter-user-input-input').value = draggedEntity.id;
 
-						if (!sourceId) {
-							return false;
+					let userInputName = obj['_html_name'];
+					if (userInputName) {
+
+						let parameterNameInput = parentElement.querySelector('.parameter-name-input');
+						if (parameterNameInput.value === '') {
+							parameterNameInput.value = userInputName;
 						}
-
-						let obj = StructrModel.obj(sourceId);
-
-						// Ignore shared components
-						if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
-							return false;
-						}
-
-						parentElement.querySelector('.parameter-user-input-input').value = sourceId;
-						_Elements.dropBlocked = false;
-
-						let userInputName = obj['_html_name'];
-						if (userInputName) {
-
-							let parameterNameInput = parentElement.querySelector('.parameter-name-input');
-							if (parameterNameInput.value === '') {
-								parameterNameInput.value = userInputName;
-							}
-						}
-
-						replaceDropzoneByUserInputElement(parentElement, obj);
 					}
+
+					replaceDropzoneByUserInputElement(parentElement, obj);
 				});
 			}
 		};
@@ -2059,10 +2069,10 @@ let _Pages = {
 					for (const inp of parameterMappingElement.querySelectorAll(inputDefinition.selector)) {
 
 						const value = inp.value;
-						if (value) {
+						//if (value) {
 							//console.log(inputDefinition.key, value);
 							parameterMappingData[inputDefinition.key] = value;
-						}
+						//}
 					}
 				}
 
@@ -2290,7 +2300,6 @@ let _Pages = {
 			let div = _Helpers.createSingleDOMElementFromHTML(`
 				<div id="${idString}" class="node localization-element ${(entity.tag === 'html' ? ' html_element' : '')}" data-node-id="${(_Entities.isContentElement(entity) ? entity.parent.id : entity.id )}">
 					<div class="node-container flex items-center">
-						<div class="node-selector"></div>
 						${iconHTML}<span class="abbr-ellipsis abbr-pages-tree">${detailHtml}${_Elements.classIdString(entity)}</span>
 						<div class="icons-container flex items-center"></div>
 					</div>
@@ -2320,7 +2329,7 @@ let _Pages = {
 
 					if (schemaNodes.length === 1) {
 
-						_Entities.appendContextMenuIcon(iconsContainer, {
+						_Entities.appendContextMenuIcon(iconsContainer[0], {
 							type: _Pages.localizations.wrapperTypeForContextMenu,
 							entity: schemaNodes[0]
 						}, false);
@@ -2358,15 +2367,22 @@ let _Pages = {
 			elements.push({
 				classes: ['preview-context-menu', 'w-96'],
 				icon: entity.isContent ? _Icons.getSvgIconForContentNode(entity) : _Icons.getSvgIconForElementNode(entity),
-				html: entity.tag + (entity._html_id ? ' <span class="class-id-attrs _html_id">#' + entity._html_id + '</span>' : '') + (entity._html_class ? '<span class="class-id-attrs _html_class">.' + entity._html_class.split(' ').join('.') + '</span>' : '')
-					+ (entity._html_id    ? '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + entity._html_id.length    + '" value="' + entity._html_id    + '">' : '')
-					+ (entity._html_class ? '<textarea style="width:calc(100% + 4rem)" rows="' + Math.ceil(entity._html_class.length/35) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + entity._html_class + '</textarea>' : ''),
+				html: entity.tag + ' <span class="class-id-attrs _html_id">#' + (entity._html_id || '&lt;id>') + '</span>'
+					+ '<input placeholder="id"    class="hidden ml-2 inline context-menu-input-field-' + entity.id + '" type="text" name="_html_id" size="'  + (entity._html_id ? entity._html_id.length : 10)   + '" value="' + (entity._html_id || '') + '">'
+					+ '<span class="class-id-attrs _html_class">.' + (entity._html_class ? entity._html_class.split(' ').join('.') : '&lt;class>') + '</span>'
+					+ '<textarea style="width:calc(100% + 1.5rem)" rows="' + Math.ceil((entity._html_class ? entity._html_class.length/35 : 1)) + '" placeholder="class" class="hidden mt-1 context-menu-input-field-' + entity.id + '" name="_html_class">' + (entity._html_class || '') + '</textarea>'
+					+ _Icons.getSvgIcon(_Icons.iconKebabMenu, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['context_menu_icon'])),
+
 				clickHandler: (e) => {
+
+					const idDisplayElement    = document.querySelector('.class-id-attrs._html_id')
+					const classDisplayElement = document.querySelector('.class-id-attrs._html_class');
 
 					const classInputField = document.querySelector('.context-menu-input-field-' + entity.id + '[name="_html_class"]');
 					classInputField?.addEventListener('keydown', (e) => {
 						if (e.key === 'Enter') {
 							e.preventDefault();
+							classDisplayElement.innerText = '.' + (classInputField.value ? classInputField.value.split(' ').join('.') : '<class>')
 							Command.setProperty(entity.id, '_html_class', classInputField.value);
 						} else if (e.key === 'Escape') {
 							restoreDisplay();
@@ -2377,6 +2393,7 @@ let _Pages = {
 					idInputField?.addEventListener('keydown', (e) => {
 						if (e.key === 'Enter') {
 							e.preventDefault();
+							idDisplayElement.innerText = '#' + (idInputField.value || '<id>');
 							Command.setProperty(entity.id, '_html_id', idInputField.value);
 						} else if (e.key === 'Escape') {
 							restoreDisplay();
@@ -2386,10 +2403,15 @@ let _Pages = {
 					const restoreDisplay = () => {
 						classInputField?.classList.add('hidden');
 						idInputField?.classList.add('hidden');
-						document.querySelector('.class-id-attrs._html_class')?.classList.remove('hidden');
-						document.querySelector('.class-id-attrs._html_id')?.classList.remove('hidden');
+						classDisplayElement?.classList.remove('hidden');
+						idDisplayElement?.classList.remove('hidden');
 
 					};
+
+					if (e.target.classList.contains('context_menu_icon')) {
+						_Elements.contextMenu.activateContextMenu(e, e.target, entity);
+						return true;
+					}
 
 					const clickedEl = e.target.closest('.class-id-attrs');
 
@@ -2550,8 +2572,6 @@ let _Pages = {
 
 					//element.addEventListener('click', () => { _Elements.contextMenu.remove(); });
 
-//					_Dragndrop.makeDroppable(el, highlightElementId);
-
 					var structrId = el.attr('data-structr-id');
 					if (structrId) {
 
@@ -2563,7 +2583,7 @@ let _Pages = {
 
 								//console.log(e.clientX, e.clientY, el[0].getBoundingClientRect());
 
-								Command.get(structrId, null, (data) => {
+								Command.get(structrId, null, (data) => { console.log('#', data);
 									const entity = StructrModel.createFromData(data);
 									_Elements.contextMenu.activateContextMenu(e, el[0],
 										{
@@ -2669,7 +2689,7 @@ let _Pages = {
 				_Pages.previews.getComments(element).forEach(function(c) {
 
 					let inner  = $(_Pages.previews.getNonCommentSiblings(c.node));
-					let newDiv = $(`<div data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></div>`);
+					let newDiv = $(`<span data-structr-id="${c.id}" data-structr-raw-content="${_Helpers.escapeForHtmlAttributes(c.rawContent, false)}"></span>`);
 
 					newDiv.append(inner);
 					$(c.node).replaceWith(newDiv);
@@ -2734,15 +2754,13 @@ let _Pages = {
 
 			let text = _Helpers.unescapeTags(_Helpers.cleanText(self.html()));
 
-			self.attr('contenteditable', false);
-			self.removeClass('structr-editable-area-active').removeClass('structr-editable-area');
-
 			Command.setProperty(_Pages.contentSourceId, 'content', text, false, (obj) => {
 				if (_Pages.contentSourceId === obj.id) {
 					callback?.();
-					_Pages.contentSourceId = null;
 				}
 			});
+			_Pages.previews.reloadPreviewInIframe();
+			_Pages.contentSourceId = null;
 		},
 		isPreviewActive: () => {
 
@@ -3190,7 +3208,7 @@ let _Pages = {
 				// clear UI in Pages tree
 				_Entities.selectedObject = null;
 				_Entities.deselectAllElements();
-				_Entities.removeActiveNodeClassFromAllNodes();
+				_Entities.removeSelectedNodeClassFromAllNodes();
 
 				document.querySelector('a[href="#pages:preview"]').closest('li').classList.remove('hidden');
 				document.querySelector('a[href="#pages:preview"]').click();
@@ -3281,7 +3299,7 @@ let _Pages = {
 	},
 
 	sharedComponents: {
-		reload: (isDragOpen = false) => {
+		reload: (isReloadFromDragEvent = false) => {
 
 			if (!_Pages.componentsSlideout) return;
 
@@ -3289,7 +3307,7 @@ let _Pages = {
 
 				_Helpers.fastRemoveAllChildren(_Pages.componentsSlideout[0]);
 
-				_Pages.componentsSlideout.append(`
+				_Pages.componentsSlideout[0].insertAdjacentHTML('beforeend', `
 					<div id="newComponentDropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
 							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
@@ -3297,54 +3315,25 @@ let _Pages = {
 							Drop element here to create a new shared component
 						</div>
 					</div>
+					<div id="componentsArea"></div>
 				`);
-				let newComponentDropzone = $('#newComponentDropzone', _Pages.componentsSlideout);
 
-				if (isDragOpen === true) {
+				if (isReloadFromDragEvent === true) {
 					_Pages.sharedComponents.highlightNewSharedComponentDropZone();
 				}
 
-				_Pages.componentsSlideout.append('<div id="componentsArea"></div>');
-				_Pages.components = $('#componentsArea', _Pages.componentsSlideout);
+				_Dragndrop.pages.enableNewSharedComponentDropzone();
 
-				newComponentDropzone.droppable({
-					drop: function(e, ui) {
-						e.preventDefault();
-						e.stopPropagation();
-
-						if (ui.draggable.hasClass('widget')) {
-							// special treatment for widgets dragged to the shared components area
-
-						} else {
-							// Create shadow page if not existing
-							Structr.ensureShadowPageExists().then(() => {
-								_Pages.sharedComponents.createNew(ui);
-							});
-						}
-					}
-				});
-
-				_Dragndrop.makeSortable(_Pages.components);
-
-				_Elements.appendEntitiesToDOMElement(result, _Pages.components);
+				_Elements.appendEntitiesToDOMElement(result, $('#componentsArea', _Pages.componentsSlideout));
 
 				Structr.refreshPositionsForCurrentlyActiveSortable();
 			});
 		},
-		createNew: (el) => {
+		createNew: (sourceId) => {
 
 			_Elements.dropBlocked = true;
 
-			let sourceEl = $(el.draggable);
-			let sourceId = Structr.getId(sourceEl);
-
 			if (!sourceId) {
-				return false;
-			}
-
-			let obj = StructrModel.obj(sourceId);
-
-			if (obj && obj.syncedNodesIds && obj.syncedNodesIds.length || sourceEl.parent().attr('id') === 'componentsArea') {
 				return false;
 			}
 
@@ -3352,8 +3341,20 @@ let _Pages = {
 
 			_Elements.dropBlocked = false;
 		},
+		getNewSharedComponentDropzone: () => {
+			return document.querySelector('#newComponentDropzone');
+		},
+		isNodeInSharedComponents: (node) => {
+			return (node.closest('#componentsArea') !== null);
+		},
 		highlightNewSharedComponentDropZone: () => {
-			$('.element-dropzone').addClass("allow-drop");
+			_Pages.highlightDropZone(_Pages.sharedComponents.getNewSharedComponentDropzone())
+		},
+		unhighlightNewSharedComponentDropZone: () => {
+			_Pages.unhighlightDropZone(_Pages.sharedComponents.getNewSharedComponentDropzone())
+		},
+		isDropAllowed: () => {
+			return _Pages.isDropAllowed(_Pages.sharedComponents.getNewSharedComponentDropzone());
 		}
 	},
 
@@ -3373,25 +3374,28 @@ let _Pages = {
 				let deleteUnattachedNodesButton = _Pages.unusedElementsTree[0].querySelector('#delete-all-unattached-nodes');
 
 				deleteUnattachedNodesButton.addEventListener('click', async () => {
+
 					let confirm = await _Dialogs.confirmation.showPromise('<p>Delete all DOM elements without parent?</p>');
 					if (confirm === true) {
+
 						Command.deleteUnattachedNodes();
 
 						Structr.slideouts.closeRightSlideOuts([_Pages.unusedElementsSlideout], _Pages.rightSlideoutClosedCallback);
 					}
 				});
 
-				_Dragndrop.makeSortable(_Pages.unusedElementsTree);
-
 				Command.listUnattachedNodes(1000, 1, 'name', 'asc', (result) => {
 
 					let count = result.length;
 					if (count > 0) {
-						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, ['mr-2'])} Delete all (${count})`;
+
+						deleteUnattachedNodesButton.innerHTML = `${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'mr-2']))} Delete all (${count})`;
 						deleteUnattachedNodesButton.classList.add('hover:bg-gray-100');
 
 						_Helpers.disableElements(false, deleteUnattachedNodesButton);
+
 					} else {
+
 						deleteUnattachedNodesButton.textContent = 'No unused elements';
 						deleteUnattachedNodesButton.classList.remove('hover:bg-gray-100');
 					}
@@ -3666,7 +3670,7 @@ let _Pages = {
 
 					<div id="pages-actions" class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green">
-							${_Icons.getSvgIcon(_Icons.iconAdd)}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['mr-2'])}
 						</button>
 						<div class="dropdown-menu-container">
 
@@ -4009,8 +4013,9 @@ let _Pages = {
 									<input type="hidden" id="success-notifications-custom-dialog-linked-input" value="">
 									<div class="element-dropzone success-notifications-custom-dialog-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
 										</div>
 									</div>
 								</div>
@@ -4022,7 +4027,7 @@ let _Pages = {
 							</div>
 
 							<div class="grid grid-cols-2 gap-8 mt-4">
-							
+
 								<div>
 									<label class="block mb-2" for="failure-notifications-select" data-comment="Define what kind of notifications should be displayed on failure">Failure notifications</label>
 									<select class="select2" id="failure-notifications-select">
@@ -4045,8 +4050,9 @@ let _Pages = {
 									<input type="hidden" id="failure-notifications-custom-dialog-linked-input" value="">
 									<div class="element-dropzone failure-notifications-custom-dialog-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
 										</div>
 									</div>
 								</div>
@@ -4057,7 +4063,7 @@ let _Pages = {
 								</div>
 							</div>
 						</div>
-						
+
 						<div class="col-span-2 hidden em-action-element em-action-any">
 							<h3>Follow-up Actions</h3>
 							<div class="grid grid-cols-2 gap-8">
@@ -4085,8 +4091,9 @@ let _Pages = {
 									<input type="hidden" id="success-partial-refresh-linked-input" value="">
 									<div class="element-dropzone success-partial-refresh-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
 										</div>
 									</div>
 								</div>
@@ -4126,8 +4133,9 @@ let _Pages = {
 									<input type="hidden" id="failure-partial-refresh-linked-input" value="">
 									<div class="element-dropzone failure-partial-refresh-linked-dropzone">
 										<div class="info-icon h-16 flex items-center justify-center">
-											<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-											<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing element here 
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+											${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+											Drag and drop existing element here
 										</div>
 									</div>
 								</div>
@@ -4192,8 +4200,9 @@ let _Pages = {
 						<input type="hidden" class="parameter-user-input-input" value="${config.value || ''}">
 						<div class="element-dropzone link-existing-element-dropzone">
 							<div class="info-icon h-16 flex items-center justify-center">
-								<i class="m-2 active align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i>
-								<i class="m-2 inactive align-middle">${_Icons.getSvgIcon(_Icons.iconAdd)}</i> Drag and drop existing form input element here 
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+								Drag and drop existing form input element here
 							</div>
 						</div>
 					</div>
@@ -4212,7 +4221,7 @@ let _Pages = {
 
 					<div>
 						<label class="hidden block mb-2">Actions</label>
-						<i class="block mt-4 cursor-pointer em-parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan)}</i>
+						<i class="block mt-4 em-parameter-mapping-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
 					</div>
 
 				</div>
@@ -4220,8 +4229,9 @@ let _Pages = {
 				<!--div class="hidden em-action-element em-action-create em-action-update">
 					<div id="link-existing-element-dropzone" class="element-dropzone">
 						<div class="info-icon h-16 flex items-center justify-center">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])}
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'active'])} Drop existing input or select elements here
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['m-2', 'active', 'icon-green', 'flex-none']))}
+							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['m-2', 'inactive', 'flex-none'])}
+							Drop existing input or select elements here
 						</div>
 					</div>
 				</div>

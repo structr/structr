@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,6 +18,7 @@
  */
 package org.structr.web.maintenance;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.EnumUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -31,6 +32,7 @@ import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.*;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.resource.MaintenanceParameterResource;
 import org.structr.schema.SchemaHelper;
 import org.structr.web.common.FileHelper;
@@ -39,7 +41,10 @@ import org.structr.web.entity.File;
 import org.structr.web.entity.Folder;
 import org.structr.web.entity.Image;
 
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -308,20 +313,13 @@ public class DirectFileImportCommand extends NodeServiceCommand implements Maint
 						new NodeAttribute(AbstractNode.type, cls.getSimpleName())
 				);
 
-				final java.io.File fileOnDisk = newFile.getFileOnDisk(false);
-				final Path fullFolderPath     = fileOnDisk.toPath();
+				try (final InputStream is = new FileInputStream(file.toFile()); final OutputStream os = StorageProviderFactory.getStorageProvider(newFile).getOutputStream()) {
+					IOUtils.copy(is, os);
+				}
 
-				Files.createDirectories(fullFolderPath.getParent());
-
-				switch (mode) {
-
-					case MOVE:
-						Files.move(file, fullFolderPath);
-						break;
-
-					case COPY:
-						Files.copy(file, fullFolderPath);
-						break;
+				if (mode.equals(Mode.MOVE)) {
+					
+					Files.delete(file);
 				}
 
 				FileHelper.updateMetadata(newFile);

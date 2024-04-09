@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,6 @@ import org.structr.core.function.ParseResult;
 import org.structr.core.parser.*;
 import org.structr.core.script.Snippet;
 import org.structr.schema.action.ActionContext;
-import org.structr.schema.action.Hint;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -40,15 +39,15 @@ import java.util.List;
 public class PlaintextHintProvider extends AbstractHintProvider {
 
 	@Override
-	protected List<Hint> getAllHints(final ActionContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
+	protected List<AbstractHint> getAllHints(final ActionContext securityContext, final GraphObject currentNode, final String editorText, final ParseResult result) {
 
 		// don't interpret invalid strings
 		if (editorText != null && (editorText.endsWith("''") || editorText.endsWith("\"\""))) {
 			return Collections.EMPTY_LIST;
 		}
 
-		final List<Hint> hints    = new LinkedList<>();
-		final ActionContext ctx   = new ActionContext(securityContext);
+		final List<AbstractHint> hints = new LinkedList<>();
+		final ActionContext ctx        = new ActionContext(securityContext);
 
 		try {
 
@@ -80,7 +79,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (last instanceof RootExpression) {
 
-			addAllHints(hints);
+			addAllHints(ctx, hints);
 		}
 
 		if (last instanceof ValueExpression) {
@@ -90,8 +89,8 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		if (last instanceof FunctionExpression) {
 
-			final FunctionExpression fe   = (FunctionExpression)last;
-			final List<Hint> contextHints = fe.getContextHints();
+			final FunctionExpression fe           = (FunctionExpression)last;
+			final List<AbstractHint> contextHints = fe.getContextHints();
 
 			if (contextHints != null) {
 
@@ -101,7 +100,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 			} else {
 
-				addAllHints(hints);
+				addAllHints(ctx, hints);
 			}
 		}
 
@@ -114,7 +113,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 	}
 
 	// ----- private methods -----
-	private void handleValueExpression(final ActionContext actionContext, final ValueExpression expression, final GraphObject currentNode, final List<Hint> hints, final ParseResult result) {
+	private void handleValueExpression(final ActionContext actionContext, final ValueExpression expression, final GraphObject currentNode, final List<AbstractHint> hints, final ParseResult result) {
 
 		final String keyword = expression.getKeyword();
 
@@ -138,7 +137,7 @@ public class PlaintextHintProvider extends AbstractHintProvider {
 
 		} else {
 
-			addAllHints(hints);
+			addAllHints(actionContext, hints);
 		}
 	}
 

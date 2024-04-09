@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.structr</groupId>
 		<artifactId>structr-modules</artifactId>
-		<version>5.1.0</version>
+		<version>5.2-SNAPSHOT</version>
 	</parent>
 	<artifactId>structr-advanced-mail-module</artifactId>
 	<packaging>jar</packaging>

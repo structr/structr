@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -53,10 +53,13 @@ public class TestThree extends AbstractNode {
 	public static final Property<TestEnum>      enumProperty                = new EnumProperty("enumProperty", TestEnum.class).indexed();
 	public static final Property<Boolean>       constantBooleanProperty     = new ConstantBooleanProperty("constantBooleanProperty", true);
 
+	public static final Property<Byte[]>        byteArrayProperty           = new ByteArrayProperty("byteArrayProperty").indexed().indexedWhenEmpty();
+
+
 	public static final Property<TestFive>      oneToOneTestFive            = new StartNode<>("oneToOneTestFive",  FiveThreeOneToOne.class);
 
 	public static final View publicView = new View(TestThree.class, PropertyView.Public,
 		name, stringProperty, stringArrayProperty, booleanProperty, booleanArrayProperty, doubleProperty, doubleArrayProperty,
-		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, enumProperty, constantBooleanProperty
+		integerProperty, integerArrayProperty, longProperty, longArrayProperty, dateProperty, dateArrayProperty, enumProperty, constantBooleanProperty, byteArrayProperty
 	);
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -18,13 +18,6 @@
  */
 package org.structr.websocket.command.dom;
 
-import java.util.Collections;
-import org.structr.web.entity.dom.DOMNode;
-import org.structr.websocket.StructrWebSocket;
-import org.structr.websocket.message.MessageBuilder;
-import org.structr.websocket.message.WebSocketMessage;
-
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.SecurityContext;
@@ -33,8 +26,15 @@ import org.structr.core.app.StructrApp;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.PropertyMap;
+import org.structr.web.entity.dom.DOMNode;
 import org.structr.web.entity.dom.Template;
+import org.structr.websocket.StructrWebSocket;
+import org.structr.websocket.message.MessageBuilder;
+import org.structr.websocket.message.WebSocketMessage;
 import org.w3c.dom.Document;
+
+import java.util.Collections;
+import java.util.Map;
 
 /**
  *

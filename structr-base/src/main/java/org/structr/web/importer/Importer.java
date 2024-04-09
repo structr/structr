@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -44,12 +44,14 @@ import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.property.StringProperty;
+import org.structr.storage.StorageProviderFactory;
 import org.structr.rest.common.HttpHelper;
 import org.structr.schema.action.Actions;
 import org.structr.schema.importer.SchemaJsonImporter;
 import org.structr.web.common.FileHelper;
 import org.structr.web.common.ImageHelper;
 import org.structr.web.diff.*;
+import org.structr.web.entity.File;
 import org.structr.web.entity.*;
 import org.structr.web.entity.dom.*;
 import org.structr.web.entity.html.Body;
@@ -59,9 +61,7 @@ import org.structr.web.maintenance.DeployCommand;
 import org.structr.web.property.CustomHtmlAttributeProperty;
 import org.structr.websocket.command.CreateComponentCommand;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.StringWriter;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -794,6 +794,13 @@ public class Importer {
 						}
 					}
 				}
+			} else if ("svg".equals(tag)) { // don't create elements for SVG
+
+				final String source = node.toString();
+				newNode = (Content) page.createTextNode(source);
+
+				final PropertyKey<String> contentTypeKey = StructrApp.key(Content.class, "contentType");
+				newNode.setProperty(contentTypeKey, "text/xml");
 
 			} else if ("structr:template".equals(tag)) {
 
@@ -809,30 +816,32 @@ public class Importer {
 						if (template == null) {
 
 							logger.warn("##################################### template with UUID {} not found, this is a known bug", src);
-
-						}
-
-					} else if (DeployCommand.endsWithUuid(src)) {
-
-						final String uuid = src.substring(src.length() - 32);
-						template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuid).getFirst();
-
-						if (template == null) {
-
-							logger.warn("##################################### template with UUID not found, this is a known bug", uuid);
 						}
 
 					} else {
 
-						template = Importer.findSharedComponentByName(src);
-						if (template == null) {
+						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
+						if (uuidAtEnd != null) {
 
-							template = Importer.findTemplateByName(src);
+							template = (DOMNode)StructrApp.getInstance().nodeQuery(NodeInterface.class).and(GraphObject.id, uuidAtEnd).getFirst();
 
 							if (template == null) {
 
-								template = createNewTemplateNode(parent, node.childNodes());
-								isNewTemplateOrComponent = true;
+								logger.warn("##################################### template with UUID not found, this is a known bug", uuidAtEnd);
+							}
+
+						} else {
+
+							template = Importer.findSharedComponentByName(src);
+							if (template == null) {
+
+								template = Importer.findTemplateByName(src);
+
+								if (template == null) {
+
+									template = createNewTemplateNode(parent, node.childNodes());
+									isNewTemplateOrComponent = true;
+								}
 							}
 						}
 					}
@@ -896,14 +905,18 @@ public class Importer {
 
 						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, src).getFirst();
 
-					} else if (DeployCommand.endsWithUuid(src)) {
-
-						final String uuid = src.substring(src.length() - 32);
-						component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuid).getFirst();
-
 					} else {
 
-						component = Importer.findSharedComponentByName(src);
+						final String uuidAtEnd = DeployCommand.getUuidOrNullFromEndOfString(src);
+
+						if (uuidAtEnd != null) {
+
+							component = app.nodeQuery(DOMNode.class).and(GraphObject.id, uuidAtEnd).getFirst();
+
+						} else {
+
+							component = Importer.findSharedComponentByName(src);
+						}
 					}
 
 					if (component == null) {
@@ -1423,19 +1436,18 @@ public class Importer {
 					fileNode = createFileNode(fullPath, contentType, size, checksum);
 				}
 
-				final java.io.File imageFile = fileNode.getFileOnDisk(false);
-				final Path imagePath         = imageFile.toPath();
+				try (final FileInputStream is = new FileInputStream(tmpFile); final OutputStream os = StorageProviderFactory.getStorageProvider(fileNode).getOutputStream()) {
+					// Copy contents of tmpFile to file in structr fs
+					IOUtils.copy(is, os);
 
-				// rename / move file to final location
-				Files.move(tmpFile.toPath(), imagePath);
+					if (contentType.equals("text/css")) {
 
-				if (contentType.equals("text/css")) {
+						processCssFileNode(fileNode, downloadUrl);
+					}
 
-					processCssFileNode(fileNode, downloadUrl);
+					// set export flag according to user preference
+					fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
 				}
-
-				// set export flag according to user preference
-				fileNode.setProperty(StructrApp.key(File.class, "includeInFrontendExport"), includeInExport);
 
 			} else {
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -23,6 +23,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import org.eclipse.jetty.io.EofException;
 import org.eclipse.jetty.io.QuietException;
+import org.eclipse.jetty.util.StaticException;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.WebSocketListener;
 import org.slf4j.Logger;
@@ -390,6 +391,8 @@ public class StructrWebSocket implements WebSocketListener {
 				// ignore exceptions which (by jettys standards) should be handled less verbosely
 			} else if (t.getCause() instanceof TimeoutException) {
 				// also ignore timeoutexceptions
+			} else if (t.getCause() != null && t.getCause() instanceof StaticException && t.getCause().getMessage().equals("Closed")) {
+				// also ignore simple "Closed" exception
 			} else {
 
 				logger.warn("Unable to send websocket message to remote client: {}", t);

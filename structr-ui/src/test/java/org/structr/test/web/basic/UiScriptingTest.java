@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -476,7 +476,7 @@ public class UiScriptingTest extends StructrUiTest {
 
 			// create resource access grant for user
 			createTestNode(ResourceAccess.class,
-					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprop"),
+					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "signature"), "Folder/_Someprops"),
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "flags"), 1),
 					new NodeAttribute<>(StructrApp.key(ResourceAccess.class, "visibleToAuthenticatedUsers"), true)
 			);

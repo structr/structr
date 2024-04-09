@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2010-2023 Structr GmbH
+ * Copyright (C) 2010-2024 Structr GmbH
  *
  * This file is part of Structr <http://structr.org>.
  *
@@ -26,7 +26,7 @@ let _Crud = {
 	defaultCollectionPageSize: 10,
 	resultCountSoftLimit: 10000,
 	defaultType: 'Page',
-	defaultView: 'all',
+	defaultView: 'custom',
 	defaultSort: 'createdDate',
 	defaultOrder: 'desc',
 	defaultPage: 1,
@@ -124,6 +124,28 @@ let _Crud = {
 		}
 
 	}),
+	crudListFetchAbortMechanism: {
+		abortController: undefined,
+		lastType: null,
+		init: (type) => {
+			_Crud.crudListFetchAbortMechanism.lastType        = type;
+			_Crud.crudListFetchAbortMechanism.abortController = new AbortController();
+		},
+		abortListFetch: (type) => {
+
+			if (_Crud.crudListFetchAbortMechanism.abortController) {
+
+				_Crud.crudListFetchAbortMechanism.abortController.signal.onabort = () => {
+					_Crud.crudListFetchAbortMechanism.init(type);
+				};
+				_Crud.crudListFetchAbortMechanism.abortController.abort(`Loading of "${type}" aborted loading of "${_Crud.crudListFetchAbortMechanism.lastType}"`);
+
+			} else {
+
+				_Crud.crudListFetchAbortMechanism.init(type);
+			}
+		}
+	},
 	getTypeInfo: (type, callback) => {
 
 		let url = `${Structr.rootUrl}_schema/${type}`;
@@ -300,17 +322,17 @@ let _Crud = {
 				_Crud.updateRecentTypeList(_Crud.type);
 
 				Structr.resize();
-				Structr.mainMenu.unblock();
+				Structr.mainMenu.unblock(100);
 			});
 		});
 
 		_Crud.searchField          = document.getElementById('crud-search-box');
 		_Crud.searchFieldClearIcon = document.querySelector('.clearSearchIcon');
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 
 		_Helpers.appendInfoTextToElement({
 			element: _Crud.searchField,
-			text: 'By default a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
+			text: 'By default, a fuzzy search is performed on the <code>name</code> attribute of <b>every</b> node type. Optionally, you can specify a type and an attribute to search as follows:<br><br>User.name:admin<br><br>If a UUID-string is supplied, the search is performed on the base type AbstractNode to yield the fastest results.',
 			insertAfter: true,
 			css: {
 				left: '-18px',
@@ -326,7 +348,7 @@ let _Crud = {
 
 		_Crud.searchFieldClearIcon.addEventListener('click', (e) => {
 			_Crud.clearMainSearch(crudMain);
-			_Crud.searchField.focus();
+			_Crud.focusSearchField();
 		});
 
 		_Crud.searchField.addEventListener('keyup', (e) => {
@@ -636,7 +658,7 @@ let _Crud = {
 			_Crud.updateResourceLink(type);
 		}
 
-		_Crud.searchField.focus();
+		_Crud.focusSearchField();
 	},
 	loadSchema: async () => {
 
@@ -695,27 +717,27 @@ let _Crud = {
 	 * and the given type is a collection
 	 */
 	isCollection: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].isCollection);
+		return (key && type && _Crud.keys[type]?.[key]?.isCollection === true);
 	},
 	isFunctionProperty: (key, type) => {
-		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.FunctionProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	isCypherProperty: (key, type) => {
-		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type][key].className);
+		return ('org.structr.core.property.CypherQueryProperty' === _Crud.keys[type]?.[key]?.className);
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is an Enum
 	 */
 	isEnum: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && _Crud.keys[type][key].className === 'org.structr.core.property.EnumProperty');
+		return (key && type && _Crud.keys[type]?.[key]?.className === 'org.structr.core.property.EnumProperty');
 	},
 	/**
 	 * Return true if the combination of the given property key
 	 * and the given type is a read-only property
 	 */
 	readOnly: (key, type) => {
-		return (key && type && _Crud.keys[type] && _Crud.keys[type][key] && (_Crud.keys[type][key].readOnly === true || _Crud.isCypherProperty(key, type)));
+		return (key && type && (_Crud.keys[type]?.[key]?.readOnly === true || _Crud.isCypherProperty(key, type)));
 	},
 	/**
 	 * Return the related type of the given property key
@@ -757,7 +779,7 @@ let _Crud = {
 			return storedInfo;
 		}
 
-		console.log(`Unknown relatedType for ${type}.${key}`);
+		//console.log(`Unknown relatedType for ${type}.${key}`);
 	},
 	getFormat: (key, type) => {
 		return _Crud.keys[type][key].format;
@@ -950,7 +972,7 @@ let _Crud = {
 									_Dialogs.custom.clickDialogCancelButton();
 								});
 
-								console.log(jqSelect);
+								//console.log(jqSelect);
 							}
 						}
 					});
@@ -1184,7 +1206,7 @@ let _Crud = {
 		_Crud.activateList(type);
 	},
 	activateList: (type) => {
-		let url = Structr.rootUrl + type + '/all' + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
+		let url = Structr.rootUrl + type + '/' + _Crud.view[type] + _Crud.sortAndPagingParameters(type, _Crud.sort[type], _Crud.order[type], _Crud.pageSize[type], _Crud.page[type], _Crud.exact[type]);
 		_Crud.list(type, url);
 	},
 	clearList: () => {
@@ -1193,13 +1215,18 @@ let _Crud = {
 	},
 	list: (type, url, isRetry) => {
 
+		_Crud.crudListFetchAbortMechanism.abortListFetch(type);
+
 		let properties = _Crud.getCurrentProperties(type);
 
 		_Crud.showLoadingMessageAfterDelay(`Loading data for type <b>${type}</b>`, 100);
 
 		let acceptHeaderProperties = (isRetry ? '' : ' properties=' + _Crud.filterKeys(type, Object.keys(properties)).join(','));
 
+		let signal = _Crud.crudListFetchAbortMechanism.abortController.signal;
+
 		fetch (url, {
+			signal: signal,
 			headers: {
 				Range: _Crud.ranges(type),
 				Accept: 'application/json; charset=utf-8;' + acceptHeaderProperties
@@ -1256,6 +1283,13 @@ let _Crud = {
 				}
 
 				_Crud.removeMessage();
+			}
+		}).catch(e => {
+
+			//console.log(signal)
+			if (signal.aborted !== true) {
+				// is we did not abort the request, we should log the output (or show a notification popup?)
+				console.log(e);
 			}
 		});
 
@@ -1533,7 +1567,9 @@ let _Crud = {
 	},
 	crudCreate: (type, json, onError) => {
 
-		fetch(Structr.rootUrl + type, {
+		let url = Structr.rootUrl + type;
+
+		fetch(url, {
 			method: 'POST',
 			body: json
 		}).then(async response => {
@@ -1583,7 +1619,6 @@ let _Crud = {
 			let dialogText = _Dialogs.custom.getDialogTextElement();
 
 			if (!_Dialogs.custom.isDialogOpen()) {
-				console.log('show create dialog!');
 				let elements = _Crud.showCreate(type);
 				dialogText = elements.dialogText;
 			}
@@ -1941,7 +1976,7 @@ let _Crud = {
 		let relatedType      = _Crud.relatedType(key, type);
 		let readOnly         = _Crud.readOnly(key, type);
 		let isSourceOrTarget = _Crud.types[type].isRel && (key === 'sourceId' || key === 'targetId' || key === 'sourceNode' || key === 'targetNode');
-		let propertyType     = _Crud.keys[type][key].type;
+		let propertyType     = _Crud.keys[type]?.[key]?.type;
 		let simpleType;
 
 		if (readOnly) {
@@ -2117,13 +2152,17 @@ let _Crud = {
 
 		} else {
 
-			simpleType = relatedType.substring(relatedType.lastIndexOf('.') + 1);
+			simpleType = relatedType?.substring(relatedType.lastIndexOf('.') + 1);
 
 			if (isRel && _Crud.relInfo[type]) {
 
 				if (key === 'sourceId') {
 					simpleType = _Crud.relInfo[type].source;
 				} else if (key === 'targetId') {
+					simpleType = _Crud.relInfo[type].target;
+				} else if (key === 'sourceNode') {
+					simpleType = _Crud.relInfo[type].source;
+				} else if (key === 'targetNode') {
 					simpleType = _Crud.relInfo[type].target;
 				}
 			}
@@ -2208,7 +2247,7 @@ let _Crud = {
 		if (!obj) {
 			return;
 		}
-		var id, type;
+		let id, type;
 		if ((typeof obj) === 'object') {
 			id = obj.id;
 			type = obj.type;
@@ -2234,12 +2273,12 @@ let _Crud = {
 
 		let nodeHandler = (node) => {
 
-			var displayName = _Crud.displayName(node);
+			let displayName = _Crud.displayName(node);
 
-			cell.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${node.id}" class="node ${node.isImage ? 'image ' : ''} ${node.id}_"><span class="name_ abbr-ellipsis abbr-75pc">${displayName}</span></div>`);
-			var nodeEl = $('#_' + node.id, cell);
+			cell.append(`<div title="${_Helpers.escapeForHtmlAttributes(displayName)}" id="_${node.id}" class="node ${node.isImage ? 'image ' : ''} ${node.id}_ relative"><span class="name_ abbr-ellipsis abbr-100pc">${displayName}</span></div>`);
+			let nodeEl = $('#_' + node.id, cell);
 
-			var isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
+			let isSourceOrTarget = _Crud.types[parentType].isRel && (key === 'sourceId' || key === 'targetId');
 			if (!isSourceOrTarget) {
 				nodeEl.prepend(_Icons.getSvgIcon(_Icons.iconCrossIcon, 10, 10, _Icons.getSvgIconClassesForColoredIcon(['remove', 'icon-lightgrey', 'cursor-pointer'])));
 			} else if (insertFakeInput) {
@@ -2249,11 +2288,11 @@ let _Crud = {
 			if (node.isImage) {
 
 				if (node.isThumbnail) {
-					nodeEl.prepend(`<div class="wrap"><img class="thumbnail" src="/${node.id}"></div>`);
+					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
 				} else if (node.tnSmall) {
-					nodeEl.prepend(`<div class="wrap"><img class="thumbnail" src="/${node.tnSmall.id}"></div>`);
+					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.tnSmall.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
 				} else if (node.contentType === 'image/svg+xml') {
-					nodeEl.prepend(`<div class="wrap"><img class="thumbnail" src="/${node.id}"></div>`);
+					nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}"><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
 				}
 
 				if (node.tnMid || node.contentType === 'image/svg+xml') {
@@ -2312,20 +2351,29 @@ let _Crud = {
 			return true;
 		}
 		return false;
+	},
+	focusSearchField: () => {
 
+		// only auto-activate search field if no other input element is active
+		if ( !(document.activeElement instanceof HTMLInputElement) ) {
+			_Crud.searchField.focus();
+		}
 	},
 	/**
 	 * Conduct a search and append search results to 'el'.
 	 *
 	 * If an optional type is given, restrict search to this type.
+	 *
+	 * Get only the given properties from the backend, otherwise just id,type,name.
 	 */
-	search: (searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = []) => {
+	search: (searchString, el, type, onClickCallback, optionalPageSize, blacklistedIds = [], properties = 'id,type,name,path,isImage,width,height,isThumbnail,isFile,isFolder') => {
 
 		_Crud.clearSearchResults(el);
 
 		el.append(`<div class="searchResults"><h2>Search Results${(searchString !== '*' && searchString !== '') ? ` for "${searchString}"` : ''}</h2></div>`);
 		let searchResults = $('.searchResults', el);
 
+		searchResults.append(`<span class="search-results-info">Showing the first ${optionalPageSize||1000} results. Use the input field to refine your search.</span>`);
 		Structr.resize();
 
 		let types;
@@ -2367,7 +2415,7 @@ let _Crud = {
 				url = `${Structr.rootUrl}${type}/${searchString}`;
 			} else {
 				searchPart = (searchString === '*' || searchString === '') ? '' : `&${attr}=${encodeURIComponent(searchString)}&${Structr.getRequestParameterName('loose')}=1`;
-				url = `${Structr.rootUrl}${type}/public${_Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
+				url = `${Structr.rootUrl}${type}${_Crud.sortAndPagingParameters(type, 'name', 'asc', optionalPageSize || 1000, 1)}${searchPart}`;
 			}
 
 			searchResults.append(`
@@ -2376,7 +2424,7 @@ let _Crud = {
 				</div>
 			`);
 
-			fetch(url).then(async response => {
+			fetch(url, { headers: { 'Accept': 'application/json; properties=' + properties }	}).then(async response => {
 
 				if (response.ok) {
 
@@ -2430,11 +2478,11 @@ let _Crud = {
 		let title = `name: ${node.name}
 id: ${node.id} 
 type: ${node.type}`;
-		$('#resultsFor' + type, searchResults).append(`<div title="${_Helpers.escapeForHtmlAttributes(title)}" class="_${node.id} node abbr-ellipsis abbr-120">${displayName}</div>`);
+		$('#resultsFor' + type, searchResults).append(`<div title="${_Helpers.escapeForHtmlAttributes(title)}" class="_${node.id} node"><span class="name_ abbr-ellipsis abbr-120">${displayName}</span></div>`);
 
 		let nodeEl = $(`#resultsFor${type} ._${node.id}`, searchResults);
 		if (node.isImage) {
-			nodeEl.append(`<div class="wrap"><img class="thumbnail" src="/${node.id}" alt=""></div>`);
+			nodeEl.append(`<div class="wrap"><img class="thumbnailZoom" src="/${node.id}" alt=""><div class="image-info-overlay">${node.width||'?'} x ${node.height||'?'}</div></div>`);
 		}
 
 		nodeEl.on('click', function(e) {
@@ -2442,7 +2490,7 @@ type: ${node.type}`;
 		});
 	},
 	displayName: (node) => {
-		var displayName;
+		let displayName;
 		if (node.isContent && node.content && !node.name) {
 			displayName = _Helpers.escapeTags(node.content.substring(0, 100));
 		} else {
@@ -2740,11 +2788,11 @@ type: ${node.type}`;
 		}
 		let typeDef = _Crud.types[type];
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Create new ${type}`);
+		let dialog = _Dialogs.custom.openDialog(`Create new ${type}`);
 
-		dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
+		dialog.dialogText.insertAdjacentHTML('beforeend', '<form id="entityForm"><table class="props"><tr><th>Property Name</th><th>Value</th></tr>');
 
-		let table = dialogText.querySelector('table');
+		let table = dialog.dialogText.querySelector('table');
 
 		for (let key in _Crud.keys[type]) {
 
@@ -2768,6 +2816,7 @@ type: ${node.type}`;
 
 				_Crud.populateCell(null, key, type, null, cell);
 			}
+
 		}
 
 		let dialogSaveButton = _Dialogs.custom.updateOrCreateDialogSaveButton();
@@ -2776,8 +2825,10 @@ type: ${node.type}`;
 		dialogSaveButton.addEventListener('click', () => {
 			_Helpers.disableElement(dialogSaveButton);
 			let json = JSON.stringify(_Crud.serializeObject($('#entityForm')));
-			_Crud.crudCreate(type, json, undefined, () => { _Helpers.enableElement(dialogSaveButton); });
+			_Crud.crudCreate(type, json, () => { _Helpers.enableElement(dialogSaveButton); });
 		});
+
+		return dialog;
 	},
 	getHiddenKeys: (type) => {
 
@@ -2898,17 +2949,23 @@ type: ${node.type}`;
 			return sortOrder.filter(prop => sourceArray.includes(prop));
 		}
 
+		let idPos = filteredKeys.indexOf('id');
+		if (idPos !== -1) {
+			filteredKeys.splice(idPos, 1);
+		}
+		filteredKeys.unshift('id');
+
 		let typePos = filteredKeys.indexOf('type');
 		if (typePos !== -1) {
 			filteredKeys.splice(typePos, 1);
 		}
 		filteredKeys.unshift('type');
 
-		let idPos = filteredKeys.indexOf('id');
-		if (idPos !== -1) {
-			filteredKeys.splice(idPos, 1);
+		let namePos = filteredKeys.indexOf('name');
+		if (namePos !== -1) {
+			filteredKeys.splice(namePos, 1);
 		}
-		filteredKeys.unshift('id');
+		filteredKeys.unshift('name');
 
 		return filteredKeys;
 	},
@@ -2984,7 +3041,7 @@ type: ${node.type}`;
 							<div id="crudTypeFilterSettings" class="dropdown-menu dropdown-menu-large">
 
 								<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="crudTypesFilterToggle">
-									${_Icons.getSvgIcon(_Icons.iconSettingsWrench)}
+									${_Icons.getSvgIcon(_Icons.iconSettingsWrench, 16, 16, ['mr-2'])}
 								</button>
 
 								<div class="dropdown-menu-container" style="width: 17rem;">
