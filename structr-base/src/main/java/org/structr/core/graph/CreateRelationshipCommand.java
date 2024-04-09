@@ -18,8 +18,6 @@
  */
 package org.structr.core.graph;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
 import org.structr.api.graph.Node;
 import org.structr.api.graph.Relationship;
@@ -44,8 +42,6 @@ import java.util.Map.Entry;
  *
  */
 public class CreateRelationshipCommand extends NodeServiceCommand {
-
-	private static final Logger logger = LoggerFactory.getLogger(CreateRelationshipCommand.class.getName());
 
 	public <A extends NodeInterface, B extends NodeInterface, R extends Relation<A, B, ?, ?>> R execute(final A fromNode, final B toNode, final Class<R> relType) throws FrameworkException {
 		return createRelationship(fromNode, toNode, relType, null);
@@ -74,7 +70,7 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 		template.ensureCardinality(securityContext, fromNode, toNode);
 
 		// date properties need converter
-		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp());
+		AbstractRelationship.internalTimestamp.setProperty(securityContext, tmp, db.getInternalTimestamp(0, 0));
 		AbstractRelationship.createdDate.setProperty(securityContext, tmp, now);
 		AbstractRelationship.lastModifiedDate.setProperty(securityContext, tmp, now);
 
@@ -135,9 +131,6 @@ public class CreateRelationshipCommand extends NodeServiceCommand {
 
 			// ensure indexing of newly created node
 			newRel.addToIndex();
-
-			// notify relationship of its creation
-			newRel.onRelationshipCreation();
 
 			// iterate post creation transformations
 			for (Transformation<GraphObject> transformation : StructrApp.getConfiguration().getEntityCreationTransformations(newRel.getClass())) {

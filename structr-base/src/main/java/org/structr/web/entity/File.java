@@ -45,6 +45,7 @@ import org.structr.core.entity.Principal;
 import org.structr.core.function.Functions;
 import org.structr.core.graph.ModificationQueue;
 import org.structr.core.graph.Tx;
+import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
 import org.structr.core.scheduler.JobQueueManager;
@@ -71,10 +72,12 @@ import java.io.*;
 import java.net.URI;
 import java.nio.charset.Charset;
 import java.nio.charset.IllegalCharsetNameException;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.api.Arguments;
 
 /**
  *
@@ -340,6 +343,8 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		synchronized (thisFile) {
 
+			SearchCommand.prefetch(File.class, thisFile.getUuid());
+
 			// save current security context
 			final SecurityContext previousSecurityContext = securityContext;
 
@@ -402,20 +407,17 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				synchronized (tx) {
+				FileHelper.updateMetadata(thisFile, true);
+				File.increaseVersion(thisFile);
 
-					FileHelper.updateMetadata(thisFile, true);
-					File.increaseVersion(thisFile);
+				// indexing can be controlled for each file separately
+				if (File.doIndexing(thisFile)) {
 
-					tx.success();
+					final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
+					indexer.addToFulltextIndex(thisFile);
 				}
-			}
 
-			// indexing can be controlled for each file separately
-			if (File.doIndexing(thisFile)) {
-
-				final FulltextIndexer indexer = StructrApp.getInstance().getFulltextIndexer();
-				indexer.addToFulltextIndex(thisFile);
+				tx.success();
 			}
 
 		} catch (FrameworkException fex) {
@@ -429,7 +431,11 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 
 		try (final Tx tx = StructrApp.getInstance(ctx).tx()) {
 
-			thisFile.invokeMethod(ctx, "onUpload", Collections.emptyMap(), false, new EvaluationHints());
+			final AbstractMethod method = Methods.resolveMethod(thisFile.getClass(), "onUpload");
+			if (method != null) {
+
+				method.execute(ctx, thisFile, new Arguments(), new EvaluationHints());
+			}
 
 			tx.success();
 
@@ -892,8 +898,7 @@ public interface File extends AbstractFile, Indexable, Linkable, JavaScriptSourc
 	}
 
 	static Map<String, Object> extractStructure(final File thisFile) throws FrameworkException {
-		StructrApp.getInstance(thisFile.getSecurityContext()).getContentAnalyzer().analyzeContent(thisFile);
-		return null;
+		return StructrApp.getInstance(thisFile.getSecurityContext()).getContentAnalyzer().analyzeContent(thisFile);
 	}
 
 	// ----- interface JavaScriptSource -----

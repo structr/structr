@@ -32,6 +32,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
+import org.structr.common.error.PropertyInputParsingException;
 
 /**
 * A property that stores and retrieves a simple string-based Date with
@@ -107,7 +108,7 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 
 			try {
 
-				return Long.parseLong(value.toString());
+				return Long.valueOf(value.toString());
 
 			} catch (Throwable t) {
 			}
@@ -178,13 +179,16 @@ public class DateProperty extends AbstractPrimitiveProperty<Date> {
 							return result;
 						}
 
-						throw new FrameworkException(422, "Cannot parse input " + source + " for property " + jsonName(), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+						throw new PropertyInputParsingException(
+							jsonName(),
+							new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source)
+						);
 
 					}
 
 				} else {
 
-					throw new FrameworkException(422, "Unnkown input type for date property " + jsonName() + ": " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), DateProperty.this));
+					throw new FrameworkException(422, "Unknown input type for date property ‛" + jsonName() + "‛: " + (source.getClass().getName()), new DateFormatToken(declaringClass.getSimpleName(), jsonName()).withDetail(source));
 
 				}
 			}

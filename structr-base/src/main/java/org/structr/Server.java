@@ -20,7 +20,7 @@ package org.structr;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.VersionHelper;
+import org.structr.common.helper.VersionHelper;
 import org.structr.core.Services;
 
 /**

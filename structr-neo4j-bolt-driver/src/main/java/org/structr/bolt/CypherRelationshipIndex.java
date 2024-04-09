@@ -33,7 +33,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 	}
 
 	@Override
-	public String getQueryPrefix(final String typeLabel, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts) {
+	public String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query) {
 
 		final StringBuilder buf       = new StringBuilder();
 		final String tenantIdentifier = db.getTenantIdentifier();
@@ -45,6 +45,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(tenantIdentifier);
 		}
 
+		final String sourceTypeLabel = query.getSourceType();
 		if (sourceTypeLabel != null) {
 			buf.append(":");
 			buf.append(sourceTypeLabel);
@@ -64,6 +65,7 @@ class CypherRelationshipIndex extends AbstractCypherIndex<Relationship> {
 			buf.append(tenantIdentifier);
 		}
 
+		final String targetTypeLabel = query.getTargetType();
 		if (targetTypeLabel != null) {
 			buf.append(":");
 			buf.append(targetTypeLabel);

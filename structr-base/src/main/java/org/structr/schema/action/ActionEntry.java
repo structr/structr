@@ -151,6 +151,10 @@ public class ActionEntry implements Comparable<ActionEntry> {
 		this.codeSource = codeSource;
 	}
 
+	public CodeSource getCodeSource() {
+		return codeSource;
+	}
+
 	public void setReturnType(final String returnType) {
 		this.returnType = returnType;
 	}

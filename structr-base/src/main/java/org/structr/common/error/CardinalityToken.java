@@ -26,6 +26,9 @@ package org.structr.common.error;
 public class CardinalityToken extends SemanticErrorToken {
 
 	public CardinalityToken(final String type, final String errorMessage) {
-		super(type, null, "cardinality_mismatch", errorMessage);
+
+		super(type, null, "cardinality_mismatch");
+
+		withDetail(errorMessage);
 	}
 }

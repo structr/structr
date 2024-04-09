@@ -55,6 +55,7 @@ import org.testng.annotations.Test;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.*;
 
@@ -652,12 +653,12 @@ public class CypherTest extends StructrTest {
 
 			try {
 
-				final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
-				final String uuid     = testSix.getUuid();
-
-				assertNotNull(testSix);
-
 				try (final Tx tx = app.tx()) {
+
+					final TestSix testSix = this.createTestNode(TestSix.class, "testnode");
+					final String uuid     = testSix.getUuid();
+
+					assertNotNull(testSix);
 
 					final Iterable result = app.command(NativeQueryCommand.class).execute("MATCH path = (x:" + randomTenantId + ") WHERE x.name = 'testnode' RETURN path");
 					final Iterator rit    = result.iterator();

@@ -72,7 +72,7 @@ public class CsvHelper {
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				final Iterator<JsonInput> iterator = new CsvIterator(reader,  propertyNames, propertyMapping, type, securityContext.getUser(false).getName());
+				final Iterator<JsonInput> iterator = new CsvIterator(reader,  propertyNames, propertyMapping, type, securityContext.getCachedUserName());
 
 				if (StringUtils.isNotBlank(range)) {
 
@@ -108,7 +108,7 @@ public class CsvHelper {
 			@Override
 			public Iterator<JsonInput> iterator() {
 
-				final Iterator<JsonInput> iterator = new MixedCsvIterator(reader,  propertyNames, propertyMapping, securityContext.getUser(false).getName());
+				final Iterator<JsonInput> iterator = new MixedCsvIterator(reader,  propertyNames, propertyMapping, securityContext.getCachedUserName());
 
 				if (StringUtils.isNotBlank(range)) {
 
@@ -139,7 +139,7 @@ public class CsvHelper {
 				data.put("type",     "CSV_IMPORT_WARNING");
 				data.put("title",    "CSV Import Warning");
 				data.put("text",     message);
-				data.put("username", securityContext.getUser(false).getName());
+				data.put("username", securityContext.getCachedUserName());
 
 				TransactionCommand.simpleBroadcastGenericMessage(data);
 			}

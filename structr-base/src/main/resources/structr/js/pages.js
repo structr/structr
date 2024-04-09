@@ -937,6 +937,9 @@ let _Pages = {
 						document.querySelector('a[href="#pages:repeater"]').closest('li').classList.remove('hidden');
 						document.querySelector('a[href="#pages:events"]').closest('li').classList.remove('hidden');
 					}
+
+					document.querySelector('a[href="#pages:routing"]').closest('li').classList.add('hidden');
+					break;
 			}
 
 			if (!_Entities.isLinkableEntity(entity)) {
@@ -1072,6 +1075,14 @@ let _Pages = {
 		}
 
 		switch (urlHash) {
+
+			case '#pages:routing':
+
+				_Pages.centerPane.insertAdjacentHTML('beforeend', _Pages.templates.routing());
+				let routingContainer = document.querySelector('#center-pane .routing-container');
+
+				_Pages.routingDialog(obj, routingContainer);
+				break;
 
 			case '#pages:basic':
 
@@ -3646,6 +3657,123 @@ let _Pages = {
 		},
 	},
 
+	routingDialog: async (page, container) => {
+
+		let addButton     = document.querySelector('.add-route-button');
+		let listContainer = document.querySelector('#routing-entries');
+
+		let ifok = (response) => { if (response.ok) return response.json(); }
+
+		let enableUpdateEvents = async (paramsContainer) => {
+
+			paramsContainer.querySelectorAll('.value-type-select').forEach(input => {
+				input.addEventListener('change', event => {
+					let select = event.target;
+					let id     = select.dataset.structrId;
+					Command.setProperty(id, 'valueType', select.value, false, () => _Helpers.blinkGreen(select));
+				});
+			});
+		}
+
+		let addPathObject = async (p) => {
+
+			let path = await Command.getPromise(p.id, '', 'ui');
+
+			path.page = page;
+
+			listContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingRow(path));
+
+			let rowContainer    = listContainer.querySelector(`#routing-entry-${path.id}`);
+			let paramsContainer = rowContainer.querySelector('.path-parameters');
+
+			for (let param of path.parameters) {
+				paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
+				let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
+				if (select) {
+					select.value = param.valueType;
+				}
+			}
+
+			let pathInput = rowContainer.querySelector(`#routing-path-${path.id}`);
+			if (pathInput) {
+				let func = _Helpers.debounce(event => updateParameters(event, path, paramsContainer), 300);
+				pathInput.addEventListener('input', func);
+			}
+
+			let removeButton = rowContainer.querySelector('.routing-remove-button');
+			if (removeButton) {
+
+				removeButton.addEventListener('click', async (event) => {
+
+					await fetch(`${Structr.rootUrl}PagePath/${path.id}`, { method: 'DELETE' }).then(ifok);
+					listContainer.removeChild(rowContainer);
+				});
+			}
+
+			enableUpdateEvents(paramsContainer);
+		};
+
+		let createParameter = async () => {
+
+			let data = await fetch(`${Structr.rootUrl}PagePath`, {
+				method: 'POST',
+				body: JSON.stringify({
+					page: page.id,
+					name: '/' + page.name + '/'
+				})
+  			}).then(ifok);
+
+			if (data && data.result && data.result.length === 1) {
+				let path = await Command.getPromise(data.result[0], '', 'ui');
+				addPathObject(path);
+			}
+		};
+
+		let updateParameters = async (event, path, paramsContainer) => {
+
+			let string = event.target.value;
+			let names  = string.match(/(\{[a-zA-Z0-9]+\})/g) || [];
+
+			// remove {} around parameter name
+			names = names.map(n => n.substring(1, n.length - 1));
+
+			// update parameters
+			let data = await fetch(`${Structr.rootUrl}PagePath/${path.id}/updatePathAndParameters`, {
+				method: 'POST',
+				body: JSON.stringify({
+					path: string,
+					names: names
+				})
+  			}).then(ifok);
+
+			paramsContainer.replaceChildren();
+
+			if (data && data.result) {
+
+				for (let param of data.result) {
+
+					paramsContainer.insertAdjacentHTML('beforeend', _Pages.templates.routingParameterRow(param));
+					let select = paramsContainer.querySelector(`#routing-parameter-${param.id} select`);
+					if (select) {
+						select.value = param.valueType;
+					}
+				}
+
+				enableUpdateEvents(paramsContainer);
+			}
+		};
+
+		addButton.addEventListener('click', createParameter);
+
+		let paths = await Command.queryPromise('PagePath', 1000, 1, 'name', false, { page: page.id }, true, 'ui');
+
+		for (let path of paths) {
+			await addPathObject(path);
+		}
+
+		_Helpers.activateCommentsInElement(container);
+	},
+
 	templates: {
 		main: config => `
 			<link rel="stylesheet" type="text/css" media="screen" href="css/pages.css">
@@ -3832,11 +3960,62 @@ let _Pages = {
 					<li id="tabs-menu-security">
 						<a href="#pages:security">Security</a>
 					</li>
+					<li id="tabs-menu-basic">
+						<a href="#pages:routing">URL Routing</a>
+					</li>
 				</ul>
 			</div>
 		`,
 		basic: config => `
 			<div class="content-container basic-container"></div>
+		`,
+		routing: config => `
+			<div class="content-container routing-container">
+				<h3>
+					Routes
+					<i class="m-2 add-route-button cursor-pointer align-middle icon-grey icon-inactive hover:icon-active">${_Icons.getSvgIcon(_Icons.iconAdd,16,16,[], 'Add route')}</i>
+				</h3>
+				<div id="routing-entries">
+				</div>
+			</div>
+		`,
+		routingRow: config => `
+			<div class="mb-4 grid grid-cols-3 gap-8" id="routing-entry-${config.id}">
+				<div class="m-0">
+					<label class="block" data-comment="Enter the URL path that should route to this page.">Path</label>
+					<input id="routing-path-${config.id}" type="text" class="parameter-url-input" placeholder="/products/{name}/{amount}" value="${config.name}">
+				</div>
+				<div>
+					<label class="block" data-comment="Parameters are managed automatically based on variables in the path.">Path parameters</label>
+					<div class="path-parameters"></div>
+				</div>
+				<div>
+					<label class="block mb-2">Actions</label>
+					<i class="block mt-2 routing-remove-button" data-structr-id="${config.id}">${_Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red']))}</i>
+				</div>
+				<div>
+				</div>
+			</div>
+		`,
+		routingParameterRow: config => `
+			<div class="grid grid-cols-2 gap-4" id="routing-parameter-${config.id}">
+				<div class="m-0">
+					<pre class="block bold mt-3" id="routing-parameter-name-${config.id}">${config.name}</pre>
+				</div>
+				<div>
+					<select class="select2 value-type-select" data-structr-id="${config.id}">
+						<option value="">Select value type..</option>
+						<option>String</option>
+						<option>Integer</option>
+						<option>Long</option>
+						<option>Double</option>
+						<option>Float</option>
+						<option>Date</option>
+						<option>List</option>
+						<option>Map</option>
+					</select>
+				</div>
+			</div>
 		`,
 		contentEditor: config => `
 			<div class="content-container content-editor-container flex flex-col">

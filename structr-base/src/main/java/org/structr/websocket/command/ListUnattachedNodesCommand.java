@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -37,6 +36,7 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.helper.PagingHelper;
 
 /**
  * Websocket command to retrieve DOM nodes which are not attached to a parent

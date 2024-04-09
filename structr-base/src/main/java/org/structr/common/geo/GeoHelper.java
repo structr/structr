@@ -175,7 +175,7 @@ public class GeoHelper {
 					providerClass = (Class<GeoCodingProvider>)Class.forName(Settings.GeocodingProvider.getValue());
 				}
 
-				providerInstance = providerClass.newInstance();
+				providerInstance = providerClass.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable t) {
 

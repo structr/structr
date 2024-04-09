@@ -126,7 +126,7 @@ public interface Relation<A extends NodeInterface, B extends NodeInterface, S ex
 
 			try {
 
-				instance = type.newInstance();
+				instance = type.getDeclaredConstructor().newInstance();
 				relationCache.put(type, instance);
 
 

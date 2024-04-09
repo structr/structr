@@ -19,9 +19,9 @@
 package org.structr.test.core.entity;
 
 import org.structr.common.PropertyView;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.entity.AbstractNode;
 import org.structr.core.property.DoubleProperty;
 import org.structr.core.property.Property;

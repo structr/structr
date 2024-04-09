@@ -81,7 +81,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 		if (StringUtils.isBlank(expression)) {
 
 			//reportError(new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), expression, "invalid_property_definition", "Empty notion property expression."));
-			throw new FrameworkException(422, "Empty notion property expression for property " + source.getPropertyName() +  ".", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression."));
+			throw new FrameworkException(422, "Empty notion property expression for property ‛" + source.getPropertyName() +  "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Empty notion property expression."));
 		}
 
 		final StringBuilder buf = new StringBuilder();
@@ -140,7 +140,7 @@ public class IdNotionPropertyParser extends PropertySourceGenerator {
 
 			} else {
 
-				throw new FrameworkException(422, "Invalid notion property expression for property " + source.getPropertyName() + ".", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression."));
+				throw new FrameworkException(422, "Invalid notion property expression for property ‛" + source.getPropertyName() + "‛", new InvalidPropertySchemaToken(SchemaNode.class.getSimpleName(), this.source.getPropertyName(), expression, "invalid_property_definition", "Invalid notion property expression."));
 			}
 		}
 

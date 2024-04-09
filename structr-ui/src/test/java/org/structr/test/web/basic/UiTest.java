@@ -85,13 +85,25 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = img;
-			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+
+			tryWithTimeout(
+				() -> {
+					// Thumbnail creation happens in the background, in a different thread,
+					// so we need to allow this thread to break the transaction isolation..
+					immutableImage.getNode().invalidate();
+
+					return immutableImage.getProperty(StructrApp.key(imageType, "thumbnail")) != null;
+				},
+				()->fail("Exceeded timeout while waiting for thumbnail creation."),
+				30000, 1000);
+
 			Image tn = img.getProperty(StructrApp.key(imageType, "thumbnail"));
 
 			assertNotNull(tn);
-			assertEquals(new Integer(200), tn.getWidth());
-			assertEquals(new Integer(48), tn.getHeight());  // cropToFit = false
+			assertEquals(200, (int)tn.getWidth());
+			assertEquals( 48, (int)tn.getHeight());  // cropToFit = false
 			assertEquals("image/" + Thumbnail.Format.jpeg, tn.getContentType());
 
 			tx.success();
@@ -130,8 +142,19 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = testImage;
-			tryWithTimeout(() -> (immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null), ()->fail("Exceeded timeout while waiting for thumbnail creation."), 30000, 1000);
+
+			tryWithTimeout(
+				() -> {
+					// Thumbnail creation happens in the background, in a different thread,
+					// so we need to allow this thread to break the transaction isolation..
+					immutableImage.getNode().invalidate();
+
+					return immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall")) != null && immutableImage.getProperty(StructrApp.key(Image.class, "tnMid")) != null;
+				},
+				()->fail("Exceeded timeout while waiting for thumbnail creation."),
+				30000, 1000);
 			final Image tnSmall = testImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
 			final Image tnMid = testImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 
@@ -209,11 +232,14 @@ public class UiTest extends StructrUiTest {
 		try (final Tx tx = app.tx()) {
 			final Image immutableImage = subclassTestImage;
 			tryWithTimeout(
-					() -> (
-							immutableImage.getProperty(StructrApp.key(testImageType, "tnSmall")) != null &&
+					() -> {
+							// allow inner node to be updated
+							immutableImage.getNode().invalidate();
+
+							return immutableImage.getProperty(StructrApp.key(testImageType, "tnSmall")) != null &&
 							immutableImage.getProperty(StructrApp.key(testImageType, "tnMid")) != null &&
-							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null
-					),
+							immutableImage.getProperty(StructrApp.key(testImageType, "thumbnail")) != null;
+					},
 					()->fail("Exceeded timeout while waiting for thumbnail creation."),
 					60000,
 					5000
@@ -494,7 +520,16 @@ public class UiTest extends StructrUiTest {
 			logger.error("", ex);
 		}
 
-		assertNotEquals(rootFile1.getName(), rootFile2.getName());
+		try (final Tx tx = app.tx()) {
+
+			// property access must now be done in a transaction context
+			assertNotEquals(rootFile1.getName(), rootFile2.getName());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Test
@@ -509,10 +544,17 @@ public class UiTest extends StructrUiTest {
 		File rootFile3 = null;
 		File rootFile4 = null;
 
+		String file1Name = null;
+		String file2Name = null;
+		String file3Name = null;
+		String file4Name = null;
+
 		try (final Tx tx = app.tx()) {
 
 			rootFile1 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile1);
+
+			file1Name = rootFile1.getName();
 
 			tx.success();
 
@@ -520,7 +562,15 @@ public class UiTest extends StructrUiTest {
 			logger.error("", ex);
 		}
 
-		final String file1Name = rootFile1.getName();
+		try (final Tx tx = app.tx()) {
+
+			file1Name = rootFile1.getName();
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 
 		Settings.UniquePathsInsertionPosition.setValue("end");
 		try (final Tx tx = app.tx()) {
@@ -528,13 +578,23 @@ public class UiTest extends StructrUiTest {
 			rootFile2 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile2);
 
+			file2Name = rootFile2.getName();
+
 			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
 
-		final String file2Name = rootFile2.getName();
+		try (final Tx tx = app.tx()) {
+
+			file2Name = rootFile2.getName();
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 
 		assertNotEquals(file1Name, file2Name);
 		assertEquals("underscore+timestamp should be after filename for insertion position 'end'", file2Name.charAt(fileName.length()), '_');
@@ -545,13 +605,23 @@ public class UiTest extends StructrUiTest {
 			rootFile3 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile3);
 
+			file3Name = rootFile3.getName();
+
 			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
 
-		final String file3Name = rootFile3.getName();
+		try (final Tx tx = app.tx()) {
+
+			file3Name = rootFile3.getName();
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 
 		assertNotEquals(file1Name, file3Name);
 		assertNotEquals(file2Name, file3Name);
@@ -563,13 +633,23 @@ public class UiTest extends StructrUiTest {
 			rootFile4 = app.create(File.class, new NodeAttribute<>(AbstractNode.name, fileName));
 			assertNotNull(rootFile4);
 
+			file4Name = rootFile4.getName();
+
 			tx.success();
 
 		} catch (FrameworkException ex) {
 			logger.error("", ex);
 		}
 
-		final String file4Name = rootFile4.getName();
+		try (final Tx tx = app.tx()) {
+
+			file4Name = rootFile4.getName();
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			logger.error("", ex);
+		}
+
 
 		assertNotEquals(file1Name, file4Name);
 		assertNotEquals(file2Name, file4Name);
@@ -631,7 +711,16 @@ public class UiTest extends StructrUiTest {
 			logger.error("", ex);
 		}
 
-		assertNotEquals(file1.getName(), file2.getName());
+		try (final Tx tx = app.tx()) {
+
+			// property access must now be done in a transaction context
+			assertNotEquals(file1.getName(), file2.getName());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	@Test
@@ -692,7 +781,16 @@ public class UiTest extends StructrUiTest {
 			ex.printStackTrace();
 		}
 
-		assertNotEquals(file1.getName(), file2.getName());
+		try (final Tx tx = app.tx()) {
+
+			// property access must now be done in a transaction context
+			assertNotEquals(file1.getName(), file2.getName());
+
+			tx.success();
+
+		} catch (FrameworkException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 
@@ -837,9 +935,14 @@ public class UiTest extends StructrUiTest {
 		}
 
 		try (final Tx tx = app.tx()) {
+
 			final Image immutableImage = image;
 			tryWithTimeout(
 					() -> {
+						// Thumbnail creation happens in the background, in a different thread,
+						// so we need to allow this thread to break the transaction isolation..
+						immutableImage.getNode().invalidate();
+
 						immutableImage.getProperty(StructrApp.key(Image.class, "tnSmall"));
 						immutableImage.getProperty(StructrApp.key(Image.class, "tnMid"));
 						return (Iterables.count(immutableImage.getThumbnails()) == 2);

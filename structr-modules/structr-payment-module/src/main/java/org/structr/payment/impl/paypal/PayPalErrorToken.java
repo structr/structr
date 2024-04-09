@@ -19,12 +19,14 @@
 package org.structr.payment.impl.paypal;
 
 import org.structr.common.error.SemanticErrorToken;
-import org.structr.core.property.PropertyKey;
 
 
 public class PayPalErrorToken extends SemanticErrorToken {
 
-	public PayPalErrorToken(final String type, final PropertyKey propertyKey, final String token, final Object detail) {
-		super(type, propertyKey, token, detail);
+	public PayPalErrorToken(final String type, final String propertyKey, final String token, final Object detail) {
+
+		super(type, propertyKey, token);
+
+		withDetail(detail);
 	}
 }

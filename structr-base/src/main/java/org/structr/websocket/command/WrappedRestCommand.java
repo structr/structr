@@ -25,22 +25,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.common.PropertyView;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.StaticValue;
-import org.structr.rest.ResourceProvider;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.exception.IllegalPathException;
 import org.structr.rest.exception.NotFoundException;
-import org.structr.rest.resource.Resource;
-import org.structr.rest.servlet.ResourceHelper;
 import org.structr.web.common.HttpServletRequestWrapper;
-import org.structr.web.common.UiResourceProvider;
 import org.structr.websocket.StructrWebSocket;
 import org.structr.websocket.message.MessageBuilder;
 import org.structr.websocket.message.WebSocketMessage;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
+import org.structr.common.SecurityContext;
+import org.structr.core.entity.Principal;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 
 public class WrappedRestCommand extends AbstractCommand {
@@ -58,7 +57,7 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		setDoTransactionNotifications(true);
 
-		final String method                  = webSocketData.getNodeDataStringValue("method");
+		final String method = webSocketData.getNodeDataStringValue("method");
 
 		if (method == null || ! (method.equals("POST") || method.equals("PUT")) ) {
 
@@ -69,33 +68,19 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		}
 
-		ResourceProvider resourceProvider;
-		try {
-
-			resourceProvider = UiResourceProvider.class.newInstance();
-
-		} catch (Throwable t) {
-
-			logger.error("Couldn't establish a resource provider", t);
-			getWebSocket().send(MessageBuilder.wrappedRest().code(422).message("Couldn't establish a resource provider").build(), true);
-			return;
-
-		}
-
-		final Map<Pattern, Class<? extends Resource>> resourceMap = new LinkedHashMap<>();
-		resourceMap.putAll(resourceProvider.getResources());
-
-		final StructrWebSocket socket        = this.getWebSocket();
-		final String url                     = webSocketData.getNodeDataStringValue("url");
+		final StructrWebSocket socket         = this.getWebSocket();
+		final SecurityContext securityContext = socket.getSecurityContext();
+		final String url                      = webSocketData.getNodeDataStringValue("url");
+		final Principal currentUser           = securityContext.getUser(false);
 
 		// mimic HTTP request
 		final HttpServletRequest wrappedRequest = new HttpServletRequestWrapper(socket.getRequest(), url);
 
-		Resource resource;
-		final StaticValue fakePropertyView = new StaticValue(PropertyView.Public);
+		RESTCallHandler handler;
+
 		try {
 
-			resource = ResourceHelper.optimizeNestedResourceChain(socket.getSecurityContext(), wrappedRequest, resourceMap, fakePropertyView);
+			handler = RESTEndpoints.resolveRESTCallHandler(wrappedRequest, PropertyView.Public, AbstractDataServlet.getTypeOrDefault(currentUser, User.class));
 
 		} catch (IllegalPathException | NotFoundException e) {
 
@@ -105,22 +90,22 @@ public class WrappedRestCommand extends AbstractCommand {
 
 		}
 
-		final String data                    = webSocketData.getNodeDataStringValue("data");
-		final Gson gson                      = new GsonBuilder().create();
-		final Map<String, Object> jsonData   = gson.fromJson(data, Map.class);
+		final String data                     = webSocketData.getNodeDataStringValue("data");
+		final Gson gson                       = new GsonBuilder().create();
+		final Map<String, Object> jsonData    = gson.fromJson(data, Map.class);
 
 		RestMethodResult result = null;
 
 		switch (method) {
 			case "PUT":
 				// we want to update data
-				result = resource.doPut(jsonData);
+				result = handler.doPut(securityContext, jsonData);
 
 				break;
 
 			case "POST":
 				// we either want to create data or call a method on an object
-				result = resource.doPost(jsonData);
+				result = handler.doPost(securityContext, jsonData);
 
 
 				break;

@@ -19,88 +19,84 @@
 package org.structr.rest.resource;
 
 
-import jakarta.servlet.http.HttpServletRequest;
-import org.structr.api.search.SortOrder;
-import org.structr.api.util.ResultStream;
-import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Value;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractNode;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.exception.IllegalMethodException;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Set;
+import org.structr.common.SecurityContext;
+import org.structr.rest.api.ExactMatchEndpoint;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.parameter.RESTParameter;
 
 
 /**
  *
  *
  */
-public class EntityResolverResource extends WrappingResource {
+public class EntityResolverResource extends ExactMatchEndpoint {
 
-	@Override
-	public boolean checkAndConfigure(String part, SecurityContext securityContext, HttpServletRequest request) {
-
-		return true;
+	public EntityResolverResource() {
+		super(RESTParameter.forStaticString("resolver"));
 	}
 
 	@Override
-	public ResultStream doGet(final SortOrder sortOrder, int pageSize, int page) throws FrameworkException {
-		throw new IllegalMethodException("GET not allowed on " + getResourceSignature());
+	public RESTCallHandler accept(final RESTCall call) throws FrameworkException {
+		return new ResolverResourceHandler(call);
 	}
 
-	@Override
-	public RestMethodResult doPost(final Map<String, Object> propertySet) throws FrameworkException {
+	private class ResolverResourceHandler extends RESTCallHandler {
 
-		final RestMethodResult result = new RestMethodResult(200);
-		final Object src              = propertySet.get("ids");
-
-		if (src != null && src instanceof Collection) {
-
-			final Collection list = (Collection)src;
-			for (final Object obj : list) {
-
-				if (obj instanceof String) {
-
-					AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById((String)obj);
-					if (node != null) {
-
-						result.addContent(node);
-					}
-				}
-			}
-
-		} else {
-
-			throw new FrameworkException(422, "Send a JSON object containing an array named 'ids' to use this endpoint.");
+		public ResolverResourceHandler(final RESTCall call) {
+			super(call);
 		}
 
-		return result;
-	}
+		@Override
+		public RestMethodResult doPost(final SecurityContext securityContext, final Map<String, Object> propertySet) throws FrameworkException {
 
-	@Override
-	public RestMethodResult doDelete() throws FrameworkException {
-		throw new IllegalMethodException("DELETE not allowed on " + getResourceSignature());
-	}
+			final RestMethodResult result = new RestMethodResult(200);
+			final Object src              = propertySet.get("ids");
 
-	@Override
-	public RestMethodResult doPut(final Map<String, Object> propertySet) throws FrameworkException {
-		throw new IllegalMethodException("PUT not allowed on " + getResourceSignature());
-	}
+			if (src != null && src instanceof Collection) {
 
-        @Override
-        public String getResourceSignature() {
-                return getUriPart();
-        }
+				final Collection list = (Collection)src;
+				for (final Object obj : list) {
 
-	@Override
-	public String getUriPart() {
-		return "resolver";
-	}
+					if (obj instanceof String) {
 
-	@Override
-	public void configurePropertyView(Value<String> propertyView) {
+						AbstractNode node = (AbstractNode) StructrApp.getInstance().getNodeById((String)obj);
+						if (node != null) {
+
+							result.addContent(node);
+						}
+					}
+				}
+
+			} else {
+
+				throw new FrameworkException(422, "Send a JSON object containing an array named 'ids' to use this endpoint.");
+			}
+
+			return result;
+		}
+
+		@Override
+		public boolean isCollection() {
+			return true;
+		}
+
+		@Override
+		public Class getEntityClass(final SecurityContext securityContext) {
+			return null;
+		}
+
+		@Override
+		public Set<String> getAllowedHttpMethodsForOptionsCall() {
+			return Set.of("OPTIONS", "POST");
+		}
 	}
 }

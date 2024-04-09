@@ -41,13 +41,11 @@ public interface Service extends Feature {
 	 * @param services
 	 * @param serviceName
 	 *
-	 * @throws ClassNotFoundException
-	 * @throws InstantiationException
-	 * @throws IllegalAccessException
+	 * @throws ReflectiveOperationException
 	 *
 	 * @return service result object
 	 */
-	ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException;
+	ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException;
 
 	/**
 	 * Called before the service is discarded. Note that this method will not be called

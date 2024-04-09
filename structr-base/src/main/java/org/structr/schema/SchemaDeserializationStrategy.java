@@ -38,11 +38,8 @@ import org.structr.core.property.RelationProperty;
 import java.util.*;
 import java.util.Map.Entry;
 
-//~--- classes ----------------------------------------------------------------
-
 /**
  * Deserializes a {@link GraphObject} using a type and a set of property values.
- *
  *
  */
 public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends DeserializationStrategy<S, T> {
@@ -54,8 +51,6 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 	protected RelationProperty<S> relationProperty     = null;
 	protected boolean createIfNotExisting              = false;
 	protected Class targetType                         = null;
-
-	//~--- constructors ---------------------------------------------------
 
 	public SchemaDeserializationStrategy(final boolean createIfNotExisting, final Class targetType, final Set<PropertyKey> identifyingPropertyKeys, final Set<PropertyKey> foreignPropertyKeys) {
 		this.createIfNotExisting     = createIfNotExisting;
@@ -189,7 +184,7 @@ public class SchemaDeserializationStrategy<S, T extends NodeInterface> extends D
 					break;
 			}
 
-			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base, attributes));
+			throw new FrameworkException(404, errorMessage, new PropertiesNotFoundToken(type.getSimpleName(), AbstractNode.base.jsonName(), attributes));
 		}
 
 		return null;

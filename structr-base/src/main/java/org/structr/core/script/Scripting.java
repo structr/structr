@@ -258,97 +258,91 @@ public class Scripting {
 			actionContext.getErrorBuffer().setStatus(0);
 		}
 
-		try {
-			final Context context = ContextFactory.getContext("js", actionContext, entity);
+		final Context context = ContextFactory.getContext("js", actionContext, entity);
 
-			context.enter();
+		context.enter();
+
+		try {
+
+			Object result = null;
 
 			try {
 
-				Object result = null;
+				Source source = sourceCache.get(snippet.getSource());
+				if (source == null) {
 
-				try {
+					final String code = embedInFunction(snippet);
 
-					Source source = sourceCache.get(snippet.getSource());
-					if (source == null) {
+					source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
 
-						final String code = embedInFunction(snippet);
+					// store in cache
+					sourceCache.put(snippet.getSource(), source);
+				}
 
-						source = Source.newBuilder("js", code, snippet.getName()).mimeType(snippet.getMimeType()).build();
+				final Value value = context.eval(source);
 
-						// store in cache
-						sourceCache.put(snippet.getSource(), source);
+				result = PolyglotWrapper.unwrap(actionContext, value);
+
+			} catch (PolyglotException ex) {
+
+				if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
+
+					// Only report error, if exception is not an already logged AssertException
+					if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
+						reportError(actionContext.getSecurityContext(), entity, ex, snippet);
 					}
 
-					final Value value = context.eval(source);
-
-					result = PolyglotWrapper.unwrap(actionContext, value);
-
-				} catch (PolyglotException ex) {
-
-					if (ex.isHostException() && ex.asHostException() instanceof RuntimeException) {
-
-						// Only report error, if exception is not an already logged AssertException
-						if (ex.isHostException() && !(ex.asHostException() instanceof AlreadyLoggedAssertException)) {
-							reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-						}
-
-						// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
-						if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
-							throw new AlreadyLoggedAssertException(ae);
-						}
-
-						// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
-						if (ex.asHostException().getCause() instanceof FrameworkException) {
-							throw ex.asHostException().getCause();
-						} else {
-							throw ex.asHostException();
-						}
+					// If exception is AssertException and has been logged above, rethrow as AlreadyLoggedAssertException
+					if (ex.isHostException() && ex.asHostException() instanceof AssertException ae) {
+						throw new AlreadyLoggedAssertException(ae);
 					}
 
-					reportError(actionContext.getSecurityContext(), entity, ex, snippet);
-					throw new FrameworkException(422, "Server-side scripting error", ex);
+					// Unwrap FrameworkExceptions wrapped in RuntimeExceptions, if neccesary
+					if (ex.asHostException().getCause() instanceof FrameworkException) {
+						throw ex.asHostException().getCause();
+					} else {
+						throw ex.asHostException();
+					}
 				}
 
-				// Prefer explicitly printed output over actual result
-				final String outputBuffer = actionContext.getOutput();
-				if (outputBuffer != null && !outputBuffer.isEmpty()) {
+				reportError(actionContext.getSecurityContext(), entity, ex, snippet);
+				throw new FrameworkException(422, "Server-side scripting error", ex);
+			}
 
-					return outputBuffer;
-				}
+			// Prefer explicitly printed output over actual result
+			final String outputBuffer = actionContext.getOutput();
+			if (outputBuffer != null && !outputBuffer.isEmpty()) {
 
-				return result != null ? result : "";
+				return outputBuffer;
+			}
 
-			} catch (RuntimeException ex) {
+			return result != null ? result : "";
 
-				if (ex.getCause() instanceof FrameworkException) {
+		} catch (RuntimeException ex) {
 
-					throw (FrameworkException) ex.getCause();
+			if (ex.getCause() instanceof FrameworkException) {
 
-				} else if (ex instanceof AssertException) {
+				throw (FrameworkException) ex.getCause();
 
-					throw ex;
-				} else {
-
-					throw ex;
-				}
-
-			} catch (FrameworkException ex) {
+			} else if (ex instanceof AssertException) {
 
 				throw ex;
+			} else {
 
-			} catch (Throwable ex) {
-
-				throw new FrameworkException(422, "Server-side scripting error", ex);
-
-			} finally {
-
-				context.leave();
+				throw ex;
 			}
+
+		} catch (FrameworkException ex) {
+
+			throw ex;
+
+		} catch (Throwable ex) {
+
+			throw new FrameworkException(422, "Server-side scripting error", ex);
 
 		} finally {
 
-			//actionContext.putScriptingContext("js", null);
+			context.leave();
 		}
 	}
 

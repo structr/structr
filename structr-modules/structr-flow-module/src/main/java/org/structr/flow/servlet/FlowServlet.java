@@ -48,6 +48,7 @@ import java.text.DecimalFormatSymbols;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
+import org.structr.common.PropertyView;
 
 public class FlowServlet extends JsonRestServlet {
 
@@ -67,9 +68,6 @@ public class FlowServlet extends JsonRestServlet {
 			final Map<String, Object> flowParameters = new HashMap<>();
 			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
 
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
@@ -107,7 +105,7 @@ public class FlowServlet extends JsonRestServlet {
 						DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 						result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-						processResult(securityContext, request, response, result, depth, false);
+						processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
 					}
 
 					response.setStatus(HttpServletResponse.SC_OK);
@@ -148,11 +146,11 @@ public class FlowServlet extends JsonRestServlet {
 	}
 
 	@Override
-	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
+	protected void writeHtml(final SecurityContext securityContext, final HttpServletResponse response, final ResultStream result, final String baseUrl, final String view, final int nestingDepth, final boolean wrapSingleResultInArray, final boolean serializeNulls) throws FrameworkException, IOException {
 
 		final App app                          = StructrApp.getInstance(securityContext);
 		final boolean indentJson               = Settings.JsonIndentation.getValue();
-		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(propertyView, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
+		final StreamingFlowWriter flowStreamer = new StreamingFlowWriter(view, indentJson, nestingDepth, wrapSingleResultInArray, serializeNulls);
 
 		// isolate write output
 		try (final Tx tx = app.tx()) {
@@ -198,9 +196,6 @@ public class FlowServlet extends JsonRestServlet {
 			final Iterable<Object> flowResult;
 			final int depth = Services.parseInt(request.getParameter(RequestKeywords.OutputDepth.keyword()), config.getOutputNestingDepth());
 
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
-
 			// first thing to do!
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
@@ -235,7 +230,7 @@ public class FlowServlet extends JsonRestServlet {
 					DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
 					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
 
-					processResult(securityContext, request, response, result, depth, false);
+					processResult(securityContext, request, response, result, PropertyView.Public, depth, false);
 
 					response.setStatus(HttpServletResponse.SC_OK);
 

@@ -39,5 +39,4 @@ public interface Node extends PropertyContainer {
 	Iterable<Relationship> getRelationships();
 	Iterable<Relationship> getRelationships(final Direction direction);
 	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType);
-	Iterable<Relationship> getRelationships(final Direction direction, final RelationshipType relationshipType, final String otherType);
 }

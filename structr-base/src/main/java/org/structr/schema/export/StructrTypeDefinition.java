@@ -84,7 +84,7 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		this.name = name;
 	}
 
-	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final App app, final PropertyMap createProperties) throws FrameworkException;
+	abstract T createSchemaNode(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app, final PropertyMap createProperties) throws FrameworkException;
 	abstract boolean isBlacklisted(final Set<String> blacklist);
 
 	@Override
@@ -1108,11 +1108,9 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 	}
 
-	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final App app) throws FrameworkException {
+	AbstractSchemaNode createDatabaseSchema(final Map<String, SchemaNode> schemaNodes, final Map<String, SchemaRelationshipNode> schemaRels, final App app) throws FrameworkException {
 
 		final Map<String, SchemaProperty> schemaProperties = new TreeMap<>();
-		final Map<String, SchemaMethod> schemaMethods      = new TreeMap<>();
-		final Map<String, SchemaGrant> schemaGrants        = new TreeMap<>();
 		final PropertyMap createProperties                 = new PropertyMap();
 		final PropertyMap nodeProperties                   = new PropertyMap();
 
@@ -1125,11 +1123,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		createProperties.put(SchemaNode.defaultVisibleToPublic, visibleToPublicUsers);
 		createProperties.put(SchemaNode.defaultVisibleToAuth, visibleToAuthenticatedUsers);
 
-		final T schemaNode = createSchemaNode(schemaNodes, app, createProperties);
+		final T newSchemaNode = createSchemaNode(schemaNodes, schemaRels, app, createProperties);
 
 		for (final StructrPropertyDefinition property : properties) {
 
-			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, schemaNode);
+			final SchemaProperty schemaProperty = property.createDatabaseSchema(app, newSchemaNode);
 			if (schemaProperty != null) {
 
 				schemaProperties.put(schemaProperty.getName(), schemaProperty);
@@ -1155,15 +1153,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 				}
 			}
 
-			SchemaView viewNode = app.nodeQuery(SchemaView.class)
-				.and(SchemaView.schemaNode, schemaNode)
-				.and(SchemaView.name, view.getKey())
-				.getFirst();
-
+			SchemaView viewNode = newSchemaNode.getSchemaView(view.getKey());
 			if (viewNode == null) {
 
 				viewNode = app.create(SchemaView.class,
-					new NodeAttribute<>(SchemaView.schemaNode, schemaNode),
+					new NodeAttribute<>(SchemaView.schemaNode, newSchemaNode),
 					new NodeAttribute<>(SchemaView.name, view.getKey())
 				);
 			}
@@ -1182,21 +1176,11 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		for (final StructrMethodDefinition method : methods) {
-
-			final SchemaMethod schemaMethod = method.createDatabaseSchema(app, schemaNode);
-			if (schemaMethod != null) {
-
-				schemaMethods.put(schemaMethod.getName(), schemaMethod);
-			}
+			method.createDatabaseSchema(app, newSchemaNode);
 		}
 
 		for (final StructrGrantDefinition grant : grants) {
-
-			final SchemaGrant schemaGrant = grant.createDatabaseSchema(app, schemaNode);
-			if (schemaGrant != null) {
-
-				schemaGrants.put(schemaGrant.getPrincipalName(), schemaGrant);
-			}
+			grant.createDatabaseSchema(app, newSchemaNode);
 		}
 
 		// extends
@@ -1288,23 +1272,25 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 		}
 
 		final Set<String> mergedTags     = new LinkedHashSet<>(this.tags);
-		final String[] existingTagsArray = schemaNode.getProperty(SchemaNode.tags);
+		final String[] existingTagsArray = newSchemaNode.getProperty(SchemaNode.tags);
 
 		if (existingTagsArray != null) {
 
 			mergedTags.addAll(Arrays.asList(existingTagsArray));
 		}
 
-		// merge tags, don't overwrite
-		nodeProperties.put(SchemaNode.tags,              mergedTags.toArray(new String[0]));
+		if (!mergedTags.isEmpty()) {
+			nodeProperties.put(SchemaNode.tags,              listToArray(mergedTags));
+		}
+
 		nodeProperties.put(SchemaNode.includeInOpenAPI,  includeInOpenAPI());
 		nodeProperties.put(SchemaNode.summary,           getSummary());
 		nodeProperties.put(SchemaNode.description,       getDescription());
 		nodeProperties.put(SchemaNode.icon,              getIcon());
 
-		schemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
+		newSchemaNode.setProperties(SecurityContext.getSuperUserInstance(), nodeProperties);
 
-		return schemaNode;
+		return newSchemaNode;
 	}
 
 	T getSchemaNode() {
@@ -1418,8 +1404,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 	static StructrTypeDefinition deserialize(final StructrSchemaDefinition root, final String name, final Map<String, Object> source) {
 
 		final Map<String, StructrPropertyDefinition> deserializedProperties = new TreeMap<>();
-		final Map<String, StructrMethodDefinition> deserializedMethods      = new TreeMap<>();
-		final Map<String, StructrGrantDefinition> deserializedGrants        = new TreeMap<>();
 		final StructrTypeDefinition typeDefinition                          = StructrTypeDefinition.determineType(root, name, source);
 		final Map<String, Object> properties                                = (Map)source.get(JsonSchema.KEY_PROPERTIES);
 		final List<String> requiredPropertyNames                            = (List)source.get(JsonSchema.KEY_REQUIRED);
@@ -1504,7 +1488,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, (Map)value);
 					if (method != null) {
 
-						deserializedMethods.put(method.getName(), method);
 						typeDefinition.getMethods().add(method);
 					}
 
@@ -1518,7 +1501,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 						final StructrMethodDefinition method = StructrMethodDefinition.deserialize(typeDefinition, methodName, map);
 						if (method != null) {
 
-							deserializedMethods.put(method.getName(), method);
 							typeDefinition.getMethods().add(method);
 						}
 					}
@@ -1542,7 +1524,6 @@ public abstract class StructrTypeDefinition<T extends AbstractSchemaNode> implem
 					final StructrGrantDefinition grant = StructrGrantDefinition.deserialize(typeDefinition, principalName, (Map)value);
 					if (grant != null) {
 
-						deserializedGrants.put(grant.getPrincipalName(), grant);
 						typeDefinition.getGrants().add(grant);
 					}
 

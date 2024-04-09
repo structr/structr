@@ -56,8 +56,8 @@ import java.util.Map;
  */
 public class GraphQLServlet extends AbstractServletBase implements HttpServiceServlet {
 
-	public static final int DEFAULT_VALUE_PAGE_SIZE                     = 20;
-	private static final Logger logger                                  = LoggerFactory.getLogger(GraphQLServlet.class.getName());
+	public static final int DEFAULT_VALUE_PAGE_SIZE = 20;
+	private static final Logger logger              = LoggerFactory.getLogger(GraphQLServlet.class.getName());
 
 	// final fields
 	private final StructrHttpServiceConfig config = new StructrHttpServiceConfig();
@@ -154,10 +154,10 @@ public class GraphQLServlet extends AbstractServletBase implements HttpServiceSe
 
 			if (securityContext != null) {
 
-				RuntimeEventLog.graphQL(query, securityContext.getUser(false));
-
 				// isolate write output
 				try (final Tx tx = app.tx()) {
+
+					RuntimeEventLog.graphQL(query, securityContext.getUser(false));
 
 					final Document doc = GraphQLRequest.parse(new Parser(), query);
 					if (doc != null) {

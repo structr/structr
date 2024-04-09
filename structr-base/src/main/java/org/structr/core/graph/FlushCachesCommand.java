@@ -20,10 +20,8 @@ package org.structr.core.graph;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.api.DatabaseService;
 import org.structr.common.AccessPathCache;
 import org.structr.common.error.FrameworkException;
-import org.structr.core.Services;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.ResourceAccess;
@@ -47,16 +45,6 @@ public class FlushCachesCommand extends NodeServiceCommand implements Maintenanc
 	}
 
 	public static void flushAll() {
-
-		final Map<String, NodeService> services = Services.getInstance().getServices(NodeService.class);
-		if (services != null) {
-
-			for (final NodeService service : services.values()) {
-
-				final DatabaseService db = service.getDatabaseService();
-				db.clearCaches();
-			}
-		}
 
 		ResourceAccess.clearCache();
 		Actions.clearCache();

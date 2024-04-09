@@ -58,10 +58,10 @@ public abstract class AbstractDatabaseService implements DatabaseService {
 	}
 
 	@Override
-	public String getInternalTimestamp() {
+	public String getInternalTimestamp(final long millisOffset, final long nanosOffset) {
 
-		final String millis = StringUtils.leftPad(Long.toString(System.currentTimeMillis()), 18, "0");
-		final String nanos  = StringUtils.leftPad(Long.toString(System.nanoTime() - nanoEpoch), 18, "0");
+		final String millis = StringUtils.leftPad(Long.toString(System.currentTimeMillis() + millisOffset), 18, "0");
+		final String nanos  = StringUtils.leftPad(Long.toString(System.nanoTime() - nanoEpoch + nanosOffset), 18, "0");
 
 		return millis + "." + nanos;
 	}

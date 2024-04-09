@@ -114,11 +114,13 @@ public class StructrTypeDefinitions implements StructrDefinition {
 
 	public void createDatabaseSchema(final App app, final JsonSchema.ImportMode importMode) throws FrameworkException {
 
-		final Map<String, SchemaNode> schemaNodes = new LinkedHashMap<>();
-		final Set<String> blacklist               = SchemaService.getBlacklist();
+		final Map<String, SchemaRelationshipNode> schemaRels = new LinkedHashMap<>();
+		final Map<String, SchemaNode> schemaNodes            = new LinkedHashMap<>();
+		final Set<String> blacklist                          = SchemaService.getBlacklist();
 
 		// collect list of schema nodes
 		app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+		app.nodeQuery(SchemaRelationshipNode.class).getAsList().stream().forEach(n -> { schemaRels.put(n.getName(), n); });
 
 		// iterate type definitions
 		for (final StructrTypeDefinition type : typeDefinitions) {
@@ -129,7 +131,7 @@ public class StructrTypeDefinitions implements StructrDefinition {
 				continue;
 			}
 
-			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, app);
+			final AbstractSchemaNode schemaNode = type.createDatabaseSchema(schemaNodes, schemaRels, app);
 			if (schemaNode != null) {
 
 				type.setSchemaNode(schemaNode);

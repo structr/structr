@@ -118,7 +118,7 @@ public class AgentService extends Thread implements RunnableService {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return new ServiceResult(true);
 	}
 
@@ -245,7 +245,7 @@ public class AgentService extends Thread implements RunnableService {
 
 					try {
 
-						Agent supportedAgent     = supportedAgentClass.newInstance();
+						Agent supportedAgent     = supportedAgentClass.getDeclaredConstructor().newInstance();
 						Class supportedTaskClass = supportedAgent.getSupportedTaskType();
 
 						if (supportedTaskClass.equals(taskClass)) {
@@ -262,7 +262,7 @@ public class AgentService extends Thread implements RunnableService {
 		if (agentClass != null) {
 
 			try {
-				agent = (Agent) agentClass.newInstance();
+				agent = (Agent) agentClass.getDeclaredConstructor().newInstance();
 
 			} catch (Throwable ignore) {}
 		}

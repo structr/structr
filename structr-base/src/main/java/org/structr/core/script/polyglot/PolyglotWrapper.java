@@ -31,9 +31,13 @@ import org.structr.schema.action.ActionContext;
 
 import java.time.ZoneId;
 import java.util.*;
+import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+import org.structr.common.error.FrameworkException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
 
 public abstract class PolyglotWrapper {
 
@@ -240,6 +244,31 @@ public abstract class PolyglotWrapper {
 		}
 
 		return obj;
+	}
+
+	public static Arguments unwrapExecutableArguments(final ActionContext actionContext, final AbstractMethod method, final Value[] args) throws FrameworkException {
+
+		final Arguments arguments = new Arguments();
+
+		for (final Value value : args) {
+
+			final Object unwrapped = PolyglotWrapper.unwrap(actionContext, value);
+			if (unwrapped instanceof Map map) {
+
+				for (final Entry<String, Object> entry : ((Map<String, Object>)map).entrySet()) {
+
+					arguments.add(entry);
+				}
+
+			} else {
+
+				// we don't have names for the arguments here... :(
+				arguments.add(null, unwrapped);
+			}
+
+		}
+
+		return arguments;
 	}
 
 	protected static List<Object> unwrapIterable(final ActionContext actionContext, final Iterable<Object> iterable) {

@@ -187,6 +187,7 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 		return true;
 	}
 
+	@Override
 	public void setPassword(final String passwordValue) {
 		// not supported
 	}
@@ -392,11 +393,6 @@ public class SuperUser implements Principal, AccessControllable, NonIndexed {
 
 	@Override
 	public Object evaluate(final ActionContext actionContext, final String key, final String defaultValue, EvaluationHints hints, final int row, final int column) throws FrameworkException {
-		return null;
-	}
-
-	@Override
-	public Object invokeMethod(final SecurityContext securityContext, final String methodName, final Map<String, Object> parameters, final boolean throwExceptionForUnknownMethods, final EvaluationHints hints) throws FrameworkException {
 		return null;
 	}
 

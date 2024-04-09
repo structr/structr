@@ -50,7 +50,7 @@
 		<maven.compiler.target>17</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<netbeans.hint.license>structr-gpl30</netbeans.hint.license>
-		<test.neo4j.version>neo4j:4.4</test.neo4j.version>
+		<test.neo4j.version>neo4j:5.16</test.neo4j.version>
 		<structr.lib.directory>${structr.root.directory}/structr-base/target/lib</structr.lib.directory>
 		<maven.build.timestamp.format>yyyyMMddHHmm</maven.build.timestamp.format>
 		<maven.plugin.jar.version>3.2.0</maven.plugin.jar.version>
@@ -62,8 +62,10 @@
 	<modules>
 		<module>structr-db-driver-api</module>
 		<module>structr-neo4j-bolt-driver</module>
+		<!--
 		<module>structr-memory-driver</module>
 		<module>structr-memgraph-driver</module>
+		-->
 		<module>structr-base</module>
 		<module>structr-core</module>
 		<module>structr-rest</module>
@@ -176,6 +178,12 @@
 				<groupId>commons-collections</groupId>
 				<artifactId>commons-collections</artifactId>
 				<version>3.2.2</version>
+				<optional>true</optional>
+			</dependency>
+			<dependency>
+				<groupId>commons-collections</groupId>
+				<artifactId>commons-collections4</artifactId>
+				<version>4.4</version>
 				<optional>true</optional>
 			</dependency>
 			<dependency>
@@ -376,6 +384,7 @@
 					<target>17</target>
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<debug>true</debug>
+				 <showDeprecation>false</showDeprecation>
 				</configuration>
 			</plugin>
 			<plugin>

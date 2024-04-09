@@ -23,14 +23,13 @@ import org.structr.api.util.PagingIterable;
 import org.structr.common.SecurityContext;
 import org.structr.core.GraphObject;
 import org.structr.core.GraphObjectMap;
-import org.structr.core.StaticValue;
-import org.structr.core.Value;
 import org.structr.rest.serialization.StreamingJsonWriter;
 import org.structr.schema.action.ActionContext;
 
 import java.io.StringWriter;
 import java.util.Arrays;
 import java.util.Map;
+import org.structr.common.PropertyView;
 
 public class ToJsonFunction extends UiCommunityFunction {
 
@@ -56,11 +55,11 @@ public class ToJsonFunction extends UiCommunityFunction {
 
 				final SecurityContext securityContext = ctx.getSecurityContext();
 				final StringWriter writer             = new StringWriter();
+				String view                           = PropertyView.Public;
 
-				final Value<String> view = new StaticValue<>("public");
 				if (sources.length > 1) {
 
-					view.set(securityContext, sources[1].toString());
+					view = sources[1].toString();
 				}
 
 				int outputDepth = Settings.RestOutputDepth.getValue();

@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.structr.common.AccessMode;
 import org.structr.common.Permission;
 import org.structr.common.SecurityContext;
-import org.structr.common.VersionHelper;
 import org.structr.common.error.FrameworkException;
 import org.structr.console.Console;
 import org.structr.console.Console.ConsoleMode;
@@ -44,6 +43,7 @@ import java.io.*;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import org.structr.common.helper.VersionHelper;
 
 /**
  *

@@ -19,8 +19,8 @@
 package org.structr.common.mail;
 
 import org.structr.api.service.Service;
-import org.structr.common.AdvancedMailContainer;
 import org.structr.common.SecurityContext;
+import org.structr.common.helper.AdvancedMailContainer;
 import org.structr.core.graph.NodeInterface;
 
 public interface MailServiceInterface extends Service {

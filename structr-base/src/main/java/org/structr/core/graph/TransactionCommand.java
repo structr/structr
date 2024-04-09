@@ -46,6 +46,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import org.structr.api.Transaction;
 
 /**
  * Graph service command for database operations that need to be wrapped in
@@ -501,6 +502,18 @@ public class TransactionCommand {
 		if (cmd != null) {
 
 			return cmd.getTransactionId();
+		}
+
+		RuntimeEventLog.transaction("Not in transaction");
+		throw new NotInTransactionException("Not in transaction.");
+	}
+
+	public static Transaction getCurrentTransaction() {
+
+		final TransactionCommand cmd = commands.get();
+		if (cmd != null) {
+
+			return cmd.transaction;
 		}
 
 		RuntimeEventLog.transaction("Not in transaction");

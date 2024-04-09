@@ -21,6 +21,7 @@ package org.structr.core.graph.search;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.Predicate;
+import org.structr.api.graph.Direction;
 import org.structr.api.graph.PropertyContainer;
 import org.structr.api.index.Index;
 import org.structr.api.search.Occurrence;
@@ -29,6 +30,7 @@ import org.structr.api.search.SortOrder;
 import org.structr.api.util.Iterables;
 import org.structr.api.util.PagingIterable;
 import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.geo.GeoCodingResult;
@@ -36,13 +38,11 @@ import org.structr.common.geo.GeoHelper;
 import org.structr.core.GraphObject;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.*;
-import org.structr.core.graph.Factory;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeServiceCommand;
-import org.structr.core.graph.RelationshipInterface;
+import org.structr.core.graph.*;
 import org.structr.core.property.AbstractPrimitiveProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.core.property.PropertyMap;
+import org.structr.core.property.RelationProperty;
 import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
@@ -92,6 +92,12 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		if (page == 0 || pageSize <= 0) {
 
 			return PagingIterable.EMPTY_ITERABLE;
+		}
+
+		// automatic prefetching
+		if (type != null) {
+
+			//SearchCommand.prefetch(type, null);
 		}
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
@@ -752,6 +758,28 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return currentGroup.getOccurrence();
 	}
 
+	@Override
+	public void setQueryContext(final QueryContext queryContext) {
+		this.queryContext = queryContext;
+	}
+
+	@Override
+	public QueryContext getQueryContext() {
+		return queryContext;
+	}
+
+	@Override
+	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
+
+		getQueryContext().isPing(isPing);
+		return this;
+	}
+
+	@Override
+	public void overrideFetchSize(final int fetchSizeForThisRequest) {
+		queryContext.overrideFetchSize(fetchSizeForThisRequest);
+	}
+
 	// ----- static methods -----
 	public static synchronized void clearInheritanceMap() {
 		subtypeMapForType.clear();
@@ -822,7 +850,6 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 	public static boolean isTypeAssignableFromOtherType (Class type, Class otherType) {
 
 		return getAllSubtypesAsStringSet(type.getSimpleName()).contains(otherType.getSimpleName());
-
 	}
 
 	public static Set<Class> typeAndAllSupertypes(final Class type) {
@@ -846,26 +873,58 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		return allSupertypes;
 	}
 
-	@Override
-	public void setQueryContext(final QueryContext queryContext) {
-		this.queryContext = queryContext;
-	}
+	public static void prefetch(final Class type, final String uuid) {
 
-	@Override
-	public QueryContext getQueryContext() {
-		return queryContext;
-	}
+		final Set<String> keys    = new LinkedHashSet<>();
+		final Set<String> types1  = new LinkedHashSet<>();
+		final Set<String> types2  = new LinkedHashSet<>();
 
-	@Override
-	public org.structr.core.app.Query<T> isPing(final boolean isPing) {
+		for (final PropertyKey<?> key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
 
-		getQueryContext().isPing(isPing);
-		return this;
-	}
+			if (key instanceof RelationProperty relationProperty) {
 
-	@Override
-	public void overrideFetchSize(final int fetchSizeForThisRequest) {
-		queryContext.overrideFetchSize(fetchSizeForThisRequest);
+				final Relation relation   = relationProperty.getRelation();
+				final Direction direction = relation.getDirectionForType(type);
+				final String name         = relation.name();
+
+				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getSourceType())) {
+
+					if (!s.isInterface()) {
+
+						types1.add(s.getSimpleName());
+					}
+				}
+
+				for (final Class s : SearchCommand.typeAndAllSupertypes(relation.getTargetType())) {
+
+					if (!s.isInterface()) {
+
+						types2.add(s.getSimpleName());
+					}
+				}
+
+				switch (direction) {
+
+					case INCOMING -> keys.add("all/INCOMING/" + name);
+					case OUTGOING -> keys.add("all/OUTGOING/" + name);
+				}
+			}
+		}
+
+		// intersect
+		types1.retainAll(types2);
+
+		types1.remove(AbstractNode.class.getSimpleName());
+		types1.remove(NodeInterface.class.getSimpleName());
+		types1.remove(type.getSimpleName());
+
+		if (!types1.isEmpty()) {
+
+			final List<String> list      = Iterables.toList(types1);
+			final String commonBaseClass = list.get(0);
+
+			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, commonBaseClass, keys);
+		}
 	}
 
 	// ----- private methods ----

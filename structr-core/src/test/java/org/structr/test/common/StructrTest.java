@@ -49,6 +49,11 @@ import java.io.File;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Supplier;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.schema.action.EvaluationHints;
+import java.util.LinkedList;
 
 import static org.testng.AssertJUnit.assertNotNull;
 import static org.testng.AssertJUnit.assertNull;
@@ -137,7 +142,7 @@ public class StructrTest {
 		);
 		final Set<String> uiTypes = Set.of(
 			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
+			"JavaScriptSource", "LinkSource", "Linkable", "Page", "PagePath", "PagePathParameter", "ParameterMapping", "Person", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
 		);
 
 		SchemaService.getBlacklist().addAll(htmlTypes);
@@ -161,8 +166,6 @@ public class StructrTest {
 
 		Settings.SuperUserName.setValue("superadmin");
 		Settings.SuperUserPassword.setValue("sehrgeheim");
-
-		//Settings.CypherDebugLogging.setValue(true);
 
 		final Services services = Services.getInstance();
 
@@ -439,5 +442,22 @@ public class StructrTest {
 
 			onTimeout.run();
 		}
+	}
+
+	protected Object invokeMethod(final SecurityContext securityContext, final AbstractNode node, final String methodName, final Map<String, Object> parameters, final boolean throwIfNotExists, final EvaluationHints hints) throws FrameworkException {
+
+		final AbstractMethod method = Methods.resolveMethod(node.getClass(), methodName);
+		if (method != null) {
+
+			hints.reportExistingKey(methodName);
+
+			return method.execute(securityContext, node, Arguments.fromMap(parameters), new EvaluationHints());
+		}
+
+		if (throwIfNotExists) {
+			throw new FrameworkException(400, "Method " + methodName + " not found in type " + node.getType());
+		}
+
+		return null;
 	}
 }

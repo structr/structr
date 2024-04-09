@@ -22,7 +22,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.structr.api.util.Iterables;
 import org.structr.common.PropertyView;
 import org.structr.common.SecurityContext;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
@@ -40,6 +39,9 @@ import org.structr.schema.action.ActionEntry;
 
 import java.lang.reflect.*;
 import java.util.*;
+import org.structr.common.error.SemanticErrorToken;
+import org.structr.common.helper.ValidationHelper;
+import org.structr.core.Services;
 
 /**
  *
@@ -47,7 +49,11 @@ import java.util.*;
  */
 public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
-	public static final String schemaMethodNamePattern    = "[a-zA-Z_][a-zA-Z0-9_]*";
+	public static final String schemaMethodNamePattern    = "[a-z_][a-zA-Z0-9_]*";
+
+	public enum HttpVerb {
+		GET, PUT, POST, PATCH, DELETE
+	}
 
 	public static final Property<Iterable<SchemaMethodParameter>> parameters = new EndNodes<>("parameters", SchemaMethodParameters.class);
 	public static final Property<AbstractSchemaNode> schemaNode              = new StartNode<>("schemaNode", SchemaNodeMethod.class, new PropertySetNotion(AbstractNode.id, AbstractNode.name, SchemaNode.isBuiltinType));
@@ -67,29 +73,36 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	public static final Property<String>             summary                 = new StringProperty("summary");
 	public static final Property<String>             description             = new StringProperty("description");
 	public static final Property<Boolean>            isStatic                = new BooleanProperty("isStatic");
+	public static final Property<Boolean>            isPrivate               = new BooleanProperty("isPrivate");
+	public static final Property<HttpVerb>           httpVerb                = new EnumProperty<>("httpVerb", HttpVerb.class).defaultValue(HttpVerb.POST);
+	// Note: if you add properties here, make sure to add the in Deployment3Test.java#test33SchemaMethods as well!
 
 	// property which is only used to mark a schema method as "will be deleted"
 	public static final Property<Boolean>            deleteMethod             = new BooleanProperty("deleteMethod").defaultValue(Boolean.FALSE);
 
 	private static final Set<PropertyKey> schemaRebuildTriggerKeys = new LinkedHashSet<>(Arrays.asList(
-		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic
+		name, /*parameters,*/ schemaNode, /*returnType,*/ exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, isStatic, isPrivate, httpVerb
 	));
 
 	public static final View defaultView = new View(SchemaMethod.class, PropertyView.Public,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, isPrivate, httpVerb
 	);
 
 	public static final View uiView = new View(SchemaMethod.class, PropertyView.Ui,
-		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		name, schemaNode, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
 
 	public static final View schemaView = new View(SchemaNode.class, "schema",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
 
 	public static final View exportView = new View(SchemaMethod.class, "export",
-		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType
+		id, type, schemaNode, name, source, returnType, exceptions, callSuper, overridesExisting, doExport, codeType, isPartOfBuiltInSchema, tags, summary, description, isStatic, includeInOpenAPI, openAPIReturnType, isPrivate, httpVerb
 	);
+
+	public Iterable<SchemaMethodParameter> getParameters() {
+		return getProperty(parameters);
+	}
 
 	public ActionEntry getActionEntry(final Map<String, SchemaNode> schemaNodes, final AbstractSchemaNode schemaEntity) throws FrameworkException {
 
@@ -141,6 +154,14 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		return getProperty(isStatic);
 	}
 
+	public boolean isPrivateMethod() {
+		return getProperty(isPrivate);
+	}
+
+	public HttpVerb getHttpVerb() {
+		return getProperty(httpVerb);
+	}
+
 	public boolean isJava() {
 		return "java".equals(getProperty(codeType));
 	}
@@ -151,6 +172,13 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		boolean valid = super.isValid(errorBuffer);
 
 		valid &= ValidationHelper.isValidStringMatchingRegex(this, name, schemaMethodNamePattern, errorBuffer);
+
+		final Set<String> propertyViews = Services.getInstance().getConfigurationProvider().getPropertyViews();
+		final String methodname         = getProperty(AbstractNode.name);
+
+		if (methodname != null && propertyViews.contains(methodname)) {
+			errorBuffer.add(new SemanticErrorToken(this.getType(), "name", "already_exists").withValue(methodname).withDetail("A method cannot have the same name as a view"));
+		}
 
 		return valid;
 	}
@@ -172,8 +200,9 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 		}
 
 		// Ensure AbstractSchemaNode methodCache is invalidated when a schema method changes
-		if (!TransactionCommand.isDeleted(this.dbNode)) {
-			AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
+		if (!TransactionCommand.isDeleted(getNode())) {
+
+			final AbstractSchemaNode schemaNode = getProperty(SchemaMethod.schemaNode);
 			if (schemaNode != null) {
 
 				schemaNode.clearCachedSchemaMethodsForInstance();
@@ -215,6 +244,18 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 	@Override
 	public boolean reloadSchemaOnDelete() {
 		return true;
+	}
+
+	public SchemaMethodParameter getSchemaMethodParameter(final String name) {
+
+		for (final SchemaMethodParameter param : getProperty(SchemaMethod.parameters)) {
+
+			if (name.equals(param.getName())) {
+				return param;
+			}
+		}
+
+		return null;
 	}
 
 	// ----- private methods -----
@@ -275,12 +316,7 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 				final SchemaNode typeNode = schemaNodes.get(shortTypeName);
 				if (typeNode != null && !typeNode.equals(schemaEntity)) {
 
-					// try to identify overridden schema method from database
-					final SchemaMethod superMethod = app.nodeQuery(SchemaMethod.class)
-						.and(SchemaMethod.schemaNode, typeNode)
-						.and(SchemaMethod.name, methodName)
-						.getFirst();
-
+					final SchemaMethod superMethod = typeNode.getSchemaMethod(methodName);
 					if (superMethod != null) {
 
 						final ActionEntry superEntry = superMethod.getActionEntry(schemaNodes, typeNode);
@@ -440,6 +476,8 @@ public class SchemaMethod extends SchemaReloadingNode implements Favoritable {
 
 	// ----- private static methods -----
 	public static String getCachedSourceCode(final String uuid) throws FrameworkException {
+
+		// this method is called from generated Java code in ActionEntry.java line 242
 
 		final SchemaMethod method = StructrApp.getInstance().get(SchemaMethod.class, uuid);
 		if (method != null) {

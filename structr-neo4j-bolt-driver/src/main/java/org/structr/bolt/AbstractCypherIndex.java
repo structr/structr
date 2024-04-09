@@ -42,7 +42,8 @@ abstract class AbstractCypherIndex<T extends PropertyContainer> extends Abstract
 	private final Map<Class, QueryFactory> factories   = new HashMap<>();
 	protected BoltDatabaseService db                   = null;
 
-	public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts);
+	//public abstract String getQueryPrefix(final String mainType, final String sourceTypeLabel, final String targetTypeLabel, final boolean hasPredicates, final boolean hasOptionalParts);
+	public abstract String getQueryPrefix(final String typeLabel, final AdvancedCypherQuery query);
 	public abstract String getQuerySuffix(final AdvancedCypherQuery query);
 
 	public AbstractCypherIndex(final BoltDatabaseService db) {

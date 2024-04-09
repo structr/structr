@@ -42,10 +42,7 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.entity.Relation;
 import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaRelationshipNode;
-import org.structr.core.graph.FlushCachesCommand;
-import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.NodeService;
-import org.structr.core.graph.Tx;
+import org.structr.core.graph.*;
 import org.structr.core.graph.search.SearchCommand;
 import org.structr.core.property.PropertyKey;
 import org.structr.schema.compiler.*;
@@ -94,7 +91,7 @@ public class SchemaService implements Service {
 	}
 
 	@Override
-	public ServiceResult initialize(final StructrServices services, String serviceName) throws ClassNotFoundException, InstantiationException, IllegalAccessException {
+	public ServiceResult initialize(final StructrServices services, String serviceName) throws ReflectiveOperationException {
 		return SchemaHelper.reloadSchema(new ErrorBuffer(), null, true, false);
 	}
 
@@ -127,8 +124,9 @@ public class SchemaService implements Service {
 
 			try {
 
-
 				try (final Tx tx = app.tx()) {
+
+					SchemaService.prefetchSchemaNodes(tx);
 
 					final JsonSchema currentSchema = StructrSchema.createFromDatabase(app);
 
@@ -165,6 +163,8 @@ public class SchemaService implements Service {
 
 				try (final Tx tx = app.tx()) {
 
+					SchemaService.prefetchSchemaNodes(tx);
+
 					while (retryCount-- > 0) {
 
 						final Map<String, Map<String, PropertyKey>> removedClasses = translateRelationshipClassesToRelTypes(config.getTypeAndPropertyMapping());
@@ -181,7 +181,9 @@ public class SchemaService implements Service {
 						}
 
 						// collect list of schema nodes
-						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> { schemaNodes.put(n.getName(), n); });
+						app.nodeQuery(SchemaNode.class).getAsList().stream().forEach(n -> {
+							schemaNodes.put(n.getName(), n);
+						});
 
 						// check licenses prior to source code generation
 						for (final SchemaNode schemaInfo : schemaNodes.values()) {
@@ -253,7 +255,7 @@ public class SchemaService implements Service {
 
 									// do full reload
 									config.registerEntityType(newType);
-									newType.newInstance();
+									newType.getDeclaredConstructor().newInstance();
 
 								} catch (final Throwable t) {
 
@@ -494,6 +496,51 @@ public class SchemaService implements Service {
 		return compiling.get();
 	}
 
+	public static void prefetchSchemaNodes(final Tx tx) {
+
+		tx.prefetch("SchemaReloadingNode", "SchemaReloadingNode", Set.of(
+
+			"all/INCOMING/EXTENDS",
+			"all/INCOMING/HAS_METHOD",
+			"all/INCOMING/HAS_PARAMETER",
+			"all/INCOMING/HAS_PROPERTY",
+			"all/INCOMING/HAS_VIEW",
+			"all/INCOMING/HAS_VIEW_PROPERTY",
+			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
+			"all/INCOMING/IS_RELATED_TO",
+			"all/INCOMING/SCHEMA_GRANT",
+
+			"all/OUTGOING/EXTENDS",
+			"all/OUTGOING/HAS_PROPERTY",
+			"all/OUTGOING/HAS_VIEW_PROPERTY",
+			"all/OUTGOING/HAS_METHOD",
+			"all/OUTGOING/HAS_PARAMETER",
+			"all/OUTGOING/HAS_VIEW",
+			"all/OUTGOING/IS_RELATED_TO"
+		));
+
+		tx.prefetch("SchemaRelationshipNode", "SchemaNode", Set.of(
+
+			"all/INCOMING/EXTENDS",
+			"all/INCOMING/HAS_METHOD",
+			"all/INCOMING/HAS_PARAMETER",
+			"all/INCOMING/HAS_PROPERTY",
+			"all/INCOMING/HAS_VIEW",
+			"all/INCOMING/HAS_VIEW_PROPERTY",
+			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
+			"all/INCOMING/IS_RELATED_TO",
+			"all/INCOMING/SCHEMA_GRANT",
+
+			"all/OUTGOING/EXTENDS",
+			"all/OUTGOING/HAS_PROPERTY",
+			"all/OUTGOING/HAS_VIEW_PROPERTY",
+			"all/OUTGOING/HAS_METHOD",
+			"all/OUTGOING/HAS_PARAMETER",
+			"all/OUTGOING/HAS_VIEW",
+			"all/OUTGOING/IS_RELATED_TO"
+		));
+	}
+
 	// ----- interface Feature -----
 	@Override
 	public String getModuleName() {
@@ -533,7 +580,7 @@ public class SchemaService implements Service {
 						return;
 					}
 
-					final Set<Class> whitelist    = new LinkedHashSet<>(Arrays.asList(GraphObject.class, NodeInterface.class));
+					final Set<Class> whitelist    = new LinkedHashSet<>(Set.of(GraphObject.class, NodeInterface.class));
 					final DatabaseService graphDb = StructrApp.getInstance().getDatabaseService();
 
 					final Map<String, Map<String, IndexConfig>> schemaIndexConfig    = new HashMap();

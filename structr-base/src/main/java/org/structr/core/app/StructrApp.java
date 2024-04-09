@@ -283,7 +283,7 @@ public class StructrApp implements App {
 
 			} else {
 
-				throw new IllegalStateException("Invalid type " + type + ", cannot be used in query.");
+				throw new IllegalStateException("Invalid type ‛" + type + "‛, cannot be used in query");
 			}
 		}
 

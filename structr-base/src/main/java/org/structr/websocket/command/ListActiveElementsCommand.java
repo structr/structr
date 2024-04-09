@@ -76,6 +76,8 @@ public class ListActiveElementsCommand extends AbstractCommand {
 
 		try (final Tx tx = app.tx(true, true, true)) {
 
+			DOMNode.prefetchDOMNodes();
+
 			final Page page                = app.get(Page.class, id);
 			final List<GraphObject> result = new LinkedList<>();
 

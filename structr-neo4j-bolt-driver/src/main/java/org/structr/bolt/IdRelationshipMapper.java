@@ -35,6 +35,6 @@ class IdRelationshipMapper implements Function<Long, Relationship> {
 
 	@Override
 	public Relationship apply(final Long id) {
-		return RelationshipWrapper.newInstance(db, id);
+		return db.getCurrentTransaction().getRelationshipWrapper(id);
 	}
 }

@@ -68,7 +68,7 @@ public class GroupQueryFactory extends AbstractQueryFactory<AdvancedCypherQuery>
 					if (p instanceof GroupQuery) {
 
 						final List<QueryPredicate> containedPredicates = ((GroupQuery)p).getQueryPredicates();
-						if (containedPredicates.size() > 0) {
+						if (!containedPredicates.isEmpty()) {
 
 							nonEmptyGroup = true;
 						}

@@ -38,7 +38,6 @@ import org.structr.core.entity.AbstractNode;
 import org.structr.core.graph.FlushCachesCommand;
 import org.structr.core.graph.NodeInterface;
 import org.structr.core.graph.Tx;
-import org.structr.rest.DefaultResourceProvider;
 import org.structr.schema.SchemaService;
 import org.structr.schema.export.StructrSchema;
 import org.testng.annotations.Optional;
@@ -86,7 +85,7 @@ public abstract class StructrRestTestBase {
 
 		final Set<String> uiTypes = Set.of(
 			"AbstractFile", "ActionMapping", "ApplicationConfigurationDataNode", "DOMElement", "DOMNode", "DocumentFragment", "File", "Folder", "Image", "Indexable", "IndexedWord",
-			"JavaScriptSource", "LinkSource", "Linkable", "Page", "ParameterMapping", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
+			"JavaScriptSource", "LinkSource", "Linkable", "Page", "PagePath", "PagePathParameter", "ParameterMapping", "ShadowDocument", "Site", "Template", "TemplateElement", "User", "Video"
 		);
 
 		SchemaService.getBlacklist().addAll(htmlTypes);
@@ -112,11 +111,9 @@ public abstract class StructrRestTestBase {
 
 		Settings.Servlets.setValue("JsonRestServlet OpenAPIServlet");
 		Settings.RestAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.RestResourceProvider.setValue(DefaultResourceProvider.class.getName());
 		Settings.RestServletPath.setValue(restUrl);
 		Settings.RestUserClass.setValue("");
 		Settings.OpenAPIAuthenticator.setValue(SuperUserAuthenticator.class.getName());
-		Settings.OpenAPIResourceProvider.setValue(DefaultResourceProvider.class.getName());
 
 		final Services services = Services.getInstance();
 
@@ -294,6 +291,8 @@ public abstract class StructrRestTestBase {
 	}
 
 	protected String createEntity(String resource, String... body) {
+		
+		RestAssured.basePath = "/structr/rest";
 
 		StringBuilder buf = new StringBuilder();
 
@@ -307,6 +306,21 @@ public abstract class StructrRestTestBase {
 			.contentType("application/json; charset=UTF-8")
 			.body(buf.toString())
 			.expect().statusCode(201).when().post(resource).getHeader("Location"));
+	}
+
+	protected Map<String, Object> generalPurposePostMethod(final String resource, final String... body) {
+
+		StringBuilder buf = new StringBuilder();
+
+		for (String part : body) {
+			buf.append(part);
+		}
+
+		return RestAssured
+			.given()
+			.contentType("application/json; charset=UTF-8")
+			.body(buf.toString())
+			.when().post(resource).getBody().as(Map.class);
 	}
 
 	protected String concat(String... parts) {

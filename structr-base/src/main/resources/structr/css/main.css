@@ -3504,6 +3504,19 @@ button.icon-button i {
 	margin: 0;
 }
 
+/* routing dialog */
+.routing-container select,
+.routing-container input[type="text"],
+.routing-container input[type="password"],
+.routing-container input[type="number"],
+.routing-container textarea {
+	width: 100%;
+	box-sizing: border-box;
+	/*margin-top: .25rem;*/
+	/*height: 2.5rem;*/
+}
+
+
 /* mount dialog */
 #mount-dialog input[type="text"] {
 	width: calc(100% - 10px);
@@ -4462,6 +4475,9 @@ ul.combined-input-select-field li:hover {
 }
 .bg-white {
 	background-color: var(--solid-white);
+}
+.bg-gray {
+	background-color: var(--light-gray-bg-f7);
 }
 .odd\:bg-white:nth-child(even) {
 	background-color: var(--solid-white);

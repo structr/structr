@@ -24,32 +24,40 @@ import com.google.gson.JsonSyntaxException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.eclipse.jetty.io.QuietException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.RetryException;
-import org.structr.api.util.ResultStream;
-import org.structr.common.RequestKeywords;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.AssertException;
 import org.structr.common.error.FrameworkException;
 import org.structr.common.event.RuntimeEventLog;
-import org.structr.core.*;
 import org.structr.core.app.App;
 import org.structr.core.app.StructrApp;
 import org.structr.core.auth.Authenticator;
-import org.structr.core.graph.NodeFactory;
 import org.structr.core.graph.Tx;
-import org.structr.core.graph.search.DefaultSortOrder;
 import org.structr.rest.RestMethodResult;
-import org.structr.rest.resource.Resource;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.jetty.io.QuietException;
+import org.structr.api.util.ResultStream;
+import org.structr.common.PropertyView;
+import org.structr.common.RequestKeywords;
+import org.structr.core.GraphObject;
+import org.structr.core.IJsonInput;
+import org.structr.core.JsonInput;
+import org.structr.core.JsonSingleInput;
+import org.structr.core.Services;
+import org.structr.core.entity.Principal;
+import org.structr.core.graph.NodeFactory;
+import org.structr.core.graph.search.DefaultSortOrder;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.web.entity.User;
 
 /**
  * Implements the structr REST API.
@@ -87,7 +95,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		SecurityContext securityContext = null;
 		Authenticator authenticator     = null;
 		RestMethodResult result         = null;
-		Resource resource               = null;
+		RESTCallHandler handler         = null;
 
 		setCustomResponseHeaders(response);
 
@@ -112,10 +120,12 @@ public class JsonRestServlet extends AbstractDataServlet {
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+				final Principal currentUser = securityContext.getUser(false);
 
-				RuntimeEventLog.rest("Delete", resource.getResourceSignature(), securityContext.getUser(false));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+				RuntimeEventLog.rest("Delete", handler.getResourceSignature(), currentUser);
 
 				tx.success();
 			}
@@ -126,7 +136,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				try {
 
-					result = resource.doDelete();
+					result = handler.doDelete(securityContext);
 					retry = false;
 
 				} catch (RetryException ddex) {
@@ -136,7 +146,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			// isolate write output
 			try (final Tx tx = app.tx()) {
-				commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+				commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 				tx.success();
 			}
 
@@ -222,26 +232,57 @@ public class JsonRestServlet extends AbstractDataServlet {
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("application/json; charset=utf-8");
 
-			int statusCode           = HttpServletResponse.SC_OK;
-
 			// isolate request authentication in a transaction
 			try (final Tx tx = StructrApp.getInstance().tx()) {
 
-				final Authenticator auth = getConfig().getAuthenticator();
-				auth.initializeAndExamineRequest(request, response);
+				final Authenticator authenticator = config.getAuthenticator();
+				authenticator.initializeAndExamineRequest(request, response);
 
 				tx.success();
 			}
 
-			resetResponseBuffer(response, statusCode);
-			response.setContentLength(0);
-			response.setStatus(statusCode);
+			// Note: some resources need the type of the current user to resolve the correct handler, so this might return wrong
+			// results, especially in the /me resource where the result might depend on the actual user type that makes the call
+			final RESTCallHandler handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), User.class);
+			if (handler != null) {
+
+				RuntimeEventLog.rest("Options", handler.getResourceSignature(), null);
+
+				final Set<String> allowedVerbs = handler.getAllowedHttpMethodsForOptionsCall();
+				if (allowedVerbs != null) {
+
+					response.setHeader("Allow", StringUtils.join(allowedVerbs, ","));
+				}
+
+			} else {
+
+				RuntimeEventLog.rest("Options", request.getPathInfo(), null);
+			}
+
+			response.setStatus(HttpServletResponse.SC_OK);
+
+		} catch (FrameworkException | AssertException jsonException) {
+
+			writeException(response, jsonException);
+
+		} catch (JsonSyntaxException jsex) {
+
+			logger.warn("OPTIONS: Invalid JSON syntax", jsex.getMessage());
+
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonSyntaxException in PUT: " + jsex.getMessage());
+
+		} catch (JsonParseException jpex) {
+
+			logger.warn("OPTIONS: Unable to parse JSON string", jpex.getMessage());
+
+			writeJsonError(response, HttpServletResponse.SC_BAD_REQUEST, "JsonParseException in PUT: " + jpex.getMessage());
 
 		} catch (Throwable t) {
 
 			logger.warn("Exception in OPTIONS", t);
+			logger.warn(" => Error thrown: ", t);
 
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in OPTIONS: " + t.getMessage());
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in PUT: " + t.getMessage());
 
 		} finally {
 
@@ -253,6 +294,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 				logger.warn("Unable to flush and close response: {}", t.getMessage());
 			}
+
 		}
 	}
 
@@ -262,7 +304,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 		final List<RestMethodResult> results = new LinkedList<>();
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -290,15 +332,15 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 			if (securityContext != null) {
 
-				propertyView.set(securityContext, config.getDefaultPropertyView());
-
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					final Principal currentUser = securityContext.getUser(false);
 
-					RuntimeEventLog.rest("Post", resource.getResourceSignature(), securityContext.getUser(false));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+					RuntimeEventLog.rest("Post", handler.getResourceSignature(), currentUser);
 
 					tx.success();
 				}
@@ -307,13 +349,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 				boolean retry = true;
 				while (retry) {
 
-					if (resource.createPostTransaction()) {
+					if (handler.createPostTransaction()) {
 
 						try (final Tx tx = app.tx()) {
 
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+								results.add(handler.doPost(securityContext, convertPropertySetToMap(propertySet)));
 							}
 
 							tx.success();
@@ -329,7 +371,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 							for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-								results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+								results.add(handler.doPost(securityContext, convertPropertySetToMap(propertySet)));
 							}
 
 							retry = false;
@@ -379,7 +421,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 							}
 						}
 
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					}
 
 					tx.success();
@@ -392,7 +434,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -446,7 +488,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -479,11 +521,13 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					// evaluate constraint chain
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					final Principal currentUser = securityContext.getUser(false);
 
-					RuntimeEventLog.rest("Put", resource.getResourceSignature(), securityContext.getUser(false));
+					// evaluate constraint chain
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+					RuntimeEventLog.rest("Put", handler.getResourceSignature(), currentUser);
 
 					tx.success();
 				}
@@ -494,7 +538,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					try (final Tx tx = app.tx()) {
 
-						result = resource.doPut(convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
+						result = handler.doPut(securityContext, convertPropertySetToMap(jsonInput.getJsonInputs().get(0)));
 						tx.success();
 						retry = false;
 
@@ -506,7 +550,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// isolate write output
 				try (final Tx tx = app.tx()) {
 
-					commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+					commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					tx.success();
 				}
 
@@ -516,7 +560,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 				try (final Tx tx = app.tx()) {
 
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -575,7 +619,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 		final SecurityContext securityContext;
 		final Authenticator authenticator;
-		final Resource resource;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -608,71 +652,50 @@ public class JsonRestServlet extends AbstractDataServlet {
 				// allow setting of nested properties in PATCH documents
 				securityContext.setAttribute("setNestedProperties", true);
 
-				propertyView.set(securityContext, config.getDefaultPropertyView());
-
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					final Principal currentUser = securityContext.getUser(false);
 
-					RuntimeEventLog.rest("Patch", resource.getResourceSignature(), securityContext.getUser(false));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+					RuntimeEventLog.rest("Patch", handler.getResourceSignature(), currentUser);
 
 					tx.success();
 				}
 
-				if (resource.isCollectionResource()) {
+				final List<Map<String, Object>> inputs = new LinkedList<>();
 
-					final List<Map<String, Object>> inputs = new LinkedList<>();
+				for (JsonInput propertySet : jsonInput.getJsonInputs()) {
 
-					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
+					inputs.add(convertPropertySetToMap(propertySet));
+				}
 
-						inputs.add(convertPropertySetToMap(propertySet));
-					}
+				// isolate doPatch
+				boolean retry = true;
+				while (retry) {
 
-					result = resource.doPatch(inputs);
-
-					// isolate write output
 					try (final Tx tx = app.tx()) {
 
-						if (result != null) {
-
-							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
-						}
-
+						result = handler.doPatch(securityContext, inputs);
 						tx.success();
+						retry = false;
+
+					} catch (RetryException ddex) {
+						retry = true;
+					}
+				}
+
+				// isolate write output
+				try (final Tx tx = app.tx()) {
+
+					if (result != null) {
+
+						commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 					}
 
-				} else {
-
-					final Map<String, Object> flattenedInputs = new HashMap<>();
-
-					for (JsonInput propertySet : jsonInput.getJsonInputs()) {
-
-						flattenedInputs.putAll(convertPropertySetToMap(propertySet));
-					}
-
-					// isolate doPatch (redirect to doPut)
-					boolean retry = true;
-					while (retry) {
-
-						try (final Tx tx = app.tx()) {
-
-							result = resource.doPut(flattenedInputs);
-							tx.success();
-							retry = false;
-
-						} catch (RetryException ddex) {
-							retry = true;
-						}
-					}
-
-					// isolate write output
-					try (final Tx tx = app.tx()) {
-
-						commitResponse(securityContext, request, response, result, resource.isCollectionResource());
-						tx.success();
-					}
+					tx.success();
 				}
 
 			} else {
@@ -682,7 +705,7 @@ public class JsonRestServlet extends AbstractDataServlet {
 
 					result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -731,6 +754,102 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 	}
 
+	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
+
+		final long t0 = System.currentTimeMillis();
+
+		SecurityContext securityContext = null;
+		Authenticator authenticator     = null;
+		RESTCallHandler handler          = null;
+
+		setCustomResponseHeaders(response);
+
+		try (final Tx tx = StructrApp.getInstance().tx()) {
+
+			// first thing to do!
+			request.setCharacterEncoding("UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			response.setContentType("application/json; charset=utf-8");
+
+			authenticator = config.getAuthenticator();
+			securityContext = authenticator.initializeAndExamineRequest(request, response);
+
+			final Principal currentUser = securityContext.getUser(false);
+
+			handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+			authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
+
+			RuntimeEventLog.rest(returnContent ? "Get" : "Head", handler.getResourceSignature(), currentUser);
+
+			// add sorting && pagination
+			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
+			final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
+			final String outputDepth                = request.getParameter(RequestKeywords.OutputDepth.keyword());
+			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
+			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
+			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
+			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
+			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
+			final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
+
+			// evaluate constraints and measure query time
+			final double queryTimeStart = System.nanoTime();
+
+			try (final ResultStream result = handler.doGet(securityContext, new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
+
+				final double queryTimeEnd = System.nanoTime();
+
+				if (result == null) {
+
+					throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
+				}
+
+				if (returnContent) {
+
+					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
+
+					processResult(securityContext, request, response, result, handler.getRequestedView(), depth, handler.isCollection());
+				}
+			}
+
+			tx.success();
+
+			response.setStatus(HttpServletResponse.SC_OK);
+
+		} catch (FrameworkException | AssertException jsonException) {
+
+			writeException(response, jsonException);
+
+		} catch (Throwable t) {
+
+			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
+				// ignore exceptions which (by jettys standards) should be handled less verbosely
+			} else {
+				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
+				logger.warn(" => Error thrown: ", t);
+			}
+
+			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
+
+		} finally {
+
+			try {
+				response.getWriter().flush();
+				response.getWriter().close();
+
+			} catch (Throwable t) {
+
+				logger.warn("Unable to flush and close response: {}", t.getMessage());
+			}
+
+		}
+
+		if (handler != null) {
+			this.stats.recordStatsValue("json", handler.getResourceSignature(), System.currentTimeMillis() - t0);
+		}
+	}
+
 	// ----- private methods -----
 	private IJsonInput cleanAndParseJsonString(final App app, final String input) throws FrameworkException {
 
@@ -775,103 +894,5 @@ public class JsonRestServlet extends AbstractDataServlet {
 		}
 
 		return new LinkedHashMap<>();
-	}
-
-	protected void doGetOrHead(final HttpServletRequest request, final HttpServletResponse response, final boolean returnContent) throws ServletException, IOException {
-
-		final long t0 = System.currentTimeMillis();
-
-		SecurityContext securityContext = null;
-		Authenticator authenticator     = null;
-		Resource resource               = null;
-
-		setCustomResponseHeaders(response);
-
-		try (final Tx tx = StructrApp.getInstance().tx()) {
-
-			// first thing to do!
-			request.setCharacterEncoding("UTF-8");
-			response.setCharacterEncoding("UTF-8");
-			response.setContentType("application/json; charset=utf-8");
-
-			authenticator = config.getAuthenticator();
-			securityContext = authenticator.initializeAndExamineRequest(request, response);
-
-			// set default value for property view
-			propertyView.set(securityContext, config.getDefaultPropertyView());
-
-			// isolate resource authentication
-			resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-			authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
-
-			RuntimeEventLog.rest(returnContent ? "Get" : "Head", resource.getResourceSignature(), securityContext.getUser(false));
-
-			// add sorting && pagination
-			final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
-			final String pageParameter              = request.getParameter(RequestKeywords.PageNumber.keyword());
-			final String outputDepth                = request.getParameter(RequestKeywords.OutputDepth.keyword());
-			final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
-			final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-			final int depth                         = Services.parseInt(outputDepth, config.getOutputNestingDepth());
-			final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
-			final String[] sortOrders               = request.getParameterValues(RequestKeywords.SortOrder.keyword());
-			final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
-
-			// evaluate constraints and measure query time
-			final double queryTimeStart = System.nanoTime();
-
-			try (final ResultStream result = resource.doGet(new DefaultSortOrder(type, sortKeyNames, sortOrders), pageSize, page)) {
-
-				final double queryTimeEnd = System.nanoTime();
-
-				if (result == null) {
-
-					throw new FrameworkException(HttpServletResponse.SC_SERVICE_UNAVAILABLE, "Unable to retrieve result, check database connection");
-				}
-
-				if (returnContent) {
-
-					final DecimalFormat decimalFormat = new DecimalFormat("0.000000000", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-					result.setQueryTime(decimalFormat.format((queryTimeEnd - queryTimeStart) / 1000000000.0));
-
-					processResult(securityContext, request, response, result, depth, resource.isCollectionResource());
-				}
-			}
-
-			tx.success();
-
-			response.setStatus(HttpServletResponse.SC_OK);
-
-		} catch (FrameworkException | AssertException jsonException) {
-
-			writeException(response, jsonException);
-
-		} catch (Throwable t) {
-
-			if (t instanceof QuietException || t.getCause() instanceof QuietException) {
-				// ignore exceptions which (by jettys standards) should be handled less verbosely
-			} else {
-				logger.warn("Exception in GET (URI: {})", securityContext != null ? securityContext.getCompoundRequestURI() : "(null SecurityContext)");
-				logger.warn(" => Error thrown: ", t);
-			}
-
-			writeJsonError(response, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, t.getClass().getSimpleName() + " in GET: " + t.getMessage());
-
-		} finally {
-
-			try {
-				response.getWriter().flush();
-				response.getWriter().close();
-
-			} catch (Throwable t) {
-
-				logger.warn("Unable to flush and close response: {}", t.getMessage());
-			}
-
-		}
-
-		if (resource != null) {
-			this.stats.recordStatsValue("json", resource.getResourceSignature(), System.currentTimeMillis() - t0);
-		}
 	}
 }

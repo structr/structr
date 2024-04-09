@@ -39,8 +39,10 @@ import org.structr.core.property.PropertyKey;
 import org.structr.schema.action.EvaluationHints;
 import org.structr.web.entity.User;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
 
 /**
  * Central class for OAuth client implementations.
@@ -188,7 +190,7 @@ public abstract class StructrOAuthClient {
 
 						try {
 
-							final StructrOAuthClient oauthServer = (StructrOAuthClient) serverClass.newInstance();
+							final StructrOAuthClient oauthServer = (StructrOAuthClient) serverClass.getDeclaredConstructor().newInstance();
 							oauthServer.init(authLocation, tokenLocation, clientId, clientSecret, redirectUri, tokenResponseClass);
 
 							if (isVerboseLoggingEnabled()) {
@@ -523,10 +525,15 @@ public abstract class StructrOAuthClient {
 
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParamerers = new LinkedHashMap<>();
-		methodParamerers.put("provider", this.getProviderName());
-		methodParamerers.put("userinfo", this.getUserInfo());
+		final AbstractMethod method = Methods.resolveMethod(User.class, "onOAuthLogin");
+		if (method != null) {
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParamerers, false, new EvaluationHints());
+			final Arguments arguments = new Arguments();
+
+			arguments.add("provider", this.getProviderName());
+			arguments.add("userinfo", this.getUserInfo());
+
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
+		}
 	}
 }

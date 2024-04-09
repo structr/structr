@@ -534,7 +534,7 @@ let _Code = {
 			let defaultEntries = [
 				{
 					id:       path + '/globals',
-					text:     'Global Methods',
+					text:     'User-defined functions',
 					children: true,
 					icon:     _Icons.nonExistentEmptyIcon,
 					li_attr:  { 'data-id': 'globals' },
@@ -1385,8 +1385,8 @@ let _Code = {
 	},
 	displaySchemaMethodContent: (data) => {
 
-		// ID of schema method can either be in typeId (for global schema methods) or in memberId (for type methods)
-		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
+		// ID of schema method can either be in typeId (for user-defined functions) or in memberId (for type methods)
+		Command.get(data.id, 'id,owner,type,createdBy,hidden,createdDate,lastModifiedDate,name,isStatic,isPrivate,httpVerb,schemaNode,source,openAPIReturnType,exceptions,callSuper,overridesExisting,doExport,codeType,isPartOfBuiltInSchema,tags,summary,description,parameters,includeInOpenAPI', (result) => {
 
 			let lastOpenTab = LSWrapper.getItem(`${_Entities.activeEditTabPrefix}_${data.id}`, 'source');
 
@@ -1596,7 +1596,7 @@ let _Code = {
 			});
 
 			// run button
-			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic) {
+			if ((!result.schemaNode && !result.isPartOfBuiltInSchema) || result.isStatic && !result.isPrivate) {
 
 				_Code.displaySvgActionButton('#method-actions', _Icons.getSvgIcon(_Icons.iconRunButton, 14, 14), 'run', 'Run method', () => {
 					_Code.runSchemaMethod(result);
@@ -1991,7 +1991,7 @@ let _Code = {
 			_Code.lastClickedPath = data.path;
 		}
 
-		_Code.recentElements.addRecentlyUsedElement(data.content, "Global methods", data.svgIcon, data.path, false);
+		_Code.recentElements.addRecentlyUsedElement(data.content, "User-defined functions", data.svgIcon, data.path, false);
 
 		_Code.codeContents.append(_Code.templates.globals());
 
@@ -2471,7 +2471,7 @@ let _Code = {
 	},
 	getUrlForSchemaMethod: (schemaMethod) => {
 		return Structr.rootUrl +
-			((schemaMethod.schemaNode === null) ? 'maintenance/globalSchemaMethods/' : schemaMethod.schemaNode.name + '/' )+
+			((schemaMethod.schemaNode === null) ? '' : schemaMethod.schemaNode.name + '/' ) +
 			schemaMethod.name;
 	},
 	runSchemaMethod: (schemaMethod) => {
@@ -2479,7 +2479,7 @@ let _Code = {
 		let name = (schemaMethod.schemaNode === null) ? schemaMethod.name : schemaMethod.schemaNode.name + schemaMethod.name;
 		let url  = _Code.getUrlForSchemaMethod(schemaMethod);
 
-		let { dialogText } = _Dialogs.custom.openDialog(`Run global schema method ${name}`, null, ['run-global-schema-method-dialog']);
+		let { dialogText } = _Dialogs.custom.openDialog(`Run user-defined function ${name}`, null, ['run-global-schema-method-dialog']);
 
 		let runButton = _Dialogs.custom.prependCustomDialogButton(`
 			<button id="run-method" class="flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
@@ -3036,7 +3036,7 @@ let _Code = {
 			</div>
 		`,
 		globals: config => `
-			<h2>Global schema methods</h2>
+			<h2>User-defined functions</h2>
 			<div id="code-methods-container" class="content-container"></div>
 		`,
 		method: config => `
@@ -3049,10 +3049,29 @@ let _Code = {
 			<div id="method-buttons">
 				<div id="method-options" class="flex flex-wrap gap-x-4">
 					<div id="method-actions"></div>
-					<div class="checkbox hidden entity-method">
-						<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
-							<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> isStatic
-						</label>
+					<div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="Only needs to be set if the method should be callable statically (without an object context).">
+								<input type="checkbox" data-property="isStatic" ${config.method.isStatic ? 'checked' : ''}> Method is static
+							</label>
+						</div>
+						<div class="checkbox hidden entity-method">
+							<label class="block whitespace-nowrap" data-comment="If this flag is set, this method can NOT be called via REST.">
+								<input type="checkbox" data-property="isPrivate" ${config.method.isPrivate ? 'checked' : ''}> NOT callable via REST
+							</label>
+						</div>
+					</div>
+					<div>
+						<div class="checkbox hidden entity-method">
+							<select id="http-verb-input" data-property="httpVerb">
+								<option value="GET" ${config.method.httpVerb === 'GET' ? 'selected' : ''}>Call method via GET</option>
+								<option value="PUT" ${config.method.httpVerb === 'PUT' ? 'selected' : ''}>Call method via PUT</option>
+								<option value="POST" ${config.method.httpVerb === 'POST' ? 'selected' : ''}>Call method via POST</option>
+								<option value="PATCH" ${config.method.httpVerb === 'PATCH' ? 'selected' : ''}>Call method via PATCH</option>
+								<option value="DELETE" ${config.method.httpVerb === 'DELETE' ? 'selected' : ''}>Call method via DELETE</option>
+							</select>
+							</label>
+						</div>
 					</div>
 				</div>
 			</div>

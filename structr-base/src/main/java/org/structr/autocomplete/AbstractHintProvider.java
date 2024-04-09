@@ -29,12 +29,10 @@ import org.structr.core.GraphObjectMap;
 import org.structr.core.app.StructrApp;
 import org.structr.core.entity.AbstractSchemaNode;
 import org.structr.core.entity.SchemaMethod;
-import org.structr.core.entity.SchemaNode;
 import org.structr.core.entity.SchemaProperty;
 import org.structr.core.function.Functions;
 import org.structr.core.function.ParseResult;
 import org.structr.core.graph.NodeInterface;
-import org.structr.core.graph.Tx;
 import org.structr.core.property.*;
 import org.structr.core.script.polyglot.function.DoAsFunction;
 import org.structr.core.script.polyglot.function.DoInNewTransactionFunction;
@@ -48,10 +46,11 @@ import org.structr.web.entity.dom.Content;
 import org.structr.web.entity.dom.Content.ContentHandler;
 
 import java.io.IOException;
-import java.lang.reflect.Method;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.logging.Level;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Methods;
+import org.structr.core.graph.Tx;
 
 
 
@@ -209,7 +208,7 @@ public abstract class AbstractHintProvider {
 			final List<SchemaMethod> methods = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, null).sort(SchemaMethod.name, true).getAsList();
 
 			for (final SchemaMethod method : methods) {
-				hints.add(0, new GlobalSchemaMethodHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
+				hints.add(0, new UserDefinedFunctionHint(method.getName(), method.getProperty(SchemaMethod.summary), method.getProperty(SchemaMethod.description)));
 			}
 
 			tx.success();
@@ -257,20 +256,12 @@ public abstract class AbstractHintProvider {
 
 			// entity methods
 			// go into their own collection, are sorted and the appended to the list
-			final SchemaNode typeNode = StructrApp.getInstance().nodeQuery(SchemaNode.class).and(SchemaNode.name, type.getSimpleName()).getFirst();
+			final Collection<AbstractMethod> methods = Methods.getAllMethods(type).values();
+			for (final AbstractMethod method : methods) {
 
-			final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(type);
-			for (final Entry<String, Method> entry : methods.entrySet()) {
-
-				final String name = entry.getKey();
-				String methodSummary     = "";
-				String methodDescription = "";
-
-				final SchemaMethod schemaMethod = StructrApp.getInstance().nodeQuery(SchemaMethod.class).and(SchemaMethod.schemaNode, typeNode).andName(name).getFirst();
-				if (schemaMethod != null) {
-					methodSummary     = schemaMethod.getProperty(SchemaMethod.summary);
-					methodDescription = schemaMethod.getProperty(SchemaMethod.description);
-				}
+				final String name              = method.getName();
+				final String methodSummary     = method.getSummary();
+				final String methodDescription = method.getDescription();
 
 				methodHints.add(new MethodHint(name, methodSummary, methodDescription));
 			}

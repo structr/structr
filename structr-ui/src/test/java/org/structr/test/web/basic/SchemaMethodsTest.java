@@ -31,14 +31,14 @@ import org.structr.core.entity.SchemaNode;
 import org.structr.core.graph.NodeAttribute;
 import org.structr.core.graph.Tx;
 import org.structr.core.property.PropertyMap;
-import org.structr.core.script.Scripting;
-import org.structr.schema.action.ActionContext;
 import org.structr.schema.export.StructrSchema;
 import org.structr.web.entity.File;
 import org.structr.web.entity.User;
 import org.testng.annotations.Test;
 
 import static org.hamcrest.Matchers.equalTo;
+import org.structr.core.script.Scripting;
+import org.structr.schema.action.ActionContext;
 import static org.testng.AssertJUnit.assertEquals;
 import static org.testng.AssertJUnit.fail;
 
@@ -63,6 +63,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test01SchemaMethodOnBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
 			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
 
@@ -116,8 +117,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFooFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test02SchemaMethodOnCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
+			testFooFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
+			app.create(SchemaMethod.class, testFooFileMethodProperties);
 
 			tx.success();
 
@@ -189,7 +191,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test03SchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -255,7 +257,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFooFileMethodProperties.put(SchemaMethod.source, "(log('test04SchemaMethodOnEntityOfCustomType successful'))");
 			testFooFileMethodProperties.put(SchemaMethod.schemaNode, fooFileDef);
 
-			SchemaMethod testFooFileMethod = app.create(SchemaMethod.class, testFooFileMethodProperties);
+			app.create(SchemaMethod.class, testFooFileMethodProperties);
 
 			tx.success();
 
@@ -328,8 +330,9 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.name, schemaMethodName);
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test05InheritedSchemaMethodOnBuildinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
+			testFileMethodProperties.put(SchemaMethod.isStatic, true);
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -393,7 +396,7 @@ public class SchemaMethodsTest extends FrontendTest {
 			testFileMethodProperties.put(SchemaMethod.source, "(log('test06InheritedSchemaMethodOnEntityOfBuiltinType successful'))");
 			testFileMethodProperties.put(SchemaMethod.schemaNode, fileNodeDef);
 
-			SchemaMethod testFileMethod = app.create(SchemaMethod.class, testFileMethodProperties);
+			app.create(SchemaMethod.class, testFileMethodProperties);
 
 			tx.success();
 
@@ -431,7 +434,6 @@ public class SchemaMethodsTest extends FrontendTest {
 			logger.error(ex.toString());
 			fail("Unexpected exception");
 		}
-
 	}
 
 	@Test
@@ -442,7 +444,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"	var newGroup = Structr.create('Group', 'name', 'testGroup');\n" +
 				"	var newUser  = Structr.create('User', 'name', 'testUser');\n" +
 				"\n" +
-				"	newGroup.addMember(newUser);\n" +
+				"	newGroup.addMember({ user: newUser });\n" +
 				"\n" +
 				"	return newGroup.members.length;" +
 				"}}";
@@ -468,7 +470,7 @@ public class SchemaMethodsTest extends FrontendTest {
 				"\n" +
 				"	var beforeRemove = 'before: ' + group.members.length;" +
 				"\n" +
-				"	group.removeMember(user);\n" +
+				"	group.removeMember({ user: user });\n" +
 				"\n" +
 				"	return beforeRemove + ' - after: ' + group.members.length;" +
 				"}}";
@@ -492,6 +494,7 @@ public class SchemaMethodsTest extends FrontendTest {
 	@Test
 	public void testErrorMethodAndResponse() {
 
+		// this method tests global schema methods as well
 		try (final Tx tx = app.tx()) {
 
 			final JsonSchema schema   = StructrSchema.createFromDatabase(app);
@@ -535,54 +538,97 @@ public class SchemaMethodsTest extends FrontendTest {
 			t.printStackTrace();
 		}
 
-			RestAssured
+		RestAssured
 
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
-					.body("{}")
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.body("{}")
 
-				.expect()
-					.statusCode(422)
-					.body("code",                equalTo(422))
-					.body("message",             equalTo("Server-side scripting error"))
-					.body("errors[0].type",      equalTo("Test"))
-					.body("errors[0].property",  equalTo("test"))
-					.body("errors[0].token",     equalTo("test_error"))
-					.body("errors[0].detail",    equalTo("errorrr"))
+			.expect()
+				.statusCode(422)
+				.body("code",                equalTo(422))
+				.body("message",             equalTo("Server-side scripting error"))
+				.body("errors[0].type",      equalTo("Test"))
+				.body("errors[0].property",  equalTo("test"))
+				.body("errors[0].token",     equalTo("test_error"))
+				.body("errors[0].detail",    equalTo("errorrr"))
 
-				.when()
-					.post("/maintenance/globalSchemaMethods/globalTest1");
+			.when()
+				.post("/globalTest1");
 
-			RestAssured
+		RestAssured
 
-				.given()
-					.contentType("application/json; charset=UTF-8")
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
-					.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
-					.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
-					.body("{}")
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(200))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.body("{}")
 
-				.expect()
-					.statusCode(422)
-					.body("code",                equalTo(422))
-					.body("message",             equalTo("Server-side scripting error"))
-					.body("errors[0].type",      equalTo("Test"))
-					.body("errors[0].property",  equalTo("test"))
-					.body("errors[0].token",     equalTo("test_error"))
-					.body("errors[0].detail",    equalTo("errorrr"))
+			.expect()
+				.statusCode(422)
+				.body("code",                equalTo(422))
+				.body("message",             equalTo("Server-side scripting error"))
+				.body("errors[0].type",      equalTo("Test"))
+				.body("errors[0].property",  equalTo("test"))
+				.body("errors[0].token",     equalTo("test_error"))
+				.body("errors[0].detail",    equalTo("errorrr"))
 
-				.when()
-					.post("/maintenance/globalSchemaMethods/globalTest2");
+			.when()
+				.post("/globalTest2");
+	}
+
+	@Test
+	public void testDeprecatedGlobalSchemaMethodURL() {
+
+		// this method tests global schema methods as well
+		try (final Tx tx = app.tx()) {
+
+			// create global schema method for JavaScript
+			app.create(SchemaMethod.class,
+				new NodeAttribute<>(SchemaMethod.name,   "globalTest1"),
+				new NodeAttribute<>(SchemaMethod.source, "{ return { success: true, value: 123 }; }")
+			);
+
+			// create admin user to call global schema methods with
+			createAdminUser();
+
+			tx.success();
+
+		} catch (Throwable t) {
+			fail("Unexpected exception");
+			t.printStackTrace();
+		}
+
+		RestAssured
+
+			.given()
+				.contentType("application/json; charset=UTF-8")
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(201))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(400))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(404))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(422))
+				.filter(ResponseLoggingFilter.logResponseIfStatusCodeIs(500))
+				.headers("X-User", ADMIN_USERNAME , "X-Password", ADMIN_PASSWORD)
+				.body("{}")
+
+			.expect()
+				.statusCode(200)
+				.body("result.success", equalTo(true))
+				.body("result.value",   equalTo(123))
+
+			.when()
+				.post("/maintenance/globalSchemaMethods/globalTest1");
 	}
 }

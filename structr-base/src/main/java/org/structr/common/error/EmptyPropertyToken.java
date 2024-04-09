@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that a given property value may not be empty.
  *
@@ -27,7 +25,7 @@ import org.structr.core.property.PropertyKey;
  */
 public class EmptyPropertyToken extends SemanticErrorToken {
 
-	public EmptyPropertyToken(final String type, final PropertyKey propertyKey) {
+	public EmptyPropertyToken(final String type, final String propertyKey) {
 		super(type, propertyKey, "must_not_be_empty");
 	}
 }

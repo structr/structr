@@ -20,7 +20,6 @@ package org.structr.websocket.command;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.structr.common.PagingHelper;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.GraphObject;
@@ -36,11 +35,9 @@ import org.structr.websocket.message.WebSocketMessage;
 
 import java.util.LinkedList;
 import java.util.List;
-
-//~--- classes ----------------------------------------------------------------
+import org.structr.common.helper.PagingHelper;
 
 /**
- *
  *
  */
 public class ListFilesCommand extends AbstractCommand {
@@ -90,9 +87,7 @@ public class ListFilesCommand extends AbstractCommand {
 
 						filteredResults.add(node);
 					}
-
 				}
-
 			}
 
 			// save raw result count
@@ -108,18 +103,11 @@ public class ListFilesCommand extends AbstractCommand {
 		} catch (FrameworkException fex) {
 
 			logger.warn("", fex);
-
 		}
-
 	}
-
-	//~--- get methods ----------------------------------------------------
 
 	@Override
 	public String getCommand() {
-
 		return "LIST_FILES";
-
 	}
-
 }

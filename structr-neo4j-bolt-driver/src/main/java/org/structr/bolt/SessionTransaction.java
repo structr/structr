@@ -18,14 +18,14 @@
  */
 package org.structr.bolt;
 
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import org.neo4j.driver.Record;
 import org.neo4j.driver.exceptions.ClientException;
 import org.neo4j.driver.exceptions.DatabaseException;
 import org.neo4j.driver.summary.ResultSummary;
 import org.neo4j.driver.summary.SummaryCounters;
-import org.neo4j.driver.types.Entity;
-import org.neo4j.driver.types.Node;
-import org.neo4j.driver.types.Relationship;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.ConstraintViolationException;
@@ -33,23 +33,29 @@ import org.structr.api.DataFormatException;
 import org.structr.api.UnknownClientException;
 import org.structr.api.UnknownDatabaseException;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
+import org.apache.commons.lang.StringUtils;
+import org.neo4j.driver.types.Node;
+import org.neo4j.driver.types.Path;
+import org.neo4j.driver.types.Path.Segment;
+import org.neo4j.driver.types.Relationship;
+import org.structr.api.NotFoundException;
+import org.structr.api.graph.Identity;
 
 /**
  *
  */
 abstract class SessionTransaction implements org.structr.api.Transaction {
 
-	private static final Logger logger                = LoggerFactory.getLogger(SessionTransaction.class);
-	protected static final AtomicLong ID_SOURCE       = new AtomicLong();
-	protected final Set<EntityWrapper> accessedEntities = new HashSet<>();
-	protected final Set<EntityWrapper> modifiedEntities = new HashSet<>();
-	protected final Set<Long> deletedNodes              = new HashSet<>();
-	protected final Set<Long> deletedRels               = new HashSet<>();
+	private static final Logger logger                  = LoggerFactory.getLogger(SessionTransaction.class);
+	protected static final AtomicLong ID_SOURCE         = new AtomicLong();
+	protected final Map<Long, RelationshipWrapper> rels = new LinkedHashMap<>();
+	protected final Map<Long, NodeWrapper> nodes        = new LinkedHashMap<>();
+	protected final Set<Long> deletedNodes              = new LinkedHashSet<>();
+	protected final Set<Long> deletedRels               = new LinkedHashSet<>();
 	protected final Object transactionKey               = new Object();
 	protected BoltDatabaseService db                    = null;
 	protected long transactionId                        = 0L;
@@ -63,48 +69,25 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	}
 
 	public abstract boolean isClosed();
-	public abstract boolean getBoolean(final String statement);
-	public abstract boolean getBoolean(final String statement, final Map<String, Object> map);
-	public abstract long getLong(final String statement);
-	public abstract long getLong(final String statement, final Map<String, Object> map);
-	public abstract Object getObject(final String statement, final Map<String, Object> map);
-	public abstract Entity getEntity(final String statement, final Map<String, Object> map);
-	public abstract Node getNode(final String statement, final Map<String, Object> map);
-	public abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
-	public abstract Object collectRecords(final String statement, final Map<String, Object> map, final Object consumer);
-	public abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
-	public abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
-	public abstract void set(final String statement, final Map<String, Object> map);
+	protected abstract Boolean getBoolean(final String statement);
+	protected abstract Boolean getBoolean(final String statement, final Map<String, Object> map);
+	protected abstract Long getLong(final String statement);
+	protected abstract Long getLong(final String statement, final Map<String, Object> map);
+	protected abstract Node getNode(final String statement, final Map<String, Object> map);
+	protected abstract Relationship getRelationship(final String statement, final Map<String, Object> map);
+	protected abstract Iterable<Record> collectRecords(final String statement, final Map<String, Object> map, final IterableQueueingRecordConsumer consumer);
+	protected abstract Iterable<String> getStrings(final String statement, final Map<String, Object> map);
+	protected abstract Iterable<Map<String, Object>> run(final String statement, final Map<String, Object> map);
+	protected abstract void set(final String statement, final Map<String, Object> map);
 
 	public abstract Iterable<Record> newIterable(final BoltDatabaseService db, final AdvancedCypherQuery query);
 
-	public void deleted(final NodeWrapper wrapper) {
-		deletedNodes.add(wrapper.getDatabaseId());
+	public void delete(final NodeWrapper wrapper) {
+		deletedNodes.add(wrapper.getId().getId());
 	}
 
-	public void deleted(final RelationshipWrapper wrapper) {
-		deletedRels.add(wrapper.getDatabaseId());
-	}
-
-	public boolean isDeleted(final EntityWrapper wrapper) {
-
-		if (wrapper instanceof NodeWrapper) {
-			return deletedNodes.contains(wrapper.getDatabaseId());
-		}
-
-		if (wrapper instanceof RelationshipWrapper) {
-			return deletedRels.contains(wrapper.getDatabaseId());
-		}
-
-		return false;
-	}
-
-	public void modified(final EntityWrapper wrapper) {
-		modifiedEntities.add(wrapper);
-	}
-
-	public void accessed(final EntityWrapper wrapper) {
-		accessedEntities.add(wrapper);
+	public void delete(final RelationshipWrapper wrapper) {
+		deletedRels.add(wrapper.getId().getId());
 	}
 
 	public void setIsPing(final boolean isPing) {
@@ -119,6 +102,213 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 	public Object getTransactionKey() {
 		// we need a simple object that can be used in a weak hash map
 		return transactionKey;
+	}
+
+	public NodeWrapper getNodeWrapper(final org.neo4j.driver.types.Node node) {
+
+		final long id           = node.id();
+		NodeWrapper nodeWrapper = nodes.get(id);
+
+		if (nodeWrapper != null) {
+
+			nodeWrapper.updateEntity(node);
+
+		} else {
+
+			nodeWrapper = new NodeWrapper(db, node);
+			nodes.put(id, nodeWrapper);
+		}
+
+		return nodeWrapper;
+	}
+
+	public RelationshipWrapper getRelationshipWrapper(final org.neo4j.driver.types.Relationship relationship) {
+
+		final long id                           = relationship.id();
+		RelationshipWrapper relationshipWrapper = rels.get(id);
+
+		if (relationshipWrapper != null) {
+
+			relationshipWrapper.updateEntity(relationship);
+
+		} else {
+
+			relationshipWrapper = new RelationshipWrapper(db, relationship);
+			rels.put(id, relationshipWrapper);
+		}
+
+		return relationshipWrapper;
+	}
+
+	public NodeWrapper getNodeWrapper(final long id) {
+
+		NodeWrapper node = nodes.get(id);
+		if (node != null) {
+
+			return node;
+		}
+
+		final String rawTenantIdentifier = db.getTenantIdentifier();
+		final String tenantIdentifier = StringUtils.isNotBlank(rawTenantIdentifier) ? ":" + rawTenantIdentifier : "";
+
+		final Node entity = getNode("MATCH (n" + tenantIdentifier + ") WHERE ID(n) = $id RETURN n", Map.of("id", id));
+		if (entity != null) {
+
+			node = new NodeWrapper(db, entity);
+
+			nodes.put(id, node);
+
+			return node;
+		}
+
+		throw new NotFoundException("Node with ID " + id + " not found.");
+	}
+
+	public RelationshipWrapper getRelationshipWrapper(final long id) {
+
+		RelationshipWrapper rel = rels.get(id);
+		if (rel != null) {
+
+			return rel;
+		}
+
+		final SessionTransaction tx   = db.getCurrentTransaction();
+		final StringBuilder buf       = new StringBuilder();
+		final String tenantIdentifier = db.getTenantIdentifier();
+
+		buf.append("MATCH (");
+
+		if (tenantIdentifier != null) {
+			buf.append(":");
+			buf.append(tenantIdentifier);
+		}
+
+		buf.append(")-[n]-(");
+
+		if (tenantIdentifier != null) {
+			buf.append(":");
+			buf.append(tenantIdentifier);
+		}
+
+		buf.append(") WHERE ID(n) = $id RETURN n");
+
+		final Relationship entity = tx.getRelationship(buf.toString(), Map.of("id", id));
+		if (entity != null) {
+
+			rel = new RelationshipWrapper(db, entity);
+
+			rels.put(id, rel);
+
+			return rel;
+		}
+
+		throw new NotFoundException("Relationship with ID " + id + " not found.");
+	}
+
+	@Override
+	public org.structr.api.graph.Node getNode(final Identity id) {
+		return getNodeWrapper(id.getId());
+	}
+
+	@Override
+	public org.structr.api.graph.Relationship getRelationship(Identity id) {
+		return getRelationshipWrapper(id.getId());
+	}
+
+	@Override
+	public void prefetch(final String type1, final String type2, final Set<String> keys) {
+
+		final StringBuilder buf  = new StringBuilder();
+		final String tenantId    = db.getTenantIdentifier();
+
+		buf.append("(n");
+
+		if (!StringUtils.isBlank(tenantId)) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		if (!StringUtils.isBlank(type1)) {
+
+			buf.append(":");
+			buf.append(type1);
+		}
+
+		buf.append(")-[r]-(m");
+
+		if (!StringUtils.isBlank(tenantId)) {
+
+			buf.append(":");
+			buf.append(tenantId);
+		}
+
+		if (!StringUtils.isBlank(type2)) {
+
+			buf.append(":");
+			buf.append(type2);
+		}
+
+		buf.append(")");
+
+		prefetch(buf.toString(), keys);
+	}
+
+	@Override
+	public void prefetch(final String query, final Set<String> keys) {
+
+		final long t0             = System.currentTimeMillis();
+		final StringBuilder buf   = new StringBuilder();
+		final Set<Long> relsSeen  = new HashSet<>();
+		long count                = 0L;
+
+		buf.append("MATCH p = ");
+		buf.append(query);
+		buf.append(" RETURN DISTINCT p");
+
+		for (final org.neo4j.driver.Record r : collectRecords(buf.toString(), Map.of(), null)) {
+
+			final Path p        = r.get("p").asPath();
+			NodeWrapper current = null;
+
+			for (final Segment s : p) {
+
+				final org.neo4j.driver.types.Relationship relationship = s.relationship();
+				final boolean alreadySeen                              = relsSeen.contains(relationship.id());
+				RelationshipWrapper rel                                = null;
+
+				if (current == null) {
+
+					current = getNodeWrapper(s.start());
+					current.storePrefetchInfo(keys);
+					count++;
+				}
+
+				if (!alreadySeen) {
+
+					relsSeen.add(relationship.id());
+
+					rel = getRelationshipWrapper(relationship);
+
+					// store outgoing rel
+					current.storeRelationship(rel, true);
+					count++;
+				}
+
+				// advance
+				current = getNodeWrapper(s.end());
+				current.storePrefetchInfo(keys);
+
+				if (!alreadySeen) {
+
+					// store incoming rel as well
+					current.storeRelationship(rel, true);
+					count++;
+				}
+			}
+		}
+
+		logger.info("Prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
 	}
 
 	// ----- public static methods -----
@@ -161,7 +351,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			if (!isPing || db.logPingQueries()) {
 
-				if (map != null && map.size() > 0) {
+				if (map != null && !map.isEmpty()) {
 
 					if (statement.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
@@ -171,7 +361,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 				} else {
 
-					logger.info("{}: {}", Thread.currentThread().getId(), statement);
+					logger.info("{}: {} - {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), statement);
 				}
 			}
 		}
@@ -185,16 +375,25 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 
 			final int nodesDeleted = counters.nodesDeleted();
 			final int nodesCreated = counters.nodesCreated();
+			final int relsCreated  = counters.relationshipsCreated();
+			final int relsDeleted  = counters.relationshipsDeleted();
+			final int sum          = nodesDeleted + nodesCreated + relsCreated + relsDeleted;
 
-			if (nodesDeleted + nodesCreated > 1) {
+			if (sum > 0) {
 
 				final long availableAfter = summary.resultAvailableAfter(TimeUnit.MILLISECONDS);
 				final long consumedAfter  = summary.resultConsumedAfter(TimeUnit.MILLISECONDS);
 
-				logger.info("Query summary: {} nodes created, {} nodes deleted, result available after {} ms, consumed after {} ms, notifications: {}, query: {}",
-					nodesCreated, nodesDeleted, availableAfter, consumedAfter, summary.notifications(), summary.query().text()
+				logger.info("Query summary: {} / {} nodes created / deleted, {} / {} rels created / deleted, result available after {} ms, consumed after {} ms, notifications: {}, query: {}",
+					nodesCreated, nodesDeleted, relsCreated, relsDeleted, availableAfter, consumedAfter, summary.notifications(), summary.query().text()
 				);
 			}
 		}
+	}
+
+	protected void clearChangeset() {
+
+		nodes.clear();
+		rels.clear();
 	}
 }

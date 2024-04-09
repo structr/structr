@@ -89,7 +89,7 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 
 		try {
 
-			newRel = relClass.newInstance();
+			newRel = relClass.getDeclaredConstructor().newInstance();
 
 		} catch (Throwable t) {
 			logger.warn("", t);
@@ -102,7 +102,6 @@ public class RelationshipFactory<T extends RelationshipInterface> extends Factor
 		}
 
 		newRel.init(securityContext, relationship, relClass, TransactionCommand.getCurrentTransactionId());
-		newRel.onRelationshipInstantiation();
 
 		return newRel;
 	}

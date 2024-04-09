@@ -35,6 +35,6 @@ class NodeIdNodeMapper implements Function<NodeId, Node> {
 
 	@Override
 	public Node apply(final NodeId t) {
-		return NodeWrapper.newInstance(db, t.getNode());
+		return db.getCurrentTransaction().getNodeWrapper(t.getNode());
 	}
 }

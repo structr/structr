@@ -28,37 +28,33 @@ import java.util.Locale;
  */
 public class DiagnosticErrorToken extends SemanticErrorToken {
 
-	final String nodeType;
-	final String nodeUuid;
-	final String nodeName;
-
 	public DiagnosticErrorToken(final String type, final Diagnostic<? extends JavaFileObject> diagnostic) {
 
-		super(type, null, "compiler_error", diagnostic.getMessage(Locale.ENGLISH));
+		super(type, null, "compiler_error");
 
-		this.nodeType = null;
-		this.nodeUuid = null;
-		this.nodeName = null;
+		withDetail(diagnostic.getMessage(Locale.ENGLISH));
 	}
 
 	public DiagnosticErrorToken(final String type, final Diagnostic<? extends JavaFileObject> diagnostic, final String nodeType, final String nodeUuid, final String nodeName) {
 
-		super(type, null, "compiler_error", diagnostic.getMessage(Locale.ENGLISH));
+		super(type, null, "compiler_error");
 
-		this.nodeType = nodeType;
-		this.nodeUuid = nodeUuid;
-		this.nodeName = nodeName;
+		withDetail(diagnostic.getMessage(Locale.ENGLISH));
+
+		with("nodeType", nodeType);
+		with("nodeUuid", nodeUuid);
+		with("nodeName", nodeName);
 	}
 
 	public String getNodeType() {
-		return this.nodeType;
+		return (String)data.get("nodeType");
 	}
 
 	public String getNodeUuid() {
-		return this.nodeUuid;
+		return (String)data.get("nodeUuid");
 	}
 
 	public String getNodeName() {
-		return this.nodeName;
+		return (String)data.get("nodeName");
 	}
 }

@@ -19,6 +19,7 @@
 package org.structr.core.graph;
 
 
+import java.lang.reflect.InvocationTargetException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.graph.Identity;
@@ -83,9 +84,10 @@ public class NodeFactory<T extends NodeInterface & AccessControllable> extends F
 		T newNode                       = null;
 
 		try {
-			newNode = nodeClass.newInstance();
+			newNode = nodeClass.getDeclaredConstructor().newInstance();
 
-		} catch (NoClassDefFoundError|InstantiationException|IllegalAccessException itex) {
+		} catch (NoSuchMethodException|NoClassDefFoundError|InvocationTargetException|InstantiationException|IllegalAccessException itex) {
+			itex.printStackTrace();
 			newNode = null;
 		}
 

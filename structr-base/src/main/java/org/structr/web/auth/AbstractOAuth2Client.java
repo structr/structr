@@ -37,9 +37,12 @@ import org.structr.schema.action.EvaluationHints;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.web.entity.User;
 
 public abstract class AbstractOAuth2Client implements OAuth2Client {
 
@@ -212,11 +215,16 @@ public abstract class AbstractOAuth2Client implements OAuth2Client {
 	@Override
 	public void invokeOnLoginMethod(Principal user) throws FrameworkException {
 
-		final Map<String, Object> methodParameters = new LinkedHashMap<>();
-		methodParameters.put("provider", this.provider);
-		methodParameters.put("userinfo", this.getUserInfo());
+		final AbstractMethod method = Methods.resolveMethod(User.class, "onOAuthLogin");
+		if (method != null) {
 
-		user.invokeMethod(user.getSecurityContext(), "onOAuthLogin", methodParameters, false, new EvaluationHints());
+			final Arguments arguments = new Arguments();
+
+			arguments.add("provider", this.provider);
+			arguments.add("userinfo", this.getUserInfo());
+
+			method.execute(user.getSecurityContext(), user, arguments, new EvaluationHints());
+		}
 	}
 
 	@Override

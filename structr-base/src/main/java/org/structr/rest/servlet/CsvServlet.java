@@ -48,7 +48,6 @@ import org.structr.core.property.DateProperty;
 import org.structr.core.property.PropertyKey;
 import org.structr.rest.RestMethodResult;
 import org.structr.rest.common.CsvHelper;
-import org.structr.rest.resource.Resource;
 import org.structr.rest.service.HttpServiceServlet;
 import org.structr.schema.parser.DatePropertyParser;
 
@@ -59,6 +58,11 @@ import java.io.Writer;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.*;
+import org.structr.common.PropertyView;
+import org.structr.core.entity.Principal;
+import org.structr.rest.api.RESTCallHandler;
+import org.structr.rest.api.RESTEndpoints;
+import org.structr.web.entity.User;
 
 /**
  * This servlet produces CSV (comma separated value) lists out of a search
@@ -95,7 +99,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 	protected void doGet(final HttpServletRequest request, final HttpServletResponse response) throws UnsupportedEncodingException {
 
 		Authenticator authenticator = null;
-		Resource resource           = null;
+		RESTCallHandler handler      = null;
 
 		setCustomResponseHeaders(response);
 
@@ -109,32 +113,32 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				securityContext = authenticator.initializeAndExamineRequest(request, response);
 				tx.success();
 			}
+
 			final App app = StructrApp.getInstance(securityContext);
 
 			request.setCharacterEncoding("UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			response.setContentType("text/csv; charset=utf-8");
 
-			// set default value for property view
-			propertyView.set(securityContext, defaultPropertyView);
+			final Principal currentUser = securityContext.getUser(false);
 
 			// isolate resource authentication
 			try (final Tx tx = app.tx()) {
 
-				resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-				authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+				handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+				authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 
 				tx.success();
 			}
 
-			RuntimeEventLog.csv("Get", resource.getResourceSignature(), securityContext.getUser(false));
+			RuntimeEventLog.csv("Get", handler.getResourceSignature(), currentUser);
 
 			try (final Tx tx = app.tx()) {
 
-				String resourceSignature = resource.getResourceSignature();
+				final String resourceSignature = handler.getResourceSignature();
 
 				// let authenticator examine request again
-				authenticator.checkResourceAccess(securityContext, request, resourceSignature, propertyView.get(securityContext));
+				authenticator.checkResourceAccess(securityContext, request, resourceSignature, handler.getRequestedView());
 
 				// add sorting & paging
 				final String pageSizeParameter          = request.getParameter(RequestKeywords.PageSize.keyword());
@@ -143,7 +147,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				final String[] sortKeyNames             = request.getParameterValues(RequestKeywords.SortKey.keyword());
 				final int pageSize                      = Services.parseInt(pageSizeParameter, NodeFactory.DEFAULT_PAGE_SIZE);
 				final int page                          = Services.parseInt(pageParameter, NodeFactory.DEFAULT_PAGE);
-				final Class<? extends GraphObject> type = resource.getEntityClassOrDefault();
+				final Class<? extends GraphObject> type = handler.getEntityClassOrDefault(securityContext);
 				final SortOrder sortOrder               = new DefaultSortOrder(type, sortKeyNames, sortOrders);
 
 				// Should line breaks be removed?
@@ -153,24 +157,20 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				writeBom = StringUtils.equals(request.getParameter(WRITE_BOM), "1");
 
 				// do action
-				try (final ResultStream result = resource.doGet(sortOrder, pageSize, page)) {
+				try (final ResultStream result = handler.doGet(securityContext, sortOrder, pageSize, page)) {
 
 					if (result != null) {
 
-						// allow resource to modify result set
-						resource.postProcessResultSet(result);
+						try (Writer writer = response.getWriter()) {
 
-						final Writer writer = response.getWriter();
+							if (writeBom) {
+								writeUtf8Bom(writer);
+							}
 
-						if (writeBom) {
-							writeUtf8Bom(writer);
+							writeCsv(result, writer, handler.getRequestedView());
+							response.setStatus(HttpServletResponse.SC_OK);
+							writer.flush();
 						}
-
-						// gson.toJson(result, writer);
-						writeCsv(result, writer, propertyView.get(securityContext));
-						response.setStatus(HttpServletResponse.SC_OK);
-						writer.flush();
-						writer.close();
 
 					} else {
 
@@ -180,10 +180,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 						response.setStatus(code);
 
-						Writer writer = response.getWriter();
-
-						writer.flush();
-						writer.close();
+						try (Writer writer = response.getWriter()) {
+							writer.flush();
+						}
 
 					}
 				}
@@ -237,7 +236,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		final List<RestMethodResult> results      = new LinkedList<>();
 
 		final Authenticator authenticator;
-		final Resource resource;
+		final RESTCallHandler handler;
 
 		setCustomResponseHeaders(response);
 
@@ -264,15 +263,17 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 			if (securityContext != null) {
 
+				final Principal currentUser = securityContext.getUser(false);
+
 				// isolate resource authentication
 				try (final Tx tx = app.tx()) {
 
-					resource = ResourceHelper.optimizeNestedResourceChain(securityContext, request, resourceMap, propertyView);
-					authenticator.checkResourceAccess(securityContext, request, resource.getResourceSignature(), propertyView.get(securityContext));
+					handler = RESTEndpoints.resolveRESTCallHandler(request, config.getDefaultPropertyView(), getTypeOrDefault(currentUser, User.class));
+					authenticator.checkResourceAccess(securityContext, request, handler.getResourceSignature(), handler.getRequestedView());
 					tx.success();
 				}
 
-				RuntimeEventLog.csv("Post", resource.getResourceSignature(), securityContext.getUser(false));
+				RuntimeEventLog.csv("Post", handler.getResourceSignature(), currentUser);
 
 				// do not send websocket notifications for created objects
 				securityContext.setDoTransactionNotifications(false);
@@ -294,9 +295,9 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					retry = false;
 
-					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, resource.getEntityClass(), fieldSeparator, quoteCharacter, rangeHeader);
+					final Iterable<JsonInput> csv = CsvHelper.cleanAndParseCSV(securityContext, input, handler.getEntityClass(securityContext), fieldSeparator, quoteCharacter, rangeHeader);
 
-					if (resource.createPostTransaction()) {
+					if (handler.createPostTransaction()) {
 
 						if (doPeriodicCommit) {
 
@@ -315,7 +316,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 									for (final JsonInput propertySet : currentChunk) {
 
-										handleCsvPropertySet(results, resource, propertySet);
+										handleCsvPropertySet(securityContext, results, handler, propertySet);
 
 									}
 
@@ -343,7 +344,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 								for (final JsonInput propertySet : csv) {
 
-									handleCsvPropertySet(results, resource, propertySet);
+									handleCsvPropertySet(securityContext, results, handler, propertySet);
 								}
 
 								tx.success();
@@ -363,7 +364,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 							for (final JsonInput propertySet : csv) {
 
-								handleCsvPropertySet(results, resource, propertySet);
+								handleCsvPropertySet(securityContext, results, handler, propertySet);
 							}
 
 						} catch (RetryException ddex) {
@@ -384,9 +385,6 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 				endMsgData.put("duration", duration);
 				endMsgData.put("username", username);
 				TransactionCommand.simpleBroadcastGenericMessage(endMsgData);
-
-				// set default value for property view
-				propertyView.set(securityContext, config.getDefaultPropertyView());
 
 				// isolate write output
 				try (final Tx tx = app.tx()) {
@@ -415,7 +413,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 								result.addHeader("Location", null);
 							}
 
-							commitResponse(securityContext, request, response, result, resource.isCollectionResource());
+							commitResponse(securityContext, request, response, result, handler.getRequestedView(), handler.isCollection());
 						}
 
 					}
@@ -430,7 +428,7 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 
 					final RestMethodResult result = new RestMethodResult(HttpServletResponse.SC_FORBIDDEN);
 
-					commitResponse(securityContext, request, response, result, false);
+					commitResponse(securityContext, request, response, result, PropertyView.Public, false);
 
 					tx.success();
 				}
@@ -485,11 +483,11 @@ public class CsvServlet extends AbstractDataServlet implements HttpServiceServle
 		return "csv";
 	}
 
-	private void handleCsvPropertySet (final List<RestMethodResult> results, final Resource resource, final JsonInput propertySet) throws FrameworkException {
+	private void handleCsvPropertySet(final SecurityContext securityContext, final List<RestMethodResult> results, final RESTCallHandler handler, final JsonInput propertySet) throws FrameworkException {
 
 		try {
 
-			results.add(resource.doPost(convertPropertySetToMap(propertySet)));
+			results.add(handler.doPost(securityContext, convertPropertySetToMap(propertySet)));
 
 		} catch (FrameworkException fxe) {
 

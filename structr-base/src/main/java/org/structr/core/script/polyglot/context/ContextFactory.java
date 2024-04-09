@@ -29,7 +29,6 @@ import org.structr.core.script.polyglot.filesystem.PolyglotFilesystem;
 import org.structr.schema.action.ActionContext;
 
 import java.util.concurrent.Callable;
-import java.util.function.Predicate;
 
 public abstract class ContextFactory {
 
@@ -137,6 +136,8 @@ public abstract class ContextFactory {
 
 			} catch (Exception ex) {
 
+				ex.printStackTrace();
+
 				throw new FrameworkException(500, "Exception while trying to initialize new context for language: " + language + ". Cause: " + ex.getMessage());
 			}
 		}
@@ -163,15 +164,5 @@ public abstract class ContextFactory {
 		}
 
 		return context;
-	}
-
-	private static class StructrClassPredicate implements Predicate<String> {
-		// Allows manually selected Structr classes to be accessed from scripting contexts
-
-		@Override
-		public boolean test(String s) {
-			//return s.startsWith("org.structr.api.config.Settings");
-			return false;
-		}
 	}
 }

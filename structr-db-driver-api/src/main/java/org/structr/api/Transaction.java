@@ -18,6 +18,12 @@
  */
 package org.structr.api;
 
+import org.structr.api.graph.Identity;
+import org.structr.api.graph.Node;
+import org.structr.api.graph.Relationship;
+
+import java.util.Set;
+
 /**
  *
  */
@@ -29,4 +35,12 @@ public interface Transaction extends AutoCloseable {
 
 	@Override
 	void close();
+
+	Node getNode(final Identity id);
+	Relationship getRelationship(final Identity id);
+
+	void prefetch(final String type1, final String type2, final Set<String> keys);
+	void prefetch(final String query, final Set<String> keys);
+
+	void setIsPing(final boolean isPing);
 }

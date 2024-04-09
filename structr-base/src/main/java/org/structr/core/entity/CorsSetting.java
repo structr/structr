@@ -20,10 +20,11 @@ package org.structr.core.entity;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.structr.api.config.Settings;
 import org.structr.common.PropertyView;
-import org.structr.common.ValidationHelper;
 import org.structr.common.View;
 import org.structr.common.error.ErrorBuffer;
+import org.structr.common.helper.ValidationHelper;
 import org.structr.core.property.ConstantBooleanProperty;
 import org.structr.core.property.IntProperty;
 import org.structr.core.property.Property;

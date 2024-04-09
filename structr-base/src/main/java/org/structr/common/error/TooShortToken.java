@@ -18,8 +18,6 @@
  */
 package org.structr.common.error;
 
-import org.structr.core.property.PropertyKey;
-
 /**
  * Indicates that the length of a property value is too short.
  *
@@ -27,7 +25,10 @@ import org.structr.core.property.PropertyKey;
  */
 public class TooShortToken extends SemanticErrorToken {
 
-	public TooShortToken(final String type, final PropertyKey<String> propertyKey, int minLength) {
-		super(type, propertyKey, "must_be_longer_than", minLength);
+	public TooShortToken(final String type, final String propertyKey, int minLength) {
+
+		super(type, propertyKey, "must_be_longer_than");
+
+		withDetail(minLength);
 	}
 }

@@ -26,6 +26,9 @@ package org.structr.common.error;
 public class UnlicensedToken extends ErrorToken {
 
 	public UnlicensedToken(final String type) {
-		super(type, null, "unlicensed", null);
+		
+		super("unlicensed");
+
+		withType(type);
 	}
 }

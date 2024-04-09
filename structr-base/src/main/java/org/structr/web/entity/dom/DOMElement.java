@@ -50,7 +50,6 @@ import org.structr.core.graph.RelationshipInterface;
 import org.structr.core.graph.TransactionCommand;
 import org.structr.core.property.*;
 import org.structr.core.script.Scripting;
-import org.structr.rest.RestMethodResult;
 import org.structr.schema.ConfigurationProvider;
 import org.structr.schema.NonIndexed;
 import org.structr.schema.SchemaService;
@@ -68,20 +67,25 @@ import org.structr.web.entity.html.TemplateElement;
 import org.structr.web.function.InsertHtmlFunction;
 import org.structr.web.function.RemoveDOMChildFunction;
 import org.structr.web.function.ReplaceDOMChildFunction;
-import org.structr.web.resource.LoginResource;
-import org.structr.web.resource.LogoutResource;
-import org.structr.web.resource.RegistrationResource;
-import org.structr.web.resource.ResetPasswordResource;
 import org.structr.web.servlet.HtmlServlet;
 import org.w3c.dom.*;
 
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.net.URI;
 import java.util.*;
 import java.util.Map.Entry;
+import org.structr.core.api.AbstractMethod;
+import org.structr.core.api.Arguments;
+import org.structr.core.api.Methods;
+import org.structr.core.entity.Principal;
+import org.structr.rest.api.RESTCall;
+import org.structr.rest.servlet.AbstractDataServlet;
+import org.structr.web.entity.User;
 
 import static org.structr.web.entity.dom.DOMNode.escapeForHtmlAttributes;
+import org.structr.web.resource.LoginResourceHandler;
+import org.structr.web.resource.LogoutResourceHandler;
+import org.structr.web.resource.RegistrationResourceHandler;
+import org.structr.web.resource.ResetPasswordResourceHandler;
 
 public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
@@ -476,10 +480,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LoginResource loginResource = new LoginResource();
-		loginResource.setSecurityContext(actionContext.getSecurityContext());
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Principal currentUser              = actionContext.getSecurityContext().getUser(false);
+		final LoginResourceHandler loginResource = new LoginResourceHandler(new RESTCall("/login", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
+		final Map<String, Object> properties     = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -489,19 +492,16 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = loginResource.doPost(properties);
-
-		return result;
+		return loginResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignOutAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
 		removeInternalDataBindingKeys(parameters);
 
-		final LogoutResource logoutResource = new LogoutResource();
-		logoutResource.setSecurityContext(actionContext.getSecurityContext());
-
-		final Map<String, Object> properties = new LinkedHashMap<>();
+		final Principal currentUser                = actionContext.getSecurityContext().getUser(false);
+		final LogoutResourceHandler logoutResource = new LogoutResourceHandler(new RESTCall("/logout", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
+		final Map<String, Object> properties       = new LinkedHashMap<>();
 
 		for (final Entry<String, Object> entry : parameters.entrySet()) {
 
@@ -511,13 +511,12 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			properties.put(key, value);
 		}
 
-		final RestMethodResult result = logoutResource.doPost(properties);
-
-		return result;
+		return logoutResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleSignUpAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -530,15 +529,14 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final RegistrationResource registrationResource = new RegistrationResource();
-		registrationResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = registrationResource.doPost(properties);
+		final RegistrationResourceHandler registrationResource = new RegistrationResourceHandler(new RESTCall("/registration", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return result;
+		return registrationResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private Object handleResetPasswordAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext) throws FrameworkException {
 
+		final Principal currentUser          = actionContext.getSecurityContext().getUser(false);
 		final Map<String, Object> properties = new LinkedHashMap<>();
 
 		removeInternalDataBindingKeys(parameters);
@@ -551,11 +549,9 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			if (value != null) properties.put(key, value);
 		}
 
-		final ResetPasswordResource resetPasswordResource = new ResetPasswordResource();
-		resetPasswordResource.setSecurityContext(actionContext.getSecurityContext());
-		final RestMethodResult result = resetPasswordResource.doPost(properties);
+		final ResetPasswordResourceHandler resetPasswordResource = new ResetPasswordResourceHandler(new RESTCall("/reset-password", PropertyView.Public, true, AbstractDataServlet.getTypeOrDefault(currentUser, User.class)));
 
-		return result;
+		return resetPasswordResource.doPost(actionContext.getSecurityContext(), properties);
 	}
 
 	private void handleTreeAction(final ActionContext actionContext, final java.util.Map<String, java.lang.Object> parameters, final EventContext eventContext, final String action) throws FrameworkException {
@@ -708,8 +704,11 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 
 			for (final GraphObject target : targets) {
 
-				// try to execute event method
-				return target.invokeMethod(actionContext.getSecurityContext(), methodName, parameters, false, new EvaluationHints());
+				final AbstractMethod method = Methods.resolveMethod(target.getClass(), methodName);
+				if (method != null) {
+
+					method.execute(actionContext.getSecurityContext(), target, Arguments.fromMap(parameters), new EvaluationHints());
+				}
 			}
 
 		} else {
@@ -718,23 +717,10 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 			final Class staticClass = StructrApp.getConfiguration().getNodeEntityClass(dataTarget);
 			if (staticClass != null) {
 
-				final Map<String, Method> methods = StructrApp.getConfiguration().getExportedMethodsForType(staticClass);
-				final Method method               = methods.get(methodName);
-
+				final AbstractMethod method = Methods.resolveMethod(staticClass, methodName);
 				if (method != null) {
 
-					if (Modifier.isStatic(methods.get(methodName).getModifiers())) {
-
-						return AbstractNode.invokeMethod(actionContext.getSecurityContext(), method, null, parameters, new EvaluationHints());
-
-					} else {
-
-						throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method is not static.");
-					}
-
-				} else {
-
-					throw new FrameworkException(422, "Cannot execute static method " + dataTarget + "." + methodName + ": method not found.");
+					method.execute(actionContext.getSecurityContext(), null, Arguments.fromMap(parameters), new EvaluationHints());
 				}
 
 			} else {
@@ -1521,8 +1507,8 @@ public interface DOMElement extends DOMNode, Element, NamedNodeMap, NonIndexed {
 						if (StringUtils.isNotBlank(failureTargetString)) {
 							out.append(" data-structr-failure-target=\"").append(failureTargetString).append("\"");
 						}
-						
-						
+
+
 //						{ // TODO: Migrate tree handling to new action mapping
 //							// toggle-tree-item
 //							if (mapping.containsValue("toggle-tree-item")) {

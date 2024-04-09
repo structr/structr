@@ -34,10 +34,6 @@ public interface RelationshipInterface extends GraphObject, NonIndexed {
 
 	public void init(final SecurityContext securityContext, final Relationship dbRel, final Class entityType, final long transactionId);
 
-	public void onRelationshipCreation();
-	public void onRelationshipInstantiation();
-	public void onRelationshipDeletion();
-
 	public NodeInterface getSourceNode();
 	public NodeInterface getTargetNode();
 	public NodeInterface getSourceNodeAsSuperUser();
