@@ -2479,7 +2479,8 @@ input.tree-search-input {
 	color: var(--gray-aaa);
 }
 
-.tree-contents-container button, #crud-buttons button {
+.tree-contents-container button:not(.save-all),
+#crud-buttons button {
 	margin-right: .5rem ! important;
 }
 
@@ -2554,6 +2555,11 @@ input.tree-search-input {
 	height: 100%;
 }
 /* END: styles to maximize methods editors in bulk save dialog for SCHEMA area */
+
+#methods-container.global .isstatic-col,
+#dialogBox.dialog.schema-edit-dialog .global .isstatic-col {
+	display: none;
+}
 
 /* BEGIN: Show title of dialog box in schema edit dialogs AND allowing showing the dialog title by adding a classname */
 .show-dialog-title .dialogTitle,

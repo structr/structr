@@ -866,7 +866,7 @@ let _Code = {
 		return [
 			{
 				id:       path + '/properties',
-				text:     'Local Properties',
+				text:     'Direct Properties',
 				children: (entity.schemaProperties.length > 0),
 				icon:     _Icons.nonExistentEmptyIcon,
 				li_attr:  { 'data-id': 'properties' },
@@ -1505,8 +1505,12 @@ let _Code = {
 
 					parameterContainer.append(clone);
 
+					_Editors.resizeVisibleEditors();
+
 					$('.method-parameter-delete .remove-action', clone).on('click', () => {
 						clone.remove();
+
+						_Editors.resizeVisibleEditors();
 
 						_Code.updateDirtyFlag(result);
 					});
@@ -3186,7 +3190,7 @@ let _Code = {
 			<div class="content-container"></div>
 		`,
 		propertiesLocal: config => `
-			<h2>Local Properties of type ${config.data.type}</h2>
+			<h2>Direct Properties of type ${config.data.type}</h2>
 			<div class="content-container"></div>
 		`,
 		propertiesRemote: config => `

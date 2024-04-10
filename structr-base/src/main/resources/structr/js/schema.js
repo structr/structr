@@ -879,6 +879,7 @@ let _Schema = {
 			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
 				targetView = 'basic';
 			}
+
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
 			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
 			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
@@ -919,12 +920,33 @@ let _Schema = {
 
 			let { dialogText } = _Dialogs.custom.openDialog("Create Type", null, ['schema-edit-dialog']);
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText);
-
 			let discardButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
 			let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
 
+			let initialData;
+
+			let updateChangeStatus = () => {
+
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, initialData);
+				let changedData = _Schema.nodes.getTypeDefinitionChanges(initialData, typeInfo);
+				let hasChanges  = Object.keys(changedData).length > 0;
+
+				_Helpers.disableElements(!hasChanges, saveButton);
+			};
+
+			updateChangeStatus();
+
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus);
+
+			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
+
 			_Dialogs.custom.setDialogSaveButton(saveButton);
+
+			for (let property of dialogText.querySelectorAll('[data-property]')) {
+				property.addEventListener('input', updateChangeStatus);
+			}
+
+			_Schema.nodes.activateTagsSelect(dialogText.querySelector('#openapi-options'), updateChangeStatus);
 
 			saveButton.addEventListener('click', async (e) => {
 
@@ -1131,18 +1153,18 @@ let _Schema = {
 					}
 				}
 
-				let isUnselect = false;
+				let isUnselectAction = false;
 				$(groupSelect).select2({
 					search_contains: true,
 					width: '100%',
 					closeOnSelect: false
 				}).on('select2:unselecting', function(e, p) {
-					isUnselect = true;
+					isUnselectAction = true;
 
 				}).on('select2:opening', function(e, p) {
-					if (isUnselect) {
+					if (isUnselectAction) {
 						e.preventDefault();
-						isUnselect = false;
+						isUnselectAction = false;
 					}
 
 				}).on('select2:select', function(e, p) {
@@ -1236,13 +1258,13 @@ let _Schema = {
 		resetTypeDefinition: (container, entity) => {
 			_Code.revertFormDataInContainer(container, entity);
 		},
-		showCreateNewTypeDialog: (container) => {
+		showCreateNewTypeDialog: (container, updateFunction) => {
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
 
 			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 
-			_Schema.nodes.appendTypeHierarchy(container);
+			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
 			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
@@ -1279,7 +1301,7 @@ let _Schema = {
 	relationships: {
 		loadRels: async () => {
 
-			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+			let response = await fetch(`${Structr.rootUrl}SchemaRelationshipNode`);
 			let data     = await response.json();
 
 			let existingRels = {};
@@ -1640,6 +1662,23 @@ let _Schema = {
 
 				_Dialogs.custom.setDialogSaveButton(saveButton);
 
+				let initialData;
+
+				let updateChangeStatus = () => {
+
+					let changedData = _Schema.relationships.getRelationshipDefinitionChanges(dialogText, initialData);
+					let hasChanges  = Object.keys(changedData).length > 0;
+
+					_Helpers.disableElements(!hasChanges, saveButton);
+				};
+
+				initialData = _Schema.relationships.getRelationshipDefinitionChanges(dialogText, {});
+				updateChangeStatus();
+
+				for (let property of dialogText.querySelectorAll('[data-attr-name]')) {
+					property.addEventListener('input', updateChangeStatus);
+				}
+
 				saveButton.addEventListener('click', async () => {
 
 					let relData = _Schema.relationships.getRelationshipDefinitionDataFromForm(dialogText);
@@ -1866,14 +1905,14 @@ let _Schema = {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
 			let showDatabaseName = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true);
-			let dbNameClass      = (showDatabaseName ? '' : 'hidden');
+			let dbNameClass      = (showDatabaseName ? 'flex' : 'hidden');
 
 			let gridConfig = {
 				class: 'local schema-props grid',
 				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
 					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
-					{ class: 'pb-1 px-1 font-bold flex items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'pb-1 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
 					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Type' },
 					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Format' },
 					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
@@ -1885,10 +1924,6 @@ let _Schema = {
 				],
 				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
 			};
-
-			if (!showDatabaseName) {
-				gridConfig.cols.splice(1,1);
-			}
 
 			let grid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(gridConfig));
 			container.appendChild(grid);
@@ -2458,7 +2493,8 @@ let _Schema = {
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Comp.' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Uniq.' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Idx' }
-				]
+				],
+				noButtons: true
 			};
 
 			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(tableConfig));
@@ -2514,7 +2550,7 @@ let _Schema = {
 			`,
 			propertyLocal: config => `
 				<div class="schema-grid-row contents" data-property-id="${config.property.id}" >
-					<div class="p-1">
+					<div class="p-1 flex items-center">
 						<input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}">
 					</div>
 					<div class="p-1 ${config.dbNameClass}">
@@ -3355,7 +3391,7 @@ let _Schema = {
 					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
 					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				],
-				buttons: ((entity) ? _Schema.methods.templates.addMethodsDropdown() : _Schema.methods.templates.addMethodDropdown()) + '<div class="flex-grow"></div>'
+				buttons: ((entity) ? _Schema.methods.templates.addMethodsDropdown() : _Schema.methods.templates.addMethodDropdown()) + '<div class="flex-grow flex"></div>'
 			};
 
 			if (!entity) {
@@ -3599,7 +3635,7 @@ let _Schema = {
 		},
 		appendNewMethod: (gridBody, method, entity) => {
 
-			let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.method({ method: method, isNew: true }));
+			let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method, isNew: true }));
 			gridBody.appendChild(gridRow);
 
 			gridBody.scrollTop = gridRow.offsetTop;
@@ -3785,7 +3821,7 @@ let _Schema = {
 
 			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-				let { dialogText } = _Dialogs.custom.openDialog('Global Schema Methods', () => {
+				let { dialogText } = _Dialogs.custom.openDialog('User-defined functions', () => {
 
 					_Schema.currentNodeDialogId = null;
 
@@ -3900,9 +3936,7 @@ let _Schema = {
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Delete' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Access-Control' },
 					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Action' }
-				],
-				discardButtonText: 'Discard Schema Grant changes',
-				saveButtonText: 'Save Schema Grants'
+				]
 			};
 
 			let gridMarkup            = _Schema.templates.schemaGrid(gridConfig);
@@ -3955,16 +3989,12 @@ let _Schema = {
 				return grantData;
 			};
 
-			let grants = {};
-
-			for (let grant of entity.schemaGrants) {
-				grants[grant.principal.id] = grant;
-			}
+			let grants = Object.fromEntries(entity.schemaGrants.map(grant => [ grant.principal.id, grant ]));
 
 			let getGrantConfigForGroup = (group) => {
 				return {
-					groupId: group.id,
-					name: group.name,
+					groupId            : group.id,
+					name               : group.name,
 					grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
 					allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
 					allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
@@ -3990,7 +4020,7 @@ let _Schema = {
 				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
 			};
 
-			Command.query('Group', 1000, 1, 'name', 'asc', {}, (groupResult) => {
+			Command.query('Group', 1000, 1, 'name', 'asc', {}, groupResult => {
 
 				for (let group of groupResult) {
 
@@ -4059,16 +4089,16 @@ let _Schema = {
 				<div class="schema-grid-row contents" data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
 					<div class="p-2">${config.name}</div>
 					<div class="flex items-center justify-center">
-						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')}>
+						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input type="checkbox" data-property="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')}>
+						<input type="checkbox" data-property="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input type="checkbox" data-property="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')}>
+						<input type="checkbox" data-property="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
-						<input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')}>
+						<input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')} style="margin-right: 0;">
 					</div>
 					<div class="flex items-center justify-center">
 						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
@@ -5443,7 +5473,7 @@ let _Schema = {
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
-							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} Global Methods
+							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} User-defined functions
 						</button>
 					</div>
 
@@ -5801,14 +5831,18 @@ let _Schema = {
 				<div class="schema-grid-body contents">
 				</div>
 				<div class="schema-grid-footer contents">
-					<div class="actions-col flex items-center mt-2" style="grid-column: 1 / -1;">
+					<div class="actions-col flex flex-wrap gap-y-2 items-center mt-2" style="grid-column: 1 / -1;">
 						${config.buttons ?? ''}
-						<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}
-						</button>
-						<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}
-						</button>
+						${config.noButtons === true ? '' : `
+							<div class="flex">
+								<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+									${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
+								</button>
+								<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0" disabled>
+									${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} Save all
+								</button>
+							</div>
+						`}
 					</div>
 				</div>
 			</div>

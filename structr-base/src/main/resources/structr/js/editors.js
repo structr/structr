@@ -326,7 +326,13 @@ let _Editors = {
 	resizeEditor: (monacoEditor) => {
 
 		// resize editor to minimal size...
-		monacoEditor.layout({ width: 1, height: 1 });
+		let editorMinimumHeight = 200;
+		let editorMinimumWidth  = 200;
+
+		monacoEditor.layout({
+			width: editorMinimumWidth,
+			height: editorMinimumHeight
+		});
 
 		// ... so that editor auto-layout works
 		monacoEditor.layout();
