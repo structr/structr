@@ -2143,7 +2143,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static void prefetchDOMNodes() {
 
 		TransactionCommand.getCurrentTransaction().prefetch("DOMNode", null, Set.of(
-			"all/INCOMING/OWNS",
+
 			"all/INCOMING/SYNC",
 			"all/INCOMING/LINK",
 			"all/INCOMING/OWNS",
