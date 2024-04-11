@@ -428,28 +428,24 @@ let _Schema = {
 		hasUnsavedChangesInTabs: (mainTabs) => {
 			return (mainTabs.querySelectorAll('.has-changes').length > 0);
 		},
-		hasUnsavedChangesInTable: (table) => {
-			return (table.querySelectorAll('tbody tr.to-delete, tbody tr.has-changes').length > 0);
+		hasUnsavedChangesInGrid: (grid) => {
+			return (grid.querySelectorAll('.schema-grid-body .schema-grid-row.to-delete, .schema-grid-body .schema-grid-row.has-changes').length > 0);
 		},
-		tableChanged: (table) => {
-			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(table);
-			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, table, table.querySelector('tfoot'));
+		gridChanged: (grid) => {
+			let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(grid);
+			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, grid, grid.querySelector('.schema-grid-footer'));
 		},
-		fakeTableChanged: (fakeTable) => {
-			let unsavedChanges = (fakeTable.querySelectorAll('.fake-tbody .fake-tr.to-delete, .fake-tbody .fake-tr.has-changes').length > 0);
-			_Schema.bulkDialogsGeneral.dataChanged(unsavedChanges, fakeTable, fakeTable.querySelector('.fake-tfoot'));
-		},
-		dataChanged: (unsavedChanges, table, tfoot) => {
+		dataChanged: (hasUnsavedChanges, grid, footerElement) => {
 
-			let tabContainer = table.closest('.propTabContent');
+			let tabContainer = grid.closest('.propTabContent');
 			if (tabContainer) {
-				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContainer, unsavedChanges);
+				_Schema.bulkDialogsGeneral.dataChangedInTab(tabContainer, hasUnsavedChanges);
 			}
 
-			let discardAll = tfoot.querySelector('.discard-all');
-			let saveAll    = tfoot.querySelector('.save-all');
+			let discardAll = footerElement.querySelector('.discard-all');
+			let saveAll    = footerElement.querySelector('.save-all');
 
-			_Helpers.disableElements(!unsavedChanges, discardAll, saveAll);
+			_Helpers.disableElements(!hasUnsavedChanges, discardAll, saveAll);
 		},
 		dataChangedInTab: (tabContainer, unsavedChanges) => {
 
@@ -883,6 +879,7 @@ let _Schema = {
 			if (!Structr.isModuleActive(_Code) && (targetView === 'source-code' || targetView === 'working-sets')) {
 				targetView = 'basic';
 			}
+
 			let basicTabContent        = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'basic', 'Basic', targetView === 'basic');
 			let localPropsTabContent   = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'local', 'Direct properties', targetView === 'local');
 			let remotePropsTabContent  = _Entities.appendPropTab(entity, mainTabs, contentDiv, 'remote', 'Linked properties', targetView === 'remote');
@@ -899,7 +896,7 @@ let _Schema = {
 				remoteProperties : _Schema.remoteProperties.appendRemote(remotePropsTabContent, entity, async (el) => { await _Schema.remoteProperties.asyncEditSchemaObjectLinkHandler(el, mainTabs, entity.id); }),
 				schemaViews      : _Schema.views.appendViews(viewsTabContent, entity),
 				schemaMethods    : _Schema.methods.appendMethods(methodsTabContent, entity, entity.schemaMethods),
-				schemaGrants     : _Schema.nodes.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
+				schemaGrants     : _Schema.schemaGrants.appendSchemaGrants(schemaGrantsTabContent, entity)
 			};
 
 			if (Structr.isModuleActive(_Code)) {
@@ -923,12 +920,33 @@ let _Schema = {
 
 			let { dialogText } = _Dialogs.custom.openDialog("Create Type", null, ['schema-edit-dialog']);
 
-			_Schema.nodes.showCreateNewTypeDialog(dialogText);
-
 			let discardButton = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.discardActionButton({ text: 'Discard and close' }));
 			let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
 
+			let initialData;
+
+			let updateChangeStatus = () => {
+
+				let typeInfo    = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, initialData);
+				let changedData = _Schema.nodes.getTypeDefinitionChanges(initialData, typeInfo);
+				let hasChanges  = Object.keys(changedData).length > 0;
+
+				_Helpers.disableElements(!hasChanges, saveButton);
+			};
+
+			updateChangeStatus();
+
+			_Schema.nodes.showCreateNewTypeDialog(dialogText, updateChangeStatus);
+
+			initialData = _Schema.nodes.getTypeDefinitionDataFromForm(dialogText, {});
+
 			_Dialogs.custom.setDialogSaveButton(saveButton);
+
+			for (let property of dialogText.querySelectorAll('[data-property]')) {
+				property.addEventListener('input', updateChangeStatus);
+			}
+
+			_Schema.nodes.activateTagsSelect(dialogText.querySelector('#openapi-options'), updateChangeStatus);
 
 			saveButton.addEventListener('click', async (e) => {
 
@@ -1105,7 +1123,10 @@ let _Schema = {
 		},
 		appendWorkingSets: (container, entity) => {
 
-			container.insertAdjacentHTML('beforeend', _Schema.templates.workingSets({ type: entity, addButtonText: 'Add Working Set' }));
+			container.insertAdjacentHTML('beforeend', _Schema.templates.workingSets({
+				type: entity,
+				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add Working Set' })
+			}));
 
 			// manage working sets
 			_WorkingSets.getWorkingSets((workingSets) => {
@@ -1132,18 +1153,18 @@ let _Schema = {
 					}
 				}
 
-				let isUnselect = false;
+				let isUnselectAction = false;
 				$(groupSelect).select2({
 					search_contains: true,
 					width: '100%',
 					closeOnSelect: false
 				}).on('select2:unselecting', function(e, p) {
-					isUnselect = true;
+					isUnselectAction = true;
 
 				}).on('select2:opening', function(e, p) {
-					if (isUnselect) {
+					if (isUnselectAction) {
 						e.preventDefault();
-						isUnselect = false;
+						isUnselectAction = false;
 					}
 
 				}).on('select2:select', function(e, p) {
@@ -1237,13 +1258,13 @@ let _Schema = {
 		resetTypeDefinition: (container, entity) => {
 			_Code.revertFormDataInContainer(container, entity);
 		},
-		showCreateNewTypeDialog: (container) => {
+		showCreateNewTypeDialog: (container, updateFunction) => {
 
 			container.insertAdjacentHTML('beforeend', _Schema.templates.typeBasicTab());
 
 			_Helpers.fastRemoveElement(container.querySelector('.edit-parent-type'));
 
-			_Schema.nodes.appendTypeHierarchy(container);
+			_Schema.nodes.appendTypeHierarchy(container, {}, updateFunction);
 			_Schema.nodes.activateTagsSelect(container);
 			_Code.populateOpenAPIBaseConfig(container, {}, _Code.availableTags);
 
@@ -1276,150 +1297,11 @@ let _Schema = {
 				})
 			}));
 		},
-
-		schemaGrants: {
-			schemaGrantsTableConfig: {
-				class: 'schema-grants-table schema-props',
-				cols: [
-					{ class: '', title: 'Group' },
-					{ class: '', title: 'read' },
-					{ class: '', title: 'write' },
-					{ class: '', title: 'delete' },
-					{ class: '', title: 'access control' }
-				],
-				discardButtonText: 'Discard Schema Grant changes',
-				saveButtonText: 'Save Schema Grants'
-			},
-			appendSchemaGrants: (container, entity) => {
-
-				let schemaGrantsContainer = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrantsTabContent({ tableMarkup: _Schema.templates.schemaTable(_Schema.nodes.schemaGrants.schemaGrantsTableConfig) }));
-				let tbody                 = schemaGrantsContainer.querySelector('tbody');
-				container.appendChild(schemaGrantsContainer);
-
-				let updateStatus = () => {
-					let hasChanges = ((schemaGrantsContainer.querySelectorAll('.changed')).length > 0);
-
-					_Schema.bulkDialogsGeneral.dataChangedInTab(container, hasChanges);
-				};
-
-				let schemaGrantsTableChange = (cb, rowConfig) => {
-
-					let property = cb.dataset['property'];
-
-					cb.classList[(rowConfig[property] !== cb.checked) ? 'add' : 'remove']('changed');
-
-					updateStatus();
-				};
-
-				let getGrantData = () => {
-
-					let grantData = [];
-
-					for (let row of tbody.querySelectorAll('tr')) {
-
-						let rowConfig = {
-							principal:          row.dataset['groupId'],
-							schemaNode:         entity.id,
-							allowRead:          row.querySelector('input[data-property=allowRead]').checked,
-							allowWrite:         row.querySelector('input[data-property=allowWrite]').checked,
-							allowDelete:        row.querySelector('input[data-property=allowDelete]').checked,
-							allowAccessControl: row.querySelector('input[data-property=allowAccessControl]').checked
-						};
-
-						let grantId = row.dataset['grantId'];
-						if (grantId) {
-							rowConfig.id = grantId;
-						}
-
-						let isChanged         = (row.querySelectorAll('.changed').length > 0);
-						let atLeastOneChecked = (row.querySelectorAll('input:checked').length > 0);
-
-						if (isChanged || atLeastOneChecked) {
-							grantData.push(rowConfig);
-						}
-					}
-
-					return grantData;
-				};
-
-				let grants = {};
-
-				for (let grant of entity.schemaGrants) {
-					grants[grant.principal.id] = grant;
-				}
-
-				let getGrantConfigForGroup = (group) => {
-					return {
-						groupId: group.id,
-						name: group.name,
-						grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
-						allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
-						allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
-						allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
-						allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
-					};
-				};
-
-				Command.query('Group', 1000, 1, 'name', 'asc', {}, (groupResult) => {
-
-					for (let group of groupResult) {
-
-						let tplConfig = getGrantConfigForGroup(group);
-
-						let row = _Helpers.createSingleDOMElementFromHTML(_Code.templates.schemaGrantsRow(tplConfig));
-						tbody.appendChild(row);
-
-						for (let cb of row.querySelectorAll('input')) {
-
-							cb.addEventListener('change', (e) => {
-								schemaGrantsTableChange(cb, tplConfig);
-							});
-						}
-					}
-				});
-
-				return {
-					getBulkInfo: (doValidate) => {
-
-						let data = {
-							schemaGrants: getGrantData()
-						};
-						let changeCount = (schemaGrantsContainer.querySelectorAll('.changed')).length;
-
-						return {
-							name: 'Basic type attributes',
-							data: data,
-							counts: {
-								updated: changeCount
-							},
-							allow: true
-						}
-					},
-					reset: () => {
-
-						for (let row of schemaGrantsContainer.querySelectorAll('tbody tr')) {
-
-							let tplConfig = getGrantConfigForGroup({
-								id: row.dataset['groupId']
-							});
-
-							_Code.revertFormDataInContainer(row, tplConfig);
-						}
-
-						for (let cb of tbody.querySelectorAll('.changed')) {
-							cb.classList.remove('changed');
-						}
-
-						updateStatus();
-					}
-				};
-			}
-		},
 	},
 	relationships: {
 		loadRels: async () => {
 
-			let response = await fetch(Structr.rootUrl + 'SchemaRelationshipNode');
+			let response = await fetch(`${Structr.rootUrl}SchemaRelationshipNode`);
 			let data     = await response.json();
 
 			let existingRels = {};
@@ -1635,8 +1517,8 @@ let _Schema = {
 		},
 		populateBasicRelInfo: (container, rel, sourceNode, targetNode) => {
 
-			container.querySelector('#source-type-name').textContent         = sourceNode.name;
-			container.querySelector('#target-type-name').textContent         = targetNode.name;
+			container.querySelector('#source-type-name span').textContent    = sourceNode.name;
+			container.querySelector('#target-type-name span').textContent    = targetNode.name;
 			container.querySelector('#source-type-name').dataset['objectId'] = rel.sourceId;
 			container.querySelector('#target-type-name').dataset['objectId'] = rel.targetId;
 			container.querySelector('#source-json-name').value               = (rel.sourceJsonName || rel.oldSourceJsonName);
@@ -1779,6 +1661,23 @@ let _Schema = {
 				let saveButton    = _Dialogs.custom.prependCustomDialogButton(_Schema.templates.saveActionButton({ text: 'Create' }));
 
 				_Dialogs.custom.setDialogSaveButton(saveButton);
+
+				let initialData;
+
+				let updateChangeStatus = () => {
+
+					let changedData = _Schema.relationships.getRelationshipDefinitionChanges(dialogText, initialData);
+					let hasChanges  = Object.keys(changedData).length > 0;
+
+					_Helpers.disableElements(!hasChanges, saveButton);
+				};
+
+				initialData = _Schema.relationships.getRelationshipDefinitionChanges(dialogText, {});
+				updateChangeStatus();
+
+				for (let property of dialogText.querySelectorAll('[data-attr-name]')) {
+					property.addEventListener('input', updateChangeStatus);
+				}
 
 				saveButton.addEventListener('click', async () => {
 
@@ -2005,63 +1904,65 @@ let _Schema = {
 	properties: {
 		appendLocalProperties: (container, entity, overrides, optionalAfterSaveCallback) => {
 
-			let dbNameClass = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true) ? '' : 'hidden';
+			let showDatabaseName = (UISettings.getValueForSetting(UISettings.settingGroups.schema_code.settings.showDatabaseNameForDirectProperties) === true);
+			let dbNameClass      = (showDatabaseName ? 'flex' : 'hidden');
 
-			let tableConfig = {
-				class: 'local schema-props',
+			let gridConfig = {
+				class: 'local schema-props grid',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((showDatabaseName) ? '[ dbName ] minmax(0, 1fr) ' : '') + '[ type ] minmax(10%, max-content) [ format ] minmax(10%, max-content) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content) [ defaultValue ] minmax(0, 1fr) [ actions ] 4rem',
 				cols: [
-					{ class: '', title: 'JSON Name' },
-					{ class: dbNameClass, title: 'DB Name' },
-					{ class: '', title: 'Type' },
-					{ class: '', title: 'Format/Code' },
-					{ class: '', title: 'Notnull' },
-					{ class: '', title: 'Comp.' },
-					{ class: '', title: 'Uniq.' },
-					{ class: '', title: 'Idx' },
-					{ class: '', title: 'Default' },
-					{ class: 'actions-col', title: 'Action' }
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'JSON Name' },
+					{ class: 'pb-1 px-1 font-bold items-center justify-center ' + dbNameClass, title: 'DB Name' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Type' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Format' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Notnull' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Comp.' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Uniq.' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Idx' },
+					{ class: 'pb-1 px-1 font-bold flex items-center justify-center', title: 'Default' },
+					{ class: 'actions-col pb-1 px-1 font-bold flex items-center justify-center', title: 'Action' }
 				],
-				addButtonText: 'Add direct property'
+				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add direct property' })
 			};
 
-			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
-			container.appendChild(propertiesTable);
-			let tbody = propertiesTable.querySelector('tbody');
+			let grid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(gridConfig));
+			container.appendChild(grid);
+			let gridBody = grid.querySelector('.schema-grid-body');
 
 			_Helpers.sort(entity.schemaProperties);
 
-			let typeOptions       = _Schema.templates.typeOptions();
-			let typeHintOptions   = _Schema.templates.typeHintOptions();
+			let typeOptions       = _Schema.properties.templates.typeOptions();
+			let typeHintOptions   = _Schema.properties.templates.typeHintOptions();
 
 			for (let prop of entity.schemaProperties) {
 
-				let row = $(_Schema.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions, dbNameClass: dbNameClass }));
-				tbody.appendChild(row[0]);
+				let gridRow = $(_Schema.properties.templates.propertyLocal({ property: prop, typeOptions: typeOptions, typeHintOptions: typeHintOptions, dbNameClass: dbNameClass }));
+				gridBody.appendChild(gridRow[0]);
 
-				_Schema.properties.setAttributesInRow(prop, row);
-				_Schema.properties.bindRowEvents(prop, row, overrides);
+				_Schema.properties.setAttributesInRow(prop, gridRow);
+				_Schema.properties.bindRowEvents(prop, gridRow, overrides);
 
-				_Schema.properties.checkProperty(row);
+				_Schema.properties.checkProperty(gridRow[0]);
 
-				_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
+				_Schema.bulkDialogsGeneral.gridChanged(grid);
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of tbody.querySelectorAll('.discard-changes')) {
+				for (let discardIcon of gridBody.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
 
 			container.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			propertiesTable.querySelector('.save-all').addEventListener('click', () => {
-				_Schema.properties.bulkSave(container, tbody, entity, overrides, optionalAfterSaveCallback);
+			grid.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.properties.bulkSave(container, gridBody, entity, overrides, optionalAfterSaveCallback);
 			});
 
 			container.querySelector('button.add-button').addEventListener('click', () => {
 
-				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass }));
-				tbody.appendChild(tr);
+				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.properties.templates.propertyNew({ typeOptions: typeOptions, dbNameClass: dbNameClass }));
+				gridBody.appendChild(tr);
 
 				let propertyTypeSelect = tr.querySelector('.property-type');
 
@@ -2083,20 +1984,20 @@ let _Schema = {
 
 				tr.querySelector('.discard-changes').addEventListener('click', () => {
 					_Helpers.fastRemoveElement(tr);
-					_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
+					_Schema.bulkDialogsGeneral.gridChanged(grid);
 				});
 
-				_Schema.bulkDialogsGeneral.tableChanged(propertiesTable);
+				_Schema.bulkDialogsGeneral.gridChanged(grid);
 			});
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.properties.getDataFromTable(tbody, entity, doValidate);
+					return _Schema.properties.getDataFromTable(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (tbody, entity, doValidate = true) => {
+		getDataFromTable: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Properties';
 			let data = {
@@ -2109,22 +2010,21 @@ let _Schema = {
 				new: 0
 			};
 
-			for (let tr of tbody.querySelectorAll('tr')) {
+			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
-				let row        = $(tr);
-				let propertyId = row.data('propertyId');
-				let prop       = _Schema.properties.getInfoFromRow(row);
+				let propertyId = gridRow.dataset['propertyId'];
+				let prop       = _Schema.properties.getDataFromRow(gridRow);
 
 				if (propertyId) {
-					if (row.hasClass('to-delete')) {
+					if (gridRow.classList.contains('to-delete')) {
 						// do not add this property to the list
 						counts.delete++;
-					} else if (row.hasClass('has-changes')) {
+					} else if (gridRow.classList.contains('has-changes')) {
 						// changed lines
 						counts.update++;
 						prop.id = propertyId;
 						if (doValidate) {
-							allow = _Schema.properties.validateProperty(prop, row) && allow;
+							allow = _Schema.properties.validateProperty(prop, gridRow) && allow;
 						}
 						data.schemaProperties.push(prop);
 					} else {
@@ -2138,7 +2038,7 @@ let _Schema = {
 					counts.new++;
 					prop.type = 'SchemaProperty';
 					if (doValidate) {
-						allow = _Schema.properties.validateProperty(prop, row) && allow;
+						allow = _Schema.properties.validateProperty(prop, gridRow) && allow;
 					}
 					data.schemaProperties.push(prop);
 				}
@@ -2186,15 +2086,15 @@ let _Schema = {
 				});
 			}
 		},
-		bindRowEvents: (property, row, overrides) => {
+		bindRowEvents: (property, gridRow, overrides) => {
 
 			let propertyInfoChangeHandler = () => {
-				_Schema.properties.rowChanged(property, row);
+				_Schema.properties.rowChanged(property, gridRow[0]);
 			};
 
 			let isProtected = false;
 
-			let propertyTypeOption = $(`.property-type option[value="${property.propertyType}"]`, row);
+			let propertyTypeOption = $(`.property-type option[value="${property.propertyType}"]`, gridRow);
 			if (propertyTypeOption) {
 				propertyTypeOption.attr('selected', true);
 				if (propertyTypeOption.data('protected')) {
@@ -2206,27 +2106,24 @@ let _Schema = {
 				}
 			}
 
-			let typeField = $('.property-type', row);
-			$('.property-type option[value=""]', row).remove();
+			let typeField = $('.property-type', gridRow);
+			$('.property-type option[value=""]', gridRow).remove();
 
 			if (property.propertyType === 'String' && !property.isBuiltinProperty) {
-				if (!$('input.content-type', typeField.parent()).length) {
-					typeField.after('<input type="text" size="5" class="content-type">');
-				}
-				$('.content-type', row).val(property.contentType).on('keyup', propertyInfoChangeHandler).prop('disabled', null);
+				$('.content-type', gridRow).val(property.contentType).on('keyup', propertyInfoChangeHandler).prop('disabled', null);
 			}
 
-			$('.property-name',    row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-dbname',  row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.caching-enabled',  row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.type-hint',        row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-type',    row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-format',  row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.not-null',         row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.compound',         row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.unique',           row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.indexed',          row).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
-			$('.property-default', row).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-name',    gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-dbname',  gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.caching-enabled',  gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.type-hint',        gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-type',    gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-format',  gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.not-null',         gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.compound',         gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.unique',           gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.indexed',          gridRow).on('change', propertyInfoChangeHandler).prop('disabled', isProtected);
+			$('.property-default', gridRow).on('keyup', propertyInfoChangeHandler).prop('disabled', isProtected);
 
 			let readWriteButtonClickHandler = (targetProperty) => {
 
@@ -2236,25 +2133,27 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row[0].closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForFunctionProperty(property.id, targetProperty, () => {
-							_Schema.openEditDialog(property.schemaNode.id, 'local');
+							if (Structr.isModuleActive(_Schema)) {
+								_Schema.openEditDialog(property.schemaNode.id, 'local');
+							}
 						});
 					}
 				}
 			};
 
-			$('.edit-read-function', row).on('click', () => {
+			$('.edit-read-function', gridRow).on('click', () => {
 				readWriteButtonClickHandler('readFunction');
 			}).prop('disabled', isProtected);
 
-			$('.edit-write-function', row).on('click', () => {
+			$('.edit-write-function', gridRow).on('click', () => {
 				readWriteButtonClickHandler('writeFunction');
 			}).prop('disabled', isProtected);
 
-			$('.edit-cypher-query', row).on('click', () => {
+			$('.edit-cypher-query', gridRow).on('click', () => {
 
 				if (overrides && overrides.editCypherProperty) {
 
@@ -2262,7 +2161,7 @@ let _Schema = {
 
 				} else {
 
-					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInTable(row[0].closest('table'));
+					let unsavedChanges = _Schema.bulkDialogsGeneral.hasUnsavedChangesInGrid(gridRow[0].closest('.schema-grid'));
 
 					if (!unsavedChanges || confirm("Really switch to code editing? There are unsaved changes which will be lost!")) {
 						_Schema.properties.openCodeEditorForCypherProperty(property.id, () => {
@@ -2275,43 +2174,43 @@ let _Schema = {
 
 			if (!isProtected) {
 
-				$('.remove-action', row).on('click', function() {
+				$('.remove-action', gridRow).on('click', function() {
 
-					row.addClass('to-delete');
+					gridRow.addClass('to-delete');
 					propertyInfoChangeHandler();
 
 				}).prop('disabled', null);
 
-				$('.discard-changes', row).on('click', function() {
+				$('.discard-changes', gridRow).on('click', function() {
 
-					_Schema.properties.setAttributesInRow(property, row);
+					_Schema.properties.setAttributesInRow(property, gridRow);
 
-					row.removeClass('to-delete');
-					row.removeClass('has-changes');
+					gridRow.removeClass('to-delete');
+					gridRow.removeClass('has-changes');
 
 					propertyInfoChangeHandler();
 
 				}).prop('disabled', null);
 
 			} else {
-				$('.remove-action', row).hide();
+				$('.remove-action', gridRow).hide();
 			}
 		},
-		getInfoFromRow: (tr) => {
+		getDataFromRow: (gridRow) => {
 
 			let obj = {
-				name:             $('.property-name', tr).val(),
-				dbName:           $('.property-dbname', tr).val(),
-				propertyType:     $('.property-type', tr).val(),
-				contentType:      $('.content-type', tr).val(),
-				format:           $('.property-format', tr).val(),
-				notNull:          $('.not-null', tr).is(':checked'),
-				compound:         $('.compound', tr).is(':checked'),
-				unique:           $('.unique', tr).is(':checked'),
-				indexed:          $('.indexed', tr).is(':checked'),
-				defaultValue:     $('.property-default', tr).val(),
-				isCachingEnabled: $('.caching-enabled', tr).is(':checked'),
-				typeHint:         $('.type-hint', tr).val()
+				name:             gridRow.querySelector('.property-name').value,
+				dbName:           gridRow.querySelector('.property-dbname').value,
+				propertyType:     gridRow.querySelector('.property-type',).value,
+				contentType:      gridRow.querySelector('.content-type')?.value ?? null,
+				format:           gridRow.querySelector('.property-format')?.value ?? null,
+				notNull:          gridRow.querySelector('.not-null').checked,
+				compound:         gridRow.querySelector('.compound').checked,
+				unique:           gridRow.querySelector('.unique').checked,
+				indexed:          gridRow.querySelector('.indexed').checked,
+				defaultValue:     gridRow.querySelector('.property-default').value,
+				isCachingEnabled: gridRow.querySelector('.caching-enabled')?.checked ?? false,
+				typeHint:         gridRow.querySelector('.type-hint')?.value ?? null
 			};
 
 			if (obj.typeHint === "null") {
@@ -2320,28 +2219,28 @@ let _Schema = {
 
 			return obj;
 		},
-		setAttributesInRow: (property, tr) => {
+		setAttributesInRow: (property, gridRow) => {
 
-			$('.property-name', tr).val(property.name);
-			$('.property-dbname', tr).val(property.dbName);
-			$('.property-type', tr).val(property.propertyType);
-			$('.content-type', tr).val(property.contentType);
-			$('.property-format', tr).val(property.format);
-			$('.not-null', tr).prop('checked', property.notNull);
-			$('.compound', tr).prop('checked', property.compound);
-			$('.unique', tr).prop('checked', property.unique);
-			$('.indexed', tr).prop('checked', property.indexed);
-			$('.property-default', tr).val(property.defaultValue);
-			$('.caching-enabled', tr).prop('checked', property.isCachingEnabled);
-			$('.type-hint', tr).val(property.typeHint || "null");
+			$('.property-name', gridRow).val(property.name);
+			$('.property-dbname', gridRow).val(property.dbName);
+			$('.property-type', gridRow).val(property.propertyType);
+			$('.content-type', gridRow).val(property.contentType);
+			$('.property-format', gridRow).val(property.format);
+			$('.not-null', gridRow).prop('checked', property.notNull);
+			$('.compound', gridRow).prop('checked', property.compound);
+			$('.unique', gridRow).prop('checked', property.unique);
+			$('.indexed', gridRow).prop('checked', property.indexed);
+			$('.property-default', gridRow).val(property.defaultValue);
+			$('.caching-enabled', gridRow).prop('checked', property.isCachingEnabled);
+			$('.type-hint', gridRow).val(property.typeHint || "null");
 		},
-		checkProperty: (row) => {
+		checkProperty: (gridRow) => {
 
-			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
+			let propertyInfoUI = _Schema.properties.getDataFromRow(gridRow);
 
 			if (propertyInfoUI.propertyType === 'Function') {
 
-				let container = row[0].querySelector('.indexed').closest('td');
+				let container = gridRow.querySelector('.indexed').closest('div');
 
 				_Schema.properties.checkFunctionProperty(propertyInfoUI, container);
 			}
@@ -2370,12 +2269,12 @@ let _Schema = {
 				_Helpers.fastRemoveElement(existingWarning);
 			}
 		},
-		rowChanged: (property, row) => {
+		rowChanged: (property, gridRow) => {
 
-			let propertyInfoUI = _Schema.properties.getInfoFromRow(row);
+			let propertyInfoUI = _Schema.properties.getDataFromRow(gridRow);
 			let hasChanges     = false;
 
-			_Schema.properties.checkProperty(row);
+			_Schema.properties.checkProperty(gridRow);
 
 			for (let key in propertyInfoUI) {
 
@@ -2391,35 +2290,35 @@ let _Schema = {
 				}
 			}
 
-			_Schema.markElementAsChanged(row[0], hasChanges);
+			_Schema.markElementAsChanged(gridRow, hasChanges);
 
-			_Schema.bulkDialogsGeneral.tableChanged(row[0].closest('table'));
+			_Schema.bulkDialogsGeneral.gridChanged(gridRow.closest('.schema-grid'));
 		},
-		validateProperty: (propertyDefinition, tr) => {
+		validateProperty: (propertyDefinition, gridRow) => {
 
 			if (propertyDefinition.name.length === 0) {
 
-				_Helpers.blinkRed($('.property-name', tr).closest('td'));
+				_Helpers.blinkRed(gridRow.querySelector('.property-name').closest('div'));
 				return false;
 
 			} else if (propertyDefinition.propertyType.length === 0) {
 
-				_Helpers.blinkRed($('.property-type', tr).closest('td'));
+				_Helpers.blinkRed(gridRow.querySelector('.property-type').closest('div'));
 				return false;
 
 			} else if (propertyDefinition.propertyType === 'Enum' && propertyDefinition.format.trim().length === 0) {
 
-				_Helpers.blinkRed($('.property-format', tr).closest('td'));
+				_Helpers.blinkRed(gridRow.querySelector('.property-format').closest('div'));
 				return false;
 
 			} else if (propertyDefinition.propertyType === 'Enum') {
 
-				var containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
+				let containsSpace = propertyDefinition.format.split(',').some(function (enumVal) {
 					return enumVal.trim().indexOf(' ') !== -1;
 				});
 
 				if (containsSpace) {
-					_Helpers.blinkRed($('.property-format', tr).closest('td'));
+					_Helpers.blinkRed(gridRow.querySelector('.property-format').closest('div'));
 					new WarningMessage().text(`Enum values must be separated by commas and can not contain spaces<br>See the <a href="${_Helpers.getDocumentationURLForTopic('schema-enum')}" target="_blank">support article on enum properties</a> for more information.`).requiresConfirmation().show();
 					return false;
 				}
@@ -2584,29 +2483,28 @@ let _Schema = {
 		appendBuiltinProperties: (container, entity) => {
 
 			let tableConfig = {
-				class: 'builtin schema-props',
+				class: 'builtin schema-props grid',
+				style: 'grid-template-columns: [ declaringClass ] minmax(0, 1fr) [ jsonName ] minmax(0, 1fr) [ type ] minmax(0, 1fr) [ notNull ] minmax(5%, max-content) [ compositeUnique ] minmax(5%, max-content) [ unique ] minmax(5%, max-content) [ indexed ] minmax(5%, max-content);',
 				cols: [
-					{ class: '', title: 'Declaring Class' },
-					{ class: '', title: 'JSON Name' },
-					{ class: '', title: 'Type' },
-					{ class: '', title: 'Notnull' },
-					{ class: '', title: 'Comp.' },
-					{ class: '', title: 'Uniq.' },
-					{ class: '', title: 'Idx' }
-				]
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Declaring Class' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'JSON Name' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Type' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Notnull' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Comp.' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Uniq.' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Idx' }
+				],
+				noButtons: true
 			};
 
-			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
-			let tbody           = propertiesTable.querySelector('tbody')
-			propertiesTable.querySelector('tfoot').classList.add('hidden');
+			let propertiesTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(tableConfig));
+			let gridBody           = propertiesTable.querySelector('.schema-grid-body');
+			propertiesTable.querySelector('.schema-grid-footer').classList.add('hidden');
 
 			container.appendChild(propertiesTable);
 
-			_Helpers.sort(entity.schemaProperties);
-
 			Command.listSchemaProperties(entity.id, 'ui', (data) => {
 
-				// sort by name
 				_Helpers.sort(data, "declaringClass", "name");
 
 				for (let prop of data) {
@@ -2625,11 +2523,157 @@ let _Schema = {
 							declaringClass: prop.declaringClass
 						};
 
-						tbody.insertAdjacentHTML('beforeend', _Schema.templates.propertyBuiltin({ property: property }));
+						gridBody.insertAdjacentHTML('beforeend', _Schema.properties.templates.propertyBuiltin({ property: property }));
 					}
 				}
 			});
 		},
+		templates: {
+			propertyBuiltin: config => `
+				<div class="schema-grid-row contents" data-property-name="${config.property.name}" data-property-id="${config.property.id}">
+					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</div>
+					<div class="py-1 flex items-center">${_Helpers.escapeForHtmlAttributes(config.property.name)}</div>
+					<div class="py-1 flex items-center">${config.property.propertyType}</div>
+					<div class="flex items-center justify-center">
+						<input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="compound" type="checkbox" disabled="disabled" ${(config.property.compound ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="unique" type="checkbox" disabled="disabled" ${(config.property.unique ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="indexed" type="checkbox" disabled="disabled" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+				</div>
+			`,
+			propertyLocal: config => `
+				<div class="schema-grid-row contents" data-property-id="${config.property.id}" >
+					<div class="p-1 flex items-center">
+						<input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}">
+					</div>
+					<div class="p-1 ${config.dbNameClass}">
+						<input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}">
+					</div>
+					<div class="flex items-center">
+						${config.typeOptions}
+						${(config.property.propertyType === 'String' && !config.property.isBuiltinProperty) ? '<input type="text" class="content-type w-12" title="Content-Type">' : ''}
+					</div>
+					<div class="p-1">
+						${(() => {
+							switch (config.property.propertyType) {
+								case 'Function':
+									return `
+												<div class="flex items-center">
+													<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
+													<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
+													<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
+													<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
+													${config.typeHintOptions}
+												</div>
+											`;
+								case 'Cypher':
+									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
+								default:
+									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? _Helpers.escapeForHtmlAttributes(config.property.format) : '')}">`;
+							};
+						})()}
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')} style="margin-right: 0;">
+					</div>
+					<div class="p-1"><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></div>
+					<div class="actions-col flex items-center justify-center">
+						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+						${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					</div>
+				</div>
+			`,
+			propertyNew: config => `
+				<div class="schema-grid-row has-changes contents">
+					<div class="p-1">
+						<input size="15" type="text" class="property-name" placeholder="JSON name" autofocus>
+					</div>
+					<div class="p-1 ${config.dbNameClass}">
+						<input size="15" type="text" class="property-dbname" placeholder="DB Name">
+					</div>
+					<div class="flex items-center">${config.typeOptions}</div>
+					<div class="p-1">
+						<input size="15" type="text" class="property-format" placeholder="Format">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="not-null" type="checkbox" style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="compound" type="checkbox" style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="unique" type="checkbox" style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input class="indexed" type="checkbox" style="margin-right: 0;">
+					</div>
+					<div class="p-1">
+						<input class="property-default" size="10" type="text" placeholder="Default Value">
+					</div>
+					<div class="actions-col flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Remove')}
+					</div>
+				</div>
+			`,
+			typeHintOptions: config => `
+				<select class="type-hint pr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<optgroup label="Type Hint">
+						<option value="null">-</option>
+						<option value="boolean">Boolean</option>
+						<option value="string">String</option>
+						<option value="int">Int</option>
+						<option value="long">Long</option>
+						<option value="double">Double</option>
+						<option value="date">Date</option>
+					</optgroup>
+				</select>
+			`,
+			typeOptions: config => `
+				<select class="property-type pr-6 hover:bg-gray-100 focus:border-gray-666 active:border-green">
+					<option value="">--Select--</option>
+					<option value="String">String</option>
+					<option value="Encrypted">Encrypted</option>
+					<option value="StringArray">String[]</option>
+					<option value="Integer">Integer</option>
+					<option value="IntegerArray">Integer[]</option>
+					<option value="Long">Long</option>
+					<option value="LongArray">Long[]</option>
+					<option value="Double">Double</option>
+					<option value="DoubleArray">Double[]</option>
+					<option value="Boolean">Boolean</option>
+					<option value="BooleanArray">Boolean[]</option>
+					<option value="ByteArray">Byte[]</option>
+					<option value="Enum">Enum</option>
+					<option value="Date">Date</option>
+					<option value="DateArray">Date[]</option>
+					<option value="Count">Count</option>
+					<option value="Function" data-indexed="false">Function</option>
+					<option value="Notion">Notion</option>
+					<option value="Join">Join</option>
+					<option value="Cypher" data-indexed="false">Cypher</option>
+					<option value="Thumbnail">Thumbnail</option>
+					<option value="IdNotion" data-protected="true" disabled>IdNotion</option>
+					<option value="Custom" data-protected="true" disabled>Custom</option>
+					<option value="Password" data-protected="true" disabled>Password</option>
+				</select>
+			`,
+		}
 	},
 	remoteProperties: {
 		cardinalityClasses: {
@@ -2648,57 +2692,59 @@ let _Schema = {
 		},
 		appendRemote: (container, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
 
-			let tableConfig = {
-				class: 'related-attrs schema-props',
+			let gridConfig = {
+				class: 'related-attrs schema-props grid',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) [ arrow ] minmax(0, 1fr) [ actions ] fit-content(10%);',
 				cols: [
-					{ class: '', title: 'JSON Name' },
-					{ class: '', title: 'Type, direction and related type' },
-					{ class: 'actions-col', title: 'Action' }
+					{ class: 'text-center font-bold pb-2', title: 'JSON Name' },
+					{ class: 'text-center font-bold', title: 'Type, direction and related type' },
+					{ class: 'actions-col text-center font-bold', title: 'Action' }
 				]
 			};
 
-			let table = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(tableConfig));
-			let tbody = table.querySelector('tbody');
-			container.appendChild(table);
+			let grid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(gridConfig));
+			let gridBody = grid.querySelector('.schema-grid-body');
 
 			if (entity.relatedTo.length === 0 && entity.relatedFrom.length === 0) {
 
-				tbody.insertAdjacentHTML('beforeend', '<tr><td colspan=3 class="no-rels">Type has no relationships...</td></tr>');
-				table.querySelector('tfoot').classList.add('hidden');
+				gridBody.insertAdjacentHTML('beforeend', '<div style="grid-column: span 3;" class="no-rels">Type has no relationships...</div>');
+				grid.querySelector('.schema-grid-footer').classList.add('hidden');
 
 			} else {
 
 				for (let target of entity.relatedTo) {
-					_Schema.remoteProperties.appendRemoteProperty(tbody, target, true, editSchemaObjectLinkHandler);
+					_Schema.remoteProperties.appendRemoteProperty(gridBody, target, true, editSchemaObjectLinkHandler);
 				}
 
 				for (let source of entity.relatedFrom) {
-					_Schema.remoteProperties.appendRemoteProperty(tbody, source, false, editSchemaObjectLinkHandler);
+					_Schema.remoteProperties.appendRemoteProperty(gridBody, source, false, editSchemaObjectLinkHandler);
 				}
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of table.querySelectorAll('.discard-changes')) {
+				for (let discardIcon of grid.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
 
-			table.querySelector('.discard-all').addEventListener('click', resetFunction);
+			grid.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			table.querySelector('.save-all').addEventListener('click', () => {
-				_Schema.remoteProperties.bulkSave(container, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
+			grid.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.remoteProperties.bulkSave(container, gridBody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback);
 			});
 
-			_Schema.bulkDialogsGeneral.tableChanged(table);
+			container.appendChild(grid);
+
+			_Schema.bulkDialogsGeneral.gridChanged(grid);
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.remoteProperties.getDataFromTable(tbody, entity, doValidate);
+					return _Schema.remoteProperties.getDataFromGrid(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (tbody, entity, doValidate = true) => {
+		getDataFromGrid: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Linked Properties';
 			let data = {
@@ -2711,11 +2757,11 @@ let _Schema = {
 				reset:0
 			};
 
-			for (let tr of tbody.querySelectorAll('tr')) {
+			for (let gridRow of gridBody.querySelectorAll('div.schema-grid-row')) {
 
-				let relId            = tr.dataset['relationshipId'];
-				let propertyName     = tr.dataset['propertyName'];
-				let targetCollection = tr.dataset['targetCollection'];
+				let relId            = gridRow.dataset['relationshipId'];
+				let propertyName     = gridRow.dataset['propertyName'];
+				let targetCollection = gridRow.dataset['targetCollection'];
 
 				if (relId) {
 
@@ -2723,15 +2769,15 @@ let _Schema = {
 						id: relId
 					};
 
-					info[propertyName] = tr.querySelector('.property-name').value;
+					info[propertyName] = gridRow.querySelector('.property-name').value;
 					if (info[propertyName] === '') {
 						info[propertyName] = null;
 					}
 
-					if (tr.classList.contains('has-changes')) {
+					if (gridRow.classList.contains('has-changes')) {
 
 						if (doValidate) {
-							allow = _Schema.remoteProperties.validate(tr) && allow;
+							allow = _Schema.remoteProperties.validate(gridRow) && allow;
 						}
 
 						if (info[propertyName] === null) {
@@ -2747,9 +2793,9 @@ let _Schema = {
 
 			return { name, data, allow, counts };
 		},
-		bulkSave: (el, tbody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
+		bulkSave: (el, gridBody, entity, editSchemaObjectLinkHandler, optionalAfterSaveCallback) => {
 
-			let { allow, counts, data } = _Schema.remoteProperties.getDataFromTable(tbody, entity);
+			let { allow, counts, data } = _Schema.remoteProperties.getDataFromGrid(gridBody, entity);
 
 			if (allow) {
 
@@ -2792,26 +2838,26 @@ let _Schema = {
 
 			let renderRemoteProperty = (tplConfig) => {
 
-				let row = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.remoteProperty(tplConfig));
-				el.appendChild(row);
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.remoteProperties.templates.remoteProperty(tplConfig));
+				el.appendChild(gridRow);
 
-				row.querySelector('.property-name').addEventListener('keyup', () => {
-					_Schema.remoteProperties.rowChanged(row, attributeName);
+				gridRow.querySelector('.property-name').addEventListener('keyup', () => {
+					_Schema.remoteProperties.rowChanged(gridRow, attributeName);
 				});
 
-				row.querySelector('.reset-action').addEventListener('click', () => {
-					row.querySelector('.property-name').value = '';
-					_Schema.remoteProperties.rowChanged(row, attributeName);
+				gridRow.querySelector('.reset-action').addEventListener('click', () => {
+					gridRow.querySelector('.property-name').value = '';
+					_Schema.remoteProperties.rowChanged(gridRow, attributeName);
 				});
 
-				row.querySelector('.discard-changes').addEventListener('click', () => {
-					$('.property-name', row).val(attributeName);
-					_Schema.remoteProperties.rowChanged(row, attributeName);
+				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
+					$('.property-name', gridRow).val(attributeName);
+					_Schema.remoteProperties.rowChanged(gridRow, attributeName);
 				});
 
 				if (Structr.isModuleActive(_Schema)) {
 
-					for (let otherSchemaTypeLink of row.querySelectorAll('.edit-schema-object')) {
+					for (let otherSchemaTypeLink of gridRow.querySelectorAll('.edit-schema-object')) {
 
 						otherSchemaTypeLink.addEventListener('click', async (e) => {
 							e.stopPropagation();
@@ -2824,7 +2870,7 @@ let _Schema = {
 
 				} else {
 
-					row.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
+					gridRow.querySelector('.edit-schema-object').classList.remove('edit-schema-object');
 				}
 			};
 
@@ -2834,8 +2880,8 @@ let _Schema = {
 				propertyName: (out ? 'targetJsonName' : 'sourceJsonName'),
 				targetCollection: (out ? 'relatedTo' : 'relatedFrom'),
 				attributeName: attributeName,
-				arrowLeft: (out ? '' : '&#9668;'),
-				arrowRight: (out ? '&#9658;' : ''),
+				leftArrow: (out ? '' : '<span style="margin-right: -1px;">&#9668;</span>'),
+				rightArrow: (out ? '<span style="margin-left: -1px;">&#9658;</span>' : ''),
 				cardinalityClassLeft: _Schema.remoteProperties.cardinalityClasses[(out ? rel.sourceMultiplicity : rel.targetMultiplicity)],
 				cardinalityClassRight: _Schema.remoteProperties.cardinalityClasses[(out ? rel.targetMultiplicity : rel.sourceMultiplicity)],
 				relatedNodeId: relatedNodeId
@@ -2851,30 +2897,46 @@ let _Schema = {
 				renderRemoteProperty(tplConfig);
 			}
 		},
-		rowChanged: (row, originalName) => {
+		rowChanged: (gridRow, originalName) => {
 
-			let nameInUI   = row.querySelector('.property-name').value;
+			let nameInUI   = gridRow.querySelector('.property-name').value;
 			let hasChanges = (nameInUI !== originalName);
 
-			_Schema.markElementAsChanged(row, hasChanges);
+			_Schema.markElementAsChanged(gridRow, hasChanges);
 
-			_Schema.bulkDialogsGeneral.tableChanged(row.closest('table'));
+			_Schema.bulkDialogsGeneral.gridChanged(gridRow.closest('.schema-grid'));
 		},
-		validate: (row) => {
+		validate: (gridRow) => {
 			return true;
+		},
+		templates: {
+			remoteProperty: config => `
+				<div class="schema-grid-row contents" data-relationship-id="${config.rel.id}" data-property-name="${config.propertyName}" data-target-collection="${config.targetCollection}">
+					<div class="px-1 py-2">
+						<input type="text" class="property-name related" value="${config.attributeName}">
+					</div>
+					<div class="flex items-center whitespace-nowrap">
+						${config.leftArrow}
+						<i class="cardinality ${config.cardinalityClassLeft}"></i>&mdash;&ndash;
+						<span class="edit-schema-object font-medium cursor-pointer truncate break-on-hover squarebrackets relative px-2 py-1" data-object-id="${config.rel.id}">
+							<span class="pointer-events-none">${config.relType}</span>
+						</span>
+						<i class="cardinality ${config.cardinalityClassRight}"></i>&mdash;&ndash;
+						${config.rightArrow}
+						<span class="edit-schema-object font-medium cursor-pointer truncate break-on-hover ml-2 py-1" data-object-id="${config.relatedNodeId}">
+							<span class="pointer-events-none">${config.relatedNodeType}</span>
+						</span>
+					</div>
+					<div class="flex items-center justify-center gap-1 px-2">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Undo changes')}
+						${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'reset-action']), 'Reset to default')}
+					</div>
+				</div>
+			`,
 		}
 	},
 	views: {
 		initialViewConfig: {},
-		viewsTableConfig: {
-			class: 'related-attrs schema-props',
-			cols: [
-				{ class: '', title: 'Name' },
-				{ class: '', title: 'Properties' },
-				{ class: 'actions-col', title: 'Action' }
-			],
-			addButtonText: 'Add view'
-		},
 		protectedViewsList: ['all', 'ui', 'custom'],	// not allowed to add/remove properties, but allowed to sort
 		isViewEditable: (view) => {
 			return (_Schema.views.isViewNameChangeForbidden(view) === false || _Schema.views.isViewPropertiesChangeForbidden(view) === false);
@@ -2890,55 +2952,66 @@ let _Schema = {
 		},
 		appendViews: (container, entity, optionalAfterSaveCallback) => {
 
-			let viewsTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaTable(_Schema.views.viewsTableConfig));
-			let tbody      = viewsTable.querySelector('tbody');
-			container.appendChild(viewsTable);
+			let gridConfig = {
+				class: 'views schema-props grid',
+				style: 'grid-template-columns: [ name ] 20% [ attributes ] minmax(0, 2fr) [ actions ] 8%',
+				cols: [
+					{ class: 'text-center font-bold pb-2', title: 'JSON Name' },
+					{ class: 'text-center font-bold', title: 'Properties' },
+					{ class: 'actions-col text-center font-bold', title: 'Action' }
+				],
+				buttons: _Schema.templates.basicAddButton({ addButtonText: 'Add view' })
+			};
+
+			let grid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(gridConfig));
+			let gridBody   = grid.querySelector('.schema-grid-body');
+			container.appendChild(grid);
 
 			_Helpers.sort(entity.schemaViews);
 
 			for (let view of entity.schemaViews) {
-				_Schema.views.appendView(tbody, view, entity);
+				_Schema.views.appendView(gridBody, view, entity);
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of tbody.querySelectorAll('.discard-changes')) {
+				for (let discardIcon of gridBody.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			viewsTable.querySelector('.discard-all').addEventListener('click', resetFunction);
+			grid.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			viewsTable.querySelector('.save-all').addEventListener('click', () => {
-				_Schema.views.bulkSave(container, tbody, entity, optionalAfterSaveCallback);
+			grid.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.views.bulkSave(container, gridBody, entity, optionalAfterSaveCallback);
 			});
 
 			container.querySelector('button.add-button').addEventListener('click', () => {
 
-				let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.viewNew());
-				tbody.appendChild(tr);
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.views.templates.viewNew());
+				gridBody.appendChild(gridRow);
 
-				_Schema.views.appendViewSelectionElement(tr, { name: 'new' }, entity, (selectElement) => {
+				_Schema.views.appendViewSelectionElement(gridRow, { name: 'new' }, entity, (selectElement) => {
 
 					selectElement.select2Sortable();
 
-					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
+					_Schema.bulkDialogsGeneral.gridChanged(grid);
 				});
 
-				tr.querySelector('.discard-changes').addEventListener('click', () => {
-					_Helpers.fastRemoveElement(tr);
-					_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
+				gridRow.querySelector('.discard-changes').addEventListener('click', () => {
+					_Helpers.fastRemoveElement(gridRow);
+					_Schema.bulkDialogsGeneral.gridChanged(grid);
 				});
 			});
 
-			_Schema.bulkDialogsGeneral.tableChanged(viewsTable);
+			_Schema.bulkDialogsGeneral.gridChanged(grid);
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.views.getDataFromTable(tbody, entity, doValidate);
+					return _Schema.views.getDataFromGrid(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (tbody, entity, doValidate = true) => {
+		getDataFromGrid: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Views';
 			let data = {
@@ -2951,25 +3024,25 @@ let _Schema = {
 				new: 0
 			};
 
-			for (let tr of tbody.querySelectorAll('tr')) {
+			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
-				let viewId = tr.dataset['viewId'];
-				let view   = _Schema.views.getInfoFromRow(tr, entity);
+				let viewId = gridRow.dataset['viewId'];
+				let view   = _Schema.views.getDataFromRow(gridRow, entity);
 
 				if (viewId) {
 
-					if (tr.classList.contains('to-delete')) {
+					if (gridRow.classList.contains('to-delete')) {
 
 						// do not add this property to the list
 						counts.delete++;
 
-					} else if (tr.classList.contains('has-changes')) {
+					} else if (gridRow.classList.contains('has-changes')) {
 
 						// changed lines
 						counts.update++;
 						view.id = viewId;
 						if (doValidate) {
-							allow = _Schema.views.validateViewRow(tr) && allow;
+							allow = _Schema.views.validateViewRow(gridRow) && allow;
 						}
 						data.schemaViews.push(view);
 
@@ -2986,7 +3059,7 @@ let _Schema = {
 					counts.new++;
 					view.type = 'SchemaView';
 					if (doValidate) {
-						allow = _Schema.views.validateViewRow(tr) && allow;
+						allow = _Schema.views.validateViewRow(gridRow) && allow;
 					}
 					data.schemaViews.push(view);
 				}
@@ -3028,31 +3101,31 @@ let _Schema = {
 				});
 			}
 		},
-		appendView: (tbody, view, entity) => {
+		appendView: (gridBody, view, entity) => {
 
-			let tr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.view({ view: view, type: entity }));
-			tbody.appendChild(tr);
+			let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.views.templates.view({ view: view, type: entity }));
+			gridBody.appendChild(gridRow);
 
-			_Schema.views.appendViewSelectionElement(tr, view, entity, (selectElement) => {
+			_Schema.views.appendViewSelectionElement(gridRow, view, entity, (selectElement) => {
 
 				// store initial configuration for later comparison
-				let initialViewConfig = _Schema.views.getInfoFromRow(tr, entity);
+				let initialViewConfig = _Schema.views.getDataFromRow(gridRow, entity);
 
 				// store initial configuration for each view to be able to determine excluded properties later
 				_Schema.views.initialViewConfig[view.id] = initialViewConfig;
 
 				selectElement.select2Sortable(() => {
-					_Schema.views.rowChanged(tr, entity, initialViewConfig);
+					_Schema.views.rowChanged(gridRow, entity, initialViewConfig);
 				});
 
-				_Schema.views.bindRowEvents(tr, entity, view, initialViewConfig);
+				_Schema.views.bindRowEvents(gridRow, entity, view, initialViewConfig);
 			});
 		},
-		bindRowEvents: (tr, entity, view, initialViewConfig) => {
+		bindRowEvents: (gridRow, entity, view, initialViewConfig) => {
 
-			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(tr, entity, initialViewConfig); };
+			let viewInfoChangeHandler = () => { _Schema.views.rowChanged(gridRow, entity, initialViewConfig); };
 
-			let nameInput    = tr.querySelector('.view.property-name');
+			let nameInput    = gridRow.querySelector('.view.property-name');
 			let nameDisabled = _Schema.views.isViewNameChangeForbidden(view);
 
 			if (nameDisabled) {
@@ -3063,13 +3136,13 @@ let _Schema = {
 			}
 
 			// jquery is required for change handler of select2 plugin
-			$(tr.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
+			$(gridRow.querySelector('.view.property-attrs')).on('change', viewInfoChangeHandler);
 
-			tr.querySelector('.discard-changes')?.addEventListener('click', () => {
+			gridRow.querySelector('.discard-changes')?.addEventListener('click', () => {
 
-				tr.querySelector('.view.property-name').value = view.name;
+				gridRow.querySelector('.view.property-name').value = view.name;
 
-				let select = tr.querySelector('select');
+				let select = gridRow.querySelector('select');
 				Command.listSchemaProperties(entity.id, view.name, (data) => {
 
 					for (let prop of data) {
@@ -3081,18 +3154,18 @@ let _Schema = {
 
 					select.dispatchEvent(new CustomEvent('change'));
 
-					tr.classList.remove('to-delete');
-					tr.classList.remove('has-changes');
+					gridRow.classList.remove('to-delete');
+					gridRow.classList.remove('has-changes');
 
-					_Schema.bulkDialogsGeneral.tableChanged(tr.closest('table'));
+					_Schema.bulkDialogsGeneral.gridChanged(gridRow.closest('.schema-grid'));
 				});
 			});
 
-			let removeAction = tr.querySelector('.remove-action');
+			let removeAction = gridRow.querySelector('.remove-action');
 			if (removeAction) {
 				removeAction.addEventListener('click', () => {
 
-					tr.classList.add('to-delete');
+					gridRow.classList.add('to-delete');
 					viewInfoChangeHandler();
 
 				})
@@ -3114,10 +3187,10 @@ let _Schema = {
 				}
 			}
 		},
-		appendViewSelectionElement: (row, view, schemaEntity, callback) => {
+		appendViewSelectionElement: (gridRow, view, schemaEntity, callback) => {
 
 			let viewIsEditable = _Schema.views.isViewEditable(view);
-			let viewSelectElem = row.querySelector('.property-attrs');
+			let viewSelectElem = gridRow.querySelector('.property-attrs');
 
 			Command.listSchemaProperties(schemaEntity.id, view.name, (properties) => {
 
@@ -3209,55 +3282,20 @@ let _Schema = {
 
 			return result.join(', ');
 		},
-		findInheritedPropertyByName: (entity, names) => {
+		getDataFromRow: (gridRow, schemaNodeEntity) => {
 
-			let inheritedProperties = [];
+			const sortedAttrs = $(gridRow.querySelector('.view.property-attrs')).sortedValues();
 
-			for (let prop of document.querySelectorAll('.builtin.schema-props tr')) {
-
-				let name = prop.dataset.propertyName;
-				let id   = prop.dataset.propertyId;
-
-				if (names.includes(name)) {
-					const data = { name: name };
-					if (id && id !== 'null') {
-						data.id = id;
-					}
-					inheritedProperties.push(data);
-				}
-			}
-
-			return inheritedProperties;
-		},
-		findExcludedProperties: (entity, names, tr) => {
-
-			let excludedProps = [];
-
-			let viewId            = tr.dataset['viewId'];
-			let initialViewConfig = _Schema.views.initialViewConfig[viewId];
-
-			if (initialViewConfig && initialViewConfig.hasOwnProperty('nonGraphProperties')) {
-				excludedProps = _Schema.views.findInheritedPropertyByName(entity, initialViewConfig.nonGraphProperties.split(',').map(p => p.trim()).filter(p => !names.includes(p)));
-			}
-
-			return excludedProps;
-		},
-		getInfoFromRow: (tr, schemaNodeEntity) => {
-
-			const sortedAttrs = $(tr.querySelector('.view.property-attrs')).sortedValues();
-
-			const data = {
-				name: tr.querySelector('.view.property-name').value,
-				schemaProperties: _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
+			return {
+				name:               gridRow.querySelector('.view.property-name').value,
+				schemaProperties:   _Schema.views.findSchemaPropertiesByNodeAndName(schemaNodeEntity, sortedAttrs),
 				nonGraphProperties: _Schema.views.findNonGraphProperties(schemaNodeEntity, sortedAttrs),
-				//excludedProperties: _Schema.views.findExcludedProperties(schemaNodeEntity, sortedAttrs, tr),
-				sortOrder: sortedAttrs.join(',')
+				sortOrder:          sortedAttrs.join(',')
 			};
-			return data;
 		},
-		rowChanged: (tr, entity, initialViewConfig) => {
+		rowChanged: (gridRow, entity, initialViewConfig) => {
 
-			let viewInfoInUI = _Schema.views.getInfoFromRow(tr, entity);
+			let viewInfoInUI = _Schema.views.getDataFromRow(gridRow, entity);
 			let hasChanges   = false;
 
 			for (let key in viewInfoInUI) {
@@ -3265,31 +3303,33 @@ let _Schema = {
 				if (key === 'schemaProperties') {
 
 					let origSchemaProps = initialViewConfig[key].map(p => p.id).sort().join(',');
-					let uiSchemaProps = viewInfoInUI[key].map(p => p.id).sort().join(',');
+					let uiSchemaProps   = viewInfoInUI[key].map(p => p.id).sort().join(',');
 
 					if (origSchemaProps !== uiSchemaProps) {
 						hasChanges = true;
 					}
 
 				} else if (viewInfoInUI[key] !== initialViewConfig[key]) {
+
 					hasChanges = true;
 				}
 			}
 
-			_Schema.markElementAsChanged(tr, hasChanges);
+			_Schema.markElementAsChanged(gridRow, hasChanges);
 
-			_Schema.bulkDialogsGeneral.tableChanged(tr.closest('table'));
+			_Schema.bulkDialogsGeneral.gridChanged(gridRow.closest('.schema-grid'));
 		},
-		validateViewRow: (row) => {
+		validateViewRow: (gridRow) => {
 
-			let nameField = row.querySelector('.property-name');
+			let nameField = gridRow.querySelector('.property-name');
 			if (nameField.value.length === 0) {
 
-				_Helpers.blinkRed(nameField.closest('td'));
+				_Helpers.blinkRed(nameField.closest('.schema-grid-row'));
 				return false;
 			}
 
-			let viewPropertiesSelect = row.querySelector('.view.property-attrs');
+			let viewPropertiesSelect = gridRow.querySelector('.view.property-attrs');
+			console.log(viewPropertiesSelect.selectedOptions);
 			if ($(viewPropertiesSelect).sortedValues().length === 0) {
 
 				_Helpers.blinkRed(viewPropertiesSelect.closest('td'));
@@ -3298,6 +3338,39 @@ let _Schema = {
 
 			return true;
 		},
+		templates: {
+			view: config => `
+				<div data-view-id="${config.view.id}" class="schema-grid-row contents">
+					<div class="p-1 flex items-center">
+						<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}">
+					</div>
+					<div class="view-properties-select">
+						<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
+					</div>
+					<div class="actions-col gap-1 flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+						${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
+	
+						<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
+							${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview in new tab (with pageSize=1)')}
+						</a>
+					</div>
+				</div>
+			`,
+			viewNew: config => `
+				<div class="schema-grid-row contents has-changes">
+					<div class="p-1 flex items-center">
+						<input size="15" type="text" class="view property-name" placeholder="Enter view name">
+					</div>
+					<div class="view-properties-select">
+						<select class="property-attrs view" multiple="multiple"></select>
+					</div>
+					<div class="actions-col flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
+					</div>
+				</div>
+			`
+		}
 	},
 	methods: {
 		methodsData: {},
@@ -3306,33 +3379,36 @@ let _Schema = {
 		setLastEditedMethod: (entity, method) => {
 			_Schema.methods.lastEditedMethod[(entity ? entity.id : 'global')] = method;
 		},
-		methodsTableConfig: {
-			class: 'actions schema-props',
-			cols: [
-				{ class: '', title: 'Name' },
-				{ class: 'isstatic-col', title: 'isStatic' },
-				{ class: 'actions-col', title: 'Action' }
-			]
-		},
 		appendMethods: (container, entity, methods, optionalAfterSaveCallback) => {
 
 			_Schema.methods.methodsData = {};
 
+			let methodsGridConfig = {
+				class: 'actions schema-props grid',
+				style: 'grid-template-columns: [ name ] minmax(0, 1fr) ' +  ((entity) ? '[ isstatic ] 2rem ' : '') + '[ actions ] 6rem',
+				cols: [
+					{ class: 'text-center font-bold pb-2', title: 'Name' },
+					{ class: 'isstatic-col flex justify-center font-bold', title: 'isStatic' },
+					{ class: 'actions-col text-center font-bold', title: 'Action' }
+				],
+				buttons: ((entity) ? _Schema.methods.templates.addMethodsDropdown() : _Schema.methods.templates.addMethodDropdown()) + '<div class="flex-grow flex"></div>'
+			};
+
+			if (!entity) {
+				methodsGridConfig.cols.splice(1,1);
+			}
+
 			methods = _Schema.filterJavaMethods(methods, entity);
-
-			container.insertAdjacentHTML('beforeend', _Schema.templates.methods({ class: (entity ? 'entity' : 'global') }));
-
-			let methodsFakeTable = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.fakeTable(_Schema.methods.methodsTableConfig));
-			container.querySelector('#methods-table-container').appendChild(methodsFakeTable);
-
-			let fakeTbody = container.querySelector('.fake-tbody');
-
-			let fakeTfootButtonsContainer = methodsFakeTable.querySelector('.fake-tfoot-buttons');
-			fakeTfootButtonsContainer.insertAdjacentHTML('beforeend', (entity) ? _Schema.templates.addMethodsDropdown() : _Schema.templates.addMethodDropdown());
-
-			_Schema.methods.activateUIActions(container, fakeTbody, entity);
-
 			_Helpers.sort(methods);
+
+			container.insertAdjacentHTML('beforeend', _Schema.methods.templates.methodsContainer({ class: (entity ? 'entity' : 'global') }));
+
+			let methodsGrid = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.schemaGrid(methodsGridConfig));
+			container.querySelector('#methods-grid-container').appendChild(methodsGrid);
+
+			let gridBody = container.querySelector('.schema-grid-body');
+
+			_Schema.methods.activateUIActions(container, gridBody, entity);
 
 			let lastEditedMethod = _Schema.methods.getLastEditedMethod(entity);
 
@@ -3340,14 +3416,14 @@ let _Schema = {
 
 			for (let method of methods) {
 
-				let fakeRow = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.method({ method: method }));
-				fakeTbody.appendChild(fakeRow);
+				let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method }));
+				gridBody.appendChild(gridRow);
 
-				fakeRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
-				fakeRow.dataset['methodName'] = method.name;
+				gridRow.dataset['typeName']   = (entity ? entity.name : 'global_schema_method');
+				gridRow.dataset['methodName'] = method.name;
 
-				fakeRow.querySelector('.property-name').value       = method.name;
-				fakeRow.querySelector('.property-isStatic').checked = method.isStatic;
+				gridRow.querySelector('.property-name').value       = method.name;
+				gridRow.querySelector('.property-isStatic').checked = method.isStatic;
 
 				_Schema.methods.methodsData[method.id] = {
 					isNew:           false,
@@ -3362,11 +3438,11 @@ let _Schema = {
 					codeType:        method.codeType || ''
 				};
 
-				_Schema.methods.bindRowEvents(fakeRow, entity);
+				_Schema.methods.bindRowEvents(gridRow, entity);
 
 				// auto-edit first method (or last used)
 				if ((rowToActivate === undefined) || (lastEditedMethod && ((lastEditedMethod.isNew === false && lastEditedMethod.id === method.id) || (lastEditedMethod.isNew === true && lastEditedMethod.name === method.name)))) {
-					rowToActivate = fakeRow;
+					rowToActivate = gridRow;
 				}
 			}
 
@@ -3375,29 +3451,29 @@ let _Schema = {
 			}
 
 			let resetFunction = () => {
-				for (let discardIcon of methodsFakeTable.querySelectorAll('.discard-changes')) {
+				for (let discardIcon of methodsGrid.querySelectorAll('.discard-changes')) {
 					discardIcon.dispatchEvent(new Event('click'));
 				}
 			};
-			methodsFakeTable.querySelector('.discard-all').addEventListener('click', resetFunction);
+			methodsGrid.querySelector('.discard-all').addEventListener('click', resetFunction);
 
-			methodsFakeTable.querySelector('.save-all').addEventListener('click', () => {
-				_Schema.methods.bulkSave(container, fakeTbody, entity, optionalAfterSaveCallback);
+			methodsGrid.querySelector('.save-all').addEventListener('click', () => {
+				_Schema.methods.bulkSave(container, gridBody, entity, optionalAfterSaveCallback);
 			});
 
 			let editorInfo = container.querySelector('#methods-container-right .editor-info');
 			_Editors.appendEditorOptionsElement(editorInfo);
 
-			_Schema.bulkDialogsGeneral.fakeTableChanged(methodsFakeTable);
+			_Schema.bulkDialogsGeneral.gridChanged(methodsGrid);
 
 			return {
 				getBulkInfo: (doValidate) => {
-					return _Schema.methods.getDataFromTable(fakeTbody, entity, doValidate);
+					return _Schema.methods.getDataFromGrid(gridBody, entity, doValidate);
 				},
 				reset: resetFunction
 			};
 		},
-		getDataFromTable: (tbody, entity, doValidate = true) => {
+		getDataFromGrid: (gridBody, entity, doValidate = true) => {
 
 			let name = 'Methods';
 			let data = {
@@ -3416,14 +3492,14 @@ let _Schema = {
 				data.schemaMethods.push({ id: javaMethod.id });
 			}
 
-			for (let tr of tbody.querySelectorAll('.fake-tr')) {
+			for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
 
-				let methodId   = tr.dataset['methodId'];
+				let methodId   = gridRow.dataset['methodId'];
 				let methodData = _Schema.methods.methodsData[methodId];
 
 				if (methodData.isNew === false) {
 
-					if (tr.classList.contains('to-delete')) {
+					if (gridRow.classList.contains('to-delete')) {
 
 						counts.delete++;
 						data.schemaMethods.push({
@@ -3431,18 +3507,19 @@ let _Schema = {
 							deleteMethod: true
 						});
 
-					} else if (tr.classList.contains('has-changes')) {
+					} else if (gridRow.classList.contains('has-changes')) {
 
 						counts.update++;
+						if (doValidate) {
+							allow = _Schema.methods.validateMethodRow(gridRow) && allow;
+						}
+
 						data.schemaMethods.push({
 							id:       methodId,
 							name:     methodData.name,
 							isStatic: methodData.isStatic,
 							source:   methodData.source,
 						});
-						if (doValidate) {
-							allow = _Schema.methods.validateMethodRow(tr) && allow;
-						}
 
 					} else {
 
@@ -3458,16 +3535,15 @@ let _Schema = {
 
 					counts.new++;
 					if (doValidate) {
-						allow = _Schema.methods.validateMethodRow(tr) && allow;
+						allow = _Schema.methods.validateMethodRow(gridRow) && allow;
 					}
-					let method = {
+
+					data.schemaMethods.push({
 						type:     'SchemaMethod',
 						name:     methodData.name,
 						isStatic: methodData.isStatic,
 						source:   methodData.source,
-					};
-
-					data.schemaMethods.push(method);
+					});
 				}
 			}
 
@@ -3478,13 +3554,13 @@ let _Schema = {
 
 			return { name, data, allow, counts };
 		},
-		bulkSave: (container, fakeTbody, entity, optionalAfterSaveCallback) => {
+		bulkSave: (container, gridBody, entity, optionalAfterSaveCallback) => {
 
-			let { data, allow, counts } = _Schema.methods.getDataFromTable(fakeTbody, entity);
+			let { data, allow, counts } = _Schema.methods.getDataFromGrid(gridBody, entity);
 
 			if (allow) {
 
-				let activeMethod = fakeTbody.querySelector('.fake-tr.editing');
+				let activeMethod = gridBody.querySelector('.schema-grid-row.editing');
 				if (activeMethod) {
 					_Schema.methods.setLastEditedMethod(entity, _Schema.methods.methodsData[activeMethod.dataset['methodId']]);
 				} else {
@@ -3537,7 +3613,7 @@ let _Schema = {
 				});
 			}
 		},
-		activateUIActions: (container, fakeTbody, entity) => {
+		activateUIActions: (container, gridBody, entity) => {
 
 			let addedMethodsCounter = 1;
 
@@ -3551,18 +3627,18 @@ let _Schema = {
 						id: 'new' + (addedMethodsCounter++)
 					};
 
-					_Schema.methods.appendNewMethod(fakeTbody, baseMethodConfig, entity);
+					_Schema.methods.appendNewMethod(gridBody, baseMethodConfig, entity);
 				});
 			}
 
 			_Helpers.activateCommentsInElement(container, { css: {}, noSpan: true, customToggleIconClasses: ['icon-blue', 'ml-2'] });
 		},
-		appendNewMethod: (fakeTbody, method, entity) => {
+		appendNewMethod: (gridBody, method, entity) => {
 
-			let fakeTr = _Helpers.createSingleDOMElementFromHTML(_Schema.templates.method({ method: method, isNew: true }));
-			fakeTbody.appendChild(fakeTr);
+			let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.methods.templates.methodRow({ method: method, isNew: true }));
+			gridBody.appendChild(gridRow);
 
-			fakeTbody.scrollTop = fakeTr.offsetTop;
+			gridBody.scrollTop = gridRow.offsetTop;
 
 			_Schema.methods.methodsData[method.id] = {
 				id: method.id,
@@ -3572,22 +3648,22 @@ let _Schema = {
 				source: method.source || '',
 			};
 
-			let propertyNameInput = fakeTr.querySelector('.property-name');
+			let propertyNameInput = gridRow.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				_Schema.methods.methodsData[method.id].name = propertyNameInput.value;
 			});
 
-			let isStaticCheckbox = fakeTr.querySelector('.property-isStatic');
+			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
 			isStaticCheckbox.addEventListener('change', () => {
 				_Schema.methods.methodsData[method.id].isStatic = isStaticCheckbox.checked;
 			});
 
-			fakeTr.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(fakeTr, entity);
+			gridRow.querySelector('.edit-action').addEventListener('click', () => {
+				_Schema.methods.editMethod(gridRow, entity);
 			});
 
-			fakeTr.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(fakeTr.closest('.fake-tbody'), {
+			gridRow.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(gridBody, {
 					id:       method.id + '_clone_' + (new Date().getTime()),
 					name:     _Schema.methods.getFirstFreeMethodName(_Schema.methods.methodsData[method.id].name + '_copy'),
 					isStatic: _Schema.methods.methodsData[method.id].isStatic,
@@ -3595,21 +3671,21 @@ let _Schema = {
 				}, entity);
 			});
 
-			fakeTr.querySelector('.discard-changes').addEventListener('click', () => {
+			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (fakeTr.classList.contains('editing')) {
+				if (gridRow.classList.contains('editing')) {
 					document.querySelector('#methods-container-right').style.display = 'none';
 				}
-				_Helpers.fastRemoveElement(fakeTr);
+				_Helpers.fastRemoveElement(gridRow);
 
-				_Schema.methods.rowChanged(fakeTbody.closest('.fake-table'));
+				_Schema.methods.rowChanged(gridBody.closest('.schema-grid'));
 
 				_Editors.nukeEditorsById(method.id);
 			});
 
-			_Schema.bulkDialogsGeneral.fakeTableChanged(fakeTbody.closest('.fake-table'));
+			_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
 
-			_Schema.methods.editMethod(fakeTr, entity);
+			_Schema.methods.editMethod(gridRow, entity);
 		},
 		getFirstFreeMethodName: (prefix) => {
 
@@ -3638,29 +3714,29 @@ let _Schema = {
 
 			return prefix + (nextSuffix === 0 ? '' : (nextSuffix < 10 ? '0' + nextSuffix : nextSuffix));
 		},
-		bindRowEvents: (tr, entity) => {
+		bindRowEvents: (gridRow, entity) => {
 
-			let methodId   = tr.dataset['methodId'];
+			let methodId   = gridRow.dataset['methodId'];
 			let methodData = _Schema.methods.methodsData[methodId];
 
-			let propertyNameInput = tr.querySelector('.property-name');
+			let propertyNameInput = gridRow.querySelector('.property-name');
 			propertyNameInput.addEventListener('input', () => {
 				methodData.name = propertyNameInput.value;
-				_Schema.methods.rowChanged(tr, (methodData.name !== methodData.initialName));
+				_Schema.methods.rowChanged(gridRow, (methodData.name !== methodData.initialName));
 			});
 
-			let isStaticCheckbox = tr.querySelector('.property-isStatic');
+			let isStaticCheckbox = gridRow.querySelector('.property-isStatic');
 			isStaticCheckbox.addEventListener('change', () => {
 				methodData.isStatic = isStaticCheckbox.checked;
-				_Schema.methods.rowChanged(tr, (methodData.isStatic !== methodData.initialisStatic));
+				_Schema.methods.rowChanged(gridRow, (methodData.isStatic !== methodData.initialisStatic));
 			});
 
-			tr.querySelector('.edit-action').addEventListener('click', () => {
-				_Schema.methods.editMethod(tr, entity);
+			gridRow.querySelector('.edit-action').addEventListener('click', () => {
+				_Schema.methods.editMethod(gridRow, entity);
 			});
 
-			tr.querySelector('.clone-action').addEventListener('click', () => {
-				_Schema.methods.appendNewMethod(tr.closest('.fake-tbody'), {
+			gridRow.querySelector('.clone-action').addEventListener('click', () => {
+				_Schema.methods.appendNewMethod(gridRow.closest('.schema-grid-body'), {
 					id:       methodId + '_clone_' + (new Date().getTime()),
 					name:     _Schema.methods.getFirstFreeMethodName(methodData.name + '_copy'),
 					isStatic: methodData.isStatic,
@@ -3668,37 +3744,37 @@ let _Schema = {
 				}, entity);
 			});
 
-			tr.querySelector('.remove-action').addEventListener('click', () => {
-				tr.classList.add('to-delete');
-				_Schema.methods.rowChanged(tr, true);
+			gridRow.querySelector('.remove-action').addEventListener('click', () => {
+				gridRow.classList.add('to-delete');
+				_Schema.methods.rowChanged(gridRow, true);
 			});
 
-			tr.querySelector('.discard-changes').addEventListener('click', () => {
+			gridRow.querySelector('.discard-changes').addEventListener('click', () => {
 
-				if (tr.classList.contains('to-delete') || tr.classList.contains('has-changes')) {
+				if (gridRow.classList.contains('to-delete') || gridRow.classList.contains('has-changes')) {
 
-					tr.classList.remove('to-delete');
-					tr.classList.remove('has-changes');
+					gridRow.classList.remove('to-delete');
+					gridRow.classList.remove('has-changes');
 
 					methodData.name     = methodData.initialName;
 					methodData.isStatic = methodData.initialisStatic;
 					methodData.source   = methodData.initialSource;
 
-					tr.querySelector('.property-name').value       = methodData.name;
-					tr.querySelector('.property-isStatic').checked = methodData.isStatic;
+					gridRow.querySelector('.property-name').value       = methodData.name;
+					gridRow.querySelector('.property-isStatic').checked = methodData.isStatic;
 
-					if (tr.classList.contains('editing')) {
+					if (gridRow.classList.contains('editing')) {
 						_Editors.disposeEditorModel(methodData.id, 'source');
-						_Schema.methods.editMethod(tr);
+						_Schema.methods.editMethod(gridRow);
 					}
 
-					_Schema.methods.rowChanged(tr, false);
+					_Schema.methods.rowChanged(gridRow, false);
 				}
 			});
 		},
 		saveAndDisposePreviousEditor: (tr) => {
 
-			let previouslyActiveRow = tr.closest('.fake-tbody').querySelector('.fake-tr.editing');
+			let previouslyActiveRow = tr.closest('.schema-grid-body').querySelector('.schema-grid-row.editing');
 			if (previouslyActiveRow) {
 
 				let previousMethodId = previouslyActiveRow.dataset['methodId'];
@@ -3715,7 +3791,7 @@ let _Schema = {
 
 			document.querySelector('#methods-container-right').style.display = '';
 
-			tr.closest('.fake-tbody').querySelector('.fake-tr.editing')?.classList.remove('editing');
+			tr.closest('.schema-grid-body').querySelector('.schema-grid-row.editing')?.classList.remove('editing');
 			tr.classList.add('editing');
 
 			let methodId   = tr.dataset['methodId'];
@@ -3745,7 +3821,7 @@ let _Schema = {
 
 			Command.rest(`SchemaMethod?schemaNode=null&${Structr.getRequestParameterName('sort')}=name&${Structr.getRequestParameterName('order')}=ascending`, (methods) => {
 
-				let { dialogText } = _Dialogs.custom.openDialog('Global Schema Methods', () => {
+				let { dialogText } = _Dialogs.custom.openDialog('User-defined functions', () => {
 
 					_Schema.currentNodeDialogId = null;
 
@@ -3758,23 +3834,278 @@ let _Schema = {
 				_Schema.methods.appendMethods(dialogText.querySelector('#tabView-methods'), null, methods);
 			});
 		},
-		rowChanged: (tr, hasChanges) => {
+		rowChanged: (gridRow, hasChanges) => {
 
-			_Schema.markElementAsChanged(tr, hasChanges);
+			_Schema.markElementAsChanged(gridRow, hasChanges);
 
-			_Schema.bulkDialogsGeneral.fakeTableChanged(tr.closest('.fake-table'));
+			_Schema.bulkDialogsGeneral.gridChanged(gridRow.closest('.schema-grid'));
 		},
-		validateMethodRow: (tr) => {
+		validateMethodRow: (gridRow) => {
 
-			let propertyNameInput = tr.querySelector('.property-name');
+			let propertyNameInput = gridRow.querySelector('.property-name');
 			if (propertyNameInput.value.length === 0) {
 
-				_Helpers.blinkRed(propertyNameInput.closest('.fake-td'));
+				_Helpers.blinkRed(propertyNameInput.closest('.schema-grid-row'));
 				return false;
 			}
 
 			return true;
 		},
+		templates: {
+			methodsContainer: config => `
+				<div id="methods-container" class="${config.class} h-full flex">
+					<div id="methods-container-left">
+						<div id="methods-grid-container" class="h-full">
+						</div>
+					</div>
+	
+					<div id="methods-container-right" class="flex flex-col flex-grow">
+						<div id="methods-content" class="flex-grow">
+							<div class="editor h-full">
+							</div>
+						</div>
+						<div class="editor-info"></div>
+					</div>
+				</div>
+			`,
+			methodRow: config => `
+				<div class="schema-grid-row contents ${(config.isNew ? ' has-changes' : '')}" data-method-id="${config.method.id}">
+					<div class="name-col px-1 py-2">
+						<input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}">
+					</div>
+					<div class="isstatic-col flex items-center justify-center">
+						<input type="checkbox" class="action property-isStatic" style="margin-right: 0;" value="${config.method.isStatic}">
+					</div>
+					<div class="flex items-center justify-center gap-1">
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
+						${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+						${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
+					</div>
+				</div>
+			`,
+			addMethodsDropdown: config => `
+				<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
+					<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
+						${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
+					</button>
+					<div class="dropdown-menu-container">
+						<div class="flex flex-col divide-x-0 divide-y">
+							<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
+							</a>
+							<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
+							</a>
+							<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
+							</a>
+							<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
+							</a>
+							<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
+							</a>
+							<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
+							</a>
+							<a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.">
+								${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
+							</a>
+						</div>
+					</div>
+				</div>
+			`,
+			addMethodDropdown: config => `
+				<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
+					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
+				</button>
+			`,
+		}
+	},
+	schemaGrants: {
+		appendSchemaGrants: (container, entity) => {
+
+			let gridConfig = {
+				class: 'schema-props grid',
+				style: 'grid-template-columns: [ group ] minmax(0, 1fr) [ read ] minmax(15%, max-content) [ write ] minmax(15%, max-content) [ delete ] minmax(15%, max-content) [ accessControl ] minmax(15%, max-content) [ actions ] fit-content(10%);',
+				cols: [
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Group' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Read' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Write' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Delete' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Access-Control' },
+					{ class: 'pb-2 px-1 font-bold flex justify-center', title: 'Action' }
+				]
+			};
+
+			let gridMarkup            = _Schema.templates.schemaGrid(gridConfig);
+			let schemaGrantsContainer = _Helpers.createSingleDOMElementFromHTML(_Schema.schemaGrants.templates.schemaGrantsTabContent({ gridMarkup }));
+			let gridBody              = schemaGrantsContainer.querySelector('.schema-grid-body');
+			container.appendChild(schemaGrantsContainer);
+
+			let schemaGrantsChange = (checkbox, rowConfig) => {
+
+				let property        = checkbox.dataset['property'];
+				let gridRow         = checkbox.closest('.schema-grid-row');
+				let checkboxChanged = (rowConfig[property] !== checkbox.checked);
+
+				checkbox.classList[checkboxChanged ? 'add' : 'remove']('changed');
+
+				let anyChangeInRow  = (gridRow.querySelectorAll('.changed').length > 0);
+				_Schema.markElementAsChanged(gridRow, anyChangeInRow);
+
+				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+			};
+
+			let getGrantData = () => {
+
+				let grantData = [];
+
+				for (let gridRow of gridBody.querySelectorAll('.schema-grid-row')) {
+
+					let rowConfig = {
+						principal:          gridRow.dataset['groupId'],
+						schemaNode:         entity.id,
+						allowRead:          gridRow.querySelector('input[data-property=allowRead]').checked,
+						allowWrite:         gridRow.querySelector('input[data-property=allowWrite]').checked,
+						allowDelete:        gridRow.querySelector('input[data-property=allowDelete]').checked,
+						allowAccessControl: gridRow.querySelector('input[data-property=allowAccessControl]').checked
+					};
+
+					let grantId = gridRow.dataset['grantId'];
+					if (grantId) {
+						rowConfig.id = grantId;
+					}
+
+					let isChanged         = (gridRow.querySelectorAll('.changed').length > 0);
+					let atLeastOneChecked = (gridRow.querySelectorAll('input:checked').length > 0);
+
+					if (isChanged || atLeastOneChecked) {
+						grantData.push(rowConfig);
+					}
+				}
+
+				return grantData;
+			};
+
+			let grants = Object.fromEntries(entity.schemaGrants.map(grant => [ grant.principal.id, grant ]));
+
+			let getGrantConfigForGroup = (group) => {
+				return {
+					groupId            : group.id,
+					name               : group.name,
+					grantId            : (!grants[group.id]) ? '' : grants[group.id].id,
+					allowRead          : (!grants[group.id]) ? false : grants[group.id].allowRead,
+					allowWrite         : (!grants[group.id]) ? false : grants[group.id].allowWrite,
+					allowDelete        : (!grants[group.id]) ? false : grants[group.id].allowDelete,
+					allowAccessControl : (!grants[group.id]) ? false : grants[group.id].allowAccessControl
+				};
+			};
+
+			let resetGridRow = (gridRow) => {
+
+				let tplConfig = getGrantConfigForGroup({
+					id: gridRow.dataset['groupId']
+				});
+
+				for (let checkbox of gridRow.querySelectorAll('input[data-property]')) {
+					checkbox.checked = tplConfig[checkbox.dataset.property];
+
+					checkbox.classList.remove('changed');
+				}
+
+				gridRow.classList.remove('has-changes');
+
+				_Schema.bulkDialogsGeneral.gridChanged(gridBody.closest('.schema-grid'));
+			};
+
+			Command.query('Group', 1000, 1, 'name', 'asc', {}, groupResult => {
+
+				for (let group of groupResult) {
+
+					let tplConfig = getGrantConfigForGroup(group);
+
+					let gridRow = _Helpers.createSingleDOMElementFromHTML(_Schema.schemaGrants.templates.schemaGrantRow(tplConfig));
+					gridBody.appendChild(gridRow);
+
+					for (let checkbox of gridRow.querySelectorAll('input')) {
+
+						checkbox.addEventListener('change', (e) => {
+							schemaGrantsChange(checkbox, tplConfig);
+						});
+					}
+
+					gridRow.querySelector('.discard-changes').addEventListener('click', () => {
+						resetGridRow(gridRow);
+					});
+				}
+			});
+
+			return {
+				getBulkInfo: (doValidate) => {
+
+					let data = {
+						schemaGrants: getGrantData()
+					};
+					let changeCount = (schemaGrantsContainer.querySelectorAll('.changed')).length;
+
+					return {
+						name: 'Basic type attributes',
+						data: data,
+						counts: {
+							updated: changeCount
+						},
+						allow: true
+					}
+				},
+				reset: () => {
+
+					for (let gridRow of schemaGrantsContainer.querySelectorAll('.schema-grid-body .schema-grid-row')) {
+						resetGridRow(gridRow);
+					}
+				}
+			};
+		},
+		templates: {
+			schemaGrantsTabContent: config => `
+				<div class="relative">
+					<div class="inline-info">
+						<div class="inline-info-icon">
+							${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
+						</div>
+						<div class="inline-info-text">
+							To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+						</div>
+					</div>
+	
+					<div style="width: calc(100% - 4rem);" class="pt-4">
+						${config.gridMarkup}
+					</div>
+	
+				</div>
+			`,
+			schemaGrantRow: config => `
+				<div class="schema-grid-row contents" data-group-id="${config.groupId}" data-grant-id="${config.grantId}">
+					<div class="p-2">${config.name}</div>
+					<div class="flex items-center justify-center">
+						<input type="checkbox" data-property="allowRead" ${(config.allowRead ? 'checked="checked"' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input type="checkbox" data-property="allowWrite" ${(config.allowWrite ? 'checked="checked"' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input type="checkbox" data-property="allowDelete" ${(config.allowDelete ? 'checked="checked"' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						<input type="checkbox" data-property="allowAccessControl" ${(config.allowAccessControl ? 'checked="checked"' : '')} style="margin-right: 0;">
+					</div>
+					<div class="flex items-center justify-center">
+						${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
+					</div>
+				</div>
+			`,
+		}
 	},
 	showGeneratedSource: async (sourceContainer) => {
 
@@ -4525,16 +4856,6 @@ let _Schema = {
 			_Schema.reload();
 		}
 	},
-	hideSingleSchemaType: (name) => {
-
-		if (name) {
-
-			_Schema.hiddenSchemaNodes.push(name);
-
-			LSWrapper.setItem(_Schema.hiddenSchemaNodesKey, JSON.stringify(_Schema.hiddenSchemaNodes));
-			_Schema.reload();
-		}
-	},
 	loadClassTree: (schemaNodes) => {
 
 		let classTree       = {};
@@ -4890,7 +5211,7 @@ let _Schema = {
 		mouseUpCoords: { x: 0, y: 0 },
 		selectBox: undefined,
 		selectedNodes: [],
-		selectRel: function(rel) {
+		selectRel: (rel) => {
 			_Schema.ui.clearSelection();
 
 			_Schema.ui.selectedRel = rel;
@@ -5142,347 +5463,6 @@ let _Schema = {
 				<div class="canvas noselect" id="schema-graph"></div>
 			</div>
 		`,
-		typeBasicTab: config => `
-			<div class="schema-details pl-2">
-				<div class="flex items-center gap-x-2 pt-4">
-
-					<input data-property="name" class="flex-grow" placeholder="Type Name...">
-
-					<div class="extends-type flex items-center gap-2">
-						extends
-						<select class="extends-class-select" data-property="extendsClass"></select>
-						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
-					</div>
-				</div>
-
-				<h3>Options</h3>
-				<div class="property-options-group">
-					<div>
-						<label data-comment="Only takes effect if the changelog is active">
-							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
-							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
-						</label>
-						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
-							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
-						</label>
-					</div>
-				</div>
-
-				<h3>OpenAPI</h3>
-				<div class="property-options-group">
-					<div id="type-openapi">
-						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
-					</div>
-				</div>
-			</div>
-		`,
-		relationshipBasicTab: config => `
-			<div class="schema-details">
-				<div id="relationship-options">
-
-					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-baseline mb-4">
-
-						<div class="text-right pb-2 truncate">
-							<span id="source-type-name" class="edit-schema-object font-medium cursor-pointer"></span>
-						</div>
-
-						<div class="flex items-center justify-around">
-							<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
-
-							<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								<option value="1">1</option>
-								<option value="*" selected>*</option>
-							</select>
-
-							<div class="overflow-hidden whitespace-nowrap">&#8212;[</div>
-						</div>
-
-						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
-
-						<div class="flex items-center justify-around">
-							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
-
-							<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								<option value="1">1</option>
-								<option value="*" selected>*</option>
-							</select>
-
-							<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
-						</div>
-
-						<div class="text-left pb-2 truncate">
-							<span id="target-type-name" class="edit-schema-object font-medium cursor-pointer"></span>
-						</div>
-
-						<div></div>
-						<div class="flex items-center justify-center">
-							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
-						</div>
-						<div></div>
-						<div class="flex items-center justify-center">
-							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
-						</div>
-						<div></div>
-					</div>
-
-					<div class="grid grid-cols-2 gap-x-4">
-
-						<div id="cascading-options">
-							<h3>Cascading Delete</h3>
-							<p>Direction of automatic removal of related nodes when a node is deleted</p>
-
-							<div class="flex items-center">
-								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="0">NONE</option>
-									<option value="1">SOURCE_TO_TARGET</option>
-									<option value="2">TARGET_TO_SOURCE</option>
-									<option value="3">ALWAYS</option>
-									<option value="4">CONSTRAINT_BASED</option>
-								</select>
-							</div>
-
-							<h3>Automatic Creation of Related Nodes</h3>
-							<p>Direction of automatic creation of related nodes when a node is created</p>
-
-							<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-								<option value="0">NONE</option>
-								<option value="1">SOURCE_TO_TARGET</option>
-								<option value="2">TARGET_TO_SOURCE</option>
-								<option value="3">ALWAYS</option>
-							</select>
-						</div>
-
-						<div id="propagation-options">
-
-							<div>
-								<h3>Permission Resolution</h3>
-								<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-									<option value="None">NONE</option>
-									<option value="Out">SOURCE_TO_TARGET</option>
-									<option value="In">TARGET_TO_SOURCE</option>
-									<option value="Both">ALWAYS</option>
-								</select>
-							</div>
-
-							<div class="mt-4">
-								<div id="propagation-table" class="flex">
-									<div class="selector">
-										<p>Read</p>
-										<select id="read-selector" data-attr-name="readPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-											<option value="Add">Add</option>
-											<option value="Keep">Keep</option>
-											<option value="Remove" selected>Remove</option>
-										</select>
-									</div>
-
-									<div class="selector">
-										<p>Write</p>
-										<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-											<option value="Add">Add</option>
-											<option value="Keep">Keep</option>
-											<option value="Remove" selected>Remove</option>
-										</select>
-									</div>
-
-									<div class="selector">
-										<p>Delete</p>
-										<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-											<option value="Add">Add</option>
-											<option value="Keep">Keep</option>
-											<option value="Remove" selected>Remove</option>
-										</select>
-									</div>
-
-									<div class="selector">
-										<p>AccessControl</p>
-										<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
-											<option value="Add">Add</option>
-											<option value="Keep">Keep</option>
-											<option value="Remove" selected>Remove</option>
-										</select>
-									</div>
-								</div>
-							</div>
-
-							<p class="mt-4">Hidden properties</p>
-							<textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask"></textarea>
-						</div>
-					</div>
-				</div>
-			</div>
-		`,
-		saveActionButton: config => `
-			<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${(config?.text ?? 'Save')}
-			</button>
-		`,
-		discardActionButton: config => `
-			<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} ${(config?.text ?? 'Discard')}
-			</button>
-		`,
-		methods: config => `
-			<div id="methods-container" class="${config.class} h-full flex">
-				<div id="methods-container-left">
-					<div id="methods-table-container"></div>
-				</div>
-
-				<div id="methods-container-right" class="flex flex-col flex-grow">
-					<div id="methods-content" class="flex-grow">
-						<div class="editor h-full"></div>
-					</div>
-					<div class="editor-info"></div>
-				</div>
-			</div>
-		`,
-		method: config => `
-			<div class="fake-tr${(config.isNew ? ' has-changes' : '')}" data-method-id="${config.method.id}">
-				<div class="fake-td name-col"><input size="15" type="text" class="action property-name" placeholder="Enter method name" value="${config.method.name}"></div>
-				<div class="fake-td isstatic-col"><input type="checkbox" class="action property-isStatic" value="${config.method.isStatic}"></div>
-				<div class="fake-td actions-col">
-					${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-action']))}
-					${_Icons.getSvgIcon(_Icons.iconClone, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['clone-action']))}
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${config.isNew ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,    _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
-				</div>
-			</div>
-		`,
-		propertyBuiltin: config => `
-			<tr data-property-name="${config.property.name}" data-property-id="${config.property.id}">
-				<td>${_Helpers.escapeForHtmlAttributes(config.property.declaringClass)}</td>
-				<td>${_Helpers.escapeForHtmlAttributes(config.property.name)}</td>
-				<td>${config.property.propertyType}</td>
-				<td class="centered"><input class="not-null" type="checkbox" disabled="disabled" ${(config.property.notNull ? 'checked' : '')}></td>
-				<td class="centered"><input class="compound" type="checkbox" disabled="disabled" ${(config.property.compound ? 'checked' : '')}></td>
-				<td class="centered"><input class="unique" type="checkbox" disabled="disabled" ${(config.property.unique ? 'checked' : '')}></td>
-				<td class="centered"><input class="indexed" type="checkbox" disabled="disabled" ${(config.property.indexed ? 'checked' : '')}></td>
-			</tr>
-		`,
-		propertyLocal: config => `
-			<tr data-property-id="${config.property.id}" >
-				<td><input size="15" type="text" class="property-name" value="${_Helpers.escapeForHtmlAttributes(config.property.name)}"></td>
-				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" value="${_Helpers.escapeForHtmlAttributes(config.property.dbName)}"></td>
-				<td>${config.typeOptions}</td>
-				<td>
-					${
-						(() => {
-							switch (config.property.propertyType) {
-								case 'Function':
-									return `
-										<div class="flex items-center">
-											<button class="edit-read-function mr-1 hover:bg-gray-100 focus:border-gray-666 active:border-green">Read</button>
-											<button class="edit-write-function hover:bg-gray-100 focus:border-gray-666 active:border-green">Write</button>
-											<input id="checkbox-${config.property.id}" class="caching-enabled" type="checkbox" ${(config.property.isCachingEnabled ? 'checked' : '')}>
-											<label for="checkbox-${config.property.id}" class="caching-enabled-label pr-4" title="If caching is enabled, the last value read from this function is written to the database to enable searching/sorting on this field">Cache</label>
-											${config.typeHintOptions}
-										</div>
-									`;
-								case 'Cypher':
-									return `<button class="edit-cypher-query hover:bg-gray-100 focus:border-gray-666 active:border-green">Query</button>`;
-								default:
-									return `<input size="15" type="text" class="property-format" value="${(config.property.format ? _Helpers.escapeForHtmlAttributes(config.property.format) : '')}">`;
-							};
-						})()
-					}
-				</td>
-				<td class="centered"><input class="not-null" type="checkbox" ${(config.property.notNull ? 'checked' : '')}></td>
-				<td class="centered"><input class="compound" type="checkbox" ${(config.property.compound ? 'checked' : '')}></td>
-				<td class="centered"><input class="unique" type="checkbox" ${(config.property.unique ? 'checked' : '')}></td>
-				<td class="centered"><input class="indexed" type="checkbox" ${(config.property.indexed ? 'checked' : '')}></td>
-				<td><input type="text" size="10" class="property-default" value="${_Helpers.escapeForHtmlAttributes(config.property.defaultValue)}"></td>
-				<td class="centered actions-col">
-					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${config.property.isBuiltinProperty ? '' : _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action']))}
-				</td>
-			</tr>
-		`,
-		propertyNew: config => `
-			<tr class="has-changes">
-				<td><input size="15" type="text" class="property-name" placeholder="Enter JSON name" autofocus></td>
-				<td class="${config.dbNameClass}"><input size="15" type="text" class="property-dbname" placeholder="Enter DB Name"></td>
-				<td>${config.typeOptions}</td>
-				<td><input size="15" type="text" class="property-format" placeholder="Enter format"></td>
-				<td class="centered"><input class="not-null" type="checkbox"></td>
-				<td class="centered"><input class="compound" type="checkbox"></td>
-				<td class="centered"><input class="unique" type="checkbox"></td>
-				<td class="centered"><input class="indexed" type="checkbox"></td>
-				<td><input class="property-default" size="10" type="text"></td>
-				<td class="centered">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Remove')}
-				</td>
-			</tr>
-		`,
-		remoteProperty: config => `
-			<tr data-relationship-id="${config.rel.id}" data-property-name="${config.propertyName}" data-target-collection="${config.targetCollection}">
-				<td><input size="15" type="text" class="property-name related" value="${config.attributeName}" /></td>
-				<td>
-					${config.arrowLeft}&mdash;<i class="cardinality ${config.cardinalityClassLeft}"></i>&mdash;[:<span class="edit-schema-object font-medium cursor-pointer" data-object-id="${config.rel.id}">${config.relType}</span>]&mdash;<i class="cardinality ${config.cardinalityClassRight}"></i>&mdash;${config.arrowRight}
-					<span class="edit-schema-object font-medium cursor-pointer" data-object-id="${config.relatedNodeId}">${config.relatedNodeType}</span>
-				</td>
-				<td class="centered">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${_Icons.getSvgIcon(_Icons.iconResetArrow, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-green', 'reset-action']))}
-				</td>
-			</tr>
-		`,
-		fakeTable: config => `
-			<div class="fake-table ${config.class}">
-				<div class="fake-thead">
-					<div class="fake-tr">
-						${config.cols.map(col=> `<div class="fake-th ${col.class}">${col.title}</div>`).join('')}
-					</div>
-				</div>
-				<div class="fake-tbody"></div>
-				<div class="fake-tfoot">
-					<div class="fake-tr">
-						<div class="fake-td actions-col flex">
-							<div class="flex-grow"></div>
-							<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-								${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
-							</button>
-							<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-								${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} Save all
-							</button>
-						</div>
-					</div>
-				</div>
-				<div class="fake-tfoot-buttons"></div>
-			</div>
-		`,
-		addMethodsDropdown: config => `
-			<div class="dropdown-menu darker-shadow-dropdown dropdown-menu-large">
-				<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" data-wants-fixed="true">
-					${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, ['icon-green', 'mr-2'])}
-				</button>
-				<div class="dropdown-menu-container">
-					<div class="flex flex-col divide-x-0 divide-y">
-						<a data-prefix="" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
-						</a>
-						<a data-prefix="onCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onCreate</strong> method runs at the end of the transaction for all nodes created in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onCreate
-						</a>
-						<a data-prefix="afterCreate" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onCreate</strong> and <strong>afterCreate</strong> is that <strong>afterCreate</strong> is called after all checks have run and the transaction is committed successfully. The commit can not be rolled back anymore.<br><br>Example: There is a unique constraint and you want to send an email when an object is created.<br>Calling 'send_html_mail()' in onCreate would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterCreate.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterCreate
-						</a>
-						<a data-prefix="onSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onSave</strong> method runs at the end of the transaction for all nodes saved/updated in the current transaction, before everything is committed. An error in this method (or if a constraint is not met) will still prevent the transaction from being committed successfully.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onSave
-						</a>
-						<a data-prefix="afterSave" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The difference between <strong>onSave</strong> and <strong>afterSave</strong> is that <strong>afterSave</strong> is called after all checks have run and the transaction is committed.<br><br>Example: There is a unique constraint and you want to send an email when an object is saved successfully.<br>Calling 'send_html_mail()' in onSave would send the email even if the transaction would be rolled back due to an error. The appropriate place for this would be afterSave.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterSave
-						</a>
-						<a data-prefix="onDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>onDelete</strong> method runs when a node is being deleted. The deletion can still be stopped by either an error in this method or by validation code.<br><br>The <strong>onDelete</strong> method differs from the other <strong>on****</strong> methods. It runs just when a node is being deleted, so that the node itself is still available and can be used for validation purposes.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add onDelete
-						</a>
-						<a data-prefix="afterDelete" class="add-method-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer p-4 border-0 border-t border-gray-ddd border-solid" data-comment="The <strong>afterDelete</strong> method runs after a node has been deleted. The deletion can not be stopped at this point.<br><br>The <code>$.this</code> object is not available anymore but using the keyword $.data, the attributes (not the relationships) of the deleted node can be accessed.">
-							${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add afterDelete
-						</a>
-					</div>
-				</div>
-			</div>
-		`,
 		functions: config => `
 			<div class="flex-grow">
 				<div class="inline-flex">
@@ -5493,7 +5473,7 @@ let _Schema = {
 
 					<div class="dropdown-menu dropdown-menu-large">
 						<button class="btn dropdown-select hover:bg-gray-100 focus:border-gray-666 active:border-green" id="global-schema-methods">
-							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} Global Methods
+							${_Icons.getSvgIcon(_Icons.iconGlobe, 16, 16, ['mr-2'])} User-defined functions
 						</button>
 					</div>
 
@@ -5658,119 +5638,217 @@ let _Schema = {
 
 			<div id="zoom-slider" class="mr-8"></div>
 		`,
-		addMethodDropdown: config => `
-			<button prefix="" class="inline-flex items-center add-method-button hover:bg-gray-100 focus:border-gray-666 active:border-green cursor-pointer">
-				${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')} Add method
+		typeBasicTab: config => `
+			<div class="schema-details pl-2">
+				<div class="flex items-center gap-x-2 pt-4">
+
+					<input data-property="name" class="flex-grow" placeholder="Type Name...">
+
+					<div class="extends-type flex items-center gap-2">
+						extends
+						<select class="extends-class-select" data-property="extendsClass"></select>
+						${_Icons.getSvgIcon(_Icons.iconPencilEdit, 16, 16, _Icons.getSvgIconClassesNonColorIcon(['edit-parent-type']), 'Edit parent type')}
+					</div>
+				</div>
+
+				<h3>Options</h3>
+				<div class="property-options-group">
+					<div>
+						<label data-comment="Only takes effect if the changelog is active">
+							<input id="changelog-checkbox" type="checkbox" data-property="changelogDisabled"> Disable changelog
+						</label>
+						<label class="ml-8" data-comment="Makes all nodes of this type visible to public users if checked">
+							<input id="public-checkbox" type="checkbox" data-property="defaultVisibleToPublic"> Visible for public users
+						</label>
+						<label class="ml-8" data-comment="Makes all nodes of this type visible to authenticated users if checked">
+							<input id="authenticated-checkbox" type="checkbox" data-property="defaultVisibleToAuth"> Visible for authenticated users
+						</label>
+					</div>
+				</div>
+
+				<h3>OpenAPI</h3>
+				<div class="property-options-group">
+					<div id="type-openapi">
+						${_Code.templates.openAPIBaseConfig({ type: 'SchemaNode' })}
+					</div>
+				</div>
+			</div>
+		`,
+		relationshipBasicTab: config => `
+			<div class="schema-details">
+				<div id="relationship-options">
+
+					<div id="basic-options" class="grid grid-cols-5 gap-y-2 items-baseline mb-4">
+
+						<div class="text-right pb-2 truncate">
+							<span id="source-type-name" class="edit-schema-object font-medium cursor-pointer">
+								<span class="pointer-events-none"></span>
+							</span>
+						</div>
+
+						<div class="flex items-center justify-around">
+							<div class="overflow-hidden whitespace-nowrap">&#8212;</div>
+
+							<select id="source-multiplicity-selector" data-attr-name="sourceMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="1">1</option>
+								<option value="*" selected>*</option>
+							</select>
+
+							<div class="overflow-hidden whitespace-nowrap">&#8212;[:</div>
+						</div>
+
+						<input id="relationship-type-name" data-attr-name="relationshipType" autocomplete="off" placeholder="Relationship Name...">
+
+						<div class="flex items-center justify-around">
+							<div class="overflow-hidden whitespace-nowrap">]&#8212;</div>
+
+							<select id="target-multiplicity-selector" data-attr-name="targetMultiplicity" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="1">1</option>
+								<option value="*" selected>*</option>
+							</select>
+
+							<div class="overflow-hidden whitespace-nowrap">&#8212;&#9658;</div>
+						</div>
+
+						<div class="text-left pb-2 truncate">
+							<span id="target-type-name" class="edit-schema-object font-medium cursor-pointer">
+								<span class="pointer-events-none"></span>
+							</span>
+						</div>
+
+						<div></div>
+						<div class="flex items-center justify-center">
+							<input id="source-json-name" class="remote-property-name" data-attr-name="sourceJsonName" autocomplete="off">
+						</div>
+						<div></div>
+						<div class="flex items-center justify-center">
+							<input id="target-json-name" class="remote-property-name" data-attr-name="targetJsonName" autocomplete="off">
+						</div>
+						<div></div>
+					</div>
+
+					<div class="grid grid-cols-2 gap-x-4">
+
+						<div id="cascading-options">
+							<h3>Cascading Delete</h3>
+							<p>Direction of automatic removal of related nodes when a node is deleted</p>
+
+							<div class="flex items-center">
+								<select id="cascading-delete-selector" data-attr-name="cascadingDeleteFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option value="0">NONE</option>
+									<option value="1">SOURCE_TO_TARGET</option>
+									<option value="2">TARGET_TO_SOURCE</option>
+									<option value="3">ALWAYS</option>
+									<option value="4">CONSTRAINT_BASED</option>
+								</select>
+							</div>
+
+							<h3>Automatic Creation of Related Nodes</h3>
+							<p>Direction of automatic creation of related nodes when a node is created</p>
+
+							<select id="autocreate-selector" data-attr-name="autocreationFlag" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+								<option value="0">NONE</option>
+								<option value="1">SOURCE_TO_TARGET</option>
+								<option value="2">TARGET_TO_SOURCE</option>
+								<option value="3">ALWAYS</option>
+							</select>
+						</div>
+
+						<div id="propagation-options">
+
+							<div>
+								<h3>Permission Resolution</h3>
+								<select id="propagation-selector" data-attr-name="permissionPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+									<option value="None">NONE</option>
+									<option value="Out">SOURCE_TO_TARGET</option>
+									<option value="In">TARGET_TO_SOURCE</option>
+									<option value="Both">ALWAYS</option>
+								</select>
+							</div>
+
+							<div class="mt-4">
+								<div id="propagation-table" class="flex">
+									<div class="selector">
+										<p>Read</p>
+										<select id="read-selector" data-attr-name="readPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+
+									<div class="selector">
+										<p>Write</p>
+										<select id="write-selector" data-attr-name="writePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+
+									<div class="selector">
+										<p>Delete</p>
+										<select id="delete-selector" data-attr-name="deletePropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+
+									<div class="selector">
+										<p>AccessControl</p>
+										<select id="access-control-selector" data-attr-name="accessControlPropagation" class="hover:bg-gray-100 focus:border-gray-666 active:border-green">
+											<option value="Add">Add</option>
+											<option value="Keep">Keep</option>
+											<option value="Remove" selected>Remove</option>
+										</select>
+									</div>
+								</div>
+							</div>
+
+							<p class="mt-4">Hidden properties</p>
+							<textarea id="masked-properties" cols="40" rows="2" data-attr-name="propertyMask"></textarea>
+						</div>
+					</div>
+				</div>
+			</div>
+		`,
+		saveActionButton: config => `
+			<button id="save-entity-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 14, 14, ['icon-green', 'mr-2'])} ${(config?.text ?? 'Save')}
 			</button>
 		`,
-		schemaTable: config => `
-			<table class="${config.class}">
-				<thead>
-					<tr>${config.cols.map(col=> `<th class="${col.class}">${col.title}</th>`).join('')}</tr>
-				</thead>
-				<tbody></tbody>
-				<tfoot>
-					<th colspan=${config.cols.length} class="actions-col">
-						${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
-						<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} ${(config.discardButtonText ? config.discardButtonText : 'Discard all')}
-						</button>
-						<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
-							${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} ${(config.discardButtonText ? config.saveButtonText : 'Save all')}
-						</button>
-					</th>
-				</tfoot>
-			</table>
+		discardActionButton: config => `
+			<button id="discard-entity-changes-button" class="inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">
+				${_Icons.getSvgIcon(_Icons.iconCrossIcon, 14, 14, ['icon-red', 'mr-2'])} ${(config?.text ?? 'Discard')}
+			</button>
 		`,
-		typeHintOptions: config => `
-			<select class="type-hint pr-2 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				<optgroup label="Type Hint">
-					<option value="null">-</option>
-					<option value="boolean">Boolean</option>
-					<option value="string">String</option>
-					<option value="int">Int</option>
-					<option value="long">Long</option>
-					<option value="double">Double</option>
-					<option value="date">Date</option>
-				</optgroup>
-			</select>
-		`,
-		typeOptions: config => `
-			<select class="property-type pr-6 hover:bg-gray-100 focus:border-gray-666 active:border-green">
-				<option value="">--Select--</option>
-				<option value="String">String</option>
-				<option value="Encrypted">Encrypted</option>
-				<option value="StringArray">String[]</option>
-				<option value="Integer">Integer</option>
-				<option value="IntegerArray">Integer[]</option>
-				<option value="Long">Long</option>
-				<option value="LongArray">Long[]</option>
-				<option value="Double">Double</option>
-				<option value="DoubleArray">Double[]</option>
-				<option value="Boolean">Boolean</option>
-				<option value="BooleanArray">Boolean[]</option>
-				<option value="ByteArray">Byte[]</option>
-				<option value="Enum">Enum</option>
-				<option value="Date">Date</option>
-				<option value="DateArray">Date[]</option>
-				<option value="Count">Count</option>
-				<option value="Function" data-indexed="false">Function</option>
-				<option value="Notion">Notion</option>
-				<option value="Join">Join</option>
-				<option value="Cypher" data-indexed="false">Cypher</option>
-				<option value="Thumbnail">Thumbnail</option>
-				<option value="IdNotion" data-protected="true" disabled>IdNotion</option>
-				<option value="Custom" data-protected="true" disabled>Custom</option>
-				<option value="Password" data-protected="true" disabled>Password</option>
-			</select>
-		`,
-		view: config => `
-			<tr data-view-id="${config.view.id}" >
-				<td style="width:20%;">
-					<input size="15" type="text" class="view property-name" placeholder="Enter view name" value="${(config.view ? _Helpers.escapeForHtmlAttributes(config.view.name) : '')}">
-				</td>
-				<td class="view-properties-select">
-					<select class="property-attrs view" multiple="multiple" ${config?.propertiesDisabled === true ? 'disabled' : ''}></select>
-				</td>
-				<td class="centered actions-col">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']))}
-					${(_Schema.views.isDeleteViewAllowed(config.view) === true) ? _Icons.getSvgIcon(_Icons.iconTrashcan, 16, 16,   _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'remove-action'])) : ''}
-
-					<a href="${Structr.rootUrl}${config.type.name}/${config.view.name}?${Structr.getRequestParameterName('pageSize')}=1" target="_blank">
-						${_Icons.getSvgIcon(_Icons.iconOpenInNewPage, 16, 16, _Icons.getSvgIconClassesNonColorIcon(), 'Preview in new tab (with pageSize=1)')}
-					</a>
-				</td>
-			</tr>
-		`,
-		viewNew: config => `
-			<tr class="has-changes">
-				<td style="width:20%;">
-					<input size="15" type="text" class="view property-name" placeholder="Enter view name">
-				</td>
-				<td class="view-properties-select">
-					<select class="property-attrs view" multiple="multiple"></select>
-				</td>
-				<td class="centered actions">
-					${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16,  _Icons.getSvgIconClassesForColoredIcon(['icon-red', 'discard-changes']), 'Discard changes')}
-				</td>
-			</tr>
-		`,
-		schemaGrantsTabContent: config => `
-			<div>
-				<div class="inline-info">
-					<div class="inline-info-icon">
-						${_Icons.getSvgIcon(_Icons.iconInfo, 24, 24)}
-					</div>
-					<div class="inline-info-text">
-						To grant the corresponding permissions on <strong>all nodes of that type</strong>, simply check the corresponding boxes and save the grants.
+		schemaGrid: config => `
+			<div class="schema-grid ${config.class}" style="${config.style}">
+				<div class="schema-grid-header contents">
+					${config.cols.map(col=> `<div class="${col.class}">${col.title}</div>`).join('')}
+				</div>
+				<div class="schema-grid-body contents">
+				</div>
+				<div class="schema-grid-footer contents">
+					<div class="actions-col flex flex-wrap gap-y-2 items-center mt-2" style="grid-column: 1 / -1;">
+						${config.buttons ?? ''}
+						${config.noButtons === true ? '' : `
+							<div class="flex">
+								<button class="discard-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green" disabled>
+									${_Icons.getSvgIcon(_Icons.iconCrossIcon, 16, 16, 'icon-red mr-2')} Discard all
+								</button>
+								<button class="save-all inline-flex items-center disabled hover:bg-gray-100 focus:border-gray-666 active:border-green mr-0" disabled>
+									${_Icons.getSvgIcon(_Icons.iconCheckmarkBold, 16, 16, 'icon-green mr-2')} Save all
+								</button>
+							</div>
+						`}
 					</div>
 				</div>
-
-				<div style="width: calc(100% - 4rem);" class="pt-4">
-					${config.tableMarkup}
-				</div>
-
 			</div>
+		`,
+		basicAddButton: config => `
+			<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">${_Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2')}${config.addButtonText}</button>
 		`,
 		workingSets: config => `
 			<div>
@@ -5788,7 +5866,7 @@ let _Schema = {
 					<span id="add-to-new-group"></span>
 				</div>
 
-				${(config.addButtonText ? '<button class="add-button inline-flex items-center hover:bg-gray-100 focus:border-gray-666 active:border-green">' + _Icons.getSvgIcon(_Icons.iconAdd, 16, 16, 'icon-green mr-2') + config.addButtonText + '</button>' : '')}
+				${config.buttons ?? ''}
 
 			</div>
 		`,

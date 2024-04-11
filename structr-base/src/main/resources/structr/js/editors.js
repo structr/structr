@@ -326,7 +326,13 @@ let _Editors = {
 	resizeEditor: (monacoEditor) => {
 
 		// resize editor to minimal size...
-		monacoEditor.layout({ width: 1, height: 1 });
+		let editorMinimumHeight = 200;
+		let editorMinimumWidth  = 200;
+
+		monacoEditor.layout({
+			width: editorMinimumWidth,
+			height: editorMinimumHeight
+		});
 
 		// ... so that editor auto-layout works
 		monacoEditor.layout();
@@ -630,7 +636,7 @@ let _Editors = {
 		// Experimental speech recognition, works only in Chrome 25+
 		if (typeof(webkitSpeechRecognition) === 'function') {
 
-			buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconMicrophone, 18, 18)}</button>`);
+			// buttonArea.insertAdjacentHTML('beforeend', `<button class="speechToText p-0 m-0 flex items-center justify-center">${_Icons.getSvgIcon(_Icons.iconMicrophone, 18, 18)}</button>`);
 
 			let speechToTextButton = buttonArea.querySelector('.speechToText');
 			let speechBtn          = $(speechToTextButton);
