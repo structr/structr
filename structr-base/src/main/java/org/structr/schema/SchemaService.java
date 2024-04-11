@@ -25,6 +25,7 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.structr.api.DatabaseService;
+import org.structr.api.Prefetcher;
 import org.structr.api.config.Settings;
 import org.structr.api.index.IndexConfig;
 import org.structr.api.index.NodeIndexConfig;
@@ -496,10 +497,11 @@ public class SchemaService implements Service {
 		return compiling.get();
 	}
 
-	public static void prefetchSchemaNodes(final Tx tx) {
+	public static void prefetchSchemaNodes(final Prefetcher tx) {
 
-		tx.prefetch("SchemaReloadingNode", "SchemaReloadingNode", Set.of(
+		tx.prefetch("SchemaReloadingNode", null, Set.of(
 
+			"all/INCOMING/OWNS",
 			"all/INCOMING/EXTENDS",
 			"all/INCOMING/HAS_METHOD",
 			"all/INCOMING/HAS_PARAMETER",
@@ -510,27 +512,7 @@ public class SchemaService implements Service {
 			"all/INCOMING/IS_RELATED_TO",
 			"all/INCOMING/SCHEMA_GRANT",
 
-			"all/OUTGOING/EXTENDS",
-			"all/OUTGOING/HAS_PROPERTY",
-			"all/OUTGOING/HAS_VIEW_PROPERTY",
-			"all/OUTGOING/HAS_METHOD",
-			"all/OUTGOING/HAS_PARAMETER",
-			"all/OUTGOING/HAS_VIEW",
-			"all/OUTGOING/IS_RELATED_TO"
-		));
-
-		tx.prefetch("SchemaRelationshipNode", "SchemaNode", Set.of(
-
-			"all/INCOMING/EXTENDS",
-			"all/INCOMING/HAS_METHOD",
-			"all/INCOMING/HAS_PARAMETER",
-			"all/INCOMING/HAS_PROPERTY",
-			"all/INCOMING/HAS_VIEW",
-			"all/INCOMING/HAS_VIEW_PROPERTY",
-			"all/INCOMING/IS_EXCLUDED_FROM_VIEW",
-			"all/INCOMING/IS_RELATED_TO",
-			"all/INCOMING/SCHEMA_GRANT",
-
+			"all/OUTGOING/OWNS",
 			"all/OUTGOING/EXTENDS",
 			"all/OUTGOING/HAS_PROPERTY",
 			"all/OUTGOING/HAS_VIEW_PROPERTY",

@@ -47,6 +47,7 @@ import org.structr.schema.ConfigurationProvider;
 
 import java.util.*;
 import org.structr.api.search.ComparisonQuery;
+import org.structr.schema.SchemaService;
 
 /**
  *
@@ -97,7 +98,11 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		// automatic prefetching
 		if (type != null) {
 
-			//SearchCommand.prefetch(type, null);
+			final Set<Class> schemaTypes = Set.of(SchemaNode.class, SchemaMethod.class, SchemaProperty.class, SchemaView.class);
+			if (schemaTypes.contains(type)) {
+
+				SchemaService.prefetchSchemaNodes(TransactionCommand.getCurrentTransaction());
+			}
 		}
 
 		final Factory<S, T> factory  = getFactory(securityContext, includeHidden, publicOnly, pageSize, page);
@@ -879,7 +884,9 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 		final Set<String> types1  = new LinkedHashSet<>();
 		final Set<String> types2  = new LinkedHashSet<>();
 
-		for (final PropertyKey<?> key : StructrApp.getConfiguration().getPropertySet(type, PropertyView.All)) {
+		final Set<PropertyKey> all = StructrApp.getConfiguration().getPropertySet(type, PropertyView.All);
+
+		for (final PropertyKey<?> key : all) {
 
 			if (key instanceof RelationProperty relationProperty) {
 
@@ -923,7 +930,7 @@ public abstract class SearchCommand<S extends PropertyContainer, T extends Graph
 			final List<String> list      = Iterables.toList(types1);
 			final String commonBaseClass = list.get(0);
 
-			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, commonBaseClass, keys);
+			TransactionCommand.getCurrentTransaction().prefetch(commonBaseClass, null, keys);
 		}
 	}
 

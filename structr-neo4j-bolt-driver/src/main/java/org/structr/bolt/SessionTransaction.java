@@ -308,7 +308,10 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 			}
 		}
 
-		logger.info("Prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+		if (db.logQueries()) {
+
+			logger.info(transactionId + ": prefetched {} entities in {} ms", count, (System.currentTimeMillis() - t0));
+		}
 	}
 
 	// ----- public static methods -----
@@ -356,7 +359,7 @@ abstract class SessionTransaction implements org.structr.api.Transaction {
 					if (statement.contains("extractedContent")) {
 						logger.info("{}: {}\t\t SET on extractedContent - value suppressed", Thread.currentThread().getId(), statement);
 					} else {
-						logger.info("{}: {}\t\t Parameters: {}", Thread.currentThread().getId(), statement, map.toString());
+						logger.info("{}: {} - {}\t\t Parameters: {}", Thread.currentThread().getId(), transactionId + ": " + nodes.size() + "/" + rels.size(), statement, map.toString());
 					}
 
 				} else {

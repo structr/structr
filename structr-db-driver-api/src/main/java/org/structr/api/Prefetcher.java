@@ -18,26 +18,10 @@
  */
 package org.structr.api;
 
-import org.structr.api.graph.Identity;
-import org.structr.api.graph.Node;
-import org.structr.api.graph.Relationship;
-
 import java.util.Set;
 
-/**
- *
- */
-public interface Transaction extends AutoCloseable, Prefetcher {
+public interface Prefetcher {
 
-	void failure();
-	void success();
-	long getTransactionId();
-
-	@Override
-	void close();
-
-	Node getNode(final Identity id);
-	Relationship getRelationship(final Identity id);
-
-	void setIsPing(final boolean isPing);
+	void prefetch(final String type1, final String type2, final Set<String> keys);
+	void prefetch(final String query, final Set<String> keys);
 }

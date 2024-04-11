@@ -2143,6 +2143,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 	public static void prefetchDOMNodes() {
 
 		TransactionCommand.getCurrentTransaction().prefetch("DOMNode", null, Set.of(
+			"all/INCOMING/OWNS",
 			"all/INCOMING/SYNC",
 			"all/INCOMING/LINK",
 			"all/INCOMING/OWNS",
@@ -2157,6 +2158,7 @@ public interface DOMNode extends NodeInterface, Node, Renderable, DOMAdoptable, 
 			"all/INCOMING/FAILURE_NOTIFICATION_ELEMENT",
 			"all/INCOMING/TRIGGERED_BY",
 
+			"all/OUTGOING/OWNS",
 			"all/OUTGOING/CONTAINS",
 			"all/OUTGOING/CONTAINS_NEXT_SIBLING",
 			"all/OUTGOING/FLOW",
