@@ -1621,11 +1621,7 @@ let _Code = {
 
 			_Code.updateDirtyFlag(result);
 
-			$('input[type=checkbox]', buttons).on('change', () => {
-				_Code.updateDirtyFlag(result);
-			});
-
-			$('input[type=text]', buttons).on('keyup', () => {
+			$('input, select', buttons).on('input', () => {
 				_Code.updateDirtyFlag(result);
 			});
 
