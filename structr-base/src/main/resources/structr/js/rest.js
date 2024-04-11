@@ -91,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
 		}
 	};
 
-	initialize();
+	if (resultList) {
+		initialize();
+	}
 
 	document.querySelector('button.expand')?.addEventListener('click', expandAll);
 	document.querySelector('button.collapse')?.addEventListener('click', collapseAll);
