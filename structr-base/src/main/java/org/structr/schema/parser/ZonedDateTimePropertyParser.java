@@ -19,21 +19,16 @@
 package org.structr.schema.parser;
 
 import org.apache.commons.lang3.StringUtils;
-import org.joda.time.DateTime;
 import org.structr.common.error.ErrorBuffer;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.entity.SchemaNode;
-import org.structr.core.property.DateProperty;
 import org.structr.core.property.ZonedDateTimeProperty;
 import org.structr.schema.Schema;
 import org.structr.schema.SchemaHelper;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
-import java.util.Date;
 import java.util.Map;
 
 public class ZonedDateTimePropertyParser extends PropertySourceGenerator {

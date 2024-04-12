@@ -31,6 +31,6 @@ import java.util.Date;
 public class ZonedDateTimeFormatToken extends SemanticErrorToken {
 
     public ZonedDateTimeFormatToken(final String type, PropertyKey<ZonedDateTime> propertyKey) {
-        super(type, propertyKey, "invalid_date_format");
+        super(type, propertyKey.dbName(), "invalid_date_format");
     }
 }
