@@ -2660,6 +2660,7 @@ let _Schema = {
 					<option value="BooleanArray">Boolean[]</option>
 					<option value="ByteArray">Byte[]</option>
 					<option value="Enum">Enum</option>
+					<option value="EnumArray">Enum[]</option>
 					<option value="Date">Date</option>
 					<option value="DateArray">Date[]</option>
 					<option value="ZonedDateTime">ZonedDateTime</option>
