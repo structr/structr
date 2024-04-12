@@ -36,7 +36,7 @@ public class EnumArrayPropertyRestTest extends StructrRestTestBase {
                 .expect()
                 .statusCode(201)
                 .when()
-                .post("/test_threes")
+                .post("/TestThree")
                 .getHeader("Location");
 
 
@@ -49,7 +49,7 @@ public class EnumArrayPropertyRestTest extends StructrRestTestBase {
                 .statusCode(200)
                 .body("result[0].testEnumArray", equalTo("Status1,Status3"))
                 .when()
-                .get("/test_threes");
+                .get("/TestThree");
 
     }
 }
