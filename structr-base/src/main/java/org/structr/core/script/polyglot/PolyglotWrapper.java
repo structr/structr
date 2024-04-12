@@ -20,16 +20,12 @@ package org.structr.core.script.polyglot;
 
 import org.graalvm.polyglot.Context;
 import org.graalvm.polyglot.Value;
-import org.graalvm.polyglot.proxy.ProxyExecutable;
-import org.graalvm.polyglot.proxy.ProxyObject;
+import org.graalvm.polyglot.proxy.*;
 import org.structr.core.GraphObject;
-import org.structr.core.script.polyglot.wrappers.GraphObjectWrapper;
-import org.structr.core.script.polyglot.wrappers.NonWrappableObject;
-import org.structr.core.script.polyglot.wrappers.PolyglotProxyArray;
-import org.structr.core.script.polyglot.wrappers.PolyglotProxyMap;
+import org.structr.core.script.polyglot.wrappers.*;
 import org.structr.schema.action.ActionContext;
 
-import java.time.ZoneId;
+import java.time.*;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.ReentrantLock;
@@ -91,14 +87,34 @@ public abstract class PolyglotWrapper {
 			return new PolyglotProxyArray(actionContext, enumList.toArray());
 		}
 
-		if (obj instanceof Date) {
+		if (obj instanceof Date date) {
 
-			final Context context = Context.getCurrent();
-			final Value jsDateValue = context.eval("js", "new Date()");
-			jsDateValue.invokeMember("setTime", ((Date)obj).getTime());
+			return new DateWrapper(date);
+		}
 
-			return jsDateValue;
+		if (obj instanceof LocalDate lDate) {
 
+			return ProxyDate.from(lDate);
+		}
+
+		if (obj instanceof LocalTime lTime) {
+
+			return ProxyTime.from(lTime);
+		}
+
+		if (obj instanceof ZoneId zid) {
+
+			return ProxyTimeZone.from(zid);
+		}
+
+		if (obj instanceof Instant inst) {
+
+			return ProxyInstant.from(inst);
+		}
+
+		if (obj instanceof Duration dur) {
+
+			return ProxyDuration.from(dur);
 		}
 
 		if (obj.getClass().isArray() && !(obj instanceof byte[]) ) {
@@ -172,24 +188,42 @@ public abstract class PolyglotWrapper {
 			if (value.canExecute()) {
 
 				return new FunctionWrapper(actionContext, value);
-
 			}
 
 			if (value.isHostObject()) {
-
 				return unwrap(actionContext, value.asHostObject());
+			}
 
+			if (value.isProxyObject() && value.asProxyObject() instanceof DateWrapper dw) {
+				return dw.getWrappedDate();
+			}
+
+			if (value.isDate() && value.isTime() && value.isTimeZone()) {
+				return ZonedDateTime.of(LocalDateTime.of(value.asDate(), value.asTime()), value.asTimeZone());
+			}
+
+			if (value.isDate() && value.isTime()) {
+				return LocalDateTime.of(value.asDate(), value.asTime());
 			}
 
 			if (value.isDate()) {
+				return value.asDate();
+			}
 
-				if (value.isTime()) {
+			if (value.isTime()) {
+				return value.asTime();
+			}
 
-					return Date.from(value.asDate().atTime(value.asTime()).atZone(ZoneId.systemDefault()).toInstant());
-				}
+			if (value.isInstant()) {
+				return value.asInstant();
+			}
 
-				return Date.from(value.asDate().atStartOfDay(ZoneId.systemDefault()).toInstant());
+			if (value.isDuration()) {
+				return value.asDuration();
+			}
 
+			if (value.isTimeZone()) {
+				return value.asTimeZone();
 			}
 
 			if (value.isProxyObject() && value.hasMembers()) {

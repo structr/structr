@@ -22,6 +22,7 @@ import org.structr.api.search.Occurrence;
 import org.structr.common.SecurityContext;
 import org.structr.common.error.FrameworkException;
 import org.structr.core.app.Query;
+import org.structr.core.converter.PropertyConverter;
 import org.structr.core.property.PropertyKey;
 
 /**
@@ -44,13 +45,29 @@ public class RangePredicate implements SearchFunctionPredicate {
 	@Override
 	public void configureQuery(final SecurityContext securityContext, final Class type, final PropertyKey key, final Query query, final boolean exact) throws FrameworkException {
 
+		Object effectiveRangeStart = rangeStart;
+		if (key != null && rangeStart != null && !key.valueType().isAssignableFrom(rangeStart.getClass())) {
+			Object converted = key.inputConverter(securityContext).convert(rangeStart);
+			if (converted != null) {
+				effectiveRangeStart = converted;
+			};
+		}
+
+		Object effectiveRangeEnd = rangeEnd;
+		if (key != null && rangeEnd != null && !key.valueType().isAssignableFrom(rangeEnd.getClass())) {
+			Object converted = key.inputConverter(securityContext).convert(rangeEnd);
+			if (converted != null) {
+				effectiveRangeEnd = converted;
+			}
+		}
+
 		if (Occurrence.OPTIONAL.equals(query.getCurrentOccurrence())) {
 
-			query.orRange(key, rangeStart, rangeEnd, includeStart, includeEnd);
+			query.orRange(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
 
 		} else {
 
-			query.andRange(key, rangeStart, rangeEnd, includeStart, includeEnd);
+			query.andRange(key, effectiveRangeStart, effectiveRangeEnd, includeStart, includeEnd);
 		}
 	}
 }

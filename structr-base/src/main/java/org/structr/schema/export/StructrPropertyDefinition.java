@@ -765,6 +765,13 @@ public abstract class StructrPropertyDefinition implements JsonProperty, Structr
 				date.setDefaultValue(property.getDefaultValue());
 				return date;
 
+			case ZonedDateTime:
+				final StructrZonedDateTimeProperty zonedDateTimeProperty = new StructrZonedDateTimeProperty(parent, name);
+				zonedDateTimeProperty.deserialize(schemaNodes, property);
+				zonedDateTimeProperty.setFormat(JsonSchema.FORMAT_DATE_TIME);
+				zonedDateTimeProperty.setDefaultValue(property.getDefaultValue());
+				return zonedDateTimeProperty;
+
 			case DateArray:
 				final StructrDateArrayProperty dateArrayProperty = new StructrDateArrayProperty(parent, name);
 				dateArrayProperty.deserialize(schemaNodes, property);
